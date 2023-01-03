@@ -102,7 +102,7 @@ public class DefaultQueryPlanner
 
         partitionManager.filterNonExistingPartitions( params.getPartitions(), plannerParams.getTableName() );
 
-        final List<DataQueryParams> queries = Lists.newArrayList( params );
+        List<DataQueryParams> queries = Lists.newArrayList( params );
 
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
             .add( q -> groupByOrgUnitLevel( q ) )
@@ -551,7 +551,8 @@ public class DefaultQueryPlanner
 
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
-                DataQueryParams query = DataQueryParams.newBuilder( params ).withAggregationType( aggregationType )
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withAggregationType( aggregationType )
                     .build();
 
                 queries.add( query );
@@ -694,9 +695,8 @@ public class DefaultQueryPlanner
 
     /**
      * Groups the given query in sub queries for each dimension period. This
-     * only applies if the aggregation type is {@link AggregationType#LAST} or
-     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period
-     * must be aggregated individually.
+     * only applies if the aggregation type is "last" or "first". In this case,
+     * each period must be aggregated individually.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
@@ -705,7 +705,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType()
+        if ( params.isFirstOrLastOrLastInPeriodAggregationType()
             && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )

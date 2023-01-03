@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -121,8 +121,8 @@ class LastUpdateImportTest extends TrackerTest
         Enrollment enrollment = trackerImportParams.getEnrollments().get( 0 );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
         manager.clear();
         assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );

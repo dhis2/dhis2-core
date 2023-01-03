@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 @Library('pipeline-library') _
 
 pipeline {
@@ -11,8 +13,8 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 30)
+        buildDiscarder(logRotator(daysToKeepStr: '5'))
+        timeout(time: 60)
     }
 
     environment {
@@ -20,17 +22,21 @@ pipeline {
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
         INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
+        DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
+        DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
+        DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11"
     }
 
     stages {
-        stage ('Build') {
+        stage('Build') {
             steps {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
                 }
             }
@@ -42,17 +48,87 @@ pipeline {
 
                 failure {
                     script {
-                        slack.sendMessage(
-                            '#ff0000',
-                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                            'team-backend'
-                        )
+                        if (buildLog.getLines().contains('There are test failures')) {
+                            slack.sendMessage(
+                                '#ff0000',
+                                slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                                'team-backend'
+                            )
+                        }
                     }
                 }
             }
         }
 
-        stage ('Sync WAR') {
+        stage('Run api tests') {
+            environment {
+                RP_UUID = credentials('report-portal-access-uuid')
+                RP_ENABLE = 'true'
+                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
+                DOCKER_IMAGE_NAME_BASE = 'tomcat'
+            }
+
+            matrix {
+                axes {
+                    axis {
+                        name 'DOCKER_IMAGE_TAG_BASE'
+                        values '9.0-jre11', '8.5-jre11'
+                    }
+                }
+
+                environment {
+                    DOCKER_IMAGE_NAME_BASE_FULL = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
+                    DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" // used to test against different Tomcat variants
+                }
+
+                stages {
+                    stage('Build Docker image') {
+                        steps {
+                            withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                                withMaven(options: [artifactsPublisher(disabled: true)]) {
+                                    sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                                            -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
+                                            -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Run tests') {
+                        steps {
+                            script {
+                                dir("dhis-2/dhis-e2e-test") {
+                                    sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
+                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                                }
+                            }
+                        }
+
+                        post {
+                            always {
+                                script {
+                                    dir("dhis-2/dhis-e2e-test") {
+                                        archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
+                                    }
+                                }
+                            }
+
+                            failure {
+                                script {
+                                    dir("dhis-2/dhis-e2e-test") {
+                                        sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
+                                        archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Sync WAR') {
             steps {
                 implementIoBuildStarted(buildName: "${STAGE_NAME}")
                 echo 'Syncing WAR ...'
@@ -64,6 +140,27 @@ pipeline {
             post {
                 always {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
+                }
+            }
+        }
+
+        stage('Publish images') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
+                        if (env.GIT_BRANCH == 'master') {
+                            tag = 'latest'
+                        } else {
+                            tag = env.GIT_BRANCH
+                        }
+
+                        withMaven(options: [artifactsPublisher(disabled: true)]) {
+                            sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
+                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                        }
+                    }
                 }
             }
         }
@@ -88,7 +185,7 @@ pipeline {
     }
 
     post {
-        success {
+        always {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
         }
 

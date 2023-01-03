@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -63,6 +64,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
+import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -80,8 +82,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -138,7 +138,7 @@ public abstract class AbstractAnalyticsService
              * create header of value type COORDINATE and type Point.
              */
             if ( item.getValueType() == ValueType.ORGANISATION_UNIT
-                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+                && params.getCoordinateFields().stream().anyMatch( f -> f.equals( item.getItem().getUid() ) ) )
             {
                 grid.addHeader( new GridHeader( item.getItem().getUid(),
                     item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
@@ -292,23 +292,22 @@ public abstract class AbstractAnalyticsService
         if ( !params.isSkipMeta() )
         {
             Map<String, Object> metadata = new HashMap<>();
-            Map<String, List<Option>> dimensionOptions = getItemOptions( grid, params );
-            Set<Option> responseOptions = new LinkedHashSet<>();
+            Map<String, List<Option>> optionsPresentInGrid = getItemOptions( grid, params );
+            Set<Option> optionItems = new LinkedHashSet<>();
+            boolean hasResults = isNotEmpty( grid.getRows() );
 
-            if ( !params.isSkipData() )
+            if ( hasResults )
             {
-                responseOptions.addAll( dimensionOptions.values().stream()
+                optionItems.addAll( optionsPresentInGrid.values().stream()
                     .flatMap( Collection::stream ).distinct().collect( toList() ) );
             }
             else
             {
-                responseOptions.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
+                optionItems.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
             }
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, responseOptions ) );
-
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, dimensionOptions ) );
-
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems ) );
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, optionsPresentInGrid ) );
             maybeAddOrgUnitHierarchyInfo( params, metadata );
 
             grid.setMetaData( metadata );
@@ -476,21 +475,15 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            final String itemUid = getItemUid( item );
+            String itemUid = getItemUid( item );
 
             if ( item.hasOptionSet() )
             {
-                // If itemOptions.get( item.getItem().getUid() ) returns null,
-                // getDimensionItemUidList
-                // returns Lists.newArrayList() which is
-                // equal to no option set and no legend set.
-                // This should be ok, query item can't have both legends and
-                // options
-                // E7215( "Query item cannot specify both legend set and option
-                // set:
-                // `{0}`" )
+                // The call itemOptions.get( itemUid ) can return null.
+                // This should be ok, the query item can't have both legends and
+                // options.
                 dimensionItems.put( itemUid,
-                    getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
+                    getDimensionItemUidsFrom( itemOptions.get( itemUid ), item.getOptionSetFilterItemsOrAll() ) );
             }
             else if ( item.hasLegendSet() )
             {
@@ -498,7 +491,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                dimensionItems.put( itemUid, Lists.newArrayList() );
+                dimensionItems.put( itemUid, List.of() );
             }
         }
 
@@ -514,7 +507,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
+                dimensionItems.put( item.getItemId(), List.of( item.getFiltersAsString() ) );
             }
         }
 
@@ -522,25 +515,29 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Return list of dimension item identifiers.
+     * Based on the given arguments, this method will extract a list of uids of
+     * {@link Option}. If itemOptions is null, it returns the default list of
+     * uids (defaultOptionUids). Otherwise, it will return the list of uids from
+     * itemOptions.
      *
-     * @param params the {@link EventQueryParams}.
-     * @param item the {@link QueryItem}.
-     * @param itemOptions the list of item {@link Option}.
-     * @return a list of identifiers.
+     * @param itemOptions a list of {@link Option} objects
+     * @param defaultOptionUids a list of default {@link Option} uids
+     * @return a list of uids
      */
-    private List<String> getDimensionItemUidList( EventQueryParams params, QueryItem item, List<Option> itemOptions )
+    private List<String> getDimensionItemUidsFrom( List<Option> itemOptions, List<String> defaultOptionUids )
     {
-        if ( params.isSkipData() )
+        List<String> dimensionUids = new ArrayList<>();
+
+        if ( itemOptions == null )
         {
-            return item.getOptionSetFilterItemsOrAll();
+            dimensionUids.addAll( defaultOptionUids );
         }
-        else if ( itemOptions != null )
+        else
         {
-            return IdentifiableObjectUtils.getUids( itemOptions );
+            dimensionUids.addAll( IdentifiableObjectUtils.getUids( itemOptions ) );
         }
 
-        return Lists.newArrayList();
+        return dimensionUids;
     }
 
     /**

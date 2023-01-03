@@ -29,16 +29,15 @@ package org.hisp.dhis.document;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface DocumentService
 {
-    String ID = DocumentService.class.getName();
-
     String DIR = "documents";
 
     /**
@@ -90,7 +89,7 @@ public interface DocumentService
 
     int getDocumentCountByName( String name );
 
-    List<Document> getDocumentsByUid( List<String> uids );
+    List<Document> getDocumentsByUid( @Nonnull List<String> uids );
 
     long getCountDocumentByUser( User user );
 }

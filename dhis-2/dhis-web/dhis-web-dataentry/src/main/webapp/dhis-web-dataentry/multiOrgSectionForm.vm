@@ -1,5 +1,8 @@
 <script type="text/javascript">
-var organisationUnitList = JSON.parse( '$organisationUnits' );
+var organisationUnitList = []
+#foreach( $unit in $organisationUnits )
+    organisationUnitList.push({"uid": "$unit.uid", "n": "$unit.name", #if( $unit.openingDate )"odate":"${unit.openingDate}",#end #if( $unit.closedDate )"cdate":"${unit.closedDate}"#end})
+#end
 </script>
 
 #set( $marker = 0 )
@@ -13,9 +16,10 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
         #set( $categoryComboIds = "null" )
     #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-    #foreach( $categoryComboId in $categoryComboIds )
-        #set( $seCbId = "${section.id}-${categoryComboId}" )
+    #foreach( $catComboId in $categoryComboIds )
+        #set( $seCbId = "${section.id}-${catComboId}" )
         #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
+        #set( $categoryComboId = $orderedSectionCategoryCombos.get( $catComboId ) )
     
         #if( $marker == 1 )
           #set( $marker = 0 )

@@ -216,8 +216,7 @@ class EventRequestToSearchParamsMapper
 
             for ( String filter : filters )
             {
-                QueryItem item = getQueryItem( filter );
-                params.getFilters().add( item );
+                params.addFilter( getQueryItem( filter ) );
             }
         }
 
@@ -229,13 +228,6 @@ class EventRequestToSearchParamsMapper
 
                 params.getDataElements().add( dataElement );
             }
-        }
-
-        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
-            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
         if ( assignedUsers != null )
@@ -254,14 +246,14 @@ class EventRequestToSearchParamsMapper
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
-            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUsers )
+            .setUserWithAssignedUsers( assignedUserSelectionMode, user, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
             .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
             .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( idSchemes ).setPage( page )
             .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
-            .setIncludeAllDataElements( includeAllDataElements ).setOrders( orders ).setGridOrders( gridOrders )
+            .setIncludeAllDataElements( includeAllDataElements ).addOrders( orders ).addGridOrders( gridOrders )
             .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
     }
 

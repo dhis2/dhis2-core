@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -69,6 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
+@OpenApi.Tags( { "user", "login" } )
 @RestController
 @RequestMapping( value = "/2fa" )
 @ApiVersion( { DhisApiVersion.DEFAULT,

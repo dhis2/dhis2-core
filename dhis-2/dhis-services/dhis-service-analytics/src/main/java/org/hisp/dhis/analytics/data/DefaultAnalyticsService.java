@@ -90,7 +90,7 @@ public class DefaultAnalyticsService
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
-            final DataQueryParams immutableParams = newBuilder( params ).build();
+            DataQueryParams immutableParams = newBuilder( params ).build();
 
             return analyticsCache.getOrFetch( params,
                 p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
@@ -107,6 +107,14 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    public Grid getAggregatedDataValues( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValues( params );
+    }
+
+    @Override
     public Grid getRawDataValues( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -119,6 +127,8 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
+        params = checkSecurityConstraints( params );
+
         Grid grid = getAggregatedDataValueSetGrid( params );
 
         return getDataValueSet( params, grid );
@@ -127,17 +137,11 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
     {
+        params = checkSecurityConstraints( params );
+
         Grid grid = getAggregatedDataValueSetGrid( params );
 
         return getDataValueSetAsGrid( grid );
-    }
-
-    @Override
-    public Grid getAggregatedDataValues( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValues( params );
     }
 
     @Override
@@ -216,7 +220,7 @@ public class DefaultAnalyticsService
         queryValidator.validateTableLayout( params, columns, rows );
         queryValidator.validate( params );
 
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
 
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();

@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCal
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -63,12 +65,12 @@ public class DefaultEventStore
         "from programstageinstance psi " +
         "where psi.programstageinstanceid in (:ids)";
 
-    private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
+    private static final String GET_NOTES_SQL = "select psi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +
         "from trackedentitycomment tec " +
         "join programstageinstancecomments psic " +
         "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
-        "join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
+        "join programstageinstance psi on psic.programstageinstanceid = psi.programstageinstanceid " +
         "where psic.programstageinstanceid in (:ids)";
 
     private static final String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
@@ -105,6 +107,21 @@ public class DefaultEventStore
         return eventMultimap;
     }
 
+    private String getAttributeOptionComboClause( AggregateContext ctx )
+    {
+        return " and psi.attributeoptioncomboid not in (" +
+            "select distinct(cocco.categoryoptioncomboid) " +
+            "from categoryoptioncombos_categoryoptions as cocco " +
+            // Get inaccessible category options
+            "where cocco.categoryoptionid not in ( " +
+            "select co.categoryoptionid " +
+            "from dataelementcategoryoption co  " +
+            " where "
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", ctx.getUserUid(), ctx.getUserGroups(),
+                AclService.LIKE_READ_DATA )
+            + ") )";
+    }
+
     private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
         AggregateContext ctx )
     {
@@ -112,19 +129,21 @@ public class DefaultEventStore
 
         List<Long> programStages = ctx.getProgramStages();
 
+        String aocSql = ctx.isSuperUser() ? "" : getAttributeOptionComboClause( ctx );
+
         if ( programStages.isEmpty() )
         {
             jdbcTemplate.query(
-                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE, FILTER_OUT_DELETED_EVENTS ),
+                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
-                    .addValue( "programStageIds", programStages )
                     .addValue( "programIds", ctx.getPrograms() ),
                 handler );
         }
         else
         {
-            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL, FILTER_OUT_DELETED_EVENTS ),
+            jdbcTemplate.query(
+                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + aocSql, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )

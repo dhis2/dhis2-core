@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.service.attribute;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -36,13 +41,10 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.util.ValueTypeValidationFunction;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luca Cambi
@@ -50,6 +52,19 @@ import com.google.common.collect.ImmutableList;
 @Component
 public class TrackedAttributeValidationService
 {
+    /**
+     * @author Luca Cambi
+     */
+    @Getter
+    @AllArgsConstructor
+    private static class ValueTypeValidationFunction
+    {
+        private final ValueType valueType;
+
+        private final Predicate<String> function;
+
+        private final String message;
+    }
 
     private final FileResourceService fileResourceService;
 
@@ -60,35 +75,28 @@ public class TrackedAttributeValidationService
     public TrackedAttributeValidationService( UserService userService, FileResourceService fileResourceService )
     {
         this.fileResourceService = fileResourceService;
-        valueTypeValidationFunctions = ImmutableList.of(
-            ValueTypeValidationFunction.builder().valueType( ValueType.NUMBER )
-                .function( v -> !MathUtils.isNumeric( v ) )
-                .message( " '%s' is not a valid numeric type for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.BOOLEAN )
-                .function( v -> !MathUtils.isBool( v ) )
-                .message( " '%s' is not a valid boolean type for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
-                .function( v -> DateUtils.parseDate( v ) == null )
-                .message( " '%s' is not a valid date type for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
-                .function( v -> !DateUtils.dateIsValid( v ) )
-                .message( " '%s' is not a valid date for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.TRUE_ONLY )
-                .function( v -> !"true".equals( v ) )
-                .message( " '%s' is not true (true-only type) for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.USERNAME )
-                .function( v -> userService.getUserByUsername( v ) == null )
-                .message( " '%s' is not true (true-only type) for attribute %s " )
-                .build(),
-            ValueTypeValidationFunction.builder().valueType( ValueType.DATETIME )
-                .function( v -> !DateUtils.dateTimeIsValid( v ) )
-                .message( " '%s' is not a valid datetime for attribute %s " )
-                .build() );
+        valueTypeValidationFunctions = List.of(
+            new ValueTypeValidationFunction( ValueType.NUMBER,
+                v -> !MathUtils.isNumeric( v ),
+                " '%s' is not a valid numeric type for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.BOOLEAN,
+                v -> !MathUtils.isBool( v ),
+                " '%s' is not a valid boolean type for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.DATE,
+                v -> DateUtils.parseDate( v ) == null,
+                " '%s' is not a valid date type for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.DATE,
+                v -> !DateUtils.dateIsValid( v ),
+                " '%s' is not a valid date for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.TRUE_ONLY,
+                v -> !"true".equals( v ),
+                " '%s' is not true (true-only type) for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.USERNAME,
+                v -> userService.getUserByUsername( v ) == null,
+                " '%s' is not true (true-only type) for attribute %s " ),
+            new ValueTypeValidationFunction( ValueType.DATETIME,
+                v -> !DateUtils.dateTimeIsValid( v ),
+                " '%s' is not a valid datetime for attribute %s " ) );
     }
 
     @Transactional( readOnly = true )
@@ -113,17 +121,14 @@ public class TrackedAttributeValidationService
         {
             return validateImage( value );
         }
-        else
-        {
-            ValueTypeValidationFunction function = valueTypeValidationFunctions.stream()
-                .filter( f -> f.getValueType() == valueType )
-                .filter( f -> f.getFunction().apply( value ) ).findFirst().orElse( null );
+        ValueTypeValidationFunction function = valueTypeValidationFunctions.stream()
+            .filter( f -> f.getValueType() == valueType )
+            .filter( f -> f.getFunction().test( value ) ).findFirst().orElse( null );
 
-            return Optional.ofNullable( function )
-                .map( f -> VALUE_STRING + String.format( f.getMessage(), StringUtils.substring( value, 0, 30 ),
-                    trackedEntityAttribute.getUid() ) )
-                .orElse( null );
-        }
+        return Optional.ofNullable( function )
+            .map( f -> VALUE_STRING + String.format( f.getMessage(), StringUtils.substring( value, 0, 30 ),
+                trackedEntityAttribute.getUid() ) )
+            .orElse( null );
     }
 
     public String validateImage( String uid )
@@ -134,11 +139,12 @@ public class TrackedAttributeValidationService
         {
             return VALUE_STRING + " '" + uid + "' is not the uid of a file";
         }
-        else if ( !Constant.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        if ( !Constant.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {
             return "File resource with uid '" + uid + "' is not a valid image";
         }
 
         return null;
     }
+
 }

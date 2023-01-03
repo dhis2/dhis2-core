@@ -37,6 +37,8 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
@@ -46,7 +48,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +59,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramSchemaDescriptor.API_ENDPOINT )
 public class ProgramController
@@ -106,7 +107,7 @@ public class ProgramController
     }
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
+    public ResponseEntity<MetadataExportParams> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
@@ -117,7 +118,11 @@ public class ProgramController
             throw new WebMessageException( notFound( "Program not found for uid: " + pvUid ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
+        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        exportService.validate( exportParams );
+        exportParams.setObjectExportWithDependencies( program );
+
+        return ResponseEntity.ok( exportParams );
     }
 
     @ResponseBody

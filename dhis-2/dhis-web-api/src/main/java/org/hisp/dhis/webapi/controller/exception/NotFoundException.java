@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.exception;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ResponseStatus( HttpStatus.NOT_FOUND )
+@OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
 public class NotFoundException extends Exception
 {
     public static NotFoundException notFoundUid( String uid )

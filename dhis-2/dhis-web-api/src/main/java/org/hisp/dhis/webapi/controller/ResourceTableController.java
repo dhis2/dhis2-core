@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -59,6 +60,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = ResourceTableController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -79,6 +81,7 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
+        @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
@@ -101,14 +104,13 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
 
-        if ( skipEvents && skipEnrollment )
+        if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms,
-            skipResourceTables );
+            skipPrograms, skipResourceTables );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );

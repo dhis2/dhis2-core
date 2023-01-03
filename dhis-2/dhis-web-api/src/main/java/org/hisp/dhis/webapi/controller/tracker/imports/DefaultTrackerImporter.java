@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
@@ -53,14 +54,14 @@ public class DefaultTrackerImporter implements TrackerImporter
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
-    @NonNull
+    @Nonnull
     private final TrackerSyncImporter syncImporter;
 
-    @NonNull
+    @Nonnull
     private final TrackerAsyncImporter asyncImporter;
 
     @Override
-    public TrackerImportReport importTracker( TrackerImportRequest request )
+    public ImportReport importTracker( TrackerImportRequest request )
     {
 
         TrackerImportParams params = trackerImportParams( request );

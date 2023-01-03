@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +42,9 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
-
 @Slf4j
 @Transactional
-public abstract class BaseSMSListener
-    implements
-    IncomingSmsListener
+public abstract class BaseSMSListener implements IncomingSmsListener
 {
     private static final String NO_SMS_CONFIG = "No sms configuration found";
 
@@ -57,14 +54,16 @@ public abstract class BaseSMSListener
 
     protected static final int ERROR = 3;
 
-    private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
-        .put( 1, log::info ).put( 2, log::warn ).put( 3, log::error ).build();
+    private static final Map<Integer, Consumer<String>> LOGGER = Map.of(
+        1, log::info,
+        2, log::warn,
+        3, log::error );
 
     protected final IncomingSmsService incomingSmsService;
 
     protected final MessageSender smsSender;
 
-    public BaseSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender )
+    protected BaseSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender )
     {
         checkNotNull( incomingSmsService );
         checkNotNull( smsSender );

@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEntity, TrackedEntityInstance>
 {
-    @NotNull
+    @Nonnull
     private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter;
 
     public TrackedEntityPersister( ReservedValueService reservedValueService,
@@ -121,6 +121,6 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     protected String getUpdatedTrackedEntity( TrackedEntityInstance entity )
     {
         return null; // We don't need to keep track, Tei has already been
-                     // updated
+                    // updated
     }
 }

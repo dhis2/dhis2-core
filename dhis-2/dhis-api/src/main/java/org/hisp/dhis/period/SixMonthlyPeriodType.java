@@ -37,7 +37,6 @@ import org.joda.time.DateTimeConstants;
  * fifth month after the startDate.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: SixMonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class SixMonthlyPeriodType
     extends SixMonthlyAbstractPeriodType
@@ -53,19 +52,14 @@ public class SixMonthlyPeriodType
 
     private static final int BASE_MONTH = DateTimeConstants.JANUARY;
 
-    /**
-     * The name of the SixMonthlyPeriodType, which is "SixMonthly".
-     */
-    public static final String NAME = "SixMonthly";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.SIX_MONTHLY;
     }
 
     @Override

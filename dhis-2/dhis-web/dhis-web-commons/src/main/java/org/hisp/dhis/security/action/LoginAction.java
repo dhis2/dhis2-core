@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.action;
 
+import static org.hisp.dhis.webapi.filter.CspFilter.CSP_REQUEST_NONCE_ATTR_NAME;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,10 +73,18 @@ public class LoginAction
     // -------------------------------------------------------------------------
     // Input & Output
     // -------------------------------------------------------------------------
+    private String cspNonce = "";
+
+    public String getCspNonce()
+    {
+        return cspNonce;
+    }
 
     private Boolean twoFactor = false;
 
     private Boolean failed = false;
+
+    private Boolean oidcFailure = false;
 
     public void setFailed( Boolean failed )
     {
@@ -94,6 +104,16 @@ public class LoginAction
     public void setTwoFactor( Boolean twoFactor )
     {
         this.twoFactor = twoFactor;
+    }
+
+    public Boolean getOidcFailure()
+    {
+        return oidcFailure;
+    }
+
+    public void setOidcFailure( Boolean oidcFailure )
+    {
+        this.oidcFailure = oidcFailure;
     }
 
     private List<Locale> availableLocales;
@@ -119,6 +139,8 @@ public class LoginAction
         throws Exception
     {
         addRegisteredProviders();
+
+        cspNonce = (String) ServletActionContext.getRequest().getSession().getAttribute( CSP_REQUEST_NONCE_ATTR_NAME );
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 

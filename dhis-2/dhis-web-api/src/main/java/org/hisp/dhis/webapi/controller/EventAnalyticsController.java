@@ -32,11 +32,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -50,6 +49,7 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SettingKey;
@@ -71,6 +71,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
@@ -80,28 +81,28 @@ public class EventAnalyticsController
 
     private static final String EXPLAIN_PATH = "/explain";
 
-    @NonNull
+    @Nonnull
     private final EventDataQueryService eventDataService;
 
-    @NonNull
+    @Nonnull
     private final EventAnalyticsService analyticsService;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
-    @NonNull
+    @Nonnull
     private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @NonNull
+    @Nonnull
     private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
-    @NotNull
+    @Nonnull
     private final ExecutionPlanStore executionPlanStore;
 
-    @NotNull
+    @Nonnull
     private final DimensionMapperService dimensionMapperService;
 
-    @NotNull
+    @Nonnull
     private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
@@ -41,6 +42,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 public class OrderParams
 {
     private Set<String> order = new HashSet<>();

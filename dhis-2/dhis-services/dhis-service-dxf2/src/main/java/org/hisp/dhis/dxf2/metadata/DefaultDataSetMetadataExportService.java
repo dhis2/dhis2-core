@@ -37,17 +37,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -67,6 +71,7 @@ import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -80,6 +85,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
+    private static final List<Class<? extends IdentifiableObject>> METADATA_TYPES = List.of(
+        DataSet.class, DataElement.class, Indicator.class, CategoryCombo.class,
+        Category.class, CategoryOption.class, OptionSet.class );
+
     private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
 
     private static final String PROPERTY_DATA_SET_ELEMENTS = "dataSetElements";
@@ -120,8 +129,6 @@ public class DefaultDataSetMetadataExportService
     private final ExpressionService expressionService;
 
     private final CurrentUserService currentUserService;
-
-    // TODO add lock exceptions
 
     @Override
     public ObjectNode getDataSetMetadata()
@@ -173,6 +180,14 @@ public class DefaultDataSetMetadataExportService
             .addAll( toObjectNodes( optionSets, FIELDS_OPTION_SETS, OptionSet.class ) );
 
         return rootNode;
+    }
+
+    @Override
+    public Date getDataSetMetadataLastModified()
+    {
+        return ObjectUtils.firstNonNull( DateUtils.max( METADATA_TYPES.stream()
+            .map( idObjectManager::getLastUpdated )
+            .collect( Collectors.toList() ) ), new Date() );
     }
 
     /**

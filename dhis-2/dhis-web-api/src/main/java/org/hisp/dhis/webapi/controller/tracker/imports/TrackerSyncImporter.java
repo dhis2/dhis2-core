@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,13 +45,13 @@ import org.springframework.stereotype.Component;
 public class TrackerSyncImporter
 {
 
-    @NonNull
+    @Nonnull
     private final TrackerImportService trackerImportService;
 
-    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
+    public ImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
+        return trackerImportService.buildImportReport( importReport, reportMode );
     }
 }

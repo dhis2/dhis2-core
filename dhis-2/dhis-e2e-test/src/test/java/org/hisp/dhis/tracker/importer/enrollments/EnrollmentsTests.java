@@ -169,8 +169,8 @@ public class EnrollmentsTests
         }
 
         response.validateErrorReport()
-            .body( "errorCode", hasSize( 1 ) )
-            .body( "errorCode", hasItems( "E1020" ) )
+            .body( "errorCode", hasSize( 2 ) )
+            .body( "errorCode", hasItems( "E1020", "E5000" ) )
             .body( "message", hasItems( containsString( enrollmentDate ) ) );
     }
 

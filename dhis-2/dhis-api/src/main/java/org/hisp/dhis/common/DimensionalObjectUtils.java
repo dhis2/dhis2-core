@@ -27,10 +27,20 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -70,6 +80,13 @@ public class DimensionalObjectUtils
     private static final Set<QueryOperator> IGNORED_OPERATORS = Set.of( QueryOperator.LIKE, QueryOperator.IN,
         QueryOperator.SW, QueryOperator.EW );
 
+    /**
+     * Returns a list of copied instances of the given list of
+     * {@link DimensionalObject}.
+     *
+     * @param dimensions the list of {@link DimensionalObject}.
+     * @return a list of copied instances.
+     */
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
         List<DimensionalObject> list = new ArrayList<>();
@@ -156,6 +173,8 @@ public class DimensionalObjectUtils
      * Retrieves the dimension name from the given string. Returns the part of
      * the string preceding the dimension name separator, or the whole string if
      * the separator is not present.
+     *
+     * @param param the parameter.
      */
     public static String getDimensionFromParam( String param )
     {
@@ -183,13 +202,10 @@ public class DimensionalObjectUtils
 
         if ( param.split( DIMENSION_NAME_SEP ).length > 1 )
         {
-            // extracts dimensionItems by removing the dimension name and the
-            // separator
-            // example: pe:TODAY;YESTERDAY:INCIDENT_DATE ->
-            // TODAY;YESTERDAY:INCIDENT_DATE
+            // Extracts dimension items by removing dimension name and separator
             String dimensionItems = param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 );
 
-            // returns them as List<String>
+            // Returns them as List<String>
             return Arrays.asList( dimensionItems.split( OPTION_SEP ) );
         }
 
@@ -257,12 +273,15 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the uid from an org unit group parameter string, which is on
-     * the format OU_GROUP-<uid> .
+     * Retrieves the uid from the given org. unit group parameter.
+     *
+     * @param ouGroupParam the org. unit group param in the format
+     *        OU_GROUP-<uid>
+     * @return the uid of the param
      */
-    public static String getUidFromGroupParam( String param )
+    public static String getUidFromGroupParam( String ouGroupParam )
     {
-        return getValueFromKeywordParam( param );
+        return getValueFromKeywordParam( ouGroupParam );
     }
 
     /**

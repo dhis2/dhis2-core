@@ -27,11 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
+
+import javax.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +50,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
@@ -51,8 +60,10 @@ public class DataSetMetadataController
     private final DataSetMetadataExportService exportService;
 
     @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
+    public ResponseEntity<JsonNode> getMetadata( @CurrentUser User currentUser, HttpServletRequest request )
     {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+        String etag = getEtag( exportService.getDataSetMetadataLastModified(), currentUser );
+
+        return ResponseEntityUtils.withEtagCaching( etag, request, exportService::getDataSetMetadata );
     }
 }

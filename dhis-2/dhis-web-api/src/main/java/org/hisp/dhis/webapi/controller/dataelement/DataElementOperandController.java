@@ -41,6 +41,7 @@ import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -79,6 +80,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = DataElementOperandSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -124,7 +126,7 @@ public class DataElementOperandController
 
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
-        List<DataElementOperand> dataElementOperands;
+        List<DataElementOperand> dataElementOperands = List.of();
 
         if ( options.isTrue( "persisted" ) )
         {
@@ -142,7 +144,11 @@ public class DataElementOperandController
             if ( deg != null )
             {
                 DataElementGroup dataElementGroup = manager.get( DataElementGroup.class, deg );
-                dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals );
+                if ( dataElementGroup != null )
+                {
+                    dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(),
+                        totals );
+                }
             }
             else if ( ds != null )
             {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
-import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -79,6 +78,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
@@ -196,9 +196,9 @@ public class AnalyticsUtils
 
         for ( DimensionalItemObject object : dataDimensionOptions )
         {
-            Class<?> clazz = HibernateProxyUtils.getRealClass( object );
+            Class<?> type = HibernateProxyUtils.getRealClass( object );
 
-            if ( clazz.equals( DATA_DIMENSION_TYPE_CLASS_MAP.get( itemType ) ) )
+            if ( type.equals( DATA_DIM_TYPE_CLASS_MAP.get( itemType ) ) )
             {
                 list.add( object );
             }
@@ -271,7 +271,7 @@ public class AnalyticsUtils
             return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
 
-        final Double rounded = getRounded( (Double) value );
+        Double rounded = getRounded( (Double) value );
 
         if ( endsWithZeroAsDecimal( rounded ) )
         {
@@ -296,7 +296,7 @@ public class AnalyticsUtils
      * @param value
      * @return true if the value has "0" as decimal digits, false otherwise
      */
-    public static boolean endsWithZeroAsDecimal( final double value )
+    public static boolean endsWithZeroAsDecimal( double value )
     {
         return ((value * 10) % 10 == 0);
     }
@@ -401,7 +401,7 @@ public class AnalyticsUtils
 
         for ( Map.Entry<String, Object> entry : map.entrySet() )
         {
-            final Object value = entry.getValue();
+            Object value = entry.getValue();
 
             if ( value != null && Double.class.equals( value.getClass() ) )
             {

@@ -61,7 +61,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -185,15 +184,10 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        params.setUser( user );
-
-        params.handleCurrentUserSelectionMode();
-
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore
             .getTrackedEntityInstances( params );
 
+        User user = params.getUser();
         trackedEntityInstances = trackedEntityInstances.stream()
             .filter( ( tei ) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
             .collect( Collectors.toList() );
@@ -237,12 +231,6 @@ public class DefaultTrackedEntityInstanceService
         {
             validateSearchScope( params, false );
         }
-
-        User user = this.currentUserService.getCurrentUser();
-
-        params.setUser( user );
-
-        params.handleCurrentUserSelectionMode();
 
         return trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
     }
@@ -292,10 +280,6 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        params.setUser( currentUserService.getCurrentUser() );
-
-        params.handleCurrentUserSelectionMode();
-
         // using countForGrid here to leverage the better performant rewritten
         // sql query
         return trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
@@ -317,7 +301,6 @@ public class DefaultTrackedEntityInstanceService
         // ---------------------------------------------------------------------
 
         params.conform();
-        params.handleCurrentUserSelectionMode();
 
         // ---------------------------------------------------------------------
         // Grid headers
@@ -605,12 +588,6 @@ public class DefaultTrackedEntityInstanceService
             violation = "Event start and end date must be specified when event status is specified";
         }
 
-        if ( params.getAssignedUserSelectionMode() != null && params.hasAssignedUsers()
-            && !params.getAssignedUserSelectionMode().equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            violation = "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED";
-        }
-
         if ( params.isOrQuery() && params.hasFilters() )
         {
             violation = "Query cannot be specified together with filters";
@@ -757,13 +734,22 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 && params.isPaging()
-                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
+            checkIfMaxTeiLimitIsReached( params, maxTeiLimit );
+            params.setMaxTeiLimit( maxTeiLimit );
+        }
+    }
+
+    private void checkIfMaxTeiLimitIsReached( TrackedEntityInstanceQueryParams params, int maxTeiLimit )
+    {
+        if ( maxTeiLimit > 0 )
+        {
+            int instanceCount = trackedEntityInstanceStore
+                .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( params );
+
+            if ( instanceCount > maxTeiLimit )
             {
                 throw new IllegalQueryException( "maxteicountreached" );
             }
-
-            params.setMaxTeiLimit( maxTeiLimit );
         }
     }
 

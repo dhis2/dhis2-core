@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -75,7 +76,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -91,8 +92,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -116,7 +115,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,"
         + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-        + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
+        + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,"
         + "oucode,pistatus,psistatus";
 
     @BeforeEach
@@ -147,7 +146,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "select psi,ps,executiondate,storedby,"
             + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,ST_AsGeoJSON(psigeometry, 6) as geometry,"
+            + ",lastupdated,duedate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -171,7 +170,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "select psi,ps,executiondate,storedby,"
             + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
             + ",lastupdated,duedate,enrollmentdate,"
-            + "incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
+            + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
             + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " + "from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
@@ -338,10 +337,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";
         String unexpected = "(ax.\"fWIAEtYVEGk\" in (";
-        testIt( IN, NV,
-            ImmutableList.of(
-                ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
-                ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
+        testIt( IN, NV, List.of(
+            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
+            ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
     }
 
     private void testIt( QueryOperator operator, String filter, Collection<Consumer<String>> assertions )
@@ -479,21 +477,22 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         deA.setUid( "ZE4cgllb2P" );
 
         DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
-            .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
+            .withTableName( "analytics" ).withPeriodType( PeriodTypeEnum.QUARTERLY.getName() )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
             .addDimension(
                 new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
             .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) )
+            .build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
+        EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
             .addAscSortItem( new QueryItem( piA ) )
             .addDescSortItem( new QueryItem( piB ) )
             .addAscSortItem( new QueryItem( deA ) );
 
-        final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
+        String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
         assertThat( sql, containsString(
             "order by \"" + piA.getUid() + "\" asc,\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );
@@ -512,12 +511,12 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = " from (select \"yearly\",\"" + programDataElement.getUid()
+        String expectedLastSubquery = " from (select \"psi\",\"yearly\",\"" + programDataElement.getUid()
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
             + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " iax where iax.\"executiondate\" >= '1990-03-31' "
-            + "and iax.\"executiondate\" <= '2000-03-31' and \"" + programDataElement.getUid() + "\" is not null)";
+            + "and iax.\"executiondate\" <= '2000-03-31' and iax.\"" + programDataElement.getUid() + "\" is not null)";
 
         assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
 

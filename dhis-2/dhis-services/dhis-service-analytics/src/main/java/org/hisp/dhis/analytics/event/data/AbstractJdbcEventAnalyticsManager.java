@@ -57,6 +57,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -72,6 +73,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -100,6 +102,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -110,11 +113,9 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Markus Bekken
@@ -122,8 +123,6 @@ import com.google.common.collect.Lists;
 @Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
-    private static final String LIMIT = "limit";
-
     protected static final String COL_COUNT = "count";
 
     protected static final String COL_EXTENT = "extent";
@@ -132,13 +131,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final String _AND_ = " and ";
+    private static final String AND = " and ";
 
-    private static final String _OR_ = " or ";
+    private static final String OR = " or ";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final String LIMIT = "limit";
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -222,28 +223,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.hasRepeatableStageParams() )
-                {
-                    sql += quote( item.getRepeatableStageParams().getDimension() );
-                }
-                else if ( item.getProgramStage() != null )
-                {
-                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
-                }
-                else
-                {
-                    sql += quote( item.getItem().getUid() );
-                }
+                sql += getSortColumnForDataElementDimensionType( item );
             }
             else
             {
-                /*
-                 * Query returns UIDs but we want sorting on name or shortName
-                 * (depending on DisplayProperty) for OUGS/COGS
-                 */
+                // Query returns UIDs but we want sorting on name or shortName
+                // depending on the display property for OUGS and COGS
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
-                    .filter( this::hasItems )
+                    .filter( DimensionalObject::hasItems )
                     .map( dim -> toCase( dim, quoteAlias( item.getItem().getUid() ), params.getDisplayProperty() ) )
                     .orElse( quoteAlias( item.getItem().getUid() ) );
             }
@@ -254,9 +242,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return sql;
     }
 
+    private String getSortColumnForDataElementDimensionType( QueryItem item )
+    {
+        if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
+        {
+            return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+        }
+
+        if ( item.hasRepeatableStageParams() )
+        {
+            return quote( item.getRepeatableStageParams().getDimension() );
+        }
+
+        if ( item.getProgramStage() != null )
+        {
+            return quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+        }
+
+        return quote( item.getItem().getUid() );
+    }
+
     /**
-     * builds a CASE statement to use in sorting, mapping each OUGS/COGS uid
-     * into its name/shortName
+     * Builds a CASE statement to use in sorting, mapping each OUGS and COGS
+     * identifiers into its name or short name.
      */
     private String toCase( DimensionalObject dimension, String quotedAlias, DisplayProperty displayProperty )
     {
@@ -266,20 +274,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * given an DimensionalItemObject, builds a WHEN statement
+     * Builds a WHEN statement based on the given {@link DimensionalItemObject}.
      */
-    private String toWhenEntry( DimensionalItemObject dio, String quotedAlias, DisplayProperty dp )
+    private String toWhenEntry( DimensionalItemObject item, String quotedAlias, DisplayProperty dp )
     {
         return "WHEN " +
-            quotedAlias + "=" + encode( dio.getUid(), true ) +
+            quotedAlias + "=" + encode( item.getUid(), true ) +
             " THEN " + (dp == DisplayProperty.NAME
-                ? encode( dio.getName(), true )
-                : encode( dio.getShortName(), true ));
-    }
-
-    private boolean hasItems( DimensionalObject dimensionalObject )
-    {
-        return !dimensionalObject.getItems().isEmpty();
+                ? encode( item.getName(), true )
+                : encode( item.getShortName(), true ));
     }
 
     private boolean isSupported( DimensionalObject dimension )
@@ -328,13 +331,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * {@link EventQueryParams#hasNonDefaultBoundaries}, the period is
      * hard-coded into the select statement with "(isoPeriod) as (periodType)".
      *
+     * @param params the {@link EventQueryParams}.
      * @param isGroupByClause used to avoid grouping by period when using
-     *        non-default boundaries where the column content would be
-     *        hard-coded. Used by the group-by calls.
+     *        non-default boundaries where the column content would be fixed.
+     *        Used by the group by calls.
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause, boolean isAggregated )
     {
-        List<String> columns = Lists.newArrayList();
+        List<String> columns = new ArrayList<>();
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -418,7 +422,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
         {
-            if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+            if ( params.getCoordinateFields().stream().anyMatch( f -> queryItem.getItem().getUid().equals( f ) ) )
             {
                 return getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX );
             }
@@ -449,13 +453,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
     {
         String column = getColumn( queryItem );
+
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
+
         return ColumnAndAlias.ofColumn( column );
     }
 
@@ -470,9 +473,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String countClause = getAggregateClause( params );
+        String aggregateClause = getAggregateClause( params );
 
-        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
+        String sql = TextUtils.removeLastComma( "select " + aggregateClause + " as value," +
             StringUtils.join( getSelectColumns( params, true ), "," ) + " " );
 
         // ---------------------------------------------------------------------
@@ -546,7 +549,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Event analytics aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -653,11 +656,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() ) // TODO && isNumeric
+        if ( params.hasNumericValueDimension() )
         {
-            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
-                "Event query aggregation type must be aggregatable" );
-
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
             String expression = quoteAlias( params.getValue().getUid() );
@@ -714,12 +714,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * Creates a coordinate base column "selector" for the given item name. The
      * item is expected to be of type Coordinate.
      *
-     * @param item the {@link QueryItem}
-     * @return the column select statement for the given item
+     * @param item the {@link QueryItem}.
+     * @return the column select statement for the given item.
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item )
     {
-        final String colName = item.getItemName();
+        String colName = item.getItemName();
 
         return ColumnAndAlias
             .ofColumnAndAlias(
@@ -732,13 +732,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * Creates a coordinate base column "selector" for the given item name. The
      * item is expected to be of type Coordinate.
      *
-     * @param item the {@link QueryItem}
-     * @param suffix the suffix to append to the item id
-     * @return the column select statement for the given item
+     * @param item the {@link QueryItem}.
+     * @param suffix the suffix to append to the item id.
+     * @return the column select statement for the given item.
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item, String suffix )
     {
-        final String colName = item.getItemId() + suffix;
+        String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 
@@ -747,10 +747,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
             stCentroidFunction = "ST_Centroid";
         }
 
-        return ColumnAndAlias.ofColumnAndAlias(
-            "'[' || round(ST_X(" + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y("
-                + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ']'",
-            colName );
+        return ColumnAndAlias.ofColumnAndAlias( "'[' || round(ST_X(" + stCentroidFunction +
+            "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y(" + stCentroidFunction + "(" +
+            quote( colName ) + "))::numeric, 6) || ']'", colName );
     }
 
     /**
@@ -759,7 +758,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param item the {@link QueryItem}.
      * @param suffix the suffix.
-     * @return the the column select statement for the given item
+     * @return the the column select statement for the given item.
      */
     protected String getColumn( QueryItem item, String suffix )
     {
@@ -794,8 +793,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
 
             return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
-                programIndicator,
-                startDate, endDate );
+                programIndicator, startDate, endDate );
         }
         else
         {
@@ -855,7 +853,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String filter = getFilter( queryFilter.getFilter(), item );
         String encodedFilter = statementBuilder.encode( filter, false );
 
-        return item.getSqlFilter( queryFilter, encodedFilter );
+        return item.getSqlFilter( queryFilter, encodedFilter, true );
     }
 
     /**
@@ -888,8 +886,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Template method that generates a SQL query for retrieving Events or
-     * Enrollments
+     * Template method that generates a SQL query for retrieving events or
+     * enrollments.
      *
      * @param params the {@link EventQueryParams} to drive the query generation.
      * @param maxLimit max number of records to return.
@@ -897,7 +895,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getEventsOrEnrollmentsSql( EventQueryParams params, int maxLimit )
     {
-
         String sql = getSelectClause( params );
 
         sql += getFromClause( params );
@@ -914,7 +911,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Wraps the provided interface around a common exception handling strategy.
      *
-     * @param runnable a {@link Runnable} containing the code block to execute
+     * @param runnable the {@link Runnable} containing the code block to execute
      *        and wrap around the exception handling.
      */
     protected void withExceptionHandling( Runnable runnable )
@@ -934,20 +931,34 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * Adds a value from the given row set to the grid.
+     *
+     * @param grid the {@link Grid}.
+     * @param header the {@link GridHeader}.
+     * @param index the row set index.
+     * @param sqlRowSet the {@link SqlRowSet}.
+     * @param params the {@link EventQueryParams}.
+     */
     protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
     {
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
         {
             Object value = sqlRowSet.getObject( index );
+
             boolean isDouble = value instanceof Double;
 
             if ( value == null || (isDouble && Double.isNaN( (Double) value )) )
             {
                 grid.addValue( EMPTY );
             }
+            else if ( isDouble && !Double.isNaN( (Double) value ) )
+            {
+                addGridDoubleTypeValue( (Double) value, grid, header, params );
+            }
             else
             {
-                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
             }
         }
         else if ( header.getValueType() == ValueType.REFERENCE )
@@ -980,6 +991,44 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
+     * Double value type will be added into the grid. There is special handling
+     * for Option Set (Type numeric)/Option. The code in grid/meta info and
+     * related value in row has to be the same (FE request) if possible. The
+     * string interpretation of code coming from Option/Code can vary from
+     * Option/value (double) fetched from database ("1" vs "1.0") By the
+     * equality (both are converted to double) of both the Option/Code is used
+     * as a value.
+     *
+     * @param value the value.
+     * @param grid the {@link Grid}.
+     * @param header the {@link GridHeader}.
+     * @param params the {@link EventQueryParams}.
+     */
+    private void addGridDoubleTypeValue( Double value, Grid grid, GridHeader header, EventQueryParams params )
+    {
+        if ( header.hasOptionSet() )
+        {
+            Optional<Option> option = header.getOptionSetObject().getOptions().stream()
+                .filter( o -> NumberUtils.isCreatable( o.getCode() ) &&
+                    MathUtils.isEqual( NumberUtils.createDouble( o.getCode() ), value ) )
+                .findFirst();
+
+            if ( option.isPresent() )
+            {
+                grid.addValue( option.get().getCode() );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+            }
+        }
+        else
+        {
+            grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+        }
+    }
+
+    /**
      * Returns SQL string based on both query items and filters
      *
      * @param params a {@link EventQueryParams}.
@@ -1002,27 +1051,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .collect( groupingBy(
                 queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
 
-        // groups repeatable conditions based on PSI.DEID
+        // Groups repeatable conditions based on PSI.DEID
         Map<String, List<String>> repeatableConditionsByIdentifier = asSqlCollection( itemsByRepeatableFlag.get( true ),
             params )
                 .collect( groupingBy(
                     IdentifiableSql::getIdentifier,
                     mapping( IdentifiableSql::getSql, toList() ) ) );
 
-        // joins each group with OR
+        // Joins each group with OR
         Collection<String> orConditions = repeatableConditionsByIdentifier.values()
             .stream()
             .map( sameGroup -> joinSql( sameGroup, OR_JOINER ) )
             .collect( toList() );
 
-        // non repeatable conditions
+        // Non-repeatable conditions
         Collection<String> andConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params )
             .map( IdentifiableSql::getSql )
             .collect( toList() );
 
         if ( orConditions.isEmpty() && andConditions.isEmpty() )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         return helper.whereAnd() + " " + joinSql( Stream.concat(
@@ -1032,8 +1081,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * joins a stream of conditions using given join function, returns empty
-     * string if collection is empty
+     * Joins a stream of conditions using given join function. Returns empty
+     * string if collection is empty.
      */
     private String joinSql( Stream<String> conditions, Collector<CharSequence, ?, String> joiner )
     {
@@ -1052,7 +1101,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return "";
         }
-        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
+        return hlp.whereAnd() + " " + String.join( AND, sqlConditionByGroup.values() );
     }
 
     /**
@@ -1080,8 +1129,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Converts given queryItem into IdentifiableSql joining its filters using
-     * AND.
+     * Converts given queryItem into {@link IdentifiableSql} joining its filters
+     * using AND.
      */
     private IdentifiableSql toIdentifiableSql( QueryItem queryItem, EventQueryParams params )
     {
@@ -1092,13 +1141,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Converts given queryItem into sql joining its filters using AND.
+     * Converts given queryItem into SQL joining its filters using AND.
      */
     private String toSql( QueryItem queryItem, EventQueryParams params )
     {
         return queryItem.getFilters().stream()
             .map( filter -> toSql( queryItem, filter, params ) )
-            .collect( joining( _AND_ ) );
+            .collect( joining( AND ) );
     }
 
     /**
@@ -1144,9 +1193,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
         else
         {
             // NV filter has its own specific logic, so we should skip values
-            // comparisons when NV is set as filter.
+            // comparisons when NV is set as filter
             if ( !NV.equals( filter.getFilter() ) )
             {
+                // Specific handling for null and empty values
                 switch ( filter.getOperator() )
                 {
                 case NEQ:
@@ -1154,14 +1204,35 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NIEQ:
                 case NLIKE:
                 case NILIKE:
-                    // This ensures that null values will always match the
-                    // filters above.
-                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
-                        + getSqlFilter( filter, item ) + ") ";
+                    return nullAndEmptyMatcher( item, filter, field );
+                default:
+                    break;
                 }
             }
 
-            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+            return field + SPACE + filter.getSqlOperator( true ) + SPACE + getSqlFilter( filter, item ) + SPACE;
+        }
+    }
+
+    /**
+     * Ensures that null/empty values will always match.
+     *
+     * @param item the {@link QueryItem}.
+     * @param filter the {@link QueryFilter}.
+     * @param field the field.
+     * @return the respective SQL statement matcher.
+     */
+    private String nullAndEmptyMatcher( QueryItem item, QueryFilter filter, String field )
+    {
+        if ( item.getValueType() != null && item.getValueType().isText() )
+        {
+            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
+                + getSqlFilter( filter, item ) + ") ";
+        }
+        else
+        {
+            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
+                + getSqlFilter( filter, item ) + ") ";
         }
     }
 

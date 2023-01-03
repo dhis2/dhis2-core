@@ -27,13 +27,21 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.util.Optional.empty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.util.DateUtils.safeParseDate;
 
+import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.Period;
 
 @Getter
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
@@ -43,12 +51,25 @@ public class IsoPeriodHolder
 
     private final String dateField;
 
+    /**
+     * If there is a
+     * {@link org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP}, it
+     * splits the given argument and return a {@link IsoPeriodHolder} instance
+     * with the resulting "isoPeriod" and "dateField". Otherwise, it simply
+     * returns a {@link IsoPeriodHolder} with the "isoPeriod" set to the same
+     * value of the given argument.
+     *
+     * @param isoPeriodWithDateField in the format "isoPeriod:theDateField" ie:
+     *        <code>LAST_YEAR:LAST_UPDATED</code>,
+     *        <code>LAST_5_YEARS:SCHEDULED_DATE</code>
+     * @return a populated instance of IsoPeriodHolder
+     */
     static IsoPeriodHolder of( String isoPeriodWithDateField )
     {
         if ( isoPeriodWithDateField.contains( DIMENSION_NAME_SEP ) )
         {
-            String[] splitted = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
-            return new IsoPeriodHolder( splitted[0], splitted[1] );
+            String[] split = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
+            return new IsoPeriodHolder( split[0], split[1] );
         }
         return new IsoPeriodHolder( isoPeriodWithDateField, null );
     }
@@ -56,5 +77,36 @@ public class IsoPeriodHolder
     public boolean hasDateField()
     {
         return Objects.nonNull( dateField );
+    }
+
+    /**
+     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> or
+     * <code>YYYY-MM-DD_YYYY-MM-DD</code> format into a {@link Period} of type
+     * {@link DailyPeriodType} with the respective start and end dates properly
+     * set.
+     *
+     * @return the Period object
+     */
+    public Optional<Period> toDailyPeriod()
+    {
+        String[] dates = getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );
+
+        if ( dates.length == 2 )
+        {
+            Date start = safeParseDate( dates[0] );
+            Date end = safeParseDate( dates[1] );
+
+            if ( start != null && end != null )
+            {
+                Period period = new Period();
+                period.setPeriodType( new DailyPeriodType() );
+                period.setStartDate( start );
+                period.setEndDate( end );
+                period.setDateField( getDateField() );
+
+                return Optional.of( period );
+            }
+        }
+        return empty();
     }
 }

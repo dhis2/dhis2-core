@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -626,41 +629,11 @@ public class BaseIdentifiableObject
      * objects.
      */
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( o.getClass() ) )
-        {
-            return false;
-        }
-
-        final BaseIdentifiableObject other = (BaseIdentifiableObject) o;
-
-        if ( getUid() != null ? !getUid().equals( other.getUid() ) : other.getUid() != null )
-        {
-            return false;
-        }
-
-        if ( getCode() != null ? !getCode().equals( other.getCode() ) : other.getCode() != null )
-        {
-            return false;
-        }
-
-        if ( getName() != null ? !getName().equals( other.getName() ) : other.getName() != null )
-        {
-            return false;
-        }
-
-        return true;
+        return this == obj || obj instanceof BaseIdentifiableObject
+            && getRealClass( this ) == getRealClass( obj )
+            && typedEquals( (IdentifiableObject) obj );
     }
 
     /**
@@ -671,29 +644,15 @@ public class BaseIdentifiableObject
      * @param other the identifiable object to compare this object against.
      * @return true if equal.
      */
-    public boolean typedEquals( IdentifiableObject other )
+    public final boolean typedEquals( IdentifiableObject other )
     {
         if ( other == null )
         {
             return false;
         }
-
-        if ( getUid() != null ? !getUid().equals( other.getUid() ) : other.getUid() != null )
-        {
-            return false;
-        }
-
-        if ( getCode() != null ? !getCode().equals( other.getCode() ) : other.getCode() != null )
-        {
-            return false;
-        }
-
-        if ( getName() != null ? !getName().equals( other.getName() ) : other.getName() != null )
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.equals( getUid(), other.getUid() )
+            && Objects.equals( getCode(), other.getCode() )
+            && Objects.equals( getName(), other.getName() );
     }
 
     // -------------------------------------------------------------------------

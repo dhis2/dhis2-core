@@ -56,6 +56,13 @@ class BiWeeklyPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.BI_WEEKLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.BI_WEEKLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         startDate = new DateTime( 2018, 1, 1, 0, 0 );

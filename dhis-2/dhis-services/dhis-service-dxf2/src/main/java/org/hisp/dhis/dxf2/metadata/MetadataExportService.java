@@ -100,6 +100,21 @@ public interface MetadataExportService
         IdentifiableObject object );
 
     /**
+     * Exports an object including a set of selected dependencies. Only a subset
+     * of the specified export parameters are used for the metadata with
+     * dependencies export. All objects are written to given outputStream
+     *
+     * @param object The {@link IdentifiableObject} to be exported with
+     *        dependencies.
+     * @param params {@link MetadataExportParams}
+     * @param outputStream Streaming target.
+     * @throws IOException
+     */
+    void getMetadataWithDependenciesAsNodeStream( IdentifiableObject object,
+        @Nonnull MetadataExportParams params, OutputStream outputStream )
+        throws IOException;
+
+    /**
      * Exports an object including a set of selected dependencies as RootNode.
      * Only a subset of the specified export parameters are used for the
      * metadata with dependencies export.

@@ -39,11 +39,13 @@ import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
+import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
@@ -72,6 +74,7 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.google.common.collect.ImmutableList;
@@ -142,7 +145,7 @@ public class DhisWebCommonsWebSecurityConfig
         private I18nManager i18nManager;
 
         @Autowired
-        private DhisConfigurationProvider configurationProvider;
+        private DhisConfigurationProvider dhisConfig;
 
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
@@ -162,6 +165,9 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
+        @Autowired
+        private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
@@ -204,6 +210,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/security/enrolTwoFa.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/invite.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/restore.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
@@ -239,6 +246,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-sms-configuration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
+                .antMatchers( "/dhis-web-aggregate-data-entry/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-aggregate-data-entry" )
 
                 .antMatchers( "/**" ).authenticated()
                 .and()
@@ -269,10 +278,13 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
+                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                    HeaderWriterFilter.class )
+
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            setHttpHeaders( http );
+            setHttpHeaders( http, dhisConfig );
         }
 
         @Bean
@@ -288,10 +300,10 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
+            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
             {
                 successHandler.setSessionTimeout(
-                    Integer.parseInt( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
             }
 
             return successHandler;

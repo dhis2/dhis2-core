@@ -35,7 +35,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -55,8 +54,6 @@ import org.springframework.stereotype.Component;
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
-    private final QueryValidator queryValidator;
-
     private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
@@ -68,8 +65,6 @@ public class DefaultEventQueryValidator
         throws IllegalQueryException,
         MaintenanceModeException
     {
-        queryValidator.validateMaintenanceMode();
-
         ErrorMessage error = validateForErrorMessage( params );
 
         if ( error != null )
@@ -149,13 +144,9 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
-        else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateField() == null )
+        else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateFields() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );
-        }
-        else if ( params.getFallbackCoordinateField() != null && !params.fallbackCoordinateFieldIsValid() )
-        {
-            error = new ErrorMessage( ErrorCode.E7228, params.getFallbackCoordinateField() );
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )

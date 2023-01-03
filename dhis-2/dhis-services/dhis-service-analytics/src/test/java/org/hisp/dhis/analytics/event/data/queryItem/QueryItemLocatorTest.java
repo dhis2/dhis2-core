@@ -49,6 +49,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -80,16 +82,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
 class QueryItemLocatorTest
 {
-
     @Mock
     private ProgramStageService programStageService;
 
@@ -137,9 +135,7 @@ class QueryItemLocatorTest
         String dimension = "dynamicDimension";
 
         when( dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null, Collections.emptyList(),
-            null,
-            true, IdScheme.UID ) )
-                .thenReturn( new BaseDimensionalObject( dimension ) );
+            true, IdScheme.UID ) ).thenReturn( new BaseDimensionalObject( dimension ) );
 
         assertDoesNotThrow( () -> subject.getQueryItemFromDimension( dimension, programA, null ) );
     }
@@ -168,9 +164,9 @@ class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Set.of( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+        programA.setProgramStages( Set.of( programStageA ) );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
@@ -190,8 +186,8 @@ class QueryItemLocatorTest
         DataElement iBelongDataElement = createDataElement( 'A' );
         ProgramStage programStageA = createProgramStage( 'A', programA );
         programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, iBelongDataElement, 1 ) ) );
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+            Set.of( createProgramStageDataElement( programStageA, iBelongDataElement, 1 ) ) );
+        programA.setProgramStages( Set.of( programStageA ) );
 
         DataElement iDontBelongDataElement = createDataElement( 'B' );
         when( dataElementService.getDataElement( dimension ) ).thenReturn( iDontBelongDataElement );
@@ -210,9 +206,9 @@ class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Set.of( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+        programA.setProgramStages( Set.of( programStageA ) );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
@@ -378,9 +374,9 @@ class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Set.of( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+        programA.setProgramStages( Set.of( programStageA ) );
 
         LegendSet legendSetA = createLegendSet( 'A' );
 
@@ -407,9 +403,9 @@ class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Set.of( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+        programA.setProgramStages( Set.of( programStageA ) );
 
         LegendSet legendSetA = createLegendSet( 'A' );
 
@@ -447,7 +443,7 @@ class QueryItemLocatorTest
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
             trackedEntityAttribute );
 
-        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( attributeService.getTrackedEntityAttribute( dimension ) ).thenReturn( trackedEntityAttribute );
 
@@ -468,7 +464,7 @@ class QueryItemLocatorTest
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
 
-        programA.setProgramIndicators( Sets.newHashSet( programIndicatorA ) );
+        programA.setProgramIndicators( Set.of( programIndicatorA ) );
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
             .thenReturn( programIndicatorA );
 
@@ -489,7 +485,7 @@ class QueryItemLocatorTest
 
         RelationshipType relationshipType = createRelationshipType();
 
-        programA.setProgramIndicators( Sets.newHashSet( programIndicatorA ) );
+        programA.setProgramIndicators( Set.of( programIndicatorA ) );
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
             .thenReturn( programIndicatorA );
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
@@ -552,9 +548,9 @@ class QueryItemLocatorTest
     private void configureDimensionForQueryItem( DataElement dataElement, ProgramStage programStage )
     {
         programStage.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStage, dataElement, 1 ) ) );
+            Set.of( createProgramStageDataElement( programStage, dataElement, 1 ) ) );
 
-        programA.setProgramStages( Sets.newHashSet( programStage ) );
+        programA.setProgramStages( Set.of( programStage ) );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElement );
 

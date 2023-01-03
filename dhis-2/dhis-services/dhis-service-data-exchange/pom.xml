@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.39-SNAPSHOT</version>
+    <version>2.40-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-data-exchange</artifactId>
@@ -80,6 +80,10 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
     </dependency>
 
     <!-- Test -->

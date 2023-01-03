@@ -69,7 +69,7 @@ public class SchemaIdResponseMapper
      */
     public Map<String, String> getSchemeIdResponseMap( DataQueryParams params )
     {
-        final Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
+        Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
             params.getOutputIdScheme() );
 
         if ( params.isGeneralOutputIdSchemeSet() )
@@ -131,7 +131,7 @@ public class SchemaIdResponseMapper
         {
             Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
-            for ( final Option option : options )
+            for ( Option option : options )
             {
                 map.put( option.getCode(), option.getPropertyValue( params.getOutputIdScheme() ) );
             }

@@ -63,8 +63,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
 
-import com.google.common.collect.Lists;
-
 /**
  * This class only tests the "shared" code of AbstractAnalyticsService, which
  * includes Grid header generation and Grid Metadata
@@ -74,7 +72,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class AbstractAnalyticsServiceTest
 {
-
     private Period peA;
 
     private OrganisationUnit ouA;
@@ -115,10 +112,10 @@ class AbstractAnalyticsServiceTest
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) );
+            List.of( peA ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( ouA ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", List.of( ouA ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), null );
@@ -128,7 +125,7 @@ class AbstractAnalyticsServiceTest
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA ).addItem( qiB ).addItem( qiC )
-            .withCoordinateField( deB.getUid() )
+            .withCoordinateFields( List.of( deB.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .withApiVersion( DhisApiVersion.V33 )
@@ -140,7 +137,7 @@ class AbstractAnalyticsServiceTest
         Grid grid = dummyAnalyticsService.getGrid( params );
 
         // Then
-        final List<GridHeader> headers = grid.getHeaders();
+        List<GridHeader> headers = grid.getHeaders();
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );
 

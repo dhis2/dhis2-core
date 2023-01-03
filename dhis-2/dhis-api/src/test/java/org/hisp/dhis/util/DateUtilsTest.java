@@ -39,6 +39,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.hisp.dhis.util.DateUtils.minusOneDay;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.util.DateUtils.safeParseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +48,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.Date;
@@ -335,9 +338,11 @@ class DateUtilsTest
     void testCalculateDateFromUsingPositiveDays()
     {
         // Given
-        final Date anyInitialDate = new Date();
+        Date anyInitialDate = new Date();
+
         // When
-        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, DATE );
+        Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, DATE );
+
         // Then
         assertThat( theNewDate, is( greaterThan( anyInitialDate ) ) );
     }
@@ -346,9 +351,11 @@ class DateUtilsTest
     void testCalculateDateFromUsingNegativeDays()
     {
         // Given
-        final Date anyInitialDate = new Date();
+        Date anyInitialDate = new Date();
+
         // When
-        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, DATE );
+        Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, DATE );
+
         // Then
         assertThat( theNewDate, is( lessThan( anyInitialDate ) ) );
     }
@@ -357,9 +364,11 @@ class DateUtilsTest
     void testCalculateDateFromUsingPositiveMilis()
     {
         // Given
-        final Date anyInitialDate = new Date();
+        Date anyInitialDate = new Date();
+
         // When
-        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, MILLISECOND );
+        Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, MILLISECOND );
+
         // Then
         assertThat( theNewDate, is( greaterThan( anyInitialDate ) ) );
     }
@@ -368,42 +377,151 @@ class DateUtilsTest
     void testCalculateDateFromUsingNegativeMilis()
     {
         // Given
-        final Date anyInitialDate = new Date();
+        Date anyInitialDate = new Date();
+
         // When
-        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, MILLISECOND );
+        Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, MILLISECOND );
+
         // Then
         assertThat( theNewDate, is( lessThan( anyInitialDate ) ) );
     }
 
     @Test
+    void testParseDateSupportedDateFormats()
+    {
+        // Assert yyyyMMdd format
+        Date date = parseDate( "20031202" );
+        assertNotNull( date );
+        LocalDate localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2003, localDate.getYear() );
+        assertEquals( 12, localDate.getMonthValue() );
+        assertEquals( 02, localDate.getDayOfMonth() );
+
+        // Assert yyyy-MM-dd format
+        date = parseDate( "2005-10-12" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2005, localDate.getYear() );
+        assertEquals( 10, localDate.getMonthValue() );
+        assertEquals( 12, localDate.getDayOfMonth() );
+
+        // Assert yyyy-MM format
+        date = parseDate( "2022-05" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2022, localDate.getYear() );
+        assertEquals( 5, localDate.getMonthValue() );
+
+        // Assert yyyy format
+        date = parseDate( "2023" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2023, localDate.getYear() );
+    }
+
+    @Test
+    void testParseDateInvalidDateFormats()
+    {
+        // Assert yyyy-MMM-dd INVALID format
+        assertThrows( IllegalArgumentException.class, () -> parseDate( "2025-110-12" ) );
+
+        // Assert yyyy-MM-ddd INVALID format
+        assertThrows( IllegalArgumentException.class, () -> parseDate( "2025-11-120" ) );
+
+        // Assert yyyyyMMddd INVALID format
+        assertThrows( IllegalArgumentException.class, () -> parseDate( "2025011120" ) );
+    }
+
+    @Test
+    void testSafeParseDateSupportedDateFormats()
+    {
+        // Assert yyyyMMdd format
+        Date date = safeParseDate( "20031202" );
+        assertNotNull( date );
+        LocalDate localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2003, localDate.getYear() );
+        assertEquals( 12, localDate.getMonthValue() );
+        assertEquals( 2, localDate.getDayOfMonth() );
+
+        // Assert yyyy-MM-dd format
+        date = safeParseDate( "2005-10-12" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2005, localDate.getYear() );
+        assertEquals( 10, localDate.getMonthValue() );
+        assertEquals( 12, localDate.getDayOfMonth() );
+
+        // Assert yyyy-MM format
+        date = safeParseDate( "2022-05" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2022, localDate.getYear() );
+        assertEquals( 5, localDate.getMonthValue() );
+
+        // Assert yyyy format
+        date = safeParseDate( "2023" );
+        assertNotNull( date );
+        localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+        assertEquals( 2023, localDate.getYear() );
+
+        // Assert yyyy-MMM-dd INVALID format
+        date = safeParseDate( "2025-110-12" );
+        assertNull( date );
+
+        // Assert yyyy-MM-ddd INVALID format
+        date = safeParseDate( "2025-11-120" );
+        assertNull( date );
+
+        // Assert yyyyyMMddd INVALID format
+        date = safeParseDate( "2025011120" );
+        assertNull( date );
+    }
+
+    @Test
+    void testSafeParseDateInvalidDateFormats()
+    {
+        // Assert yyyy-MMM-dd INVALID format
+        Date date = safeParseDate( "2025-110-12" );
+        assertNull( date );
+
+        // Assert yyyy-MMM INVALID format
+        date = safeParseDate( "2025-111" );
+        assertNull( date );
+
+        // Assert yyyyyMMddd INVALID format
+        date = safeParseDate( "2025011120" );
+        assertNull( date );
+    }
+
+    @Test
     void testPlusOneDay()
     {
-        final Date aDay = getMediumDate( "2021-01-01" );
-        final Date theDayAfter = getMediumDate( "2021-01-02" );
+        Date aDay = getMediumDate( "2021-01-01" );
+        Date theDayAfter = getMediumDate( "2021-01-02" );
         assertThat( theDayAfter, is( plusOneDay( aDay ) ) );
     }
 
     @Test
     void testPlusOneSqlDay()
     {
-        final java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
-        final Date theDayAfter = getMediumDate( "2021-01-02" );
+        java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
+        Date theDayAfter = getMediumDate( "2021-01-02" );
         assertThat( theDayAfter, is( plusOneDay( sqlDay ) ) );
     }
 
     @Test
     void testMinusOneDay()
     {
-        final Date aDay = getMediumDate( "2021-01-01" );
-        final Date theDayBefore = getMediumDate( "2020-12-31" );
+        Date aDay = getMediumDate( "2021-01-01" );
+        Date theDayBefore = getMediumDate( "2020-12-31" );
         assertThat( theDayBefore, is( minusOneDay( aDay ) ) );
     }
 
     @Test
     void testMinusOneSqlDay()
     {
-        final java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
-        final Date theDayBefore = getMediumDate( "2020-12-31" );
+        java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
+        Date theDayBefore = getMediumDate( "2020-12-31" );
         assertThat( theDayBefore, is( minusOneDay( sqlDay ) ) );
     }
 }

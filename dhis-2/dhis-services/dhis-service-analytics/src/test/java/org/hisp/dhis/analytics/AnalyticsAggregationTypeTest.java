@@ -46,7 +46,6 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsAggregationTypeTest
 {
-
     @Test
     void verifyFromAggregationType()
     {

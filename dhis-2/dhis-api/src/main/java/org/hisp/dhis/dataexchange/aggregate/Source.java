@@ -46,6 +46,12 @@ public class Source
     implements Serializable
 {
     /**
+     * Source parameter constraints.
+     */
+    @JsonProperty
+    private SourceParams params;
+
+    /**
      * Source requests.
      */
     @JsonProperty

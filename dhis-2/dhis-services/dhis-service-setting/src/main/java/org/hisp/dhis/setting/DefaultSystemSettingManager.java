@@ -48,6 +48,7 @@ import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -82,11 +83,13 @@ public class DefaultSystemSettingManager
 
     private final PBEStringEncryptor pbeStringEncryptor;
 
+    private final TransactionTemplate transactionTemplate;
+
     private final List<String> flags;
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor,
-        CacheProvider cacheProvider, List<String> flags )
+        CacheProvider cacheProvider, List<String> flags, TransactionTemplate transactionTemplate )
     {
         checkNotNull( systemSettingStore );
         checkNotNull( pbeStringEncryptor );
@@ -97,6 +100,7 @@ public class DefaultSystemSettingManager
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.flags = flags;
         this.settingCache = cacheProvider.createSystemSettingCache();
+        this.transactionTemplate = transactionTemplate;
     }
 
     // -------------------------------------------------------------------------
@@ -143,7 +147,7 @@ public class DefaultSystemSettingManager
         {
             throw new IllegalStateException( "No entry found for key: " + key.getName() );
         }
-        else if ( setting != null )
+        if ( setting != null )
         {
             if ( translation.isEmpty() )
             {
@@ -179,8 +183,6 @@ public class DefaultSystemSettingManager
      * cache hits.
      */
     @Override
-    @SuppressWarnings( "unchecked" )
-    @Transactional( readOnly = true )
     public <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue )
     {
         SerializableOptional value = settingCache.get( key.getName(),
@@ -216,20 +218,14 @@ public class DefaultSystemSettingManager
                     return SerializableOptional.empty();
                 }
             }
-            else
-            {
-                return SerializableOptional.of( displayValue );
-            }
+            return SerializableOptional.of( displayValue );
         }
-        else
-        {
-            return SerializableOptional.of( defaultValue );
-        }
+        return SerializableOptional.of( defaultValue );
     }
 
     private Serializable getSettingDisplayValue( String name )
     {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -336,12 +332,14 @@ public class DefaultSystemSettingManager
     @Override
     public boolean isConfidential( String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+        SettingKey key = NAME_KEY_MAP.get( name );
+        return key != null && key.isConfidential();
     }
 
     @Override
     public boolean isTranslatable( final String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
+        SettingKey key = NAME_KEY_MAP.get( name );
+        return key != null && key.isTranslatable();
     }
 }

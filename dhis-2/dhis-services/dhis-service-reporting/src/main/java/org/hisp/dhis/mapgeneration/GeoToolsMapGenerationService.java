@@ -235,7 +235,7 @@ public class GeoToolsMapGenerationService
         Period period = null;
 
         if ( !mapView.getPeriods().isEmpty() ) // TODO integrate with
-                                               // BaseAnalyticalObject
+                                              // BaseAnalyticalObject
         {
             period = mapView.getPeriods().get( 0 );
         }

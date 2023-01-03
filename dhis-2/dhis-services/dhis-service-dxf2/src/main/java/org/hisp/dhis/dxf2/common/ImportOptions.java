@@ -39,6 +39,7 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -53,6 +54,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Getter
 @Setter
 @Accessors( chain = true )
@@ -113,6 +115,15 @@ public class ImportOptions
 
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictOrganisationUnits;
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private boolean strictDataSetApproval;
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private boolean strictDataSetLocking;
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private boolean strictDataSetInputPeriods;
 
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireCategoryOptionCombo;

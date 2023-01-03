@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -66,11 +67,11 @@ public abstract class AbstractEventJdbcTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate );
+            databaseInfo, jdbcTemplate, analyticsExportSettings );
     }
 
     protected final String getNumericClause()
@@ -134,7 +135,7 @@ public abstract class AbstractEventJdbcTableManager
         // Data values might be '{}' / empty object if data values existed
         // and were removed later
 
-        final String sql = "select programstageinstanceid " +
+        String sql = "select programstageinstanceid " +
             "from programstageinstance " +
             "where eventdatavalues != '{}' limit 1;";
 
@@ -165,7 +166,7 @@ public abstract class AbstractEventJdbcTableManager
     protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
         String fromClause )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 

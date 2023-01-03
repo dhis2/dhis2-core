@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -131,6 +132,8 @@ public abstract class AbstractJdbcTableManager
     protected final DatabaseInfo databaseInfo;
 
     protected final JdbcTemplate jdbcTemplate;
+
+    protected final AnalyticsExportSettings analyticsExportSettings;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
@@ -224,13 +227,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTable( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName );
+        executeSafely( "drop table if exists " + tableName );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName + " cascade" );
+        executeSafely( "drop table if exists " + tableName + " cascade" );
     }
 
     @Override
@@ -238,7 +241,7 @@ public abstract class AbstractJdbcTableManager
     {
         String sql = StringUtils.trimToEmpty( statementBuilder.getAnalyze( tableName ) );
 
-        executeSilently( sql );
+        executeSafely( sql );
     }
 
     @Override
@@ -319,12 +322,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * Executes a SQL statement "safely" (without throwing any exception).
+     * Instead, exceptions are simply logged.
      *
      * @param sql the SQL statement.
      */
-    protected void executeSilently( String sql )
+    protected void executeSafely( String sql )
     {
         try
         {
@@ -347,7 +350,10 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
+        StringBuilder sqlCreate = new StringBuilder();
+
+        sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+            .append( tableName ).append( " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -381,22 +387,25 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " (";
+            StringBuilder sqlCreate = new StringBuilder();
+
+            sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+                .append( tableName ).append( "(" );
 
             if ( !checks.isEmpty() )
             {
                 StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
+                sqlCreate.append( TextUtils.removeLastComma( sqlCheck.toString() ) );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate.append( ") inherits (" ).append( table.getTempTableName() ).append( ") " )
+                .append( getTableOptions() );
 
             log.info( "Creating partition table: '{}'", tableName );
-
             log.debug( "Create SQL: {}", sqlCreate );
 
-            jdbcTemplate.execute( sqlCreate );
+            jdbcTemplate.execute( sqlCreate.toString() );
         }
     }
 
@@ -423,11 +432,13 @@ public abstract class AbstractJdbcTableManager
     {
         Calendar calendar = PeriodType.getCalendar();
 
-        Collections.sort( dataYears );
+        List<Integer> years = ListUtils.mutableCopy( dataYears );
+
+        Collections.sort( years );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
-        for ( Integer year : dataYears )
+        for ( Integer year : years )
         {
             table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
                 PartitionUtils.getEndDate( calendar, year ) );
@@ -610,7 +621,7 @@ public abstract class AbstractJdbcTableManager
             "alter table " + tempTableName + " rename to " + realTableName
         };
 
-        executeSilently( sqlSteps, true );
+        executeSafely( sqlSteps, true );
     }
 
     /**
@@ -628,24 +639,31 @@ public abstract class AbstractJdbcTableManager
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName
         };
 
-        executeSilently( sqlSteps, true );
+        executeSafely( sqlSteps, true );
     }
 
-    private void executeSilently( String[] sqlSteps, boolean atomically )
+    /**
+     * Executes a set of SQL statements "safely" (without throwing any
+     * exception). Instead, exceptions are simply logged.
+     *
+     * @param sqlStatements the SQL statements to be executed
+     * @param atomically if true, the statements are executed all together in a
+     *        single JDBC call
+     */
+    private void executeSafely( String[] sqlStatements, boolean atomically )
     {
         if ( atomically )
         {
-            String sql = String.join( ";", sqlSteps ) + ";";
+            String sql = String.join( ";", sqlStatements ) + ";";
             log.debug( sql );
-
-            executeSilently( sql );
+            executeSafely( sql );
         }
         else
         {
-            for ( int i = 0; i < sqlSteps.length; i++ )
+            for ( int i = 0; i < sqlStatements.length; i++ )
             {
-                log.debug( sqlSteps[i] );
-                executeSilently( sqlSteps[i] );
+                log.debug( sqlStatements[i] );
+                executeSafely( sqlStatements[i] );
             }
         }
     }

@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.MessageManager;
@@ -35,7 +36,7 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -46,10 +47,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TrackerAsyncImporter
 {
-    @NonNull
+    @Nonnull
     private final MessageManager messageManager;
 
-    public TrackerImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )
+    public ImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )
     {
         TrackerMessage trackerMessage = TrackerMessage.builder()
             .trackerImportParams( params )
@@ -60,7 +61,7 @@ public class TrackerAsyncImporter
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
 
         return null; // empty report is not
-                     // returned
-                     // in async creation
+                    // returned
+                    // in async creation
     }
 }

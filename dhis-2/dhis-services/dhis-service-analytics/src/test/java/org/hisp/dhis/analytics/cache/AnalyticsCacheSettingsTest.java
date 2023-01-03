@@ -62,7 +62,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith( MockitoExtension.class )
 class AnalyticsCacheSettingsTest
 {
-
     @Mock
     private SystemSettingManager systemSettingManager;
 
@@ -109,54 +108,43 @@ class AnalyticsCacheSettingsTest
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
     {
-        // Given
-        final int aTtlFactor = 20;
-        final int oneDayDiff = 1;
-        final long theExpectedTtl = aTtlFactor * oneDayDiff; // See
-                                                             // TimeToLive.compute()
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+        int aTtlFactor = 20;
+        int oneDayDiff = 1;
+        long theExpectedTtl = aTtlFactor * oneDayDiff;
+        Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( aTtlFactor );
-        final long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
+        long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
 
-        // Then
         assertThat( expirationTime, is( theExpectedTtl ) );
     }
 
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
     {
-        // Given
-        final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
-        final int oneDayDiff = 1;
-        final long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
-                                                                      // TimeToLive.compute()
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+        int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
+        int oneDayDiff = 1;
+        long theExpectedTtl = theDefaultTtlFactor * oneDayDiff;
+        Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( theDefaultTtlFactor );
-        final long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
+        long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
 
-        // Then
         assertThat( expirationTime, is( theExpectedTtl ) );
     }
 
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
     {
-        // Given
-        final int aTtlFactor = -20;
-        final int oneDayDiff = 1;
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+        int aTtlFactor = -20;
+        int oneDayDiff = 1;
+        Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( aTtlFactor );
 
-        // Then
         assertEquals( 1, analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday ) );
     }
 
@@ -213,7 +201,7 @@ class AnalyticsCacheSettingsTest
             .thenReturn( strategy );
     }
 
-    private int minus( final int value )
+    private int minus( int value )
     {
         return -value;
     }

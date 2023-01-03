@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -51,7 +52,7 @@ import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -97,12 +98,12 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteDataValue( event, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1308,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1308,
                     Lists.newArrayList( actionRule.getField(), event.getEvent() ), IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1307,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1307,
                     Lists.newArrayList( actionRule.getField(), actionRule.getData() ), IssueType.ERROR ) );
             }
         }
@@ -134,13 +135,13 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteAttribute( enrollment, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1310,
                     Lists.newArrayList( actionRule.getField(), actionRule.getData() ),
                     IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1309,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1309,
                     Lists.newArrayList( actionRule.getField(), enrollment.getEnrollment() ),
                     IssueType.ERROR ) );
             }
@@ -167,7 +168,7 @@ public class AssignValueImplementer
             .findAny();
         if ( optionalDataValue.isPresent() )
         {
-            return areEquals( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
+            return isEqual( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
         }
 
         return false;
@@ -182,22 +183,32 @@ public class AssignValueImplementer
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
-            return areEquals( value, optionalAttribute.get().getValue(), attribute.getValueType() );
+            return isEqual( value, optionalAttribute.get().getValue(), attribute.getValueType() );
         }
 
         return false;
     }
 
-    private boolean areEquals( String dataValue, String value, ValueType valueType )
+    /**
+     * Tests whether the given values are equal. If the given value type is
+     * numeric, the values are converted to doubles before being checked for
+     * equality.
+     *
+     * @param value1 the first value.
+     * @param value2 the second value.
+     * @param valueType the value type.
+     * @return true if the values are equal, false if not.
+     */
+    protected boolean isEqual( String value1, String value2, ValueType valueType )
     {
         if ( valueType.isNumeric() )
         {
-            return NumberUtils.isParsable( dataValue ) &&
-                Double.parseDouble( value ) == Double.parseDouble( dataValue );
+            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
+                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
         }
         else
         {
-            return value.equals( dataValue );
+            return value1 != null && value1.equals( value2 );
         }
     }
 
@@ -224,7 +235,7 @@ public class AssignValueImplementer
     private void addOrOverwriteAttribute( Enrollment enrollment, EnrollmentActionRule actionRule, TrackerBundle bundle )
     {
         TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getField() );
-        Optional<TrackedEntity> trackedEntity = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
+        Optional<TrackedEntity> trackedEntity = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
         List<Attribute> attributes;
 
         if ( trackedEntity.isPresent() )

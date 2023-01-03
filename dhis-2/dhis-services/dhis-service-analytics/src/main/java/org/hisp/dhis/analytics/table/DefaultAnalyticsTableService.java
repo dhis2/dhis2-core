@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collection;
@@ -161,8 +162,8 @@ public class DefaultAnalyticsTableService
 
         if ( params.isLatestUpdate() )
         {
-            progress.startingStage( "Removing updated and deleted data " + tableType );
-            tableManager.removeUpdatedData( tables );
+            progress.startingStage( "Removing updated and deleted data " + tableType, SKIP_STAGE );
+            progress.runStage( () -> tableManager.removeUpdatedData( tables ) );
             clock.logTime( "Removed updated and deleted data" );
         }
 
@@ -176,8 +177,7 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        tables.stream()
-            .forEach( tableManager::dropTableCascade );
+        tables.stream().forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
     }

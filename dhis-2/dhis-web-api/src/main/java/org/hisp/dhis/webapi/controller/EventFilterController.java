@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )

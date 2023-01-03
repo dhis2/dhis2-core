@@ -54,7 +54,7 @@ public class IndicatorGroup
 
     private Set<Indicator> members = new HashSet<>();
 
-    private IndicatorGroupSet groupSet;
+    private Set<IndicatorGroupSet> groupSets = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -147,11 +147,20 @@ public class IndicatorGroup
     @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
     public IndicatorGroupSet getGroupSet()
     {
-        return groupSet;
+        return groupSets.isEmpty() ? null : groupSets.iterator().next();
     }
 
-    public void setGroupSet( IndicatorGroupSet groupSet )
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<IndicatorGroupSet> getGroupSets()
     {
-        this.groupSet = groupSet;
+        return groupSets;
+    }
+
+    public void setGroupSets( Set<IndicatorGroupSet> groupSets )
+    {
+        this.groupSets = groupSets;
     }
 }

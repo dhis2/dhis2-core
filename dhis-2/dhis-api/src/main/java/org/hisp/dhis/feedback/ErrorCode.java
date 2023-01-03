@@ -36,6 +36,10 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
+    E1003( "API query contains errors" ),
+    E1004( "API query cannot be performed" ),
+    E1005( "API query object not found" ),
+    E1006( "API request not permitted for the current user" ),
 
     /* Basic metadata */
     E1100( "Data element not found or not accessible: `{0}`" ),
@@ -173,6 +177,7 @@ public enum ErrorCode
     E3025( "No current user" ),
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
+    E3028( "User `{0}` does not have access to user role" ),
     E3028( "User must have a secret" ),
     E3029( "User must call /qr endpoint before you can call enable" ),
     E3030(
@@ -241,6 +246,7 @@ public enum ErrorCode
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program" ),
+    E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
@@ -403,6 +409,7 @@ public enum ErrorCode
     E7229( "Operator `{0}` does not allow missing value" ),
     E7230( "Header param `{0}` does not exist" ),
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
+    E7232( "Fallback coordinate field is invalid: `{0}`" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
@@ -434,7 +441,7 @@ public enum ErrorCode
     E7616( "Attribute option combo: `{0}` option not accessible: `{1}`" ),
     E7617( "Organisation unit: `{0}` not in hierarchy of current user: `{1}`" ),
     E7618( "Data value or comment not specified for data element: `{0}`" ),
-    E7619( "Value must match data element''s `{0}` type constraints: {1}" ),
+    E7619( "Value must match value type of data element `{0}`: `{1}`" ),
     E7620( "Invalid comment: {0}" ),
     E7621( "Data value is not a valid option of the data element option set: `{0}`" ),
     // Data Value constraints
@@ -449,7 +456,7 @@ public enum ErrorCode
     E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
-    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`" ),
     E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),

@@ -33,6 +33,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +45,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -56,6 +62,7 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Dusan Bernat
  */
+@Slf4j
 public class QueryItemHelper
 {
     private static final String ITEM_NAME_SEP = ": ";
@@ -159,11 +166,11 @@ public class QueryItemHelper
      */
     public static Map<String, List<Option>> getItemOptions( Grid grid, EventQueryParams params )
     {
-        final Map<String, List<Option>> options = new HashMap<>();
+        Map<String, List<Option>> options = new HashMap<>();
 
         for ( int i = 0; i < grid.getHeaders().size(); ++i )
         {
-            final GridHeader gridHeader = grid.getHeaders().get( i );
+            GridHeader gridHeader = grid.getHeaders().get( i );
 
             if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
             {
@@ -192,12 +199,10 @@ public class QueryItemHelper
 
         options.stream().filter( Objects::nonNull ).forEach(
             option -> {
-                boolean queryItemsHaveNoFilter = queryItems.stream().noneMatch( QueryItem::hasFilter );
-
                 boolean queryItemsFilterMatchOptionCode = queryItems.stream().anyMatch(
                     queryItem -> queryItem.hasFilter() && filtersContainOption( option, queryItem.getFilters() ) );
 
-                if ( queryItemsHaveNoFilter || queryItemsFilterMatchOptionCode )
+                if ( queryItemsFilterMatchOptionCode )
                 {
                     matchedOptions.add( option );
                 }
@@ -250,11 +255,11 @@ public class QueryItemHelper
 
         if ( isNotEmpty( params.getItems() ) )
         {
-            final List<QueryItem> items = params.getItems();
+            List<QueryItem> items = params.getItems();
 
-            for ( final QueryItem item : items )
+            for ( QueryItem item : items )
             {
-                final boolean hasOptions = item.getOptionSet() != null
+                boolean hasOptions = item.getOptionSet() != null
                     && isNotEmpty( item.getOptionSet().getOptions() );
 
                 if ( hasOptions && isNotEmpty( item.getFilters() ) )
@@ -278,24 +283,87 @@ public class QueryItemHelper
      */
     private static List<Option> getItemOptionsThatMatchesRows( Grid grid, int columnIndex )
     {
-        List<Option> options = new ArrayList<>();
         GridHeader gridHeader = grid.getHeaders().get( columnIndex );
 
-        options.addAll( gridHeader
+        return gridHeader
             .getOptionSetObject()
             .getOptions()
             .stream()
             .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
                 Object o = r.get( columnIndex );
-                if ( o instanceof String )
-                {
-                    return ((String) o).equalsIgnoreCase( opt.getCode() );
-                }
 
-                return false;
-            } ) ).collect( toList() ) );
+                return isItemOptionEqualToRowContent( opt.getCode(), o );
+            } ) ).collect( Collectors.toList() );
+    }
 
-        return options;
+    /**
+     * Compare option code and row content. Type of option value is derived from
+     * ValueType enum
+     *
+     * @see org.hisp.dhis.common.ValueType
+     * @param code
+     * @param rowContent
+     * @return true when equal
+     */
+    public static boolean isItemOptionEqualToRowContent( String code, Object rowContent )
+    {
+        if ( StringUtils.isBlank( code ) )
+        {
+            return false;
+        }
+
+        // String
+        if ( rowContent instanceof String )
+        {
+            return ((String) rowContent).equalsIgnoreCase( code );
+        }
+
+        // Integer, Double
+        if ( rowContent instanceof Number )
+        {
+            try
+            {
+                return ((Number) rowContent).doubleValue() == Double.parseDouble( code );
+            }
+            catch ( NumberFormatException e )
+            {
+                log.warn( String.format( "code %s is not Doublw", code ), e.getMessage() );
+            }
+        }
+
+        // Boolean
+        if ( rowContent instanceof Boolean )
+        {
+            return ((Boolean) rowContent) == Boolean.parseBoolean( code );
+        }
+
+        // LocalDate
+        if ( rowContent instanceof LocalDate )
+        {
+            try
+            {
+                return ((LocalDate) rowContent).isEqual( LocalDate.parse( code ) );
+            }
+            catch ( DateTimeParseException e )
+            {
+                log.warn( String.format( "code %s is not LocalDate", code ), e.getMessage() );
+            }
+        }
+
+        // LocalDateTime
+        if ( rowContent instanceof LocalDateTime )
+        {
+            try
+            {
+                return ((LocalDateTime) rowContent).isEqual( LocalDateTime.parse( code ) );
+            }
+            catch ( DateTimeParseException e )
+            {
+                log.warn( String.format( "code %s is not LocalDateTime", code ), e.getMessage() );
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -313,11 +381,11 @@ public class QueryItemHelper
     {
         List<Option> options = new ArrayList<>();
 
-        for ( final Option option : item.getOptionSet().getOptions() )
+        for ( Option option : item.getOptionSet().getOptions() )
         {
-            for ( final QueryFilter filter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                final List<String> filterSplit = Arrays
+                List<String> filterSplit = Arrays
                     .stream( trimToEmpty( filter.getFilter() ).split( ";" ) )
                     .collect( toList() );
                 if ( filterSplit.contains( trimToEmpty( option.getCode() ) ) )

@@ -106,15 +106,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @Component( "workContextProgramsSupplier" )
 public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
-    private final static String PROGRAM_CACHE_KEY = "000P";
+    private static final String PROGRAM_CACHE_KEY = "000P";
 
-    private final static String ATTRIBUTESCHEME_COL = "attributevalues";
+    private static final String ATTRIBUTESCHEME_COL = "attributevalues";
 
-    private final static String PROGRAM_STAGE_ID = "programstageid";
+    private static final String PROGRAM_STAGE_ID = "programstageid";
 
-    private final static String COMPULSORY = "compulsory";
+    private static final String COMPULSORY = "compulsory";
 
-    private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
+    private static final String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire program hierarchy, including program stages and ACL
     private final Cache<Map<String, Program>> programsCache;

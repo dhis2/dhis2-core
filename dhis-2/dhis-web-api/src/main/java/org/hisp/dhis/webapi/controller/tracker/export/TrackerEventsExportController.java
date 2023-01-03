@@ -39,13 +39,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -74,6 +75,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -86,22 +88,22 @@ public class TrackerEventsExportController
 
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
-    @NonNull
+    @Nonnull
     private final EventService eventService;
 
-    @NonNull
+    @Nonnull
     private final ContextService contextService;
 
-    @NonNull
-    private final EventRequestToSearchParamsMapper requestToSearchParams;
+    @Nonnull
+    private final TrackerEventCriteriaMapper requestToSearchParams;
 
-    @NonNull
+    @Nonnull
     private final ProgramStageInstanceService programStageInstanceService;
 
-    @NonNull
+    @Nonnull
     private final CsvEventService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )

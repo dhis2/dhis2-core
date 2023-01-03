@@ -42,15 +42,15 @@ import com.google.common.collect.ImmutableList;
  */
 public class DimensionItemKeywords
 {
-    public class Keyword
+    public static class Keyword
     {
-        private String key;
+        private final String key;
 
-        private String uid;
+        private final String uid;
 
-        private String name;
+        private final String name;
 
-        private String code;
+        private final String code;
 
         Keyword( String key, String uid, String name, String code )
         {
@@ -71,7 +71,7 @@ public class DimensionItemKeywords
         }
     }
 
-    private List<Keyword> keywords;
+    private final List<Keyword> keywords;
 
     public DimensionItemKeywords()
     {
@@ -97,7 +97,7 @@ public class DimensionItemKeywords
 
     public void addKeywords( List<? extends IdentifiableObject> objects )
     {
-        objects.forEach( object -> this.addKeyword( object ) );
+        objects.forEach( this::addKeyword );
     }
 
     public Keyword getKeyword( String key )

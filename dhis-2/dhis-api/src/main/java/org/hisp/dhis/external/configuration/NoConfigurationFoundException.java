@@ -29,7 +29,6 @@ package org.hisp.dhis.external.configuration;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class NoConfigurationFoundException
     extends Exception

@@ -34,7 +34,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -116,10 +119,6 @@ public class EventSearchParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private AssignedUserSelectionMode assignedUserSelectionMode;
-
-    private Set<String> assignedUsers = new HashSet<>();
-
     private TrackedEntityInstance trackedEntityInstance;
 
     private Date startDate;
@@ -163,9 +162,11 @@ public class EventSearchParams
 
     private boolean includeRelationships;
 
-    private List<OrderParam> orders;
+    private final List<OrderParam> orders = new ArrayList<>();
 
-    private List<OrderParam> gridOrders;
+    private final List<OrderParam> gridOrders = new ArrayList<>();
+
+    private final List<OrderParam> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
 
@@ -178,9 +179,9 @@ public class EventSearchParams
     /**
      * Filters for the response.
      */
-    private List<QueryItem> filters = new ArrayList<>();
+    private final List<QueryItem> filters = new ArrayList<>();
 
-    private List<QueryItem> filterAttributes = new ArrayList<>();
+    private final List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -203,6 +204,9 @@ public class EventSearchParams
     private Date skipChangedBefore;
 
     private Set<String> programInstances;
+
+    @Getter
+    private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -285,7 +289,7 @@ public class EventSearchParams
      */
     public boolean hasFilters()
     {
-        return filters != null && !filters.isEmpty();
+        return !filters.isEmpty();
     }
 
     /**
@@ -402,25 +406,20 @@ public class EventSearchParams
         return this;
     }
 
-    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    /**
+     * Set assigned user selection mode, assigned users and the current user for
+     * the query. Non-empty assigned users are only allowed with mode PROVIDED
+     * (or null).
+     *
+     * @param mode assigned user mode
+     * @param current current user with which query is made
+     * @param assignedUsers assigned user uids
+     * @return this
+     */
+    public EventSearchParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+        Set<String> assignedUsers )
     {
-        return assignedUserSelectionMode;
-    }
-
-    public EventSearchParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
-    {
-        this.assignedUserSelectionMode = assignedUserSelectionMode;
-        return this;
-    }
-
-    public Set<String> getAssignedUsers()
-    {
-        return assignedUsers;
-    }
-
-    public EventSearchParams setAssignedUsers( Set<String> assignedUsers )
-    {
-        this.assignedUsers = assignedUsers;
+        this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );
         return this;
     }
 
@@ -646,23 +645,34 @@ public class EventSearchParams
 
     public List<OrderParam> getOrders()
     {
-        return this.orders;
+        return Collections.unmodifiableList( this.orders );
     }
 
-    public EventSearchParams setOrders( List<OrderParam> orders )
+    public EventSearchParams addOrders( List<OrderParam> orders )
     {
-        this.orders = orders;
+        this.orders.addAll( orders );
         return this;
     }
 
     public List<OrderParam> getGridOrders()
     {
-        return this.gridOrders;
+        return Collections.unmodifiableList( this.gridOrders );
     }
 
-    public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
+    public EventSearchParams addGridOrders( List<OrderParam> gridOrders )
     {
-        this.gridOrders = gridOrders;
+        this.gridOrders.addAll( gridOrders );
+        return this;
+    }
+
+    public List<OrderParam> getAttributeOrders()
+    {
+        return Collections.unmodifiableList( this.attributeOrders );
+    }
+
+    public EventSearchParams addAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders.addAll( attributeOrders );
         return this;
     }
 
@@ -701,23 +711,35 @@ public class EventSearchParams
 
     public List<QueryItem> getFilters()
     {
-        return filters;
+        return Collections.unmodifiableList( this.filters );
     }
 
-    public EventSearchParams setFilters( List<QueryItem> filters )
+    public EventSearchParams addFilter( QueryItem item )
     {
-        this.filters = filters;
+        this.filters.add( item );
+        return this;
+    }
+
+    public EventSearchParams addFilters( List<QueryItem> items )
+    {
+        this.filters.addAll( items );
         return this;
     }
 
     public List<QueryItem> getFilterAttributes()
     {
-        return filterAttributes;
+        return Collections.unmodifiableList( this.filterAttributes );
     }
 
-    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    public EventSearchParams addFilterAttributes( List<QueryItem> item )
     {
-        this.filterAttributes = filters;
+        this.filterAttributes.addAll( item );
+        return this;
+    }
+
+    public EventSearchParams addFilterAttributes( QueryItem item )
+    {
+        this.filterAttributes.add( item );
         return this;
     }
 
@@ -801,30 +823,6 @@ public class EventSearchParams
     {
         this.programInstances = programInstances;
         return this;
-    }
-
-    public void handleCurrentUserSelectionMode( User currentUser )
-    {
-        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && currentUser != null )
-        {
-            this.assignedUsers = Collections.singleton( currentUser.getUid() );
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-        }
-    }
-
-    public boolean hasAssignedUsers()
-    {
-        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
-    }
-
-    public boolean isIncludeOnlyUnassignedEvents()
-    {
-        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
-    }
-
-    public boolean isIncludeOnlyAssignedEvents()
-    {
-        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
 
     public boolean isIncludeRelationships()

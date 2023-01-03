@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,6 +104,14 @@ public class MetadataExportParams
      * Indicates whether sharing properties should be included in the export.
      */
     private boolean skipSharing;
+
+    /**
+     * The object to be exported with dependencies. It will be handled by
+     * {@link MetadataExportService#getMetadataWithDependenciesAsNodeStream(IdentifiableObject, MetadataExportParams, OutputStream)}
+     */
+    private IdentifiableObject objectExportWithDependencies;
+
+    private boolean download = false;
 
     public MetadataExportParams()
     {
@@ -245,5 +254,30 @@ public class MetadataExportParams
     public boolean getSkipSharing()
     {
         return this.skipSharing;
+    }
+
+    public boolean isExportWithDependencies()
+    {
+        return objectExportWithDependencies != null;
+    }
+
+    public IdentifiableObject getObjectExportWithDependencies()
+    {
+        return objectExportWithDependencies;
+    }
+
+    public void setObjectExportWithDependencies( IdentifiableObject object )
+    {
+        this.objectExportWithDependencies = object;
+    }
+
+    public boolean isDownload()
+    {
+        return download;
+    }
+
+    public void setDownload( boolean download )
+    {
+        this.download = download;
     }
 }

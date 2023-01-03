@@ -34,12 +34,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -52,14 +58,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ApprovalStatusDto
 {
     @JsonProperty
+    @OpenApi.Property( { UID.class, DataApprovalWorkflow.class } )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String wf;
 
     @JsonProperty
+    @OpenApi.Property( Period.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String pe;
 
     @JsonProperty
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String ou;
 
@@ -68,6 +77,7 @@ public class ApprovalStatusDto
     private final String ouName;
 
     @JsonProperty
+    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String aoc;
 

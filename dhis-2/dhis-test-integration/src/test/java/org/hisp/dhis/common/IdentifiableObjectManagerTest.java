@@ -100,9 +100,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.CODE, dataElementA.getCode() ) );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.UID, dataElementA.getUid() ) );
     }
 
@@ -466,9 +466,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void getByUidWithNull()
+    void getByUidWithEmpty()
     {
-        assertIsEmpty( idObjectManager.getByUid( DataElement.class, null ) );
+        assertIsEmpty( idObjectManager.getByUid( DataElement.class, List.of() ) );
     }
 
     @Test
@@ -488,9 +488,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void loadByUidNullTest()
+    void loadByUidWithEmpty()
     {
-        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, null ) );
+        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, List.of() ) );
     }
 
     @Test

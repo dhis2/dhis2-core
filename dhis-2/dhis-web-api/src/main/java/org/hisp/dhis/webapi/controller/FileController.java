@@ -30,12 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.Writer;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.setting.SettingKey;
@@ -57,6 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( value = FileController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -74,6 +77,7 @@ public class FileController
     // Custom script
     // -------------------------------------------------------------------------
 
+    @OpenApi.Response( Serializable.class )
     @GetMapping( "/script" )
     public void getCustomScript( HttpServletResponse response, Writer writer )
         throws IOException
@@ -118,6 +122,7 @@ public class FileController
      * The style/external mapping enables style to be reached from login page /
      * before authentication.
      */
+    @OpenApi.Response( Serializable.class )
     @GetMapping( value = { "/style", "/style/external" } )
     public void getCustomStyle( HttpServletResponse response, Writer writer )
         throws IOException

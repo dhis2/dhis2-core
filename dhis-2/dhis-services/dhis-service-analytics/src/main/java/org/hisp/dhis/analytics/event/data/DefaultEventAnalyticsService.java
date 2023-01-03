@@ -131,11 +131,11 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_STORED_BY = "Stored by";
 
-    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by (display name)";
+    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by";
 
-    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by (display name)";
+    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by";
 
-    private static final String NAME_LAST_UPDATED = "Last Updated";
+    private static final String NAME_LAST_UPDATED = "Last updated on";
 
     private static final String NAME_SCHEDULED_DATE = "Scheduled date";
 
@@ -251,7 +251,7 @@ public class DefaultEventAnalyticsService
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
-            final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
+            EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
         }
 

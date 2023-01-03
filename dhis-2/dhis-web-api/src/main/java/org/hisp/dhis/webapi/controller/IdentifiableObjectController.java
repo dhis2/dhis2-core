@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
@@ -43,11 +44,10 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = IdentifiableObjectController.RESOURCE_PATH )
 public class IdentifiableObjectController
@@ -56,25 +56,24 @@ public class IdentifiableObjectController
     public static final String RESOURCE_PATH = "/identifiableObjects";
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
-        List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
-        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.find( uid ) );
-        optional.ifPresent( identifiableObjects::add );
+        Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find( uid );
 
-        return identifiableObjects;
+        return object.isPresent() ? List.of( object.get() ) : List.of();
     }
 
     @Override
     public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
@@ -82,7 +81,7 @@ public class IdentifiableObjectController
     @Override
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "PUT" );
     }
@@ -90,7 +89,7 @@ public class IdentifiableObjectController
     @Override
     public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "DELETE" );
     }

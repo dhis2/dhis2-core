@@ -47,6 +47,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -79,6 +80,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
 @Slf4j
@@ -172,7 +174,8 @@ public class AppController
         throws IOException,
         WebMessageException
     {
-        App application = appManager.getApp( app );
+        String contextPath = ContextUtils.getContextPath( request );
+        App application = appManager.getApp( app, contextPath );
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
@@ -213,8 +216,6 @@ public class AppController
             if ( application.getActivities() != null && application.getActivities().getDhis() != null
                 && "*".equals( application.getActivities().getDhis().getHref() ) )
             {
-                String contextPath = ContextUtils.getContextPath( request );
-
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
 
                 application.getActivities().getDhis().setHref( contextPath );

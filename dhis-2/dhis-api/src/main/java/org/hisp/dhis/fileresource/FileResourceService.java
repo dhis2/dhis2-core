@@ -35,6 +35,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -42,7 +44,7 @@ public interface FileResourceService
 {
     FileResource getFileResource( String uid );
 
-    List<FileResource> getFileResources( List<String> uids );
+    List<FileResource> getFileResources( @Nonnull List<String> uids );
 
     List<FileResource> getOrphanedFileResources();
 
@@ -66,6 +68,18 @@ public interface FileResourceService
      * @throws NoSuchElementException
      */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+        throws IOException,
+        NoSuchElementException;
+
+    /**
+     * Copy fileResource content to a byte array
+     *
+     * @param fileResource
+     * @return a byte array of the content
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
+    byte[] copyFileResourceContent( FileResource fileResource )
         throws IOException,
         NoSuchElementException;
 

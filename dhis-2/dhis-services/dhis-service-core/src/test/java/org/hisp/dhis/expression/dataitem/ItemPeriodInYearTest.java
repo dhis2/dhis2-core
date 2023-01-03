@@ -35,8 +35,10 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -59,6 +61,12 @@ class ItemPeriodInYearTest
 
     @Mock
     private ExpressionParams params;
+
+    @Mock
+    private ExpressionState expressionState;
+
+    @Mock
+    private QueryModifiers queryMods;
 
     private final ItemPeriodInYear target = new ItemPeriodInYear();
 
@@ -130,14 +138,37 @@ class ItemPeriodInYearTest
         assertEquals( 1, evalWith( "2022Oct" ) );
     }
 
+    @Test
+    void testEvaluateMonthlyWithPeriodOffset()
+    {
+        assertEquals( 5, evalWith( "202209", -4 ) );
+        assertEquals( 1, evalWith( "202209", 4 ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
     private long evalWith( String period )
     {
+        return evalWith( period, 0 );
+    }
+
+    private long evalWith( String period, int periodOffset )
+    {
         when( visitor.getParams() ).thenReturn( params );
         when( params.getPeriods() ).thenReturn( List.of( createPeriod( period ) ) );
+        when( visitor.getState() ).thenReturn( expressionState );
+
+        if ( periodOffset == 0 )
+        {
+            when( expressionState.getQueryMods() ).thenReturn( null );
+        }
+        else
+        {
+            when( expressionState.getQueryMods() ).thenReturn( queryMods );
+            when( queryMods.getPeriodOffset() ).thenReturn( periodOffset );
+        }
 
         return round( target.evaluate( ctx, visitor ) );
     }

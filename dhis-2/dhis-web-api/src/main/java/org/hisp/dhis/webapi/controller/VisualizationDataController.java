@@ -35,15 +35,16 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -76,42 +77,43 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@OpenApi.Tags( "ui" )
 @RestController
 @AllArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class VisualizationDataController
 {
-    @NonNull
+    @Nonnull
     private OrganisationUnitService organisationUnitService;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
-    @NonNull
+    @Nonnull
     private final VisualizationService visualizationService;
 
-    @NonNull
+    @Nonnull
     private final VisualizationGridService visualizationGridService;
 
-    @NonNull
+    @Nonnull
     private final ChartService chartService;
 
-    @NonNull
+    @Nonnull
     private final DataElementService dataElementService;
 
-    @NonNull
+    @Nonnull
     private final CategoryService categoryService;
 
-    @NonNull
+    @Nonnull
     private final IndicatorService indicatorService;
 
-    @NonNull
+    @Nonnull
     private final I18nManager i18nManager;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final RenderService renderService;
 
     @GetMapping( value = "/visualizations/{uid}/data.html" )
@@ -214,7 +216,7 @@ public class VisualizationDataController
         throws IOException,
         WebMessageException
     {
-        final Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
+        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
 
         if ( visualization == null )
         {
@@ -348,7 +350,7 @@ public class VisualizationDataController
         return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
-    private boolean isChartSupported( final VisualizationType type )
+    private boolean isChartSupported( VisualizationType type )
     {
         return type == VisualizationType.LINE ||
             type == VisualizationType.COLUMN ||

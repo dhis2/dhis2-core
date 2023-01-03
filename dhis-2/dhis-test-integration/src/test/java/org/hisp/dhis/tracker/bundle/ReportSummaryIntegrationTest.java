@@ -38,8 +38,8 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +70,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.OBJECT );
 
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportTeiReport );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
@@ -92,7 +92,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportTeiReport );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
@@ -115,10 +115,10 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
+        assertEquals( Status.OK, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 1, trackerImportTeiReport.getStats().getUpdated() );
@@ -139,7 +139,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
@@ -161,7 +161,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
@@ -200,7 +200,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
@@ -213,7 +213,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
     void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollmentAndOneInvalidEnrollment()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/one_update_tei_and_one_new_tei.json" );
+        TrackerImportParams params = fromJson( "tracker/three_teis.json" );
         params.setUserId( userA.getUid() );
 
         trackerImportService.importTracker( params );
@@ -229,10 +229,10 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
-        assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
+        assertEquals( Status.OK, trackerImportEnrollmentReport.getStatus() );
         assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getErrors().size() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
@@ -257,7 +257,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params = fromJson( "tracker/single_event.json" );
         params.setUserId( userA.getUid() );
 
-        TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportEventReport );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
@@ -290,7 +290,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setUserId( userA.getUid() );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportEventReport );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
@@ -323,10 +323,10 @@ class ReportSummaryIntegrationTest extends TrackerTest
         params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
+        ImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEventReport );
-        assertEquals( TrackerStatus.OK, trackerImportEventReport.getStatus() );
+        assertEquals( Status.OK, trackerImportEventReport.getStatus() );
         assertEquals( 1, trackerImportEventReport.getValidationReport().getErrors().size() );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEventReport.getStats().getUpdated() );

@@ -32,7 +32,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

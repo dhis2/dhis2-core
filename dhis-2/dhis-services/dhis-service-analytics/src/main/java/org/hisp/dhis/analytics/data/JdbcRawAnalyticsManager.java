@@ -28,7 +28,10 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.*;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -44,7 +47,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -70,7 +78,8 @@ public class JdbcRawAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 

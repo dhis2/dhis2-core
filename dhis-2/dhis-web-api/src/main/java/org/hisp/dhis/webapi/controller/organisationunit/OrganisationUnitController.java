@@ -36,12 +36,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -63,13 +64,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -87,6 +88,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = OrganisationUnitSchemaDescriptor.API_ENDPOINT )
 public class OrganisationUnitController
@@ -212,16 +214,18 @@ public class OrganisationUnitController
         // Collection member count in hierarchy handling
         // ---------------------------------------------------------------------
 
-        IdentifiableObject member;
-
-        if ( memberObject != null && memberCollection != null && (member = manager.find( memberObject )) != null )
+        if ( memberObject != null && memberCollection != null )
         {
-            for ( OrganisationUnit unit : list )
+            Optional<? extends IdentifiableObject> member = manager.find( memberObject );
+            if ( member.isPresent() )
             {
-                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member,
-                    memberCollection );
+                for ( OrganisationUnit unit : list )
+                {
+                    Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member.get(),
+                        memberCollection );
 
-                unit.setMemberCount( (count != null ? count.intValue() : 0) );
+                    unit.setMemberCount( (count != null ? count.intValue() : 0) );
+                }
             }
         }
 
@@ -278,9 +282,7 @@ public class OrganisationUnitController
 
     @GetMapping( "/{uid}/parents" )
     public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        @RequestParam Map<String, String> parameters, TranslateParams translateParams )
     {
         setTranslationParams( translateParams );
         OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
@@ -303,11 +305,12 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @GetMapping( value = "", produces = { "application/json+geo",
+    @GetMapping( value = { "", ".geojson" }, produces = { "application/json+geo",
         "application/json+geojson" } )
     public void getGeoJson(
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
-        @RequestParam( value = "parent", required = false ) List<String> rpParents,
+        @OpenApi.Param( { UID[].class,
+            OrganisationUnit.class } ) @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
         @CurrentUser User currentUser, HttpServletResponse response )
         throws IOException

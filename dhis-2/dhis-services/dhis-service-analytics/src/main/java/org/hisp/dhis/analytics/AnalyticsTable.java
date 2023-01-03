@@ -107,7 +107,7 @@ public class AnalyticsTable
         Assert.notNull( year, "Year must be specified" );
 
         AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); // TODO
-                                                                                                                       // approval
+                                                                                                                      // approval
         this.tablePartitions.add( tablePartition );
 
         return this;
@@ -195,7 +195,7 @@ public class AnalyticsTable
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());

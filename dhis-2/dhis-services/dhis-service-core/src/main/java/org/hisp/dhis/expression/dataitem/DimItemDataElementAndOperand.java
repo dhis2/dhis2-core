@@ -60,7 +60,8 @@ public class DimItemDataElementAndOperand
         else
         {
             return new DimensionalItemId( DATA_ELEMENT,
-                ctx.uid0.getText(), visitor.getState().getQueryMods() );
+                ctx.uid0.getText(), null, null,
+                ctx.getText(), visitor.getState().getQueryMods() );
         }
     }
 

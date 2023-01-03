@@ -45,10 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.ProgramStage;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Lars Helge Overland
  */
@@ -95,8 +91,8 @@ public interface DimensionalObject
 
     String TEXTVALUE_COLUMN_NAME = "textvalue";
 
-    List<String> STATIC_DIMS = ImmutableList.<String> builder().add(
-        LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
+    List<String> STATIC_DIMS = List.of(
+        LONGITUDE_DIM_ID, LATITUDE_DIM_ID );
 
     Map<String, String> PRETTY_NAMES = DimensionalObjectUtils.asMap(
         DATA_X_DIM_ID, "Data",
@@ -104,20 +100,20 @@ public interface DimensionalObject
         PERIOD_DIM_ID, "Period",
         ORGUNIT_DIM_ID, "Organisation unit" );
 
-    Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet
-        .<Class<? extends IdentifiableObject>> builder().add( Category.class ).add( DataElementGroupSet.class )
-        .add( OrganisationUnitGroupSet.class ).add( CategoryOptionGroupSet.class ).build();
+    Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIMENSION_CLASSES = Set.of(
+        Category.class, DataElementGroupSet.class, OrganisationUnitGroupSet.class, CategoryOptionGroupSet.class );
 
-    Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap
-        .<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> builder()
-        .put( Category.class, CategoryOption.class ).put( DataElementGroupSet.class, DataElementGroup.class )
-        .put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class )
-        .put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();
+    Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = Map
+        .of(
+            Category.class, CategoryOption.class,
+            DataElementGroupSet.class, DataElementGroup.class,
+            OrganisationUnitGroupSet.class, OrganisationUnitGroup.class,
+            CategoryOptionGroupSet.class, CategoryOptionGroup.class );
 
-    Set<ValueType> ARITHMETIC_VALUE_TYPES = ImmutableSet.<ValueType> builder().add(
+    Set<ValueType> ARITHMETIC_VALUE_TYPES = Set.of(
         ValueType.BOOLEAN, ValueType.TRUE_ONLY, ValueType.NUMBER, ValueType.INTEGER,
         ValueType.INTEGER_POSITIVE, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_ZERO_OR_POSITIVE,
-        ValueType.UNIT_INTERVAL, ValueType.PERCENTAGE ).build();
+        ValueType.UNIT_INTERVAL, ValueType.PERCENTAGE );
 
     /**
      * Gets the dimension identifier.
@@ -172,7 +168,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has any dimension items.
      */
-    boolean hasItems();
+    default boolean hasItems()
+    {
+        return !getItems().isEmpty();
+    }
 
     /**
      * Gets the legend set.
@@ -182,7 +181,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has a legend set.
      */
-    boolean hasLegendSet();
+    default boolean hasLegendSet()
+    {
+        return getLegendSet() != null;
+    }
 
     /**
      * Gets the program stage (not persisted).
@@ -192,7 +194,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has a program stage (not persisted).
      */
-    boolean hasProgramStage();
+    default boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
+    }
 
     /**
      * Gets the aggregation type.

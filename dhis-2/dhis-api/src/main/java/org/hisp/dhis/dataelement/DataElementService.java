@@ -30,6 +30,8 @@ package org.hisp.dhis.dataelement;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -41,12 +43,9 @@ import org.hisp.dhis.period.PeriodType;
  * Defines service functionality for DataElements and DataElementGroups.
  *
  * @author Kristian Nordal
- * @version $Id: DataElementService.java 6289 2008-11-14 17:53:24Z larshelg $
  */
 public interface DataElementService
 {
-    String ID = DataElementService.class.getName();
-
     // -------------------------------------------------------------------------
     // DataElement
     // -------------------------------------------------------------------------
@@ -219,7 +218,7 @@ public interface DataElementService
      * @param uids the uid collection.
      * @return the data element groups with the given uids.
      */
-    List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids );
+    List<DataElementGroup> getDataElementGroupsByUid( @Nonnull Collection<String> uids );
 
     /**
      * Returns the DataElementGroup with the given UID.

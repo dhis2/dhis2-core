@@ -34,7 +34,6 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
@@ -76,8 +75,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     private final RenderService renderService;
 
-    public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceService programInstanceService,
-        @NonNull ProgramStageInstanceService programStageInstanceService,
+    public DefaultTrackerNotificationWebHookService( @Nonnull ProgramInstanceService programInstanceService,
+        @Nonnull ProgramStageInstanceService programStageInstanceService,
         @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService,
         @Nonnull ProgramNotificationTemplateService templateService )
     {
