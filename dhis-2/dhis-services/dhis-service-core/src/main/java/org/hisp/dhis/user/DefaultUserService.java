@@ -714,7 +714,7 @@ public class DefaultUserService
             roles.forEach( ur -> {
                 if ( ur == null )
                 {
-                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3028, user.getUsername() ) );
+                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3032, user.getUsername() ) );
                 }
                 else if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
                 {

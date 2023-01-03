@@ -177,12 +177,12 @@ public enum ErrorCode
     E3025( "No current user" ),
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
-    E3028( "User `{0}` does not have access to user role" ),
     E3028( "User must have a secret" ),
     E3029( "User must call /qr endpoint before you can call enable" ),
     E3030(
         "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" ),
     E3031( "Two factor authentication is not enabled" ),
+    E3032( "User `{0}` does not have access to user role" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
