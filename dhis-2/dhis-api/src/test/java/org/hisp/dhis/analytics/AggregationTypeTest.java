@@ -25,21 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.analytics;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Target( { ElementType.TYPE, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-@Tag( "integration" )
-public @interface IntegrationTest
+class AggregationTypeTest
 {
+    @Test
+    void testIsFirst()
+    {
+        assertTrue( AggregationType.FIRST.isFirst() );
+        assertTrue( AggregationType.FIRST_AVERAGE_ORG_UNIT.isFirst() );
+        assertFalse( AggregationType.SUM.isFirst() );
+        assertFalse( AggregationType.LAST.isFirst() );
+    }
+
+    @Test
+    void testIsLast()
+    {
+        assertTrue( AggregationType.LAST.isLast() );
+        assertTrue( AggregationType.LAST_AVERAGE_ORG_UNIT.isLast() );
+        assertFalse( AggregationType.SUM.isLast() );
+        assertFalse( AggregationType.FIRST.isLast() );
+    }
 }

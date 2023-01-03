@@ -55,9 +55,12 @@ import com.google.common.collect.Lists;
 public class PeriodResourceTable
     extends ResourceTable<Period>
 {
-    public PeriodResourceTable( List<Period> objects )
+    private final String tableType;
+
+    public PeriodResourceTable( List<Period> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -69,7 +72,7 @@ public class PeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() +
+        String sql = "create " + tableType + " table " + getTempTableName() +
             " (periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )

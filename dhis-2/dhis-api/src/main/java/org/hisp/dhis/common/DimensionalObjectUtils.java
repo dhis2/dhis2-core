@@ -70,6 +70,13 @@ public class DimensionalObjectUtils
     private static final Set<QueryOperator> IGNORED_OPERATORS = Set.of( QueryOperator.LIKE, QueryOperator.IN,
         QueryOperator.SW, QueryOperator.EW );
 
+    /**
+     * Returns a list of copied instances of the given list of
+     * {@link DimensionalObject}.
+     *
+     * @param dimensions the list of {@link DimensionalObject}.
+     * @return a list of copied instances.
+     */
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
         List<DimensionalObject> list = new ArrayList<>();
@@ -156,6 +163,8 @@ public class DimensionalObjectUtils
      * Retrieves the dimension name from the given string. Returns the part of
      * the string preceding the dimension name separator, or the whole string if
      * the separator is not present.
+     *
+     * @param param the parameter.
      */
     public static String getDimensionFromParam( String param )
     {
@@ -183,13 +192,10 @@ public class DimensionalObjectUtils
 
         if ( param.split( DIMENSION_NAME_SEP ).length > 1 )
         {
-            // extracts dimensionItems by removing the dimension name and the
-            // separator
-            // example: pe:TODAY;YESTERDAY:INCIDENT_DATE ->
-            // TODAY;YESTERDAY:INCIDENT_DATE
+            // Extracts dimension items by removing dimension name and separator
             String dimensionItems = param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 );
 
-            // returns them as List<String>
+            // Returns them as List<String>
             return Arrays.asList( dimensionItems.split( OPTION_SEP ) );
         }
 

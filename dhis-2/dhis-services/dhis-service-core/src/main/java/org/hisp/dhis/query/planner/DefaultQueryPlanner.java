@@ -257,6 +257,8 @@ public class DefaultQueryPlanner implements QueryPlanner
             query.clearOrders();
         }
 
+        pQuery.setSkipSharing( query.isSkipSharing() );
+
         return pQuery;
     }
 

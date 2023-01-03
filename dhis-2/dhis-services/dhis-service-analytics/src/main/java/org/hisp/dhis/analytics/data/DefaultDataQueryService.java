@@ -288,8 +288,8 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits,
-                        format, false, inputIdScheme ) );
+                    list.add( getDimension(
+                        dimension, items, relativePeriodDate, userOrgUnits, format, false, inputIdScheme ) );
                 }
             }
         }
