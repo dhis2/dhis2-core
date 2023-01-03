@@ -128,19 +128,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final String COL_EXTENT = "extent";
 
-    private static final String LIMIT = "limit";
-
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final String _AND_ = " and ";
+    private static final String AND = " and ";
 
-    private static final String _OR_ = " or ";
+    private static final String OR = " or ";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final String LIMIT = "limit";
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -340,8 +340,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * hard coded into the select statement with "(isoPeriod) as (periodType)".
      *
      * @param isGroupByClause used to avoid grouping by period when using
-     *        non-default boundaries where the column content would be hard
-     *        coded. Used by the group-by calls.
+     *        non-default boundaries where the column content would be fixed.
+     *        Used by the group by calls.
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause, boolean isAggregated )
     {
@@ -482,9 +482,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String countClause = getAggregateClause( params );
+        String aggregateClause = getAggregateClause( params );
 
-        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
+        String sql = TextUtils.removeLastComma( "select " + aggregateClause + " as value," +
             StringUtils.join( getSelectColumns( params, true ), "," ) + " " );
 
         // ---------------------------------------------------------------------
@@ -1130,7 +1130,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .identifier( getIdentifier( queryItem ) )
             .sql( queryItem.getFilters().stream()
                 .map( filter -> toSql( queryItem, filter, params ) )
-                .collect( joining( _AND_ ) ) )
+                .collect( joining( AND ) ) )
             .build();
     }
 
@@ -1193,6 +1193,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NLIKE:
                 case NILIKE:
                     return nullAndEmptyMatcher( item, filter, field );
+                default:
+                    break;
                 }
             }
 

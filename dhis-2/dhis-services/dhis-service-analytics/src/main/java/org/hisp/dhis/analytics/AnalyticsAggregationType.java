@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.util.ObjectUtils;
 
 import com.google.common.base.MoreObjects;
@@ -38,20 +39,20 @@ import com.google.common.base.MoreObjects;
  */
 public class AnalyticsAggregationType
 {
-    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.SUM );
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.SUM );
 
-    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE,
-        AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType(
+        AggregationType.AVERAGE, AggregationType.AVERAGE );
 
-    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT,
-        AggregationType.COUNT );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType(
+        AggregationType.COUNT, AggregationType.COUNT );
 
-    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST,
-        AggregationType.FIRST );
+    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType(
+        AggregationType.FIRST, AggregationType.FIRST );
 
-    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST,
-        AggregationType.LAST );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType(
+        AggregationType.LAST, AggregationType.LAST );
 
     public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType(
         AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );
@@ -59,12 +60,12 @@ public class AnalyticsAggregationType
     /**
      * General aggregation type.
      */
-    private AggregationType aggregationType;
+    private final AggregationType aggregationType;
 
     /**
      * Aggregation type for the period dimension.
      */
-    private AggregationType periodAggregationType;
+    private final AggregationType periodAggregationType;
 
     /**
      * Analytics data type.
@@ -84,6 +85,8 @@ public class AnalyticsAggregationType
     {
         this.aggregationType = aggregationType;
         this.periodAggregationType = periodAggregationType;
+        Validate.notNull( this.aggregationType );
+        Validate.notNull( this.periodAggregationType );
     }
 
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
