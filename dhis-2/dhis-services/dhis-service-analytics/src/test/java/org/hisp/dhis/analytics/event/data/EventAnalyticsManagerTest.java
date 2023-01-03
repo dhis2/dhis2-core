@@ -172,7 +172,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + ",lastupdated,duedate,enrollmentdate,"
             + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
             + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
-            + "\"  " + "from " + getTable( programA.getUid() )
+            + "\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
             + " limit 101";
 
@@ -318,8 +318,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
         String expected = "(ax.\"fWIAEtYVEGk\" in (" + String.join( ",", numericValues.split( OPTION_SEP ) )
             + ") or ax.\"fWIAEtYVEGk\" is null )";
-        testIt( IN,
-            numericValues + OPTION_SEP + NV,
+        testIt( IN, numericValues + OPTION_SEP + NV,
             Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
     }
 
@@ -398,8 +397,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
         Grid resultGrid = subject.getAggregatedEventData( createRequestParams( programStage, ValueType.INTEGER ),
-            createGrid(),
-            200000 );
+            createGrid(), 200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
         assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
@@ -428,8 +426,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         mockRowSet();
 
         Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( programStage, ValueType.TEXT ),
-            createGrid(),
-            200000 );
+            createGrid(), 200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
         assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
@@ -476,8 +473,10 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         DataElement deA = createDataElement( 'A' );
         deA.setUid( "ZE4cgllb2P" );
 
-        DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
-            .withTableName( "analytics" ).withPeriodType( PeriodTypeEnum.QUARTERLY.getName() )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataType( DataType.NUMERIC )
+            .withTableName( "analytics" )
+            .withPeriodType( PeriodTypeEnum.QUARTERLY.getName() )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
             .addDimension(
                 new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
