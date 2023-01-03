@@ -243,7 +243,12 @@ public class DefaultSystemSettingManager
 
         if ( setting != null )
         {
-            return setting.getTranslation( locale );
+            Optional<String> translation = setting.getTranslation( locale );
+            if ( translation.isPresent() )
+            {
+                return translation;
+            }
+            return Optional.ofNullable( setting.getDisplayValue().toString() );
         }
 
         return Optional.empty();

@@ -59,7 +59,7 @@ public class SystemSettingInterceptor
         SettingKey.FLAG, SettingKey.START_MODULE, SettingKey.MULTI_ORGANISATION_UNIT_FORMS, SettingKey.ACCOUNT_RECOVERY,
         SettingKey.GOOGLE_ANALYTICS_UA, SettingKey.HELP_PAGE_LINK, SettingKey.REQUIRE_ADD_TO_VIEW,
         SettingKey.ALLOW_OBJECT_ASSIGNMENT,
-        SettingKey.CALENDAR, SettingKey.DATE_FORMAT, SettingKey.RECAPTCHA_SITE );
+        SettingKey.CALENDAR, SettingKey.DATE_FORMAT, SettingKey.RECAPTCHA_SITE, SettingKey.UI_LOCALE );
 
     // -------------------------------------------------------------------------
     // Dependencies

@@ -33,8 +33,8 @@ $( document ).ready( function()
 		sessionStorage.removeItem( 'trackerCaptureCategoryOptions');
 		sessionStorage.removeItem( 'eventCaptureCategoryOptions');
     } );
-    
-    var locale = localStorage[login.localeKey];
+
+    var locale = localStorage[login.localeKey] || keyUiLocale;
     
     if ( undefined !== locale && locale )
     {

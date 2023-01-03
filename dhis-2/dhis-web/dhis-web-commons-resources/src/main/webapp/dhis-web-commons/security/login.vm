@@ -6,6 +6,9 @@
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="shortcut icon" href="../../favicon.ico"/>
+    <script type="text/javascript">
+        var keyUiLocale = '$keyUiLocale';
+    </script>
     <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
     <script nonce="$cspNonce">
         $.ajaxSetup( {
@@ -142,7 +145,7 @@
 </div>
 <div id="footerArea">
     <div id="leftFooterArea" class="innerFooterArea">
-        <span id="poweredByLabel">Powered by </span><a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
+        <span id="poweredByLabel">Powered by</span>&nbsp;<a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
             id="applicationFooter">$!{keyApplicationFooter}</span>
     </div>
     <div id="rightFooterArea" class="innerFooterArea">
