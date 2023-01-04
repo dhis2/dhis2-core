@@ -47,8 +47,8 @@
     ORDER BY name;
   severity: WARNING
   introduction: >
-    Data elements are considered to be abandoned when they have had no  in at least 100 days and do not have any data values
-    associated with them. Often, these are the result of new or changed
+    Data elements are considered to be abandoned when they have not been edited in at least 100 days
+    and do not have any data values associated with them. Often, these are the result of new or changed
     configurations that have been abandoned at some point.
   recommendation: >
     Data elements that have no data associated with them and which there are no plans
