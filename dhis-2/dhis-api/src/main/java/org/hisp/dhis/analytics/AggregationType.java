@@ -46,7 +46,7 @@ public enum AggregationType
     LAST_IN_PERIOD_AVERAGE_ORG_UNIT( "last_analytics_period_avg_org_unit", true ),
     FIRST( "first", true ),
     FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
-    FIRST_FIRST_ORG_UNIT( "first_first_org_unit" ),
+    FIRST_FIRST_ORG_UNIT( "first_first_org_unit", true ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),
