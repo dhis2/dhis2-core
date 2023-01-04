@@ -40,16 +40,9 @@ public interface JsonOption extends JsonIdentifiableObject
         return getList( "optionSet", JsonOptionSet.class );
     }
 
-    default Integer getSortOrder()
+    default Number getSortOrder()
     {
-        try
-        {
-            return Integer.parseInt( get( "sortOrder" ).toString() );
-        }
-        catch ( NumberFormatException e )
-        {
-            return null;
-        }
+        return getNumber( "sortOrder" ).number();
     }
 
 }
