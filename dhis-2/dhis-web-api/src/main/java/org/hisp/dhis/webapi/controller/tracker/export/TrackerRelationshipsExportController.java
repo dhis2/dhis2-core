@@ -163,9 +163,9 @@ public class TrackerRelationshipsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-
         org.hisp.dhis.tracker.domain.Relationship relationship = RELATIONSHIP_MAPPER
-            .from( relationshipService.getRelationshipByUid( id ) );
+            .from( relationshipService.getRelationshipByUid( id ).orElse( null ) );
+
         if ( relationship == null )
         {
             throw new NotFoundException( "Relationship", id );

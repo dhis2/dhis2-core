@@ -178,10 +178,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
@@ -198,10 +195,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
@@ -231,10 +225,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
