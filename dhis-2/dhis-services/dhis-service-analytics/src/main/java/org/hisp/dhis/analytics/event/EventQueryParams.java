@@ -867,6 +867,19 @@ public class EventQueryParams
             ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
     }
 
+    /**
+     * Checks if a value dimension with a text value type exists.
+     *
+     * @return true if a value dimension with a text value type exists, false if
+     *         not.
+     */
+    public boolean hasTextValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isText();
+    }
+
     @Override
     public boolean hasProgramIndicatorDimension()
     {

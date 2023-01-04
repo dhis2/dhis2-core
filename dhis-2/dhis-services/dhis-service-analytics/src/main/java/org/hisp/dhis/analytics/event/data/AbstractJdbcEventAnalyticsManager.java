@@ -133,6 +133,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
+    private static final String COL_VALUE = "value";
+
     private static final String AND = " and ";
 
     private static final String OR = " or ";
@@ -639,18 +641,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( params.hasValueDimension() )
             {
-                double value = rowSet.getDouble( "value" );
-                grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
+                if ( params.hasTextValueDimension() )
+                {
+                    String value = rowSet.getString( COL_VALUE );
+                    grid.addValue( value );
+                }
+                else // Numeric
+                {
+                    double value = rowSet.getDouble( COL_VALUE );
+                    grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
+                }
             }
             else if ( params.hasProgramIndicatorDimension() )
             {
-                double value = rowSet.getDouble( "value" );
+                double value = rowSet.getDouble( COL_VALUE );
                 ProgramIndicator indicator = params.getProgramIndicator();
                 grid.addValue( AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value ) );
             }
             else
             {
-                int value = rowSet.getInt( "value" );
+                int value = rowSet.getInt( COL_VALUE );
                 grid.addValue( value );
             }
 

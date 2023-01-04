@@ -222,10 +222,14 @@ public enum ValueType
         {
             return false;
         }
+
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE;
+            return Set.of(
+                AggregationType.NONE, AggregationType.LAST_LAST_ORG_UNIT, AggregationType.FIRST_FIRST_ORG_UNIT )
+                .contains( aggregationType );
         }
+
         return aggregationType != AggregationType.NONE;
     }
 
