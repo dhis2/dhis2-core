@@ -49,6 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
+import java.util.List;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
@@ -128,9 +130,15 @@ class QueryValidatorTest
 
     private DataElement deC;
 
+    private DataElement deD;
+
+    private DataElement deE;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
+
+    private ProgramDataElementDimensionItem pdeD;
 
     private DataElementOperand doC;
 
@@ -181,13 +189,18 @@ class QueryValidatorTest
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
+        deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
+        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.FIRST_FIRST_ORG_UNIT );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );
         deC.setCategoryCombo( ccB );
+        deD.setCategoryCombo( ccA );
+        deE.setCategoryCombo( ccA );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
+        pdeD = new ProgramDataElementDimensionItem( prA, deD );
 
         doC = new DataElementOperand( deC, cocC );
         doD = new DataElementOperand( deC, cocD );
@@ -213,10 +226,9 @@ class QueryValidatorTest
     void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
+            .withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
             .build();
 
         queryValidator.validate( params );
@@ -231,6 +243,18 @@ class QueryValidatorTest
             .addFilter(
                 new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    void validateSuccessAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deE ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
             .build();
 
         queryValidator.validate( params );
@@ -413,15 +437,40 @@ class QueryValidatorTest
     }
 
     @Test
-    void validateFailureAggregationType()
+    void validateFailureAggregationTypeA()
     {
         deB.setAggregationType( AggregationType.CUSTOM );
 
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .withDataDimensionItems( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
+    void validateFailureAggregationTypeB()
+    {
+        deE.setAggregationType( AggregationType.FIRST_AVERAGE_ORG_UNIT );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( List.of( deA, deE ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
+    void validateFailureProgramDataElementAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( List.of( deA, pdeD ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
             .build();
 
         assertValidatonError( ErrorCode.E7115, params );

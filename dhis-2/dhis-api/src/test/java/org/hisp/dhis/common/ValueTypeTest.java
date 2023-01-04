@@ -52,6 +52,8 @@ class ValueTypeTest
     {
         // arrange act assert
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.LAST_LAST_ORG_UNIT ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.FIRST_FIRST_ORG_UNIT ) );
         assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
         assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
     }
@@ -61,6 +63,7 @@ class ValueTypeTest
     {
         // arrange act assert
         assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
+        assertFalse( ValueType.TEXT.isAggregatable( AggregationType.SUM ) );
         assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.CUSTOM ) );
         assertFalse( ValueType.LETTER.isAggregatable( AggregationType.DEFAULT ) );
     }

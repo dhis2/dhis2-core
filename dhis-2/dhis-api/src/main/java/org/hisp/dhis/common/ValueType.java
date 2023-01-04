@@ -31,7 +31,9 @@ import static java.util.stream.Collectors.toSet;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -209,14 +211,15 @@ public enum ValueType
         {
             return false;
         }
+
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE;
+            return aggregationType == AggregationType.NONE ||
+                aggregationType == AggregationType.LAST_LAST_ORG_UNIT ||
+                aggregationType == AggregationType.FIRST_FIRST_ORG_UNIT;
         }
-        else
-        {
-            return aggregationType != AggregationType.NONE;
-        }
+
+        return aggregationType != AggregationType.NONE;
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
