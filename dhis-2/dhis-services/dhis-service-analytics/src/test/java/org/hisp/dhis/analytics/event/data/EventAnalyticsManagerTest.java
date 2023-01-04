@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.AggregationType;
