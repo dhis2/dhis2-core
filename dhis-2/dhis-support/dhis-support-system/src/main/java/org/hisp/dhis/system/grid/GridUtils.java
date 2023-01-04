@@ -352,6 +352,8 @@ public class GridUtils
 
         rowNumber++;
 
+        CellStyle numberCellStyle = getNumberCellStyle( sheet );
+
         for ( List<Object> row : grid.getVisibleRows() )
         {
             Row xlsRow = sheet.createRow( rowNumber );
@@ -364,13 +366,8 @@ public class GridUtils
             {
                 if ( column != null && Number.class.isAssignableFrom( column.getClass() ) )
                 {
-                    Workbook wb = xlsRow.getSheet().getWorkbook();
-                    DataFormat format = wb.createDataFormat();
-                    CellStyle cs = wb.createCellStyle();
-                    cs.setDataFormat( format.getFormat( DECIMAL_DIGITS_MASK ) );
-
                     Cell cell = xlsRow.createCell( columnIndex++, CellType.NUMERIC );
-                    cell.setCellStyle( cs );
+                    cell.setCellStyle( numberCellStyle );
                     cell.setCellValue( ((Number) column).doubleValue() );
                 }
                 else
@@ -382,6 +379,23 @@ public class GridUtils
 
             rowNumber++;
         }
+    }
+
+    /**
+     * Returns a {@CellStyle} object with a default number format/mask.
+     *
+     * @param sheet the {@link Sheet}
+     * @return the cell style object
+     */
+    private static CellStyle getNumberCellStyle( Sheet sheet )
+    {
+        Workbook wb = sheet.getWorkbook();
+        DataFormat format = wb.createDataFormat();
+
+        CellStyle cs = wb.createCellStyle();
+        cs.setDataFormat( format.getFormat( DECIMAL_DIGITS_MASK ) );
+
+        return cs;
     }
 
     /**
