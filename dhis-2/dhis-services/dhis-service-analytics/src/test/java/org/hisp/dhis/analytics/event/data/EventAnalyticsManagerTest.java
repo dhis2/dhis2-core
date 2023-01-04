@@ -34,6 +34,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -66,6 +68,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -98,7 +101,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EventsAnalyticsManagerTest extends EventAnalyticsTest
+class EventAnalyticsManagerTest extends EventAnalyticsTest
 {
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -458,6 +461,39 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
+    void verifyLastLastOrgUnitAggregationTypeSubquery()
+    {
+        DataElement deX = createDataElement( 'X' );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( createOrganisationUnit( 'A' ) ) )
+            .withPeriods( List.of( createPeriod( "202201" ) ), PeriodTypeEnum.MONTHLY.getName() )
+            .addDimension( new BaseDimensionalObject( "jkYhtGth12t", DimensionType.ORGANISATION_UNIT_GROUP_SET,
+                "Facility type", List.of( createOrganisationUnitGroup( 'A' ) ) ) )
+            .withOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED )
+            .withValue( deX )
+            .withProgram( programA )
+            .withTableName( getTable( programA.getUid() ) )
+            .withAggregationType( new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST ) )
+            .withAggregateData( true )
+            .build();
+
+        subject.getAggregatedEventData( params, createGrid(), 200000 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String subquery = "from (select \"psi\",\"yearly\",\"deabcdefghX\",\"ou\"," +
+            "cast('202201' as text) as \"monthly\",\"jkYhtGth12t\"," +
+            "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" " +
+            "order by ax.\"executiondate\" desc) as pe_rank from analytics_event_prabcdefghA as ax " +
+            "where ax.\"executiondate\" >= '2012-01-31' and ax.\"executiondate\" <= '2022-01-31' " +
+            "and ax.\"deabcdefghX\" is not null)";
+
+        assertThat( params.isAggregationType( AggregationType.LAST ), is( true ) );
+        assertThat( sql.getValue(), containsString( subquery ) );
+    }
+
+    @Test
     void verifySortClauseHandlesProgramIndicators()
     {
         Program program = createProgram( 'P' );
@@ -499,26 +535,26 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private void verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType analyticsAggregationType )
     {
-        DataElement programDataElement = createDataElement( 'U' );
+        DataElement deU = createDataElement( 'U' );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParamsWithFilter( ValueType.TEXT ) )
-            .withValue( programDataElement )
+            .withValue( deU )
             .withAggregationType( analyticsAggregationType )
-            .withAggregateData( true ).build();
+            .withAggregateData( true )
+            .build();
 
         subject.getAggregatedEventData( params, createGrid(), 200000 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = " from (select \"psi\",\"yearly\",\"" + programDataElement.getUid()
+        String expectedLastSubquery = "from (select \"psi\",\"yearly\",\"" + deU.getUid()
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " as ax where ax.\"executiondate\" >= '1990-03-31' "
-            + "and ax.\"executiondate\" <= '2000-03-31' and ax.\"" + programDataElement.getUid() + "\" is not null)";
+            + "and ax.\"executiondate\" <= '2000-03-31' and ax.\"" + deU.getUid() + "\" is not null)";
 
         assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
-
     }
 
     private EventQueryParams createRequestParamsWithFilter( ValueType queryItemValueType )
