@@ -64,7 +64,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -246,9 +246,9 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programB.setAccessLevel( AccessLevel.PROTECTED );
             programB.setUid( CodeGenerator.generateUid() );
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-            Set<UserAccess> programBUserAccess = new HashSet<>();
+            Set<org.hisp.dhis.user.sharing.UserAccess> programBUserAccess = new HashSet<>();
             programBUserAccess.add( new UserAccess( currentUser, AccessStringHelper.FULL ) );
-            programB.setUserAccesses( programBUserAccess );
+            programB.getSharing().setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );
             programService.addProgram( programB );

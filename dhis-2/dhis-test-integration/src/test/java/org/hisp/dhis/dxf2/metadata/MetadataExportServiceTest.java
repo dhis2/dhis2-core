@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -42,9 +44,9 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -172,10 +174,10 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         DataElement de3 = createDataElement( 'C' );
         DataElement de4 = createDataElement( 'D' );
         DataElement de5 = createDataElement( 'E' );
-        de1.setUserAccesses( Sets.newHashSet( new UserAccess( user, "rwrwrwrw" ) ) );
+        de1.getSharing().setUserAccesses( Sets.newHashSet( new UserAccess( user, "rwrwrwrw" ) ) );
         de2.setPublicAccess( "rwrwrwrw" );
         de3.setCreatedBy( user );
-        de4.setUserGroupAccesses( Sets.newHashSet( new UserGroupAccess( group, "rwrwrwrw" ) ) );
+        de4.getSharing().setUserGroupAccess( Sets.newHashSet( new UserGroupAccess( group, "rwrwrwrw" ) ) );
         de5.setExternalAccess( true );
         manager.save( user );
         manager.save( group );
@@ -192,10 +194,10 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
 
     private void checkSharingFields( IdentifiableObject object )
     {
-        assertTrue( object.getUserAccesses().isEmpty() );
-        assertEquals( "--------", object.getPublicAccess() );
+        assertTrue( object.getSharing().getUsers().isEmpty() );
+        assertEquals( "--------", object.getSharing().getPublicAccess() );
         // assertNull( object.getUser() );
-        assertTrue( object.getUserGroupAccesses().isEmpty() );
+        assertTrue( object.getSharing().getUserGroups().isEmpty() );
         // assertFalse( object.getExternalAccess() );
     }
 }

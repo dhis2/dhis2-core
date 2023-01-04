@@ -40,8 +40,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 
 /**
+ * @deprecated use {@Link org.hisp.dhis.user.sharing.UserAccess}
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Deprecated
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
     implements Serializable

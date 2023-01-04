@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -65,12 +61,6 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "createdByUserInfo" )
     @Mapping( target = "lastUpdatedByUserInfo" )
     ProgramInstance map( ProgramInstance programInstance );
-
-    @Named( "userGroupAccessesPi" )
-    Set<UserGroupAccess> userGroupAccesses( Set<UserGroupAccess> userGroupAccesses );
-
-    @Named( "userAccessesPi" )
-    Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
 
     @Named( "program" )
     @BeanMapping( ignoreByDefault = true )

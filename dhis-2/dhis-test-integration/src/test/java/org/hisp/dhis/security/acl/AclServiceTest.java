@@ -339,9 +339,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
         aclService.resetSharing( visualization, user );
         assertTrue( AccessStringHelper.DEFAULT.equals( visualization.getPublicAccess() ) );
-        assertFalse( visualization.getExternalAccess() );
-        assertTrue( visualization.getUserAccesses().isEmpty() );
-        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( visualization.getSharing().isExternal() );
+        assertTrue( visualization.getSharing().getUsers().isEmpty() );
+        assertTrue( visualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -359,9 +359,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         aclService.resetSharing( eventVisualization, user );
         // Then
         assertEquals( AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess() );
-        assertFalse( eventVisualization.getExternalAccess() );
-        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
-        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( eventVisualization.getSharing().isExternal() );
+        assertTrue( eventVisualization.getSharing().getUsers().isEmpty() );
+        assertTrue( eventVisualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -376,9 +376,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
         aclService.resetSharing( visualization, user );
         assertTrue( AccessStringHelper.READ_WRITE.equals( visualization.getPublicAccess() ) );
-        assertFalse( visualization.getExternalAccess() );
-        assertTrue( visualization.getUserAccesses().isEmpty() );
-        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( visualization.getSharing().isExternal() );
+        assertTrue( visualization.getSharing().getUsers().isEmpty() );
+        assertTrue( visualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -396,9 +396,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         aclService.resetSharing( eventVisualization, user );
         // Then
         assertEquals( AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess() );
-        assertFalse( eventVisualization.getExternalAccess() );
-        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
-        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( eventVisualization.getSharing().isExternal() );
+        assertTrue( eventVisualization.getSharing().getUsers().isEmpty() );
+        assertTrue( eventVisualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,37 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.Set;
+import java.util.Map;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.MapMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    OrganisationUnitMapper.class,
-    UserGroupAccessMapper.class,
-    UserAccessMapper.class,
-    CategoryComboMapper.class,
-    TrackedEntityTypeMapper.class,
-    ProgramStageMapper.class,
-    ProgramTrackedEntityAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface ProgramMapper extends PreheatMapper<Program>
+@Mapper( uses = { DebugMapper.class } )
+public interface SharingMapper extends PreheatMapper<Sharing>
 {
-    ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );
+    SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "programType" )
-    @Mapping( target = "programAttributes" )
-    @Mapping( target = "programStages" )
-    @Mapping( target = "onlyEnrollOnce" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "categoryCombo" )
-    @Mapping( target = "selectEnrollmentDatesInFuture" )
-    @Mapping( target = "selectIncidentDatesInFuture" )
-    @Mapping( target = "displayIncidentDate" )
-    @Mapping( target = "ignoreOverdueEvents" )
-    @Mapping( target = "expiryDays" )
-    @Mapping( target = "expiryPeriodType" )
-    @Mapping( target = "completeEventsExpiryDays" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "accessLevel" )
-    Program map( Program program );
+    @Mapping( target = "public" )
+    @Mapping( target = "external" )
+    @Mapping( target = "owner" )
+    @Mapping( target = "users", qualifiedByName = "users" )
+    @MapMapping( valueQualifiedBy = "userGroups" )
+    Sharing map( User Sharing );
 
-    Set<ProgramStage> mapProgramStages( Set<ProgramStage> programStages );
+    @Named( "userGroups" )
+    Map<String, UserGroupAccess> userGroups( Map<String, UserGroup> groups );
+
+    @Named( "users" )
+    Map<String, UserAccess> users( Map<String, UserAccess> groups );
+
 }

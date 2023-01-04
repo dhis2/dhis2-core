@@ -649,6 +649,11 @@ public class BaseIdentifiableObject
         getSharing().setPublicAccess( access );
     }
 
+    public String getPublicAccess()
+    {
+        return getSharing().getPublicAccess();
+    }
+
     public void setExternalAccess( boolean externalAccess )
     {
         getSharing().setExternal( externalAccess );
