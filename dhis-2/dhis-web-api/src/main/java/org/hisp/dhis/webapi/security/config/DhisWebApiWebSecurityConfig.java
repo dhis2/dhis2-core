@@ -48,9 +48,11 @@ import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvid
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
+import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
@@ -65,11 +67,7 @@ import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
@@ -153,7 +151,9 @@ public class DhisWebApiWebSecurityConfig
     @Order( 1001 )
     @Import( { AuthorizationServerEndpointsConfiguration.class } )
     @Conditional( value = OAuth2AuthorizationServerEnabledCondition.class )
-    public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter implements AuthorizationServerConfigurer
+    public class OAuth2SecurityConfig
+        extends WebSecurityConfigurerAdapter
+        implements AuthorizationServerConfigurer
     {
         @Autowired
         private DhisConfigurationProvider dhisConfig;
@@ -283,7 +283,8 @@ public class DhisWebApiWebSecurityConfig
     @Configuration
     @Order( 1010 )
     @Conditional( value = OIDCLoginEnabledCondition.class )
-    public static class OidcSecurityConfig extends WebSecurityConfigurerAdapter
+    public static class OidcSecurityConfig
+        extends WebSecurityConfigurerAdapter
     {
         @Autowired
         private DhisConfigurationProvider dhisConfig;
@@ -336,7 +337,8 @@ public class DhisWebApiWebSecurityConfig
      */
     @Configuration
     @Order( 1100 )
-    public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
+    public static class ApiWebSecurityConfigurationAdapter
+        extends WebSecurityConfigurerAdapter
     {
         @Autowired
         private DhisConfigurationProvider dhisConfig;
@@ -388,6 +390,12 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
+
+        @Autowired
+        private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
+        @Autowired
+        private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
 
         @Autowired
         private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
@@ -457,6 +465,10 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+                // Temporary solution for Struts less login page, will be removed when apps are fully migrated
+                .antMatchers( "/index.html" ).permitAll()
+
+                .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
                 .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
@@ -502,20 +514,12 @@ public class DhisWebApiWebSecurityConfig
             // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
-                // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form) Using the default based
-                // "EmbeddedJettyBasicAuthenticationEntryPoint"
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
                     .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
 
-                /*
-                 * Setup session handling, this is configured normally in
-                 * DhisWebCommonsWebSecurityConfig when running in non-embedded
-                 * Jetty mode.
-                 */
                 http
                     .sessionManagement()
                     .sessionFixation().migrateSession()
@@ -524,6 +528,24 @@ public class DhisWebApiWebSecurityConfig
                     .maximumSessions(
                         Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
                     .sessionRegistry( sessionRegistry );
+
+                http
+                    .formLogin()
+                    .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
+                    .loginPage( "/index.html" )
+                    .usernameParameter( "j_username" )
+                    .passwordParameter( "j_password" )
+                    .loginProcessingUrl( "/api/authentication/login" )
+                    .defaultSuccessUrl( "/dhis-web-dashboard", true )
+                    .failureUrl( "/index.html?error=true" )
+                    .permitAll()
+                    .and()
+
+                    .logout()
+                    .logoutUrl( "/dhis-web-commons-security/logout.action" )
+                    .logoutSuccessUrl( "/" )
+                    .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
+                    .deleteCookies( "JSESSIONID" );
             }
             else
             {
@@ -668,7 +690,7 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
-            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+            return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
         /**
@@ -691,7 +713,6 @@ public class DhisWebApiWebSecurityConfig
      *
      * @param http http security config builder
      * @param dhisConfig DHIS2 configuration provider
-     *
      * @throws Exception
      */
     public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )

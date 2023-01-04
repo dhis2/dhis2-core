@@ -25,31 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.web.embeddedjetty;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.io.IOException;
 
-public class SecurityUtils
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class RootPageServlet
+    extends HttpServlet
 {
-    public static Collection<GrantedAuthority> getGrantedAuthorities( User user )
+    @Override
+    protected void doGet( HttpServletRequest req, HttpServletResponse resp )
+        throws IOException,
+        ServletException
     {
-        Set<GrantedAuthority> authorities = new HashSet<>();
+        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
 
-        for ( UserRole group : user.getUserRoles() )
+        if ( springSecurityContext != null )
         {
-            for ( String authority : group.getAuthorities() )
-            {
-                authorities.add( new SimpleGrantedAuthority( authority ) );
-            }
+            String referer = (String) req.getAttribute( "origin" );
+            req.setAttribute( "origin", referer );
+            resp.sendRedirect( "/dhis-web-dashboard" );
         }
+        else
+        {
+            String content = getResourceFileAsString( "login.html" );
+            resp.setContentType( "text/html" );
+            resp.setStatus( HttpServletResponse.SC_OK );
+            resp.getWriter().println( content );
+        }
+    }
 
-        return authorities;
+    public static HttpSession session()
+    {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        return attr.getRequest().getSession( false ); // true == allow create
     }
 }
