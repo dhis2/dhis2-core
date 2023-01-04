@@ -56,7 +56,7 @@ details_sql: >-
   from group_size where count < 2;
 severity: WARNING
 introduction: >
-  Generally, user groups should contain more than two users.
+  Generally, user groups should contain two or more users.
 recommendation: >
   Considering removing user groups with less than two users, or alternatively, add additional
   users to the group to make it more useful.
