@@ -142,14 +142,8 @@ public class RelationshipController
         @PathVariable String id )
         throws WebMessageException
     {
-        Relationship relationship = relationshipService.getRelationshipByUid( id );
-
-        if ( relationship == null )
-        {
-            throw new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) );
-        }
-
-        return relationship;
+        return Optional.of( relationshipService.getRelationshipByUid( id ) ).map( Optional::get ).orElseThrow(
+            () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
     }
 
     // -------------------------------------------------------------------------
@@ -206,9 +200,9 @@ public class RelationshipController
         HttpServletRequest request )
         throws IOException
     {
-        Relationship relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
 
-        if ( relationship == null )
+        if ( relationship.isEmpty() )
         {
             return notFound( "No relationship with id '" + id + "' was found." );
         }
@@ -227,9 +221,9 @@ public class RelationshipController
         HttpServletRequest request )
         throws IOException
     {
-        Relationship relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
 
-        if ( relationship == null )
+        if ( relationship.isEmpty() )
         {
             return notFound( "No relationship with id '" + id + "' was found." );
         }
@@ -248,9 +242,9 @@ public class RelationshipController
     @ResponseBody
     public WebMessage deleteRelationship( @PathVariable String id )
     {
-        Relationship relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
 
-        if ( relationship == null )
+        if ( relationship.isEmpty() )
         {
             return notFound( "No relationship with id '" + id + "' was found." );
         }
