@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.appmanager.webmodules;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,21 +39,12 @@ import java.util.List;
 public class ConfigurableWebModuleComparator
     implements Comparator<WebModule>
 {
-    private List<String> order = new ArrayList<>();
+    private final List<String> order;
 
     public ConfigurableWebModuleComparator( List<String> order )
     {
         this.order = order;
     }
-
-    public void setOrder( List<String> order )
-    {
-        this.order = order;
-    }
-
-    // -------------------------------------------------------------------------
-    // Comparator
-    // -------------------------------------------------------------------------
 
     @Override
     public int compare( WebModule moduleA, WebModule moduleB )
