@@ -76,8 +76,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -390,19 +388,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             AttributeValue attributeValue = (AttributeValue) object;
             attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
-        }
-
-        if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
-        {
-            UserGroupAccess userGroupAccess = (UserGroupAccess) object;
-            userGroupAccess
-                .setDisplayName( userGroupService.getDisplayName( userGroupAccess.getUserGroupUid() ) );
-        }
-
-        if ( UserAccess.class.isAssignableFrom( object.getClass() ) )
-        {
-            UserAccess userAccess = (UserAccess) object;
-            userAccess.setDisplayName( userService.getDisplayName( userAccess.getUserUid() ) );
         }
 
         for ( String fieldKey : fieldMap.keySet() )

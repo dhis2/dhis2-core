@@ -496,10 +496,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
-        assertEquals( 1, visualization.getUserGroupAccesses().size() );
-        assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( 1, visualization.getSharing().getUserGroups().size() );
+        assertEquals( 1, visualization.getSharing().getUsers().size() );
+        assertEquals( user.getUid(), visualization.getSharing().getUsers().values().iterator().next().getId() );
+        assertEquals( userGroup.getUid(),
+            visualization.getSharing().getUserGroups().values().iterator().next().getId() );
         Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
         assertNotNull( dataElementOperandVisualization );
         assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
@@ -516,11 +517,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
-        assertEquals( 1, visualization.getUserGroupAccesses().size() );
-        assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
+        assertEquals( 1, visualization.getSharing().getUserGroups().size() );
+        assertEquals( 1, visualization.getSharing().getUsers().size() );
+        assertEquals( user.getUid(), visualization.getSharing().getUsers().values().iterator().next().getId() );
         assertEquals( userGroup.getUid(),
-            visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
+            visualization.getSharing().getUserGroups().values().iterator().next().getId() );
     }
 
     @Test
@@ -545,11 +546,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
-        assertEquals( 1, visualization.getUserGroupAccesses().size() );
-        assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
+        assertEquals( 1, visualization.getSharing().getUserGroups().size() );
+        assertEquals( 1, visualization.getSharing().getUsers().size() );
+        assertEquals( user.getUid(), visualization.getSharing().getUsers().values().iterator().next().getId() );
         assertEquals( userGroup.getUid(),
-            visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
+            visualization.getSharing().getUserGroups().values().iterator().next().getId() );
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" )
                 .getInputStream(),
@@ -561,8 +562,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
-        assertEquals( 0, visualization.getUserGroupAccesses().size() );
-        assertEquals( 0, visualization.getUserAccesses().size() );
+        assertEquals( 0, visualization.getSharing().getUserGroups().size() );
+        assertEquals( 0, visualization.getSharing().getUsers().size() );
     }
 
     /**

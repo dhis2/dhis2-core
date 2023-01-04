@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
