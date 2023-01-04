@@ -51,7 +51,7 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
     private DashboardService dashboardService;
 
     @Autowired
-    VisualizationService visualizationService;
+    private VisualizationService visualizationService;
 
     private static final String check = "dashboards_no_items";
 

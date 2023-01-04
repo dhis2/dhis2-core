@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElementDomain;
+
 /**
  * Web API equivalent of a {@link org.hisp.dhis.dataelement}.
  *
@@ -35,14 +38,14 @@ package org.hisp.dhis.webapi.json.domain;
  */
 public interface JsonDataElement extends JsonIdentifiableObject
 {
-    default String getDomainType()
+    default DataElementDomain getDomainType()
     {
-        return getString( "domainType" ).string();
+        return getString( "domainType" ).parsed( DataElementDomain::valueOf );
     }
 
-    default String getAggregationType()
+    default AggregationType getAggregationType()
     {
-        return getString( "aggregationType" ).string();
+        return getString( "aggregationType" ).parsed( AggregationType::valueOf );
     }
 
     default JsonOptionSet getOptionSet()

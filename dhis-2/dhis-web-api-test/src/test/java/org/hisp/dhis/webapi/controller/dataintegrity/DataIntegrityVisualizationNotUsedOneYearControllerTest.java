@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
@@ -55,7 +54,7 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
     private DataStatisticsEventStore dataStatisticsEventStore;
 
     @Autowired
-    VisualizationService visualizationService;
+    private VisualizationService visualizationService;
 
     private DataStatisticsEvent dse1;
 
@@ -69,21 +68,10 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
     void testUnusedVisualizationsExist()
     {
 
-        SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd" );
-        String dateInString = "2015-10-01";
-        Date date;
-        try
-        {
-            date = formatter.parse( dateInString );
-        }
-        catch ( ParseException e )
-        {
-            throw new RuntimeException( e );
-        }
-
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid() );
+        Date oneYearAgo = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, oneYearAgo, "TestUser",
+            viz.getUid() );
         dataStatisticsEventStore.save( dse1 );
-
         dbmsManager.clearSession();
 
         assertHasDataIntegrityIssues( "visualizations", check, 100, viz.getUid(), "myviz", null, true );

@@ -63,9 +63,9 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
     void testUnusedVisualizationsExist()
     {
 
-        Date date = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
+        Date oneYearAgo = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, date, "TestUser", BASE_UID );
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, oneYearAgo, "TestUser", BASE_UID );
         dataStatisticsEventStore.save( dse1 );
 
         dbmsManager.clearSession();
@@ -79,9 +79,9 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
     {
 
         long millis = System.currentTimeMillis();
-        Date date = new Date( millis );
+        Date rightNow = new Date( millis );
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, date, "TestUser", BASE_UID );
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.MAP_VIEW, rightNow, "TestUser", BASE_UID );
         dataStatisticsEventStore.save( dse1 );
 
         dbmsManager.clearSession();

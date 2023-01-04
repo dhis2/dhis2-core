@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private static final String check = "orgunit_multiple_roots";
 

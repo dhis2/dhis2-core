@@ -35,7 +35,8 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which are not part of any data element group.
+ * Test for metadata integrity check for data element groups which have less
+ * than two members.
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_data_element_groups.yaml}
  *
  * @author Jason P. Pickering

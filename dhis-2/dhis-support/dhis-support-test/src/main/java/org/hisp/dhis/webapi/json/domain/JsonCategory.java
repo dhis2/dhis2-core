@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
@@ -42,13 +43,14 @@ public interface JsonCategory extends JsonIdentifiableObject
         return getList( "categoryOptions", JsonCategoryOption.class );
     }
 
-    /*
-     * default JsonList<JsonCategory> getCategoryCombos() { return getList(
-     * "categoryCombos", JsonCategoryCombo.class ); }
-     */
-
-    default String getDimensionType()
+    default JsonList<JsonCategoryCombo> getCategoryCombos()
     {
-        return getString( "dimensionType" ).string();
+        return getList(
+            "categoryCombos", JsonCategoryCombo.class );
+    }
+
+    default DimensionType getDimensionType()
+    {
+        return getString( "dimensionType" ).parsed( DimensionType::valueOf );
     }
 }

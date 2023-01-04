@@ -59,8 +59,8 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest extends AbstractDataInte
     {
 
         PeriodType periodType = new MonthlyPeriodType();
-        Date date_future = Date.from( ZonedDateTime.now().plusYears( 3 ).plusDays( 1 ).toInstant() );
-        Period periodA = periodType.createPeriod( date_future );
+        Date threeYearsFromNow = Date.from( ZonedDateTime.now().plusYears( 3 ).plusDays( 1 ).toInstant() );
+        Period periodA = periodType.createPeriod( threeYearsFromNow );
 
         Date date_now = Date.from( ZonedDateTime.now().toInstant() );
         Period periodB = periodType.createPeriod( date_now );
@@ -69,9 +69,7 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest extends AbstractDataInte
         periodService.addPeriod( periodB );
         dbmsManager.clearSession();
 
-        String nullString = null;
-
-        assertHasDataIntegrityIssues( "periods", check, 50, nullString, nullString, nullString, true );
+        assertHasDataIntegrityIssues( "periods", check, 50, (String) null, null, null, true );
 
     }
 
@@ -80,8 +78,8 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest extends AbstractDataInte
     {
 
         PeriodType periodType = new MonthlyPeriodType();
-        Date date_future = Date.from( ZonedDateTime.now().plusYears( 1 ).plusDays( 1 ).toInstant() );
-        Period periodA = periodType.createPeriod( date_future );
+        Date oneYearFromNow = Date.from( ZonedDateTime.now().plusYears( 1 ).plusDays( 1 ).toInstant() );
+        Period periodA = periodType.createPeriod( oneYearFromNow );
 
         Date date_now = Date.from( ZonedDateTime.now().toInstant() );
         Period periodB = periodType.createPeriod( date_now );
@@ -89,8 +87,6 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest extends AbstractDataInte
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         dbmsManager.clearSession();
-
-        String nullString = null;
 
         assertHasNoDataIntegrityIssues( "periods", check, true );
 

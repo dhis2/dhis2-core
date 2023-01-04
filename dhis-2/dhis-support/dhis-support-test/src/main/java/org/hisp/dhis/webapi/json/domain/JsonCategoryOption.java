@@ -40,8 +40,8 @@ public interface JsonCategoryOption extends JsonIdentifiableObject
         return getList( "categories", JsonCategory.class );
     }
 
-    default JsonList<JsonCategoryOptionCombination> getCatOptionCombos()
+    default JsonList<JsonCategoryOptionCombo> getCatOptionCombos()
     {
-        return getList( "categoryOptionCombos", JsonCategoryOptionCombination.class );
+        return getList( "categoryOptionCombos", JsonCategoryOptionCombo.class );
     }
 }

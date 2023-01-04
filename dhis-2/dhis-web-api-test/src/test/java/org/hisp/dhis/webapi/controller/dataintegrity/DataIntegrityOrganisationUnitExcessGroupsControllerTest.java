@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,17 +42,15 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String orgunitA;
+    private String orgunitA;
 
-    String orgunitB;
+    private String orgunitB;
 
-    String testOrgUnitGroupA;
+    private String testOrgUnitGroupA;
 
-    String testOrgUnitGroupB;
+    private String testOrgUnitGroupB;
 
-    String testOrgUnitGroupSet;
-
-    final String check = "orgunitgroupset_excess_groups";
+    private static final String check = "orgunitgroupset_excess_groups";
 
     @Test
     void testOrganisationUnitInMultipleGroupSetGroups()
@@ -80,7 +76,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
                     "'organisationUnitGroups' :[{'id' : '"
@@ -114,7 +110,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
                     "'organisationUnitGroups' :[{'id' : '"
@@ -130,20 +126,4 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
     }
 
-    @BeforeEach
-    public void setUp()
-    {
-        deleteAllOrgUnits();
-    }
-
-    @AfterEach
-    public void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", orgunitA );
-        deleteMetadataObject( "organisationUnits", orgunitB );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupA );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupB );
-        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
-
-    }
 }
