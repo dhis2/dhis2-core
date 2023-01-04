@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html class="loginPage" dir="ltr">
+<head>
+    <title>DHIS 2 Demo</title>
+    <meta name="description" content="DHIS 2">
+    <meta name="keywords" content="DHIS 2">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="shortcut icon" href="../dhis-web-commons/favicon.ico"/>
+    <script type="text/javascript" src="./dhis-web-commons/javascripts/jQuery/jquery-3.6.1.min.js"></script>
+    <script>
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(
+                    'X-Requested-With',
+                    {
+                        toString: function () {
+                            return '';
+                        }
+                    }
+                );
+            }
+        });
+    </script>
+    <script type="text/javascript" src="./dhis-web-commons/javascripts/login.js"></script>
+    <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/widgets.css">
+    <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/login.css">
+</head>
+
+<body class="loginPage">
+<h1 style="display:none">DHIS 2</h1>
+<div style="display:none">DHIS 2</div>
+<div>
+    <span id="titleArea">DHIS 2</span>
+    <span id="introArea">Welcome to the DHIS 2</span>
+</div>
+<div id="loginField">
+    <div id="loginArea">
+        <div id="bannerArea">
+            <a href="http://www.dhis2.org"><img src="./api/staticContent/logo_front" style="border:none"></a>
+        </div>
+
+        <form id="loginForm" action="/api/authentication/login" method="post">
+            <div>
+                <div id="signInLabel">Sign in</div>
+                <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
+                <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password" required></div>
+            </div>
+            <div id="submitDiv">
+                <input id="submit" class="button" type="submit" value="Sign in">
+            </div>
+        </form>
+
+        <!--[if lte IE 8]>
+        <div id="notificationArea" style="color: white; background-color: red;">Please upgrade your browser. Internet
+            Explorer version 8 and earlier is not supported.
+        </div>
+        <![endif]-->
+    </div>
+</div>
+<div id="footerArea">
+    <div id="leftFooterArea" class="innerFooterArea">
+        <span id="poweredByLabel">Powered by </span><a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
+            id="applicationFooter">Learn more at <a href="http://www.dhis2.org">dhis2.org</a></span>
+    </div>
+</div>
+</body>
+</html>

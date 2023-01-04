@@ -32,11 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -281,6 +277,11 @@ public class DefaultSystemService
             {
                 // Do nothing
             }
+        }
+        else
+        {
+            log.error( "build.properties is not available in the classpath. " +
+                "Make sure you build the project with Maven before you start the embedded Jetty server." );
         }
 
         return info;

@@ -72,7 +72,7 @@ public class ValidationUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    static void validateGeometry( Reporter reporter, TrackerDto dto, Geometry geometry,
+    public static void validateGeometry( Reporter reporter, TrackerDto dto, Geometry geometry,
         FeatureType featureType )
     {
         checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
@@ -91,7 +91,7 @@ public class ValidationUtils
         }
     }
 
-    protected static List<Note> validateNotes( Reporter reporter, TrackerPreheat preheat, TrackerDto dto,
+    public static List<Note> validateNotes( Reporter reporter, TrackerPreheat preheat, TrackerDto dto,
         List<Note> notesToCheck )
     {
         final List<Note> notes = new ArrayList<>();
