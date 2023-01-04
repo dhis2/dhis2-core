@@ -25,27 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
 
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * Calculates rule effects calling rule engine on enrollments or events.
+ * Calculates rule effects calling rule engine on enrollments and events.
  *
  * @author Enrico Colasante
  */
-public interface TrackerProgramRuleService
+public interface ProgramRuleService
 {
     /**
      * It feeds in all enrollments and event from the {@link TrackerBundle} into
      * rule engine and return a list of rule effects by tracker object.
      *
-     * @param bundle The bundle to build the context for rule engine
      * @return List containing tracker object uids and their associated rule
      *         effects.
      */
-    List<RuleEffects> calculateRuleEffects( TrackerBundle bundle );
+    List<RuleEffects> calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
 }
