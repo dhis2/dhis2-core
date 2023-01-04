@@ -85,7 +85,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
         assertEquals( myOptionSet.getId(), goodOptionSet );
 
-        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
+        Set<Number> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
             .collect( Collectors.toSet() );
         Set<Integer> expectedSortOrders = Set.of( 1, 4 );
         assertEquals( expectedSortOrders, sortOrders );
@@ -124,9 +124,9 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
         assertEquals( myOptionSet.getId(), goodOptionSet );
 
-        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
+        Set<Number> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
             .collect( Collectors.toSet() );
-        Set<Integer> expectedSortOrders = Set.of( 1, 2 );
+        Set<Number> expectedSortOrders = Set.of( 1, 2 );
         assertEquals( expectedSortOrders, sortOrders );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
