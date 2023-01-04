@@ -64,6 +64,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -170,6 +171,8 @@ public class GridUtils
     private static final String ATTR_REF = "ref";
 
     private static final String ATTR_FIELD = "field";
+
+    private static final String DECIMAL_DIGITS_MASK = "#.##########";
 
     /**
      * Writes a PDF representation of the given Grid to the given OutputStream.
@@ -361,8 +364,14 @@ public class GridUtils
             {
                 if ( column != null && Number.class.isAssignableFrom( column.getClass() ) )
                 {
-                    xlsRow.createCell( columnIndex++, CellType.STRING )
-                        .setCellValue( String.valueOf( maybeFormat( column ) ) );
+                    Workbook wb = xlsRow.getSheet().getWorkbook();
+                    DataFormat format = wb.createDataFormat();
+                    CellStyle cs = wb.createCellStyle();
+                    cs.setDataFormat( format.getFormat( DECIMAL_DIGITS_MASK ) );
+
+                    Cell cell = xlsRow.createCell( columnIndex++, CellType.NUMERIC );
+                    cell.setCellStyle( cs );
+                    cell.setCellValue( ((Number) column).doubleValue() );
                 }
                 else
                 {
