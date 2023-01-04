@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -606,6 +607,7 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String partitionColumns = getFirstOrLastValuePartitionColumns( params );
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
@@ -617,7 +619,7 @@ public class JdbcAnalyticsManager
         }
 
         sql += "row_number() over (" +
-            "partition by dx, ou, co, ao " +
+            "partition by " + partitionColumns + " " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
@@ -625,6 +627,35 @@ public class JdbcAnalyticsManager
             "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
+    }
+
+    /**
+     * Returns the partition columns. If query is of "first" or "last"
+     * aggregation type (in all dimensions), the dimensions except the period
+     * dimension of the query are returned. This implies that the sub query
+     * window function will rank data values in all dimensions, and the outer
+     * query will perform the aggregation by filtering on the first ranked
+     * value.
+     * <p>
+     * Otherwise, the four data value composite primary key columns except the
+     * period column are returned, which implies that the sub query window
+     * function will rank data values in time ascending or descending, and the
+     * outer query will filter out all data except for the "first" or "last" in
+     * time.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the partition columns as a quoted and comma separated string.
+     */
+    private String getFirstOrLastValuePartitionColumns( DataQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
+        {
+            return getCommaDelimitedQuotedColumns( params.getNonPeriodDimensions() );
+        }
+        else
+        {
+            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
+        }
     }
 
     /**
@@ -717,9 +748,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
-                + OPERATOR_SQL_MAP.get( filter )
-                + " " + criterion + " ";
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " " +
+                OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
         return sql;
