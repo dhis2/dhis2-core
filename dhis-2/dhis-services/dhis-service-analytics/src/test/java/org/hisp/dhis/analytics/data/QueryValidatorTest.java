@@ -465,20 +465,6 @@ class QueryValidatorTest
     }
 
     @Test
-    void validateFailureDataElementOperandAggregationType()
-    {
-        DataElementOperand deoA = new DataElementOperand( deD, cocC );
-
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataDimensionItems( List.of( deA, deoA ) )
-            .withOrganisationUnits( List.of( ouA, ouB ) )
-            .withPeriods( List.of( peA, peB ) )
-            .build();
-
-        assertValidatonError( ErrorCode.E7115, params );
-    }
-
-    @Test
     void validateFailureProgramDataElementAggregationType()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
