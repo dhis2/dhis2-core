@@ -120,7 +120,9 @@ public class DefaultAdminUserPopulator
 
         User user = new User();
         user.setUid( "M5zQapPyTZI" );
-        user.setCode( "admin" );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
+        user.setUsername( username );
+        user.setCode( username );
         user.setFirstName( username );
         user.setSurname( username );
 
@@ -131,14 +133,10 @@ public class DefaultAdminUserPopulator
         userRole.setCode( "Superuser" );
         userRole.setName( "Superuser" );
         userRole.setDescription( "Superuser" );
-
         userRole.setAuthorities( ALL_AUTHORITIES );
 
         userService.addUserRole( userRole );
 
-        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        user.setCode( username );
-        user.setUsername( username );
         user.getUserRoles().add( userRole );
 
         userService.encodeAndSetPassword( user, password );
