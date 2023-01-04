@@ -43,33 +43,17 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String clinicA;
-
-    String clinicB;
-
-    String districtA;
-
-    final String check = "orgunit_invalid_geometry";
+    private static final String check = "orgunit_invalid_geometry";
 
     @Test
     void testOrgunitsInvalidGeometry()
     {
 
-        districtA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits",
+        String districtA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits",
             "{ 'name': 'Bowtie District', 'shortName': 'District A', " +
                 "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[10,20],[10,10],[20,20],[20,10],[10,20]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
-
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+        createFacilities( districtA );
 
         assertHasDataIntegrityIssues( "orgunits", check, 33,
             districtA, "Bowtie District", "Self-intersection", true );
@@ -79,22 +63,12 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
     void testOrgunitsValidGeometry()
     {
 
-        districtA = assertStatus( HttpStatus.CREATED,
+        String districtA = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'District A', 'shortName': 'District A', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
-
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+        createFacilities( districtA );
 
         assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
@@ -107,4 +81,19 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
     }
 
+    private void createFacilities( String districtA )
+    {
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
+                    "'parent': {'id' : '" + districtA + "'}, " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
+                    "'parent': {'id' : '" + districtA + "'}, " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+    }
 }

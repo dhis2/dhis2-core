@@ -44,8 +44,6 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
 {
     private final String check = "aggregate_data_elements_aggregation_operator";
 
-    private String dataElementA;
-
     private String dataElementB;
 
     @Test
@@ -88,7 +86,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
 
     void setUpDataElements()
     {
-        dataElementA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );

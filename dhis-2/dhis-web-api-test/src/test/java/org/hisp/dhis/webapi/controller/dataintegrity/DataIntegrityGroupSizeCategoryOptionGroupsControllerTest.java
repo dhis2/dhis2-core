@@ -46,7 +46,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     private final String check = "group_size_category_option_groups";
 
     @Test
-    void testDataElementGroupSizeTooLow()
+    void testCategoryOptionGroupSizeTooSmall()
     {
 
         setUpTest();
@@ -70,7 +70,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     }
 
     @Test
-    void testDataElementGroupSizeOK()
+    void testCategoryOptionGroupSizeOK()
     {
         setUpTest();
 
@@ -79,7 +79,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     }
 
     @Test
-    void testDataElementGroupSizeRuns()
+    void testCategoryOptionGroupSizeRuns()
     {
 
         assertHasNoDataIntegrityIssues( "group_size", check, false );

@@ -50,8 +50,6 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     @Autowired
     private ProgramService programService;
 
-    private ProgramIndicatorGroup programIndicatorGroupA;
-
     private ProgramIndicator testPIb;
 
     @Test
@@ -110,7 +108,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         programA.setCategoryCombo( categoryService.getCategoryCombo( getDefaultCatCombo() ) );
         programService.addProgram( programA );
 
-        programIndicatorGroupA = new ProgramIndicatorGroup( "Test PI Group A" );
+        ProgramIndicatorGroup programIndicatorGroupA = new ProgramIndicatorGroup( "Test PI Group A" );
         programIndicatorGroupA.setAutoFields();
         programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
 

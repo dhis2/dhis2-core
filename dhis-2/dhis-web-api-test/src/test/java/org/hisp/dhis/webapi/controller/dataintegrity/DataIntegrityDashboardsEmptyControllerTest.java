@@ -59,8 +59,6 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
 
     private static final String viz_uid = BASE_UID + "2";
 
-    private Visualization viz;
-
     @Test
     void testUnusedDashboardExist()
     {
@@ -79,7 +77,7 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
     void testDashboardsWithItemsExist()
     {
 
-        viz = new Visualization( "myviz" );
+        Visualization viz = new Visualization( "myviz" );
         viz.setUid( viz_uid );
         viz.setType( VisualizationType.SINGLE_VALUE );
         visualizationService.save( viz );

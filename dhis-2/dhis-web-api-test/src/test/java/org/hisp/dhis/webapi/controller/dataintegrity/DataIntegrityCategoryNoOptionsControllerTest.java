@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test;
 /**
  *
  * Tests metadata integrity check for categories with no options.
- *
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/categories_no_options.yaml
  * }
  *
@@ -47,8 +46,6 @@ class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrity
 
     private String categoryNoOptions;
 
-    private String categoryWithOptions;
-
     private String categoryOptionRed;
 
     @Test
@@ -59,7 +56,7 @@ class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrity
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryWithOptions = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
@@ -90,7 +87,7 @@ class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrity
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryWithOptions = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );

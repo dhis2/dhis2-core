@@ -47,23 +47,15 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
 {
     private final String check = "options_sets_empty";
 
-    private String badOptionSet;
-
-    private String goodOptionSet;
-
-    private String firstOption;
-
-    private String secondOption;
-
     @Test
     void testOptionSetInvalid()
     {
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
+        String goodOptionSet = assertStatus( HttpStatus.CREATED,
             POST( "/optionSets",
                 "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
 
-        firstOption = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/options",
                 "{ 'code': 'SWEET'," +
                     "  'sortOrder': 1," +
@@ -72,7 +64,7 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        firstOption = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/options",
                 "{ 'code': 'SOUR'," +
                     "  'sortOrder': 2," +
@@ -81,7 +73,7 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        badOptionSet = assertStatus( HttpStatus.CREATED,
+        String badOptionSet = assertStatus( HttpStatus.CREATED,
             POST( "/optionSets",
                 "{ 'name': 'Color', 'shortName': 'Color', 'valueType' : 'TEXT' }" ) );
 
@@ -102,15 +94,15 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
     void testOptionSetsValid()
     {
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
+        String goodOptionSet = assertStatus( HttpStatus.CREATED,
             POST( "/optionSets",
                 "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
 
-        badOptionSet = assertStatus( HttpStatus.CREATED,
+        String badOptionSet = assertStatus( HttpStatus.CREATED,
             POST( "/optionSets",
                 "{ 'name': 'Color', 'shortName': 'Color', 'valueType' : 'TEXT' }" ) );
 
-        firstOption = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/options",
                 "{ 'code': 'SWEET'," +
                     "  'sortOrder': 1," +
@@ -119,7 +111,7 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        firstOption = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/options",
                 "{ 'code': 'SOUR'," +
                     "  'sortOrder': 1," +

@@ -53,12 +53,6 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
     @Autowired
     private OrganisationUnitService orgUnitService;
 
-    private OrganisationUnit unitA;
-
-    private OrganisationUnit unitB;
-
-    private OrganisationUnit unitC;
-
     final String unitAName = "Space District   ";
 
     final String unitBName = "Spaced Out District";
@@ -69,19 +63,19 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
     void DataIntegrityOrganisationUnitsTrailingSpacesTest()
     {
 
-        unitA = createOrganisationUnit( 'A' );
+        OrganisationUnit unitA = createOrganisationUnit( 'A' );
         unitA.setName( unitAName );
         unitA.setShortName( unitAName );
         unitA.setOpeningDate( getDate( "2022-01-01" ) );
         orgUnitService.addOrganisationUnit( unitA );
 
-        unitB = createOrganisationUnit( 'B' );
+        OrganisationUnit unitB = createOrganisationUnit( 'B' );
         unitB.setName( unitBName );
         unitB.setShortName( unitBName + "    " );
         unitB.setOpeningDate( getDate( "2022-01-01" ) );
         orgUnitService.addOrganisationUnit( unitB );
 
-        unitC = createOrganisationUnit( 'C' );
+        OrganisationUnit unitC = createOrganisationUnit( 'C' );
         unitC.setName( "NoSpaceDistrict" );
         unitC.setShortName( "NoSpaceDistrict" );
         unitC.setOpeningDate( getDate( "2022-01-01" ) );

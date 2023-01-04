@@ -51,13 +51,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
 {
     private final String check = "aggregate_data_elements_abandoned";
 
-    private String dataElementA;
-
-    private String dataElementB;
-
     private static final String period = "202212";
-
-    private String orgUnitId;
 
     @Test
     void testDataElementsNotAbandoned()
@@ -80,16 +74,16 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
     void setUpTest()
     {
 
-        dataElementA = assertStatus( HttpStatus.CREATED,
+        String dataElementA = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-        dataElementB = assertStatus( HttpStatus.CREATED,
+        String dataElementB = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",
                 "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        orgUnitId = assertStatus( HttpStatus.CREATED,
+        String orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
         // add OU to users hierarchy
         assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),

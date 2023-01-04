@@ -54,8 +54,6 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
 
     private User bill;
 
-    private User mary;
-
     @Test
     void testDataElementGroupSizeTooLow()
     {
@@ -106,7 +104,7 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
     {
 
         bill = createUser( "Bill" );
-        mary = createUser( "Mary" );
+        User mary = createUser( "Mary" );
 
         userService.addUser( bill );
         userService.addUser( mary );

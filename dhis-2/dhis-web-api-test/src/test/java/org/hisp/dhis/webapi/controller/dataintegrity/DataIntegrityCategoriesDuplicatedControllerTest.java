@@ -49,8 +49,6 @@ class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegr
 
     private String categoryWithOptionsB;
 
-    private String categoryOptionBlue;
-
     private String categoryOptionRed;
 
     @Test
@@ -94,7 +92,7 @@ class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegr
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryOptionBlue = assertStatus( HttpStatus.CREATED,
+        String categoryOptionBlue = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Blue', 'shortName': 'Blue' }" ) );
 

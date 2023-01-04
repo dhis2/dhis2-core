@@ -36,13 +36,10 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Test for option sets which are not used.
- *
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/unused_option_sets.yaml}
  *
  * @author Jason P. Pickering
@@ -52,10 +49,6 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
     private final String check = "options_sets_unused";
 
     private String goodOptionSet;
-
-    private String testDataElement;
-
-    private String secondOption;
 
     @Test
     void testOptionSetNotUsed()
@@ -122,7 +115,7 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        testDataElement = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",
                 "{ 'name': 'Candy', 'shortName': 'Candy', 'valueType' : 'TEXT',  " +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'," +
@@ -143,21 +136,6 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
     {
 
         assertHasNoDataIntegrityIssues( "option_sets", check, false );
-
-    }
-
-    private void tearDown()
-    {
-        deleteMetadataObject( "dataElements", testDataElement );
-        deleteMetadataObject( "optionSets", goodOptionSet );
-
-    }
-
-    @BeforeEach
-    @AfterEach
-    void setUp()
-    {
-        tearDown();
 
     }
 

@@ -57,10 +57,6 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
 {
     private final String check = "category_option_combos_disjoint";
 
-    private String categoryColor;
-
-    private String testCatCombo;
-
     private String categoryOptionSweet;
 
     @Test
@@ -112,7 +108,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryColor = assertStatus( HttpStatus.CREATED,
+        String categoryColor = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
@@ -123,7 +119,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
                     "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'}, {'id' : '" +
                     categoryOptionSweet + "'} ] }" ) );
 
-        testCatCombo = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );

@@ -45,41 +45,31 @@ class DataIntegrityCategoryComboUnusedControllerTest extends AbstractDataIntegri
 {
     private final String check = "category_combos_unused";
 
-    private String categoryColor;
-
-    private String categoryTaste;
-
-    private String categoryOptionSour;
-
-    private String categoryOptionRed;
-
-    private String testCatCombo;
-
     @Test
     void testCatCombosNotUsed()
     {
 
         setUpTest();
 
-        categoryOptionSour = assertStatus( HttpStatus.CREATED,
+        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
 
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
+        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryColor = assertStatus( HttpStatus.CREATED,
+        String categoryColor = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
 
-        categoryTaste = assertStatus( HttpStatus.CREATED,
+        String categoryTaste = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'} ] }" ) );
 
-        testCatCombo = assertStatus( HttpStatus.CREATED,
+        String testCatCombo = assertStatus( HttpStatus.CREATED,
             POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
