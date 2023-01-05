@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityProgramRuleNoActionControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     @Autowired
@@ -78,7 +78,7 @@ class DataIntegrityProgramRuleNoActionControllerTest extends AbstractDataIntegri
 
         assertHasDataIntegrityIssues( "program_rules", "program_rules_no_action", 100, programRuleA.getUid(),
             programRuleA.getName(), null, true );
-        assertHasDataIntegrityIssues( "program_rules", "program_rules_no_priority", 100, programRuleA.getUid(),
+        assertHasDataIntegrityIssues( "program_rules", "program_rules_no_expression", 100, programRuleA.getUid(),
             programRuleA.getName(), null, true );
     }
 
@@ -86,7 +86,7 @@ class DataIntegrityProgramRuleNoActionControllerTest extends AbstractDataIntegri
     void testProgramRuleChecksRun()
     {
         assertHasNoDataIntegrityIssues( "program_rules", "program_rules_no_action", false );
-        assertHasNoDataIntegrityIssues( "program_rules", "program_rules_no_priority", false );
+        assertHasNoDataIntegrityIssues( "program_rules", "program_rules_no_expression", false );
         assertHasNoDataIntegrityIssues( "program_rules", "program_rules_message_no_template", false );
     }
 

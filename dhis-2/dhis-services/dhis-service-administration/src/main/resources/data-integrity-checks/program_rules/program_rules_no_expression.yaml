@@ -26,23 +26,26 @@
 #
 ---
   summary_uid: xL9ClsJAhx2
-  name: program_rules_no_priority
-  description: Program rules with no priority.
+  name: program_rules_no_expression
+  description: Program rules with no expression.
   section: Program rules
   section_order: 2
   summary_sql: >-
-    WITH program_rules_no_priority as (
-    SELECT uid,name from programrule where priority IS NULL )
+    WITH program_rules_no_expression as (
+    SELECT uid,name from programrule where rulecondition IS NULL )
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule), 0) as percent
-    FROM program_rules_no_priority;
+    FROM program_rules_no_expression;
   details_uid: tHtxIYabJze
   details_sql: >-
-    SELECT uid,name from programrule where priority IS NULL;
-  severity: SEVERE
+    SELECT uid,name from programrule where rulecondition IS NULL;
+  severity: WARNING
   introduction: >
-    All program rules should be assigned a priority.
+    All program rules should have an expression. Expressions are used by program rules
+    to determine when they should be triggered. Program rules with no expression have 
+    no purpose.
   details_id_type: program_rules
   recommendation: >
-    Using the DHIS2 user interface, assign a priority to each of the program rules
-    which is missing one.
+    Using the DHIS2 user interface, assign an expression to each of the program rules
+    which is missing one. Otherwise, if it is safe to delete the program rule with 
+    no expression, it is recommended to remove it. 
