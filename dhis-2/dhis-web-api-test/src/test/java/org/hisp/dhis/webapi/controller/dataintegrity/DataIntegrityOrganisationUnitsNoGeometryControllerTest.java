@@ -35,13 +35,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for organisation units which have point coordinates which are not
- * contained by their parent organisation unit. This only applies to situations
- * where the parent has geometry of type Polygon or Multipolygon.
+ * Checks for organisation units with no geometry.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_no_geometry.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     private String clinicA;
@@ -50,16 +49,14 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     private String districtA;
 
-    private final String check = "organisation_units_not_contained_by_parent";
+    private final String check = "orgunit_no_coordinates";
 
     @Test
-    void testOrgunitsNotContainedByParent()
+    void testOrgunitsNoGeometry()
     {
 
-        districtA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'District A', 'shortName': 'District A', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
+        districtA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits",
+            "{ 'name': 'Offgrid District', 'shortName': 'Offgrid District', 'openingDate' : '2022-01-01' }" ) );
 
         clinicA = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
@@ -71,14 +68,14 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
             POST( "/organisationUnits",
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 50, clinicB, "Clinic B", null, true );
+        assertHasDataIntegrityIssues( "orgunits", check, 33, districtA, "Offgrid District", "1", true );
 
     }
 
     @Test
-    void testOrgunitsContainedByParent()
+    void testOrgunitsHasGeometry()
     {
 
         districtA = assertStatus( HttpStatus.CREATED,
@@ -97,12 +94,13 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
+
         assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
-    void testOrgunitsContainedByParentDivideByZero()
+    void testOrgunitsNoGeometryDivideByZero()
     {
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
@@ -117,10 +115,9 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     @AfterEach
     void tearDown()
-        throws Exception
     {
-        deleteMetadataObject( "organisationUnits", clinicA );
         deleteMetadataObject( "organisationUnits", clinicB );
+        deleteMetadataObject( "organisationUnits", clinicA );
         deleteMetadataObject( "organisationUnits", districtA );
     }
 }

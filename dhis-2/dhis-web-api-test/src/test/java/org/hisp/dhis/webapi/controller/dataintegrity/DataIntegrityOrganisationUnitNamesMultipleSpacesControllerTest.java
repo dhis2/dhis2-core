@@ -28,80 +28,56 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests for orgunits whose closed dates are after their opening dates
+ * Tests for orgunits which have multiple spaces in their names or shortnames
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_spaces.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    @Autowired
-    private OrganisationUnitService orgUnitService;
 
-    private OrganisationUnit unitA;
+    private String orgunitA;
 
-    private OrganisationUnit unitB;
+    private String orgunitB;
 
-    private OrganisationUnit unitC;
+    private String orgunitC;
 
-    final String unitAName = "Space District   ";
-
-    final String unitBName = "Spaced Out District";
-
-    final String check = "orgunit_trailing_spaces";
+    private final String check = "orgunit_multiple_spaces";
 
     @Test
-    void DataIntegrityOrganisationUnitsTrailingSpacesTest()
+    void testOrgUnitMultipleSpaces()
     {
-        doInTransaction( () -> {
 
-            unitA = createOrganisationUnit( 'A' );
-            unitA.setName( unitAName );
-            unitA.setShortName( unitAName );
-            unitA.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitA );
+        orgunitA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Space    District', 'shortName': 'Space    District', 'openingDate' : '2022-01-01'}" ) );
 
-            unitB = createOrganisationUnit( 'B' );
-            unitB.setName( unitBName );
-            unitB.setShortName( unitBName + "    " );
-            unitB.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitB );
+        orgunitB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'TwoSpace District', 'shortName': 'Two  Space  District', 'openingDate' : '2022-01-01', " +
+                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-            unitC = createOrganisationUnit( 'C' );
-            unitC.setName( "NoSpaceDistrict" );
-            unitC.setShortName( "NoSpaceDistrict" );
-            unitC.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitC );
+        orgunitC = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-            dbmsManager.clearSession();
-        } );
-
-        JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
-        assertEquals( json_unitA.getString( "name" ).string(), unitAName );
-
-        Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
-        Set<String> orgunitNames = Set.of( unitA.getName(), unitB.getName() );
-
-        assertHasDataIntegrityIssues( "orgunits", check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
+        assertHasDataIntegrityIssues( "orgunits", check, 66,
+            Set.of( orgunitA, orgunitB ), Set.of(), Set.of(), true );
     }
 
     @Test
-    void orgunitsNoTrailingSpaces()
+    void orgunitsNoMultipleSpaces()
     {
-        assertStatus( HttpStatus.CREATED,
+        orgunitC = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
@@ -109,7 +85,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     }
 
     @Test
-    void testOrgunitsTrailingSpacesZeroCase()
+    void testOrgunitsMultipleSpacesZeroCase()
     {
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
@@ -124,6 +100,9 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     @AfterEach
     void tearDown()
     {
-        deleteAllOrgUnits();
+        deleteMetadataObject( "organisationUnits", orgunitC );
+        deleteMetadataObject( "organisationUnits", orgunitB );
+        deleteMetadataObject( "organisationUnits", orgunitA );
+
     }
 }
