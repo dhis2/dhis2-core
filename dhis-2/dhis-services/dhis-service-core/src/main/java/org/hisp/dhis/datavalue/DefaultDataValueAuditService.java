@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,31 +47,16 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.datavalue.DataValueAuditService" )
 public class DefaultDataValueAuditService
     implements DataValueAuditService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataValueAuditStore dataValueAuditStore;
 
     private final DataValueStore dataValueStore;
 
     private final CategoryOptionComboStore categoryOptionComboStore;
-
-    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore, DataValueStore dataValueStore,
-        CategoryOptionComboStore categoryOptionComboStore )
-    {
-        checkNotNull( dataValueAuditStore );
-        checkNotNull( dataValueStore );
-        checkNotNull( categoryOptionComboStore );
-
-        this.dataValueAuditStore = dataValueAuditStore;
-        this.dataValueStore = dataValueStore;
-        this.categoryOptionComboStore = categoryOptionComboStore;
-    }
 
     // -------------------------------------------------------------------------
     // DataValueAuditService implementation
