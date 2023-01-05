@@ -114,7 +114,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
 
         sql.append(
             " group by item_name, item_uid, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( SPACED_RIGHT_PARENTHESIS + " t" );
@@ -203,7 +203,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
             .append( SPACED_SELECT + String.join( ", ", COMMON_COLUMNS ) )
             .append( ", expressiondimensionitem.name as i18n_first_name, cast (null as text) as i18n_second_name" )
             .append(
-                ", expressiondimensionitem.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+                ", expressiondimensionitem.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, expression" )
             .append( " from expressiondimensionitem " ).toString();
     }
 }

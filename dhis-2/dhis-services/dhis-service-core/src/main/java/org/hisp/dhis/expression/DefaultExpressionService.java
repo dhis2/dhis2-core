@@ -306,6 +306,7 @@ public class DefaultExpressionService
         this.constantMapCache = cacheProvider.createAllConstantsCache();
 
         FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
+
         if ( fn != null )
         {
             fn.init( cacheProvider );

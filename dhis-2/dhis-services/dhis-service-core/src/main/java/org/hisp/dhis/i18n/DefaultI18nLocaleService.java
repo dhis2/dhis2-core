@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.i18n;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,6 +36,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
@@ -46,25 +46,16 @@ import org.hisp.dhis.system.util.LocaleUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.i18n.118nLocaleService" )
 public class DefaultI18nLocaleService
     implements I18nLocaleService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private final I18nLocaleStore localeStore;
-
     private Map<String, String> languages = new LinkedHashMap<>();
 
     private Map<String, String> countries = new LinkedHashMap<>();
 
-    public DefaultI18nLocaleService( I18nLocaleStore localeStore )
-    {
-        checkNotNull( localeStore );
-        this.localeStore = localeStore;
-    }
+    private final I18nLocaleStore localeStore;
 
     /**
      * Load all ISO languages and countries into mappings.

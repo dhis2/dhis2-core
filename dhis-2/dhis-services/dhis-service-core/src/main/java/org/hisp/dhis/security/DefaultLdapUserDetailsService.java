@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.security;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -40,11 +39,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Lars Helge Overland
  */
-@Slf4j
 @Service( "ldapUserDetailsService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultLdapUserDetailsService
     implements UserDetailsService
 {

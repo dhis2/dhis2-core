@@ -35,12 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.function.Executable;
 
@@ -90,6 +92,18 @@ public class Assertions
     }
 
     /**
+     * assertHasWarnings asserts the report contains only given warnings in any
+     * order.
+     *
+     * @param report validation report to be asserted on
+     * @param warnings expected warnings
+     */
+    public static void assertHasOnlyWarnings( ValidationReport report, Warning... warnings )
+    {
+        assertHasWarnings( report, warnings.length, warnings );
+    }
+
+    /**
      * assertHasErrors asserts the report contains given count of errors and
      * errors contain given codes in any order.<br>
      * <em>NOTE:</em> prefer
@@ -134,6 +148,32 @@ public class Assertions
     }
 
     /**
+     * assertHasWarnings asserts the report contains given count of warnings and
+     * warnings that contain given code and that are linked to given tracker
+     * object in any order. <em>NOTE:</em> prefer
+     * {@link #assertHasOnlyWarnings(ValidationReport, Warning...)}
+     * (ImportReport, Warning...)}.Rethink your test if you need this assertion.
+     * If you want to make sure a certain number of warnings are present, why do
+     * you not care about what warnings are present? The intention of an
+     * assertion like
+     * <code>assertHasWarnings(report, 13, ValidationCode.E1000);</code> is not
+     * clear.
+     *
+     * @param report validation report to be asserted on
+     * @param warnings expected warnings
+     */
+    public static void assertHasWarnings( ValidationReport report, int count, Warning... warnings )
+    {
+        assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
+        ArrayList<Executable> executables = new ArrayList<>();
+        executables.add( () -> assertEquals( count, report.getWarnings().size(),
+            String.format( "mismatch in number of expected warning(s), got %s", report.getWarnings() ) ) );
+        Arrays.stream( warnings ).map( c -> ((Executable) () -> assertHasWarning( report, c )) )
+            .forEach( executables::add );
+        assertAll( "assertHasWarnings", executables );
+    }
+
+    /**
      * assertHasErrors asserts the report contains errors of given codes in any
      * order.
      *
@@ -157,6 +197,24 @@ public class Assertions
             () -> assertHasError( report.getValidationReport(), code ) );
     }
 
+    public static void assertHasError( ImportReport report, ValidationCode code, String entityUid )
+    {
+        assertNotNull( report );
+        assertAll(
+            () -> assertEquals( Status.ERROR, report.getStatus(),
+                errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) ),
+            () -> assertHasError( report.getValidationReport(), code, entityUid ) );
+    }
+
+    public static void assertHasWarning( ValidationReport report, Warning warning )
+    {
+        assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
+        assertTrue( report.hasWarning( w -> Objects.equals( warning.getWarningCode(), w.getWarningCode() ) &&
+            Objects.equals( warning.getUid(), w.getUid() ) ),
+            String.format( "warning with code %s for object %s not found in report with warning(s) %s",
+                warning.getWarningCode(), warning.getUid(), report.getWarnings() ) );
+    }
+
     public static void assertHasError( ValidationReport report, ValidationCode code )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
@@ -164,11 +222,31 @@ public class Assertions
             String.format( "error with code %s not found in report with error(s) %s", code, report.getErrors() ) );
     }
 
+    public static void assertHasError( ValidationReport report, ValidationCode code, String entityUid )
+    {
+        assertTrue( report.hasErrors(), "error not found since report has no errors" );
+        assertTrue(
+            report.hasError(
+                err -> Objects.equals( code.name(), err.getErrorCode() ) && Objects.equals( entityUid, err.getUid() ) ),
+            String.format( "error with code %s for entity %s not found in report with error(s) %s", code, entityUid,
+                report.getErrors() ) );
+    }
+
     public static void assertNoErrors( ImportReport report )
     {
         assertNotNull( report );
         assertEquals( Status.OK, report.getStatus(),
             errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) );
+    }
+
+    public static void assertNoErrorsAndNoWarnings( ImportReport report )
+    {
+        assertNotNull( report );
+        assertAll(
+            () -> assertEquals( Status.OK, report.getStatus(),
+                errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) ),
+            () -> assertEquals( Collections.emptyList(), report.getValidationReport().getWarnings(),
+                "Expected import without warnings, instead got:\n" + report.getValidationReport().getWarnings() ) );
     }
 
     public static void assertNoErrors( ValidationReport report )

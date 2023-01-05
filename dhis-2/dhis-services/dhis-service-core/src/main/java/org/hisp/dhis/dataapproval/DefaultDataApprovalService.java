@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -71,8 +71,8 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
-@AllArgsConstructor
 public class DefaultDataApprovalService
     implements DataApprovalService
 {

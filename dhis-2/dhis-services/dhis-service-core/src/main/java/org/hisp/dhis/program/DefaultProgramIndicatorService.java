@@ -130,10 +130,6 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramIndicatorStore programIndicatorStore;
 
     private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;

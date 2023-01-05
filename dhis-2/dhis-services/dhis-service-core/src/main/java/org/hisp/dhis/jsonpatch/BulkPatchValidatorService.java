@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,7 +51,7 @@ import org.springframework.stereotype.Service;
  * {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class BulkPatchValidatorService
 {
     private final IdentifiableObjectManager manager;
