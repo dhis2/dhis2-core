@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -46,6 +48,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service
 public class DefaultVisualizationGridService
     implements VisualizationGridService
@@ -59,19 +62,6 @@ public class DefaultVisualizationGridService
     private final CurrentUserService currentUserService;
 
     private final I18nManager i18nManager;
-
-    public DefaultVisualizationGridService( VisualizationService visualizationService,
-        AnalyticsService analyticsService,
-        OrganisationUnitService organisationUnitService,
-        CurrentUserService currentUserService,
-        I18nManager i18nManager )
-    {
-        this.visualizationService = visualizationService;
-        this.analyticsService = analyticsService;
-        this.organisationUnitService = organisationUnitService;
-        this.currentUserService = currentUserService;
-        this.i18nManager = i18nManager;
-    }
 
     @Override
     @Transactional( readOnly = true )

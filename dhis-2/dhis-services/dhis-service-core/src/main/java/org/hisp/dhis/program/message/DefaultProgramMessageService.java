@@ -69,11 +69,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    protected final IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
     private final ProgramMessageStore programMessageStore;
 
