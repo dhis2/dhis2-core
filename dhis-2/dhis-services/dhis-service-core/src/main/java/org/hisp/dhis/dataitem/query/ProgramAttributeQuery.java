@@ -106,7 +106,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         sql.append(
             " group by program.name, program.shortname, item_name, " + COMMON_UIDS
                 + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -189,7 +189,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name" )
             .append(
-                ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname" )
+                ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname, cast (null as text) as expression" )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }

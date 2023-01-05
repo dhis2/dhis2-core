@@ -102,7 +102,7 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append(
             " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -199,7 +199,8 @@ public class DataElementQuery implements DataItemQuery
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", dataelement.name as i18n_first_name, cast (null as text) as i18n_second_name" )
-            .append( ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+            .append(
+                ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, cast (null as text) as expression" )
             .append( " from dataelement " ).toString();
     }
 }
