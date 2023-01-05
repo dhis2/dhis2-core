@@ -60,5 +60,4 @@ public interface PropertyIntrospectorService
     {
         return Lists.newArrayList( getPropertiesMap( klass ).values() );
     }
-
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.metadata;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,10 +37,9 @@ import org.springframework.stereotype.Repository;
  * @author Jan Bernitt
  */
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HibernateMetadataProposalStore implements MetadataProposalStore
 {
-
     private final SessionFactory sessionFactory;
 
     private Session getSession()

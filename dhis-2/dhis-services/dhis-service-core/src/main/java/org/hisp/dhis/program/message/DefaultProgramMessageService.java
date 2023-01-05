@@ -122,8 +122,6 @@ public class DefaultProgramMessageService
         this.aclService = aclService;
     }
 
-    //TODO why do we combine constructor injection and auto wiring?
-
     @Autowired
     @Qualifier( "smsMessageSender" )
     private MessageSender smsSender;

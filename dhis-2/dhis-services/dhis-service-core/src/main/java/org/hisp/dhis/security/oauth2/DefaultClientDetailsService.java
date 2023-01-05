@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.security.oauth2;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -43,19 +43,13 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "defaultClientDetailsService" )
 public class DefaultClientDetailsService implements ClientDetailsService
 {
     private static final Set<String> SCOPES = Sets.newHashSet( "ALL" );
 
     private final OAuth2ClientService oAuth2ClientService;
-
-    public DefaultClientDetailsService( OAuth2ClientService oAuth2ClientService )
-    {
-        checkNotNull( oAuth2ClientService );
-
-        this.oAuth2ClientService = oAuth2ClientService;
-    }
 
     @Override
     public ClientDetails loadClientByClientId( String clientId )

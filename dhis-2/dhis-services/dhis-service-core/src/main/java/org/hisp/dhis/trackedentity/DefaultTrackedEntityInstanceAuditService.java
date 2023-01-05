@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.user.CurrentUserService;
@@ -42,14 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
 public class DefaultTrackedEntityInstanceAuditService
     implements TrackedEntityInstanceAuditService
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
     private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
 
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
@@ -57,21 +54,6 @@ public class DefaultTrackedEntityInstanceAuditService
     private final TrackerAccessManager trackerAccessManager;
 
     private final CurrentUserService currentUserService;
-
-    public DefaultTrackedEntityInstanceAuditService( TrackerAccessManager trackerAccessManager,
-        TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore,
-        TrackedEntityInstanceStore trackedEntityInstanceStore, CurrentUserService currentUserService )
-    {
-        checkNotNull( trackedEntityInstanceAuditStore );
-        checkNotNull( trackedEntityInstanceStore );
-        checkNotNull( trackerAccessManager );
-        checkNotNull( currentUserService );
-
-        this.trackedEntityInstanceAuditStore = trackedEntityInstanceAuditStore;
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
-        this.trackerAccessManager = trackerAccessManager;
-        this.currentUserService = currentUserService;
-    }
 
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
