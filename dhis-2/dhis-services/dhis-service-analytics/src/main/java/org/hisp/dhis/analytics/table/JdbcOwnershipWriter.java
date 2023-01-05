@@ -29,12 +29,9 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
-import static org.apache.commons.lang3.time.DateUtils.truncate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
-import static org.hisp.dhis.util.DateUtils.minusOneDay;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -56,7 +53,7 @@ public class JdbcOwnershipWriter
     private final MappingBatchHandler batchHandler;
 
     /**
-     * Row of the previous write if any, possibly modified.
+     * Previous row for this TEI, if any.
      */
     private Map<String, Object> prevRow = null;
 
@@ -90,116 +87,107 @@ public class JdbcOwnershipWriter
      * row so we do not change the original row. We cannot use immutable maps
      * because the orgUnit levels contain nulls when the orgUnit is not at the
      * lowest level, and immutable maps do not allow null values.
-     * <p>
-     * The start date from the query will contain the date and time, so the time
-     * needs to be truncated. Also, the start date will be the last day on which
-     * the previous ownership is valid, so increment the date by 1 for the start
-     * of the new ownership date range.
      *
      * @param row map of values to write
      */
     public void write( Map<String, Object> row )
     {
-        this.newRow = new HashMap<>( row );
+        newRow = new HashMap<>( row );
 
-        newRow.put( STARTDATE, addDays( truncate( newRow.get( STARTDATE ), Calendar.DATE ), 1 ) );
-
-        if ( prevRow != null )
+        if ( prevRow == null )
         {
-            processPreviousRow();
+            startNewTei();
         }
-
-        adjustNewRow();
-
-        prevRow = newRow;
-    }
-
-    /**
-     * Flush any final row to the analytics_ownership temp table.
-     */
-    public void flush()
-    {
-        if ( prevRow != null )
+        else if ( sameValue( OU ) || sameValue( ENDDATE ) )
         {
-            prevRow.put( ENDDATE, FAR_FUTURE_DATE );
-
-            conditionallyWritePreviousRow();
-        }
-
-        batchHandler.flush();
-    }
-
-    /**
-     * Process the previous, saved row now that we know what the new row
-     * contains.
-     * <p>
-     * For the same TEI, if the start date is the same as the previous row, this
-     * means that there was more than one enrollment and/or ownership change on
-     * the same day. In this case, the latest row during that day (the new row)
-     * will have the definitive ownership. Just copy the previous row's start
-     * date to the new row and it will be the previous row.
-     * <p>
-     * If the ownership hasn't changed, just continue the previous row to
-     * include the new date range. If the ownership orgUnit has changed, and
-     * it's the same TEI, then end the previous row one day before the start of
-     * this row. If the TEI has changed, then the previous row was the last row
-     * for that TEI, so the previous row ends far in the future.
-     */
-    private void processPreviousRow()
-    {
-        if ( sameValue( TEIUID ) )
-        {
-            if ( sameValue( STARTDATE ) || sameValue( OU ) )
-            {
-                // Make this row a continuation of the previous row:
-                newRow.put( STARTDATE, prevRow.get( STARTDATE ) );
-
-                return;
-            }
-
-            prevRow.put( ENDDATE, minusOneDay( (Date) newRow.get( STARTDATE ) ) );
+            combineWithPreviousRow();
         }
         else
         {
-            prevRow.put( ENDDATE, FAR_FUTURE_DATE );
+            writePreviousRow();
         }
-
-        conditionallyWritePreviousRow();
     }
 
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
     /**
-     * Write the previous row to the analytics_ownership temp table. However, if
-     * the previous row was the only one for this TEI then we don't need to
-     * write it. This is because the ownership never changed, so the enrollment
-     * orgUnit can be used as the ownership orgUnit.
+     * Process the first row for a TEI. For now just save it as the previous row
+     * and set the start date for far in the past.
      */
-    private void conditionallyWritePreviousRow()
+    private void startNewTei()
     {
-        if ( !FAR_PAST_DATE.equals( prevRow.get( STARTDATE ) ) ||
-            !FAR_FUTURE_DATE.equals( prevRow.get( ENDDATE ) ) )
-        {
-            batchHandler.addObject( prevRow );
-        }
+        prevRow = newRow;
+
+        prevRow.put( STARTDATE, FAR_PAST_DATE );
     }
 
     /**
-     * Adjust the row. If this is the first row for this TEI, set the start date
-     * to the far past.
+     * Combine the current row with the previous row by udating the previous
+     * row's end date. If this is the last row for this TEI, write it out.
      */
-    private void adjustNewRow()
+    private void combineWithPreviousRow()
     {
-        if ( prevRow == null || !sameValue( TEIUID ) )
+        prevRow.put( ENDDATE, newRow.get( ENDDATE ) );
+
+        writeRowIfLast( prevRow );
+    }
+
+    /**
+     * The new row is for a different ownership period of the same TEI. So write
+     * out the old row and start the new row after the old row's end date. Then
+     * also write out the new row if it is the last for this TEI.
+     */
+    private void writePreviousRow()
+    {
+        batchHandler.addObject( prevRow );
+
+        newRow.put( STARTDATE, addDays( (Date) prevRow.get( ENDDATE ), 1 ) );
+
+        prevRow = newRow;
+
+        writeRowIfLast( prevRow );
+    }
+
+    /**
+     * If the passed row is the last for this TEI (no end date), then set the
+     * end date to far in the future and write it out. However, if this is the
+     * only row for this TEI (from the beginning of time to the end of time),
+     * then don't write it because the ownership never changed and analytics
+     * queries can always use the enrollement orgUnit.
+     *
+     * After, there will be no previous row for this TEI.
+     */
+    private void writeRowIfLast( Map<String, Object> row )
+    {
+        if ( hasNullValue( row, ENDDATE ) ) // If the last row...
         {
-            newRow.put( STARTDATE, FAR_PAST_DATE );
+            row.put( ENDDATE, FAR_FUTURE_DATE );
+
+            if ( !FAR_PAST_DATE.equals( row.get( STARTDATE ) ) )
+            {
+                batchHandler.addObject( row );
+            }
+
+            prevRow = null;
         }
     }
 
     /**
-     * Returns true if the column has the same value between the row and the
-     * previous row.
+     * Returns true if the map has a null value.
+     */
+    private boolean hasNullValue( Map<String, Object> row, String colName )
+    {
+        return row.get( colName ) == null;
+    }
+
+    /**
+     * Returns true if the column has the same value between the previous row
+     * and the new row. (Note that the new row may have a null value!)
      */
     private boolean sameValue( String colName )
     {
-        return newRow.get( colName ).equals( prevRow.get( colName ) );
+        return prevRow.get( colName ).equals( newRow.get( colName ) );
     }
 }
