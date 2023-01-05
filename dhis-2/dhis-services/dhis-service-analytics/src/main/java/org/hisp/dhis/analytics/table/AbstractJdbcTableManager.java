@@ -263,6 +263,11 @@ public abstract class AbstractJdbcTableManager
     public void dropTempTable( AnalyticsTable table )
     {
         dropTableCascade( table.getTempTableName() );
+
+        for ( AnalyticsTablePartition partition : table.getTablePartitions() )
+        {
+            dropTempTablePartition( partition );
+        }
     }
 
     @Override
