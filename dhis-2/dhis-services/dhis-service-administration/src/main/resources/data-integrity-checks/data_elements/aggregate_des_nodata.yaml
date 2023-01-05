@@ -25,12 +25,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: aggregate_des_nodata
-  description: Aggregate data elements with NO data values.
-  section: Data elements (aggregate)
-  section_order: 6
-  summary_uid: yc9MsMnAGCj
-  summary_sql: >-
+name: aggregate_des_nodata
+description: Aggregate data elements with NO data values.
+section: Data elements (aggregate)
+section_order: 6
+summary_uid: yc9MsMnAGCj
+summary_sql: >-
     WITH dataelements_no_data AS (
     SELECT uid,name from dataelement where dataelementid in (
     SELECT dataelementid from  dataelement 
@@ -42,8 +42,8 @@
     100*COUNT(*)/ NULLIF( ( select count(*) from dataelement
     where domaintype = 'AGGREGATE'), 0) as percent
     from dataelements_no_data;
-  details_uid: MzPQlUsApVO
-  details_sql: >-
+details_uid: MzPQlUsApVO
+details_sql: >-
     SELECT uid,name from dataelement where dataelementid in (
     SELECT dataelementid from  dataelement 
     where domaintype = 'AGGREGATE'
@@ -51,14 +51,14 @@
     select DISTINCT dataelementid FROM 
     datavalue where deleted = FALSE and value != '' )
     ORDER BY name;
-  details_id_type: data_elements_aggregate
-  severity: WARNING
-  introduction: >
+details_id_type: data_elements_aggregate
+severity: WARNING
+introduction: >
     Data elements should generally always be associated with data values.
     If data elements exist in a data set which is active, but there are no
     data values associated with them, they may not be part of the data entry
     screens. Alternatively, the data element may have been added but never
     been associated with a dataset.
-  recommendation: >
+recommendation: >
     Consider removing data elements with no data values.
-  is_slow: TRUE
+is_slow: TRUE

@@ -44,12 +44,17 @@ details_sql: >-
   where ST_IsValid(geometry) = FALSE
   ORDER BY name;
 details_id_type: orgunits
-severity: CRITICAL
-introduction: >
-  DHIS2 uses the PostGIS database extenstion to manage the geographical information associated
-  with organsiation units. There are various reasons why geometries may be considered to be
+severity: WARNING
+introduction: |
+  DHIS2 uses the PostGIS database extension to manage the geographical information associated
+  with organisation units. There are various reasons why geometries may be considered to be
   invalid including self-inclusions, self-intersections, and sliver polygons. Please see the
   PostGIS documentation for a more in-depth discussion on this topic.
+  
+  Invalid geometry is not always a problem and may be able to be ignored, however, it has been observed in certain systems
+  that this can lead to problems in analytics. If you are experiencing issues when generating analytics
+  tables, and see errors related to invalid geometries, you will need to either remove the invalid geometry,
+  or fix it.
 recommendation: >
   Update the geometry of the affected organisation units to a valid geometry. It may be possible
   to use the PostGIS function `ST_MakeValid` to automatically fix the problem. However, in other

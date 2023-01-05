@@ -63,13 +63,17 @@
     to be merged. Categories with the exact same category options
     may be easily confused by users in analysis. The details view will
     provide a list of categories which have the exact same category options.
-    For each duplicated category a number in parantheses such as (1) will
+    For each duplicated category a number in parentheses such as (1) will
     indicate which categories belong to duplicated groups.
   details_id_type: categories
   recommendation: |
     If category combinations have already been created with duplicative categories,
     it is recommended that you do not take any action, but rather ensure
-    that users understand that there may be two categories which are duplicative.
+    that users understand that there may be two category combinations which are duplicative.
+
+    If you choose to merge the duplicative category combinations, you would need to 
+    remap all category option combinations from the category combo which you wish to 
+    remove, to the one which you wish to keep. 
 
     If one of the categories is not in use in any category combination, it should
     consider to be removed from the system.

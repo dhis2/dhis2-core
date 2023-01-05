@@ -25,12 +25,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: xPFtcXBvQfk
-  name:  option_sets_wrong_sort_order
-  description: Option sets with possibly wrong sort order.
-  section: Option sets
-  section_order: 3
-  summary_sql: >-
+summary_uid: xPFtcXBvQfk
+name:  option_sets_wrong_sort_order
+description: Option sets with possibly wrong sort order.
+section: Option sets
+section_order: 3
+summary_sql: >-
     WITH option_sets_wrong_sort_order as (
     SELECT DISTINCT optionsetid, sort_order, row_number FROM (
     SELECT optionsetid,sort_order, row_number()
@@ -44,8 +44,8 @@
     from option_sets_wrong_sort_order ) as bar) /
     NULLIF( (SELECT COUNT(*) from optionset), 0)  as percent
     FROM option_sets_wrong_sort_order;
-  details_uid: NxtEkZcmLl0
-  details_sql: >-
+details_uid: NxtEkZcmLl0
+details_sql: >-
     SELECT a.uid, a.name, b.sort_order || ' != ' || b.row_number as comment from
     optionset a
     INNER JOIN (
@@ -56,17 +56,19 @@
     ) as foo where sort_order != row_number
     ORDER BY optionsetid, sort_order
     ) b  on a.optionsetid = b.optionsetid;
-  details_id_type: option_sets
-  severity: SEVERE
-  introduction: >
-    Option sets contain options which can be ordered. The sort_order property should always start with 1
-    and have a sequential sequence. If there are three options in the option set, then the sort order
-    should be 1,2,3. In certain circumstances, options may be deleted from an option set, and the sort
+details_id_type: option_sets
+severity: SEVERE
+introduction: >
+    Option sets contain options which should be ordered sequentially. The sort_order property should always start 
+    with 1 and have a sequential sequence. If there are three options in the option set, then the sort order
+    should be 1,2,3. 
+    
+    In certain circumstances, options may be deleted from an option set, and the sort
     order may become corrupted. This may lead to a situation where it becomes impossible to update the
     option set from the maintenance app, and may lead to problems when attempting to using the option
     set in the data entry app.
-  recommendation: >
+recommendation: >
     If it is possible to open the option set in the maintenance app, you can resort the option set,
     which should correct the problem. Another possible solution is to directly update the sort_order
-    property of in the optionset table in the database, ensuring that a valid sequence is present
+    property of in the `optionset` table in the database, ensuring that a valid sequence is present
     for all options in the option set.

@@ -27,7 +27,7 @@
 ---
   name: maps_notviewed_1y
   summary_uid: qPDGbYKCZn3
-  description: Visualizations which have not been viewed in the past 12 months
+  description: Maps which have not been viewed in the past 12 months
   section: Visualizations
   section_order: 1
   summary_sql: >-
@@ -62,9 +62,9 @@
   introduction: >
     Maps should be regularly viewed in the system. In many cases, users may create maps for
     temporary purposes and then never delete them. This can eventually lead to a lack of tidiness
-    in the system. This can lead to charts being difficult to find in the Maps app.
+    in the system and being difficult to find in the Maps app.
   details_id_type: visualizations
   recommendation: >
     Unused maps can be removed directly using the Maps app by a user with sufficient
     authority. If maps are a part of any dashboard however, they will also need to be removed
-    from the dashboard.
+    from the dashboard first.

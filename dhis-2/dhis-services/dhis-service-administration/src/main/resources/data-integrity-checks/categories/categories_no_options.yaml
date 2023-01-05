@@ -42,7 +42,7 @@ details_sql: >-
 details_id_type: categories
 severity: WARNING
 introduction: >
-    Categories should always have at least a single category options.
+    Categories should always have at least one category option.
 recommendation: >
     Any categories without category options should either be removed from the
     system if they are not in use. Otherwise, appropriate category options

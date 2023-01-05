@@ -92,9 +92,8 @@ details_id_type: categories
 severity: SEVERE
 introduction: >
   Category option group sets are composed of multiple category option groups, which are in turn composed of various category
-  options. Category option group sets are often used to group related 
-  category options together for analytical purposes. Categories are 
-  also composed of category options. In general, but not always, category option group sets should contain 
+  options. Category option group sets are often used to group related category options together for analytical purposes. 
+  Categories are also composed of category options. In general, but not always, category option group sets should contain 
   all category options of related categories. Suppose we have the following two age categories. 
   
   Age coarse: <15, 15+

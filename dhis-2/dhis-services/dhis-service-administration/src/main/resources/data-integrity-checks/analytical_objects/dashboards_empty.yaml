@@ -42,8 +42,8 @@
   severity: INFO
   introduction: >
     All dashboards should have content on them. Dashboards without any content do not 
-    serve any purpose, and can make it more difficult to find relevant dashboard with content.
+    serve any purpose, and can make it more difficult to find relevant dashboards with content.
   details_id_type: visualizations
   recommendation: >
-    Dashboards without content that have not been modified in the last e.g. 14 days should
+    Dashboards without content that have not been modified in the last 14 days should
     be considered for deletion.

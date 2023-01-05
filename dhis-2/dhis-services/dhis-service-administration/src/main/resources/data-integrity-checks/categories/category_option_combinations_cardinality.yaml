@@ -23,14 +23,13 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
----
-  summary_uid: VBIs20Adkyf
-  name: cocs_wrong_cardinality
-  description: Category option combinations with incorrect cardinality.
-  section: Categories
-  section_order: 5
-  summary_sql: >-
+#---
+summary_uid: VBIs20Adkyf
+name: cocs_wrong_cardinality
+description: Category option combinations with incorrect cardinality.
+section: Categories
+section_order: 5
+summary_sql: >-
     WITH cocs_wrong_cardinality as (
     SELECT foo.categorycomboid,foo.categoryoptioncomboid,foo.actual_cardnality,bar.theoretical_cardnality FROM (
     SELECT b.categorycomboid,a.categoryoptioncomboid, COUNT(*) as actual_cardnality
@@ -44,8 +43,8 @@
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM categoryoptioncombo),0) as percent
     FROM cocs_wrong_cardinality;
-  details_uid: ZMsFbuKljqn
-  details_sql: >-
+details_uid: ZMsFbuKljqn
+details_sql: >-
     WITH baz as (
     SELECT foo.categorycomboid,foo.categoryoptioncomboid,foo.actual_cardnality,bar.theoretical_cardnality FROM (
     SELECT b.categorycomboid,a.categoryoptioncomboid, COUNT(*) as actual_cardnality
@@ -60,12 +59,20 @@
     FROM baz
     INNER JOIN categorycombo x on baz.categorycomboid = x.categorycomboid
     INNER JOIN categoryoptioncombo y on baz.categoryoptioncomboid = y.categoryoptioncomboid;
-  severity: SEVERE
-  introduction: >
+severity: SEVERE
+introduction: >
     All category option combinations should have exactly the same number of category option associations
     as the number of categories in the category combination. If there are two categories in a category
     combination, then every category option combination should have exactly two category options.
-  details_id_type: categories
-  recommendation: >
+    
+    Category option combinations with the incorrect cardinality are usually the result of a category
+    combination having been created, and then modified later. Suppose that two categories are used 
+    to create a category combination. Each category option combination of this category combo will 
+    have two category options. If an additional category is added to the category combination later,
+    new category option combinations with three category options will be created and associated
+    with this category combo. The original category option combinations would be considered to be
+    invalid.
+details_id_type: categories
+recommendation: >
     Category option combinations which have an incorrect cardinality will be ignored by the DHIS2
     analytics system and should be removed.

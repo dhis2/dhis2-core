@@ -17,20 +17,20 @@
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,/home/jason/Desktop EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE./home/jason/Desktop
 #
 ---
-  name: indicators_duplicated_factor
-  description: Indicator types with the same factor.
-  section: Indicators
-  section_order: 5
-  summary_uid: ZQkHZ64zNc7
-  summary_sql: >-
+name: indicators_duplicated_factor
+description: Indicator types with the same factor.
+section: Indicators
+section_order: 5
+summary_uid: ZQkHZ64zNc7
+summary_sql: >-
     WITH duplicate_indicator_factors AS (
     SELECT uid,name from indicatortype where 
     indicatorfactor IN (
@@ -41,23 +41,23 @@
     select count(*) as value,
      100 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM indicatortype) ,0)  as percent
     FROM duplicate_indicator_factors;
-  details_uid: RkNRuWIjT3z
-  details_sql: >-
+details_uid: RkNRuWIjT3z
+details_sql: >-
       SELECT uid,name from indicatortype where 
       indicatorfactor IN (
       SELECT indicatorfactor
       from indicatortype
       GROUP BY indicatorfactor
       HAVING COUNT(indicatorfactor) > 1)
-  severity: WARNING
-  introduction: Indicators can be assigned a factor which is multiplied by the 
+severity: WARNING
+introduction: Indicators can be assigned a factor which is multiplied by the 
     indicator's value. For example, if you create a percentage
     based indicator, you can assign the indicator a factor of 100, which would
     be multiplied by the actual value of the indicator calculated by DHIS2.
     In general, having multiple indicator types with the same factor is not
     recommended. It is duplicative, and may lead to confusion.
-  details_id_type: indicators
-  recommendation: Duplicated indicator types should consider to be removed
+details_id_type: indicators
+recommendation: Duplicated indicator types should consider to be removed
     from the system. Consider choosing one of the duplicated indicator types
     as the one to keep, and then update all indicators which share the same
     factor to this indicator type. The duplicated indicator types can then

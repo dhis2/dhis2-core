@@ -60,11 +60,12 @@
     ORDER BY c.name;
   severity: WARNING
   introduction: >
-    Charts should be regularly viewed in the system. In many cases, users may create charts for
+    Dashboards should be regularly viewed in the system. In many cases, users may create dashboards for
     temporary purposes and then never delete them. This can eventually lead to a lack of tidiness
-    in the system. This can lead to charts being difficult to find in the visualization app.
+    in the system. This can lead to useful dashboards being difficult to find. This
+    check identifies any dashboards which have not been viewed in the past year.
   details_id_type: visualizations
   recommendation: >
-    Unused charts can be removed directly using the data visualization app by a user with sufficient
-    authority. If charts are a part of any dashboard however, they will also need to be removed
-    from the dashboard.
+    Unused dashboards can be deleted in the entirety from the main dashboard app by clicking on the "Edit" 
+    button and choosing "Delete". Note that this process cannot be undone! Another option would be to alter
+    the sharing of the dashboard so that it is not visible to any user.

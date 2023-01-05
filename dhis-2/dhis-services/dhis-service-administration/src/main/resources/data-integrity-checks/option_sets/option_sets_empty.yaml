@@ -25,12 +25,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: rqwvuIzZcs9
-  name: options_sets_empty
-  description: Empty option sets
-  section: Option sets
-  section_order: 3
-  summary_sql: >-
+summary_uid: rqwvuIzZcs9
+name: options_sets_empty
+description: Empty option sets
+section: Option sets
+section_order: 3
+summary_sql: >-
     WITH options_sets_empty as (
     SELECT uid,name from
     optionset where optionsetid
@@ -41,16 +41,16 @@
     COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optionset), 0) as percent
     from options_sets_empty;
-  details_uid: wjIQ26nrXT8
-  details_sql: >-
+details_uid: wjIQ26nrXT8
+details_sql: >-
     SELECT uid,name from
     optionset where optionsetid
     NOT IN (SELECT DISTINCT optionsetid
     from optionvalue WHERE optionsetid IS NOT NULL)
     ORDER BY name;
-  details_id_type: option_sets
-  severity: WARNING
-  introduction: >
+details_id_type: option_sets
+severity: WARNING
+introduction: >
     All option sets should generally include at least two items. Empty option sets serve no purpose.
-  recommendation: >
+recommendation: >
     Options should either be added to the option set, or the option set should be deleted.
