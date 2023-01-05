@@ -21,7 +21,6 @@ create table if not exists expressiondimensionitem
     constraint expressiondimensionitem_pkey primary key (expressiondimensionitemid),
     constraint expressiondimensionitem_code_key unique (code),
     constraint expressiondimensionitem_uid_key unique (uid),
-    constraint expressiondimensionitem_shortname_key unique (shortname),
     constraint fk_expressiondimensionitem_userid foreign key (userid)
     references userinfo (userinfoid) match simple
                           on update no action
