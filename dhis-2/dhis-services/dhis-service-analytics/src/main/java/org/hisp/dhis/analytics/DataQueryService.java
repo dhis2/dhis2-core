@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -80,8 +84,39 @@ public interface DataQueryService
      * @return a list of DimensionalObject.
      * @throws IllegalQueryException if the query is illegal.
      */
-    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate,
-        String userOrgUnit, IdScheme inputIdScheme );
+    default List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
+        Date relativePeriodDate, String userOrgUnit, IdScheme inputIdScheme )
+    {
+        List<DimensionalObject> list = new ArrayList<>();
+        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
+
+        if ( dimensionParams != null )
+        {
+            for ( String param : dimensionParams )
+            {
+                String dimension = getDimensionFromParam( param );
+                List<String> items = getDimensionItemsFromParam( param );
+
+                if ( dimension != null && items != null )
+                {
+                    list.add( getDimension(
+                        dimension, items, relativePeriodDate, userOrgUnits, false, inputIdScheme ) );
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Creates a list of DimensionalObject from the given set of dimension
+     * params.
+     *
+     * @param request request parameters
+     * @return a list of DimensionalObject.
+     * @throws IllegalQueryException if the query is illegal.
+     */
+    List<DimensionalObject> getDimensionalObjects( DataQueryRequest request );
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension

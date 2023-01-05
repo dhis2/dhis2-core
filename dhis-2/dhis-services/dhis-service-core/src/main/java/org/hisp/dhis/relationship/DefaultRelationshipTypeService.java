@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.relationship;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,21 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.relationship.RelationshipTypeService" )
 public class DefaultRelationshipTypeService
     implements RelationshipTypeService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final RelationshipTypeStore relationshipTypeStore;
-
-    public DefaultRelationshipTypeService( RelationshipTypeStore relationshipTypeStore )
-    {
-        checkNotNull( relationshipTypeStore );
-        this.relationshipTypeStore = relationshipTypeStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

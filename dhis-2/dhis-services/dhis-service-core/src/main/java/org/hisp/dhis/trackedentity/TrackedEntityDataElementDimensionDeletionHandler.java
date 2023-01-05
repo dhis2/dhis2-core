@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler
 {
     private final SessionFactory sessionFactory;

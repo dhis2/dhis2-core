@@ -55,9 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.UnregisteredSMSListener" )
 @Transactional
-public class UnregisteredSMSListener
-    extends
-    CommandSMSListener
+public class UnregisteredSMSListener extends CommandSMSListener
 {
     private final SMSCommandService smsCommandService;
 

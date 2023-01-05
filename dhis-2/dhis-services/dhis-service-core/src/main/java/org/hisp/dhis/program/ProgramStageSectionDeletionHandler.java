@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramStageSectionDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;

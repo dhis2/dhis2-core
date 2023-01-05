@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.springframework.stereotype.Service;
@@ -38,18 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.analytics.AnalyticsTableHookService" )
 public class DefaultAnalyticsTableHookService
     implements AnalyticsTableHookService
 {
     private final AnalyticsTableHookStore analyticsTableHookStore;
-
-    public DefaultAnalyticsTableHookService( AnalyticsTableHookStore analyticsTableHookStore )
-    {
-        checkNotNull( analyticsTableHookStore );
-
-        this.analyticsTableHookStore = analyticsTableHookStore;
-    }
 
     @Override
     @Transactional( readOnly = true )

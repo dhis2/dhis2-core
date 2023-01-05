@@ -29,6 +29,7 @@ package org.hisp.dhis.sharing;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,8 +56,9 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
 
-@Service
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class DefaultSharingService implements SharingService
 {
     @Nonnull
@@ -76,18 +78,6 @@ public class DefaultSharingService implements SharingService
 
     @Nonnull
     private final SchemaService schemaService;
-
-    public DefaultSharingService( AclService aclService, IdentifiableObjectManager manager,
-        CurrentUserService currentUserService, SchemaService schemaService, UserGroupService userGroupService,
-        UserService userService )
-    {
-        this.aclService = aclService;
-        this.manager = manager;
-        this.currentUserService = currentUserService;
-        this.schemaService = schemaService;
-        this.userGroupService = userGroupService;
-        this.userService = userService;
-    }
 
     @Override
     public <T extends IdentifiableObject> ObjectReport saveSharing( @Nonnull Class<T> entityClass, @Nonnull T entity,
