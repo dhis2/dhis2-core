@@ -47,13 +47,13 @@
     ORDER BY name;
   severity: WARNING
   introduction: >
-    Indicators should be used to produce some type of analysis output (charts, maps, pivot tables).
+    Indicators should be used to produce some type of analytical output (charts, maps, pivot tables).
     Note: indicators used in datasets to provide feedback during data entry are not counted
     as being used in analytical objects.
   details_id_type: indicators
   recommendation: >
-    Indicators that are not routinely being reviewed in analysis should be reviewed to
+    Indicators that are not routinely being used for analysis should be reviewed to
     determine if they are useful and needed. If these are meant to be used for routine 
     review, then associated outputs should be created using them. If these indicators are
     not going to be used for any type of information review, and are not used in data sets
-    for feedback during data entry, consideration should be made to either delete them.
+    for feedback during data entry, consideration should be made to delete them.
