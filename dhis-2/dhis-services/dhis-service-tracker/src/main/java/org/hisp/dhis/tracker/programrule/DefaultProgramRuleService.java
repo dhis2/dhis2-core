@@ -82,7 +82,23 @@ class DefaultProgramRuleService
             calculateEnrollmentRuleEffects( bundle, preheat ),
             ListUtils.union(
                 calculateProgramEventRuleEffects( bundle, preheat ),
-                calculateTrackerEventRuleEffects( bundle, preheat ) ) );
+                calculateTrackerEventRuleEffects( bundle, preheat ) ) )
+            .stream()
+            .filter( effects -> isPresentInBundle( effects, bundle ) )
+            .collect( Collectors.toList() );
+    }
+
+    private boolean isPresentInBundle( RuleEffects effects, TrackerBundle bundle )
+    {
+        switch ( effects.getTrackerObjectType() )
+        {
+        case ENROLLMENT:
+            return bundle.findEnrollmentByUid( effects.getTrackerObjectUid() ).isPresent();
+        case EVENT:
+            return bundle.findEventByUid( effects.getTrackerObjectUid() ).isPresent();
+        default:
+            return false;
+        }
     }
 
     private List<RuleEffects> calculateEnrollmentRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )

@@ -100,6 +100,10 @@ public class DataItem implements Serializable
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private ValueType simplifiedValueType;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String expression;
+
     public ValueType getSimplifiedValueType()
     {
         return valueType != null ? valueType.toSimplifiedValueType() : null;

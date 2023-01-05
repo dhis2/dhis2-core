@@ -104,7 +104,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append(
             " group by item_name, " + COMMON_UIDS
                 + ", item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -184,7 +184,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", programindicator.name as i18n_first_name, cast (null as text) as i18n_second_name" )
             .append(
-                ", programindicator.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+                ", programindicator.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, cast (null as text) as expression" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }
