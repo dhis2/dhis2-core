@@ -30,30 +30,27 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Checks for organisation units which are part of multiple organisation unit
  * groups within the same group set.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_excess_group_memberships.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String orgunitA;
+    private String orgunitA;
 
-    String orgunitB;
+    private String orgunitB;
 
-    String testOrgUnitGroupA;
+    private String testOrgUnitGroupA;
 
-    String testOrgUnitGroupB;
+    private String testOrgUnitGroupB;
 
-    String testOrgUnitGroupSet;
-
-    final String check = "orgunitgroupset_excess_groups";
+    private static final String check = "orgunitgroupset_excess_groups";
 
     @Test
     void testOrganisationUnitInMultipleGroupSetGroups()
@@ -79,7 +76,7 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
                     "'organisationUnitGroups' :[{'id' : '"
@@ -113,7 +110,7 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
                     "'organisationUnitGroups' :[{'id' : '"
@@ -129,20 +126,4 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
     }
 
-    @BeforeEach
-    public void setUp()
-    {
-        deleteAllOrgUnits();
-    }
-
-    @AfterEach
-    public void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", orgunitA );
-        deleteMetadataObject( "organisationUnits", orgunitB );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupA );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupB );
-        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
-
-    }
 }

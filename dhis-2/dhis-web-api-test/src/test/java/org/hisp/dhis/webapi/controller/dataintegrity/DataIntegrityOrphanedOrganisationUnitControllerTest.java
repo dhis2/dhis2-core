@@ -35,6 +35,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Checks for orphaned organisation units, namely those which are not part of
+ * any hierarchy.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_orphaned.yaml
+ * }
+ *
  * @author Jason P. Pickering
  */
 class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIntegrityIntegrationTest

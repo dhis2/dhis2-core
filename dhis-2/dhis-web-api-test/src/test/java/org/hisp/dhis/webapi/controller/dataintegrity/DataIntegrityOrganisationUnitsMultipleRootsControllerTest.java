@@ -32,76 +32,70 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import java.util.Set;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for orgunits which have multiple spaces in their names or shortnames
+ * Test for multiple roots in the organisation unit hierarchy.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_roots.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
+    private static final String check = "orgunit_multiple_roots";
 
-    private String orgunitA;
+    private String nullIsland;
 
-    private String orgunitB;
-
-    private String orgunitC;
-
-    private final String check = "orgunit_multiple_spaces";
+    private String notNullIsland;
 
     @Test
-    void testOrgUnitMultipleSpaces()
+    void testOrgunitMultipleRoots()
     {
 
-        orgunitA = assertStatus( HttpStatus.CREATED,
+        nullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
-                "{ 'name': 'Space    District', 'shortName': 'Space    District', 'openingDate' : '2022-01-01'}" ) );
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
+        notNullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
-                "{ 'name': 'TwoSpace District', 'shortName': 'Two  Space  District', 'openingDate' : '2022-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        orgunitC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+        Set<String> orgUnitUIDs = Set.of();
+        if ( nullIsland != null && notNullIsland != null )
+        {
+            orgUnitUIDs = Set.of( nullIsland, notNullIsland );
+        }
+        assertHasDataIntegrityIssues( "orgunits", "orgunit_multiple_roots", 100, orgUnitUIDs, Set.of(), Set.of(),
+            true );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 66,
-            Set.of( orgunitA, orgunitB ), Set.of(), Set.of(), true );
     }
 
     @Test
-    void orgunitsNoMultipleSpaces()
+    void testOrgunitNoMultipleRoots()
     {
-        orgunitC = assertStatus( HttpStatus.CREATED,
+
+        nullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
-                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
+
+        notNullIsland = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
+                    "'parent' : {'id': '" + nullIsland + "'}, " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
         assertHasNoDataIntegrityIssues( "orgunits", check, true );
+
     }
 
     @Test
-    void testOrgunitsMultipleSpacesZeroCase()
+    void testOrgunitsInvalidGeometryDivideByZero()
     {
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", orgunitC );
-        deleteMetadataObject( "organisationUnits", orgunitB );
-        deleteMetadataObject( "organisationUnits", orgunitA );
-
-    }
 }
