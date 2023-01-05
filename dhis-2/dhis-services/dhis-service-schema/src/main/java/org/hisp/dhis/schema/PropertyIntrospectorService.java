@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
 @FunctionalInterface
 public interface PropertyIntrospectorService
 {
-
     /**
      * Returns properties as a map property-name => Property class
      *
