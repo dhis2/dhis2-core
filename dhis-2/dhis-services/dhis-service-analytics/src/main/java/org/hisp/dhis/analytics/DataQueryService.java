@@ -113,7 +113,8 @@ public interface DataQueryService
      * params.
      *
      * @param request request parameters
-     * @return
+     * @return a list of DimensionalObject.
+     * @throws IllegalQueryException if the query is illegal.
      */
     List<DimensionalObject> getDimensionalObjects( DataQueryRequest request );
 
