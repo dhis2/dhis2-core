@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,20 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @Transactional( readOnly = true )
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.EventSyncService" )
 public class DefaultEventSyncService implements EventSyncService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final EventSyncStore eventSyncStore;
-
-    public DefaultEventSyncService( EventSyncStore eventSyncStore )
-    {
-        checkNotNull( eventSyncStore );
-        this.eventSyncStore = eventSyncStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

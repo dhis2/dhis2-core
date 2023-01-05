@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,7 +57,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultOutlierDetectionService
     implements OutlierDetectionService
 {

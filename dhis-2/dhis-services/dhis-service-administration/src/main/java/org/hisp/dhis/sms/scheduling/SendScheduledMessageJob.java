@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.sms.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Date;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -47,22 +48,14 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob implements Job
 {
     private final OutboundSmsService outboundSmsService;
 
+    @Qualifier( "smsMessageSender" )
     private final MessageSender smsSender;
-
-    public SendScheduledMessageJob( OutboundSmsService outboundSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender )
-    {
-        checkNotNull( outboundSmsService );
-        checkNotNull( smsSender );
-
-        this.outboundSmsService = outboundSmsService;
-        this.smsSender = smsSender;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JdbcMaintenanceStore implements MaintenanceStore
 {
     private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = Map.of(

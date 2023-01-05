@@ -69,10 +69,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultInterpretationService
     implements InterpretationService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SchemaService schemaService;
 
     private final InterpretationStore interpretationStore;

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +39,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Halvdan Hoem Grelland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.fileresource.FileResourceService" )
 public class DefaultFileResourceService
     implements FileResourceService
@@ -80,23 +81,6 @@ public class DefaultFileResourceService
     private final ImageProcessingService imageProcessingService;
 
     private final ApplicationEventPublisher fileEventPublisher;
-
-    public DefaultFileResourceService( FileResourceStore fileResourceStore, SessionFactory sessionFactory,
-        FileResourceContentStore fileResourceContentStore, ImageProcessingService imageProcessingService,
-        ApplicationEventPublisher fileEventPublisher )
-    {
-        checkNotNull( fileResourceStore );
-        checkNotNull( sessionFactory );
-        checkNotNull( fileResourceContentStore );
-        checkNotNull( imageProcessingService );
-        checkNotNull( fileEventPublisher );
-
-        this.fileResourceStore = fileResourceStore;
-        this.sessionFactory = sessionFactory;
-        this.fileResourceContentStore = fileResourceContentStore;
-        this.imageProcessingService = imageProcessingService;
-        this.fileEventPublisher = fileEventPublisher;
-    }
 
     // -------------------------------------------------------------------------
     // FileResourceService implementation

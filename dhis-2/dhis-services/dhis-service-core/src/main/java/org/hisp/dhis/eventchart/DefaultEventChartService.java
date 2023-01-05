@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.eventchart;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -41,19 +41,14 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.eventchart.EventChartService" )
 public class DefaultEventChartService
     extends GenericAnalyticalObjectService<EventChart>
     implements EventChartService
 {
+    @Qualifier( "org.hisp.dhis.eventchart.EventChartStore" )
     private final HibernateAnalyticalObjectStore<EventChart> eventChartStore;
-
-    public DefaultEventChartService(
-        @Qualifier( "org.hisp.dhis.eventchart.EventChartStore" ) HibernateAnalyticalObjectStore<EventChart> eventChartStore )
-    {
-        checkNotNull( eventChartStore );
-        this.eventChartStore = eventChartStore;
-    }
 
     // -------------------------------------------------------------------------
     // EventReportService implementation

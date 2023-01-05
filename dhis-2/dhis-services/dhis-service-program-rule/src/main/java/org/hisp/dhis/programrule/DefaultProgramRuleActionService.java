@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.programrule;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,22 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author markusbekken
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.programrule.ProgramRuleActionService" )
 public class DefaultProgramRuleActionService
     implements ProgramRuleActionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private ProgramRuleActionStore programRuleActionStore;
-
-    public DefaultProgramRuleActionService( ProgramRuleActionStore programRuleActionStore )
-    {
-        checkNotNull( programRuleActionStore );
-
-        this.programRuleActionStore = programRuleActionStore;
-    }
+    private final ProgramRuleActionStore programRuleActionStore;
 
     // -------------------------------------------------------------------------
     // ProgramRuleAction implementation

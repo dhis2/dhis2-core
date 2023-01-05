@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.program.message;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DeliveryChannel;
@@ -55,7 +54,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,15 +63,12 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.message.ProgramMessageService" )
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    protected final IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
     private final ProgramMessageStore programMessageStore;
 
@@ -93,41 +88,10 @@ public class DefaultProgramMessageService
 
     private final AclService aclService;
 
-    public DefaultProgramMessageService( IdentifiableObjectManager manager, ProgramMessageStore programMessageStore,
-        OrganisationUnitService organisationUnitService, TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramService programService, OutboundMessageBatchService messageBatchService,
-        CurrentUserService currentUserService, List<DeliveryChannelStrategy> strategies,
-        List<MessageBatchCreatorService> batchCreators, AclService aclService )
-    {
-        checkNotNull( manager );
-        checkNotNull( programMessageStore );
-        checkNotNull( organisationUnitService );
-        checkNotNull( trackedEntityInstanceService );
-        checkNotNull( programService );
-        checkNotNull( messageBatchService );
-        checkNotNull( currentUserService );
-        checkNotNull( strategies );
-        checkNotNull( batchCreators );
-        checkNotNull( aclService );
-
-        this.manager = manager;
-        this.programMessageStore = programMessageStore;
-        this.organisationUnitService = organisationUnitService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programService = programService;
-        this.messageBatchService = messageBatchService;
-        this.currentUserService = currentUserService;
-        this.strategies = strategies;
-        this.batchCreators = batchCreators;
-        this.aclService = aclService;
-    }
-
-    @Autowired
     @Qualifier( "smsMessageSender" )
-    private MessageSender smsSender;
+    private final MessageSender smsSender;
 
-    @Autowired
-    private MessageSendingCallback sendingCallback;
+    private final MessageSendingCallback sendingCallback;
 
     // -------------------------------------------------------------------------
     // Implementation methods

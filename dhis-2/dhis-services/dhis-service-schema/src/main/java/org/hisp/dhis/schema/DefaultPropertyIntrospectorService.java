@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
@@ -50,6 +52,7 @@ import org.springframework.stereotype.Service;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
 public class DefaultPropertyIntrospectorService implements PropertyIntrospectorService
 {
@@ -65,11 +68,6 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
             .then( new TranslatablePropertyIntrospector() )
             .then( new PropertyPropertyIntrospector() )
             .then( new GistPropertyIntrospector() ) );
-    }
-
-    public DefaultPropertyIntrospectorService( PropertyIntrospector introspector )
-    {
-        this.introspector = introspector;
     }
 
     @Override
