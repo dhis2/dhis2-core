@@ -33,7 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErro
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultCollectionService implements CollectionService
 {
     private final IdentifiableObjectManager manager;

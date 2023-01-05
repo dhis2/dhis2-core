@@ -29,7 +29,7 @@ package org.hisp.dhis.query;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -45,11 +45,12 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
-@AllArgsConstructor
 public class DefaultQueryService
     implements QueryService
 {
+    private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
     private final QueryParser queryParser;
 
@@ -58,8 +59,6 @@ public class DefaultQueryService
     private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
-
-    private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
     @Override
     public List<? extends IdentifiableObject> query( Query query )
