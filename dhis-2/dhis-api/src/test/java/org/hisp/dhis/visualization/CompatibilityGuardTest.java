@@ -42,7 +42,7 @@ import org.hisp.dhis.common.FontStyle;
 import org.junit.Test;
 
 /**
- * Unit tests to check the conversions related to CompatibilityGuard.
+ * Unit tests to check the conversions related to {@link CompatibilityGuard}.
  *
  * @author maikel arabori
  */
@@ -52,7 +52,7 @@ public class CompatibilityGuardTest
     public void testKeepLegendReadingCompatibility()
     {
         // Given
-        final Visualization visualization = mockVisualizationWithLegend();
+        Visualization visualization = mockVisualizationWithLegend();
 
         // When
         keepLegendReadingCompatibility( visualization );
@@ -68,7 +68,7 @@ public class CompatibilityGuardTest
     public void testKeepAxesReadingCompatibility()
     {
         // Given
-        final Visualization visualization = mockVisualizationWithAxes();
+        Visualization visualization = mockVisualizationWithAxes();
 
         // When
         keepAxesReadingCompatibility( visualization );
@@ -116,14 +116,14 @@ public class CompatibilityGuardTest
 
     private Visualization mockVisualizationWithLegend()
     {
-        final SeriesKey legend = new SeriesKey();
-        final StyledObject label = new StyledObject();
-        final FontStyle fontStyle = new FontStyle();
+        SeriesKey legend = new SeriesKey();
+        StyledObject label = new StyledObject();
+        FontStyle fontStyle = new FontStyle();
         fontStyle.setFont( Font.ARIAL );
         label.setFontStyle( fontStyle );
         legend.setLabel( label );
 
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
         visualization.setSeriesKey( legend );
 
         return visualization;
@@ -131,25 +131,25 @@ public class CompatibilityGuardTest
 
     private Visualization mockVisualizationWithAxes()
     {
-        final StyledObject title = new StyledObject();
+        StyledObject title = new StyledObject();
         title.setText( "Some title" );
 
-        final StyledObject label = new StyledObject();
+        StyledObject label = new StyledObject();
         label.setText( "Some label" );
 
-        final Line baseLine = new Line();
+        Line baseLine = new Line();
         baseLine.setTitle( title );
-        baseLine.setValue( 20 );
+        baseLine.setValue( 20.0 );
 
-        final Line targetLine = new Line();
+        Line targetLine = new Line();
         targetLine.setTitle( title );
-        targetLine.setValue( 40 );
+        targetLine.setValue( 40.0 );
 
-        final AxisV2 firstAxis = new AxisV2();
-        firstAxis.setMaxValue( 1 );
+        AxisV2 firstAxis = new AxisV2();
+        firstAxis.setMaxValue( 1.0 );
         firstAxis.setDecimals( 2 );
         firstAxis.setIndex( 0 );
-        firstAxis.setMinValue( 3 );
+        firstAxis.setMinValue( 3.0 );
         firstAxis.setSteps( 4 );
         firstAxis.setBaseLine( baseLine );
         firstAxis.setLabel( label );
@@ -157,13 +157,13 @@ public class CompatibilityGuardTest
         firstAxis.setTitle( title );
         firstAxis.setType( RANGE );
 
-        final AxisV2 secondAxis = new AxisV2();
+        AxisV2 secondAxis = new AxisV2();
         secondAxis.setLabel( label );
         secondAxis.setTitle( title );
 
-        final List<AxisV2> axes = newArrayList( firstAxis, secondAxis );
+        List<AxisV2> axes = newArrayList( firstAxis, secondAxis );
 
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
         visualization.setAxes( axes );
 
         return visualization;
