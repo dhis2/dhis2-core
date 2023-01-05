@@ -42,7 +42,7 @@ import org.springframework.stereotype.Repository;
 public class HibernateSequentialNumberCounterStore
     implements SequentialNumberCounterStore
 {
-    protected SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     public HibernateSequentialNumberCounterStore( SessionFactory sessionFactory )
     {

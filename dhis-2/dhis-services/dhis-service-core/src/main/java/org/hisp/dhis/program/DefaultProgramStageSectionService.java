@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,22 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramStageSectionService" )
 public class DefaultProgramStageSectionService
     implements ProgramStageSectionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramStageSectionStore programStageSectionStore;
-
-    public DefaultProgramStageSectionService( ProgramStageSectionStore programStageSectionStore )
-    {
-        checkNotNull( programStageSectionStore );
-
-        this.programStageSectionStore = programStageSectionStore;
-    }
 
     // -------------------------------------------------------------------------
     // ProgramStageSection implementation
