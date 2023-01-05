@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -54,31 +57,16 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" )
 public class MinMaxOutlierAnalysisService
     implements MinMaxDataAnalysisService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataAnalysisStore dataAnalysisStore;
 
     private final MinMaxDataElementService minMaxDataElementService;
 
     private final BatchHandlerFactory batchHandlerFactory;
-
-    public MinMaxOutlierAnalysisService( DataAnalysisStore dataAnalysisStore,
-        MinMaxDataElementService minMaxDataElementService, BatchHandlerFactory batchHandlerFactory )
-    {
-        checkNotNull( dataAnalysisStore );
-        checkNotNull( minMaxDataElementService );
-        checkNotNull( batchHandlerFactory );
-
-        this.dataAnalysisStore = dataAnalysisStore;
-        this.minMaxDataElementService = minMaxDataElementService;
-        this.batchHandlerFactory = batchHandlerFactory;
-    }
 
     // -------------------------------------------------------------------------
     // DataAnalysisService implementation

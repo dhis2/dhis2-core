@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentitycomment;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -35,9 +35,8 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackedEntityCommentDeletionHandler extends DeletionHandler
 {
     private final TrackedEntityCommentService commentService;

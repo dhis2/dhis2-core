@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
@@ -61,6 +60,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -109,6 +109,7 @@ import com.google.common.collect.Maps;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.analytics.AnalyticsManager" )
 public class JdbcAnalyticsManager
     implements AnalyticsManager
@@ -129,21 +130,10 @@ public class JdbcAnalyticsManager
 
     private final QueryPlanner queryPlanner;
 
+    @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
 
     private final ExecutionPlanStore executionPlanStore;
-
-    public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanStore executionPlanStore )
-    {
-        checkNotNull( queryPlanner );
-        checkNotNull( jdbcTemplate );
-        checkNotNull( executionPlanStore );
-
-        this.queryPlanner = queryPlanner;
-        this.jdbcTemplate = jdbcTemplate;
-        this.executionPlanStore = executionPlanStore;
-    }
 
     // -------------------------------------------------------------------------
     // AnalyticsManager implementation

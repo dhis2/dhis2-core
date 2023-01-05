@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
@@ -72,6 +71,7 @@ import java.util.stream.Stream;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -123,6 +123,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Markus Bekken
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractJdbcEventAnalyticsManager
 {
     protected static final String COL_COUNT = "count";
@@ -145,6 +146,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
 
+    @Qualifier( "readOnlyJdbcTemplate" )
     protected final JdbcTemplate jdbcTemplate;
 
     protected final StatementBuilder statementBuilder;
@@ -154,23 +156,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
     protected final ExecutionPlanStore executionPlanStore;
-
-    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
-    {
-        checkNotNull( jdbcTemplate );
-        checkNotNull( statementBuilder );
-        checkNotNull( programIndicatorService );
-        checkNotNull( programIndicatorSubqueryBuilder );
-        checkNotNull( executionPlanStore );
-
-        this.jdbcTemplate = jdbcTemplate;
-        this.statementBuilder = statementBuilder;
-        this.programIndicatorService = programIndicatorService;
-        this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
-        this.executionPlanStore = executionPlanStore;
-    }
 
     /**
      * Returns a SQL paging clause.

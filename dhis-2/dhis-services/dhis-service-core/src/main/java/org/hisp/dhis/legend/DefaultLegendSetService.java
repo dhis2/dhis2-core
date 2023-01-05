@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.legend;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,23 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.legend.LegendService" )
 public class DefaultLegendSetService
     implements LegendSetService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private IdentifiableObjectStore<LegendSet> legendSetStore;
-
-    public DefaultLegendSetService(
-        @Qualifier( "org.hisp.dhis.legend.LegendSetStore" ) IdentifiableObjectStore<LegendSet> legendSetStore )
-    {
-        checkNotNull( legendSetStore );
-
-        this.legendSetStore = legendSetStore;
-    }
+    @Qualifier( "org.hisp.dhis.legend.LegendSetStore" )
+    private final IdentifiableObjectStore<LegendSet> legendSetStore;
 
     // -------------------------------------------------------------------------
     // LegendSet

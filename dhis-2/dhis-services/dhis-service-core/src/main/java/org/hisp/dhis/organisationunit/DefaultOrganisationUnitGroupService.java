@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Torgeir Lorange Ostby
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitGroupService" )
 public class DefaultOrganisationUnitGroupService
     implements OrganisationUnitGroupService
@@ -55,17 +56,6 @@ public class DefaultOrganisationUnitGroupService
     private final OrganisationUnitGroupStore organisationUnitGroupStore;
 
     private final OrganisationUnitGroupSetStore organisationUnitGroupSetStore;
-
-    public DefaultOrganisationUnitGroupService( OrganisationUnitGroupStore organisationUnitGroupStore,
-        OrganisationUnitGroupSetStore organisationUnitGroupSetStore )
-    {
-
-        checkNotNull( organisationUnitGroupSetStore );
-        checkNotNull( organisationUnitGroupStore );
-
-        this.organisationUnitGroupStore = organisationUnitGroupStore;
-        this.organisationUnitGroupSetStore = organisationUnitGroupSetStore;
-    }
 
     @Autowired
     private CurrentUserService currentUserService;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.eventreport;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -41,20 +41,14 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.eventreport.EventReportService" )
 public class DefaultEventReportService
     extends GenericAnalyticalObjectService<EventReport>
     implements EventReportService
 {
+    @Qualifier( "org.hisp.dhis.eventreport.EventReportStore" )
     private final HibernateAnalyticalObjectStore<EventReport> eventReportStore;
-
-    public DefaultEventReportService(
-        @Qualifier( "org.hisp.dhis.eventreport.EventReportStore" ) HibernateAnalyticalObjectStore<EventReport> eventReportStore )
-    {
-        checkNotNull( eventReportStore );
-
-        this.eventReportStore = eventReportStore;
-    }
 
     // -------------------------------------------------------------------------
     // EventReportService implementation

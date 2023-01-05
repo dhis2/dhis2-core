@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramIndicatorGroupDeletionHandler extends DeletionHandler
 {
     private final ProgramIndicatorService programIndicatorService;

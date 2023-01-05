@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Service;
@@ -40,22 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Viet Nguyen
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramStageDataElementService" )
 public class DefaultProgramStageDataElementService
     implements ProgramStageDataElementService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramStageDataElementStore programStageDataElementStore;
-
-    public DefaultProgramStageDataElementService( ProgramStageDataElementStore programStageDataElementStore )
-    {
-        checkNotNull( programStageDataElementStore );
-
-        this.programStageDataElementStore = programStageDataElementStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
