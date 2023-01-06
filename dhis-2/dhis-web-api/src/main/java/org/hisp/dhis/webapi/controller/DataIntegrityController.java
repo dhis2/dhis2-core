@@ -84,6 +84,15 @@ public class DataIntegrityController
         @RequestParam( required = false ) List<String> checks,
         @CurrentUser User currentUser )
     {
+
+        //Do not include slow checks by default unless the user specifically requests themq
+        if ( checks.isEmpty() || checks == null )
+        {
+            Collection<DataIntegrityCheck> matches = dataIntegrityService
+                .getDataIntegrityChecks( toUniformCheckNames( checks ) ).stream().filter( e -> !e.isSlow() )
+                .collect( toUnmodifiableSet() );
+        }
+
         return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
             .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
     }

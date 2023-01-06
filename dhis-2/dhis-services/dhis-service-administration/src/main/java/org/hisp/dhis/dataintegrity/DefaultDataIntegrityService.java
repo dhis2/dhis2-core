@@ -934,11 +934,13 @@ public class DefaultDataIntegrityService
     private Set<String> expandChecks( Set<String> names )
     {
         ensureConfigurationsAreLoaded();
+
         if ( names == null || names.isEmpty() )
         {
             return unmodifiableSet( checksByName.keySet() );
         }
         Set<String> expanded = new LinkedHashSet<>();
+
         for ( String name : names )
         {
             String uniformName = name.toLowerCase().replace( '-', '_' );
