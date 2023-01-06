@@ -802,7 +802,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
     {
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        // due to sorting monthly period will be first one
+        // Due to sorting monthly period will be first one
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
