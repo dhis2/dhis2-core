@@ -65,6 +65,7 @@ class DataIntegrityYamlReaderTest
         assertEquals( "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
             + " should be added to the category.", check.getRecommendation() );
+        assertEquals( false, check.getIsSlow() );
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
     }

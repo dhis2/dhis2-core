@@ -78,6 +78,9 @@ public final class DataIntegrityCheck implements Serializable
     @JsonProperty
     private final String issuesIdType;
 
+    @JsonProperty
+    private final Boolean isSlow;
+
     private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
     private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
