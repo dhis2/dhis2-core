@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,23 +46,17 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,13 +75,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class AssignValueImplementerTest extends DhisConvenienceTest
 {
-
-    private final static String TRACKED_ENTITY_ID = "TrackedEntityUid";
-
-    private final static String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
-
-    private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
-
     private final static String FIRST_EVENT_ID = "EventUid";
 
     private final static String SECOND_EVENT_ID = "CompletedEventUid";
@@ -108,10 +94,6 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     private final static String DATA_ELEMENT_NEW_VALUE_PAYLOAD = "23";
 
     private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
-
-    private final static String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
-
-    private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
 
     private static ProgramStage firstProgramStage;
 
@@ -200,7 +182,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventWithDataValueNOTSetInDifferentProgramStage );
         bundle.setEvents( events );
 
-        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getRuleEventEffects(),
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, Collections.emptyList(),
             eventWithDataValueNOTSetInDifferentProgramStage );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
@@ -219,7 +201,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventWithDataValueSet );
         bundle.setEvents( events );
 
-        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getRuleEventEffects(),
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle,
+            getRuleEventEffects( eventWithDataValueSet.getDataValues() ),
             eventWithDataValueSet );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
@@ -246,7 +229,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventWithDataValueSet );
         bundle.setEvents( events );
 
-        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getRuleEventEffects(),
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle,
+            getRuleEventEffects( eventWithDataValueSet.getDataValues() ),
             eventWithDataValueSet );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
@@ -304,187 +288,6 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.size() );
         assertEquals( WARNING, eventIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeNOTSet() );
-        Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeNOTSet );
-        bundle.setTrackedEntities( trackedEntities );
-        bundle.setEnrollments( enrollments );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeNOTSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertTrue( attribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresent()
-    {
-        Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
-        bundle.setEnrollments( enrollments );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertTrue( attribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentUsingIdSchemeCode()
-    {
-
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attributeA );
-        Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet( idSchemes );
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
-        bundle.setEnrollments( enrollments );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofCode( ATTRIBUTE_CODE ) ) ).findAny();
-        assertTrue( attribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTei()
-    {
-        Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeNOTSet );
-        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
-        bundle.setEnrollments( enrollments );
-        bundle.setTrackedEntities( trackedEntities );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeNOTSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream()
-            .filter( e -> e.getTrackedEntity().equals( TRACKED_ENTITY_ID ) ).findAny().get();
-        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertFalse( enrollmentAttribute.isPresent() );
-        assertTrue( teiAttribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
-    {
-        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
-            .thenReturn( Boolean.TRUE );
-        Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeNOTSet );
-        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
-        bundle.setEnrollments( enrollments );
-        bundle.setTrackedEntities( trackedEntities );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeNOTSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream()
-            .filter( e -> e.getTrackedEntity().equals( TRACKED_ENTITY_ID ) ).findAny().get();
-        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertFalse( enrollmentAttribute.isPresent() );
-        assertTrue( teiAttribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndHasTheSameValue()
-    {
-        Enrollment enrollmentWithAttributeSetSameValue = getEnrollmentWithAttributeSetSameValue();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSetSameValue );
-        bundle.setEnrollments( enrollments );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeSetSameValue );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertTrue( attribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
-    }
-
-    @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
-    {
-        Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
-        List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
-        bundle.setEnrollments( enrollments );
-        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
-            .thenReturn( Boolean.TRUE );
-
-        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            enrollmentWithAttributeSet );
-
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        assertTrue( attribute.isPresent() );
-        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -592,95 +395,15 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         return Sets.newHashSet( dataValue );
     }
 
-    private Enrollment getEnrollmentWithAttributeSet()
+    private List<EventActionRule> getRuleEventEffects()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
-        enrollment.setStatus( EnrollmentStatus.ACTIVE );
-        enrollment.setAttributes( getAttributes() );
-        return enrollment;
+        return Lists.newArrayList( new EventActionRule( "", DATA_ELEMENT_NEW_VALUE, dataElementA.getUid(), null,
+            RuleActionType.ASSIGN, Collections.emptySet() ) );
     }
 
-    private Enrollment getEnrollmentWithAttributeSet( TrackerIdSchemeParams idSchemes )
+    private List<EventActionRule> getRuleEventEffects( Set<DataValue> dataValues )
     {
-        return Enrollment.builder()
-            .enrollment( FIRST_ENROLLMENT_ID )
-            .status( EnrollmentStatus.ACTIVE )
-            .attributes( getAttributes( idSchemes ) )
-            .build();
-    }
-
-    private Enrollment getEnrollmentWithAttributeSetSameValue()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
-        enrollment.setStatus( EnrollmentStatus.ACTIVE );
-        enrollment.setAttributes( getAttributesSameValue() );
-        return enrollment;
-    }
-
-    private TrackedEntity getTrackedEntitiesWithAttributeSet()
-    {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
-        trackedEntity.setAttributes( getAttributes() );
-        return trackedEntity;
-    }
-
-    private TrackedEntity getTrackedEntitiesWithAttributeNOTSet()
-    {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
-        return trackedEntity;
-    }
-
-    private Enrollment getEnrollmentWithAttributeNOTSet()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( SECOND_ENROLLMENT_ID );
-        enrollment.setStatus( EnrollmentStatus.COMPLETED );
-        enrollment.setTrackedEntity( TRACKED_ENTITY_ID );
-        return enrollment;
-    }
-
-    private List<Attribute> getAttributes( TrackerIdSchemeParams idSchemes )
-    {
-        Attribute attribute = Attribute.builder()
-            .attribute( idSchemes.toMetadataIdentifier( attributeA ) )
-            .value( TEI_ATTRIBUTE_OLD_VALUE )
-            .build();
-        return Lists.newArrayList( attribute );
-    }
-
-    private List<Attribute> getAttributes()
-    {
-        Attribute attribute = Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
-            .value( TEI_ATTRIBUTE_OLD_VALUE )
-            .build();
-        return Lists.newArrayList( attribute );
-    }
-
-    private List<Attribute> getAttributesSameValue()
-    {
-        Attribute attribute = Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
-            .value( TEI_ATTRIBUTE_NEW_VALUE )
-            .build();
-        return Lists.newArrayList( attribute );
-    }
-
-    private List<RuleEffect> getRuleEventEffects()
-    {
-        RuleAction actionAssign = RuleActionAssign.create( null, DATA_ELEMENT_NEW_VALUE, dataElementA.getUid(),
-            DATA_ELEMENT );
-        return Lists.newArrayList( RuleEffect.create( "", actionAssign, DATA_ELEMENT_NEW_VALUE ) );
-    }
-
-    private List<RuleEffect> getRuleEnrollmentEffects()
-    {
-        RuleAction actionAssign = RuleActionAssign.create( null, TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID,
-            TRACKED_ENTITY_ATTRIBUTE );
-        return Lists.newArrayList( RuleEffect.create( "", actionAssign, TEI_ATTRIBUTE_NEW_VALUE ) );
+        return Lists.newArrayList( new EventActionRule( "", DATA_ELEMENT_NEW_VALUE, dataElementA.getUid(), null,
+            RuleActionType.ASSIGN, dataValues ) );
     }
 }

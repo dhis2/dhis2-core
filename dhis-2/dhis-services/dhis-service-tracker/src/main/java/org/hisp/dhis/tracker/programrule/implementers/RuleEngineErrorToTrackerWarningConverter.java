@@ -30,15 +30,11 @@ package org.hisp.dhis.tracker.programrule.implementers;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleActionError;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
@@ -50,36 +46,19 @@ import com.google.common.collect.Lists;
  * @Author Enrico Colasante
  */
 @Component
-public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
+public class RuleEngineErrorToTrackerWarningConverter implements RuleActionImplementer
 {
     @Override
-    public Class<RuleActionError> getActionClass()
+    public RuleActionType getActionType()
     {
-        return RuleActionError.class;
+        return RuleActionType.SYNTAX_ERROR;
     }
 
     @Override
-    public String getField( RuleActionError ruleAction )
+    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<EventActionRule> eventActionRules,
+        Event event )
     {
-        return null;
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
-    {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        return enrollmentActionRules.stream()
+        return eventActionRules.stream()
             .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
                 Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
             .collect( Collectors.toList() );

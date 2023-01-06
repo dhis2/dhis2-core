@@ -29,14 +29,17 @@ package org.hisp.dhis.tracker.validation.validator.event;
 
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionImplementer;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionType;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +63,12 @@ class RuleEngineValidator
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
+        Map<RuleActionType, List<EventActionRule>> actionRulesByType = bundle.getEventActionRules()
+            .getOrDefault( event, Collections.emptyList() )
+            .stream()
+            .collect( Collectors.groupingBy( EventActionRule::getActionType ) );
 
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        if ( actionRulesByType.isEmpty() )
         {
             return;
         }
@@ -70,7 +76,8 @@ class RuleEngineValidator
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap(
-                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
+                v -> v.validateEvent( bundle,
+                    actionRulesByType.getOrDefault( v.getActionType(), Collections.emptyList() ), event ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, event, programRuleIssues );

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,13 +35,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,26 +49,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Lists;
 
 @ExtendWith( MockitoExtension.class )
-class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
+class RuleEngineErrorValidatorTest extends DhisConvenienceTest
 {
-
-    private final static String RULE_EVENT_ID = "Rule_event_id";
-
-    private final static String EVENT_ERROR_MESSAGE = "Event error message";
-
     private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
 
     private final static String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
     private final static String ENROLLMENT_ID = "EnrollmentUid";
 
-    private final static String EVENT_ID = "EventUid";
-
     private final static String TEI_ID = "TeiId";
 
-    private static ProgramStage programStage;
-
-    private final RuleEngineErrorToTrackerWarningConverter ruleEngineErrorToTrackerWarningConverter = new RuleEngineErrorToTrackerWarningConverter();
+    private final RuleEngineErrorValidator ruleEngineErrorImplementer = new RuleEngineErrorValidator();
 
     private TrackerBundle bundle;
 
@@ -82,37 +69,35 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
     @BeforeEach
     void setUpTest()
     {
-        programStage = createProgramStage( 'A', 0 );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
     }
 
     @Test
-    void testValidateEventWithError()
+    void testValidateEnrollmentWithError()
     {
-        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEvent( bundle,
-            getRuleEventEffects(),
-            getEvent() );
+        List<ProgramRuleIssue> issues = ruleEngineErrorImplementer.validateEnrollment( bundle,
+            getRuleEnrollmentEffects(),
+            getEnrollment() );
 
         assertFalse( issues.isEmpty() );
         assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_EVENT_ID, issues.get( 0 ).getRuleUid() );
+        assertEquals( RULE_ENROLLMENT_ID, issues.get( 0 ).getRuleUid() );
         assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( EVENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
+        assertEquals( ENROLLMENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
     }
 
-    private Event getEvent()
+    private Enrollment getEnrollment()
     {
-        Event event = new Event();
-        event.setEvent( EVENT_ID );
-        event.setProgramStage( MetadataIdentifier.ofUid( programStage ) );
-        return event;
+        return Enrollment.builder()
+            .enrollment( ENROLLMENT_ID )
+            .trackedEntity( TEI_ID )
+            .build();
     }
 
-    private List<EventActionRule> getRuleEventEffects()
+    private List<SyntaxErrorActionRule> getRuleEnrollmentEffects()
     {
-        return Lists.newArrayList( new EventActionRule( RULE_EVENT_ID, EVENT_ERROR_MESSAGE, null, null,
-            RuleActionType.SYNTAX_ERROR, Collections.emptySet() ) );
+        return Lists.newArrayList( new SyntaxErrorActionRule( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE, null, null,
+            Collections.emptyList() ) );
     }
 }

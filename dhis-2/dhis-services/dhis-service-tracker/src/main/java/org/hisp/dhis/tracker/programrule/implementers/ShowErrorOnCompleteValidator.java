@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +40,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ShowErrorOnCompleteValidator
-    extends ErrorWarningImplementer<RuleActionErrorOnCompletion>
+    extends ErrorWarningImplementer
 {
     @Override
-    public Class<RuleActionErrorOnCompletion> getActionClass()
+    public RuleActionType getActionType()
     {
-        return RuleActionErrorOnCompletion.class;
+        return RuleActionType.ERROR_ON_COMPLETE;
     }
 
     @Override

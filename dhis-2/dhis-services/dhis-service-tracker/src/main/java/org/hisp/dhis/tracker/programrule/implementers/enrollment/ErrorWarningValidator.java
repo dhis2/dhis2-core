@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,10 +34,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 import com.google.common.collect.Lists;
@@ -48,25 +49,23 @@ import com.google.common.collect.Lists;
  *
  * @Author Enrico Colasante
  */
-public abstract class ErrorWarningImplementer
-    implements RuleActionImplementer
+public abstract class ErrorWarningValidator
 {
     public abstract boolean isOnComplete();
 
     public abstract IssueType getIssueType();
 
-    @Override
-    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<EventActionRule> eventActionRules,
-        Event event )
+    public List<ProgramRuleIssue> validateEnrollment( List<? extends ErrorWarningActionRule> enrollmentActionRules,
+        Enrollment enrollment )
     {
-        if ( needsToRun( event ) )
+        if ( needsToRun( enrollment ) )
         {
-            return parseErrors( eventActionRules );
+            return parseErrors( enrollmentActionRules );
         }
         return Collections.emptyList();
     }
 
-    private <U extends ActionRule> List<ProgramRuleIssue> parseErrors( List<U> effects )
+    private <U extends ErrorWarningActionRule> List<ProgramRuleIssue> parseErrors( List<U> effects )
     {
         return effects
             .stream()
@@ -92,11 +91,11 @@ public abstract class ErrorWarningImplementer
             .collect( Collectors.toList() );
     }
 
-    private boolean needsToRun( Event event )
+    private boolean needsToRun( Enrollment enrollment )
     {
         if ( isOnComplete() )
         {
-            return Objects.equals( EventStatus.COMPLETED, event.getStatus() );
+            return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
         }
         else
         {

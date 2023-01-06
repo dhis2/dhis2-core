@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionType;
 
 @Getter
 @RequiredArgsConstructor
@@ -48,6 +49,8 @@ public class EventActionRule
     private final String field;
 
     private String content;
+
+    private final RuleActionType actionType;
 
     private Set<DataValue> dataValues;
 }

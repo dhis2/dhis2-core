@@ -25,11 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,16 +43,11 @@ import org.springframework.stereotype.Component;
  *
  * @Author Enrico Colasante
  */
-@Component
+@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorValidator" )
 public class ShowErrorValidator
-    extends ErrorWarningImplementer
+    extends ErrorWarningValidator
+    implements RuleActionEnrollmentValidator<ErrorActionRule>
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
-
     @Override
     public boolean isOnComplete()
     {
@@ -57,5 +58,22 @@ public class ShowErrorValidator
     public IssueType getIssueType()
     {
         return ERROR;
+    }
+
+    @Override
+    public List<ErrorActionRule> filter( List<ActionRule> actionRules )
+    {
+        return actionRules
+            .stream()
+            .filter( a -> a instanceof ErrorActionRule )
+            .map( a -> (ErrorActionRule) a )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<ErrorActionRule> ruleEffects,
+        Enrollment enrollment )
+    {
+        return super.validateEnrollment( ruleEffects, enrollment );
     }
 }

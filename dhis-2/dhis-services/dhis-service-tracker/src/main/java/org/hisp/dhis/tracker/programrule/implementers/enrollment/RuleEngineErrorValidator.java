@@ -25,37 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
+
 /**
- * This implementer show errors calculated by Rule Engine.
+ * This implementer log as a warning any error raised by rule engine execution
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorImplementer" )
+public class RuleEngineErrorValidator implements RuleActionEnrollmentValidator<SyntaxErrorActionRule>
 {
     @Override
-    public RuleActionType getActionType()
+    public List<SyntaxErrorActionRule> filter( List<ActionRule> actionRules )
     {
-        return RuleActionType.ERROR;
+        return actionRules
+            .stream()
+            .filter( a -> a instanceof SyntaxErrorActionRule )
+            .map( a -> (SyntaxErrorActionRule) a )
+            .collect( Collectors.toList() );
     }
 
     @Override
-    public boolean isOnComplete()
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
+        List<SyntaxErrorActionRule> enrollmentActionRules, Enrollment enrollment )
     {
-        return false;
-    }
-
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
+        return enrollmentActionRules.stream()
+            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
+                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
+            .collect( Collectors.toList() );
     }
 }

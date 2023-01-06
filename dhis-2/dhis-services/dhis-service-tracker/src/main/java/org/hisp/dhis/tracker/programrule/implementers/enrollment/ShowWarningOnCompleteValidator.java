@@ -25,37 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors calculated by Rule Engine.
+ * This implementer show warnings on a completed enrollment or event calculated
+ * by Rule Engine.
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningOnCompleteValidator" )
+public class ShowWarningOnCompleteValidator
+    extends ErrorWarningValidator
+    implements RuleActionEnrollmentValidator<WarningOnCompleteActionRule>
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
-
     @Override
     public boolean isOnComplete()
     {
-        return false;
+        return true;
     }
 
     @Override
     public IssueType getIssueType()
     {
-        return ERROR;
+        return WARNING;
+    }
+
+    @Override
+    public List<WarningOnCompleteActionRule> filter( List<ActionRule> actionRules )
+    {
+        return actionRules
+            .stream()
+            .filter( a -> a instanceof WarningOnCompleteActionRule )
+            .map( a -> (WarningOnCompleteActionRule) a )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
+        List<WarningOnCompleteActionRule> ruleEffects, Enrollment enrollment )
+    {
+        return super.validateEnrollment( ruleEffects, enrollment );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,13 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
-
-/**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+public enum RuleActionType
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
-
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
-
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+    ASSIGN,
+    MANDATORY_VALUE,
+    ERROR,
+    WARNING,
+    ERROR_ON_COMPLETE,
+    WARNING_ON_COMPLETE,
+    SYNTAX_ERROR;
 }

@@ -25,37 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
-
-/**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+public interface ErrorWarningActionRule
+    extends ActionRule
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
+    String getData();
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+    String getField();
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+    String getContent();
 }

@@ -29,14 +29,15 @@ package org.hisp.dhis.tracker.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ActionRule;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleActionEnrollmentValidator;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +50,10 @@ import org.springframework.stereotype.Component;
 class RuleEngineValidator
     implements Validator<Enrollment>
 {
-    private List<RuleActionImplementer> validators;
+    private List<RuleActionEnrollmentValidator> validators;
 
     @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
+    public void setValidators( List<RuleActionEnrollmentValidator> validators )
     {
         this.validators = validators;
     }
@@ -60,17 +61,26 @@ class RuleEngineValidator
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
+        List<ActionRule> actionRules = bundle.getEnrollmentActionRules().getOrDefault( enrollment,
+            Collections.emptyList() );
 
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        if ( actionRules.isEmpty() )
         {
             return;
         }
 
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
-            .collect( Collectors.toList() );
+        List<ProgramRuleIssue> programRuleIssues = new ArrayList<>();
+
+        // TODO: I would like to find an elegant solution insteado of the validator filter.
+        // We have a list of action rules that are of different types, hence they need
+        // to be processed by different validators.
+        // A validator accepts only the type that it can process.
+        // We need to call every validator with the a list of action fo the type (and only the type) that it can process
+        for ( RuleActionEnrollmentValidator validator : validators )
+        {
+            programRuleIssues
+                .addAll( validator.validateEnrollment( bundle, validator.filter( actionRules ), enrollment ) );
+        }
 
         addIssuesToReporter( reporter, enrollment, programRuleIssues );
     }

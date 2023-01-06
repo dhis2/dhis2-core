@@ -25,37 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import java.util.List;
 
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+import org.hisp.dhis.tracker.domain.Attribute;
+
+@Getter
+@RequiredArgsConstructor
+@AllArgsConstructor
+public class WarningOnCompleteActionRule
+    implements ErrorWarningActionRule
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
+    private final String ruleUid;
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+    private final String data;
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+    private final String field;
+
+    private String content;
+
+    private final List<Attribute> attributes;
 }

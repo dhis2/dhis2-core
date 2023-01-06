@@ -25,32 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Enrico Colasante
+ * This implementer show warnings calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
  */
-public interface RuleActionImplementer
+@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningValidator" )
+public class ShowWarningValidator
+    extends ErrorWarningValidator
+    implements RuleActionEnrollmentValidator<WarningActionRule>
 {
-    /**
-     * Get the validation for enrollment evaluated by rule engine
-     *
-     * @return list of issues
-     */
-    List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
-        Enrollment enrollment );
+    @Override
+    public boolean isOnComplete()
+    {
+        return false;
+    }
 
-    /**
-     * Get the validation for event evaluated by rule engine
-     *
-     * @return A map of events and list of issues
-     */
-    List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event );
+    @Override
+    public IssueType getIssueType()
+    {
+        return WARNING;
+    }
+
+    @Override
+    public List<WarningActionRule> filter( List<ActionRule> actionRules )
+    {
+        return actionRules
+            .stream()
+            .filter( a -> a instanceof WarningActionRule )
+            .map( a -> (WarningActionRule) a )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<WarningActionRule> ruleEffects,
+        Enrollment enrollment )
+    {
+        return super.validateEnrollment( ruleEffects, enrollment );
+    }
 }

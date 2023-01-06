@@ -27,35 +27,27 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import java.util.List;
 
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.EventActionRule;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
+ * @author Enrico Colasante
  */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
+public interface RuleActionImplementer
 {
-    @Override
-    public RuleActionType getActionType()
-    {
-        return RuleActionType.ERROR;
-    }
+    /**
+     * @return the class of the action that the implementer work with
+     */
+    RuleActionType getActionType();
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
-
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+    /**
+     * Get the validation for event evaluated by rule engine
+     *
+     * @return A map of events and list of issues
+     */
+    List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<EventActionRule> ruleEffects, Event event );
 }

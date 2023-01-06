@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +39,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ShowWarningValidator
-    extends ErrorWarningImplementer<RuleActionShowWarning>
+    extends ErrorWarningImplementer
 {
     @Override
-    public Class<RuleActionShowWarning> getActionClass()
+    public RuleActionType getActionType()
     {
-        return RuleActionShowWarning.class;
+        return RuleActionType.WARNING;
     }
 
     @Override
