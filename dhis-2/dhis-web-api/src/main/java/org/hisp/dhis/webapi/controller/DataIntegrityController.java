@@ -87,7 +87,7 @@ public class DataIntegrityController
         {
             List<String> defaultChecks = new ArrayList<>();
             for ( DataIntegrityCheck e : dataIntegrityService
-                .getDataIntegrityChecks( toUniformCheckNames( checks ) ) )
+                .getDataIntegrityChecks() )
             {
                 if ( !e.isSlow() )
                 {
