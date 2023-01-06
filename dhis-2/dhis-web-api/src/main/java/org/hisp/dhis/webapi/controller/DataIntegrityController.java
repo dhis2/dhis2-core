@@ -85,18 +85,19 @@ public class DataIntegrityController
         //Do not include slow checks by default unless the user specifically requests them
         if ( checks.isEmpty() )
         {
-            List<String> matches = new ArrayList<>();
+            List<String> defaultChecks = new ArrayList<>();
             for ( DataIntegrityCheck e : dataIntegrityService
                 .getDataIntegrityChecks( toUniformCheckNames( checks ) ) )
             {
                 if ( !e.isSlow() )
                 {
                     String name = e.getName();
-                    matches.add( name );
+                    defaultChecks.add( name );
                 }
             }
-            return runDataIntegrityAsync( matches, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
-                .setLocation( "/dataIntegrity/details?checks=" + toChecksList( matches ) );
+            return runDataIntegrityAsync( defaultChecks, currentUser, "runDataIntegrity",
+                DataIntegrityReportType.REPORT )
+                    .setLocation( "/dataIntegrity/details?checks=" + toChecksList( defaultChecks ) );
         }
 
         return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
