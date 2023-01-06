@@ -128,7 +128,8 @@ class DefaultProgramRuleService
             .filter( RuleEffects::isEnrollment )
             .filter( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(),
-                e -> buildEnrollmentActionRules( e, bundle ) ) );
+                e -> buildEnrollmentActionRules( bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(), e,
+                    bundle ) ) );
     }
 
     private Map<TrackerDto, List<EventActionRule>> filterEvents( List<RuleEffects> ruleEffects, TrackerBundle bundle )
@@ -137,12 +138,12 @@ class DefaultProgramRuleService
             .filter( RuleEffects::isEvent )
             .filter( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).get(),
-                e -> buildEventActionRules( e, bundle ) ) );
+                e -> buildEventActionRules( bundle.findEventByUid( e.getTrackerObjectUid() ).get(), e, bundle ) ) );
     }
 
-    private List<ActionRule> buildEnrollmentActionRules( RuleEffects ruleEffects, TrackerBundle bundle )
+    private List<ActionRule> buildEnrollmentActionRules( Enrollment enrollment, RuleEffects ruleEffects,
+        TrackerBundle bundle )
     {
-        Enrollment enrollment = bundle.findEnrollmentByUid( ruleEffects.getTrackerObjectUid() ).get();
         List<Attribute> payloadTeiAttributes = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
             .map( TrackedEntity::getAttributes )
             .orElse( Collections.emptyList() );
@@ -201,10 +202,8 @@ class DefaultProgramRuleService
         return null;
     }
 
-    private List<EventActionRule> buildEventActionRules( RuleEffects ruleEffects, TrackerBundle bundle )
+    private List<EventActionRule> buildEventActionRules( Event event, RuleEffects ruleEffects, TrackerBundle bundle )
     {
-
-        Event event = bundle.findEventByUid( ruleEffects.getTrackerObjectUid() ).get();
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         Set<DataValue> dataValues = event.getDataValues();
 
@@ -350,7 +349,7 @@ class DefaultProgramRuleService
         TrackerPreheat preheat )
     {
         List<TrackedEntityAttributeValue> attributeValues = bundle.findEnrollmentByUid( enrollmentUid )
-            .map( e -> e.getAttributes() )
+            .map( Enrollment::getAttributes )
             .map( attributes -> attributeValueTrackerConverterService.from( preheat, attributes ) )
             .orElse( new ArrayList<>() );
 
