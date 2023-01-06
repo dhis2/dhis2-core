@@ -32,10 +32,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import lombok.AllArgsConstructor;
 
@@ -85,12 +82,21 @@ public class DataIntegrityController
         @CurrentUser User currentUser )
     {
 
-        //Do not include slow checks by default unless the user specifically requests themq
-        if ( checks.isEmpty() || checks == null )
+        //Do not include slow checks by default unless the user specifically requests them
+        if ( checks.isEmpty() )
         {
-            Collection<DataIntegrityCheck> matches = dataIntegrityService
-                .getDataIntegrityChecks( toUniformCheckNames( checks ) ).stream().filter( e -> !e.isSlow() )
-                .collect( toUnmodifiableSet() );
+            List<String> matches = new ArrayList<>();
+            for ( DataIntegrityCheck e : dataIntegrityService
+                .getDataIntegrityChecks( toUniformCheckNames( checks ) ) )
+            {
+                if ( !e.isSlow() )
+                {
+                    String name = e.getName();
+                    matches.add( name );
+                }
+            }
+            return runDataIntegrityAsync( matches, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
+                .setLocation( "/dataIntegrity/details?checks=" + toChecksList( matches ) );
         }
 
         return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
