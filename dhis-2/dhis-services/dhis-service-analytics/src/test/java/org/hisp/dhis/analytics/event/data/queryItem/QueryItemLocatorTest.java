@@ -182,7 +182,6 @@ class QueryItemLocatorTest
     @Test
     void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
     {
-        // Arrange
         DataElement iBelongDataElement = createDataElement( 'A' );
         ProgramStage programStageA = createProgramStage( 'A', programA );
         programStageA.setProgramStageDataElements(
@@ -192,8 +191,6 @@ class QueryItemLocatorTest
         DataElement iDontBelongDataElement = createDataElement( 'B' );
         when( dataElementService.getDataElement( dimension ) ).thenReturn( iDontBelongDataElement );
 
-        // Act
-        // Assert
         assertThrows( IllegalQueryException.class,
             () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.EVENT ) );
     }
@@ -240,7 +237,6 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCount()
     {
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -260,7 +256,6 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndBothDates()
     {
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -280,7 +275,6 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndRelativePeriod()
     {
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -304,7 +298,6 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartBothDates()
     {
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -324,7 +317,6 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithRelativePeriod()
     {
-
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -556,5 +548,4 @@ class QueryItemLocatorTest
 
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStage );
     }
-
 }

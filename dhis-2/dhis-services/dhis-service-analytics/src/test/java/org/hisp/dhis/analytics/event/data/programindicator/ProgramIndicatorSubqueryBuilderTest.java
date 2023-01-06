@@ -98,8 +98,8 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     /**
-     * This tests also verify that the join after WHERE is changing when outer
-     * join is type EVENT
+     * Verifies that the join after WHERE is changing when outer join is type
+     * EVENT.
      */
     @Test
     void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()

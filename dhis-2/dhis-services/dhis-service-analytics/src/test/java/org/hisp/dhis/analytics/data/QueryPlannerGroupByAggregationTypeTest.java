@@ -106,8 +106,8 @@ class QueryPlannerGroupByAggregationTypeTest
             .withAggregationType( AnalyticsAggregationType.AVERAGE )
             .build();
 
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams, QueryPlannerParams.newBuilder()
+            .withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 2 ) );
 
@@ -137,8 +137,8 @@ class QueryPlannerGroupByAggregationTypeTest
                     List.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams, QueryPlannerParams.newBuilder()
+            .withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
 
@@ -286,7 +286,6 @@ class QueryPlannerGroupByAggregationTypeTest
     private DataQueryParams createDataQueryParamsWithAggregationType( BaseDimensionalObject filterDataElements,
         AnalyticsAggregationType analyticsAggregationType )
     {
-
         return createDataQueryParams( filterDataElements )
             .copyTo( DataQueryParams.newBuilder().withAggregationType( analyticsAggregationType ).build() );
     }

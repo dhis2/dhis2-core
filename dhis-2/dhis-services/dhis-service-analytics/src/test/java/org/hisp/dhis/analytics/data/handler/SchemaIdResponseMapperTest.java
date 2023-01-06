@@ -81,17 +81,14 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( NAME );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -109,17 +106,14 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( CODE );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -137,17 +131,14 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( UUID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -165,17 +156,14 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( UUID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -193,7 +181,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
     {
-        // Given
         List<DataElement> dataElementsStub = stubDataElements();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -201,10 +188,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( NAME );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementsStub.get( 0 );
@@ -219,7 +204,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -227,10 +211,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( CODE );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -248,7 +230,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -256,10 +237,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( UUID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -277,7 +256,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -285,10 +263,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( UID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -306,7 +282,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -314,10 +289,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( NAME );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -335,7 +308,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -343,10 +315,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -364,7 +334,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -372,10 +341,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( UUID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -393,7 +360,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -401,10 +367,8 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( UID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -422,7 +386,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -433,10 +396,8 @@ class SchemaIdResponseMapperTest
         // Overriding output id schema and setting CODE for Org Unit
         theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -454,7 +415,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -466,10 +426,8 @@ class SchemaIdResponseMapperTest
         // Element/Operands
         theDataQueryParams.setOutputDataElementIdScheme( CODE );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
@@ -487,7 +445,6 @@ class SchemaIdResponseMapperTest
     @Test
     void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
     {
-        // Given
         List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
         OrganisationUnit orUnitStub = stubOrgUnit();
         Period periodStub = stubPeriod();
@@ -502,10 +459,8 @@ class SchemaIdResponseMapperTest
         // Overriding output id schema and setting ID for Org Unit
         theDataQueryParams.setOutputOrgUnitIdScheme( ID );
 
-        // When
         Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
-        // Then
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
         DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
