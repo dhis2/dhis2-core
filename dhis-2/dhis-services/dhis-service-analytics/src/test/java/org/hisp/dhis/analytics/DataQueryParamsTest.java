@@ -753,7 +753,6 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testContinuousDateRangeListForThisWeeklyAndDailyPeriods()
     {
-        // Given
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
@@ -761,12 +760,10 @@ class DataQueryParamsTest extends DhisConvenienceTest
                 List.of( weeklyPeriod, todayPeriod ) ) )
             .build();
 
-        // When
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
             .build();
 
-        // Then
         assertEquals( 2, params.getDateRangeList().size() );
         assertEquals( weeklyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
         assertEquals( weeklyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
@@ -778,7 +775,6 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testContinuousDateRangeListForThisWeeklyDailyAndMonthlyPeriods()
     {
-        // Given
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
@@ -787,12 +783,10 @@ class DataQueryParamsTest extends DhisConvenienceTest
                 List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
             .build();
 
-        // When
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
             .build();
 
-        // Then
         assertEquals( 3, params.getDateRangeList().size() );
         assertEquals( weeklyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
         assertEquals( weeklyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
@@ -806,22 +800,19 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testNotContinuousDateRangeListForWeeklyDailyAndMonthly()
     {
-        // Given
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        // due to sorting monthly period will be first one
+        // Due to sorting monthly period will be first one
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
                 List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
             .build();
 
-        // When
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
             .build();
 
-        // Then
         assertEquals( 3, params.getDateRangeList().size() );
         assertEquals( monthlyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
         assertEquals( monthlyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );

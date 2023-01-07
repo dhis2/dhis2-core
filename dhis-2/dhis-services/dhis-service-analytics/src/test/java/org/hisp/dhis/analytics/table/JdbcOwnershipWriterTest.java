@@ -34,7 +34,7 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -218,7 +218,7 @@ class JdbcOwnershipWriterTest
      */
     private String getUpdateSql()
     {
-        List<Invocation> invocations = new ArrayList( mockingDetails( statement ).getInvocations() );
+        List<Invocation> invocations = new ArrayList<>( mockingDetails( statement ).getInvocations() );
         assertEquals( 2, invocations.size() );
         assertEquals( "executeUpdate", invocations.get( 0 ).getMethod().getName() );
         assertEquals( "close", invocations.get( 1 ).getMethod().getName() );
