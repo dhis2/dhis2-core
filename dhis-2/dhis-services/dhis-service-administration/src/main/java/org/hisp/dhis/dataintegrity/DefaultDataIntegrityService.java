@@ -30,7 +30,6 @@ package org.hisp.dhis.dataintegrity;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -62,6 +61,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -937,7 +937,7 @@ public class DefaultDataIntegrityService
 
         if ( names == null || names.isEmpty() )
         {
-            return unmodifiableSet( checksByName.keySet() );
+            return getDefaultChecks();
         }
         Set<String> expanded = new LinkedHashSet<>();
 
@@ -961,6 +961,18 @@ public class DefaultDataIntegrityService
             }
         }
         return expanded;
+    }
+
+    private Set<String> getDefaultChecks()
+    {
+        ensureConfigurationsAreLoaded();
+
+        return checksByName.entrySet()
+            .stream()
+            .filter( e -> !e.getValue().isSlow() )
+            .map( e -> e.getValue().getName() )
+            .collect( Collectors.toUnmodifiableSet() );
+
     }
 
     private void ensureConfigurationsAreLoaded()
