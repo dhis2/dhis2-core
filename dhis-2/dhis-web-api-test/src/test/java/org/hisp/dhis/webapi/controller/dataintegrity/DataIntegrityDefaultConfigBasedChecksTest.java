@@ -42,9 +42,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  *
- * Test that when triggering all metadata checks, that checks which are marked
- * as slow are not included as part of the run. They should be able however to
- * be run individually.
+ * Test that when triggering all metadata checks (by not specifying any specific
+ * checks), that checks which are marked as slow are not included as part of the
+ * run. They should be able however to be run individually when requested.
  *
  * @author Jason P. Pickering
  */
