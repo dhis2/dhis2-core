@@ -82,20 +82,6 @@ public class DataIntegrityController
         @CurrentUser User currentUser )
     {
 
-        //Do not include slow checks by default unless the user specifically requests them
-        if ( checks.isEmpty() )
-        {
-            for ( DataIntegrityCheck e : dataIntegrityService
-                .getDataIntegrityChecks() )
-            {
-                if ( !e.isSlow() )
-                {
-                    String name = e.getName();
-                    checks.add( name );
-                }
-            }
-        }
-
         return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
             .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
     }

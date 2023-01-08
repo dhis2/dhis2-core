@@ -611,9 +611,10 @@ public class DefaultDataIntegrityService
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
             ValidationRule.class, this::getInvalidValidationRuleRightSideExpressions );
-
+        //FIXME: Throws an NPE on the demo database
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorExpressions );
+
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorFilters );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
