@@ -41,6 +41,7 @@ import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -88,6 +89,10 @@ public final class OrgUnitTableJoiner
      * The dates ranges in the ownership table are based on the ownership at the
      * start of each day. To get the ownership at the end of a day, we must add
      * one to the date, to get the ownership at the start of the next day.
+     * <p>
+     * Note that there are no entries in the _periodstructure table for daily
+     * periods. In this case the period start and end dates are the same and
+     * they are the date found in the analytics daily column.
      */
     private static String joinPeriodStructureAndOwnershipTables( EventQueryParams params )
     {
@@ -107,11 +112,20 @@ public final class OrgUnitTableJoiner
         }
         else
         {
-            compareDate = (isOwnerAtStart)
-                ? "periodstruct.\"startdate\""
-                : "periodstruct.\"enddate\" + INTERVAL '1 day'";
+            if ( params.getPeriodType().equalsIgnoreCase( PeriodTypeEnum.DAILY.getName() ) )
+            {
+                compareDate = (isOwnerAtStart)
+                    ? "cast(ax.\"daily\" as date)"
+                    : "cast(ax.\"daily\" as date) + INTERVAL '1 day'";
+            }
+            else
+            {
+                compareDate = (isOwnerAtStart)
+                    ? "periodstruct.\"startdate\""
+                    : "periodstruct.\"enddate\" + INTERVAL '1 day'";
 
-            sql += joinPeriodStructure( params );
+                sql += joinPeriodStructure( params );
+            }
         }
 
         return sql + joinOwnershipTable( params, compareDate );

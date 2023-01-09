@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,8 +63,6 @@ public class Reporter
 
     TrackerIdSchemeParams idSchemes;
 
-    List<Timing> timings;
-
     @Getter( AccessLevel.PACKAGE )
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
@@ -93,7 +90,6 @@ public class Reporter
             TrackerType.RELATIONSHIP, new HashSet<>() ) );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
-        this.timings = new ArrayList<>();
     }
 
     /**
@@ -238,27 +234,5 @@ public class Reporter
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
-    }
-
-    public Reporter addTiming( Timing timing )
-    {
-        timings.add( timing );
-        return this;
-    }
-
-    public Reporter addTimings( List<Timing> timings )
-    {
-        this.timings.addAll( timings );
-        return this;
-    }
-
-    public List<Timing> getTimings()
-    {
-        return Collections.unmodifiableList( timings );
-    }
-
-    public boolean hasTimings()
-    {
-        return !timings.isEmpty();
     }
 }

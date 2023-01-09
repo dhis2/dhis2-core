@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -61,7 +61,7 @@ import com.google.common.collect.Maps;
 /**
  * @author Bharath Kumar
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataentryform.DataEntryFormService" )
 public class DefaultDataEntryFormService
     implements DataEntryFormService

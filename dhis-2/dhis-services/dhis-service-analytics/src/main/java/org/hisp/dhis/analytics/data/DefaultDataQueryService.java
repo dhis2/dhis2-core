@@ -61,7 +61,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -112,8 +111,7 @@ public class DefaultDataQueryService
 
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), inputIdScheme ) );
+            params.addDimensions( getDimensionalObjects( request ) );
         }
 
         if ( request.getFilter() != null && !request.getFilter().isEmpty() )
@@ -211,15 +209,14 @@ public class DefaultDataQueryService
     }
 
     @Override
-    public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
-        Date relativePeriodDate, String userOrgUnit, IdScheme inputIdScheme )
+    public List<DimensionalObject> getDimensionalObjects( DataQueryRequest request )
     {
         List<DimensionalObject> list = new ArrayList<>();
-        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
+        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, request.getUserOrgUnit() );
 
-        if ( dimensionParams != null )
+        if ( request.getDimension() != null )
         {
-            for ( String param : dimensionParams )
+            for ( String param : request.getDimension() )
             {
                 String dimension = getDimensionFromParam( param );
                 List<String> items = getDimensionItemsFromParam( param );
@@ -227,7 +224,8 @@ public class DefaultDataQueryService
                 if ( dimension != null && items != null )
                 {
                     list.add( getDimension(
-                        dimension, items, relativePeriodDate, userOrgUnits, false, inputIdScheme ) );
+                        dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
+                        userOrgUnits, false, firstNonNull( request.getInputIdScheme(), UID ) ) );
                 }
             }
         }

@@ -32,13 +32,12 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests for orgunits whose closed dates are after their opening dates
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_open_date_gt_closed_date.yaml}
  *
  * @author Jason P. Pickering
  */
@@ -78,7 +77,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
             dbmsManager.clearSession();
         } );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 33, unitA.getUid(), unitA.getName(), "", true );
+        assertHasDataIntegrityIssues( "orgunits", check, 33, unitA.getUid(), unitA.getName(), null, true );
     }
 
     @Test
@@ -88,7 +87,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'closedDate' : '2023-02-22', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }" ) );
+                    "'openingDate' : '2022-01-01', 'closedDate' : '2023-02-22', 'geometry' : {'type' : 'Point', 'coordinates' : [5,6]} }" ) );
 
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
@@ -106,16 +105,4 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
 
     }
 
-    @BeforeEach
-    public void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    public void tearDown()
-    {
-        deleteAllOrgUnits();
-    }
 }

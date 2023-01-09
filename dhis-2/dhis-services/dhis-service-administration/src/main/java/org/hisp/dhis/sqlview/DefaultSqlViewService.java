@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -65,8 +65,8 @@ import com.google.common.collect.Sets;
  * @author Dang Duy Hieu
  */
 @Slf4j
-@AllArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
     implements SqlViewService

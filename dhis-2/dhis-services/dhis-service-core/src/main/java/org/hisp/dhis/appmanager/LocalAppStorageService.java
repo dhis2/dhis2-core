@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FileUtils;
@@ -53,13 +52,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
- * @author Stian Sandvold
+ * Note! This class is mostly code from pre 2.28's DefaultAppManager. This is to
+ * support apps installed before 2.28. post 2.28, all installations using DHIS2
+ * will use JCloudsAppStorageService.
  *
- *         NB! This class is mostly code from pre 2.28's DefaultAppManager. This
- *         is to support apps installed before 2.28. post 2.28, all
- *         installations using DHIS2 will use JCloudsAppStorageService.
+ * @author Stian Sandvold
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )
 public class LocalAppStorageService
     implements AppStorageService
@@ -71,13 +71,6 @@ public class LocalAppStorageService
     private Map<String, App> reservedNamespaces = new HashMap<>();
 
     private final LocationManager locationManager;
-
-    public LocalAppStorageService( LocationManager locationManager )
-    {
-        checkNotNull( locationManager );
-
-        this.locationManager = locationManager;
-    }
 
     @Override
     public Map<String, App> discoverInstalledApps()

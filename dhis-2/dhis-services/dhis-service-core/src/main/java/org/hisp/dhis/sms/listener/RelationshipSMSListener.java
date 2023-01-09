@@ -63,9 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.RelationshipSMSListener" )
 @Transactional
-public class RelationshipSMSListener
-    extends
-    CompressionSMSListener
+public class RelationshipSMSListener extends CompressionSMSListener
 {
     private enum RelationshipDir
     {

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.mapping;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -47,15 +47,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Jan Henrik Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.mapping.MappingService" )
 public class DefaultMappingService
     extends GenericAnalyticalObjectService<MapView>
     implements MappingService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final MapStore mapStore;
 
     private final MapViewStore mapViewStore;
@@ -67,25 +64,6 @@ public class DefaultMappingService
     private final IndicatorService indicatorService;
 
     private final PeriodService periodService;
-
-    public DefaultMappingService( MapStore mapStore, MapViewStore mapViewStore,
-        ExternalMapLayerStore externalMapLayerStore, OrganisationUnitService organisationUnitService,
-        IndicatorService indicatorService, PeriodService periodService )
-    {
-        checkNotNull( mapStore );
-        checkNotNull( mapViewStore );
-        checkNotNull( externalMapLayerStore );
-        checkNotNull( organisationUnitService );
-        checkNotNull( indicatorService );
-        checkNotNull( periodService );
-
-        this.mapStore = mapStore;
-        this.mapViewStore = mapViewStore;
-        this.externalMapLayerStore = externalMapLayerStore;
-        this.organisationUnitService = organisationUnitService;
-        this.indicatorService = indicatorService;
-        this.periodService = periodService;
-    }
 
     // -------------------------------------------------------------------------
     // MappingService implementation

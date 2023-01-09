@@ -157,7 +157,7 @@ public interface AppManager
      * @param contextPath the context path of this instance.
      * @return apps which are accessible to the current user.
      */
-    List<App> getAccessibleApps( String contextPath );
+    List<App> getAccessibleApps( String contextPath, User user );
 
     /**
      * Installs the app.
