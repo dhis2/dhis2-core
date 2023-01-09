@@ -27,53 +27,39 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import java.util.Collections;
-import java.util.HashMap;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper.map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.dxf2.events.EventParams;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Provides basic methods to transform input fields into {@link FieldPath }
- * based on {@link FieldFilterParser }. It follows the principles of
- * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
- */
-class FieldsParamMapper
+class EventFieldsMapperTest
 {
-    private FieldsParamMapper()
+    static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
+        return Stream.of(
+            arguments( List.of( "!*" ), false ),
+            arguments( List.of( "*" ), true ),
+            arguments( List.of( "relationships" ), true ),
+            arguments( List.of( "*", "!relationships" ), false ),
+            arguments( List.of( "relationships[*]" ), true ),
+            arguments( List.of( "relationships[*]", "!relationships[*]" ), false ),
+            arguments( List.of( "!relationships[*]", "relationships[*]" ), false ),
+            arguments( List.of( "relationships", "relationships[!from]" ), true ) );
     }
 
-    static final String FIELD_RELATIONSHIPS = "relationships";
-
-    static final String FIELD_EVENTS = "events";
-
-    static final String FIELD_ATTRIBUTES = "attributes";
-
-    static Map<String, FieldPath> getRoots( List<String> fields )
+    @MethodSource
+    @ParameterizedTest
+    void getEnrollmentParamsMultipleCases( List<String> fields, boolean expectRelationships )
     {
-        return rootFields( getFieldPaths( fields ) );
-    }
+        EventParams params = map( fields );
 
-    static List<FieldPath> getFieldPaths( List<String> fields )
-    {
-        return FieldFilterParser
-            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
-    }
-
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
-    {
-        Map<String, FieldPath> roots = new HashMap<>();
-        for ( FieldPath p : fieldPaths )
-        {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
-            {
-                roots.put( p.getName(), p );
-            }
-        }
-        return roots;
+        assertEquals( expectRelationships, params.isIncludeRelationships() );
     }
 }
