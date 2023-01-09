@@ -61,7 +61,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
 
         String code = getCode( user );
 
-        assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/2fa/enabled", "{'code':'" + code + "'}" ) );
 
         user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
         assertNotNull( user.getSecret() );
@@ -78,7 +78,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         switchToNewUser( user );
 
         String code = getCode( user );
-        assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/2fa/enabled", "{'code':'" + code + "'}" ) );
     }
 
     @Test
@@ -92,14 +92,14 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         switchToNewUser( user );
 
         assertEquals( "Invalid 2FA code",
-            POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+            POST( "/2fa/enabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
     @Test
     void testEnable2FaNotCalledQrFirst()
     {
         assertEquals( "User must call /qr endpoint before you can call enable",
-            POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+            POST( "/2fa/enabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
     @Test
@@ -116,14 +116,14 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
 
         String code = getCode( newUser );
 
-        assertStatus( HttpStatus.OK, POST( "/2fa/disable", "{'code':'" + code + "'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/2fa/disabled", "{'code':'" + code + "'}" ) );
     }
 
     @Test
     void testDisable2FaNotEnabled()
     {
         assertEquals( "Two factor authentication is not enabled",
-            POST( "/2fa/disable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+            POST( "/2fa/disabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
     private static String replaceApprovalPartOfTheSecret( User user )

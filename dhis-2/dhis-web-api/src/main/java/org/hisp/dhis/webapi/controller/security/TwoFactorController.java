@@ -126,22 +126,6 @@ public class TwoFactorController
         outputStream.write( qrCode );
     }
 
-    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    @ResponseBody
-    public Map<String, Object> getQrCodeDeprecated( @CurrentUser User currentUser )
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( ErrorCode.E3025.getMessage() );
-        }
-
-        Map<String, Object> map = new HashMap<>();
-        map.put( "url", "blank" );
-
-        return map;
-    }
-
     /**
      * Enable 2FA authentication for the current user.
      *
@@ -150,7 +134,7 @@ public class TwoFactorController
      *
      * @return
      */
-    @PostMapping( value = "/enable", consumes = { "text/*", "application/*" } )
+    @PostMapping( value = "/enabled", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage enable(
@@ -183,7 +167,7 @@ public class TwoFactorController
      *
      * @return
      */
-    @PostMapping( value = "/disable", consumes = { "text/*", "application/*" } )
+    @PostMapping( value = "/disabled", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage disable(
