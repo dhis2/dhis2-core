@@ -30,6 +30,7 @@ package org.hisp.dhis.dataintegrity;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -967,10 +968,10 @@ public class DefaultDataIntegrityService
     {
         ensureConfigurationsAreLoaded();
 
-        return checksByName.entrySet()
+        return checksByName.values()
             .stream()
-            .filter( e -> !e.getValue().isSlow() )
-            .map( e -> e.getValue().getName() )
+            .filter( not( DataIntegrityCheck::isSlow ) )
+            .map( DataIntegrityCheck::getName )
             .collect( Collectors.toUnmodifiableSet() );
 
     }
