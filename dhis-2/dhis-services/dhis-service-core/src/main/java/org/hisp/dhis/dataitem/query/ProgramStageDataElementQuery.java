@@ -105,7 +105,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append(
             " group by program.name, program.shortname, item_name, " + COMMON_UIDS
                 + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -187,7 +187,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.name as i18n_first_name, dataelement.name as i18n_second_name" )
-            .append( ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname" )
+            .append(
+                ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname, cast (null as text) as expression" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

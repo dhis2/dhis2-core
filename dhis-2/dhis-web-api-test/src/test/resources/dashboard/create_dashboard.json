@@ -1,0 +1,723 @@
+{
+  "dashboards":
+  [
+    {
+      "id": "f1OijtLnf8a",
+      "name": "test",
+      "code": "",
+      "description": "",
+      "dashboardItems":
+      [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 29,
+          "id": "KnmKNIFiAwC",
+          "type": "VISUALIZATION",
+          "position": null,
+          "visualization":
+          {
+            "id": "gyYXi0rXAIc",
+            "name": "ANC: 1-3 dropout rate Yearly"
+          },
+          "i": "KnmKNIFiAwC",
+          "minH": 4,
+          "width": 20,
+          "height": 29
+        }
+      ],
+      "restrictFilters": false,
+      "itemConfig":
+      {
+        "insertPosition": "END"
+      },
+      "sharing": {
+        "public": "--------",
+        "external" : false,
+        "owner" : "M5zQapPyTZI",
+        "users" : {
+          "XThzKnyzeYW": {
+            "id" : "XThzKnyzeYW",
+            "access" : "rw------"
+          }
+        }
+      }
+    }
+  ],
+  "categories":
+  [
+    {
+      "lastUpdated": "2016-03-17T01:53:56.098+0000",
+      "code": "Gender",
+      "sharing": {
+        "public": "rw------",
+        "owner": "M5zQapPyTZI"
+      },
+      "dataDimensionType": "DISAGGREGATION",
+      "id": "XFgfIO1qQmd",
+      "name": "Gender",
+      "shortName": "Gender",
+      "created": "2016-03-17T01:53:56.097+0000",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "categoryOptions":
+      [
+        {
+          "id": "DRs8ZFxNOpW"
+        },
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "dataDimension": true
+    }
+  ],
+  "userRoles":
+  [
+    {
+      "description": "userRoleA",
+      "name": "userRoleA",
+      "id": "VIkpd2KHCb1",
+      "code": "userRoleA",
+      "authorities":
+      [
+        "F_PROGRAM_INDICATOR_PUBLIC_ADD",
+        "F_SQLVIEW_EXECUTE",
+        "F_USER_VIEW",
+        "F_GENERATE_MIN_MAX_VALUES",
+        "F_VALIDATIONRULE_PUBLIC_ADD",
+        "F_CATEGORY_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_PUBLIC_ADD",
+        "F_DATAVALUE_DELETE",
+        "F_EXTERNAL_MAP_LAYER_PRIVATE_ADD",
+        "F_RELATIONSHIPTYPE_DELETE",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_CATEGORY_OPTION_PRIVATE_ADD",
+        "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
+        "F_GIS_ADMIN",
+        "M_dhis-web-event-capture",
+        "F_SEND_EMAIL",
+        "F_ORGUNITGROUPSET_PRIVATE_ADD",
+        "F_INDICATOR_DELETE",
+        "M_dhis-web-event-reports",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_OPTIONGROUPSET_DELETE",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD",
+        "F_DOCUMENT_EXTERNAL",
+        "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD",
+        "F_PROGRAM_INDICATOR_DELETE",
+        "F_MOBILE_SENDSMS",
+        "F_TRACKED_ENTITY_ADD",
+        "F_TRACKED_ENTITY_MANAGEMENT",
+        "F_VALIDATIONRULEGROUP_PUBLIC_ADD",
+        "F_REPORT_EXTERNAL",
+        "F_DOCUMENT_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_DELETE",
+        "F_USERGROUP_DELETE",
+        "F_PROGRAM_PRIVATE_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_PRIVATE_ADD",
+        "F_SCHEDULING_SEND_MESSAGE",
+        "F_EXTERNAL_MAP_LAYER_PUBLIC_ADD",
+        "F_PROGRAM_INDICATOR_GROUP_DELETE",
+        "F_ORGANISATIONUNIT_MOVE",
+        "M_dhis-web-usage-analytics",
+        "F_COLOR_DELETE",
+        "F_INDICATORGROUP_DELETE",
+        "F_ORGANISATIONUNIT_DELETE",
+        "F_PROGRAM_RULE_ADD",
+        "M_dhis-web-light",
+        "F_OPTIONGROUPSET_PRIVATE_ADD",
+        "F_DATA_MART_ADMIN",
+        "M_dhis-web-maintenance-mobile",
+        "F_DATASET_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_DELETE",
+        "F_SECTION_DELETE",
+        "F_USER_DELETE",
+        "F_INDICATORGROUPSET_PRIVATE_ADD",
+        "F_PROGRAM_INDICATOR_PRIVATE_ADD",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_SQLVIEW_PUBLIC_ADD",
+        "F_PERFORM_MAINTENANCE",
+        "F_COLOR_SET_ADD",
+        "F_METADATA_EXPORT",
+        "F_MINMAX_DATAELEMENT_ADD",
+        "F_PROGRAMSTAGE_SECTION_ADD",
+        "F_DATAELEMENTGROUP_PRIVATE_ADD",
+        "F_VALIDATIONRULE_PRIVATE_ADD",
+        "F_APPROVE_DATA",
+        "M_dhis-web-mapping",
+        "F_DATAELEMENT_PRIVATE_ADD",
+        "F_VALIDATIONCRITERIA_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_PROGRAM_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_DELETE",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "M_Web_Portal",
+        "F_ORGANISATIONUNIT_ADD",
+        "M_dhis-web-user",
+        "F_LEGEND_SET_PUBLIC_ADD",
+        "F_CONSTANT_ADD",
+        "F_PREDICTORGROUP_DELETE",
+        "M_dhis-web-visualizer",
+        "F_INDICATOR_PUBLIC_ADD",
+        "F_INDICATORGROUP_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD",
+        "M_dhis-web-maintenance",
+        "F_PROGRAM_RULE_MANAGEMENT",
+        "F_TEI_CASCADE_DELETE",
+        "F_FRED_UPDATE",
+        "M_dhis-web-cache-cleaner",
+        "F_EDIT_EXPIRED",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_ORGANISATIONUNITLEVEL_UPDATE",
+        "F_CATEGORY_OPTION_PUBLIC_ADD",
+        "M_dhis-web-datastore",
+        "F_CATEGORY_OPTION_DELETE",
+        "M_Data_Table",
+        "M_dhis-web-menu-management",
+        "F_REPORT_PUBLIC_ADD",
+        "F_VALIDATIONRULEGROUP_DELETE",
+        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD",
+        "F_COLOR_ADD",
+        "F_OPTIONSET_PRIVATE_ADD",
+        "F_PROGRAM_RULE_DELETE",
+        "F_ORGUNITGROUP_DELETE",
+        "F_DATAELEMENTGROUPSET_PRIVATE_ADD",
+        "M_dhis-web-tracker-capture",
+        "F_LOCALE_ADD",
+        "F_LEGEND_ADD",
+        "F_CATEGORY_OPTION_GROUP_PRIVATE_ADD",
+        "M_dhis-web-reporting",
+        "F_CATEGORY_PUBLIC_ADD",
+        "F_SECTION_ADD",
+        "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_DATASET_DELETE",
+        "F_INDICATORGROUPSET_DELETE",
+        "F_USER_DELETE_WITHIN_MANAGED_GROUP",
+        "F_ADD_TRACKED_ENTITY_FORM",
+        "M_dhis-web-scheduler",
+        "F_OPTIONGROUP_PUBLIC_ADD",
+        "F_USERROLE_PRIVATE_ADD",
+        "M_dhis-web-messaging",
+        "M_dhis-web-maintenance-program",
+        "F_EXTERNALFILERESOURCE_ADD",
+        "F_MAP_EXTERNAL",
+        "M_bna_widget",
+        "F_DATAELEMENTGROUPSET_PUBLIC_ADD",
+        "F_DATAELEMENTGROUP_DELETE",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_ORGUNITGROUP_PRIVATE_ADD",
+        "F_DATAELEMENTGROUP_PUBLIC_ADD",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_LOCALE_DELETE",
+        "F_PREDICTOR_RUN",
+        "F_DATAELEMENT_DELETE",
+        "F_OPTIONGROUP_DELETE",
+        "F_LEGEND_SET_PRIVATE_ADD",
+        "F_PROGRAMSTAGE_DELETE",
+        "F_ATTRIBUTE_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_FORM_DELETE",
+        "F_USERROLE_DELETE",
+        "F_DOCUMENT_DELETE",
+        "F_ORGUNITGROUPSET_DELETE",
+        "M_dhis-web-translations",
+        "M_dhis-web-sms",
+        "F_SCHEDULING_CASE_AGGREGATE_QUERY_BUILDER",
+        "F_PROGRAM_DELETE",
+        "F_VALIDATIONRULE_DELETE",
+        "F_PROGRAMDATAELEMENT_ADD",
+        "M_dhis-web-mobile",
+        "F_RELATIONSHIPTYPE_PUBLIC_ADD",
+        "F_PREDICTOR_ADD",
+        "F_SQLVIEW_PRIVATE_ADD",
+        "F_EXPORT_DATA",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_ORGUNITGROUP_PUBLIC_ADD",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "M_Social_Media_Video",
+        "F_OPTIONSET_PUBLIC_ADD",
+        "F_EVENTCHART_EXTERNAL",
+        "M_dhis-web-dataentry",
+        "M_dhis-web-aggregate-data-entry",
+        "M_dhis-web-maintenance-dataset",
+        "F_USERROLE_LIST",
+        "F_USERROLE_PUBLIC_ADD",
+        "M_dhis-web-importexport",
+        "M_InterpretationsTest",
+        "F_ORGUNITGROUPSET_PUBLIC_ADD",
+        "F_SQLVIEW_EXTERNAL",
+        "F_REPORT_DELETE",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_CONSTANT_DELETE",
+        "M_dhis-web-maintenance-user",
+        "F_PREDICTOR_DELETE",
+        "F_CHART_PUBLIC_ADD",
+        "M_dhis-web-data-visualizer",
+        "F_CHART_EXTERNAL",
+        "F_TRACKED_ENTITY_MERGE",
+        "F_DATASET_PRIVATE_ADD",
+        "F_EVENTREPORT_PUBLIC_ADD",
+        "F_PROGRAMSTAGE_SECTION_DELETE",
+        "F_TRACKED_ENTITY_UPDATE",
+        "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD",
+        "F_METADATA_MANAGE",
+        "F_ANALYTICSTABLEHOOK_DELETE",
+        "F_UNCOMPLETE_EVENT",
+        "M_dhis-web-interpretation",
+        "F_LEGEND_DELETE",
+        "M_Custom_Js_Css",
+        "F_PROGRAM_INDICATOR_MANAGEMENT",
+        "F_MAP_PUBLIC_ADD",
+        "F_PROGRAM_VALIDATION",
+        "F_SCHEDULING_ADMIN",
+        "F_DATAELEMENT_MINMAX_DELETE",
+        "F_MOBILE_SETTINGS",
+        "F_PREDICTORGROUP_ADD",
+        "F_REPORT_PRIVATE_ADD",
+        "F_VALIDATIONRULEGROUP_PRIVATE_ADD",
+        "F_PUSH_ANALYSIS_DELETE",
+        "F_REPLICATE_USER",
+        "F_DATAVALUE_ADD",
+        "M_dhis-web-maintenance-organisationunit",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DATAELEMENTGROUPSET_DELETE",
+        "F_SQLVIEW_DELETE",
+        "F_ENROLLMENT_CASCADE_DELETE",
+        "F_PROGRAMDATAELEMENT_DELETE",
+        "F_INDICATORTYPE_ADD",
+        "F_LEGEND_SET_DELETE",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_PROGRAMSTAGE_SECTION_MANAGEMENT",
+        "F_IMPORT_EVENTS",
+        "F_INDICATOR_PRIVATE_ADD",
+        "F_FRED_CREATE",
+        "F_EVENTCHART_PUBLIC_ADD",
+        "F_PUSH_ANALYSIS_ADD",
+        "M_dhis-web-event-visualizer",
+        "F_USER_ADD",
+        "F_EXTERNAL_MAP_LAYER_DELETE",
+        "F_SYSTEM_SETTING",
+        "F_ANALYTICSTABLEHOOK_ADD",
+        "F_ATTRIBUTE_PRIVATE_ADD",
+        "F_DOCUMENT_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_ATTRIBUTE_DELETE",
+        "M_Easy_Visualization",
+        "F_DATAELEMENT_MINMAX_ADD",
+        "M_dhis-web-data-quality",
+        "M_dhis-web-pivot",
+        "F_EVENTREPORT_EXTERNAL",
+        "F_PROGRAM_RULE_UPDATE",
+        "F_DATAELEMENT_PUBLIC_ADD",
+        "M_dhis-web-validationrule",
+        "F_CONSTANT_MANAGEMENT",
+        "F_RUN_VALIDATION",
+        "F_MANAGE_TICKETS",
+        "F_OPTIONGROUP_PRIVATE_ADD",
+        "F_CATEGORY_OPTION_GROUP_DELETE",
+        "M_User_Administration",
+        "M_dhis-web-settings",
+        "F_IMPORT_DATA",
+        "F_VIEW_DATABROWSER",
+        "F_MOBILE_DELETE_SMS",
+        "F_OPTIONSET_MANAGEMENT",
+        "F_PROGRAMSTAGE_ADD",
+        "M_dhis-web-maps",
+        "F_MINMAX_DATAELEMENT_DELETE",
+        "F_ATTRIBUTE_DELETE",
+        "F_OPTIONSET_DELETE",
+        "M_dhis-web-dashboard",
+        "M_dhis-web-data-administration",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE",
+        "F_OPTIONGROUPSET_PUBLIC_ADD",
+        "M_dhis-web-capture",
+        "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD",
+        "F_CATEGORY_DELETE",
+        "F_COLOR_SET_DELETE",
+        "M_dhis-web-app-management",
+        "F_INDICATORTYPE_DELETE",
+        "F_INDICATORGROUP_PRIVATE_ADD",
+        "F_FRED_DELETE",
+        "F_VALIDATIONCRITERIA_DELETE",
+        "F_TRACKER_IMPORTER_EXPERIMENTAL",
+        "F_NONE"],
+      "sharing": {
+        "public": "--------"
+      }
+    }
+  ],
+  "categoryOptions":
+  [
+    {
+      "id": "DRs8ZFxNOpW",
+      "name": "Female",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "Female",
+      "code": "Female",
+      "sharing": {
+        "public": "rw------",
+        "owner": "M5zQapPyTZI"
+      }
+    },
+    {
+      "code": "Male",
+      "sharing": {
+        "public": "rw------",
+        "owner": "M5zQapPyTZI"
+      },
+      "name": "Male",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "id": "x3Owjhq9G7K",
+      "shortName": "Male"
+    }
+  ],
+  "organisationUnitLevels":
+  [
+    {
+      "level": 1,
+      "name": "Country",
+      "id": "knxIFcPUBz2"
+    }
+  ],
+  "categoryOptionCombos":
+  [
+    {
+      "categoryCombo":
+      {
+        "id": "v7n8H4aj8Cg"
+      },
+      "categoryOptions":
+      [
+        {
+          "id": "DRs8ZFxNOpW"
+        }
+      ],
+      "name": "Female",
+      "ignoreApproval": false,
+      "id": "c8yQa2ZIqhL"
+    },
+    {
+      "name": "Male",
+      "ignoreApproval": false,
+      "id": "O9ZA0CUVVmL",
+      "categoryOptions":
+      [
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "categoryCombo":
+      {
+        "id": "v7n8H4aj8Cg"
+      }
+    }
+  ],
+  "visualizations":
+  [
+    {
+      "sharing": {
+        "public" : "--------",
+        "external": false,
+        "users": {
+          "XThzKnyzeYW": {
+            "id": "XThzKnyzeYW",
+            "access": "r-------"
+          }
+        }
+      },
+      "completedOnly": false,
+      "showData": true,
+      "organisationUnits":
+      [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "dataDimensionItems":
+      [
+        {
+          "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT",
+          "dataElement":
+          {
+            "id": "JXWenbITNIR"
+          }
+        },
+        {
+          "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT",
+          "dataElement":
+          {
+            "id": "Kvv6LltZuOd"
+          }
+        }
+      ],
+      "filterDimensions":
+      [
+        "ou"
+      ],
+      "seriesKey":
+      {
+        "hidden": true
+      },
+      "series":
+      [
+        {
+          "dimensionItem": "JXWenbITNIR",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Kvv6LltZuOd",
+          "visualizationType": "LINE"
+        }
+      ],
+      "organisationUnitLevels":
+      [],
+      "id": "gyYXi0rXAIc",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "userOrganisationUnitChildren": false,
+      "hideEmptyRows": false,
+      "organisationUnitGroups":
+      [],
+      "name": "VisualizationA",
+      "sortOrder": 0,
+      "category": "pe",
+      "categoryOptionGroups":
+      [],
+      "dataElementGroups":
+      [],
+      "relativePeriods":
+      {
+        "lastSixMonth": false,
+        "last5Years": false,
+        "thisSixMonth": false,
+        "thisWeek": false,
+        "last4Weeks": false,
+        "last4Quarters": false,
+        "monthsThisYear": false,
+        "lastWeek": false,
+        "monthsLastYear": false,
+        "thisQuarter": false,
+        "last6BiMonths": false,
+        "thisBimonth": false,
+        "quartersThisYear": false,
+        "lastQuarter": false,
+        "thisFinancialYear": false,
+        "quartersLastYear": false,
+        "last3Months": false,
+        "thisYear": false,
+        "lastBimonth": false,
+        "thisMonth": false,
+        "last12Weeks": false,
+        "last5FinancialYears": false,
+        "last12Months": true,
+        "lastYear": false,
+        "last2SixMonths": false,
+        "lastFinancialYear": false,
+        "last52Weeks": false,
+        "lastMonth": false,
+        "last6Months": false
+      },
+      "categoryDimensions":
+      [],
+      "userOrganisationUnit": false,
+      "hideSubtitle": false,
+      "hideTitle": false,
+      "regression": false,
+      "type": "COLUMN",
+      "aggregationType": "SUM",
+      "periods":
+      [],
+      "hideLegend": false,
+      "itemOrganisationUnitGroups":
+      [],
+      "userOrganisationUnitGrandChildren": false
+    }
+  ],
+  "categoryCombos":
+  [
+    {
+      "publicAccess": "rw------",
+      "lastUpdated": "2016-03-17T01:54:04.956+0000",
+      "code": "Gender",
+      "skipTotal": false,
+      "id": "v7n8H4aj8Cg",
+      "categories":
+      [
+        {
+          "id": "XFgfIO1qQmd"
+        }
+      ],
+      "userGroupAccesses":
+      [],
+      "created": "2016-03-17T01:54:04.875+0000",
+      "name": "Gender",
+      "dataDimensionType": "DISAGGREGATION",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      }
+    }
+  ],
+  "users":
+  [
+    {
+      "firstName": "userA",
+      "userRoles": [
+        {
+          "id": "VIkpd2KHCb1"
+        }
+      ],
+      "username": "userA",
+      "organisationUnits":
+      [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "code": "userA",
+      "id": "XThzKnyzeYW",
+      "surname": "userA"
+    }
+  ],
+  "dataElements":
+  [
+    {
+      "code": "DataElementCodeA",
+      "zeroIsSignificant": false,
+      "domainType": "AGGREGATE",
+      "aggregationType": "AVERAGE",
+      "aggregationLevels":
+      [],
+      "userGroupAccesses":
+      [],
+      "valueType": "NUMBER",
+      "lastUpdated": "2016-03-17T01:52:56.021+0000",
+      "publicAccess": "rw------",
+      "created": "2016-03-17T01:52:56.017+0000",
+      "name": "DataElementA",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "id": "JXWenbITNIR",
+      "attributeValues":
+      [],
+      "shortName": "DataElementShortA"
+    },
+    {
+      "lastUpdated": "2016-03-17T01:53:21.549+0000",
+      "publicAccess": "rw------",
+      "id": "Kvv6LltZuOd",
+      "name": "DataElementB",
+      "created": "2016-03-17T01:53:21.548+0000",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "DataElementShortB",
+      "attributeValues":
+      [],
+      "aggregationType": "AVERAGE",
+      "domainType": "AGGREGATE",
+      "code": "DataElementCodeB",
+      "zeroIsSignificant": false,
+      "aggregationLevels":
+      [],
+      "userGroupAccesses":
+      [],
+      "valueType": "NUMBER"
+    },
+    {
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "name": "DataElementC",
+      "created": "2016-03-17T01:54:39.781+0000",
+      "id": "JrpFZgTcp5m",
+      "attributeValues":
+      [],
+      "shortName": "DataElementShortC",
+      "lastUpdated": "2016-03-17T01:54:39.782+0000",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "userGroupAccesses":
+      [],
+      "code": "DataElementCodeC",
+      "zeroIsSignificant": false,
+      "aggregationType": "AVERAGE",
+      "domainType": "AGGREGATE",
+      "categoryCombo":
+      {
+        "id": "v7n8H4aj8Cg"
+      },
+      "aggregationLevels":
+      []
+    },
+    {
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "created": "2016-03-17T01:55:00.723+0000",
+      "name": "DataElementD",
+      "id": "Dy2uRmhOKbJ",
+      "attributeValues":
+      [],
+      "shortName": "DataElementShortD",
+      "lastUpdated": "2016-03-17T01:55:00.724+0000",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "userGroupAccesses":
+      [],
+      "zeroIsSignificant": false,
+      "code": "DataElementCodeD",
+      "domainType": "AGGREGATE",
+      "aggregationType": "AVERAGE",
+      "categoryCombo":
+      {
+        "id": "v7n8H4aj8Cg"
+      },
+      "aggregationLevels":
+      []
+    }
+  ],
+  "organisationUnits":
+  [
+    {
+      "path": "/uyHni0GvBpD",
+      "featureType": "NONE",
+      "uuid": "eb380b08-6cc6-4aca-9b67-e1247e02db33",
+      "lastUpdated": "2016-03-17T01:51:39.609+0000",
+      "shortName": "Country",
+      "attributeValues":
+      [],
+      "openingDate": "2016-03-17",
+      "id": "uyHni0GvBpD",
+      "description": "",
+      "user":
+      {
+        "id": "M5zQapPyTZI"
+      },
+      "name": "Country",
+      "created": "2016-03-17T01:51:39.597+0000"
+    }
+  ]
+}

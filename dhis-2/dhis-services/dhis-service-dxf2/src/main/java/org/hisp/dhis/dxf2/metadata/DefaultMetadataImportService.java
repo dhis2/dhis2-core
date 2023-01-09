@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +72,7 @@ import com.google.common.base.Enums;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataImportService" )
 public class DefaultMetadataImportService implements MetadataImportService
 {

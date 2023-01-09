@@ -29,13 +29,12 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
-import static java.util.Calendar.MARCH;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -47,6 +46,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -95,8 +95,6 @@ class JdbcOwnershipWriterTest
 
     private static final Date date_2022_02 = new GregorianCalendar( 2022, FEBRUARY, 1 ).getTime();
 
-    private static final Date date_2022_03 = new GregorianCalendar( 2022, MARCH, 1 ).getTime();
-
     private static final List<String> columns = List.of( TEIUID, OU, STARTDATE, ENDDATE );
 
     @BeforeEach
@@ -122,13 +120,12 @@ class JdbcOwnershipWriterTest
     void testWriteNoOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_03 ) );
-        writer.flush();
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, null ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, null ) );
 
         batchHandler.flush();
 
@@ -139,18 +136,19 @@ class JdbcOwnershipWriterTest
     void testWriteOneOwnershipChange()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_03 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_03 ) );
-        writer.flush();
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouB, ENDDATE, null ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, null ) );
+
+        batchHandler.flush();
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-03-01')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-03-02','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','9999-12-31')",
             getUpdateSql() );
     }
 
@@ -158,19 +156,20 @@ class JdbcOwnershipWriterTest
     void testWriteTwoOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_03 ) );
-        writer.flush();
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouB, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, null ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, null ) );
+
+        batchHandler.flush();
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','2022-03-01')," +
-                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-02','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-01-02','2022-02-01')," +
+                "('teiAaaaaaaa','ouAaaaaaaaa','2022-02-02','9999-12-31')",
             getUpdateSql() );
     }
 
@@ -178,21 +177,22 @@ class JdbcOwnershipWriterTest
     void testWriteThreeOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_03 ) );
-        writer.flush();
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouB, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, null ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_01 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouA, ENDDATE, date_2022_02 ) );
+        writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, null ) );
+
+        batchHandler.flush();
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','2022-03-01')," +
-                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-02','9999-12-31')," +
-                "('teiBbbbbbbb','ouAaaaaaaaa','1000-01-01','2022-03-01')," +
-                "('teiBbbbbbbb','ouBbbbbbbbb','2022-03-02','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-01-02','2022-02-01')," +
+                "('teiAaaaaaaa','ouAaaaaaaaa','2022-02-02','9999-12-31')," +
+                "('teiBbbbbbbb','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
+                "('teiBbbbbbbb','ouBbbbbbbbb','2022-02-02','9999-12-31')",
             getUpdateSql() );
     }
 
@@ -201,11 +201,24 @@ class JdbcOwnershipWriterTest
     // -------------------------------------------------------------------------
 
     /**
+     * Creates a map of three key/value pairs that allows nulls (because the
+     * database can return nulls and the logic relies on that).
+     */
+    private <K, V> Map<K, V> mapOf( K key1, V value1, K key2, V value2, K key3, V value3 )
+    {
+        HashMap<K, V> map = new HashMap<>();
+        map.put( key1, value1 );
+        map.put( key2, value2 );
+        map.put( key3, value3 );
+        return map;
+    }
+
+    /**
      * Gets a list of invocations of a mocked object
      */
     private String getUpdateSql()
     {
-        List<Invocation> invocations = new ArrayList( mockingDetails( statement ).getInvocations() );
+        List<Invocation> invocations = new ArrayList<>( mockingDetails( statement ).getInvocations() );
         assertEquals( 2, invocations.size() );
         assertEquals( "executeUpdate", invocations.get( 0 ).getMethod().getName() );
         assertEquals( "close", invocations.get( 1 ).getMethod().getName() );

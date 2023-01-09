@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.render;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -63,29 +62,18 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.render.RenderService" )
 public class DefaultRenderService
     implements RenderService
 {
+    @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    @Qualifier( "xmlMapper" )
     private final ObjectMapper xmlMapper;
 
-    private SchemaService schemaService;
-
-    public DefaultRenderService(
-        @Qualifier( "jsonMapper" ) ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper,
-        SchemaService schemaService )
-    {
-        checkNotNull( jsonMapper );
-        checkNotNull( xmlMapper );
-        checkNotNull( schemaService );
-
-        this.jsonMapper = jsonMapper;
-        this.xmlMapper = xmlMapper;
-        this.schemaService = schemaService;
-    }
+    private final SchemaService schemaService;
 
     // --------------------------------------------------------------------------
     // RenderService

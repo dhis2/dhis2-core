@@ -110,7 +110,6 @@ class AbstractAnalyticsServiceTest
     @Test
     void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
-        // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             List.of( peA ) );
 
@@ -133,10 +132,8 @@ class AbstractAnalyticsServiceTest
 
         when( securityManager.withUserConstraints( any( EventQueryParams.class ) ) ).thenReturn( params );
 
-        // When
         Grid grid = dummyAnalyticsService.getGrid( params );
 
-        // Then
         List<GridHeader> headers = grid.getHeaders();
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );

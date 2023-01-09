@@ -75,9 +75,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.J2MEDataValueSMSListener" )
 @Transactional
-public class J2MEDataValueSMSListener
-    extends
-    CommandSMSListener
+public class J2MEDataValueSMSListener extends CommandSMSListener
 {
 
     // -------------------------------------------------------------------------

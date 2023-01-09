@@ -166,7 +166,9 @@ public class TrackerTrackedEntityCriteriaMapper
             .setSkipPaging( criteria.isSkipPaging() )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
+            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
             .setOrders( orderParams );
+
         return params;
     }
 

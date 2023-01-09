@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.setting;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -45,6 +45,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DefaultStyleManager
     implements StyleManager
 {
@@ -68,20 +69,6 @@ public class DefaultStyleManager
     private final SortedMap<String, String> styles;
 
     private final I18nManager i18nManager;
-
-    public DefaultStyleManager( SystemSettingManager systemSettingManager, UserSettingService userSettingService,
-        SortedMap<String, String> styles, I18nManager i18nManager )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( userSettingService );
-        checkNotNull( styles );
-        checkNotNull( i18nManager );
-
-        this.systemSettingManager = systemSettingManager;
-        this.userSettingService = userSettingService;
-        this.styles = styles;
-        this.i18nManager = i18nManager;
-    }
 
     // -------------------------------------------------------------------------
     // StyleManager implementation

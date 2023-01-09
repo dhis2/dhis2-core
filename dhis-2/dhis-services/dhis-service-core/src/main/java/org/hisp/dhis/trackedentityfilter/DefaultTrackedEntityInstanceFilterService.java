@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.util.ValidationUtil.validateAttributeValueFilters;
 import static org.hisp.dhis.util.ValidationUtil.validateDateFilterPeriod;
 
@@ -35,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -51,31 +52,17 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" )
 public class DefaultTrackedEntityInstanceFilterService
     implements TrackedEntityInstanceFilterService
 {
-
     private final TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
 
     private final ProgramService programService;
 
     private final TrackedEntityAttributeService teaService;
-
-    public DefaultTrackedEntityInstanceFilterService(
-        TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore, ProgramService programService,
-        TrackedEntityAttributeService teaService )
-    {
-        checkNotNull( trackedEntityInstanceFilterStore );
-        checkNotNull( programService );
-        checkNotNull( teaService );
-
-        this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
-        this.programService = programService;
-        this.teaService = teaService;
-    }
 
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceFilterService implementation

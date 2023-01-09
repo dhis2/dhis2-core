@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Program.class );

@@ -34,7 +34,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
@@ -80,7 +80,7 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultResourceTableService
     implements ResourceTableService
 {

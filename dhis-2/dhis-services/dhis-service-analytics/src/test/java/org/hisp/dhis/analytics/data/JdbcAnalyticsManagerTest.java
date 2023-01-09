@@ -125,6 +125,22 @@ class JdbcAnalyticsManagerTest
     }
 
     @Test
+    void verifyQueryGeneratedWhenDataElementHasLastLastOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_LAST_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        String subquery = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\",\"daysno\"," +
+            "\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\"," +
+            "row_number() over (partition by ax.\"dx\" order by peenddate desc, pestartdate desc) as pe_rank " +
+            "from analytics as ax where ax.\"pestartdate\" >= '2005-01-31' and ax.\"pestartdate\" <= '2015-01-31' " +
+            "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
+
+        assertThat( sql.getValue(), containsString( subquery ) );
+    }
+
+    @Test
     void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD );
@@ -156,7 +172,8 @@ class JdbcAnalyticsManagerTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         Period peA = PeriodType.getPeriodFromIsoString( "201501" );
 
-        return DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
+        return DataQueryParams.newBuilder()
+            .withDataType( DataType.NUMERIC )
             .withTableName( "analytics" )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA ) ) )
@@ -168,8 +185,8 @@ class JdbcAnalyticsManagerTest
     {
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
-            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
-            + sortOrder + ") as pe_rank "
+            + "row_number() over (partition by ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\" order by peenddate " +
+            sortOrder + ", pestartdate " + sortOrder + ") as pe_rank "
             + "from analytics as ax where ax.\"pestartdate\" >= '2005-01-31' and ax.\"pestartdate\" <= '2015-01-31' "
             + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
 
@@ -180,8 +197,8 @@ class JdbcAnalyticsManagerTest
     {
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
-            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
-            + sortOrder + ") as pe_rank "
+            + "row_number() over (partition by ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\" order by peenddate " +
+            sortOrder + ", pestartdate " + sortOrder + ") as pe_rank "
             + "from analytics as ax where ax.\"pestartdate\" >= '2015-01-01' and ax.\"pestartdate\" <= '2015-01-31' "
             + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
 

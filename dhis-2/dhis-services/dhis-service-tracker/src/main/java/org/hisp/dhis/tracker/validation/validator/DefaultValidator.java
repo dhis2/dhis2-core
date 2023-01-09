@@ -35,6 +35,10 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
+import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
+import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
+import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
+import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
 /**

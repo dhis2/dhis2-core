@@ -96,7 +96,7 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append(
             " group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name,"
-                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -178,7 +178,8 @@ public class DataSetQuery implements DataItemQuery
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", dataset.name as i18n_first_name, cast (null as text) as i18n_second_name" )
-            .append( ", dataset.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+            .append(
+                ", dataset.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, cast (null as text) as expression" )
             .append( " from dataset " ).toString();
     }
 }

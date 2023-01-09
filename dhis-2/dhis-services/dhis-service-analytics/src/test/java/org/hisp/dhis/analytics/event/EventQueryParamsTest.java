@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -43,8 +42,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -89,6 +86,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
     private DataElement deD;
 
+    private DataElement deE;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
@@ -126,6 +125,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         deC.setValueType( ValueType.DATE );
         deD = createDataElement( 'D' );
         deD.setValueType( ValueType.ORGANISATION_UNIT );
+        deE = createDataElement( 'E' );
+        deE.setValueType( ValueType.TEXT );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         psA = createProgramStage( 'A', prA );
@@ -182,21 +183,34 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testHasTextDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deE )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        assertTrue( paramsA.hasTextValueDimension() );
+        assertFalse( paramsB.hasTextValueDimension() );
+    }
+
+    @Test
     void testGetKey()
     {
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams paramsA = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                List.of( ouA, ouB ) ) )
+            .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
             .addItem( qiA ).addItem( qiB ).build();
         EventQueryParams paramsB = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                List.of( ouA ) ) )
+            .withPeriods( List.of( peA, peB ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA ) )
             .addItem( qiA ).addItem( qiB ).withGeometryOnly( true ).build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
@@ -209,8 +223,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testReplacePeriodsWithStartEndDates()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
             .build();
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
@@ -224,8 +237,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
             .build();
 
         params = new EventQueryParams.Builder( params )
@@ -246,8 +258,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testNonContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
+            .withPeriods( List.of( peA, peC ), MONTHLY.getName() )
             .build();
 
         params = new EventQueryParams.Builder( params )
