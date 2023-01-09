@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.message;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singleton;
 
 import java.util.HashMap;
@@ -37,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +74,7 @@ import com.google.common.base.Strings;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component( "emailMessageSender" )
 @Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class EmailMessageSender
@@ -91,23 +92,11 @@ public class EmailMessageSender
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private UserSettingService userSettingService;
+    private final UserSettingService userSettingService;
 
-    private DhisConfigurationProvider configurationProvider;
-
-    public EmailMessageSender( SystemSettingManager systemSettingManager, UserSettingService userSettingService,
-        DhisConfigurationProvider configurationProvider )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( userSettingService );
-        checkNotNull( configurationProvider );
-
-        this.systemSettingManager = systemSettingManager;
-        this.userSettingService = userSettingService;
-        this.configurationProvider = configurationProvider;
-    }
+    private final DhisConfigurationProvider configurationProvider;
 
     // -------------------------------------------------------------------------
     // MessageSender implementation

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -38,6 +36,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +99,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements CompleteDataSetRegistrationExchangeService
@@ -146,63 +146,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private final ObjectMapper jsonMapper;
 
     private final OrganisationUnitService organisationUnitService;
-
-    public DefaultCompleteDataSetRegistrationExchangeService(
-        CompleteDataSetRegistrationExchangeStore cdsrStore,
-        IdentifiableObjectManager idObjManager,
-        OrganisationUnitService orgUnitService,
-        Notifier notifier,
-        I18nManager i18nManager,
-        BatchHandlerFactory batchHandlerFactory,
-        SystemSettingManager systemSettingManager,
-        CategoryService categoryService,
-        PeriodService periodService,
-        CurrentUserService currentUserService,
-        CompleteDataSetRegistrationService registrationService,
-        InputUtils inputUtils,
-        AggregateAccessManager accessManager,
-        DataSetNotificationEventPublisher notificationPublisher,
-        MessageService messageService,
-        ObjectMapper jsonMapper,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( cdsrStore );
-        checkNotNull( idObjManager );
-        checkNotNull( orgUnitService );
-        checkNotNull( notifier );
-        checkNotNull( i18nManager );
-        checkNotNull( batchHandlerFactory );
-        checkNotNull( systemSettingManager );
-        checkNotNull( systemSettingManager );
-        checkNotNull( categoryService );
-        checkNotNull( periodService );
-        checkNotNull( currentUserService );
-        checkNotNull( registrationService );
-        checkNotNull( inputUtils );
-        checkNotNull( accessManager );
-        checkNotNull( notificationPublisher );
-        checkNotNull( messageService );
-        checkNotNull( jsonMapper );
-        checkNotNull( organisationUnitService );
-
-        this.cdsrStore = cdsrStore;
-        this.idObjManager = idObjManager;
-        this.orgUnitService = orgUnitService;
-        this.notifier = notifier;
-        this.i18nManager = i18nManager;
-        this.batchHandlerFactory = batchHandlerFactory;
-        this.systemSettingManager = systemSettingManager;
-        this.categoryService = categoryService;
-        this.periodService = periodService;
-        this.currentUserService = currentUserService;
-        this.registrationService = registrationService;
-        this.inputUtils = inputUtils;
-        this.accessManager = accessManager;
-        this.notificationPublisher = notificationPublisher;
-        this.messageService = messageService;
-        this.jsonMapper = jsonMapper;
-        this.organisationUnitService = organisationUnitService;
-    }
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -321,6 +264,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
+    @Override
     public void validate( ExportParams params )
         throws IllegalQueryException
     {

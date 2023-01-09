@@ -433,7 +433,7 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups queries by their query modifiers Id.
+     * Groups queries by their query modifiers.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.

@@ -29,7 +29,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataOrgUnitMergeHandler
 {
     private final SessionFactory sessionFactory;

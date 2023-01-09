@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +101,7 @@ import com.google.common.collect.Lists;
  * @author viet@dhis2.org
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class GeoFeatureService
 {
@@ -118,16 +120,6 @@ public class GeoFeatureService
     private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer> builder()
         .put( FeatureType.POINT, GeoFeature.TYPE_POINT ).put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON )
         .put( FeatureType.POLYGON, GeoFeature.TYPE_POLYGON ).build();
-
-    public GeoFeatureService( DataQueryService dataQueryService,
-        OrganisationUnitGroupService organisationUnitGroupService,
-        CurrentUserService currentUserService, AttributeService attributeService )
-    {
-        this.dataQueryService = dataQueryService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
-        this.currentUserService = currentUserService;
-        this.attributeService = attributeService;
-    }
 
     /**
      * Returns a list of {@link GeoFeature}. Returns null if not modified based

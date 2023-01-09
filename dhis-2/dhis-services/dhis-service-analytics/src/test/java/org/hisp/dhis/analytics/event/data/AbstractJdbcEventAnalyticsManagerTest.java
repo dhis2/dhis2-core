@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
@@ -88,6 +89,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -106,8 +109,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class AbstractJdbcEventAnalyticsManagerTest extends
-    EventAnalyticsTest
+class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
 {
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -239,9 +241,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DataElement de = new DataElement();
 
         de.setUid( dataElementA.getUid() );
-
         de.setAggregationType( AggregationType.SUM );
-
         de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -260,7 +260,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.CUSTOM );
-
         de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -277,7 +276,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.NONE );
-
         de.setValueType( TEXT );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -297,7 +295,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.SUM );
-
         de.setValueType( TEXT );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -744,20 +741,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     private EventQueryParams getEventQueryParamsForCoordinateFieldsTest( List<String> coordinateFields )
     {
         DataElement deA = createDataElement( 'A', TEXT, AggregationType.NONE );
-
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            List.of( MonthlyPeriodType.getPeriodFromIsoString( "202201" ) ) );
-
-        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
-
+        Period peA = createPeriod( "202201" );
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
-
         Program program = createProgram( 'A' );
 
         return new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( orgUnits )
+            .withPeriods( List.of( peA ), PeriodTypeEnum.MONTHLY.getName() )
+            .withOrganisationUnits( List.of( createOrganisationUnit( 'A' ) ) )
             .addItem( qiA )
             .withProgram( program )
             .withStartDate( new Date() )

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -47,29 +46,21 @@ import org.springframework.stereotype.Service;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.sms.config.GatewayAdministrationService" )
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
-    private AtomicBoolean hasGateways = null;
-
     private final SmsConfigurationManager smsConfigurationManager;
 
+    @Qualifier( "tripleDesStringEncryptor" )
     private final PBEStringEncryptor pbeStringEncryptor;
-
-    public DefaultGatewayAdministrationService( SmsConfigurationManager smsConfigurationManager,
-        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
-    {
-        checkNotNull( smsConfigurationManager );
-        checkNotNull( pbeStringEncryptor );
-
-        this.smsConfigurationManager = smsConfigurationManager;
-        this.pbeStringEncryptor = pbeStringEncryptor;
-    }
 
     // -------------------------------------------------------------------------
     // GatewayAdministrationService implementation
     // -------------------------------------------------------------------------
+
+    private AtomicBoolean hasGateways = null;
 
     public synchronized void initState()
     {

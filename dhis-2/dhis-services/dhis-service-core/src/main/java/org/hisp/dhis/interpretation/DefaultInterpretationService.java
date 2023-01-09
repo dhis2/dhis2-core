@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -65,21 +65,17 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service( "org.hisp.dhis.interpretation.InterpretationService" )
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultInterpretationService
     implements InterpretationService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SchemaService schemaService;
 
     private final InterpretationStore interpretationStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private UserService userService;
+    private final UserService userService;
 
     private final PeriodService periodService;
 
@@ -90,24 +86,6 @@ public class DefaultInterpretationService
     private final I18nManager i18nManager;
 
     private final DhisConfigurationProvider configurationProvider;
-
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
 
     // -------------------------------------------------------------------------
     // InterpretationService implementation

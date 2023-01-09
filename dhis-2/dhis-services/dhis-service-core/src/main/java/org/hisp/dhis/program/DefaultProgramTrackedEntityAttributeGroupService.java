@@ -29,6 +29,8 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -37,21 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Viet Nguyen
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService" )
 public class DefaultProgramTrackedEntityAttributeGroupService
     implements ProgramTrackedEntityAttributeGroupService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
+    @Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
     private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
-
-    public DefaultProgramTrackedEntityAttributeGroupService(
-        @Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
-    {
-        this.attributeGroupStore = attributeGroupStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

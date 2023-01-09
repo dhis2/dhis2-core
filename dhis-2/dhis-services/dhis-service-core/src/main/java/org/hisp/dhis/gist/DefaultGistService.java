@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -61,10 +61,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
-public class DefaultGistService implements GistService, GistBuilder.GistBuilderSupport
+@RequiredArgsConstructor
+public class DefaultGistService
+    implements GistService, GistBuilder.GistBuilderSupport
 {
-
     /**
      * Instead of an actual date value users may use string {@code now} to
      * always get current moment as time for a {@link Date} value.

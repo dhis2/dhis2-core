@@ -92,7 +92,8 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // PERIOD
             .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
             // DATA ELEMENTS
-            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) )
+            .withIgnoreLimit( true )
             // FILTERS (OU)
             .withFilters( List.of(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
