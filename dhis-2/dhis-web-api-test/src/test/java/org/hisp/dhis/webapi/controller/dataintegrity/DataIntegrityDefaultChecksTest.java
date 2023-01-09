@@ -41,14 +41,14 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
- *
- * Test that when triggering all metadata checks (by not specifying any specific
- * checks), that checks which are marked as slow are not included as part of the
- * run. They should be able however to be run individually when requested.
+ * Be default, metadata checks which are marked as "slow" should be excluded
+ * from a default run of all checks. These "slow" checks may require significant
+ * computational resources. Users should be able to trigger these checks
+ * individually though as needed.
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDefaultConfigBasedChecksTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTest
 {
 
     @Test
@@ -63,8 +63,9 @@ class DataIntegrityDefaultConfigBasedChecksTest extends AbstractDataIntegrityInt
         assertTrue( slowCheck.getIsSlow() );
 
         //Trigger the default checks
-        assertStatus( HttpStatus.OK, POST( "/dataIntegrity?summary" ) );
+        assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary" ) );
 
+        //The slow check should not exist
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
             .content()
             .as( JsonDataIntegritySummary.class );
@@ -73,6 +74,17 @@ class DataIntegrityDefaultConfigBasedChecksTest extends AbstractDataIntegrityInt
         assertFalse( summary.has( "percentage" ) );
         assertFalse( summary.has( "finishedTime" ) );
 
+        summary = GET( "/dataIntegrity/categories-no-options/summary" )
+            .content()
+            .as( JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        assertEquals( 0, summary.getCount() );
+        assertFalse( summary.getIsSlow() );
+        assertNotNull( summary.getFinishedTime() );
+        assertEquals( 0, summary.getPercentage() );
+
+        //Trigger the slow check
         assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary?checks=" + check ) );
 
         summary = GET( "/dataIntegrity/" + check + "/summary" )
