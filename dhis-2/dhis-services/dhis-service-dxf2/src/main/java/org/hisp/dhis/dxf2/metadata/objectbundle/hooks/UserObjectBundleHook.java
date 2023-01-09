@@ -167,30 +167,29 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     @Override
-    public void preUpdate( User updatingUser, User persisted, ObjectBundle bundle )
+    public void preUpdate( User user, User persisted, ObjectBundle bundle )
     {
-        if ( updatingUser == null )
+        if ( user == null )
             return;
 
-        bundle.putExtras( updatingUser, "preUpdateUser", updatingUser );
+        bundle.putExtras( user, "preUpdateUser", user );
 
         if ( persisted.getAvatar() != null
-            && (updatingUser.getAvatar() == null
-                || !persisted.getAvatar().getUid().equals( updatingUser.getAvatar().getUid() )) )
+            && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
         {
             FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
             fileResourceService.updateFileResource( fileResource );
 
-            if ( updatingUser.getAvatar() != null )
+            if ( user.getAvatar() != null )
             {
-                fileResource = fileResourceService.getFileResource( updatingUser.getAvatar().getUid() );
+                fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
                 fileResource.setAssigned( true );
                 fileResourceService.updateFileResource( fileResource );
             }
         }
 
-        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), updatingUser.isTwoFactorEnabled(),
-            persisted );
+        //        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(),
+        //            persisted );
     }
 
     @Override

@@ -143,5 +143,12 @@ public class DefaultAdminUserPopulator
         userService.encodeAndSetPassword( user, password );
 
         userService.addUser( user );
+
+        UserRole twoFactorRole = new UserRole();
+        twoFactorRole.setUid( "jcK4oq1Ol8x" );
+        twoFactorRole.setCode( "TwoFactor" );
+        twoFactorRole.setName( "TwoFactor" );
+        twoFactorRole.setDescription( "TwoFactor" );
+        twoFactorRole.setRestrictions( ALL_RESTRICTIONS );
     }
 }

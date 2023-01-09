@@ -29,6 +29,7 @@ package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataAccessException;
@@ -64,6 +65,9 @@ public class DefaultLdapUserDetailsService
         {
             throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
         }
+
+        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
+        user.setPassword( password );
 
         return userService.createUserDetails( user );
     }

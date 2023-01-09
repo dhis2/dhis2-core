@@ -48,8 +48,6 @@ import org.hisp.dhis.feedback.ErrorReport;
  */
 public interface UserService
 {
-    String ID = UserService.class.getName();
-
     Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
 
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
@@ -500,7 +498,7 @@ public interface UserService
      * @param errors A Consumer<ErrorReport> object that will be called if there
      *        is an error.
      */
-    void privilegedTwoFaDisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
+    void privilegedTwoFactorDisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
 
     /**
      * Checks if the input user can modify the other input user.
@@ -537,7 +535,7 @@ public interface UserService
      *
      * @param user The user object that you want to reset the 2FA for.
      */
-    void resetTwoFa( User user );
+    void resetTwoFactor( User user );
 
     /**
      * If the user has a secret, and the secret has not been approved, and the

@@ -138,11 +138,11 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
                     "Missing authentication details in authentication request." );
             }
 
-            validateCode( StringUtils.deleteWhitespace( authDetails.getCode() ), user );
+            validateTwoFactorCode( StringUtils.deleteWhitespace( authDetails.getCode() ), user );
         }
     }
 
-    private void validateCode( String code, User user )
+    private void validateTwoFactorCode( String code, User user )
     {
         code = StringUtils.deleteWhitespace( code );
 
@@ -152,7 +152,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
             if ( UserService.hasTwoFactorSecretForApproval( user ) )
             {
-                userService.resetTwoFa( user );
+                userService.resetTwoFactor( user );
                 throw new TwoFactorAuthenticationEnrolmentException( "Invalid verification code" );
             }
             else

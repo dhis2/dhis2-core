@@ -758,7 +758,7 @@ public class DefaultUserService
 
     @Transactional
     @Override
-    public void resetTwoFa( User user )
+    public void resetTwoFactor( User user )
     {
         user.setSecret( null );
         updateUser( user );
@@ -802,12 +802,12 @@ public class DefaultUserService
             throw new IllegalStateException( "Invalid code" );
         }
 
-        resetTwoFa( user );
+        resetTwoFactor( user );
     }
 
     @Override
     @Transactional
-    public void privilegedTwoFaDisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
+    public void privilegedTwoFactorDisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
     {
         User user = getUser( userUid );
         if ( user == null )
@@ -815,19 +815,12 @@ public class DefaultUserService
             throw new IllegalArgumentException( "User not found" );
         }
 
-        if ( currentUser.getUid().equals( user.getUid() ) )
+        if ( currentUser.getUid().equals( user.getUid() ) || !canCurrentUserCanModify( currentUser, user, errors ) )
         {
-            // Cannot disable 2FA for yourself with this API endpoint.
-            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
-                user.getName() ) );
+            throw new UpdateAccessDeniedException( ErrorCode.E3021.getMessage() );
         }
 
-        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
-        {
-            return;
-        }
-
-        resetTwoFa( user );
+        resetTwoFactor( user );
     }
 
     @Override

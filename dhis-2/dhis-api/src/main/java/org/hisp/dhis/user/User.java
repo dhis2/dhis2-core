@@ -82,8 +82,6 @@ public class User
 {
     public static final int USERNAME_MAX_LENGTH = 255;
 
-    public static final String TWO_FACTOR_SECRET_ENROLLMENT_PREFIX = "ENROL";
-
     /**
      * Globally unique identifier for User.
      */
@@ -269,7 +267,7 @@ public class User
     /**
      * OBS! This field will only be set when de-serialising a user with settings
      * so the settings can be updated/stored.
-     * <p>
+     *
      * It is not initialised when loading a user from the database.
      */
     private transient UserSettings settings;
@@ -570,7 +568,7 @@ public class User
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTwoFactorEnabled()
     {
-        return this.secret != null;
+        return this.secret != null && !this.secret.isEmpty();
     }
 
     @JsonIgnore

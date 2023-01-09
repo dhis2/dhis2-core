@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -77,7 +76,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -121,7 +119,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -620,7 +617,7 @@ public class UserController
     public WebMessage disableTwoFa( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
-        userService.privilegedTwoFaDisable( currentUser, uid, errors::add );
+        userService.privilegedTwoFactorDisable( currentUser, uid, errors::add );
 
         if ( errors.isEmpty() )
         {
@@ -628,93 +625,6 @@ public class UserController
         }
 
         return WebMessageUtils.errorReports( errors );
-    }
-
-    // -------------------------------------------------------------------------
-    // PATCH
-    //
-
-    /**
-     * > This function is used to PATCH a user object
-     *
-     * @param pvUid The user's uid
-     * @param rpParameters The request parameters
-     * @param currentUser The user that is currently logged in.
-     * @param request The request object
-     */
-    @PatchMapping( value = "/{uid}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    @Override
-    public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-        throws NotFoundException,
-        ForbiddenException,
-        BadRequestException,
-        IOException
-    {
-        WebOptions options = new WebOptions( rpParameters );
-        List<User> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        User persistedObject = entities.get( 0 );
-
-        boolean twoFaBefore = persistedObject.isTwoFactorEnabled();
-
-        if ( !aclService.canUpdate( currentUser, persistedObject ) )
-        {
-            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
-        }
-
-        Patch patch = diff( request );
-
-        mergeUserCredentialsMutations( patch );
-
-        prePatchEntity( persistedObject, persistedObject );
-        patchService.apply( patch, persistedObject );
-
-        boolean twoFaAfter = persistedObject.isTwoFactorEnabled();
-
-        userService.validateTwoFactorUpdate( twoFaBefore, twoFaAfter, persistedObject );
-
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-
-        manager.update( persistedObject );
-
-        postPatchEntity( null, persistedObject );
-    }
-
-    /*
-     * This method is used to merge the user credentials with the user object.
-     */
-    private void mergeUserCredentialsMutations( Patch patch )
-    {
-        List<Mutation> mutations = patch.getMutations();
-        List<Mutation> filteredMutations = new ArrayList<>();
-        for ( Mutation mutation : mutations )
-        {
-            Mutation.Operation operation = mutation.getOperation();
-            String path = mutation.getPath();
-            Object value = mutation.getValue();
-
-            if ( path.startsWith( "userCredentials" ) )
-            {
-                path = path.replace( "userCredentials.", "" );
-
-                Mutation filtered = new Mutation( path, value, operation );
-                filteredMutations.add( filtered );
-            }
-            else
-            {
-                filteredMutations.add( mutation );
-            }
-
-            patch.setMutations( filteredMutations );
-        }
     }
 
     // -------------------------------------------------------------------------
