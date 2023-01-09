@@ -41,7 +41,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.MAIN_
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
@@ -494,10 +494,10 @@ public class HibernateTrackedEntityInstanceStore
 
         for ( OrderParam orderParam : params.getOrders() )
         {
-            Optional<TrackedEntityInstanceQueryParams.OrderColumn> column = getColumn( orderParam.getField() );
+            Optional<TrackedEntityInstanceQueryParams.OrderColumn> column = findColumn( orderParam.getField() );
 
             column.ifPresent(
-                s -> select.append( ", " ).append( MAIN_QUERY_ALIAS ).append( "." ).append( s.getColumn() ) );
+                s -> select.append( ", " ).append( column.get().getColumnWithMainTableSql() ) );
         }
 
         select.append( SPACE );
@@ -575,11 +575,11 @@ public class HibernateTrackedEntityInstanceStore
 
         for ( OrderParam orderParam : params.getOrders() )
         {
-            Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = getColumn( orderParam.getField() );
+            Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( orderParam.getField() );
 
             if ( orderColumn.isPresent() )
             {
-                columns.add( orderColumn.get().getTableAlias() + "." + orderColumn.get().getColumn() );
+                columns.add( orderColumn.get().getColumnWithTableAliasSql() );
             }
             else
             {
@@ -1317,13 +1317,13 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( OrderParam order : params.getOrders() )
             {
-                Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = getColumn( order.getField() );
+                Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( order.getField() );
 
                 if ( orderColumn.isPresent() )
                 {
                     String orderField = innerOrder
-                        ? orderColumn.get().getTableAlias() + "." + orderColumn.get().getColumn()
-                        : MAIN_QUERY_ALIAS + "." + orderColumn.get().getColumn();
+                        ? orderColumn.get().getColumnWithTableAliasSql()
+                        : orderColumn.get().getColumnWithMainTableSql();
 
                     orderFields.add( orderField + SPACE + order.getDirection() );
                 }

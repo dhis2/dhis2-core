@@ -1275,16 +1275,32 @@ public class TrackedEntityInstanceQueryParams
         }
 
         /**
-         * Get an Optinal of an OrderColumn matching by property name
-         *
          * @param property
-         * @return
+         * @return an Optinal of an OrderColumn matching by property name
          */
-        public static Optional<OrderColumn> getColumn( String property )
+        public static Optional<OrderColumn> findColumn( String property )
         {
             return Arrays.stream( values() )
                 .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
                 .findFirst();
+        }
+
+        /**
+         * @return a Sql string composed by the actual table alias and column.
+         *         In use for the inner query select fields and order by
+         */
+        public String getColumnWithTableAliasSql()
+        {
+            return tableAlias + "." + column;
+        }
+
+        /**
+         * @return a Sql string composed by the main query alias and column. In
+         *         use for the outer query select fields and order by
+         */
+        public String getColumnWithMainTableSql()
+        {
+            return MAIN_QUERY_ALIAS + "." + column;
         }
     }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +69,7 @@ public class OrderParamsHelper
 
         for ( OrderParam orderParam : orderParams )
         {
-            if ( getColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
+            if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
             {
                 errors.add( "Invalid order property: " + orderParam.getField() );
             }
