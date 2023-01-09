@@ -19,10 +19,6 @@
 
     <property name="description" />
     
-    <property name="sortOrder" />
-    
-    <property name="style" type="jbObjectStyle" />
-    
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programstageworkinglist_programid" lazy="false" />
 

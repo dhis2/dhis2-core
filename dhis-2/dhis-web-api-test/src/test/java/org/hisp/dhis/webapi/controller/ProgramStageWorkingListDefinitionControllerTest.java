@@ -54,6 +54,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
     private String attributeId;
 
+    private String dataElementId;
+
     @BeforeEach
     void setUp()
     {
@@ -69,6 +71,10 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         attributeId = assertStatus( HttpStatus.CREATED,
             POST( "/trackedEntityAttributes/",
                 "{'name':'attrA', 'shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
+
+        dataElementId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements/",
+                "{'name':'element', 'shortName':'DE2', 'valueType':'INTEGER', 'aggregationType':'SUM', 'domainType':'AGGREGATE'}" ) );
     }
 
     @Test
@@ -175,20 +181,34 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
                 "Start date or end date not specified with ABSOLUTE date period" ),
             Arguments.of( "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01','endDate':'2020-12-30'}}}",
                 "Start date can't be after end date" ),
-            Arguments.of( "{'dataFilters':[{'dataItem': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}",
+            Arguments.of( "{'dataFilters':[{'dataItem': 'madeUpItemId', 'ge': '10', 'le': '20'}]}",
+                "No data element found" ),
+            Arguments.of( "{'attributeValueFilters':[{'attribute': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}",
                 "No tracked entity attribute found" ),
             Arguments.of( "{'assignedUserMode':'PROVIDED'}",
                 "Assigned Users cannot be empty with PROVIDED assigned user mode" ),
             Arguments.of( "{'dataFilters':[{'dataItem': '', 'ge': '10', 'le': '20'}]}",
+                "Data item Uid is missing in filter" ),
+            Arguments.of( "{'attributeValueFilters':[{'attribute': '', 'ge': '10', 'le': '20'}]}",
                 "Attribute Uid is missing in filter" ) );
     }
 
     @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithDataFiltersAndExistingAttribute()
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithDataElementFiltersAndExistingDataElement()
     {
         String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
             createPostRequestBody(
-                "{ 'dataFilters':[{'dataItem': '" + attributeId + "', 'ge': '10', 'le': '20'}]}" ) ) );
+                "{ 'dataFilters':[{'dataItem': '" + dataElementId + "', 'ge': '10', 'le': '20'}]}" ) ) );
+
+        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    @Test
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithAttributeFiltersAndExistingAttribute()
+    {
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody(
+                "{ 'attributeValueFilters':[{'attribute': '" + attributeId + "', 'ge': '10', 'le': '20'}]}" ) ) );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
     }

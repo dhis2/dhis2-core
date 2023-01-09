@@ -41,6 +41,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
+import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -53,11 +54,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class ProgramStageQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
-
-    /**
-     * Property which contains the filters to be used when querying events.
-     */
-    private List<EventDataFilter> dataFilters;
 
     /**
      * Property indicating which event status types to filter
@@ -116,12 +112,16 @@ public class ProgramStageQueryCriteria implements Serializable
      */
     private Set<String> assignedUsers;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventDataFilter> getDataFilters()
-    {
-        return dataFilters;
-    }
+    /**
+     * Property which contains the filters to be used when querying events.
+     */
+    private List<EventDataFilter> dataFilters;
+
+    /**
+     * Property to filter tracked entity instances based on tracked entity
+     * attribute values
+     */
+    private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -199,4 +199,19 @@ public class ProgramStageQueryCriteria implements Serializable
     {
         return assignedUsers;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventDataFilter> getDataFilters()
+    {
+        return dataFilters;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<AttributeValueFilter> getAttributeValueFilters()
+    {
+        return attributeValueFilters;
+    }
+
 }

@@ -34,7 +34,6 @@ import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.translation.Translatable;
@@ -64,17 +63,6 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
      * Property indicating the description of the working list
      */
     private String description;
-
-    /**
-     * Property indicating the filter's order in program stage working list
-     * search UI
-     */
-    private int sortOrder;
-
-    /**
-     * Property indicating the filter's rendering style
-     */
-    private ObjectStyle style;
 
     /**
      * Criteria object representing selected projections, filtering and sorting
@@ -115,20 +103,6 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStageQueryCriteria getProgramStageQueryCriteria()
     {
         return programStageQueryCriteria;
@@ -146,15 +120,11 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
 
         ProgramStageWorkingListDefinition that = (ProgramStageWorkingListDefinition) o;
 
-        if ( sortOrder != that.sortOrder )
-            return false;
         if ( !Objects.equals( program, that.program ) )
             return false;
         if ( !Objects.equals( programStage, that.programStage ) )
             return false;
         if ( !Objects.equals( description, that.description ) )
-            return false;
-        if ( !Objects.equals( style, that.style ) )
             return false;
         return Objects.equals( programStageQueryCriteria, that.programStageQueryCriteria );
     }
@@ -166,8 +136,6 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
         result = 31 * result + (program != null ? program.hashCode() : 0);
         result = 31 * result + (programStage != null ? programStage.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + sortOrder;
-        result = 31 * result + (style != null ? style.hashCode() : 0);
         result = 31 * result + (programStageQueryCriteria != null ? programStageQueryCriteria.hashCode() : 0);
         return result;
     }

@@ -35,6 +35,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -46,6 +48,7 @@ import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -64,10 +67,12 @@ public class DefaultProgramStageWorkingListDefinitionService
 
     private final TrackedEntityAttributeService teaService;
 
+    private final DataElementService dataElementService;
+
     public DefaultProgramStageWorkingListDefinitionService(
         ProgramStageWorkingListDefinitionStore programStageWorkingListDefinitionStore, ProgramService programService,
         ProgramStageService programStageService, OrganisationUnitService organisationUnitService,
-        TrackedEntityAttributeService teaService )
+        TrackedEntityAttributeService teaService, DataElementService dataElementService )
     {
         checkNotNull( programStageWorkingListDefinitionStore );
         checkNotNull( programService );
@@ -78,6 +83,7 @@ public class DefaultProgramStageWorkingListDefinitionService
         this.programStageService = programStageService;
         this.organisationUnitService = organisationUnitService;
         this.teaService = teaService;
+        this.dataElementService = dataElementService;
     }
 
     @Override
@@ -131,6 +137,7 @@ public class DefaultProgramStageWorkingListDefinitionService
         validateAssignedUsers( errors, queryCriteria );
         validateOrganisationUnit( errors, queryCriteria );
         validateAttributeValueFilters( errors, queryCriteria );
+        validateDataFilters( errors, queryCriteria );
 
         return errors;
     }
@@ -199,16 +206,17 @@ public class DefaultProgramStageWorkingListDefinitionService
             return;
         }
 
-        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
-            && (dateFilterPeriod.getStartDate() == null || dateFilterPeriod.getEndDate() == null) )
+        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE )
         {
-            errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
+            if ( dateFilterPeriod.getStartDate() == null || dateFilterPeriod.getEndDate() == null )
+            {
+                errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
+            }
+            else if ( dateFilterPeriod.getStartDate().after( dateFilterPeriod.getEndDate() ) )
+            {
+                errors.add( "Start date can't be after end date for " + item );
+            }
         }
-        else if ( dateFilterPeriod.getStartDate().after( dateFilterPeriod.getEndDate() ) )
-        {
-            errors.add( "Start date can't be after end date for " + item );
-        }
-
     }
 
     private void validateAssignedUsers( List<String> errors, ProgramStageQueryCriteria queryCriteria )
@@ -242,22 +250,22 @@ public class DefaultProgramStageWorkingListDefinitionService
         }
     }
 
-    private void validateAttributeValueFilters( List<String> errors, ProgramStageQueryCriteria queryCriteria )
+    private void validateDataFilters( List<String> errors, ProgramStageQueryCriteria queryCriteria )
     {
-        List<EventDataFilter> attributeValueFilters = queryCriteria.getDataFilters();
-        if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
+        List<EventDataFilter> dataFilters = queryCriteria.getDataFilters();
+        if ( !CollectionUtils.isEmpty( dataFilters ) )
         {
-            attributeValueFilters.forEach( avf -> {
+            dataFilters.forEach( avf -> {
                 if ( StringUtils.isEmpty( avf.getDataItem() ) )
                 {
-                    errors.add( "Attribute Uid is missing in filter" );
+                    errors.add( "Data item Uid is missing in filter" );
                 }
                 else
                 {
-                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getDataItem() );
-                    if ( tea == null )
+                    DataElement dataElement = dataElementService.getDataElement( avf.getDataItem() );
+                    if ( dataElement == null )
                     {
-                        errors.add( "No tracked entity attribute found for attribute:" + avf.getDataItem() );
+                        errors.add( "No data element found for item:" + avf.getDataItem() );
                     }
                 }
 
@@ -265,4 +273,29 @@ public class DefaultProgramStageWorkingListDefinitionService
             } );
         }
     }
+
+    private void validateAttributeValueFilters( List<String> errors, ProgramStageQueryCriteria queryCriteria )
+    {
+        List<AttributeValueFilter> attributeValueFilters = queryCriteria.getAttributeValueFilters();
+        if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
+        {
+            attributeValueFilters.forEach( avf -> {
+                if ( StringUtils.isEmpty( avf.getAttribute() ) )
+                {
+                    errors.add( "Attribute Uid is missing in filter" );
+                }
+                else
+                {
+                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
+                    if ( tea == null )
+                    {
+                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
+                    }
+                }
+
+                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
+            } );
+        }
+    }
+
 }
