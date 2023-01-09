@@ -63,12 +63,12 @@ public class ProgramStageQueryCriteria implements Serializable
     /**
      * Property to filter events based on their created dates
      */
-    private DateFilterPeriod eventDate;
+    private DateFilterPeriod eventCreatedAt;
 
     /**
      * Property to filter events based on their scheduled dates
      */
-    private DateFilterPeriod eventScheduledDate;
+    private DateFilterPeriod scheduledAt;
 
     /**
      * Property indicating which enrollment status types to filter
@@ -78,12 +78,12 @@ public class ProgramStageQueryCriteria implements Serializable
     /**
      * Property to filter events based on program created dates
      */
-    private DateFilterPeriod enrollmentCreatedDate;
+    private DateFilterPeriod enrolledAt;
 
     /**
      * Property to filter events based on enrollment incident dates
      */
-    private DateFilterPeriod enrollmentIncidentDate;
+    private DateFilterPeriod enrollmentOccurredAt;
 
     /**
      * Property which contains the order of output columns
@@ -93,7 +93,7 @@ public class ProgramStageQueryCriteria implements Serializable
     /**
      * Property indication the OU for the filter.
      */
-    private String organisationUnit;
+    private String orgUnit;
 
     /**
      * Property indicating the OU selection mode for the event filter
@@ -132,16 +132,16 @@ public class ProgramStageQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEventDate()
+    public DateFilterPeriod getEventCreatedAt()
     {
-        return eventDate;
+        return eventCreatedAt;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEventScheduledDate()
+    public DateFilterPeriod getScheduledAt()
     {
-        return eventScheduledDate;
+        return scheduledAt;
     }
 
     @JsonProperty
@@ -153,16 +153,16 @@ public class ProgramStageQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEnrollmentCreatedDate()
+    public DateFilterPeriod getEnrolledAt()
     {
-        return enrollmentCreatedDate;
+        return enrolledAt;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEnrollmentIncidentDate()
+    public DateFilterPeriod getEnrollmentOccurredAt()
     {
-        return enrollmentIncidentDate;
+        return enrollmentOccurredAt;
     }
 
     @JsonProperty
@@ -174,9 +174,9 @@ public class ProgramStageQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOrganisationUnit()
+    public String getOrgUnit()
     {
-        return organisationUnit;
+        return orgUnit;
     }
 
     @JsonProperty

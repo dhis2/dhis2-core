@@ -28,6 +28,8 @@
 package org.hisp.dhis.programstageworkinglistdefinition;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.ValidationUtil.validateAttributeValueFilters;
+import static org.hisp.dhis.util.ValidationUtil.validateDateFilterPeriod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +45,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.programstagefilter.DateFilterPeriod;
-import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -136,7 +134,7 @@ public class DefaultProgramStageWorkingListDefinitionService
         validateDateFilterPeriods( errors, queryCriteria );
         validateAssignedUsers( errors, queryCriteria );
         validateOrganisationUnit( errors, queryCriteria );
-        validateAttributeValueFilters( errors, queryCriteria );
+        validateAttributeValueFilters( errors, queryCriteria.getAttributeValueFilters(), teaService );
         validateDataFilters( errors, queryCriteria );
 
         return errors;
@@ -193,30 +191,10 @@ public class DefaultProgramStageWorkingListDefinitionService
 
     private void validateDateFilterPeriods( List<String> errors, ProgramStageQueryCriteria queryCriteria )
     {
-        validateDateFilterPeriod( errors, "EnrollmentCreatedDate", queryCriteria.getEnrollmentCreatedDate() );
-        validateDateFilterPeriod( errors, "EnrollmentIncidentDate", queryCriteria.getEnrollmentIncidentDate() );
-        validateDateFilterPeriod( errors, "EventDate", queryCriteria.getEventDate() );
-        validateDateFilterPeriod( errors, "EventScheduledDate", queryCriteria.getEventScheduledDate() );
-    }
-
-    private void validateDateFilterPeriod( List<String> errors, String item, DateFilterPeriod dateFilterPeriod )
-    {
-        if ( dateFilterPeriod == null || dateFilterPeriod.getType() == null )
-        {
-            return;
-        }
-
-        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE )
-        {
-            if ( dateFilterPeriod.getStartDate() == null || dateFilterPeriod.getEndDate() == null )
-            {
-                errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
-            }
-            else if ( dateFilterPeriod.getStartDate().after( dateFilterPeriod.getEndDate() ) )
-            {
-                errors.add( "Start date can't be after end date for " + item );
-            }
-        }
+        validateDateFilterPeriod( errors, "EnrollmentCreatedDate", queryCriteria.getEnrolledAt() );
+        validateDateFilterPeriod( errors, "EnrollmentIncidentDate", queryCriteria.getEnrollmentOccurredAt() );
+        validateDateFilterPeriod( errors, "EventDate", queryCriteria.getEventCreatedAt() );
+        validateDateFilterPeriod( errors, "EventScheduledDate", queryCriteria.getScheduledAt() );
     }
 
     private void validateAssignedUsers( List<String> errors, ProgramStageQueryCriteria queryCriteria )
@@ -230,17 +208,17 @@ public class DefaultProgramStageWorkingListDefinitionService
 
     private void validateOrganisationUnit( List<String> errors, ProgramStageQueryCriteria queryCriteria )
     {
-        if ( queryCriteria.getOrganisationUnit() != null )
+        if ( queryCriteria.getOrgUnit() != null )
         {
-            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( queryCriteria.getOrganisationUnit() );
+            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( queryCriteria.getOrgUnit() );
             if ( ou == null )
             {
-                errors.add( "Org unit is specified but does not exist: " + queryCriteria.getOrganisationUnit() );
+                errors.add( "Org unit is specified but does not exist: " + queryCriteria.getOrgUnit() );
                 return;
             }
         }
 
-        if ( StringUtils.isEmpty( queryCriteria.getOrganisationUnit() )
+        if ( StringUtils.isEmpty( queryCriteria.getOrgUnit() )
             && (queryCriteria.getOuMode() == OrganisationUnitSelectionMode.SELECTED
                 || queryCriteria.getOuMode() == OrganisationUnitSelectionMode.DESCENDANTS
                 || queryCriteria.getOuMode() == OrganisationUnitSelectionMode.CHILDREN) )
@@ -273,29 +251,4 @@ public class DefaultProgramStageWorkingListDefinitionService
             } );
         }
     }
-
-    private void validateAttributeValueFilters( List<String> errors, ProgramStageQueryCriteria queryCriteria )
-    {
-        List<AttributeValueFilter> attributeValueFilters = queryCriteria.getAttributeValueFilters();
-        if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
-        {
-            attributeValueFilters.forEach( avf -> {
-                if ( StringUtils.isEmpty( avf.getAttribute() ) )
-                {
-                    errors.add( "Attribute Uid is missing in filter" );
-                }
-                else
-                {
-                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
-                    if ( tea == null )
-                    {
-                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
-                    }
-                }
-
-                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
-            } );
-        }
-    }
-
 }
