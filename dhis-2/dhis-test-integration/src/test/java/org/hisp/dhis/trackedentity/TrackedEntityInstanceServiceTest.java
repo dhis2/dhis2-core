@@ -349,17 +349,17 @@ class TrackedEntityInstanceServiceTest
         entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        int trackedEntitiesCounter = entityInstanceService.getTrackedEntityInstanceCount( params, true, true );
+        int counter = entityInstanceService.getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true,
+            true );
 
-        assertEquals( 1, trackedEntitiesCounter );
+        assertEquals( 1, counter );
     }
 
     @Test
     void shouldCountZeroEntitiesWhenNonePresent()
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        int trackedEntitiesCounter = entityInstanceService.getTrackedEntityInstanceCount( params, true, true );
+        int trackedEntitiesCounter = entityInstanceService
+            .getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true, true );
 
         assertEquals( 0, trackedEntitiesCounter );
     }
