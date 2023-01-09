@@ -84,6 +84,7 @@ public class DataIntegrityController
         @RequestParam( required = false ) List<String> checks,
         @CurrentUser User currentUser )
     {
+
         return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
             .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
     }
