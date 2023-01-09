@@ -60,4 +60,5 @@ public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck
     {
         return getNumber( "percentage" ).number();
     }
+
 }

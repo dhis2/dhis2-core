@@ -115,7 +115,7 @@ public abstract class AttributeValidator
         }
     }
 
-    protected void validateAttributeValue( Reporter reporter, TrackerDto trackerDto,
+    public void validateAttributeValue( Reporter reporter, TrackerDto trackerDto,
         TrackedEntityAttribute tea,
         String value )
     {

@@ -30,33 +30,29 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Test for organisation units which are not part of a compulsory organisation
+ * unit group set.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/compulsory_orgunit_groups.yaml}
+ *
  * @author Jason P. Pickering
  */
 class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private String outOfGroup;
-
     private String inGroup;
 
     private String testOrgUnitGroup;
 
-    private String testOrgUnitGroupSet;
-
     private final String check = "orgunit_compulsory_group_count";
-
-    /* TODO: The zero case here returns zero... */
 
     @Test
     void testOrgUnitNotInCompulsoryGroup()
     {
 
-        outOfGroup = assertStatus( HttpStatus.CREATED,
+        String outOfGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
 
@@ -71,7 +67,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
@@ -95,7 +91,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                     + "'}]}" ) );
 
         //Add it to a group set
-        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
@@ -111,23 +107,4 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteMetadataObject( "organisationUnits", outOfGroup );
-        deleteMetadataObject( "organisationUnits", inGroup );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
-        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
-
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", outOfGroup );
-        deleteMetadataObject( "organisationUnits", inGroup );
-        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
-        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
-
-    }
 }

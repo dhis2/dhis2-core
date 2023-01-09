@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -53,6 +53,7 @@ import com.google.common.collect.Lists;
  * @author Zubair Asghar
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
 public class DefaultProgramRuleEngineService
     implements ProgramRuleEngineService
@@ -61,6 +62,7 @@ public class DefaultProgramRuleEngineService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Qualifier( "notificationRuleEngine" )
     private final ProgramRuleEngine programRuleEngine;
 
     private final List<RuleActionImplementer> ruleActionImplementers;
@@ -72,27 +74,6 @@ public class DefaultProgramRuleEngineService
     private final ProgramService programService;
 
     private final DhisConfigurationProvider config;
-
-    public DefaultProgramRuleEngineService(
-        @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
-        List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ProgramService programService,
-        DhisConfigurationProvider config )
-    {
-        checkNotNull( programRuleEngine );
-        checkNotNull( ruleActionImplementers );
-        checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
-        checkNotNull( programService );
-        checkNotNull( config );
-
-        this.programRuleEngine = programRuleEngine;
-        this.ruleActionImplementers = ruleActionImplementers;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.programService = programService;
-        this.config = config;
-    }
 
     @Override
     @Transactional

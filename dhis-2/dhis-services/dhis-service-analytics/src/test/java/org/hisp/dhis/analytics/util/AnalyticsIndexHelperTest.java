@@ -63,10 +63,8 @@ class AnalyticsIndexHelperTest
 
         analyticsTable.getTablePartitions().add( stubAnalyticsTablePartition() );
 
-        // When
         List<AnalyticsIndex> indexes = getIndexes( List.of( analyticsTable ), analyticsTable.getTablePartitions() );
 
-        // Then
         assertThat( indexes, hasSize( 1 ) );
         assertThat( indexes.get( 0 ).getTable(), is( equalTo( "analytics_event_temp_2022" ) ) );
         assertThat( indexes.get( 0 ).getColumns(), hasSize( 1 ) );
@@ -76,13 +74,10 @@ class AnalyticsIndexHelperTest
     @Test
     void testCreateIndexStatement()
     {
-        // Given
         AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
 
-        // When
         String statement = createIndexStatement( someAnalyticsIndex, EVENT );
 
-        // Then
         assertThat( statement, containsString( "create index \"in_column_table" ) );
         assertThat( statement, containsString( "on table using" ) );
         assertThat( statement, containsString( "btree (column)" ) );
@@ -91,26 +86,20 @@ class AnalyticsIndexHelperTest
     @Test
     void testGetIndexName()
     {
-        // Given
         AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
 
-        // When
         String statement = getIndexName( someAnalyticsIndex, EVENT );
 
-        // Then
         assertThat( statement, containsString( "\"in_column_table" ) );
     }
 
     @Test
     void testGetIndexNameWithFunction()
     {
-        // Given
         AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE, LOWER );
 
-        // When
         String statement = getIndexName( someAnalyticsIndex, EVENT );
 
-        // Then
         assertThat( statement, containsString( "\"in_column_table" ) );
         assertThat( statement, containsString( "_lower\"" ) );
     }
