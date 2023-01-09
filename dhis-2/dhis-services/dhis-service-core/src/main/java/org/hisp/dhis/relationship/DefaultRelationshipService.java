@@ -34,6 +34,8 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -44,22 +46,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.relationship.RelationshipService" )
 public class DefaultRelationshipService
     implements RelationshipService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final RelationshipStore relationshipStore;
-
-    public DefaultRelationshipService( RelationshipStore relationshipStore )
-    {
-        checkNotNull( relationshipStore );
-
-        this.relationshipStore = relationshipStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

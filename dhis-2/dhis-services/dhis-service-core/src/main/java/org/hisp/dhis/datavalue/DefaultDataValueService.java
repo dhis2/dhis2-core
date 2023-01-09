@@ -69,10 +69,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataValueService
     implements DataValueService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataValueStore dataValueStore;
 
     private final DataValueAuditService dataValueAuditService;

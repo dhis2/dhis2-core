@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService
 {
     private final CurrentUserService currentUserService;

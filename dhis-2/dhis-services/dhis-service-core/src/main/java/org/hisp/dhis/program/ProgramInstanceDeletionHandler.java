@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Quang Nguyen
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramInstanceDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramInstance.class );

@@ -45,7 +45,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
@@ -120,7 +120,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {

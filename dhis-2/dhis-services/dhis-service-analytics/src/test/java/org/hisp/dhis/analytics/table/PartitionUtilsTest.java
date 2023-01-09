@@ -85,11 +85,14 @@ class PartitionUtilsTest
         period.setStartDate( new DateTime( 2008, 3, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2011, 7, 1, 0, 0 ).toDate() );
         Partitions expected = new Partitions( Set.of( 2008, 2009, 2010, 2011 ) );
+
         assertEquals( expected, PartitionUtils.getPartitions( period ) );
+
         period = new Period();
         period.setStartDate( new DateTime( 2009, 8, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2010, 2, 1, 0, 0 ).toDate() );
         expected = new Partitions( Set.of( 2009, 2010 ) );
+
         assertEquals( expected, PartitionUtils.getPartitions( period ) );
     }
 
@@ -105,6 +108,7 @@ class PartitionUtilsTest
             new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
         AnalyticsTable tB = new AnalyticsTable( AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values );
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( List.of( tA, tB ) );
+
         assertEquals( 3, partitions.size() );
     }
 
@@ -113,12 +117,18 @@ class PartitionUtilsTest
     {
         DataQueryParams params = DataQueryParams.newBuilder().withPeriods( List.of( q1, q2, q3 ) ).build();
         Partitions partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.DATA_VALUE );
+
         assertEquals( 3, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
         assertTrue( partitions.getPartitions().contains( 2019 ) );
         assertTrue( partitions.getPartitions().contains( 0 ) );
-        params = DataQueryParams.newBuilder().withPeriods( List.of( q1 ) ).build();
+
+        params = DataQueryParams.newBuilder()
+            .withPeriods( List.of( q1 ) )
+            .build();
+
         partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.ORG_UNIT_TARGET );
+
         assertEquals( 1, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
     }

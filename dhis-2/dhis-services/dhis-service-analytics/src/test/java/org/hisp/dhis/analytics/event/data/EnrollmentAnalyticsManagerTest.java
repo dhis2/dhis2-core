@@ -512,23 +512,19 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
 
-        // When
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
 
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -536,10 +532,8 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
@@ -550,7 +544,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -564,10 +557,9 @@ class EnrollmentAnalyticsManagerTest extends
         repeatableStageParams.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
         repeatableStageParams.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
         item.setRepeatableStageParams( repeatableStageParams );
-        // When
+
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
                 + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
@@ -580,7 +572,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -592,10 +583,9 @@ class EnrollmentAnalyticsManagerTest extends
         repeatableStageParams.setStartIndex( 0 );
         repeatableStageParams.setCount( 1 );
         item.setRepeatableStageParams( repeatableStageParams );
-        // When
+
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
@@ -607,17 +597,14 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnAndNoProgramStage()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         String colName = quote( item.getItemName() );
         String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
@@ -634,7 +621,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnWithProgramStage()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -642,10 +628,8 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         String colName = quote( item.getItemName() );
         String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
@@ -661,17 +645,14 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnWithNoProgram()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
         item.setProgramStage( programStage );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         assertThat( columnSql, is( EMPTY ) );
     }
 }

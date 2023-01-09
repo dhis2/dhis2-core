@@ -525,6 +525,27 @@ class TrackedEntityInstanceServiceTest
             entityInstanceC1.getId() ), teiIdList );
     }
 
+    @Test
+    void shouldCountOneEntityWhenOnePresent()
+    {
+        entityInstanceA1.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+
+        int counter = entityInstanceService.getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true,
+            true );
+
+        assertEquals( 1, counter );
+    }
+
+    @Test
+    void shouldCountZeroEntitiesWhenNonePresent()
+    {
+        int trackedEntitiesCounter = entityInstanceService
+            .getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true, true );
+
+        assertEquals( 0, trackedEntitiesCounter );
+    }
+
     private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
     {
         ProgramStage stage = createProgramStage( programStage, program );

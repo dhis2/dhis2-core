@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.system;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +66,7 @@ import com.google.common.collect.ImmutableList;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.system.SystemService" )
 public class DefaultSystemService
     implements SystemService, InitializingBean
@@ -82,25 +82,6 @@ public class DefaultSystemService
     private final CalendarService calendarService;
 
     private final SystemSettingManager systemSettingManager;
-
-    public DefaultSystemService( LocationManager locationManager, DatabaseInfo databaseInfo,
-        ConfigurationService configurationService, DhisConfigurationProvider dhisConfig,
-        CalendarService calendarService, SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( locationManager );
-        checkNotNull( databaseInfo );
-        checkNotNull( configurationService );
-        checkNotNull( dhisConfig );
-        checkNotNull( calendarService );
-        checkNotNull( systemSettingManager );
-
-        this.locationManager = locationManager;
-        this.databaseInfo = databaseInfo;
-        this.configurationService = configurationService;
-        this.dhisConfig = dhisConfig;
-        this.calendarService = calendarService;
-        this.systemSettingManager = systemSettingManager;
-    }
 
     /**
      * Variable holding fixed system info state.
@@ -281,6 +262,11 @@ public class DefaultSystemService
             {
                 // Do nothing
             }
+        }
+        else
+        {
+            log.error( "build.properties is not available in the classpath. " +
+                "Make sure you build the project with Maven before you start the embedded Jetty server." );
         }
 
         return info;

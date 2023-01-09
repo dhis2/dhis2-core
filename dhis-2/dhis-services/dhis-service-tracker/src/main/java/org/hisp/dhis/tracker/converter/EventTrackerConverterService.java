@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.converter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
@@ -37,6 +36,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,19 +67,12 @@ import com.google.common.base.Objects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service
 public class EventTrackerConverterService
     implements RuleEngineConverterService<Event, ProgramStageInstance>
 {
-
     private final NotesConverterService notesConverterService;
-
-    public EventTrackerConverterService( NotesConverterService notesConverterService )
-    {
-        checkNotNull( notesConverterService );
-
-        this.notesConverterService = notesConverterService;
-    }
 
     @Override
     public Event to( ProgramStageInstance programStageInstance )

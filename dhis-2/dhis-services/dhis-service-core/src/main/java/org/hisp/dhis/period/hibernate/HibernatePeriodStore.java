@@ -67,7 +67,6 @@ public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
-
     private final Cache<Long> periodIdCache;
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

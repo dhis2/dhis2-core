@@ -54,17 +54,18 @@ class DataIntegrityYamlReaderTest
             sql -> check -> new DataIntegritySummary( check, new Date(), null, 1, 100d ),
             sql -> check -> new DataIntegrityDetails( check, new Date(), null,
                 List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 17, checks.size() );
+        assertEquals( 61, checks.size() );
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );
         assertEquals( "Categories", check.getSection() );
         assertEquals( "categories", check.getIssuesIdType() );
         assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
-        assertEquals( "Categories should always have at least a single category options.", check.getIntroduction() );
+        assertEquals( "Categories should always have at least one category option.", check.getIntroduction() );
         assertEquals( "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
             + " should be added to the category.", check.getRecommendation() );
+        assertEquals( false, check.isSlow() );
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
     }

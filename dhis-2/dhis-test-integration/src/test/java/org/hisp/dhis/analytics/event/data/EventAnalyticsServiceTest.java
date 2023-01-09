@@ -38,22 +38,27 @@ import static java.util.stream.IntStream.range;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
+import static org.hisp.dhis.program.AnalyticsType.EVENT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -86,7 +91,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
@@ -99,6 +106,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -158,6 +166,9 @@ class EventAnalyticsServiceTest
     private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
     @Autowired
+    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
+    @Autowired
     private UserService _userService;
 
     private OrganisationUnit ouA;
@@ -209,6 +220,8 @@ class EventAnalyticsServiceTest
     private CategoryOptionCombo cocA;
 
     private CategoryOptionCombo cocB;
+
+    private DataElement deA;
 
     private DataElement deU;
 
@@ -332,6 +345,10 @@ class EventAnalyticsServiceTest
         Date apr15 = new GregorianCalendar( 2017, APRIL, 15 ).getTime();
 
         // Data Elements
+        deA = createDataElement( 'A', INTEGER, SUM );
+        deA.setUid( "deInteger0A" );
+        dataElementService.addDataElement( deA );
+
         deU = createDataElement( 'U', ORGANISATION_UNIT, NONE );
         deU.setUid( "deOrgUnitU" );
         dataElementService.addDataElement( deU );
@@ -339,6 +356,7 @@ class EventAnalyticsServiceTest
         // Program Stages
         psA = createProgramStage( 'A', 0 );
         psA.setUid( "progrStageA" );
+        psA.addDataElement( deA, 1 );
         psA.addDataElement( deU, 2 );
         idObjectManager.save( psA );
 
@@ -374,7 +392,7 @@ class EventAnalyticsServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         idObjectManager.save( trackedEntityType );
 
-        // Tracked Entities (Registrations)
+        // Tracked Entity Instances (Registrations)
         org.hisp.dhis.trackedentity.TrackedEntityInstance teiA = createTrackedEntityInstance( ouD );
         teiA.setUid( "trackEntInA" );
         teiA.setTrackedEntityType( trackedEntityType );
@@ -396,38 +414,50 @@ class EventAnalyticsServiceTest
         piB.setIncidentDate( jan1 );
         programInstanceService.addProgramInstance( piB );
 
-        // Change Enrollment Ownership through time
-        addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb14 );
-        addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar14 );
-        addProgramOwnershipHistory( programA, teiA, ouH, mar15, apr15 );
+        // Change programA / teiA ownership through time:
+        // Jan 1 (enrollment) - Jan 15: ouE
+        // Jan 15 - Feb 15: ouF
+        // Feb 15 - Mar 15: ouG
+        // Mar 15 - present: ouH
+        addProgramOwnershipHistory( programA, teiA, ouE, piA.getEnrollmentDate(), jan15 );
+        addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb15 );
+        addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar15 );
+        trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
         ProgramStageInstance psiA = createProgramStageInstance( psA, piA, ouI );
         psiA.setDueDate( jan15 );
         psiA.setExecutionDate( jan15 );
         psiA.setUid( "progStagInA" );
-        psiA.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
+        psiA.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "1" ),
+            new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiA.setAttributeOptionCombo( cocDefault );
 
         ProgramStageInstance psiB = createProgramStageInstance( psB, piB, ouI );
         psiB.setDueDate( jan15 );
         psiB.setExecutionDate( jan15 );
         psiB.setUid( "progStagInB" );
-        psiB.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
+        psiB.setEventDataValues( Set.of(
+            new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiB.setAttributeOptionCombo( cocDefault );
 
         ProgramStageInstance psiC = createProgramStageInstance( psA, piA, ouJ );
         psiC.setDueDate( feb15 );
         psiC.setExecutionDate( feb15 );
         psiC.setUid( "progStagInC" );
-        psiC.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
+        psiC.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "2" ),
+            new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
         psiC.setAttributeOptionCombo( cocDefault );
 
         ProgramStageInstance psiD = createProgramStageInstance( psA, piA, ouK );
         psiD.setDueDate( mar15 );
         psiD.setExecutionDate( mar15 );
         psiD.setUid( "progStagInD" );
-        psiD.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
+        psiD.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "4" ),
+            new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
         psiD.setAttributeOptionCombo( cocDefault );
 
         saveEvents( List.of( psiA, psiB, psiC, psiD ) );
@@ -439,7 +469,7 @@ class EventAnalyticsServiceTest
         enableDataSharing( userA, programB, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( userA );
 
-        // Sleep for one second. This is needed because last updated time for
+        // Wait for one second. This is needed because last updated time for
         // the data we just created is stored to milliseconds, hh:mm:ss.SSS.
         // The queries to build analytics tables tests data last updated times
         // to be in the past but compares only to the second. So for example a
@@ -447,10 +477,13 @@ class EventAnalyticsServiceTest
         // future compared with 11:23:50. To compensate for this, we wait a
         // second until the time is 11:23:51. Then 11:23:50.123 will appear to
         // be in the past.
-        TimeUnit.SECONDS.sleep( 1 );
+        Date oneSecondFromNow = Date
+            .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 
         // Generate resource tables and analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( oneSecondFromNow )
+            .build(),
             NoopJobProgress.INSTANCE );
     }
 
@@ -921,23 +954,153 @@ class EventAnalyticsServiceTest
     }
 
     // -------------------------------------------------------------------------
+    // Test program indicators with orgUnitField
+    // -------------------------------------------------------------------------
+
+    @Test
+    void testEventProgramIndicatorWithNoOrgUnitField()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", null );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
+            .withOrganisationUnits( level3Ous )
+            .build();
+
+        Grid grid = eventTarget.getAggregatedEventData( params );
+
+        assertGridContains(
+            // Headers
+            List.of( "dy", "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "programIndA", "201701", "ouabcdefghI", "1.0" ),
+                List.of( "programIndA", "201702", "ouabcdefghJ", "2.0" ),
+                List.of( "programIndA", "201703", "ouabcdefghK", "4.0" ) ),
+            grid );
+    }
+
+    @Test
+    void testEventProgramIndicatorWithOrgUnitFieldAtStart()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START" );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
+            .withOrganisationUnits( level3Ous )
+            .build();
+
+        Grid grid = eventTarget.getAggregatedEventData( params );
+
+        assertGridContains(
+            // Headers
+            List.of( "dy", "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "programIndA", "201701", "ouabcdefghE", "1.0" ),
+                List.of( "programIndA", "201702", "ouabcdefghF", "2.0" ),
+                List.of( "programIndA", "201703", "ouabcdefghG", "4.0" ) ),
+            grid );
+    }
+
+    @Test
+    void testEventProgramIndicatorWithOrgUnitFieldAtEnd()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END" );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
+            .withOrganisationUnits( level3Ous )
+            .build();
+
+        Grid grid = eventTarget.getAggregatedEventData( params );
+
+        assertGridContains(
+            // Headers
+            List.of( "dy", "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "programIndA", "201701", "ouabcdefghF", "1.0" ),
+                List.of( "programIndA", "201702", "ouabcdefghG", "2.0" ),
+                List.of( "programIndA", "201703", "ouabcdefghH", "4.0" ) ),
+            grid );
+    }
+
+    @Test
+    void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START" );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan ), "Monthly" )
+            .withOrganisationUnits( level3Ous )
+            .build();
+
+        Grid grid = eventTarget.getAggregatedEventData( params );
+
+        assertGridContains(
+            // Headers
+            List.of( "dy", "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "programIndA", "201701", "ouabcdefghE", "4.0" ) ),
+            grid );
+    }
+
+    @Test
+    void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END" );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan ), "Monthly" )
+            .withOrganisationUnits( level3Ous )
+            .build();
+
+        Grid grid = eventTarget.getAggregatedEventData( params );
+
+        assertGridContains(
+            // Headers
+            List.of( "dy", "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "programIndA", "201701", "ouabcdefghF", "4.0" ) ),
+            grid );
+    }
+
+    // -------------------------------------------------------------------------
     // Supportive test methods
     // -------------------------------------------------------------------------
+
+    private EventQueryParams.Builder getBaseEventQueryParamsBuilder()
+    {
+        return new EventQueryParams.Builder()
+            .withOutputType( EventOutputType.EVENT )
+            .withDisplayProperty( DisplayProperty.SHORTNAME )
+            .withEndpointItem( RequestTypeAware.EndpointItem.EVENT )
+            .withCoordinateFields( List.of( "psigeometry" ) );
+    }
 
     /**
      * Params builder A for getting aggregated grids.
      */
     private EventQueryParams.Builder getAggregatedQueryBuilderA()
     {
-        return new EventQueryParams.Builder()
+        return getBaseEventQueryParamsBuilder()
             .withProgram( programA )
             .withProgramStage( psA )
-            .withOutputType( EventOutputType.EVENT )
-            .withDisplayProperty( DisplayProperty.SHORTNAME )
-            .withEndpointItem( RequestTypeAware.EndpointItem.EVENT )
             .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
-            .withOrganisationUnits( level3Ous )
-            .withCoordinateFields( List.of( "psigeometry" ) );
+            .withOrganisationUnits( level3Ous );
     }
 
     /**
@@ -961,16 +1124,23 @@ class EventAnalyticsServiceTest
         BaseDimensionalObject orgUnitDimension = new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) );
 
-        return new EventQueryParams.Builder()
+        return getBaseEventQueryParamsBuilder()
             .withProgram( programA )
             .addItem( new QueryItem( atU, null, atU.getValueType(), atU.getAggregationType(), null ) )
-            .withOutputType( EventOutputType.EVENT )
-            .withDisplayProperty( DisplayProperty.SHORTNAME )
-            .withEndpointItem( RequestTypeAware.EndpointItem.EVENT )
             .addDimension( orgUnitDimension )
-            .addDimension( periodDimension )
-            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
-            .withCoordinateFields( List.of( "psigeometry" ) );
+            .addDimension( periodDimension );
+    }
+
+    /**
+     * Creates program indicator A.
+     */
+    private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
+        String orgUnitField )
+    {
+        ProgramIndicator pi = createProgramIndicator( 'A', analyticsType, programA, expression, null );
+        pi.setUid( "programIndA" );
+        pi.setOrgUnitField( orgUnitField );
+        return pi;
     }
 
     /**

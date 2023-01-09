@@ -98,6 +98,8 @@ public class ProgramIndicator
 
     private String formName;
 
+    private String orgUnitField;
+
     /**
      * Number of decimals to use for indicator value, null implies default.
      */
@@ -442,5 +444,17 @@ public class ProgramIndicator
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
+    public void setOrgUnitField( String orgUnitField )
+    {
+        this.orgUnitField = orgUnitField;
     }
 }

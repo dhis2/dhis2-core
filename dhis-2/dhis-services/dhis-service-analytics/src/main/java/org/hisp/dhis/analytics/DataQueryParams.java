@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -112,6 +113,7 @@ import org.springframework.util.Assert;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -943,11 +945,17 @@ public class DataQueryParams
 
     /**
      * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
+     * takes place if aggregation type is none, first or last, or if data type
+     * is text.
+     * <p>
+     * Note that the check for {@link DataType#TEXT} is for backwards
+     * compatibility only and text type data elements should have an appropriate
+     * aggregation type.
      */
     public boolean isAggregation()
     {
-        return !(isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType);
+        return !(isAnyAggregationType( AggregationType.NONE, AggregationType.FIRST, AggregationType.LAST ) ||
+            DataType.TEXT == dataType);
     }
 
     /**
@@ -955,7 +963,15 @@ public class DataQueryParams
      */
     public boolean isAggregationType( AggregationType type )
     {
-        return aggregationType != null && aggregationType.isAggregationType( type );
+        return hasAggregationType() && aggregationType.isAggregationType( type );
+    }
+
+    /**
+     * Indicates whether this query has any of the given aggregation types.
+     */
+    public boolean isAnyAggregationType( AggregationType... types )
+    {
+        return hasAggregationType() && Sets.newHashSet( types ).contains( aggregationType.getAggregationType() );
     }
 
     /**
@@ -1156,6 +1172,16 @@ public class DataQueryParams
         return getDimensionsAndFilters().stream()
             .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns all dimensions except any period dimension.
+     */
+    public List<DimensionalObject> getNonPeriodDimensions()
+    {
+        List<DimensionalObject> dims = new ArrayList<>( dimensions );
+        dims.remove( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        return List.copyOf( dims );
     }
 
     /**
@@ -1443,7 +1469,7 @@ public class DataQueryParams
      */
     public boolean hasDateRangeList()
     {
-        return dateRangeList != null && !dateRangeList.isEmpty();
+        return isNotEmpty( dateRangeList );
     }
 
     /**
@@ -2434,9 +2460,7 @@ public class DataQueryParams
 
     public String getValueColumn()
     {
-        return (valueColumn != null)
-            ? valueColumn
-            : VALUE_COLUMN_NAME;
+        return ObjectUtils.firstNonNull( valueColumn, VALUE_COLUMN_NAME );
     }
 
     public String getPeriodType()
@@ -2508,8 +2532,8 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getAllDataDimensionItems()
     {
-        return ImmutableList
-            .copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+        return ImmutableList.copyOf(
+            ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**

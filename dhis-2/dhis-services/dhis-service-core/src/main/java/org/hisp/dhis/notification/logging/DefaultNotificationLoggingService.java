@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.notification.logging;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,19 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
-
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.notification.logging.NotificationLoggingService" )
 public class DefaultNotificationLoggingService
     implements NotificationLoggingService
 {
     private final NotificationLoggingStore notificationLoggingStore;
-
-    public DefaultNotificationLoggingService( NotificationLoggingStore notificationLoggingStore )
-    {
-        checkNotNull( notificationLoggingStore );
-
-        this.notificationLoggingStore = notificationLoggingStore;
-    }
 
     @Override
     @Transactional( readOnly = true )

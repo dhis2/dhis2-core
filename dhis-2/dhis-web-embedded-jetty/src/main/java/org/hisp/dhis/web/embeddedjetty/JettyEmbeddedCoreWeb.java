@@ -42,6 +42,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -49,7 +50,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 {
-    private static final int DEFAULT_HTTP_PORT = 9080;
+    private static final int DEFAULT_HTTP_PORT = 9090;
 
     private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
@@ -94,6 +95,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         ServletContextHandler contextHandler = new ServletContextHandler( ServletContextHandler.SESSIONS );
         contextHandler.setErrorHandler( null );
 
+        RequestContextListener requestContextListener = new RequestContextListener();
+        contextHandler.addEventListener( requestContextListener );
+
         AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
         contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
 
@@ -131,6 +135,12 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
         context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
+
+        context.addServlet( "GetModulesServlet", GetAppMenuServlet.class )
+            .addMapping( "/dhis-web-commons/menu/getModules.action" );
+
+        context.addServlet( "RootPageServlet", RootPageServlet.class )
+            .addMapping( "/index.html" );
 
         return contextHandler;
     }
