@@ -250,6 +250,8 @@ public enum ErrorCode
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
+    E4061(
+        "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

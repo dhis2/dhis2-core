@@ -87,10 +87,6 @@ class QueryValidatorTest
 {
     private DefaultQueryValidator queryValidator;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-
     private CategoryOption coA;
 
     private CategoryOption coB;

@@ -56,10 +56,10 @@ class QueryPlannerUtilsTest
     @Test
     void testGetAggregationType()
     {
-        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE,
-            DataType.NUMERIC, true );
-        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE,
-            DataType.NUMERIC, true );
+        AnalyticsAggregationType typeA = new AnalyticsAggregationType(
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        AnalyticsAggregationType typeB = new AnalyticsAggregationType(
+            AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true );
         assertEquals( typeA,
             QueryPlannerUtils.getAggregationType(
                 new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER,
