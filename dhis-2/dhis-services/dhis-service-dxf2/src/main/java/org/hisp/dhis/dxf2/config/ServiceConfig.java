@@ -95,6 +95,7 @@ import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstance
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DashboardCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
@@ -253,7 +254,8 @@ public class ServiceConfig
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
                 getValidationCheckByClass( GeoJsonAttributesCheck.class ),
-                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ),
+                getValidationCheckByClass( DashboardCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
