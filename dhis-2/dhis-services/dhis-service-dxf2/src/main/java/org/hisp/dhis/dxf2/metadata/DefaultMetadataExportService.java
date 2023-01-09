@@ -104,6 +104,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
@@ -142,6 +143,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Override
     @SuppressWarnings( "unchecked" )
+    @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata(
         MetadataExportParams params )
     {
@@ -203,6 +205,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public RootNode getMetadataAsNode( MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
@@ -236,6 +239,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void validate( MetadataExportParams params )
     {
         if ( params.getUser() == null )
@@ -262,6 +266,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Override
     @SuppressWarnings( "unchecked" )
+    @Transactional( readOnly = true )
     public MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataExportParams params = new MetadataExportParams();
@@ -386,6 +391,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> getMetadataWithDependencies(
         IdentifiableObject object )
     {
