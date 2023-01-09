@@ -157,12 +157,26 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray rels = json.getArray( "relationships" );
-        assertFalse( rels.isEmpty(),
-            "relationships are currently returned even if we exclude them using the fields param" );
+        assertFalse( rels.isEmpty() );
         assertEquals( 1, rels.size() );
         assertRelationship( r, rels.getObject( 0 ) );
         assertEventWithinRelationship( from, rels.getObject( 0 ).getObject( "from" ) );
         assertTrackedEntityWithinRelationship( to, rels.getObject( 0 ).getObject( "to" ) );
+    }
+
+    @Test
+    void shouldNotGetEventRelationshipsWhenRelationshipsFieldIsExcluded()
+    {
+        TrackedEntityInstance to = trackedEntityInstance();
+        ProgramStageInstance from = programStageInstance( programInstance( to ) );
+        Relationship r = relationship( from, to );
+
+        JsonObject json = GET( "/tracker/events/{id}", from.getUid() )
+            .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        assertDefaultResponse( json, from );
+        assertHasNoMember( json, "relationships" );
     }
 
     @Test

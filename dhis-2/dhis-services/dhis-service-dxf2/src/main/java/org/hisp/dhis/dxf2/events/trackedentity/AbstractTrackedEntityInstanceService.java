@@ -1634,7 +1634,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     trackedEntityInstance.getEnrollments()
                         .add( enrollmentService.getEnrollment( user, programInstance,
-                            params.getTeiEnrollmentParams().getEnrollmentParams(), true ) );
+                            params.getEnrollmentParams(), true ) );
                 }
             }
         }

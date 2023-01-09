@@ -359,7 +359,7 @@ public abstract class AbstractEnrollmentService
                 {
                     enrollment.getEvents().add(
                         eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
-                            true ) );
+                            params.getEnrollmentEventsParams().getEventParams() ) );
                 }
             }
         }
