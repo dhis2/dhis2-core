@@ -413,6 +413,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
