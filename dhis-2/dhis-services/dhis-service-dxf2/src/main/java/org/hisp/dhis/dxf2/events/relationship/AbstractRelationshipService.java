@@ -43,6 +43,8 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -465,7 +467,7 @@ public abstract class AbstractRelationshipService
 
         if ( relationship == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         return getRelationship( relationship, currentUserService.getCurrentUser() );
@@ -511,7 +513,6 @@ public abstract class AbstractRelationshipService
     private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao,
         boolean uidOnly )
     {
-        TrackedEntityInstanceParams teiParams = TrackedEntityInstanceParams.FALSE;
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
         if ( dao.getTrackedEntityInstance() != null )
@@ -527,7 +528,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 tei = trackedEntityInstanceService
-                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), teiParams );
+                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.FALSE );
             }
 
             relationshipItem.setTrackedEntityInstance( tei );
@@ -546,7 +547,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(),
-                    teiParams.getTeiEnrollmentParams().getEnrollmentParams() );
+                    EnrollmentParams.FALSE );
             }
 
             relationshipItem.setEnrollment( enrollment );
@@ -563,7 +564,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance(), teiParams.isIncludeRelationships() );
+                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.FALSE );
             }
 
             relationshipItem.setEvent( event );
