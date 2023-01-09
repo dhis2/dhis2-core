@@ -141,19 +141,6 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testUpdateOpenIdInLegacyFormatOnOldPatch()
-    {
-        HttpResponse actual = PATCH_OLD( "/users/" + peter.getUid() + "?importReportMode=ERRORS",
-            "[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]" );
-
-        assertStatus( HttpStatus.NO_CONTENT, actual );
-
-        User user = userService.getUser( peter.getUid() );
-        assertEquals( "mapping value", user.getOpenId() );
-        assertEquals( "mapping value", user.getUserCredentials().getOpenId() );
-    }
-
-    @Test
     void testUpdateRoles()
     {
         UserRole userRole = createUserRole( "ROLE_B", "ALL" );
