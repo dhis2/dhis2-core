@@ -29,8 +29,15 @@ package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQDestination;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
+import org.springframework.jms.JmsException;
+import org.springframework.jms.core.JmsTemplate;
 
 /**
  * @author Morten Olav Hansen
@@ -40,13 +47,65 @@ public class JmsHandler implements Handler
 {
     private final JmsTarget target;
 
+    private JmsTemplate jmsTemplate;
+
     public JmsHandler( JmsTarget target )
     {
         this.target = target;
+        configure( target );
+    }
+
+    private void configure( JmsTarget target )
+    {
+        ActiveMQConnectionFactory connectionFactory;
+
+        try
+        {
+            connectionFactory = ActiveMQJMSClient.createConnectionFactory( target.getBrokerUrl(),
+                target.getUsername() );
+            connectionFactory.setPassword( target.getPassword() );
+
+            // open and close a connection to see that the configuration is correct
+            connectionFactory.createConnection().close();
+        }
+        catch ( Exception e )
+        {
+            log.warn( "Could not create connection factory for JMS target: " + target.getBrokerUrl()
+                + ", check and validate that your broker is up and running on the correct address" );
+            return;
+        }
+
+        this.jmsTemplate = new JmsTemplate( connectionFactory );
     }
 
     public void run( String payload )
     {
-        log.info( payload );
+        if ( jmsTemplate == null )
+        {
+            log.debug( "JmsTemplate is null, skipping JMS target: " + target.getBrokerUrl() );
+            return;
+        }
+
+        if ( target.isUseQueue() )
+        {
+            sendTo( new ActiveMQQueue( target.getAddress() ), payload );
+        }
+        else
+        {
+            sendTo( new ActiveMQTopic( target.getAddress() ), payload );
+        }
+    }
+
+    private void sendTo( ActiveMQDestination destination, String payload )
+    {
+        try
+        {
+            jmsTemplate.send( destination, session -> session.createTextMessage( payload ) );
+        }
+        catch ( JmsException ex )
+        {
+            log.warn( "Could not send message to JMS target: " + target.getBrokerUrl()
+                + ", check and validate that your broker is up and running on the correct address" );
+        }
     }
 }

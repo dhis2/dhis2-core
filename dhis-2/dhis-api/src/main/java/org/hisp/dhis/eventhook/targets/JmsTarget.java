@@ -50,13 +50,19 @@ public class JmsTarget extends Target
     private String name = "DHIS2-" + CodeGenerator.generateUid();
 
     @JsonProperty
+    private String address = "dhis2.hooks";
+
+    @JsonProperty( required = true )
+    private String brokerUrl;
+
+    @JsonProperty
     private String username;
 
     @JsonProperty
     private String password;
 
-    @JsonProperty( required = true )
-    private String url;
+    @JsonProperty
+    private boolean useQueue;
 
     public JmsTarget()
     {
