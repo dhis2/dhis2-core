@@ -25,41 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.spring2fa;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service( "userDetailsService" )
-@RequiredArgsConstructor
-public class DefaultUserDetailsService
-    implements UserDetailsService
+public class TwoFactorAuthenticationEnrolmentException extends BadCredentialsException
 {
-    private final UserService userService;
-
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
+    public TwoFactorAuthenticationEnrolmentException( String msg )
     {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
-
-        return userService.createUserDetails( user );
+        super( msg );
     }
 }
