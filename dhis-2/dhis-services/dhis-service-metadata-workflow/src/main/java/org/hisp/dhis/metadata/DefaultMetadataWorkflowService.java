@@ -35,7 +35,7 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.persistence.NoResultException;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -66,10 +66,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultMetadataWorkflowService implements MetadataWorkflowService
 {
-
     private final MetadataProposalStore store;
 
     private final CurrentUserService currentUserService;

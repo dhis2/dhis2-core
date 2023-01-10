@@ -40,7 +40,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +58,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultLinkService implements LinkService
 {
     /**
@@ -70,8 +70,7 @@ public class DefaultLinkService implements LinkService
 
     private final ContextService contextService;
 
-    // since classes won't change during runtime, use a map to cache setHref
-    // lookups
+    // Since classes are static, use a map to cache setHref lookups
     private final Map<Class<?>, Method> setterCache = new HashMap<>();
 
     @Override

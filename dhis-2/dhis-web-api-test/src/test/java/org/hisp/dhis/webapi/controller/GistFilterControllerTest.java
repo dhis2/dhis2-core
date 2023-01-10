@@ -312,13 +312,12 @@ class GistFilterControllerTest extends AbstractGistControllerTest
     @Test
     void testFilter_Gt_1toMany()
     {
-        String fields = "id,username,twoFA";
+        String fields = "id,username";
         String filter = "created:gt:2021-01-01,userGroups:gt:0";
         JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}&headless=true",
             userGroupId, fields, filter ).content().getObject( 0 );
         assertTrue( users.has( "id" ) );
         assertTrue( users.has( "username" ) );
-        assertTrue( users.has( "twoFA" ) );
     }
 
     @Test

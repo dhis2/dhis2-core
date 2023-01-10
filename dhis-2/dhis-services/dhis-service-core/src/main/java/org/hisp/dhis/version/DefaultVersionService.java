@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.version;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.UUID;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,22 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author mortenoh
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.version.VersionService" )
 public class DefaultVersionService
     implements VersionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final VersionStore versionStore;
-
-    public DefaultVersionService( VersionStore versionStore )
-    {
-        checkNotNull( versionStore );
-
-        this.versionStore = versionStore;
-    }
 
     // -------------------------------------------------------------------------
     // VersionService implementation

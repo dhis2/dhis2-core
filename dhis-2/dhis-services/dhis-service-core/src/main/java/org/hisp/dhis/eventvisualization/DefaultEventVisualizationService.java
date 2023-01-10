@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -42,20 +42,14 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author maikel arabori
  */
+@RequiredArgsConstructor
 @Service
 public class DefaultEventVisualizationService
     extends GenericAnalyticalObjectService<EventVisualization>
     implements EventVisualizationService
 {
+    @Qualifier( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
     private final AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
-
-    public DefaultEventVisualizationService( @Qualifier( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-    final AnalyticalObjectStore<EventVisualization> eventVisualizationStore )
-    {
-        checkNotNull( eventVisualizationStore );
-
-        this.eventVisualizationStore = eventVisualizationStore;
-    }
 
     // -------------------------------------------------------------------------
     // EventReportService implementation

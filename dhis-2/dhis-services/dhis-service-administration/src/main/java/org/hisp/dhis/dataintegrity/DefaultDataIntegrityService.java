@@ -30,7 +30,7 @@ package org.hisp.dhis.dataintegrity;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -62,6 +62,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -611,9 +612,9 @@ public class DefaultDataIntegrityService
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
             ValidationRule.class, this::getInvalidValidationRuleRightSideExpressions );
-
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorExpressions );
+
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorFilters );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
@@ -934,11 +935,13 @@ public class DefaultDataIntegrityService
     private Set<String> expandChecks( Set<String> names )
     {
         ensureConfigurationsAreLoaded();
+
         if ( names == null || names.isEmpty() )
         {
-            return unmodifiableSet( checksByName.keySet() );
+            return getDefaultChecks();
         }
         Set<String> expanded = new LinkedHashSet<>();
+
         for ( String name : names )
         {
             String uniformName = name.toLowerCase().replace( '-', '_' );
@@ -959,6 +962,18 @@ public class DefaultDataIntegrityService
             }
         }
         return expanded;
+    }
+
+    private Set<String> getDefaultChecks()
+    {
+        ensureConfigurationsAreLoaded();
+
+        return checksByName.values()
+            .stream()
+            .filter( not( DataIntegrityCheck::isSlow ) )
+            .map( DataIntegrityCheck::getName )
+            .collect( Collectors.toUnmodifiableSet() );
+
     }
 
     private void ensureConfigurationsAreLoaded()

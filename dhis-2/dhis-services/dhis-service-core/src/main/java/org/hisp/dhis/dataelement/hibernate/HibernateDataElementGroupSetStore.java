@@ -39,10 +39,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.dataelement.DataElementGroupSetStore" )
 public class HibernateDataElementGroupSetStore
-    extends
-    HibernateIdentifiableObjectStore<DataElementGroupSet>
-    implements
-    DataElementGroupSetStore
+    extends HibernateIdentifiableObjectStore<DataElementGroupSet>
+    implements DataElementGroupSetStore
 {
     public HibernateDataElementGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
