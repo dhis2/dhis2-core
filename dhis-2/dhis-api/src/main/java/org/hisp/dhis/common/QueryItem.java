@@ -319,6 +319,16 @@ public class QueryItem implements GroupableItem
     }
 
     /**
+     * Indicates whether a program stage and repeatable stage parameters which
+     * is not a default object exists for this query item.
+     */
+    public boolean hasNonDefaultRepeatableProgramStageOffset()
+    {
+        return programStage != null && repeatableStageParams != null
+            && !repeatableStageParams.isDefaultObject();
+    }
+
+    /**
      * Returns SQL filter for the given query filter and SQL encoded filter. If
      * the item value type is text-based, the filter is converted to lower-case.
      *
