@@ -56,6 +56,8 @@ public class UserRole
 
     private Set<String> authorities = new HashSet<>();
 
+    private Set<String> restrictions = new HashSet<>();
+
     private Set<User> members = new HashSet<>();
 
     public UserRole()
@@ -104,6 +106,19 @@ public class UserRole
     public void setAuthorities( Set<String> authorities )
     {
         this.authorities = authorities;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "restrictions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "restriction", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getRestrictions()
+    {
+        return restrictions;
+    }
+
+    public void setRestrictions( Set<String> restrictions )
+    {
+        this.restrictions = restrictions;
     }
 
     public Set<User> getMembers()
