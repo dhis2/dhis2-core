@@ -177,10 +177,10 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     {
         return Stream.of(
             Arguments.of( "{'orgUnit':'madeUpOrgUnit'}}", "Org unit is specified but does not exist" ),
-            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','startDate':'2023-03-01'}}}",
+            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','startDate':''}}}",
                 "Start date or end date not specified with ABSOLUTE date period" ),
-            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','startDate':'2023-03-01','endDate':'2020-12-30'}}}",
-                "Start date can't be after end date" ),
+            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','endDate':''}}}",
+                "Start date or end date not specified with ABSOLUTE date period" ),
             Arguments.of( "{'dataFilters':[{'dataItem': 'madeUpItemId', 'ge': '10', 'le': '20'}]}",
                 "No data element found" ),
             Arguments.of( "{'attributeValueFilters':[{'attribute': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}",

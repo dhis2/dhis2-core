@@ -75,16 +75,10 @@ public class ValidationUtil
             return;
         }
 
-        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE )
+        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
+            && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
         {
-            if ( dateFilterPeriod.getStartDate() == null || dateFilterPeriod.getEndDate() == null )
-            {
-                errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
-            }
-            else if ( dateFilterPeriod.getStartDate().after( dateFilterPeriod.getEndDate() ) )
-            {
-                errors.add( "Start date can't be after end date for " + item );
-            }
+            errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
         }
     }
 
