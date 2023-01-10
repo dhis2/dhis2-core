@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;
@@ -38,16 +40,12 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Stian Sandvold
  */
+@RequiredArgsConstructor
 @Repository( "org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" )
 public class HibernateSequentialNumberCounterStore
     implements SequentialNumberCounterStore
 {
-    protected SessionFactory sessionFactory;
-
-    public HibernateSequentialNumberCounterStore( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
+    private final SessionFactory sessionFactory;
 
     @Override
     public List<Integer> getNextValues( String uid, String key, int length )

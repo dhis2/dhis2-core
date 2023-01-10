@@ -57,8 +57,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.stereotype.Component;
@@ -184,8 +184,7 @@ public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationMana
                     mappingClaimKey, mappingValue ) );
             }
 
-            CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user,
-                user.getPassword() );
+            CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
 
             Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 

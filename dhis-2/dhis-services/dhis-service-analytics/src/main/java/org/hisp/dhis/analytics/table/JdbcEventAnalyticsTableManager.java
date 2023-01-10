@@ -90,8 +90,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -225,7 +223,7 @@ public class JdbcEventAnalyticsTableManager
             Collections.sort( dataYears );
 
             AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                Lists.newArrayList(), program );
+                List.of(), program );
 
             for ( Integer year : dataYears )
             {
@@ -279,7 +277,7 @@ public class JdbcEventAnalyticsTableManager
             if ( hasUpdatedData )
             {
                 AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                    Lists.newArrayList(), program );
+                    List.of(), program );
                 table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
                 tables.add( table );
 

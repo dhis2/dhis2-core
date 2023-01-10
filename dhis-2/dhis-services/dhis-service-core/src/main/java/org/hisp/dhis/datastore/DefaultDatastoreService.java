@@ -41,7 +41,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold (initial)
  * @author Jan Bernitt (namespace protection)
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class DefaultDatastoreService
     implements DatastoreService

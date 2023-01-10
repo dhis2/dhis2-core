@@ -28,12 +28,20 @@
 package org.hisp.dhis.dataset.notifications;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
@@ -76,9 +84,9 @@ import com.google.common.base.Function;
  * Created by zubair on 04.07.17.
  */
 @Slf4j
-@Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Service
 public class DefaultDataSetNotificationService implements DataSetNotificationService
 {
     private static final String SUMMARY_TEXT = "Organisation units : %d" + TextUtils.LN + "Period : %s" + TextUtils.LN

@@ -345,7 +345,7 @@
       "remindCompleted": false,
       "displayGenerateEventBox": true,
       "generatedByEnrollmentDate": false,
-      "validationStrategy": "ON_COMPLETE",
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
       "autoGenerateEvent": true,
       "sortOrder": 1,
       "hideDueDate": false,

@@ -31,7 +31,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramNotificationInstanceDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramNotificationInstance.class );

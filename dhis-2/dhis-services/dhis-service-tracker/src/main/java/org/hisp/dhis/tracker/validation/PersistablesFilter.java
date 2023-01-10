@@ -240,7 +240,7 @@ class PersistablesFilter
     /**
      * Collect given entity in the persistables result. This entity can be
      * created, updated or deleted (depending on context and
-     * {@link TrackerImportStrategy}.
+     * {@link TrackerImportStrategy}).
      *
      * @param type tracker dto type to add persistable to
      * @param entity persistable entity

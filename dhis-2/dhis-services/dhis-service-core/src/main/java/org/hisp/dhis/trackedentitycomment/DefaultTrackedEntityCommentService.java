@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentitycomment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,22 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService" )
 public class DefaultTrackedEntityCommentService
     implements TrackedEntityCommentService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final TrackedEntityCommentStore commentStore;
-
-    public DefaultTrackedEntityCommentService( TrackedEntityCommentStore commentStore )
-    {
-        checkNotNull( commentStore );
-
-        this.commentStore = commentStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

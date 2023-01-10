@@ -65,7 +65,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -105,9 +104,8 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return params.isLatestUpdate() ? Lists.newArrayList()
-            : Lists.newArrayList(
-                new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
+        return params.isLatestUpdate() ? List.of()
+            : List.of( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -216,7 +214,7 @@ public class JdbcCompletenessTargetTableManager
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ) );
+        return List.of( new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ) );
     }
 
     @Override

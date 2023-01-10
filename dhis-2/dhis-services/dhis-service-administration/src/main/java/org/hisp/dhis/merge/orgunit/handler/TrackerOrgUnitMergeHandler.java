@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackerOrgUnitMergeHandler
 {
     private final SessionFactory sessionFactory;

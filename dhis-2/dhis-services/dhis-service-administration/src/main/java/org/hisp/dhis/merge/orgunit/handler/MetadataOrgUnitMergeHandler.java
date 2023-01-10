@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.configuration.Configuration;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MetadataOrgUnitMergeHandler
 {
     private final UserService userService;

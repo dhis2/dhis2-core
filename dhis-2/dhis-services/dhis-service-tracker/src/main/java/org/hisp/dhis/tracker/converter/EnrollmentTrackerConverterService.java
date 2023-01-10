@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -55,18 +57,12 @@ import com.google.common.base.Objects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service
 public class EnrollmentTrackerConverterService
     implements RuleEngineConverterService<Enrollment, ProgramInstance>
 {
     private final NotesConverterService notesConverterService;
-
-    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
-    {
-        checkNotNull( notesConverterService );
-
-        this.notesConverterService = notesConverterService;
-    }
 
     @Override
     public Enrollment to( ProgramInstance programInstance )

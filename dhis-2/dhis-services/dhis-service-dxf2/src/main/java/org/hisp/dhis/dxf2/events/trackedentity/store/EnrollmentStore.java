@@ -32,6 +32,7 @@ import java.util.List;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 import com.google.common.collect.Multimap;
@@ -66,4 +67,13 @@ public interface EnrollmentStore
      *         List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
+
+    /**
+     * Fetches all the attributes
+     *
+     * @param ids a list of enrollment ids
+     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
+     *         List of {@see Attribute} objects
+     */
+    Multimap<String, Attribute> getAttributes( List<Long> ids, AggregateContext ctx );
 }
