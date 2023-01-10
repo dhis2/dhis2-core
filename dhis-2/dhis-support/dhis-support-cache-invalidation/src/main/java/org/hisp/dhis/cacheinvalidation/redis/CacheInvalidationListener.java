@@ -184,7 +184,7 @@ public class CacheInvalidationListener
         CategoryOptionCombo categoryOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
             attributeOptionComboId );
 
-        return new CompleteDataSetRegistration( dataSet, period, organisationUnit, categoryOptionCombo, false );
+        return new CompleteDataSetRegistration( dataSet, period, organisationUnit, categoryOptionCombo );
     }
 
     private Serializable getDataValueId( String entityIds )
