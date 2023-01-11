@@ -49,6 +49,8 @@ public class JmsHandler implements Handler
 
     private JmsTemplate jmsTemplate;
 
+    private ActiveMQConnectionFactory connectionFactory;
+
     public JmsHandler( JmsTarget target )
     {
         this.target = target;
@@ -57,7 +59,6 @@ public class JmsHandler implements Handler
 
     private void configure( JmsTarget target )
     {
-        ActiveMQConnectionFactory connectionFactory;
 
         try
         {
@@ -106,6 +107,15 @@ public class JmsHandler implements Handler
         {
             log.warn( "Could not send message to JMS target: " + target.getBrokerUrl()
                 + ", check and validate that your broker is up and running on the correct address" );
+        }
+    }
+
+    @Override
+    public void close()
+    {
+        if ( connectionFactory != null )
+        {
+            connectionFactory.close();
         }
     }
 }

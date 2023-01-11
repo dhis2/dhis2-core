@@ -25,17 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.targets;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.eventhook.Target;
 
 /**
  * @author Morten Olav Hansen
  */
-@FunctionalInterface
-public interface Handler
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class KafkaTarget extends Target
 {
-    void run( String payload );
-
-    default void close()
+    public KafkaTarget()
     {
+        super( "kafka" );
     }
 }

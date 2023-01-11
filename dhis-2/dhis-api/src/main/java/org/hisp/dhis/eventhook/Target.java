@@ -36,6 +36,7 @@ import lombok.experimental.Accessors;
 
 import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
+import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -54,7 +55,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes( {
     @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ),
     @JsonSubTypes.Type( value = ConsoleTarget.class, name = "console" ),
-    @JsonSubTypes.Type( value = JmsTarget.class, name = "jms" )
+    @JsonSubTypes.Type( value = JmsTarget.class, name = "jms" ),
+    @JsonSubTypes.Type( value = KafkaTarget.class, name = "kafka" )
 } )
 public abstract class Target
     implements Serializable

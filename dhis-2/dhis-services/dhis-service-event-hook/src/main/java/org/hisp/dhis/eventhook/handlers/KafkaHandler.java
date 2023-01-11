@@ -25,17 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.handlers;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.eventhook.Handler;
+import org.hisp.dhis.eventhook.targets.KafkaTarget;
 
 /**
  * @author Morten Olav Hansen
  */
-@FunctionalInterface
-public interface Handler
+@Slf4j
+public class KafkaHandler implements Handler
 {
-    void run( String payload );
+    private final KafkaTarget target;
 
-    default void close()
+    public KafkaHandler( KafkaTarget target )
     {
+        this.target = target;
+    }
+
+    public void run( String payload )
+    {
+        log.info( payload );
     }
 }
