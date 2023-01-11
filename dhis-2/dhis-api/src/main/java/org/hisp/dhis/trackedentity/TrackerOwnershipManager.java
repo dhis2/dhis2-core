@@ -79,8 +79,8 @@ public interface TrackerOwnershipManager
         EventContext eventContext );
 
     /**
-     * Check whether the user may break the glass for the given
-     * tracked entity instance - program combination.
+     * Check whether the user may break the glass for the given tracked entity
+     * instance - program combination.
      *
      * @param user The user to check for breaking the glass permission.
      * @param entityInstance The tracked entity instance.

@@ -811,7 +811,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     @Override
     public boolean canGainAccess( TrackedEntityInstance entityInstance, Program program, User user )
     {
-        return ownershipAccessManager.mayGainAccess(user, entityInstance, program);
+        return ownershipAccessManager.mayGainAccess( user, entityInstance, program );
     }
 
     private boolean isNull( ProgramStage programStage )

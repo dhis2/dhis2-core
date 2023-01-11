@@ -102,30 +102,7 @@ class TrackedEntitiesSupportService
                 throw new NotFoundException( "Program", pr );
             }
 
-            List<String> errors = trackerAccessManager.canRead( user,
-                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
-                false );
-
-            if ( !errors.isEmpty() )
-            {
-                AccessLevel accessLevel = program.getAccessLevel();
-                if ( accessLevel == AccessLevel.CLOSED )
-                {
-                    throw new WebMessageException(
-                        unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
-                }
-
-                if ( accessLevel == AccessLevel.PROTECTED && trackerAccessManager.canGainAccess(
-                    instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ),
-                    program, user) )
-                {
-                    throw new WebMessageException(
-                        unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_PARTIALLY_DENIED ) );
-                }
-
-                throw new WebMessageException(
-                    unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
-            }
+            testAccessToOwningOrgUnit( user, trackedEntityInstance, program );
 
             if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
             {
@@ -152,5 +129,34 @@ class TrackedEntitiesSupportService
         }
 
         return trackedEntityInstance;
+    }
+
+    @SneakyThrows
+    private void testAccessToOwningOrgUnit( User user, TrackedEntityInstance trackedEntityInstance, Program program )
+    {
+        List<String> errors = trackerAccessManager.canRead( user,
+            instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
+            false );
+
+        if ( !errors.isEmpty() )
+        {
+            AccessLevel accessLevel = program.getAccessLevel();
+            if ( accessLevel == AccessLevel.CLOSED )
+            {
+                throw new WebMessageException(
+                    unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
+            }
+
+            if ( accessLevel == AccessLevel.PROTECTED && trackerAccessManager.canGainAccess(
+                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ),
+                program, user ) )
+            {
+                throw new WebMessageException(
+                    unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_PARTIALLY_DENIED ) );
+            }
+
+            throw new WebMessageException(
+                unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
+        }
     }
 }
