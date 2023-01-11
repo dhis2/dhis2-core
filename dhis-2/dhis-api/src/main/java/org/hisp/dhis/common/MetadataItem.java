@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,6 +53,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author Lars Helge Overland
  */
 @Getter
+@Setter
 public class MetadataItem
     implements Serializable
 {
