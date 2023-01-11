@@ -40,9 +40,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
+import org.hisp.dhis.eventhook.handlers.KafkaHandler;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
+import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.springframework.context.event.EventListener;
@@ -153,6 +155,10 @@ public class EventHookListener
                 else if ( "jms".equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new JmsHandler( (JmsTarget) target ) );
+                }
+                else if ( "kafka".equals( target.getType() ) )
+                {
+                    targets.get( eh.getUid() ).add( new KafkaHandler( (KafkaTarget) target ) );
                 }
             }
         }
