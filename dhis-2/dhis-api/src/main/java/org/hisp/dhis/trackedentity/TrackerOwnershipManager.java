@@ -40,6 +40,8 @@ public interface TrackerOwnershipManager
 {
     String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
 
+    String OWNERSHIP_ACCESS_PARTIALLY_DENIED = "OWNERSHIP_ACCESS_PARTIALLY_DENIED";
+
     String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
 
     /**
@@ -75,6 +77,17 @@ public interface TrackerOwnershipManager
 
     boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
         EventContext eventContext );
+
+    /**
+     * Check whether the user may break the glass for the given
+     * tracked entity instance - program combination.
+     *
+     * @param user The user to check for breaking the glass permission.
+     * @param entityInstance The tracked entity instance.
+     * @param program The program.
+     * @return true if the user may break the glass, false otherwise.
+     */
+    boolean mayGainAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
     /**
      * Grant temporary ownership for a user for a specific tei-program

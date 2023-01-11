@@ -324,6 +324,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public boolean mayGainAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    {
+        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+
+        OrganisationUnit ou = getOwner( entityInstance.getId(), program, entityInstance::getOrganisationUnit );
+
+        return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+    }
+
+    @Override
     public boolean canSkipOwnershipCheck( User user, Program program )
     {
         return program == null || canSkipOwnershipCheck( user, program.getProgramType() );

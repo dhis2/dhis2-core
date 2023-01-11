@@ -114,4 +114,13 @@ public interface TrackerAccessManager
      *         program context, otherwise return false
      */
     boolean canAccess( User user, Program program, OrganisationUnit orgUnit );
+
+    /**
+     * Checks if user has permission to break the glass
+     *
+     * @param entityInstance Tracked entity instance object
+     * @param program Program object
+     * @param user The user to check access for
+     */
+    boolean canGainAccess( TrackedEntityInstance entityInstance, Program program, User user );
 }

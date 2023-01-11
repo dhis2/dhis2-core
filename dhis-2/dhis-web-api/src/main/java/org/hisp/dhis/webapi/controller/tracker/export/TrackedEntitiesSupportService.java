@@ -108,11 +108,21 @@ class TrackedEntitiesSupportService
 
             if ( !errors.isEmpty() )
             {
-                if ( program.getAccessLevel() == AccessLevel.CLOSED )
+                AccessLevel accessLevel = program.getAccessLevel();
+                if ( accessLevel == AccessLevel.CLOSED )
                 {
                     throw new WebMessageException(
                         unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
                 }
+
+                if ( accessLevel == AccessLevel.PROTECTED && trackerAccessManager.canGainAccess(
+                    instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ),
+                    program, user) )
+                {
+                    throw new WebMessageException(
+                        unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_PARTIALLY_DENIED ) );
+                }
+
                 throw new WebMessageException(
                     unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
