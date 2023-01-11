@@ -37,7 +37,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.junit.jupiter.api.Test;
 
-public class MetadataItemTest
+/**
+ * @author Lars Helge Overland
+ */
+class MetadataItemTest
 {
     @Test
     void testCreateForDataElement()
