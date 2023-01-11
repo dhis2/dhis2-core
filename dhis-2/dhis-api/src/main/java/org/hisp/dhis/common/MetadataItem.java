@@ -32,6 +32,7 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -164,23 +165,23 @@ public class MetadataItem
             DataElement dataElement = (DataElement) dimensionalItemObject;
             this.valueType = dataElement.getValueType().toSimplifiedValueType();
         }
-
-        if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        else if ( dimensionalItemObject instanceof DataElementOperand )
+        {
+            DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
+            this.valueType = operand.getValueType().toSimplifiedValueType();
+        }
+        else if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
             this.valueType = attribute.getValueType().toSimplifiedValueType();
         }
-
-        // TODO introduce start/end date marker interface instead
-
-        if ( dimensionalItemObject instanceof Period )
+        else if ( dimensionalItemObject instanceof Period )
         {
             Period period = (Period) dimensionalItemObject;
             this.startDate = period.getStartDate();
             this.endDate = period.getEndDate();
         }
-
-        if ( dimensionalItemObject instanceof Indicator )
+        else if ( dimensionalItemObject instanceof Indicator )
         {
             Indicator indicator = (Indicator) dimensionalItemObject;
 
