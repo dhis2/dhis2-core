@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
+import static java.util.Comparator.comparing;
 import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
@@ -38,11 +39,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -219,11 +222,53 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
+    /**
+     * Runs a job queue sequence.
+     *
+     * @param name name of the queue to run
+     * @return true, if the entire sequence ran successful, otherwise false
+     */
+    protected final boolean executeQueue( String name )
+    {
+        int position = 0;
+        while ( true )
+        {
+            // OBS! intentionally the sequence is reloaded every time to allow for changes of the sequence
+            //      while it is running
+            List<JobConfiguration> sequence = jobConfigurationService.getAllJobConfigurations().stream()
+                .filter( c -> name.equals( c.getQueueName() ) )
+                .sorted( comparing( JobConfiguration::getQueuePosition ) )
+                .collect( Collectors.toList() );
+            if ( position >= sequence.size() )
+            {
+                return true; // queue done
+            }
+            JobConfiguration config = sequence.get( position++ );
+            if ( !execute( config ) || config.getLastExecutedStatus() != JobStatus.COMPLETED )
+            {
+                return false; // stop queue due to error
+            }
+        }
+    }
+
+    /**
+     * Run a job potentially in the future.
+     *
+     * This is used for scheduled jobs to reload the job right before it is run
+     * so the most recent configuration is used.
+     *
+     * @param jobId ID of the job to run
+     * @return true when the job ran successful, otherwise false
+     */
     protected final boolean execute( String jobId )
     {
         return execute( jobConfigurationService.getJobConfigurationByUid( jobId ) );
     }
 
+    /**
+     * @param configuration the job to run now
+     * @return true when the job ran successful, otherwise false
+     */
     protected final boolean execute( JobConfiguration configuration )
     {
         if ( !configuration.isEnabled() )
@@ -284,11 +329,13 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                     .allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
                 configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : JobStatus.FAILED );
             }
+            return true;
         }
         catch ( Exception ex )
         {
             progress.failedProcess( ex );
             whenRunThrewException( configuration, ex );
+            return false;
         }
         finally
         {
@@ -297,7 +344,6 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             whenRunIsDone( configuration, clock );
             MDC.remove( "sessionId" );
         }
-        return true;
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
