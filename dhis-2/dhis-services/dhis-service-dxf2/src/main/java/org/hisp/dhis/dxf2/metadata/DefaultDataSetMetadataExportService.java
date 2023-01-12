@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang3.ObjectUtils;
@@ -80,7 +80,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService" )
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService

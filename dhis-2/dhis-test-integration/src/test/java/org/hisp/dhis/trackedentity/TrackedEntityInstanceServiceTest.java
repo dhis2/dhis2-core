@@ -342,4 +342,25 @@ class TrackedEntityInstanceServiceTest
         assertThrows( IllegalArgumentException.class,
             () -> entityInstanceService.getTrackedEntityInstancesGrid( params ) );
     }
+
+    @Test
+    void shouldCountOneEntityWhenOnePresent()
+    {
+        entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+
+        int counter = entityInstanceService.getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true,
+            true );
+
+        assertEquals( 1, counter );
+    }
+
+    @Test
+    void shouldCountZeroEntitiesWhenNonePresent()
+    {
+        int trackedEntitiesCounter = entityInstanceService
+            .getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true, true );
+
+        assertEquals( 0, trackedEntitiesCounter );
+    }
 }

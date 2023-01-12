@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
+import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
+import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.AGGREGATE_ALLOWED_VALUE_TYPES;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,8 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -66,7 +66,6 @@ class EnrollmentAnalyticsDimensionsServiceTest
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
         enrollmentAnalyticsDimensionsService = new DefaultEnrollmentAnalyticsDimensionsService( programService );
-
     }
 
     @Test

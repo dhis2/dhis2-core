@@ -42,20 +42,21 @@ import org.hisp.dhis.common.FontStyle;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests to check the conversions related to CompatibilityGuard.
+ * Unit tests to check the conversions related to {@link CompatibilityGuard}.
  *
  * @author maikel arabori
  */
 class CompatibilityGuardTest
 {
-
     @Test
     void testKeepLegendReadingCompatibility()
     {
         // Given
-        final Visualization visualization = mockVisualizationWithLegend();
+        Visualization visualization = mockVisualizationWithLegend();
+
         // When
         keepLegendReadingCompatibility( visualization );
+
         // Then
         assertThat( visualization.getFontStyle().getLegend(),
             is( equalTo( visualization.getSeriesKey().getLabel().getFontStyle() ) ) );
@@ -67,9 +68,11 @@ class CompatibilityGuardTest
     void testKeepAxesReadingCompatibility()
     {
         // Given
-        final Visualization visualization = mockVisualizationWithAxes();
+        Visualization visualization = mockVisualizationWithAxes();
+
         // When
         keepAxesReadingCompatibility( visualization );
+
         // Then
         // # Fist axis assertions
         assertThat( visualization.getFontStyle().getSeriesAxisLabel(),
@@ -107,45 +110,45 @@ class CompatibilityGuardTest
 
     private Visualization mockVisualizationWithLegend()
     {
-        final SeriesKey legend = new SeriesKey();
-        final StyledObject label = new StyledObject();
-        final FontStyle fontStyle = new FontStyle();
+        SeriesKey legend = new SeriesKey();
+        StyledObject label = new StyledObject();
+        FontStyle fontStyle = new FontStyle();
         fontStyle.setFont( Font.ARIAL );
         label.setFontStyle( fontStyle );
         legend.setLabel( label );
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
         visualization.setSeriesKey( legend );
         return visualization;
     }
 
     private Visualization mockVisualizationWithAxes()
     {
-        final StyledObject title = new StyledObject();
+        StyledObject title = new StyledObject();
         title.setText( "Some title" );
-        final StyledObject label = new StyledObject();
+        StyledObject label = new StyledObject();
         label.setText( "Some label" );
-        final Line baseLine = new Line();
+        Line baseLine = new Line();
         baseLine.setTitle( title );
-        baseLine.setValue( 20 );
-        final Line targetLine = new Line();
+        baseLine.setValue( 20.0 );
+        Line targetLine = new Line();
         targetLine.setTitle( title );
-        targetLine.setValue( 40 );
-        final AxisV2 firstAxis = new AxisV2();
-        firstAxis.setMaxValue( 1 );
+        targetLine.setValue( 40.0 );
+        AxisV2 firstAxis = new AxisV2();
+        firstAxis.setMaxValue( 1.0 );
         firstAxis.setDecimals( 2 );
         firstAxis.setIndex( 0 );
-        firstAxis.setMinValue( 3 );
+        firstAxis.setMinValue( 3.0 );
         firstAxis.setSteps( 4 );
         firstAxis.setBaseLine( baseLine );
         firstAxis.setLabel( label );
         firstAxis.setTargetLine( targetLine );
         firstAxis.setTitle( title );
         firstAxis.setType( RANGE );
-        final AxisV2 secondAxis = new AxisV2();
+        AxisV2 secondAxis = new AxisV2();
         secondAxis.setLabel( label );
         secondAxis.setTitle( title );
-        final List<AxisV2> axes = newArrayList( firstAxis, secondAxis );
-        final Visualization visualization = new Visualization();
+        List<AxisV2> axes = newArrayList( firstAxis, secondAxis );
+        Visualization visualization = new Visualization();
         visualization.setAxes( axes );
         return visualization;
     }

@@ -68,6 +68,8 @@ class OrgUnitTableJoinerTest
 
     private static final Program programA = createProgram( 'A' );
 
+    private static final Period periodDaily = PeriodType.getPeriodFromIsoString( "20230101" );
+
     private static final Period periodMonthly = PeriodType.getPeriodFromIsoString( "202201" );
 
     private static final Period periodQuarterly = PeriodType.getPeriodFromIsoString( "2022Q1" );
@@ -117,7 +119,29 @@ class OrgUnitTableJoinerTest
     }
 
     @Test
-    void testJoinOrgUnitTablesOwnerAtStartWithPeriods()
+    void testJoinOrgUnitTablesOwnerAtStartWithDailyPeriods()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( programA )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withOrgUnitField( OWNER_AT_START )
+            .withPeriods( List.of( periodDaily ), periodDaily.getPeriodType().getName().toLowerCase() )
+            .addDimension( ouGroupSetA )
+            .build();
+
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and cast(ax.\"daily\" as date) between own.\"startdate\" and own.\"enddate\" " +
+            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
+            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+            joinOrgUnitTables( params, EVENT ) );
+
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and cast(ax.\"daily\" as date) between own.\"startdate\" and own.\"enddate\" ",
+            joinOrgUnitTables( params, ENROLLMENT ) );
+    }
+
+    @Test
+    void testJoinOrgUnitTablesOwnerAtStartWithNonDailyPeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( programA )
@@ -164,7 +188,29 @@ class OrgUnitTableJoinerTest
     }
 
     @Test
-    void testJoinOrgUnitTablesOwnerAtEndWithPeriods()
+    void testJoinOrgUnitTablesOwnerAtEndWithDailyPeriods()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( programA )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withOrgUnitField( OWNER_AT_END )
+            .withPeriods( List.of( periodDaily ), periodDaily.getPeriodType().getName().toLowerCase() )
+            .addDimension( ouGroupSetA )
+            .build();
+
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and cast(ax.\"daily\" as date) + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" " +
+            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
+            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+            joinOrgUnitTables( params, EVENT ) );
+
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and cast(ax.\"daily\" as date) + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" ",
+            joinOrgUnitTables( params, ENROLLMENT ) );
+    }
+
+    @Test
+    void testJoinOrgUnitTablesOwnerAtEndWithNonDailyPeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( programA )

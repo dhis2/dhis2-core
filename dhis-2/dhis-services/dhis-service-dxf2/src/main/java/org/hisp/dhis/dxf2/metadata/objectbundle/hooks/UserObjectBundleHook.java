@@ -188,7 +188,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             }
         }
 
-        securityService.validate2FAUpdate( persisted.getTwoFA(), user.getTwoFA(), persisted );
+        //        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(),
+        //            persisted );
     }
 
     @Override

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.stereotype.Service;
@@ -37,18 +37,12 @@ import org.springframework.util.Assert;
 /**
  * @author Stian Sandvold
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.fileresource.ExternalFileResourceService" )
 public class DefaultExternalFileResourceService
     implements ExternalFileResourceService
 {
     private final ExternalFileResourceStore externalFileResourceStore;
-
-    public DefaultExternalFileResourceService( ExternalFileResourceStore externalFileResourceStore )
-    {
-        checkNotNull( externalFileResourceStore );
-
-        this.externalFileResourceStore = externalFileResourceStore;
-    }
 
     @Override
     @Transactional( readOnly = true )

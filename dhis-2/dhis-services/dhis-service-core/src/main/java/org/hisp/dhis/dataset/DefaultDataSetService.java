@@ -65,10 +65,6 @@ import com.google.common.collect.Lists;
 public class DefaultDataSetService
     implements DataSetService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataSetStore dataSetStore;
 
     private final LockExceptionStore lockExceptionStore;

@@ -223,10 +223,14 @@ public enum ValueType
         {
             return false;
         }
+
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE;
+            return aggregationType == AggregationType.NONE ||
+                aggregationType == AggregationType.LAST_LAST_ORG_UNIT ||
+                aggregationType == AggregationType.FIRST_FIRST_ORG_UNIT;
         }
+
         return aggregationType != AggregationType.NONE;
     }
 

@@ -222,7 +222,6 @@ public class TrackerBundle
     {
         return ruleEffects.stream()
             .filter( RuleEffects::isEnrollment )
-            .filter( e -> findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
@@ -230,7 +229,6 @@ public class TrackerBundle
     {
         return ruleEffects.stream()
             .filter( RuleEffects::isEvent )
-            .filter( e -> findEventByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 

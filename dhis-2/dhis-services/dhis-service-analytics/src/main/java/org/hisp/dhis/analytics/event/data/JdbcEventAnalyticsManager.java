@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -63,9 +65,10 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -276,7 +279,6 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-
         String sql = "select count(psi) as " + COL_COUNT +
             ", ST_Extent(" + getCoalesce( params.getCoordinateFields() ) + ") as " + COL_EXTENT + " ";
 
@@ -619,11 +621,11 @@ public class JdbcEventAnalyticsManager
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String alias = "iax";
-        String valueItem = quote( alias, params.getValue().getDimensionItem() );
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
+        String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
+        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+        String valueItem = quoteAlias( params.getValue().getDimensionItem() );
 
         String sql = "(select ";
 
@@ -632,13 +634,65 @@ public class JdbcEventAnalyticsManager
             sql += col + ",";
         }
 
-        sql += "row_number() over (" +
-            "partition by ou, ao " +
+        sql += "row_number() over (" + partitionByClause + " " +
             "order by " + timeCol + " " + order + ") as pe_rank " +
-            "from " + params.getTableName() + " " + alias + " " +
+            "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
+
+        return sql;
+    }
+
+    /**
+     * Returns the partition by clause for the first or last event sub query. If
+     * the aggregation type of the given parameters specifies "first" or "last"
+     * as the general aggregation type, the partition by clause will use the
+     * dimensions from the analytics query as columns in order to rank events in
+     * all dimensions. In this case, the outer query will perform no aggregation
+     * and simply filter by the top ranked events.
+     * <p>
+     * If the aggregation type specifies another aggregation type (i.e. "sum" or
+     * "average") as the general aggregation type, the partition by clause will
+     * use the "ou" and "ao" columns to rank events in the time dimension only,
+     * and have the outer query perform the aggregation in the other dimensions,
+     * as well as filter by the top ranked events.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @return the partition by clause.
+     */
+    private String getFirstOrLastValuePartitionByClause( EventQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
+        {
+            return getFirstOrLastValuePartitionByColumns( params.getNonPeriodDimensions() );
+        }
+        else
+        {
+            return "partition by " + quoteAliasCommaSeparate( List.of( "ou", "ao" ) );
+        }
+    }
+
+    /**
+     * Returns the partition by clause for the first or last event sub query.
+     * The columns to partition by are based on the given list of dimensions.
+     *
+     * @param dimensions the list of {@link DimensionalObject}.
+     * @return the partition by clause.
+     */
+    private String getFirstOrLastValuePartitionByColumns( List<DimensionalObject> dimensions )
+    {
+        String partitionColumns = dimensions.stream()
+            .map( DimensionalObject::getDimensionName )
+            .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( Collectors.joining( "," ) );
+
+        String sql = "";
+
+        if ( isNotEmpty( partitionColumns ) )
+        {
+            sql += "partition by " + partitionColumns;
+        }
 
         return sql;
     }
@@ -691,7 +745,6 @@ public class JdbcEventAnalyticsManager
      */
     private List<String> resolveCoordinateFieldsColumnNames( List<String> coordinateFields, EventQueryParams params )
     {
-        // possible immutable to mutable
         List<String> coors = new ArrayList<>( coordinateFields );
 
         for ( int i = 0; i < coors.size(); ++i )

@@ -43,7 +43,6 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -73,7 +72,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultGeoJsonService implements GeoJsonService
 {
     private final AttributeService attributeService;

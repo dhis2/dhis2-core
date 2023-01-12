@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
@@ -70,6 +72,8 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
 
         assertTrue( details.exists() );
         assertTrue( details.isObject() );
+        assertNotNull( details.getStartTime() );
+        assertFalse( details.getStartTime().isAfter( details.getFinishedTime() ) );
         JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );

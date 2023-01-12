@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -130,7 +130,7 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultDataValueSetService
     implements DataValueSetService
 {

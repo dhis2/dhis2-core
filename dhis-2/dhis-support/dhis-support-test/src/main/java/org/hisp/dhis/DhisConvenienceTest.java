@@ -2718,7 +2718,7 @@ public abstract class DhisConvenienceTest
         hibernateService.flushSession();
         user = userService.getUser( user.getUid() );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails, "",
             currentUserDetails.getAuthorities() );
@@ -2965,7 +2965,7 @@ public abstract class DhisConvenienceTest
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails,
             DEFAULT_ADMIN_PASSWORD,
             List.of( new SimpleGrantedAuthority( "ALL" ) ) );
