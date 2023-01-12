@@ -45,6 +45,7 @@ public enum Compression
                 return comp;
             }
         }
+
         return null;
     }
 }
