@@ -82,6 +82,8 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
             "expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code" );
         COMMON_COLUMNS.add(
             "expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type" );
+        COMMON_COLUMNS.add(
+            "expressiondimensionitem.expression" );
     }
 
     /**
@@ -203,7 +205,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
             .append( SPACED_SELECT + String.join( ", ", COMMON_COLUMNS ) )
             .append( ", expressiondimensionitem.name as i18n_first_name, cast (null as text) as i18n_second_name" )
             .append(
-                ", expressiondimensionitem.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, expression" )
+                ", expressiondimensionitem.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( " from expressiondimensionitem " ).toString();
     }
 }

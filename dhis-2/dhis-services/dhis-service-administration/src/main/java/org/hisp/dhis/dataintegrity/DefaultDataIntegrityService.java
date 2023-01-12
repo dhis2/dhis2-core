@@ -57,7 +57,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -545,8 +544,16 @@ public class DefaultDataIntegrityService
                 .introduction( info.apply( "introduction", null ) )
                 .recommendation( info.apply( "recommendation", null ) )
                 .issuesIdType( issueIdTypeName )
-                .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
-                .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
+                .runDetailsCheck( c -> {
+                    Date startTime = new Date();
+                    List<DataIntegrityIssue> issues = check.get();
+                    return new DataIntegrityDetails( c, startTime, new Date(), null, issues );
+                } )
+                .runSummaryCheck( c -> {
+                    Date startTime = new Date();
+                    List<DataIntegrityIssue> issues = check.get();
+                    return new DataIntegritySummary( c, startTime, new Date(), null, issues.size(), null );
+                } )
                 .build() );
         }
         catch ( Exception ex )
@@ -853,7 +860,8 @@ public class DefaultDataIntegrityService
     {
         runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
             check -> check.getRunSummaryCheck().apply( check ),
-            ( check, ex ) -> new DataIntegritySummary( check, new Date(), ex.getMessage(), -1, null ) );
+            ( check, startTime, ex ) -> new DataIntegritySummary( check, startTime, new Date(),
+                errorMessage( check, ex ), -1, null ) );
     }
 
     @Override
@@ -869,7 +877,15 @@ public class DefaultDataIntegrityService
     {
         runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
             check -> check.getRunDetailsCheck().apply( check ),
-            ( check, ex ) -> new DataIntegrityDetails( check, new Date(), ex.getMessage(), List.of() ) );
+            ( check, startTime, ex ) -> new DataIntegrityDetails( check, startTime, new Date(),
+                errorMessage( check, ex ), List.of() ) );
+    }
+
+    private static String errorMessage( DataIntegrityCheck check, RuntimeException ex )
+    {
+        String message = "Check failed because an exception was thrown: " + ex.getMessage();
+        log.error( "Check " + check.getName() + " failed because an exception was thrown", ex );
+        return message;
     }
 
     private <T> Map<String, T> getCached( Set<String> checks, long timeout, Cache<T> cache )
@@ -905,23 +921,30 @@ public class DefaultDataIntegrityService
         return resByName;
     }
 
+    @FunctionalInterface
+    private interface DataIntegrityCheckErrorHandler<T>
+    {
+        T createErrorReport( DataIntegrityCheck check, Date startTime, RuntimeException ex );
+    }
+
     private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
         Cache<T> cache, Function<DataIntegrityCheck, T> runCheck,
-        BiFunction<DataIntegrityCheck, RuntimeException, T> createErrorReport )
+        DataIntegrityCheckErrorHandler<T> createErrorReport )
     {
         progress.startingProcess( "Data Integrity check" );
         progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
         progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
             DataIntegrityCheck::getDescription,
             check -> {
-                T res = null;
+                Date startTime = new Date();
+                T res;
                 try
                 {
                     res = runCheck.apply( check );
                 }
                 catch ( RuntimeException ex )
                 {
-                    cache.put( check.getName(), createErrorReport.apply( check, ex ) );
+                    cache.put( check.getName(), createErrorReport.createErrorReport( check, startTime, ex ) );
                     throw ex;
                 }
                 if ( res != null )

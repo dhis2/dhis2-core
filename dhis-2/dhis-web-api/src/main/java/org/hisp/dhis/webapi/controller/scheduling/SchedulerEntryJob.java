@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.webapi.controller.scheduling;
 
-import java.util.Objects;
+import java.util.Date;
 
-import org.hibernate.Hibernate;
-import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.HibernateProxyHelper;
+import lombok.Value;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class HibernateProxyUtils
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Value
+class SchedulerEntryJob
 {
-    private HibernateProxyUtils()
+    @JsonProperty
+    @OpenApi.Property( { SchemaGenerators.UID.class, JobConfiguration.class } )
+    String id;
+
+    @JsonProperty
+    String name;
+
+    @JsonProperty
+    JobType type;
+
+    @JsonProperty
+    String cronExpression;
+
+    @JsonProperty
+    Date nextExecutionTime;
+
+    @JsonProperty
+    JobStatus status;
+
+    static SchedulerEntryJob of( JobConfiguration config )
     {
-        throw new IllegalStateException( "Utility class" );
-    }
-
-    @SuppressWarnings( "rawtypes" )
-    public static Class getRealClass( Object object )
-    {
-        Objects.requireNonNull( object );
-
-        if ( object instanceof Class )
-        {
-            throw new IllegalArgumentException( "Input can't be a Class instance!" );
-        }
-
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
-    }
-
-    @SuppressWarnings( { "unchecked" } )
-    public static <T> T unproxy( T proxy )
-    {
-        return (T) Hibernate.unproxy( proxy );
-    }
-
-    public static <T> void initializeAndUnproxy( T entity )
-    {
-        if ( entity == null )
-        {
-            return;
-        }
-
-        Hibernate.initialize( entity );
-        if ( entity instanceof HibernateProxy )
-        {
-            ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
-        }
+        return new SchedulerEntryJob(
+            config.getUid(),
+            config.getName(),
+            config.getJobType(),
+            config.getCronExpression(),
+            config.getNextExecutionTime(),
+            config.getJobStatus() );
     }
 }

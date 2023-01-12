@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,18 +70,18 @@ public class DefaultVisualizationGridService
     {
         User user = currentUserService.getCurrentUser();
 
-        return getVisualizationGridByUser( uid, relativePeriodDate, orgUnitUid, user );
+        return getVisualizationGrid( uid, relativePeriodDate, orgUnitUid, user );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Grid getVisualizationGridByUser( final String uid, final Date relativePeriodDate,
-        final String organisationUnitUid, final User user )
+    public Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid, User user )
     {
         Visualization visualization = visualizationService.getVisualization( uid );
-        final boolean hasPermission = visualization != null;
 
-        if ( hasPermission )
+        Grid grid = null;
+
+        if ( visualization != null )
         {
             I18nFormat format = i18nManager.getI18nFormat();
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitUid );
@@ -104,15 +105,11 @@ public class DefaultVisualizationGridService
 
             Map<String, Object> valueMap = analyticsService.getAggregatedDataValueMapping( visualization );
 
-            Grid visualizationGrid = visualization.getGrid( new ListGrid(), valueMap, SHORTNAME, true );
+            grid = visualization.getGrid( new ListGrid(), valueMap, SHORTNAME, true );
 
             visualization.clearTransientState();
+        }
 
-            return visualizationGrid;
-        }
-        else
-        {
-            return new ListGrid();
-        }
+        return ObjectUtils.firstNonNull( grid, new ListGrid() );
     }
 }
