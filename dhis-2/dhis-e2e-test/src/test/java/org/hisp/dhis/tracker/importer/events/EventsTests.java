@@ -69,7 +69,9 @@ public class EventsTests
     extends TrackerNtiApiTest
 {
     private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
+
     private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
+
     private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
     private static Stream<Arguments> provideEventFilesTestArguments()
