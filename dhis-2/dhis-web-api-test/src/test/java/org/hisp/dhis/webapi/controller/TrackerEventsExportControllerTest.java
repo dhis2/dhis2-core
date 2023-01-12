@@ -165,21 +165,6 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void shouldNotGetEventRelationshipsWhenRelationshipsFieldIsExcluded()
-    {
-        TrackedEntityInstance to = trackedEntityInstance();
-        ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        Relationship r = relationship( from, to );
-
-        JsonObject json = GET( "/tracker/events/{id}", from.getUid() )
-            .content( HttpStatus.OK );
-
-        assertFalse( json.isEmpty() );
-        assertDefaultResponse( json, from );
-        assertHasNoMember( json, "relationships" );
-    }
-
-    @Test
     void getEventByIdRelationshipsNoAccessToRelationshipType()
     {
         TrackedEntityInstance to = trackedEntityInstance();

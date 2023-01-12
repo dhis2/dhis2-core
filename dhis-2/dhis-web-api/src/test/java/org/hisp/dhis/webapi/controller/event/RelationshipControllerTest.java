@@ -171,7 +171,7 @@ class RelationshipControllerTest
     void testGetRelationship()
         throws Exception
     {
-        when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
+        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 
@@ -179,7 +179,7 @@ class RelationshipControllerTest
     void testDeleteRelationship()
         throws Exception
     {
-        when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
+        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 }
