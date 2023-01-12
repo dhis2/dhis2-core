@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -204,11 +205,11 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetSchedulerEntries_NoQueues()
     {
-        JsonArray entries = GET( "/scheduler" ).content();
+        JsonArray entries = GET( "/scheduler?order=name" ).content();
 
         assertEquals( 3, entries.size() );
-        assertEquals( List.of( "a", "b", "c" ), entries.asList( JsonObject.class ).viewAsList(
-            entry -> entry.getString( "name" ) ).toList( JsonString::string ) );
+        assertEquals( List.of( "a", "b", "c" ), entries.asList( JsonObject.class )
+            .viewAsList( entry -> entry.getString( "name" ) ).toList( JsonString::string ) );
 
         JsonObject jobA = entries.getObject( 0 );
         assertEquals( "a", jobA.getString( "name" ).string() );
@@ -217,7 +218,16 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
         assertTrue( jobA.getString( "nextExecutionTime" ).string().startsWith( "202" ) );
         assertTrue( jobA.getBoolean( "configurable" ).booleanValue() );
         assertEquals( jobIdA, jobA.getArray( "sequence" ).getObject( 0 ).getString( "id" ).string() );
+    }
 
+    @Test
+    void testGetSchedulerEntries_NoQueuesNoSort()
+    {
+        JsonArray entries = GET( "/scheduler" ).content();
+
+        assertEquals( 3, entries.size() );
+        assertEquals( Set.of( "a", "b", "c" ), Set.copyOf( entries.asList( JsonObject.class )
+            .viewAsList( entry -> entry.getString( "name" ) ).toList( JsonString::string ) ) );
     }
 
     @Test
@@ -226,12 +236,12 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/scheduler/queues/testQueue",
             format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdC ) ) );
 
-        JsonArray entries = GET( "/scheduler" ).content();
+        JsonArray entries = GET( "/scheduler?order=name" ).content();
 
         assertEquals( 2, entries.size() );
-        assertEquals( List.of( "testQueue", "b" ), entries.asList( JsonObject.class ).viewAsList(
-            entry -> entry.getString( "name" ) ).toList( JsonString::string ) );
-        assertEquals( List.of( "a", "c" ), entries.getObject( 0 ).getArray( "sequence" )
+        assertEquals( List.of( "b", "testQueue" ), entries.asList( JsonObject.class )
+            .viewAsList( entry -> entry.getString( "name" ) ).toList( JsonString::string ) );
+        assertEquals( List.of( "a", "c" ), entries.getObject( 1 ).getArray( "sequence" )
             .asList( JsonObject.class ).viewAsList(
                 entry -> entry.getString( "name" ) )
             .toList( JsonString::string ) );

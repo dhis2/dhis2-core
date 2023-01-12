@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,13 +83,16 @@ public class JobSchedulerController
     private final JobQueueService jobQueueService;
 
     @GetMapping
-    public List<SchedulerEntry> getSchedulerEntries()
+    public List<SchedulerEntry> getSchedulerEntries( @RequestParam( required = false ) String order )
     {
         Map<String, List<JobConfiguration>> configsByQueueNameOrUid = jobConfigurationService.getAllJobConfigurations()
             .stream().collect( groupingBy( JobConfiguration::getQueueIdentifier ) );
+        Comparator<SchedulerEntry> sortBy = "name".equals( order )
+            ? comparing( SchedulerEntry::getName )
+            : comparing( SchedulerEntry::getNextExecutionTime );
         return configsByQueueNameOrUid.values().stream()
             .map( SchedulerEntry::of )
-            .sorted( comparing( SchedulerEntry::getNextExecutionTime ) )
+            .sorted( sortBy )
             .collect( toList() );
     }
 
