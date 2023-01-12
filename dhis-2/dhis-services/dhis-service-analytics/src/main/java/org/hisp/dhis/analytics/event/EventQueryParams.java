@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -429,8 +430,7 @@ public class EventQueryParams
     @Override
     public String getKey()
     {
-        QueryKey key = new QueryKey()
-            .add( super.getKey() );
+        QueryKey key = super.getQueryKey();
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
@@ -1088,6 +1088,7 @@ public class EventQueryParams
         return outputType;
     }
 
+    @Override
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
@@ -1220,6 +1221,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -1232,6 +1234,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -1246,6 +1249,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
@@ -1525,6 +1529,12 @@ public class EventQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withLocale( Locale locale )
+        {
+            this.params.locale = locale;
             return this;
         }
 
