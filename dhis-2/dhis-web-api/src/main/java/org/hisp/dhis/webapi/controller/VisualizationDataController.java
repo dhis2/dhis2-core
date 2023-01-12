@@ -38,7 +38,7 @@ import java.util.Date;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -65,7 +65,6 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtils;
@@ -79,12 +78,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Tags( "ui" )
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class VisualizationDataController
 {
     @Nonnull
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
     @Nonnull
     private final ContextUtils contextUtils;
@@ -223,7 +222,7 @@ public class VisualizationDataController
             throw new WebMessageException( notFound( "Visualization does not exist: " + uid ) );
         }
 
-        if ( visualization.isChart() && isChartSupported( visualization.getType() ) )
+        if ( visualization.isChart() && ChartService.SUPPORTED_TYPES.contains( visualization.getType() ) )
         {
             OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
@@ -335,6 +334,14 @@ public class VisualizationDataController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
+    /**
+     * Returns a report table as a {@link Grid}.
+     *
+     * @param uid the visualization identifier.
+     * @param organisationUnitUid the organisation unit identifier.
+     * @param date the relative date.
+     * @return a {@link Grid}.
+     */
     private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
     {
         Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
@@ -348,18 +355,5 @@ public class VisualizationDataController
         date = date != null ? date : new Date();
 
         return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
-    }
-
-    private boolean isChartSupported( VisualizationType type )
-    {
-        return type == VisualizationType.LINE ||
-            type == VisualizationType.COLUMN ||
-            type == VisualizationType.BAR ||
-            type == VisualizationType.AREA ||
-            type == VisualizationType.PIE ||
-            type == VisualizationType.STACKED_COLUMN ||
-            type == VisualizationType.STACKED_BAR ||
-            type == VisualizationType.RADAR ||
-            type == VisualizationType.GAUGE;
     }
 }
