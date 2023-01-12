@@ -60,6 +60,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,7 +100,10 @@ class AnalyticsControllerTest
         final DataQueryService dataQueryService = new DefaultDataQueryService(
             mock( IdentifiableObjectManager.class ),
             mock( OrganisationUnitService.class ),
-            dimensionService, mock( AnalyticsSecurityManager.class ), mock( SystemSettingManager.class ),
+            dimensionService,
+            mock( AnalyticsSecurityManager.class ),
+            mock( SystemSettingManager.class ),
+            mock( UserSettingService.class ),
             mock( AclService.class ), mock( CurrentUserService.class ),
             mock( I18nManager.class ) );
 
