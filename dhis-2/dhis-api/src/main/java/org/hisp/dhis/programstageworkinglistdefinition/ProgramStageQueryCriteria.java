@@ -86,6 +86,12 @@ public class ProgramStageQueryCriteria implements Serializable
     private DateFilterPeriod enrollmentOccurredAt;
 
     /**
+     * Property which contains the required field ordering along with its
+     * direction (asc/desc)
+     */
+    private String order;
+
+    /**
      * Property which contains the order of output columns
      */
     private List<String> displayColumnOrder = new ArrayList<>();
@@ -163,6 +169,13 @@ public class ProgramStageQueryCriteria implements Serializable
     public DateFilterPeriod getEnrollmentOccurredAt()
     {
         return enrollmentOccurredAt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrder()
+    {
+        return order;
     }
 
     @JsonProperty
