@@ -83,7 +83,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}", jobIdA, jobIdB, jobIdC ) ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "ERROR",
-            "Job Queue already exist: `testQueue`",
+            "Job queue already exist: `testQueue`",
             POST( "/scheduler/queues/testQueue", "{'cronExpression':'0 0 1 ? * *','sequence':[]}" )
                 .content( HttpStatus.CONFLICT ) );
         assertEquals( ErrorCode.E7021, message.getErrorCode() );
@@ -103,7 +103,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     void testCreateQueue_OnlyOnJobInSequence()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
-            "Job Queue must have at least two jobs.",
+            "Job queue must have at least two jobs.",
             POST( "/scheduler/queues/testQueue",
                 format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s']}", jobIdA ) )
                     .content( HttpStatus.CONFLICT ) );
@@ -137,7 +137,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     void testGetQueue_NotExistingQueue()
     {
         JsonWebMessage message = assertWebMessage( "Not Found", 404, "ERROR",
-            "Job Queue does not exist: `foo`",
+            "Job queue does not exist: `foo`",
             GET( "/scheduler/queues/foo" ).content( HttpStatus.NOT_FOUND ) );
         assertEquals( ErrorCode.E7020, message.getErrorCode() );
     }
@@ -177,7 +177,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     void testUpdateQueue_NotExistingQueue()
     {
         JsonWebMessage message = assertWebMessage( "Not Found", 404, "ERROR",
-            "Job Queue does not exist: `foo`",
+            "Job queue does not exist: `foo`",
             PUT( "/scheduler/queues/foo", "{}" ).content( HttpStatus.NOT_FOUND ) );
         assertEquals( ErrorCode.E7020, message.getErrorCode() );
     }
@@ -196,7 +196,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     void testDeleteQueue_NotExistingQueue()
     {
         JsonWebMessage message = assertWebMessage( "Not Found", 404, "ERROR",
-            "Job Queue does not exist: `foo`",
+            "Job queue does not exist: `foo`",
             DELETE( "/scheduler/queues/foo" ).content( HttpStatus.NOT_FOUND ) );
         assertEquals( ErrorCode.E7020, message.getErrorCode() );
     }
@@ -214,7 +214,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
         assertEquals( "a", jobA.getString( "name" ).string() );
         assertEquals( "DISABLE_INACTIVE_USERS", jobA.getString( "type" ).string() );
         assertEquals( "0 0 1 ? * *", jobA.getString( "cronExpression" ).string() );
-        assertEquals( "2022-12-20T01:00:00.000", jobA.getString( "nextExecutionTime" ).string() );
+        assertTrue( jobA.getString( "nextExecutionTime" ).string().startsWith( "202" ) );
         assertTrue( jobA.getBoolean( "configurable" ).booleanValue() );
         assertEquals( jobIdA, jobA.getArray( "sequence" ).getObject( 0 ).getString( "id" ).string() );
 

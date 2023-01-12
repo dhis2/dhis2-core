@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -51,12 +51,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
- *
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultJobQueueService implements JobQueueService
 {
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
@@ -145,7 +143,7 @@ public class DefaultJobQueueService implements JobQueueService
         }
         // job is not already part of another queue
         Optional<JobConfiguration> alreadyInQueue = sequence.stream()
-            .filter( config -> !name.equals( config.getQueueName() ) && config.getQueueName() != null )
+            .filter( config -> !name.equals( config.getQueueName() ) && config.isUsedInQueue() )
             .findFirst();
         if ( alreadyInQueue.isPresent() )
         {

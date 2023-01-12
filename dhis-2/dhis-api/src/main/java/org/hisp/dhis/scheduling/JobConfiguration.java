@@ -497,4 +497,12 @@ public class JobConfiguration
     {
         this.queuePosition = position;
     }
+
+    /**
+     * @return true if this configuration is part of a queue, false otherwise
+     */
+    public boolean isUsedInQueue()
+    {
+        return getQueueName() != null;
+    }
 }

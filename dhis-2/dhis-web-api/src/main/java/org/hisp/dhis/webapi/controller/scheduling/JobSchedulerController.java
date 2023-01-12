@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +41,7 @@ import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Value;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
@@ -51,8 +50,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.springframework.http.HttpStatus;
@@ -77,112 +74,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = "/scheduler" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JobSchedulerController
 {
     private final JobConfigurationService jobConfigurationService;
 
     private final JobQueueService jobQueueService;
-
-    @Value
-    static class SchedulerEntry
-    {
-        @JsonProperty
-        String name;
-
-        @JsonProperty
-        String type;
-
-        @JsonProperty
-        String cronExpression;
-
-        @JsonProperty
-        Date nextExecutionTime;
-
-        @JsonProperty
-        JobStatus status;
-
-        @JsonProperty
-        boolean enabled;
-
-        @JsonProperty
-        boolean configurable;
-
-        @JsonProperty
-        List<SchedulerEntryJob> sequence;
-
-        static SchedulerEntry of( JobConfiguration config )
-        {
-            return new SchedulerEntry(
-                config.getName(),
-                config.getJobType().name(),
-                config.getCronExpression(),
-                config.getNextExecutionTime(),
-                config.getJobStatus(),
-                config.isEnabled(),
-                config.getJobType().isConfigurable(),
-                List.of( SchedulerEntryJob.of( config ) ) );
-        }
-
-        static SchedulerEntry of( List<JobConfiguration> queue )
-        {
-            JobConfiguration trigger = queue.get( 0 );
-            if ( trigger.getQueueName() == null )
-            {
-                return of( trigger );
-            }
-            JobStatus queueStatus = queue.stream()
-                .map( JobConfiguration::getJobStatus )
-                .filter( status -> status == JobStatus.RUNNING )
-                .findAny().orElse( trigger.getJobStatus() );
-            return new SchedulerEntry(
-                trigger.getQueueName(),
-                "Sequence",
-                trigger.getCronExpression(),
-                trigger.getNextExecutionTime(),
-                queueStatus,
-                trigger.isEnabled(),
-                true,
-                queue.stream()
-                    .sorted( comparing( JobConfiguration::getQueuePosition ) )
-                    .map( SchedulerEntryJob::of )
-                    .collect( toList() ) );
-        }
-    }
-
-    @Value
-    static class SchedulerEntryJob
-    {
-        @JsonProperty
-        @OpenApi.Property( { UID.class, JobConfiguration.class } )
-        String id;
-
-        @JsonProperty
-        String name;
-
-        @JsonProperty
-        JobType type;
-
-        @JsonProperty
-        String cronExpression;
-
-        @JsonProperty
-        Date nextExecutionTime;
-
-        @JsonProperty
-        JobStatus status;
-
-        static SchedulerEntryJob of( JobConfiguration config )
-        {
-            return new SchedulerEntryJob(
-                config.getUid(),
-                config.getName(),
-                config.getJobType(),
-                config.getCronExpression(),
-                config.getNextExecutionTime(),
-                config.getJobStatus() );
-        }
-    }
 
     @GetMapping
     public List<SchedulerEntry> getSchedulerEntries()
@@ -205,7 +102,7 @@ public class JobSchedulerController
             .filter( JobConfiguration::isConfigurable )
             .filter( not( JobConfiguration::isLeaderOnlyJob ) )
             .filter( config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY )
-            .filter( config -> config.getQueueName() == null )
+            .filter( config -> !config.isUsedInQueue() )
             .filter( nameFilter )
             .map( SchedulerEntry::of )
             .sorted( comparing( SchedulerEntry::getName ) )

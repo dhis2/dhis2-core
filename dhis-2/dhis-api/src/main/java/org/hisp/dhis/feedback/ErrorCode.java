@@ -339,11 +339,11 @@ public enum ErrorCode
     E7006( "Failed to execute job: `{0}`" ),
     E7007( "Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime: `{0}`" ),
-    E7020( "Job Queue does not exist: `{0}`" ),
-    E7021( "Job Queue already exist: `{0}`" ),
+    E7020( "Job queue does not exist: `{0}`" ),
+    E7021( "Job queue already exist: `{0}`" ),
     E7022( "Job `{0}` is already used in another queue: `{1}`" ),
     E7023( "Job `{0}` is a system job and as such cannot be added to a queue.`" ),
-    E7024( "Job Queue must have at least two jobs." ),
+    E7024( "Job queue must have at least two jobs." ),
 
     /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
