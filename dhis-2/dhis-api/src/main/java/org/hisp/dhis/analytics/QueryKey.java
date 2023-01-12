@@ -62,7 +62,7 @@ public class QueryKey
     public QueryKey add( String property, Object value )
     {
         String keyComponent = property + VALUE_SEP + Objects.toString( value );
-        ;
+
         this.keyComponents.add( keyComponent );
         return this;
     }
