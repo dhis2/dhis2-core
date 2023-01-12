@@ -37,8 +37,8 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -59,12 +59,12 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtils;
@@ -77,12 +77,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class VisualizationDataController
 {
     @NonNull
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
     @NonNull
     private final ContextUtils contextUtils;
@@ -119,7 +119,7 @@ public class VisualizationDataController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date )
     {
-        return getReportTableGrid( uid, organisationUnitUid, date );
+        return getVisualizationGrid( uid, organisationUnitUid, date );
     }
 
     @GetMapping( value = "/visualizations/{uid}/data.html+css" )
@@ -129,7 +129,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".html";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -145,7 +145,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xml";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -161,7 +161,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -177,7 +177,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -193,7 +193,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -221,7 +221,7 @@ public class VisualizationDataController
             throw new WebMessageException( notFound( "Visualization does not exist: " + uid ) );
         }
 
-        if ( visualization.isChart() && isChartSupported( visualization.getType() ) )
+        if ( visualization.isChart() && ChartService.SUPPORTED_TYPES.contains( visualization.getType() ) )
         {
             OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
@@ -239,7 +239,7 @@ public class VisualizationDataController
         else
         {
             response.setContentType( CONTENT_TYPE_JSON );
-            renderService.toJson( response.getOutputStream(), getReportTableGrid( uid, ou, date ) );
+            renderService.toJson( response.getOutputStream(), getVisualizationGrid( uid, ou, date ) );
         }
     }
 
@@ -333,7 +333,15 @@ public class VisualizationDataController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
+    /**
+     * Returns a visualization as a {@link Grid}.
+     *
+     * @param uid the visualization identifier.
+     * @param organisationUnitUid the organisation unit identifier.
+     * @param date the relative date.
+     * @return a {@link Grid}.
+     */
+    private Grid getVisualizationGrid( String uid, String organisationUnitUid, Date date )
     {
         Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
 
@@ -343,21 +351,8 @@ public class VisualizationDataController
             organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
         }
 
-        date = date != null ? date : new Date();
+        date = ObjectUtils.firstNonNull( date, new Date() );
 
         return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
-    }
-
-    private boolean isChartSupported( final VisualizationType type )
-    {
-        return type == VisualizationType.LINE ||
-            type == VisualizationType.COLUMN ||
-            type == VisualizationType.BAR ||
-            type == VisualizationType.AREA ||
-            type == VisualizationType.PIE ||
-            type == VisualizationType.STACKED_COLUMN ||
-            type == VisualizationType.STACKED_BAR ||
-            type == VisualizationType.RADAR ||
-            type == VisualizationType.GAUGE;
     }
 }
