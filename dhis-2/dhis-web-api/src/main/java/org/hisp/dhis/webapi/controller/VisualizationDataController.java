@@ -60,6 +60,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
@@ -352,7 +353,7 @@ public class VisualizationDataController
             organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
         }
 
-        date = date != null ? date : new Date();
+        date = ObjectUtils.firstNonNull( date, new Date() );
 
         return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
