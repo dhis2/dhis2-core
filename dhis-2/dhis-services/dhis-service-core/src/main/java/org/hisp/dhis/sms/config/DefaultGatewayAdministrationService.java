@@ -40,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,6 +53,8 @@ import org.springframework.stereotype.Service;
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
+    private AtomicBoolean hasGateways = null;
+
     private final SmsConfigurationManager smsConfigurationManager;
 
     @Qualifier( "tripleDesStringEncryptor" )
@@ -60,7 +64,12 @@ public class DefaultGatewayAdministrationService
     // GatewayAdministrationService implementation
     // -------------------------------------------------------------------------
 
-    private AtomicBoolean hasGateways = null;
+    @EventListener
+    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
+    {
+        initState();
+        updateHasGatewaysState();
+    }
 
     public synchronized void initState()
     {
