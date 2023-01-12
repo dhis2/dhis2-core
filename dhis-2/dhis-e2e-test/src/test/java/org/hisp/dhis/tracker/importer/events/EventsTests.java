@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.importer.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
@@ -40,7 +42,6 @@ import java.util.stream.Stream;
 import joptsimple.internal.Strings;
 
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.dto.ApiResponse;
