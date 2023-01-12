@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 class QueryKeyTest
 {
     @Test
-    void testAsPlainKey()
+    void testAsPlainKeyA()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -52,8 +52,12 @@ class QueryKeyTest
             .asPlainKey();
 
         assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true-locale:fr", key );
+    }
 
-        key = new QueryKey()
+    @Test
+    void testAsPlainKeyB()
+    {
+        String key = new QueryKey()
             .add( "dimension", "dx" )
             .add( "filter", "pe" )
             .add( "filter", "ou" )
@@ -62,6 +66,17 @@ class QueryKeyTest
             .asPlainKey();
 
         assertEquals( "dimension:dx-filter:pe-filter:ou-aggregationType:AVERAGE-skipMeta:true", key );
+    }
+
+    @Test
+    void testAsPlainKeyC()
+    {
+        String key = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "locale", null )
+            .asPlainKey();
+
+        assertEquals( "dimension:dx-locale:null", key );
     }
 
     @Test
