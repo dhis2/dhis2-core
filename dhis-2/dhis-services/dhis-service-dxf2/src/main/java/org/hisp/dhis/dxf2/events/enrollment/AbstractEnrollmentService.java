@@ -368,7 +368,7 @@ public abstract class AbstractEnrollmentService
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
-                Optional<Relationship> relationship = relationshipService.getRelationship(
+                Optional<Relationship> relationship = relationshipService.findRelationship(
                     relationshipItem.getRelationship(),
                     RelationshipParams.FALSE, user );
                 relationship.ifPresent( r -> enrollment.getRelationships().add( r ) );

@@ -41,7 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class EventFieldsMapperTest
 {
-    static Stream<Arguments> getEnrollmentParamsMultipleCases()
+    static Stream<Arguments> getEventParamsMultipleCases()
     {
         return Stream.of(
             arguments( List.of( "!*" ), false ),
@@ -56,7 +56,7 @@ class EventFieldsMapperTest
 
     @MethodSource
     @ParameterizedTest
-    void getEnrollmentParamsMultipleCases( List<String> fields, boolean expectRelationships )
+    void getEventParamsMultipleCases( List<String> fields, boolean expectRelationships )
     {
         EventParams params = map( fields );
 

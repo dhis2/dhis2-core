@@ -164,8 +164,7 @@ public class TrackerRelationshipsExportController
         throws NotFoundException
     {
         org.hisp.dhis.tracker.domain.Relationship relationship = RELATIONSHIP_MAPPER
-            .from( relationshipService.getRelationshipByUid( id ).orElse( null ) );
-
+            .from( relationshipService.findRelationshipByUid( id ).orElse( null ) );
         if ( relationship == null )
         {
             throw new NotFoundException( "Relationship", id );

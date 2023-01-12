@@ -142,8 +142,11 @@ public class RelationshipController
         @PathVariable String id )
         throws WebMessageException
     {
-        return Optional.of( relationshipService.getRelationshipByUid( id ) ).map( Optional::get ).orElseThrow(
-            () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
+        return Optional.of( relationshipService.findRelationshipByUid( id ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
+            .orElseThrow(
+                () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
     }
 
     // -------------------------------------------------------------------------
@@ -200,7 +203,7 @@ public class RelationshipController
         HttpServletRequest request )
         throws IOException
     {
-        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
 
         if ( relationship.isEmpty() )
         {
@@ -221,7 +224,7 @@ public class RelationshipController
         HttpServletRequest request )
         throws IOException
     {
-        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
 
         if ( relationship.isEmpty() )
         {
@@ -242,7 +245,7 @@ public class RelationshipController
     @ResponseBody
     public WebMessage deleteRelationship( @PathVariable String id )
     {
-        Optional<Relationship> relationship = relationshipService.getRelationshipByUid( id );
+        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
 
         if ( relationship.isEmpty() )
         {

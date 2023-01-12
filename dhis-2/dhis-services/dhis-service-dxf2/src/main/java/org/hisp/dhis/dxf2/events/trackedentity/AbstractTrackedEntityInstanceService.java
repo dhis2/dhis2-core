@@ -1617,7 +1617,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
                 {
-                    Optional<Relationship> relationship = relationshipService.getRelationship(
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
                     relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );

@@ -130,7 +130,9 @@ public abstract class AbstractRelationshipService
             .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( r -> getRelationship( r, user ) ).filter( Optional::isPresent ).map( Optional::get )
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
             .collect( Collectors.toList() );
     }
 
@@ -145,7 +147,9 @@ public abstract class AbstractRelationshipService
         return relationshipService
             .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( r -> getRelationship( r, user ) ).filter( Optional::isPresent ).map( Optional::get )
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
             .collect( Collectors.toList() );
     }
 
@@ -161,7 +165,9 @@ public abstract class AbstractRelationshipService
             .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( r -> getRelationship( r, user ) ).filter( Optional::isPresent ).map( Optional::get )
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
             .collect( Collectors.toList() );
     }
 
@@ -455,7 +461,7 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public Optional<Relationship> getRelationshipByUid( String id )
+    public Optional<Relationship> findRelationshipByUid( String id )
     {
         org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
 
@@ -469,7 +475,7 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public Optional<Relationship> getRelationship( org.hisp.dhis.relationship.Relationship dao,
+    public Optional<Relationship> findRelationship( org.hisp.dhis.relationship.Relationship dao,
         RelationshipParams params,
         User user )
     {
@@ -501,7 +507,7 @@ public abstract class AbstractRelationshipService
 
     private Optional<Relationship> getRelationship( org.hisp.dhis.relationship.Relationship dao, User user )
     {
-        return getRelationship( dao, RelationshipParams.TRUE, user );
+        return findRelationship( dao, RelationshipParams.TRUE, user );
     }
 
     private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao,

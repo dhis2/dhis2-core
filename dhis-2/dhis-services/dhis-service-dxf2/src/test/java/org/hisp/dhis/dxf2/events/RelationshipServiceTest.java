@@ -187,7 +187,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.addRelationship( relationshipPayload, new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
@@ -222,7 +222,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
             new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
@@ -254,7 +254,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.addRelationship( relationship, new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
@@ -289,7 +289,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
             new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
@@ -321,7 +321,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.addRelationship( relationshipPayload, new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
@@ -356,7 +356,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
             new ImportOptions() );
 
         Optional<Relationship> relationshipDb = relationshipService
-            .getRelationshipByUid( importSummary.getReference() );
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
