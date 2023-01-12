@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
@@ -73,5 +75,19 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertEquals( 50, summary.getPercentage().intValue() );
         assertNotNull( summary.getStartTime() );
         assertFalse( summary.getStartTime().isAfter( summary.getFinishedTime() ) );
+    }
+
+    @Test
+    void testCompletedChecks()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postSummary( "categories-no-options" );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
+            .as( JsonDataIntegritySummary.class );
+
+        assertEquals( List.of( "categories_no_options" ),
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues() );
     }
 }

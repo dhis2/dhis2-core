@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
@@ -166,6 +167,10 @@ public class DefaultDataIntegrityService
 
     private Cache<DataIntegrityDetails> detailsCache;
 
+    private final Set<String> runningSummaryChecks = ConcurrentHashMap.newKeySet();
+
+    private final Set<String> runningDetailsChecks = ConcurrentHashMap.newKeySet();
+
     @PostConstruct
     public void init()
     {
@@ -191,6 +196,30 @@ public class DefaultDataIntegrityService
         return items.map( e -> DataIntegrityIssue.toIssue( e, toRefs.apply( e ) ) )
             .sorted( DefaultDataIntegrityService::alphabeticalOrder )
             .collect( toUnmodifiableList() );
+    }
+
+    @Override
+    public Set<String> getRunningSummaryChecks()
+    {
+        return Set.copyOf( runningSummaryChecks );
+    }
+
+    @Override
+    public Set<String> getRunningDetailsChecks()
+    {
+        return Set.copyOf( runningDetailsChecks );
+    }
+
+    @Override
+    public Set<String> getCompletedSummaryChecks()
+    {
+        return stream( summaryCache.keys().spliterator(), false ).collect( toUnmodifiableSet() );
+    }
+
+    @Override
+    public Set<String> getCompletedDetailsChecks()
+    {
+        return stream( detailsCache.keys().spliterator(), false ).collect( toUnmodifiableSet() );
     }
 
     // -------------------------------------------------------------------------
@@ -858,7 +887,8 @@ public class DefaultDataIntegrityService
     @Override
     public void runSummaryChecks( Set<String> checks, JobProgress progress )
     {
-        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
+        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
+            summaryCache, runningSummaryChecks,
             check -> check.getRunSummaryCheck().apply( check ),
             ( check, startTime, ex ) -> new DataIntegritySummary( check, startTime, new Date(),
                 errorMessage( check, ex ), -1, null ) );
@@ -875,7 +905,8 @@ public class DefaultDataIntegrityService
     @Override
     public void runDetailsChecks( Set<String> checks, JobProgress progress )
     {
-        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
+        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
+            detailsCache, runningDetailsChecks,
             check -> check.getRunDetailsCheck().apply( check ),
             ( check, startTime, ex ) -> new DataIntegrityDetails( check, startTime, new Date(),
                 errorMessage( check, ex ), List.of() ) );
@@ -928,31 +959,43 @@ public class DefaultDataIntegrityService
     }
 
     private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
-        Cache<T> cache, Function<DataIntegrityCheck, T> runCheck,
+        Cache<T> cache, Set<String> running, Function<DataIntegrityCheck, T> runCheck,
         DataIntegrityCheckErrorHandler<T> createErrorReport )
     {
-        progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
-        progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
-            DataIntegrityCheck::getDescription,
-            check -> {
-                Date startTime = new Date();
-                T res;
-                try
-                {
-                    res = runCheck.apply( check );
-                }
-                catch ( RuntimeException ex )
-                {
-                    cache.put( check.getName(), createErrorReport.createErrorReport( check, startTime, ex ) );
-                    throw ex;
-                }
-                if ( res != null )
-                {
-                    cache.put( check.getName(), res );
-                }
-            } );
-        progress.completedProcess( null );
+        try
+        {
+            running.addAll( checks );
+            progress.startingProcess( "Data Integrity check" );
+            progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
+            progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
+                DataIntegrityCheck::getDescription,
+                check -> {
+                    Date startTime = new Date();
+                    T res;
+                    try
+                    {
+                        res = runCheck.apply( check );
+                    }
+                    catch ( RuntimeException ex )
+                    {
+                        cache.put( check.getName(), createErrorReport.createErrorReport( check, startTime, ex ) );
+                        throw ex;
+                    }
+                    finally
+                    {
+                        running.remove( check.getName() );
+                    }
+                    if ( res != null )
+                    {
+                        cache.put( check.getName(), res );
+                    }
+                } );
+            progress.completedProcess( null );
+        }
+        finally
+        {
+            running.removeAll( checks );
+        }
     }
 
     private Set<String> expandChecks( Set<String> names )
