@@ -93,6 +93,7 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
         postDetails( "categories-no-options" );
         JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
             .content().as( JsonDataIntegrityDetails.class );
+        assertNotNull( details );
 
         assertEquals( List.of( "categories_no_options" ),
             GET( "/dataIntegrity/details/completed" ).content().stringValues() );

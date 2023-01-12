@@ -86,6 +86,7 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         postSummary( "categories-no-options" );
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
             .as( JsonDataIntegritySummary.class );
+        assertNotNull( summary );
 
         assertEquals( List.of( "categories_no_options" ),
             GET( "/dataIntegrity/summary/completed" ).content().stringValues() );
