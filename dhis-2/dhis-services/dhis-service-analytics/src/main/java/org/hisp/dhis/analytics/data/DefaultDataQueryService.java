@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.apache.commons.lang3.Validate.notNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -127,7 +128,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
@@ -220,18 +220,18 @@ public class DefaultDataQueryService
             .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
             .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
-            .withOutputFormat( OutputFormat.ANALYTICS )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .build();
     }
 
     @Override
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
-        Assert.notNull( object, "Analytical object cannot be null" );
+        notNull( object );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 

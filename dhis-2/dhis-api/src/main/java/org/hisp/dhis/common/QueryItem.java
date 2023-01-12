@@ -254,7 +254,7 @@ public class QueryItem implements GroupableItem
 
     public boolean isProgramIndicator()
     {
-        return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
+        return DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType();
     }
 
     public boolean hasRelationshipType()
