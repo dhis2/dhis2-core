@@ -28,6 +28,9 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Validate.notNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
@@ -54,7 +57,6 @@ import static org.hisp.dhis.common.DisplayProperty.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -109,30 +111,29 @@ public class DefaultDataQueryService
 
         IdScheme inputIdScheme = firstNonNull( request.getInputIdScheme(), UID );
 
-        if ( request.getDimension() != null && !request.getDimension().isEmpty() )
+        if ( isNotEmpty( request.getDimension() ) )
         {
             params.addDimensions( getDimensionalObjects( request ) );
         }
 
-        if ( request.getFilter() != null && !request.getFilter().isEmpty() )
+        if ( isNotEmpty( request.getFilter() ) )
         {
             params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(),
                 request.getUserOrgUnit(), inputIdScheme ) );
         }
 
-        if ( request.getMeasureCriteria() != null && !request.getMeasureCriteria().isEmpty() )
+        if ( isNotEmpty( request.getMeasureCriteria() ) )
         {
             params.withMeasureCriteria( getMeasureCriteriaFromParam( request.getMeasureCriteria() ) );
         }
 
-        if ( request.getPreAggregationMeasureCriteria() != null
-            && !request.getPreAggregationMeasureCriteria().isEmpty() )
+        if ( isNotEmpty( request.getPreAggregationMeasureCriteria() ) )
         {
             params.withPreAggregationMeasureCriteria(
                 getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria() ) );
         }
 
-        if ( request.getAggregationType() != null )
+        if ( request.hasAggregationType() )
         {
             params.withAggregationType( fromAggregationType( request.getAggregationType() ) );
         }
@@ -158,18 +159,18 @@ public class DefaultDataQueryService
             .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
             .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
-            .withOutputFormat( ANALYTICS )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
+            .withOutputFormat( ANALYTICS )
             .build();
     }
 
     @Override
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
-        notNull( object, "Analytical object cannot be null" );
+        notNull( object );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
@@ -208,8 +209,63 @@ public class DefaultDataQueryService
             .build();
     }
 
+    // TODO Optimize so that org unit levels + boundary are used in query
+    // instead of fetching all org units one by one.
+
     @Override
-    public List<DimensionalObject> getDimensionalObjects( DataQueryRequest request )
+    public DimensionalObject getDimension( String dimension, List<String> items, EventDataQueryRequest request,
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
+    {
+        return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
+            userOrgUnits, allowNull, inputIdScheme );
+    }
+
+    @Override
+    public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
+    {
+        return getDimension( dimension, items, relativePeriodDate, NAME, userOrgUnits, allowNull, inputIdScheme );
+    }
+
+    @Override
+    public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
+    {
+        List<OrganisationUnit> units = new ArrayList<>();
+
+        User currentUser = securityManager.getCurrentUser( params );
+
+        if ( userOrgUnit != null )
+        {
+            units.addAll( getItemsFromParam( userOrgUnit ).stream()
+                .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
+                .filter( Objects::nonNull )
+                .collect( toList() ) );
+        }
+        else if ( currentUser != null && params != null && params.getUserOrgUnitType() != null )
+        {
+            switch ( params.getUserOrgUnitType() )
+            {
+            case DATA_CAPTURE:
+                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
+                break;
+            case DATA_OUTPUT:
+                units.addAll(
+                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( toList() ) );
+                break;
+            case TEI_SEARCH:
+                units.addAll( currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( toList() ) );
+                break;
+            }
+        }
+        else if ( currentUser != null )
+        {
+            units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
+        }
+
+        return units;
+    }
+
+    private List<DimensionalObject> getDimensionalObjects( DataQueryRequest request )
     {
         List<DimensionalObject> list = new ArrayList<>();
         List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, request.getUserOrgUnit() );
@@ -233,24 +289,18 @@ public class DefaultDataQueryService
         return list;
     }
 
-    // TODO Optimize so that org unit levels + boundary are used in query
-    // instead of fetching all org units one by one.
-
-    @Override
-    public DimensionalObject getDimension( String dimension, List<String> items, EventDataQueryRequest request,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
-    {
-        return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
-            userOrgUnits, allowNull, inputIdScheme );
-    }
-
-    @Override
-    public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
-    {
-        return getDimension( dimension, items, relativePeriodDate, NAME, userOrgUnits, allowNull, inputIdScheme );
-    }
-
+    /**
+     * Returns a {@link DimensionalObject}.
+     *
+     * @param dimension the dimension identifier.
+     * @param items the dimension items.
+     * @param relativePeriodDate the relative period date.
+     * @param displayProperty the relative period date.
+     * @param userOrgUnits the list of user {@link OrganisationUnit}.
+     * @param allowNull whether to allow returning null.
+     * @param inputIdScheme the input {@link IdScheme}.
+     * @return a {@link DimensionalObject}.
+     */
     private DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, boolean allowNull,
         IdScheme inputIdScheme )
@@ -310,48 +360,6 @@ public class DefaultDataQueryService
 
         throw new IllegalQueryException( new ErrorMessage( E7125, dimension ) );
     }
-
-    @Override
-    public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
-    {
-        List<OrganisationUnit> units = new ArrayList<>();
-
-        User currentUser = securityManager.getCurrentUser( params );
-
-        if ( userOrgUnit != null )
-        {
-            units.addAll( getItemsFromParam( userOrgUnit ).stream()
-                .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
-                .filter( Objects::nonNull )
-                .collect( toList() ) );
-        }
-        else if ( currentUser != null && params != null && params.getUserOrgUnitType() != null )
-        {
-            switch ( params.getUserOrgUnitType() )
-            {
-            case DATA_CAPTURE:
-                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case DATA_OUTPUT:
-                units.addAll(
-                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case TEI_SEARCH:
-                units.addAll( currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            }
-        }
-        else if ( currentUser != null )
-        {
-            units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
-        }
-
-        return units;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 
     /**
      * Returns a list of category option combinations based on the given item
