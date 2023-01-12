@@ -82,7 +82,7 @@
     <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.24</spring.version>
+    <spring.version>5.3.25</spring.version>
     <spring-data-redis.version>2.7.5</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -128,7 +128,7 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.5.3</jfreechart.version>
+    <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.3</poi.version>
@@ -205,14 +205,14 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M8</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.0.0-M8</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
-    <maven-dependency-plugin.version>3.4.0</maven-dependency-plugin.version>
+    <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.1.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.14.2</versions-maven-plugin.version>
     <dependency-check-maven.version>7.4.4</dependency-check-maven.version>
