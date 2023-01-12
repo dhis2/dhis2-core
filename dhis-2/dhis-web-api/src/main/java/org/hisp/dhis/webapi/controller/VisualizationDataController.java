@@ -121,7 +121,7 @@ public class VisualizationDataController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date )
     {
-        return getReportTableGrid( uid, organisationUnitUid, date );
+        return getVisualizationGrid( uid, organisationUnitUid, date );
     }
 
     @GetMapping( value = "/visualizations/{uid}/data.html+css" )
@@ -131,7 +131,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".html";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -147,7 +147,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xml";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -163,7 +163,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -179,7 +179,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -195,7 +195,7 @@ public class VisualizationDataController
         HttpServletResponse response )
         throws Exception
     {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+        Grid grid = getVisualizationGrid( uid, organisationUnitUid, date );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -241,7 +241,7 @@ public class VisualizationDataController
         else
         {
             response.setContentType( CONTENT_TYPE_JSON );
-            renderService.toJson( response.getOutputStream(), getReportTableGrid( uid, ou, date ) );
+            renderService.toJson( response.getOutputStream(), getVisualizationGrid( uid, ou, date ) );
         }
     }
 
@@ -336,14 +336,14 @@ public class VisualizationDataController
     }
 
     /**
-     * Returns a report table as a {@link Grid}.
+     * Returns a visualization as a {@link Grid}.
      *
      * @param uid the visualization identifier.
      * @param organisationUnitUid the organisation unit identifier.
      * @param date the relative date.
      * @return a {@link Grid}.
      */
-    private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
+    private Grid getVisualizationGrid( String uid, String organisationUnitUid, Date date )
     {
         Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
 

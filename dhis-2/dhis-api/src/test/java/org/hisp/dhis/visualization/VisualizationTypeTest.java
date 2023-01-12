@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,17 @@
  */
 package org.hisp.dhis.visualization;
 
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public enum VisualizationType
+import org.junit.jupiter.api.Test;
+
+class VisualizationTypeTest
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    STACKED_AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SCATTER,
-    BUBBLE,
-    SINGLE_VALUE,
-    PIVOT_TABLE;
-
-    private static final Set<VisualizationType> CHART_TYPES = Set.of(
-        COLUMN, STACKED_COLUMN, BAR, STACKED_BAR, LINE, AREA, STACKED_AREA, PIE, RADAR, GAUGE,
-        YEAR_OVER_YEAR_LINE, YEAR_OVER_YEAR_COLUMN, SCATTER, BUBBLE );
-
-    public boolean isChart()
+    @Test
+    void testIsChart()
     {
-        return CHART_TYPES.contains( this );
+        assertTrue( VisualizationType.LINE.isChart() );
+        assertFalse( VisualizationType.PIVOT_TABLE.isChart() );
     }
 }
