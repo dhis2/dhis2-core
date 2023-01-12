@@ -159,11 +159,11 @@ public class DefaultDataQueryService
             .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
             .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
-            .withOutputFormat( ANALYTICS )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
+            .withOutputFormat( ANALYTICS )
             .build();
     }
 

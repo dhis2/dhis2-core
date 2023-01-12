@@ -729,7 +729,7 @@ public class TrackedEntityInstanceQueryParams
 
         for ( QueryItem filter : filters )
         {
-            if ( filter.isUnique() )
+            if ( filter.getUnique() )
             {
                 return true;
             }
@@ -737,7 +737,7 @@ public class TrackedEntityInstanceQueryParams
 
         for ( QueryItem attribute : attributes )
         {
-            if ( attribute.isUnique() && attribute.hasFilter() )
+            if ( attribute.getUnique() && attribute.hasFilter() )
             {
                 return true;
             }

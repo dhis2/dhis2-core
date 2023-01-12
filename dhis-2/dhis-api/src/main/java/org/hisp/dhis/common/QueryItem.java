@@ -254,12 +254,17 @@ public class QueryItem implements GroupableItem
 
     public boolean isProgramIndicator()
     {
-        return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
+        return DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType();
+    }
+
+    public boolean isUnique()
+    {
+        return unique != null && unique;
     }
 
     public boolean hasRelationshipType()
     {
-        return this.getRelationshipType() != null;
+        return relationshipType != null;
     }
 
     /**
