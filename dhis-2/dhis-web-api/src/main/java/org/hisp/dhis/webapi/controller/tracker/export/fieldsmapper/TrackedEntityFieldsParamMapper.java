@@ -232,16 +232,16 @@ public class TrackedEntityFieldsParamMapper
     }
 
     private static FieldPath fieldPathByNestedField( List<FieldPath> fieldPaths, String nestedField,
-        List<String> pathToMatch )
+        List<String> fieldToMatch )
     {
-        return fieldPaths.stream().filter( fp -> isNestedField( fp, nestedField, pathToMatch ) && fp.isExclude() )
+        return fieldPaths.stream().filter( fp -> isNestedField( fp, nestedField, fieldToMatch ) && fp.isExclude() )
             .findFirst()
             .orElse( null );
     }
 
-    private static boolean isNestedField( FieldPath fieldPath, String field, List<String> pathToMatch )
+    private static boolean isNestedField( FieldPath fieldPath, String field, List<String> fieldToMatch )
     {
         return !fieldPath.isRoot() && field.equals( fieldPath.getName() )
-            && fieldPath.getPath().equals( pathToMatch );
+            && fieldPath.getPath().equals( fieldToMatch );
     }
 }

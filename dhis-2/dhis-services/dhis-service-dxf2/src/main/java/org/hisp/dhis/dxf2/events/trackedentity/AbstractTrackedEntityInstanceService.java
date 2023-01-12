@@ -1647,7 +1647,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
                     && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
-                    Optional<Relationship> relationship = relationshipService.getRelationship(
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
                     relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );

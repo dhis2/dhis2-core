@@ -103,13 +103,13 @@ public interface RelationshipService
 
     ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions );
 
-    Optional<Relationship> getRelationshipByUid( String id );
+    Optional<Relationship> findRelationshipByUid( String id );
 
     // -------------------------------------------------------------------------
     // HELPER METHODS
     // -------------------------------------------------------------------------
 
-    Optional<Relationship> getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
+    Optional<Relationship> findRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
         User user );
 
     ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions );
