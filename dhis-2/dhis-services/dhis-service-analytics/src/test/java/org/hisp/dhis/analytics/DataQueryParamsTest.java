@@ -46,6 +46,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -717,6 +718,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
             .withDataDimensionItems( List.of( deA, deB ) )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA ) )
+            .withLocale( Locale.FRENCH )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withDataDimensionItems( List.of( deA ) )

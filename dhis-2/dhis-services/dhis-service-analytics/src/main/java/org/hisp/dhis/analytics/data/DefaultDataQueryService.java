@@ -61,6 +61,7 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -84,6 +85,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -100,6 +103,8 @@ public class DefaultDataQueryService
 
     private final AnalyticsSecurityManager securityManager;
 
+    private final UserSettingService userSettingService;
+
     // -------------------------------------------------------------------------
     // DataQueryService implementation
     // -------------------------------------------------------------------------
@@ -110,6 +115,8 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme inputIdScheme = firstNonNull( request.getInputIdScheme(), UID );
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         if ( isNotEmpty( request.getDimension() ) )
         {
@@ -161,8 +168,9 @@ public class DefaultDataQueryService
             .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
-            .withApiVersion( request.getApiVersion() )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
+            .withApiVersion( request.getApiVersion() )
+            .withLocale( locale )
             .withOutputFormat( ANALYTICS )
             .build();
     }
@@ -175,7 +183,10 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme idScheme = UID;
+
         Date date = object.getRelativePeriodDate();
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         String userOrgUnit = object.getRelativeOrganisationUnit() != null
             ? object.getRelativeOrganisationUnit().getUid()
@@ -206,6 +217,7 @@ public class DefaultDataQueryService
         return params
             .withCompletedOnly( object.isCompletedOnly() )
             .withTimeField( object.getTimeField() )
+            .withLocale( locale )
             .build();
     }
 
