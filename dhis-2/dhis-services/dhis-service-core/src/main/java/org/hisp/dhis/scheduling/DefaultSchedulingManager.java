@@ -87,6 +87,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
     {
         super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
+
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );
         checkNotNull( leaderManager );

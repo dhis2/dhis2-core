@@ -72,7 +72,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, program.uid as program_uid,"
         + " cast (null as text) as program_shortname, programindicator.uid as item_uid, programindicator.name as item_name,"
         + " programindicator.shortname as item_shortname, cast (null as text) as item_valuetype, programindicator.code as item_code,"
-        + " programindicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type";
+        + " programindicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 

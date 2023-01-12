@@ -47,7 +47,6 @@ import com.google.common.collect.ImmutableMap;
 @ExtendWith( MockitoExtension.class )
 class TestDefaultTextPatternService
 {
-
     @InjectMocks
     private DefaultTextPatternService textPatternService;
 

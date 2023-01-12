@@ -41,13 +41,13 @@ import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.report.PersistenceReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
@@ -69,7 +69,7 @@ public class DefaultTrackerBundleService
 
     private final CommitService commitService;
 
-    private final TrackerProgramRuleService trackerProgramRuleService;
+    private final ProgramRuleService programRuleService;
 
     private final TrackerObjectDeletionService deletionService;
 
@@ -96,8 +96,8 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        List<RuleEffects> ruleEffects = trackerProgramRuleService
-            .calculateRuleEffects( trackerBundle );
+        List<RuleEffects> ruleEffects = programRuleService
+            .calculateRuleEffects( trackerBundle, trackerBundle.getPreheat() );
         trackerBundle.setRuleEffects( ruleEffects );
 
         return trackerBundle;

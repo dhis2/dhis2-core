@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageConversation;
@@ -65,8 +65,8 @@ import com.vdurmont.semver4j.Semver;
  * @author Morten Svanaes
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service
-@AllArgsConstructor
 public class SystemUpdateNotificationService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";

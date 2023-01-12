@@ -32,6 +32,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -40,14 +42,10 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 
 import com.google.common.collect.ImmutableList;
 
+@RequiredArgsConstructor
 abstract class ImplementableRuleService
 {
     private final ProgramRuleService programRuleService;
-
-    public ImplementableRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
 
     abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
 
@@ -88,7 +86,7 @@ abstract class ImplementableRuleService
             return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
                 .collect( Collectors.toList() );
         }
+
         return programRulesByActionTypes;
     }
-
 }

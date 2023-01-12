@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,10 +68,10 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
-public class DefaultMetadataVersionService implements MetadataVersionService
+@RequiredArgsConstructor
+public class DefaultMetadataVersionService
+    implements MetadataVersionService
 {
-
     private final MetadataVersionStore versionStore;
 
     private final MetadataExportService metadataExportService;

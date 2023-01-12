@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataanalysis.jdbc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
@@ -37,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -62,25 +62,14 @@ import org.springframework.stereotype.Repository;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Repository( "org.hisp.dhis.dataanalysis.DataAnalysisStore" )
 public class JdbcDataAnalysisStore implements DataAnalysisStore
 {
     private final StatementBuilder statementBuilder;
 
-    /**
-     * Read only JDBC template.
-     */
+    @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
-
-    public JdbcDataAnalysisStore( StatementBuilder statementBuilder,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( statementBuilder );
-        checkNotNull( jdbcTemplate );
-
-        this.statementBuilder = statementBuilder;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,

@@ -42,8 +42,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * Class represents a thread which will be triggered as soon as tracker rule
  * engine consumer consumes a message from tracker rule engine queue. It loops
@@ -70,8 +68,8 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         TrackerSideEffectConverterService trackerSideEffectConverterService,
         Notifier notifier )
     {
-        this.ruleActionImplementers = Lists.newArrayList( scheduleMessageRuleActionImplementer,
-            sendMessageRuleActionImplementer );
+        this.ruleActionImplementers = List.of(
+            scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer );
         this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
     }

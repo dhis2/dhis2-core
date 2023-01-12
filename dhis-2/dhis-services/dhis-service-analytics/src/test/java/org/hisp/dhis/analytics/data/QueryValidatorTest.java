@@ -44,7 +44,6 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
@@ -75,7 +74,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,10 +86,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class QueryValidatorTest
 {
     private DefaultQueryValidator queryValidator;
-
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
 
     private CategoryOption coA;
 
@@ -129,6 +123,8 @@ class QueryValidatorTest
 
     private DataElement deD;
 
+    private DataElement deE;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
@@ -156,7 +152,7 @@ class QueryValidatorTest
     @BeforeEach
     public void setUp()
     {
-        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
+        queryValidator = new DefaultQueryValidator();
         PeriodType pt = new MonthlyPeriodType();
 
         coA = createCategoryOption( 'A' );
@@ -185,11 +181,13 @@ class QueryValidatorTest
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
         deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
+        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.FIRST_FIRST_ORG_UNIT );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );
         deC.setCategoryCombo( ccB );
-        deA.setCategoryCombo( ccA );
+        deD.setCategoryCombo( ccA );
+        deE.setCategoryCombo( ccA );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
@@ -219,9 +217,9 @@ class QueryValidatorTest
     void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA, peB ) )
-            .withDataElements( List.of( deA, deB ) )
             .build();
 
         queryValidator.validate( params );
@@ -232,6 +230,18 @@ class QueryValidatorTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( List.of( deA, deB, pdeA, pdeB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    void validateSuccessAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deE ) )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA, peB ) )
             .build();
@@ -409,12 +419,26 @@ class QueryValidatorTest
     }
 
     @Test
-    void validateFailureAggregationType()
+    void validateFailureAggregationTypeA()
     {
         deB.setAggregationType( AggregationType.CUSTOM );
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
+    void validateFailureAggregationTypeB()
+    {
+        deE.setAggregationType( AggregationType.FIRST_AVERAGE_ORG_UNIT );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( List.of( deA, deE ) )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA, peB ) )
             .build();

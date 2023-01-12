@@ -38,16 +38,15 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -66,8 +65,6 @@ public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
     private final QueryPlanner queryPlanner;
-
-    private final QueryValidator queryValidator;
 
     private final PartitionManager partitionManager;
 
@@ -111,12 +108,6 @@ public class DefaultEventQueryPlanner
             .withTableName( PartitionUtils.getTableName(
                 AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram() ) )
             .build();
-    }
-
-    public void validateMaintenanceMode()
-        throws MaintenanceModeException
-    {
-        queryValidator.validateMaintenanceMode();
     }
 
     // -------------------------------------------------------------------------
@@ -230,6 +221,7 @@ public class DefaultEventQueryPlanner
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
                     .withProgram( programIndicator.getProgram() )
+                    .withOrgUnitField( new OrgUnitField( programIndicator.getOrgUnitField() ) )
                     .build();
 
                 queries.add( query );

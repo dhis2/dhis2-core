@@ -28,6 +28,7 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 
 import java.util.Set;
 import java.util.UUID;
@@ -36,8 +37,6 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -49,7 +48,7 @@ public class DefaultAdminUserPopulator
      * Authorities which are not part of schema descriptors/associated with
      * metadata CRUD operations.
      */
-    public static final Set<String> ALL_AUTHORITIES = ImmutableSet.of(
+    public static final Set<String> ALL_AUTHORITIES = Set.of(
         "ALL",
         "F_VIEW_EVENT_ANALYTICS",
         "F_METADATA_EXPORT",
@@ -93,6 +92,8 @@ public class DefaultAdminUserPopulator
         "F_DATAVALUE_ADD",
         "F_DATAVALUE_DELETE" );
 
+    public static final Set<String> ALL_RESTRICTIONS = Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME );
+
     private final UserService userService;
 
     public DefaultAdminUserPopulator( UserService userService )
@@ -120,7 +121,9 @@ public class DefaultAdminUserPopulator
 
         User user = new User();
         user.setUid( "M5zQapPyTZI" );
-        user.setCode( "admin" );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
+        user.setUsername( username );
+        user.setCode( username );
         user.setFirstName( username );
         user.setSurname( username );
 
@@ -131,18 +134,21 @@ public class DefaultAdminUserPopulator
         userRole.setCode( "Superuser" );
         userRole.setName( "Superuser" );
         userRole.setDescription( "Superuser" );
-
         userRole.setAuthorities( ALL_AUTHORITIES );
 
         userService.addUserRole( userRole );
 
-        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        user.setCode( username );
-        user.setUsername( username );
         user.getUserRoles().add( userRole );
 
         userService.encodeAndSetPassword( user, password );
 
         userService.addUser( user );
+
+        UserRole twoFactorRole = new UserRole();
+        twoFactorRole.setUid( "jcK4oq1Ol8x" );
+        twoFactorRole.setCode( "TwoFactor" );
+        twoFactorRole.setName( "TwoFactor" );
+        twoFactorRole.setDescription( "TwoFactor" );
+        twoFactorRole.setRestrictions( ALL_RESTRICTIONS );
     }
 }

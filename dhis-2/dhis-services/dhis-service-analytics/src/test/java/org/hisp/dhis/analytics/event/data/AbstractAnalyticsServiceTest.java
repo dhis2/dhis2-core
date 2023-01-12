@@ -63,8 +63,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
 
-import com.google.common.collect.Lists;
-
 /**
  * This class only tests the "shared" code of AbstractAnalyticsService, which
  * includes Grid header generation and Grid Metadata
@@ -112,12 +110,11 @@ class AbstractAnalyticsServiceTest
     @Test
     void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
-        // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) );
+            List.of( peA ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( ouA ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", List.of( ouA ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), null );
@@ -135,10 +132,8 @@ class AbstractAnalyticsServiceTest
 
         when( securityManager.withUserConstraints( any( EventQueryParams.class ) ) ).thenReturn( params );
 
-        // When
         Grid grid = dummyAnalyticsService.getGrid( params );
 
-        // Then
         List<GridHeader> headers = grid.getHeaders();
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.preheat.mappers.FullUserMapper;
@@ -41,18 +43,13 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 @Service
 public class TrackerUserService
 {
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
-
-    public TrackerUserService( CurrentUserService currentUserService, IdentifiableObjectManager manager )
-    {
-        this.currentUserService = currentUserService;
-        this.manager = manager;
-    }
 
     /**
      * Fetch a User by user uid

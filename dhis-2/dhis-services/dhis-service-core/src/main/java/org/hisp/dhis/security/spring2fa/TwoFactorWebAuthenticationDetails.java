@@ -38,7 +38,6 @@ import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 public class TwoFactorWebAuthenticationDetails
     extends ForwardedIpAwareWebAuthenticationDetails
 {
-
     private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
 
     private String code;

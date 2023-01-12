@@ -77,7 +77,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    private void checkDataIntegritySummary( String check, Integer expectedCount,
+    void checkDataIntegritySummary( String check, Integer expectedCount,
         Integer expectedPercentage, Boolean hasPercentage )
     {
 
@@ -99,15 +99,13 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     private Boolean hasComments( JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues )
     {
-        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
+        return issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
             Boolean::logicalOr );
-        return (containsComments);
     }
 
-    private void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
+    void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
         String expectedDetailsNames, String expectedDetailsComments, String issueType )
     {
-
         postDetails( check );
 
         JsonDataIntegrityDetails details = getDetails( check );
@@ -115,9 +113,18 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
 
+        if ( expectedDetailsUnits != null )
+        {
+            assertEquals( expectedDetailsUnits, issues.get( 0 ).getId() );
+        }
+        else
+        {
+            assertNull( issues.get( 0 ).getId() );
+        }
+
         if ( expectedDetailsNames != null )
         {
-            assertTrue( issues.get( 0 ).getName().toString().startsWith( expectedDetailsNames ) );
+            assertTrue( issues.get( 0 ).getName().startsWith( expectedDetailsNames ) );
         }
 
         /* This can be empty if comments do not exist in the JSON response. */
@@ -130,7 +137,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( issueType, details.getIssuesIdType() );
     }
 
-    private void checkDataIntegrityDetailsIssues( String check, Set<String> expectedDetailsUnits,
+    void checkDataIntegrityDetailsIssues( String check, Set<String> expectedDetailsUnits,
         Set<String> expectedDetailsNames, Set<String> expectedDetailsComments, String issueType )
     {
 
@@ -143,7 +150,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( expectedDetailsUnits.size(), issues.size() );
 
         /* Always check the UIDs */
-        Set issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
+        Set<String> issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
         assertEquals( issueUIDs, expectedDetailsUnits );
 
         /*
@@ -158,8 +165,8 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         /* This can be empty if comments do not exist in the JSON response. */
         if ( hasComments( issues ) && !expectedDetailsComments.isEmpty() )
         {
-            Set<JsonString> detailsComments = issues.stream().map( issue -> issue.getComment() )
-                .collect( Collectors.toSet() );
+            Set<String> detailsComments = issues.stream().map( issue -> issue.getComment().string() )
+                .collect( Collectors.toUnmodifiableSet() );
             assertEquals( expectedDetailsComments, detailsComments );
         }
 
@@ -192,23 +199,30 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         checkDataIntegrityDetailsIssues( check, emptyStringSet, emptyStringSet, emptyStringSet, issueType );
     }
 
-    final void deleteAllOrgUnits()
+    final void assertNamedMetadataObjectExists( String endpoint, String name )
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
+        JsonResponse response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
+        JsonArray dimensions = response.getArray( endpoint );
+        assertEquals( 1, dimensions.size() );
+    }
+
+    final void deleteAllMetadataObjects( String endpoint )
+    {
+        GET( "/" + endpoint + "/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/" + endpoint + "/" + id ) );
+        JsonResponse response = GET( "/" + endpoint ).content();
+        JsonArray dimensions = response.getArray( endpoint );
         assertEquals( 0, dimensions.size() );
     }
 
-    boolean deleteMetadataObject( String endpoint, String uid )
+    final void deleteAllOrgUnits()
+    {
+        deleteAllMetadataObjects( "organisationUnits" );
+    }
+
+    void deleteMetadataObject( String endpoint, String uid )
 
     {
-
-        if ( endpoint == null )
-        {
-            return false;
-        }
 
         if ( uid != null )
         {
@@ -217,7 +231,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             assertStatus( HttpStatus.NOT_FOUND,
                 GET( "/" + endpoint + "/" + uid ) );
         }
-        return true;
+
     }
 
     @Autowired
@@ -230,6 +244,39 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             operation.run();
             return null;
         } );
+
+    }
+
+    protected final HttpResponse postNewDataValue( String period, String value, String comment, boolean followup,
+        String dataElementId, String orgUnitId )
+    {
+        String defaultCOC = getDefaultCOC();
+        return POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
+    }
+
+    protected final HttpResponse deleteDataValue( String period, String value, String comment, boolean followup,
+        String dataElementId, String orgUnitId )
+    {
+        String defaultCOC = getDefaultCOC();
+        return DELETE( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
+    }
+
+    protected final String getDefaultCatCombo()
+    {
+        JsonObject ccDefault = GET(
+            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
+                .content().getObject( 0 );
+        return ccDefault.getString( "id" ).string();
+    }
+
+    protected final String getDefaultCOC()
+    {
+        JsonObject ccDefault = GET(
+            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
+                .content().getObject( 0 );
+        return ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
 
     }
 }

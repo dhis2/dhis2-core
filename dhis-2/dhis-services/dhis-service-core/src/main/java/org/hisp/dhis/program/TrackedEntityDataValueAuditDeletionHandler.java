@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler
 {
     private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;

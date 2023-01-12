@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
@@ -39,6 +38,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -58,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
     implements ValidationResultService
@@ -69,20 +70,6 @@ public class DefaultValidationResultService
     private final OrganisationUnitService organisationUnitService;
 
     private final ValidationRuleService validationRuleService;
-
-    public DefaultValidationResultService( ValidationResultStore validationResultStore, PeriodService periodService,
-        OrganisationUnitService organisationUnitService, ValidationRuleService validationRuleService )
-    {
-        checkNotNull( validationResultStore );
-        checkNotNull( periodService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( validationRuleService );
-
-        this.validationResultStore = validationResultStore;
-        this.periodService = periodService;
-        this.organisationUnitService = organisationUnitService;
-        this.validationRuleService = validationRuleService;
-    }
 
     @Transactional
     @Override

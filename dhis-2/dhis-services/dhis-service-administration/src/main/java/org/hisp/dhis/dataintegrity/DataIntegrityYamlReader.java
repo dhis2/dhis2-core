@@ -82,6 +82,9 @@ class DataIntegrityYamlReader
         @JsonProperty( "details_id_type" )
         String detailsIdType;
 
+        @JsonProperty( "is_slow" )
+        Boolean isSlow;
+
         @JsonProperty
         String introduction;
 
@@ -128,6 +131,7 @@ class DataIntegrityYamlReader
                     .issuesIdType( trim( e.detailsIdType ) )
                     .section( trim( e.section ) )
                     .severity( e.severity )
+                    .isSlow( e.isSlow != null && e.isSlow )
                     .runSummaryCheck( sqlToSummary.apply( sanitiseSQL( e.summarySql ) ) )
                     .runDetailsCheck( sqlToDetails.apply( sanitiseSQL( e.detailsSql ) ) )
                     .build() );

@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold
  */
 @Transactional( readOnly = true )
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataelement.DataElementGroupService" )
 public class DefaultDataElementGroupService
     implements DataElementGroupService
 {
-    @Autowired
-    private DataElementGroupStore dataElementGroupStore;
+    private final DataElementGroupStore dataElementGroupStore;
 
     @Override
     public DataElementGroup getDataElementGroupByUid( String uid )

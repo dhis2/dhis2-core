@@ -44,7 +44,6 @@ class TimeToLiveTest
     @Test
     void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
-        // Given
         int aNegativeCachingFactor = -1;
         Date endingDate = new Date();
 
@@ -54,82 +53,67 @@ class TimeToLiveTest
     @Test
     void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
     {
-        // Given
         int aPositiveCachingFactor = 3;
         Date endingDate = new Date();
         long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-        // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
-        // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
     void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
     {
-        // Given
         int oneDayDiff = 1;
         int aPositiveCachingFactor = 2;
         Date endingDate = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
         long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
-        // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
-        // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
     void testComputeWhenDateObjectIsOfTypeSqlDate()
     {
-        // Given
         int oneDayDiff = 1;
         int aPositiveCachingFactor = 2;
         java.sql.Date endingDate = new java.sql.Date(
             calculateDateFrom( new Date(), minus( oneDayDiff ), DATE ).getTime() );
         long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
-        // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
-        // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
     void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
     {
-        // Given
         int tenDaysAhead = 10;
         int aPositiveCachingFactor = 1;
         Date beginningDate = new Date();
         Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
         long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-        // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
-        // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
     void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
     {
-        // Given
         int tenDays = 10;
         int aPositiveCachingFactor = 2;
         Date now = new Date();
         Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
         long expectedTtl = aPositiveCachingFactor * tenDays;
 
-        // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
-        // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 

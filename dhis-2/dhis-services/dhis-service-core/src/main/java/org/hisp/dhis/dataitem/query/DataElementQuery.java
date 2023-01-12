@@ -77,7 +77,8 @@ public class DataElementQuery implements DataItemQuery
         + " cast (null as text) as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
         + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype,"
         + " dataelement.code as item_code, dataelement.sharing as item_sharing, dataelement.domaintype as item_domaintype,"
-        + " cast ('DATA_ELEMENT' as text) as item_type";
+        + " cast ('DATA_ELEMENT' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -199,7 +200,8 @@ public class DataElementQuery implements DataItemQuery
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", dataelement.name as i18n_first_name, cast (null as text) as i18n_second_name" )
-            .append( ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+            .append(
+                ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( " from dataelement " ).toString();
     }
 }

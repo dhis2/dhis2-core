@@ -128,7 +128,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -184,8 +183,6 @@ public class DataHandler
     private final ExpressionService expressionService;
 
     private final QueryPlanner queryPlanner;
-
-    private final QueryValidator queryValidator;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -1226,8 +1223,6 @@ public class DataHandler
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, AnalyticsTableType tableType,
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
-        queryValidator.validateMaintenanceMode();
-
         int optimalQueries = getWithin( getProcessNo(), 1, MAX_QUERIES );
 
         int maxLimit = params.isIgnoreLimit() ? 0
