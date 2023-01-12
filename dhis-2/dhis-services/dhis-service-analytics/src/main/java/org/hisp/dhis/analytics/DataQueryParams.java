@@ -366,11 +366,6 @@ public class DataQueryParams
     protected Date endDate;
 
     /**
-     * The date range for the period dimension, can be empty.
-     */
-    protected List<DateRange> dateRangeList = new ArrayList<>();
-
-    /**
      * The order in which the data values has to be sorted, can be null.
      */
     protected SortOrder order;
@@ -595,7 +590,6 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
-        params.dateRangeList = this.dateRangeList;
         params.order = this.order;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
@@ -675,8 +669,7 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
-            .add( "dateRangeList", dateRangeList.stream()
-                .map( DateRange::toString ).collect( Collectors.joining( ":" ) ) )
+            // TODO: Maikel: add cache key for multiple periods
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
@@ -1465,42 +1458,28 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a nonempty dateRangeList.
+     * Indicates whether this query has a continuous a list of dates has
+     * continuous range. It assumes that the datesRange IS SORTED.
      */
-    public boolean hasDateRangeList()
+    public boolean hasContinuousDateRangeList( List<DateRange> datesRange )
     {
-        return isNotEmpty( dateRangeList );
-    }
-
-    /**
-     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
-     * assumes that the dateRangeList is sorted. It should happen in the
-     * EventQueryParam::replacePeriodsWithDates method.
-     */
-    public boolean hasContinuousDateRangeList()
-    {
-        if ( !hasDateRangeList() )
+        if ( isNotEmpty( datesRange ) )
         {
-            return true;
-        }
-
-        if ( dateRangeList.size() == 1 )
-        {
-            return true;
-        }
-
-        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
-        {
-            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
-                dateRangeList.get( i ).getStartDate() ) > 1;
-
-            if ( diffAboveOneDay )
+            for ( int i = datesRange.size() - 1; i > 0; i-- )
             {
-                return false;
+                boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
+                    datesRange.get( i ).getStartDate() ) > 1;
+
+                if ( diffAboveOneDay )
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -1510,15 +1489,6 @@ public class DataQueryParams
     public boolean startDateAfterEndDate()
     {
         return hasStartEndDate() && startDate.after( endDate );
-    }
-
-    /**
-     * Indicates whether any start date is after the end date, which is invalid.
-     */
-    public boolean startDatesAfterEndDates()
-    {
-        return hasDateRangeList() && dateRangeList.stream()
-            .anyMatch( drl -> drl.getStartDate().after( drl.getEndDate() ) );
     }
 
     /**
@@ -2377,11 +2347,6 @@ public class DataQueryParams
     public Date getEndDate()
     {
         return endDate;
-    }
-
-    public List<DateRange> getDateRangeList()
-    {
-        return dateRangeList;
     }
 
     public SortOrder getOrder()

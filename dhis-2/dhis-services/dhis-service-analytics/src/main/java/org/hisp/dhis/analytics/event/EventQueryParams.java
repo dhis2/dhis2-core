@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -81,6 +82,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -266,10 +268,18 @@ public class EventQueryParams
     protected IdScheme dataIdScheme;
 
     /**
-     * a map holding for each time field a range of dates
+     * A map that holds time fields({@link TimeField}) and their respective
+     * range of dates({@link DateRange}).
      */
     @Getter
-    protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
+    protected Map<TimeField, List<DateRange>> timeDateRanges = new HashMap<>();
+
+    /**
+     * A map that holds period types({@link org.hisp.dhis.period.PeriodType})
+     * and their respective range of dates({@link DateRange}).
+     */
+    @Getter
+    protected Map<PeriodType, List<DateRange>> periodDateRanges = new HashMap<>();
 
     /**
      * flag to enable enhanced OR conditions
@@ -303,7 +313,6 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
-        params.dateRangeList = this.dateRangeList;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
@@ -345,7 +354,8 @@ public class EventQueryParams
         params.dataIdScheme = this.dataIdScheme;
         params.periodType = this.periodType;
         params.explainOrderId = this.explainOrderId;
-        params.dateRangeByDateFilter = this.dateRangeByDateFilter;
+        params.timeDateRanges = this.timeDateRanges;
+        params.periodDateRanges = this.periodDateRanges;
         params.skipPartitioning = this.skipPartitioning;
         params.enhancedCondition = this.enhancedCondition;
         params.endpointItem = this.endpointItem;
@@ -466,92 +476,108 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Before removing the period dimension or filter, DateRange
      * list is created. This saves the complete date information from PE
-     * Dimension prior removal of dimension
+     * Dimension prior removal of dimension.
      *
      * When heterogeneous date fields are specified, set a specific start/date
-     * pair for each of them
+     * pair for each of them.
      */
-    private void replacePeriodsWithDates()
+    void replacePeriodsWithDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
         for ( Period period : periods )
         {
+            boolean isPeDimension = Objects.isNull( period.getDateField() ); // ie: LAST_MONTH, LAST_YEAR, 202204, etc.
+
+            Date start = period.getStartDate();
+
+            Date end = period.getEndDate();
+
+            if ( startDate == null || (start != null && start.before( startDate )) )
+            {
+                startDate = start;
+            }
+
+            if ( endDate == null || (end != null && end.after( endDate )) )
+            {
+                endDate = end;
+            }
             DateRange dateRange = new DateRange( period.getStartDate(), period.getEndDate() );
 
-            dateRangeList.add( dateRange );
-
-            if ( Objects.isNull( period.getDateField() ) )
+            if ( isPeDimension )
             {
-                Date start = period.getStartDate();
+                PeriodType periodType = period.getPeriodType();
 
-                Date end = period.getEndDate();
-
-                if ( startDate == null || (start != null && start.before( startDate )) )
+                if ( periodDateRanges.containsKey( periodType ) )
                 {
-                    startDate = start;
+                    List<DateRange> dateRanges = periodDateRanges.get( periodType );
+                    dateRanges.add( dateRange );
+                    periodDateRanges.replace( periodType, dateRanges );
+                }
+                else
+                {
+                    List<DateRange> dateRanges = new ArrayList<>();
+                    dateRanges.add( dateRange );
+                    periodDateRanges.put( periodType, dateRanges );
                 }
 
-                if ( endDate == null || (end != null && end.after( endDate )) )
-                {
-                    endDate = end;
-                }
+                //                if ( startDate == null || (start != null && start.before( startDate )) )
+                //                {
+                //                    startDate = start;
+                //                }
+                //
+                //                if ( endDate == null || (end != null && end.after( endDate )) )
+                //                {
+                //                    endDate = end;
+                //                }
             }
             else
             {
-                Optional<AnalyticsDateFilter> dateFilter = AnalyticsDateFilter.of( period.getDateField() );
-                if ( dateFilter.isPresent() )
+                Optional<AnalyticsDateFilter> optDateFilter = AnalyticsDateFilter.of( period.getDateField() );
+
+                if ( optDateFilter.isPresent() )
                 {
-                    updateStartForDateFilterIfNecessary( dateFilter.get(), period.getStartDate() );
-                    updateEndForDateFilterIfNecessary( dateFilter.get(), period.getEndDate() );
+                    AnalyticsDateFilter dateFilter = optDateFilter.get();
+
+                    if ( timeDateRanges.containsKey( dateFilter ) )
+                    {
+                        List<DateRange> dateRanges = timeDateRanges.get( dateFilter );
+                        dateRanges.add( dateRange );
+                        timeDateRanges.replace( dateFilter.getTimeField(), dateRanges );
+                    }
+                    else
+                    {
+                        List<DateRange> dateRanges = new ArrayList<>();
+                        dateRanges.add( dateRange );
+                        timeDateRanges.put( dateFilter.getTimeField(), dateRanges );
+                    }
                 }
             }
         }
-        // Sorting the date range list
-        dateRangeList.sort( Comparator.comparing( DateRange::getStartDate ) );
+
+        sortDateRanges( timeDateRanges.values() );
+        sortDateRanges( periodDateRanges.values() );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }
 
-    private void updateStartForDateFilterIfNecessary( AnalyticsDateFilter dateFilter, Date start )
+    private void sortDateRanges( Collection<List<DateRange>> dateRanges )
     {
-        if ( dateRangeByDateFilter.get( dateFilter ) != null )
+        for ( List<DateRange> ranges : dateRanges )
         {
-            Date startDateInMap = dateRangeByDateFilter.get( dateFilter ).getStartDate();
-            if ( startDateInMap == null || (start != null && start.before( startDateInMap )) )
-            {
-                dateRangeByDateFilter.get( dateFilter ).setStartDate( start );
-            }
-        }
-        else
-        {
-            dateRangeByDateFilter.put( dateFilter, new DateRange( start, null ) );
-        }
-    }
-
-    private void updateEndForDateFilterIfNecessary( AnalyticsDateFilter dateFilter, Date end )
-    {
-        if ( dateRangeByDateFilter.get( dateFilter ) != null )
-        {
-            Date endDateInMap = dateRangeByDateFilter.get( dateFilter ).getEndDate();
-            if ( endDateInMap == null || (end != null && end.after( endDateInMap )) )
-            {
-                dateRangeByDateFilter.get( dateFilter ).setEndDate( end );
-            }
-        }
-        else
-        {
-            dateRangeByDateFilter.put( dateFilter, new DateRange( null, end ) );
+            ranges.sort( Comparator.comparing( DateRange::getStartDate ) );
         }
     }
 
     /**
      * Indicates whether we should use start/end dates in SQL query instead of
      * periods.
+     *
+     * @return true when multiple periods are set or has start/end dates
      */
     public boolean useStartEndDates()
     {
-        return hasStartEndDate() || !getDateRangeByDateFilter().isEmpty();
+        return hasStartEndDate() || !this.getTimeDateRanges().isEmpty();
     }
 
     /**

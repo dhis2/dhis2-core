@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.analytics.EventOutputType.ENROLLMENT;
+import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
@@ -99,9 +100,9 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getColumnName( EventQueryParams params )
+    protected String getColumnName( Optional<TimeField> timeField, EventOutputType outputType )
     {
-        return getTimeCol( params.getOutputType(), getTimeField( params ) );
+        return getTimeCol( outputType, timeField );
     }
 
     @Override
@@ -116,15 +117,19 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
 
     private String getTimeCol( EventOutputType outputType, Optional<TimeField> timeField )
     {
-        if ( ENROLLMENT.equals( outputType ) )
+        if ( timeField.isPresent() )
         {
-            return quoteAlias( TimeField.ENROLLMENT_DATE.getField() );
+            return quoteAlias( timeField.get().getField() );
         }
-        // EVENTS
-        return quoteAlias(
-            timeField
-                .map( TimeField::getField )
-                .orElse( EVENT_DATE.getField() ) );
+        else if ( ENROLLMENT == outputType )
+        {
+            return quoteAlias( ENROLLMENT_DATE.getField() );
+        }
+        else
+        {
+            // EVENTS
+            return quoteAlias( EVENT_DATE.getField() );
+        }
     }
 
     private String toSqlCondition( Period period, TimeField timeField )
@@ -138,5 +143,4 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     {
         return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
     }
-
 }

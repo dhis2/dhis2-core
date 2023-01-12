@@ -74,8 +74,8 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
         assertEquals(
-            "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01')",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
+            "((ax.\"executiondate\" >= '2022-04-01' and ax.\"executiondate\" < '2022-05-01' or ax.\"executiondate\" >= '2022-06-01'and ax.\"executiondate\" < '2022-07-01'))",
+            timeFieldSqlRenderer.renderTimeFieldSql( params ) );
     }
 
     @Test
@@ -89,8 +89,8 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
-        assertEquals( "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
+        assertEquals( "((ax.\"executiondate\" >= '2022-04-01' and ax.\"executiondate\" < '2022-07-01'))",
+            timeFieldSqlRenderer.renderTimeFieldSql( params ) );
     }
 
     @Test
@@ -106,8 +106,8 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
         assertEquals(
-            "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01')",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
+            "((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-05-01' or enrollmentdate >= '2022-06-01'and enrollmentdate < '2022-07-01')",
+            timeFieldSqlRenderer.renderTimeFieldSql( params ) );
     }
 
     @Test
@@ -122,7 +122,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
-        assertEquals( "enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01'",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
+        assertEquals( "enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01'",
+            timeFieldSqlRenderer.renderTimeFieldSql( params ) );
     }
 }
