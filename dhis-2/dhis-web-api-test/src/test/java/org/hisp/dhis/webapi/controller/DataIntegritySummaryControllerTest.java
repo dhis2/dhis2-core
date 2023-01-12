@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
@@ -69,5 +71,7 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
+        assertNotNull( summary.getStartTime() );
+        assertFalse( summary.getStartTime().isAfter( summary.getFinishedTime() ) );
     }
 }

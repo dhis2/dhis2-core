@@ -71,7 +71,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
         + " program.shortname as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
         + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype, dataelement.code as item_code,"
-        + " dataelement.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_DATA_ELEMENT' as text) as item_type";
+        + " dataelement.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_DATA_ELEMENT' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
@@ -105,7 +106,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append(
             " group by program.name, program.shortname, item_name, " + COMMON_UIDS
                 + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -188,7 +189,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.name as i18n_first_name, dataelement.name as i18n_second_name" )
             .append(
-                ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname, cast (null as text) as expression" )
+                ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

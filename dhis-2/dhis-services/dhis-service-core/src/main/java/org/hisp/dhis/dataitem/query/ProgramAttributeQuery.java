@@ -73,7 +73,8 @@ public class ProgramAttributeQuery implements DataItemQuery
         + " trackedentityattribute.name as item_name, trackedentityattribute.shortname as item_shortname,"
         + " trackedentityattribute.valuetype as item_valuetype, trackedentityattribute.code as item_code,"
         + " trackedentityattribute.sharing as item_sharing, cast (null as text) as item_domaintype,"
-        + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type";
+        + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 
@@ -106,7 +107,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         sql.append(
             " group by program.name, program.shortname, item_name, " + COMMON_UIDS
                 + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -189,7 +190,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name" )
             .append(
-                ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname, cast (null as text) as expression" )
+                ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname" )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }
