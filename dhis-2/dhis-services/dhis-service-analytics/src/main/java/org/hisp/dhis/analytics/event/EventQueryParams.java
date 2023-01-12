@@ -422,8 +422,7 @@ public class EventQueryParams
     @Override
     public String getKey()
     {
-        QueryKey key = new QueryKey()
-            .add( super.getKey() );
+        QueryKey key = super.getQueryKey();
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );

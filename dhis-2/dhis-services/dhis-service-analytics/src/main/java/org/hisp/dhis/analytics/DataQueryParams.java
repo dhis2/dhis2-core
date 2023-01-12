@@ -651,7 +651,7 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a unique query key.
+     * Returns a unique {@link QueryKey}.
      */
     protected QueryKey getQueryKey()
     {
