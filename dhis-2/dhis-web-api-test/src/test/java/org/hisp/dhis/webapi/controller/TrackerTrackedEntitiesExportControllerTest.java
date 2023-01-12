@@ -196,7 +196,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         TrackedEntityInstance from = trackedEntityInstance();
         TrackedEntityInstance to = trackedEntityInstance();
-        teiToTeiRelationship( from, to );
+        relationship( from, to );
         this.switchContextToUser( user );
 
         JsonObject json = GET(
@@ -214,7 +214,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         TrackedEntityInstance from = trackedEntityInstance();
         TrackedEntityInstance to = trackedEntityInstance();
-        Relationship r = teiToTeiRelationship( from, to );
+        Relationship r = relationship( from, to );
         this.switchContextToUser( user );
 
         JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
@@ -249,7 +249,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         TrackedEntityInstance from = trackedEntityInstance();
         TrackedEntityInstance to = trackedEntityInstanceNotInSearchScope();
-        teiToTeiRelationship( from, to );
+        relationship( from, to );
         this.switchContextToUser( user );
 
         JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
@@ -265,7 +265,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         TrackedEntityInstance from = trackedEntityInstanceNotInSearchScope();
         TrackedEntityInstance to = trackedEntityInstanceNotInSearchScope();
-        teiToTeiRelationship( from, to );
+        relationship( from, to );
         this.switchContextToUser( user );
 
         assertTrue( GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
@@ -278,7 +278,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         TrackedEntityInstance from = trackedEntityInstanceNotInSearchScope();
         TrackedEntityInstance to = trackedEntityInstance();
-        teiToTeiRelationship( from, to );
+        relationship( from, to );
         this.switchContextToUser( user );
 
         assertTrue( GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
@@ -292,7 +292,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         TrackedEntityType type = trackedEntityTypeNotAccessible();
         TrackedEntityInstance from = trackedEntityInstance( type );
         TrackedEntityInstance to = trackedEntityInstance( type );
-        teiToTeiRelationship( from, to );
+        relationship( from, to );
         this.switchContextToUser( user );
 
         assertTrue( GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
@@ -404,7 +404,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         programInstance.getProgramStageInstances().add( programStageInstance );
         manager.update( programInstance );
 
-        Relationship teiToEventRelationship = teiToProgramStageInstanceRelationship( trackedEntityInstance,
+        Relationship teiToEventRelationship = relationship( trackedEntityInstance,
             programStageInstance );
 
         JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=enrollments", trackedEntityInstance.getUid() )
@@ -438,7 +438,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         programInstance.getProgramStageInstances().add( programStageInstance );
         manager.update( programInstance );
 
-        teiToProgramStageInstanceRelationship( trackedEntityInstance, programStageInstance );
+        relationship( trackedEntityInstance, programStageInstance );
 
         JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=enrollments[*,events[!relationships]]",
             trackedEntityInstance.getUid() )
@@ -629,14 +629,14 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         return type;
     }
 
-    private Relationship teiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to )
+    private Relationship relationship( TrackedEntityInstance from, TrackedEntityInstance to )
     {
         RelationshipType type = relationshipTypeAccessible( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
             RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         return relationship( type, fromTrackedEntity( from ), toTrackedEntity( to ) );
     }
 
-    private Relationship teiToProgramStageInstanceRelationship( TrackedEntityInstance from, ProgramStageInstance to )
+    private Relationship relationship( TrackedEntityInstance from, ProgramStageInstance to )
     {
         RelationshipType type = relationshipTypeAccessible( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
             RelationshipEntity.PROGRAM_STAGE_INSTANCE );
