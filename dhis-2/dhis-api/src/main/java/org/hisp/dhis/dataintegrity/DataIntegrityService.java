@@ -69,4 +69,13 @@ public interface DataIntegrityService
     void runSummaryChecks( Set<String> checks, JobProgress progress );
 
     void runDetailsChecks( Set<String> checks, JobProgress progress );
+
+    Set<String> getRunningSummaryChecks();
+
+    Set<String> getRunningDetailsChecks();
+
+    Set<String> getCompletedSummaryChecks();
+
+    Set<String> getCompletedDetailsChecks();
+
 }
