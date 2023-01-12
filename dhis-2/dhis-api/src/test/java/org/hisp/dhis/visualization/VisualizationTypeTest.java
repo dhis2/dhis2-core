@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.visualization;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
- */
-public interface DataIntegrityService
+class VisualizationTypeTest
 {
-    /*
-     * Old API
-     */
-
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
-
-    /*
-     * New generic API
-     */
-
-    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    @Test
+    void testIsChart()
     {
-        return getDataIntegrityChecks( Set.of() );
+        assertTrue( VisualizationType.LINE.isChart() );
+        assertFalse( VisualizationType.PIVOT_TABLE.isChart() );
     }
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
-
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
-
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
-
-    Set<String> getRunningSummaryChecks();
-
-    Set<String> getRunningDetailsChecks();
-
-    Set<String> getCompletedSummaryChecks();
-
-    Set<String> getCompletedDetailsChecks();
-
 }

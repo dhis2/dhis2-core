@@ -49,6 +49,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -57,6 +60,8 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
 public class QueryFilter
 {
     public static final String OPTION_SEP = ";";
@@ -332,29 +337,5 @@ public class QueryFilter
         }
         else
             return operator.equals( other.operator );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public QueryOperator getOperator()
-    {
-        return operator;
-    }
-
-    public void setOperator( QueryOperator operator )
-    {
-        this.operator = operator;
-    }
-
-    public String getFilter()
-    {
-        return filter;
-    }
-
-    public void setFilter( String filter )
-    {
-        this.filter = filter;
     }
 }

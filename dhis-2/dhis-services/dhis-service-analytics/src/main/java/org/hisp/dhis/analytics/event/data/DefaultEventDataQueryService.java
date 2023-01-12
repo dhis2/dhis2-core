@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -99,6 +100,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -140,6 +143,8 @@ public class DefaultEventDataQueryService
 
     private final DataQueryService dataQueryService;
 
+    private final UserSettingService userSettingService;
+
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
@@ -152,6 +157,8 @@ public class DefaultEventDataQueryService
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
         IdScheme idScheme = IdScheme.UID;
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
@@ -215,6 +222,7 @@ public class DefaultEventDataQueryService
             .withTotalPages( request.isTotalPages() )
             .withProgramStatuses( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
+            .withLocale( locale )
             .withEnhancedConditions( request.isEnhancedConditions() )
             .withEndpointItem( request.getEndpointItem() );
 
@@ -358,7 +366,10 @@ public class DefaultEventDataQueryService
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
         IdScheme idScheme = IdScheme.UID;
+
         Date date = object.getRelativePeriodDate();
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         object.populateAnalyticalProperties();
 
@@ -401,6 +412,7 @@ public class DefaultEventDataQueryService
             .withEndDate( object.getEndDate() )
             .withValue( object.getValue() )
             .withOutputType( object.getOutputType() )
+            .withLocale( locale )
             .build();
     }
 
@@ -423,9 +435,6 @@ public class DefaultEventDataQueryService
     public List<String> getCoordinateFields( String program, String coordinateField,
         String fallbackCoordinateField, boolean defaultCoordinateFallback )
     {
-        // despite the fact it is nice to have no duplications, it can't be Set
-        // cause the order inside the collection (set add existing value and
-        // remove the old one)
         List<String> coordinateFields = new ArrayList<>();
 
         if ( coordinateField == null )

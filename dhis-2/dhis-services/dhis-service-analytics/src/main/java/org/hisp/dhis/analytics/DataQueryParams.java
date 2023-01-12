@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -386,6 +387,11 @@ public class DataQueryParams
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
 
+    /**
+     * The database locale for the user making the request, can be null.
+     */
+    protected Locale locale;
+
     // -------------------------------------------------------------------------
     // Event transient properties
     // -------------------------------------------------------------------------
@@ -594,6 +600,7 @@ public class DataQueryParams
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
+        params.locale = this.locale;
 
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
@@ -634,6 +641,14 @@ public class DataQueryParams
      */
     public String getKey()
     {
+        return getQueryKey().build();
+    }
+
+    /**
+     * Returns a unique {@link QueryKey}.
+     */
+    protected QueryKey getQueryKey()
+    {
         QueryKey key = new QueryKey();
 
         dimensions.forEach( e -> key.add( "dimension",
@@ -673,8 +688,8 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
-            .add( "userOrgUnitType", userOrgUnitType )
-            .addIgnoreNull( "apiVersion", apiVersion ).build();
+            .addIgnoreNull( "apiVersion", apiVersion )
+            .addIgnoreNull( "locale", locale );
     }
 
     private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
@@ -2207,6 +2222,7 @@ public class DataQueryParams
             .add( "Measure criteria", measureCriteria )
             .add( "Output format", outputFormat )
             .add( "API version", apiVersion )
+            .add( "Locale", locale )
             .toString();
     }
 
@@ -3445,6 +3461,12 @@ public class DataQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withLocale( Locale locale )
+        {
+            this.params.locale = locale;
             return this;
         }
 
