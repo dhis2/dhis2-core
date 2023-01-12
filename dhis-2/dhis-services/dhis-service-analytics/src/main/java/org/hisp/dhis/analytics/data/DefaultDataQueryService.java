@@ -115,6 +115,7 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme inputIdScheme = firstNonNull( request.getInputIdScheme(), UID );
+
         Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         if ( isNotEmpty( request.getDimension() ) )
@@ -182,7 +183,9 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme idScheme = UID;
+
         Date date = object.getRelativePeriodDate();
+
         Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         String userOrgUnit = object.getRelativeOrganisationUnit() != null
