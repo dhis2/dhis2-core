@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
@@ -54,7 +56,13 @@ class DataIntegrityYamlReaderTest
             sql -> check -> new DataIntegritySummary( check, new Date(), new Date(), null, 1, 100d ),
             sql -> check -> new DataIntegrityDetails( check, new Date(), new Date(), null,
                 List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 62, checks.size() );
+        assertEquals( 63, checks.size() );
+
+        //Names should be unique
+        List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
+            .collect( Collectors.toUnmodifiableList() );
+        assertTrue( allNames.size() == Set.copyOf( allNames ).size() );
+
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );
