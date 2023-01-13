@@ -29,6 +29,7 @@ package org.hisp.dhis.dataintegrity;
 
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ class DataIntegrityYamlReaderTest
         assertEquals( "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
             + " should be added to the category.", check.getRecommendation() );
-        assertEquals( false, check.isSlow() );
+        assertFalse( check.isSlow() );
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
     }
