@@ -76,7 +76,7 @@ public class ProgramStageQueryCriteria implements Serializable
     private ProgramStatus enrollmentStatus;
 
     /**
-     * Property to filter events based on program created dates
+     * Property to filter events based on their enrolment dates
      */
     private DateFilterPeriod enrolledAt;
 
@@ -97,7 +97,7 @@ public class ProgramStageQueryCriteria implements Serializable
     private List<String> displayColumnOrder = new ArrayList<>();
 
     /**
-     * Property indication the OU for the filter.
+     * Property indicating the OU for the filter.
      */
     private String orgUnit;
 

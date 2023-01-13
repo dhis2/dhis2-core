@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.ValidationUtil.validateDateFilterPeriod;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -75,6 +76,9 @@ public class DefaultProgramStageWorkingListDefinitionService
         checkNotNull( programStageWorkingListDefinitionStore );
         checkNotNull( programService );
         checkNotNull( programStageService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( teaService );
+        checkNotNull( dataElementService );
 
         this.programStageWorkingListDefinitionStore = programStageWorkingListDefinitionStore;
         this.programService = programService;
@@ -132,10 +136,10 @@ public class DefaultProgramStageWorkingListDefinitionService
         }
 
         validateDateFilterPeriods( errors, queryCriteria );
-        validateAssignedUsers( errors, queryCriteria );
-        validateOrganisationUnit( errors, queryCriteria );
+        validateAssignedUsers( errors, queryCriteria.getAssignedUsers(), queryCriteria.getAssignedUserMode() );
+        validateOrganisationUnit( errors, queryCriteria.getOrgUnit(), queryCriteria.getOuMode() );
         validateAttributeValueFilters( errors, queryCriteria.getAttributeValueFilters(), teaService );
-        validateDataFilters( errors, queryCriteria );
+        validateDataFilters( errors, queryCriteria.getDataFilters() );
 
         return errors;
     }
@@ -197,40 +201,39 @@ public class DefaultProgramStageWorkingListDefinitionService
         validateDateFilterPeriod( errors, "EventScheduledDate", queryCriteria.getScheduledAt() );
     }
 
-    private void validateAssignedUsers( List<String> errors, ProgramStageQueryCriteria queryCriteria )
+    private void validateAssignedUsers( List<String> errors, Set<String> assignedUsers,
+        AssignedUserSelectionMode userMode )
     {
-        if ( CollectionUtils.isEmpty( queryCriteria.getAssignedUsers() )
-            && queryCriteria.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
+        if ( CollectionUtils.isEmpty( assignedUsers )
+            && userMode == AssignedUserSelectionMode.PROVIDED )
         {
             errors.add( "Assigned Users cannot be empty with PROVIDED assigned user mode" );
         }
     }
 
-    private void validateOrganisationUnit( List<String> errors, ProgramStageQueryCriteria queryCriteria )
+    private void validateOrganisationUnit( List<String> errors, String orgUnit, OrganisationUnitSelectionMode ouMode )
     {
-        if ( queryCriteria.getOrgUnit() != null )
+        if ( orgUnit != null )
         {
-            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( queryCriteria.getOrgUnit() );
+            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnit );
             if ( ou == null )
             {
-                errors.add( "Org unit is specified but does not exist: " + queryCriteria.getOrgUnit() );
+                errors.add( "Org unit is specified but does not exist: " + orgUnit );
                 return;
             }
         }
 
-        if ( StringUtils.isEmpty( queryCriteria.getOrgUnit() )
-            && (queryCriteria.getOuMode() == OrganisationUnitSelectionMode.SELECTED
-                || queryCriteria.getOuMode() == OrganisationUnitSelectionMode.DESCENDANTS
-                || queryCriteria.getOuMode() == OrganisationUnitSelectionMode.CHILDREN) )
+        if ( StringUtils.isEmpty( orgUnit )
+            && (ouMode == OrganisationUnitSelectionMode.SELECTED
+                || ouMode == OrganisationUnitSelectionMode.DESCENDANTS
+                || ouMode == OrganisationUnitSelectionMode.CHILDREN) )
         {
-            errors.add( String.format( "Organisation Unit cannot be empty with %s org unit mode",
-                queryCriteria.getOuMode().toString() ) );
+            errors.add( String.format( "Organisation Unit cannot be empty with %s org unit mode", ouMode ) );
         }
     }
 
-    private void validateDataFilters( List<String> errors, ProgramStageQueryCriteria queryCriteria )
+    private void validateDataFilters( List<String> errors, List<EventDataFilter> dataFilters )
     {
-        List<EventDataFilter> dataFilters = queryCriteria.getDataFilters();
         if ( !CollectionUtils.isEmpty( dataFilters ) )
         {
             dataFilters.forEach( avf -> {
