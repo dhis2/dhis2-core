@@ -56,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -96,7 +97,7 @@ public class MetadataHandler
 
             Map<String, String> cocNameMap = getCocNameMap( params );
 
-            metaData.put( ITEMS.getKey(), getDimensionMetadataItemMap( params ) );
+            metaData.put( ITEMS.getKey(), getDimensionMetadataItemMap( params, grid ) );
 
             // -----------------------------------------------------------------
             // Item order elements
@@ -134,17 +135,21 @@ public class MetadataHandler
 
             if ( params.isHierarchyMeta() )
             {
-                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(
+                    OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnits ), roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
-                Map<Object, List<?>> ancestorMap = organisationUnits.stream()
+                List<OrganisationUnit> gridRelevantOrgUnits = OrgUnitHelper.getGridRelevantOrganisationUnits( grid,
+                    organisationUnits );
+
+                Map<Object, List<?>> ancestorMap = gridRelevantOrgUnits.stream()
                     .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
 
                 internalMetaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
                 metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( organisationUnits, roots, true ) );
+                    getParentNameGraphMap( gridRelevantOrgUnits, roots, true ) );
             }
 
             grid.setMetaData( copyOf( metaData ) );
