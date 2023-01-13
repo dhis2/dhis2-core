@@ -40,6 +40,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 public class OrgUnitHelper
 {
+    private OrgUnitHelper()
+    {
+    }
+
     /**
      * Consolidate organisation unit list by intersection with grid rows data
      *
