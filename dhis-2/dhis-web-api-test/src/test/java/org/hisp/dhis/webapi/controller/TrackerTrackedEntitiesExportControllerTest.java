@@ -362,7 +362,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         JsonObject event = assertDefaultEventResponse( enrollment, programStageInstance );
 
-        JsonObject relationship = event.getArray( "relationships" ).get( 0 ).asObject();
+        JsonObject relationship = event.getArray( "relationships" ).get( 0 ).as( JsonObject.class );
 
         assertEquals( teiToEventRelationship.getUid(), relationship.getString( "relationship" ).string() );
         assertEquals( trackedEntityInstance.getUid(),
@@ -427,7 +427,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertFalse( enrollments.isEmpty() );
         assertHasOnlyMembers( enrollments, "enrollments" );
 
-        JsonObject enrollment = enrollments.getArray( "enrollments" ).get( 0 ).asObject();
+        JsonObject enrollment = enrollments.getArray( "enrollments" ).get( 0 ).as( JsonObject.class );
 
         assertHasMember( enrollment, "enrollment" );
 
@@ -454,7 +454,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertTrue( enrollment.isObject() );
         assertFalse( enrollment.isEmpty() );
 
-        JsonObject event = enrollment.getArray( "events" ).get( 0 ).asObject();
+        JsonObject event = enrollment.getArray( "events" ).get( 0 ).as( JsonObject.class );
 
         assertEquals( programStageInstance.getUid(), event.getString( "event" ).string() );
         assertEquals( programStageInstance.getProgramStage().getUid(), event.getString( "programStage" ).string() );
@@ -470,7 +470,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertHasMember( event, "notes" );
         assertHasMember( event, "followup" );
 
-        JsonObject dataValue = event.getArray( "dataValues" ).get( 0 ).asObject();
+        JsonObject dataValue = event.getArray( "dataValues" ).get( 0 ).as( JsonObject.class );
 
         assertEquals( dataElement.getUid(), dataValue.getString( "dataElement" ).string() );
         assertEquals( programStageInstance.getEventDataValues().iterator().next().getValue(),
