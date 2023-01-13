@@ -64,7 +64,7 @@ class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends Abst
     }
 
     @Test
-    void orgunitsNoTrailingSpaces()
+    void orgUnitsDifferentNames()
     {
         setupTest();
         assertStatus( HttpStatus.CREATED,
@@ -76,7 +76,7 @@ class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends Abst
     }
 
     @Test
-    void testOrgunitsTrailingSpacesZeroCase()
+    void testOrgunitsSameNameParentZeroCase()
     {
         assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
