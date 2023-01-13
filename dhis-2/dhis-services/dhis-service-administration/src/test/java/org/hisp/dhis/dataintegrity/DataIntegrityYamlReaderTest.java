@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,7 @@ class DataIntegrityYamlReaderTest
     @Test
     void testReadDataIntegrityYaml()
     {
+
         List<DataIntegrityCheck> checks = new ArrayList<>();
         readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
             ( property, defaultValue ) -> defaultValue,
@@ -62,6 +64,15 @@ class DataIntegrityYamlReaderTest
         List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
             .collect( Collectors.toUnmodifiableList() );
         assertTrue( allNames.size() == Set.copyOf( allNames ).size() );
+        //Config checks and Java checks should not have any of the same names
+
+        List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() ).map( e -> e.getName().toLowerCase() )
+            .collect(
+                Collectors.toList() );
+        assertTrue( nonYamlChecks.size() > 0 );
+
+        nonYamlChecks.retainAll( allNames );
+        assertEquals( 0, nonYamlChecks.size() );
 
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
