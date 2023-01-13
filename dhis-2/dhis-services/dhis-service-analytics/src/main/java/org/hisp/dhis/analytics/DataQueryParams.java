@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -52,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -684,7 +687,6 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
-            // TODO: Maikel: add cache key for multiple periods
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
@@ -701,7 +703,7 @@ public class DataQueryParams
                 .collect( Collectors.joining( ":" ) );
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     // -------------------------------------------------------------------------
@@ -770,7 +772,7 @@ public class DataQueryParams
     public Period getLatestPeriod()
     {
         return getAllPeriods().stream()
-            .map( obj -> (Period) obj )
+            .map( Period.class::cast )
             .min( DescendingPeriodComparator.INSTANCE )
             .orElse( null );
     }
@@ -861,7 +863,7 @@ public class DataQueryParams
     public List<Period> getTypedFilterPeriods()
     {
         return getFilterPeriods().stream()
-            .map( p -> (Period) p )
+            .map( Period.class::cast )
             .collect( Collectors.toList() );
     }
 
@@ -1473,28 +1475,33 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a continuous a list of dates has
-     * continuous range. It assumes that the datesRange IS SORTED.
+     * Indicates whether this query has a continuous list of dates range or is
+     * empty. It assumes that the datesRange IS SORTED.
      */
-    public boolean hasContinuousDateRangeList( List<DateRange> datesRange )
+    public boolean hasContinuousRange( List<DateRange> datesRange )
     {
-        if ( isNotEmpty( datesRange ) )
+        if ( isEmpty( datesRange ) )
         {
-            for ( int i = datesRange.size() - 1; i > 0; i-- )
-            {
-                boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
-                    datesRange.get( i ).getStartDate() ) > 1;
-
-                if ( diffAboveOneDay )
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 
-        return false;
+        if ( datesRange.size() == 1 )
+        {
+            return true;
+        }
+
+        for ( int i = datesRange.size() - 1; i > 0; i-- )
+        {
+            boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
+                datesRange.get( i ).getStartDate() ) > 1;
+
+            if ( diffAboveOneDay )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -1643,7 +1650,7 @@ public class DataQueryParams
         List<DimensionalItemObject> items = AnalyticsUtils
             .getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
 
-        return items.size() > 0;
+        return isNotEmpty( items );
     }
 
     /**
@@ -2097,10 +2104,8 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
 
             // Org unit group always at last index, org unit potentially at
-            // first
-
+            // first.
             int ougInx = keys.size() - 1;
-
             String oug = keys.get( ougInx );
 
             ListUtils.removeAll( keys, ougInx );
@@ -2127,7 +2132,7 @@ public class DataQueryParams
             return null;
         }
 
-        Map<MeasureFilter, Double> map = new HashMap<>();
+        Map<MeasureFilter, Double> map = new EnumMap<>( MeasureFilter.class );
 
         String[] criteria = param.split( DimensionalObject.OPTION_SEP );
 
@@ -2649,12 +2654,12 @@ public class DataQueryParams
         Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
-            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
+            .map( ProgramTrackedEntityAttributeDimensionItem.class::cast )
             .filter( a -> a.getProgram() != null )
             .forEach( a -> programs.add( a.getProgram() ) );
 
         getAllProgramDataElements().stream()
-            .map( d -> (ProgramDataElementDimensionItem) d )
+            .map( ProgramDataElementDimensionItem.class::cast )
             .filter( d -> d.getProgram() != null )
             .forEach( d -> programs.add( d.getProgram() ) );
 

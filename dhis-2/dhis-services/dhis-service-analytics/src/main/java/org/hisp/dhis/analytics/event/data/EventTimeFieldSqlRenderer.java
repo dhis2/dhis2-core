@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Arrays.asList;
 import static org.hisp.dhis.analytics.EventOutputType.ENROLLMENT;
 import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
@@ -44,10 +43,9 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -68,10 +66,10 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final StatementBuilder statementBuilder;
 
     @Getter
-    private final Collection<TimeField> allowedTimeFields = new HashSet<>( asList( LAST_UPDATED, SCHEDULED_DATE ) );
+    private final Set<TimeField> allowedTimeFields = Set.of( LAST_UPDATED, SCHEDULED_DATE );
 
     @Override
-    protected String getSqlConditionForPeriods( EventQueryParams params )
+    protected String getAggregatedConditionForPeriods( EventQueryParams params )
     {
         List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
@@ -102,11 +100,11 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     @Override
     protected String getColumnName( Optional<TimeField> timeField, EventOutputType outputType )
     {
-        return getTimeCol( outputType, timeField );
+        return getTimeCol( timeField, outputType );
     }
 
     @Override
-    protected String getSqlConditionForNonDefaultBoundaries( EventQueryParams params )
+    protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
     {
         return params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
             .map( analyticsPeriodBoundary -> statementBuilder.getBoundaryCondition( analyticsPeriodBoundary,
@@ -115,7 +113,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
             .collect( Collectors.joining( " and " ) );
     }
 
-    private String getTimeCol( EventOutputType outputType, Optional<TimeField> timeField )
+    private String getTimeCol( Optional<TimeField> timeField, EventOutputType outputType )
     {
         if ( timeField.isPresent() )
         {

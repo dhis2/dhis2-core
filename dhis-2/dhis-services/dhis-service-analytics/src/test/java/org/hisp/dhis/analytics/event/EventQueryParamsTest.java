@@ -37,9 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -47,7 +45,6 @@ import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.QueryItem;
@@ -233,7 +230,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testWithStartEndDatesForPeriodsForScheduledMonthly()
+    void testWithStartEndDatesForPeriodsForScheduledMonthlyWithDateField()
     {
         // Given
         Period periodMay = MonthlyPeriodType.getPeriodFromIsoString( "202305" );
@@ -245,8 +242,6 @@ class EventQueryParamsTest extends DhisConvenienceTest
         Period periodFebruary = MonthlyPeriodType.getPeriodFromIsoString( "202302" );
         periodFebruary.setDateField( SCHEDULED_DATE.name() );
 
-        AnalyticsDateFilter analyticsDateFilter = AnalyticsDateFilter.SCHEDULED_DATE;
-
         // When
         EventQueryParams params = new EventQueryParams.Builder()
             .withPeriods( List.of( periodMay, periodMarch, periodFebruary ), MONTHLY.getName() )
@@ -257,29 +252,29 @@ class EventQueryParamsTest extends DhisConvenienceTest
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
         assertEquals( 1, params.getTimeDateRanges().size() );
-        assertTrue( params.getTimeDateRanges().containsKey( analyticsDateFilter ) );
+        assertTrue( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
 
-        List<DateRange> ranges = params.getTimeDateRanges().get( analyticsDateFilter );
+        List<DateRange> ranges = params.getTimeDateRanges().get( SCHEDULED_DATE );
         assertEquals( 3, ranges.size() );
 
-        LocalDate febDate = toLocalDate( ranges.get( 0 ).getStartDate().getTime() );
+        LocalDate febDate = toLocalDate( ranges.get( 0 ).getStartDate() );
         assertEquals( 2023, febDate.getYear() );
         assertEquals( 2, febDate.getMonthValue() );
         assertEquals( 1, febDate.getDayOfMonth() );
 
-        LocalDate marchDate = toLocalDate( ranges.get( 1 ).getStartDate().getTime() );
+        LocalDate marchDate = toLocalDate( ranges.get( 1 ).getStartDate() );
         assertEquals( 2023, marchDate.getYear() );
         assertEquals( 3, marchDate.getMonthValue() );
         assertEquals( 1, marchDate.getDayOfMonth() );
 
-        LocalDate mayDate = toLocalDate( ranges.get( 2 ).getStartDate().getTime() );
+        LocalDate mayDate = toLocalDate( ranges.get( 2 ).getStartDate() );
         assertEquals( 2023, mayDate.getYear() );
         assertEquals( 5, mayDate.getMonthValue() );
         assertEquals( 1, mayDate.getDayOfMonth() );
     }
 
     @Test
-    void testReplacePeriodsWithDatesWithDifferentPeriodTypes()
+    void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithDateField()
     {
         // Given
         Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
@@ -293,8 +288,6 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
         List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
 
-        AnalyticsDateFilter analyticsDateFilter = AnalyticsDateFilter.SCHEDULED_DATE;
-
         EventQueryParams params = new EventQueryParams.Builder()
             .withStartEndDatesForPeriods()
             .build();
@@ -307,63 +300,104 @@ class EventQueryParamsTest extends DhisConvenienceTest
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
         assertEquals( 1, params.getTimeDateRanges().size() );
-        assertTrue( params.getTimeDateRanges().containsKey( analyticsDateFilter ) );
-        assertEquals( 3, params.getTimeDateRanges().get( analyticsDateFilter ).size() );
+        assertTrue( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
+        assertEquals( 3, params.getTimeDateRanges().get( SCHEDULED_DATE ).size() );
     }
 
     @Test
-    void testHasContinuousDateRangeListIsFalse()
+    void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithoutDateField()
     {
         // Given
         Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
-        weeklyPeriod.setDateField( SCHEDULED_DATE.name() );
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+
+        List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withStartEndDatesForPeriods()
+            .build();
+        params.getDimensions().add( new BaseDimensionalObject( "pe", PERIOD, periods ) );
+
+        // When
+        params.replacePeriodsWithDates();
+
+        // Then
+        assertNotNull( params.getStartDate() );
+        assertNotNull( params.getEndDate() );
+        assertEquals( 0, params.getTimeDateRanges().size() );
+        assertFalse( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
+        assertNull( params.getTimeDateRanges().get( SCHEDULED_DATE ) );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeIsFalseWithDateField()
+    {
+        // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
         DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
 
         Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
-        monthlyPeriod.setDateField( SCHEDULED_DATE.name() );
         DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
 
         Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
-        dailyPeriod.setDateField( SCHEDULED_DATE.name() );
         DateRange dailyRange = new DateRange( dailyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
 
         EventQueryParams params = new EventQueryParams.Builder().build();
 
         // When
-        boolean isContinuousRange = params
-            .hasContinuousDateRangeList( List.of( weeklyRange, monthlyRange, dailyRange ) );
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, monthlyRange, dailyRange ) );
 
         // Then
-        assertFalse( isContinuousRange );
+        assertFalse( hasContinuousRange );
     }
 
     @Test
-    void testHasContinuousDateRangeListIsTrue()
+    void testHasContinuousRangeDateRangeIsFalse()
+    {
+        // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+        DateRange dailyRange = new DateRange( dailyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, monthlyRange, dailyRange ) );
+
+        // Then
+        assertFalse( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeIsTrue()
     {
         // Given
         Period jan = WeeklyPeriodType.getPeriodFromIsoString( "202301" );
-        jan.setDateField( SCHEDULED_DATE.name() );
         DateRange janRange = new DateRange( jan.getStartDate(), jan.getEndDate() );
 
         Period feb = MonthlyPeriodType.getPeriodFromIsoString( "202302" );
-        feb.setDateField( SCHEDULED_DATE.name() );
         DateRange febRange = new DateRange( feb.getStartDate(), feb.getEndDate() );
 
         Period mar = DailyPeriodType.getPeriodFromIsoString( "20230103" );
-        mar.setDateField( SCHEDULED_DATE.name() );
         DateRange marRange = new DateRange( mar.getStartDate(), mar.getEndDate() );
 
         EventQueryParams params = new EventQueryParams.Builder().build();
 
         // When
-        boolean isContinuousRange = params.hasContinuousDateRangeList( List.of( janRange, febRange, marRange ) );
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( janRange, febRange, marRange ) );
 
         // Then
-        assertTrue( isContinuousRange );
+        assertTrue( hasContinuousRange );
     }
 
     @Test
-    void testHasContinuousDateRangeListForThisWeeklyAndDailyPeriods()
+    void testHasContinuousRangeDateRangeForThisWeeklyAndDailyPeriods()
     {
         // Given
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
@@ -375,14 +409,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().build();
 
         // When
-        boolean isContinuousRange = params.hasContinuousDateRangeList( List.of( weeklyRange, todayRange ) );
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, todayRange ) );
 
         // Then
-        assertTrue( isContinuousRange );
+        assertTrue( hasContinuousRange );
     }
 
     @Test
-    void testHasContinuousDateRangeListForThisWeeklyDailyAndMonthlyPeriods()
+    void testHasContinuousRangeDateRangeForThisWeeklyDailyAndMonthlyPeriods()
     {
         // Given
         Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
@@ -397,15 +431,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().build();
 
         // When
-        boolean isContinuousRange = params
-            .hasContinuousDateRangeList( List.of( weeklyRange, todayRange, monthlyRange ) );
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, todayRange, monthlyRange ) );
 
         // Then
-        assertTrue( isContinuousRange );
+        assertTrue( hasContinuousRange );
     }
 
     @Test
-    void testHasContinuousDateRangeListForWeeklyDailyAndMonthlyIsFalse()
+    void testHasContinuousRangeDateRangeForWeeklyDailyAndMonthlyIsFalse()
     {
         // Given
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
@@ -420,11 +453,10 @@ class EventQueryParamsTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().build();
 
         // When
-        boolean isContinuousRange = params
-            .hasContinuousDateRangeList( List.of( monthlyRange, weeklyRange, todayRange ) );
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( monthlyRange, weeklyRange, todayRange ) );
 
         // Then
-        assertFalse( isContinuousRange );
+        assertFalse( hasContinuousRange );
     }
 
     @Test
@@ -528,7 +560,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
-        // this PI has 0 Data Element of type OrgUnit -> test should fail
+        // This PI has 0 Data Element of type OrgUnit -> test should fail.
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( null )
@@ -544,8 +576,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValidWithMultipleProgramIndicator2()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        // This PI has a Program that has a Tracked Entity Attribute of type Org
-        // Unit
+        // This PI has a Program that has a Tracked Entity Attribute of type Org Unit.
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( null )
@@ -554,12 +585,5 @@ class EventQueryParamsTest extends DhisConvenienceTest
             .addItemProgramIndicator( programIndicatorA )
             .build();
         assertTrue( params.orgUnitFieldIsValid() );
-    }
-
-    private LocalDate toLocalDate( long dateMillis )
-    {
-        return Instant.ofEpochMilli( dateMillis )
-            .atZone( ZoneId.systemDefault() )
-            .toLocalDate();
     }
 }

@@ -235,7 +235,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderTimeFieldSql( params );
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units

@@ -28,7 +28,10 @@
 package org.hisp.dhis.analytics.event;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
+import static org.hisp.dhis.analytics.SortOrder.ASC;
+import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -36,16 +39,14 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -83,7 +85,6 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -132,7 +133,8 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
-     * TODO Change to List? TODO Add Javadoc
+     * The headers to be returned. Does not make sense to be repeated and should
+     * keep ordering, hence a {@link LinkedHashSet}.
      */
     protected Set<String> headers = new LinkedHashSet<>();
 
@@ -252,12 +254,12 @@ public class EventQueryParams
     private boolean includeClusterPoints;
 
     /**
-     * Indicates the program status
+     * Indicates the program status.
      */
     private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
 
     /**
-     * Indicates whether to include metadata details to response
+     * Indicates whether to include metadata details to response.
      */
     protected boolean includeMetadataDetails;
 
@@ -273,17 +275,17 @@ public class EventQueryParams
      * range of dates({@link DateRange}).
      */
     @Getter
-    protected Map<TimeField, List<DateRange>> timeDateRanges = new HashMap<>();
+    protected Map<TimeField, List<DateRange>> timeDateRanges = new EnumMap<>( TimeField.class );
 
     /**
-     * A map that holds period types({@link org.hisp.dhis.period.PeriodType})
-     * and their respective range of dates({@link DateRange}).
+     * A list that holds the range of dates({@link DateRange}) of each period
+     * (pe).
      */
     @Getter
-    protected Map<PeriodType, List<DateRange>> periodDateRanges = new HashMap<>();
+    protected List<DateRange> periodDateRanges = new ArrayList<>();
 
     /**
-     * flag to enable enhanced OR conditions
+     * Flag to enable enhanced OR conditions.
      */
     @Getter
     protected boolean enhancedCondition = false;
@@ -487,49 +489,19 @@ public class EventQueryParams
 
         for ( Period period : periods )
         {
-            boolean isPeDimension = Objects.isNull( period.getDateField() ); // ie: LAST_MONTH, LAST_YEAR, 202204, etc.
-
             Date start = period.getStartDate();
-
             Date end = period.getEndDate();
+            DateRange dateRange = new DateRange( start, end );
 
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            // The "dateField" can be: SCHEDULED_DATE, INCIDENT_DATE, etc. See {@link org.hisp.dhis.analytics.TimeField}
+            boolean blankDateField = isBlank( period.getDateField() );
+
+            periodDateRanges.add( dateRange );
+
+            if ( blankDateField )
             {
-                startDate = start;
-            }
-
-            if ( endDate == null || (end != null && end.after( endDate )) )
-            {
-                endDate = end;
-            }
-            DateRange dateRange = new DateRange( period.getStartDate(), period.getEndDate() );
-
-            if ( isPeDimension )
-            {
-                PeriodType periodType = period.getPeriodType();
-
-                if ( periodDateRanges.containsKey( periodType ) )
-                {
-                    List<DateRange> dateRanges = periodDateRanges.get( periodType );
-                    dateRanges.add( dateRange );
-                    periodDateRanges.replace( periodType, dateRanges );
-                }
-                else
-                {
-                    List<DateRange> dateRanges = new ArrayList<>();
-                    dateRanges.add( dateRange );
-                    periodDateRanges.put( periodType, dateRanges );
-                }
-
-                //                if ( startDate == null || (start != null && start.before( startDate )) )
-                //                {
-                //                    startDate = start;
-                //                }
-                //
-                //                if ( endDate == null || (end != null && end.after( endDate )) )
-                //                {
-                //                    endDate = end;
-                //                }
+                // Needed because of some internal flows.
+                setDates( start, end );
             }
             else
             {
@@ -537,35 +509,51 @@ public class EventQueryParams
 
                 if ( optDateFilter.isPresent() )
                 {
-                    AnalyticsDateFilter dateFilter = optDateFilter.get();
+                    TimeField timeField = optDateFilter.get().getTimeField();
 
-                    if ( timeDateRanges.containsKey( dateFilter ) )
+                    if ( timeDateRanges.containsKey( timeField ) )
                     {
-                        List<DateRange> dateRanges = timeDateRanges.get( dateFilter );
+                        List<DateRange> dateRanges = timeDateRanges.get( timeField );
                         dateRanges.add( dateRange );
-                        timeDateRanges.replace( dateFilter.getTimeField(), dateRanges );
+                        timeDateRanges.replace( timeField, dateRanges );
                     }
                     else
                     {
                         List<DateRange> dateRanges = new ArrayList<>();
                         dateRanges.add( dateRange );
-                        timeDateRanges.put( dateFilter.getTimeField(), dateRanges );
+                        timeDateRanges.put( timeField, dateRanges );
                     }
                 }
             }
         }
 
-        sortDateRanges( timeDateRanges.values() );
-        sortDateRanges( periodDateRanges.values() );
+        // Sorting lists of data ranges.
+        periodDateRanges.sort( Comparator.comparing( DateRange::getStartDate ) );
+
+        for ( List<DateRange> ranges : timeDateRanges.values() )
+        {
+            ranges.sort( Comparator.comparing( DateRange::getStartDate ) );
+        }
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }
 
-    private void sortDateRanges( Collection<List<DateRange>> dateRanges )
+    /**
+     * Ensures the older start date and the newer end date.
+     *
+     * @param start {@link Date}
+     * @param end {@link Date}
+     */
+    private void setDates( Date start, Date end )
     {
-        for ( List<DateRange> ranges : dateRanges )
+        if ( startDate == null || (start != null && start.before( startDate )) )
         {
-            ranges.sort( Comparator.comparing( DateRange::getStartDate ) );
+            startDate = start;
+        }
+
+        if ( endDate == null || (end != null && end.after( endDate )) )
+        {
+            endDate = end;
         }
     }
 
@@ -577,7 +565,7 @@ public class EventQueryParams
      */
     public boolean useStartEndDates()
     {
-        return hasStartEndDate() || !this.getTimeDateRanges().isEmpty();
+        return hasStartEndDate();
     }
 
     /**
@@ -631,7 +619,7 @@ public class EventQueryParams
         return getItemsAndItemFilters().stream()
             .filter( QueryItem::hasLegendSet )
             .map( i -> i.getLegendSet().getLegends() )
-            .flatMap( i -> i.stream() )
+            .flatMap( Set::stream )
             .collect( Collectors.toSet() );
     }
 
@@ -643,7 +631,7 @@ public class EventQueryParams
         return getItemsAndItemFilters().stream()
             .filter( QueryItem::hasOptionSet )
             .map( q -> q.getOptionSet().getOptions() )
-            .flatMap( q -> q.stream() )
+            .flatMap( List::stream )
             .collect( Collectors.toSet() );
     }
 
@@ -696,11 +684,10 @@ public class EventQueryParams
             return validateProgramHasOrgUnitField( program );
         }
 
-        if ( !itemProgramIndicators.isEmpty() )
+        if ( isNotEmpty( itemProgramIndicators ) )
         {
-            // Fail validation if at least one program indicator is invalid
-
-            return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
+            // Fail validation if at least one program indicator is invalid.
+            return itemProgramIndicators.stream().allMatch( pi -> validateProgramHasOrgUnitField( pi.getProgram() ) );
         }
 
         return false;
@@ -870,6 +857,11 @@ public class EventQueryParams
         return isNotEmpty( getEventStatus() );
     }
 
+    public boolean hasTimeDateRanges()
+    {
+        return MapUtils.isNotEmpty( getTimeDateRanges() );
+    }
+
     /**
      * Checks if a value dimension exists.
      *
@@ -941,7 +933,7 @@ public class EventQueryParams
      */
     public boolean hasFilterPeriods()
     {
-        return getFilterPeriods().size() > 0;
+        return isNotEmpty( getFilterPeriods() );
     }
 
     public boolean hasHeaders()
@@ -984,7 +976,12 @@ public class EventQueryParams
      */
     public int getSortOrderAsInt()
     {
-        return SortOrder.ASC.equals( sortOrder ) ? -1 : SortOrder.DESC.equals( sortOrder ) ? 1 : 0;
+        if ( ASC == sortOrder )
+        {
+            return -1;
+        }
+
+        return DESC == sortOrder ? 1 : 0;
     }
 
     @Override

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Collections.singleton;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -39,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -70,10 +68,10 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final StatementBuilder statementBuilder;
 
     @Getter
-    private final Collection<TimeField> allowedTimeFields = singleton( TimeField.LAST_UPDATED );
+    private final Set<TimeField> allowedTimeFields = Set.of( TimeField.LAST_UPDATED );
 
     @Override
-    protected String getSqlConditionForPeriods( EventQueryParams params )
+    protected String getAggregatedConditionForPeriods( EventQueryParams params )
     {
         List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
@@ -107,7 +105,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getSqlConditionForNonDefaultBoundaries( EventQueryParams params )
+    protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
     {
         String sql = params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
             .filter(
