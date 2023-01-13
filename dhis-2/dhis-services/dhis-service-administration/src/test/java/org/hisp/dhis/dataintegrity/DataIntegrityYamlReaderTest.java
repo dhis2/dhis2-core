@@ -63,7 +63,7 @@ class DataIntegrityYamlReaderTest
         //Names should be unique
         List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
             .collect( Collectors.toUnmodifiableList() );
-        assertTrue( allNames.size() == Set.copyOf( allNames ).size() );
+        assertEquals( allNames.size(), Set.copyOf( allNames ).size() );
         //Config checks and Java checks should not have any of the same names
 
         List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() ).map( e -> e.getName().toLowerCase() )
