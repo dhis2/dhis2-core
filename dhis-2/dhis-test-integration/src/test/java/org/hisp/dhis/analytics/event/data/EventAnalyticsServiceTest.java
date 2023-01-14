@@ -99,6 +99,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -156,6 +157,9 @@ class EventAnalyticsServiceTest
 
     @Autowired
     private ProgramOwnershipHistoryService programOwnershipHistoryService;
+
+    @Autowired
+    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
     @Autowired
     private UserService _userService;
@@ -374,7 +378,7 @@ class EventAnalyticsServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         idObjectManager.save( trackedEntityType );
 
-        // Tracked Entities (Registrations)
+        // Tracked Entity Instances (Registrations)
         org.hisp.dhis.trackedentity.TrackedEntityInstance teiA = createTrackedEntityInstance( ouD );
         teiA.setUid( "trackEntInA" );
         teiA.setTrackedEntityType( trackedEntityType );
@@ -396,10 +400,15 @@ class EventAnalyticsServiceTest
         piB.setIncidentDate( jan1 );
         programInstanceService.addProgramInstance( piB );
 
-        // Change Enrollment Ownership through time
-        addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb14 );
-        addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar14 );
-        addProgramOwnershipHistory( programA, teiA, ouH, mar15, apr15 );
+        // Change programA / teiA ownership through time:
+        // Jan 1 (enrollment) - Jan 15: ouE
+        // Jan 15 - Feb 15: ouF
+        // Feb 15 - Mar 15: ouG
+        // Mar 15 - present: ouH
+        addProgramOwnershipHistory( programA, teiA, ouE, piA.getEnrollmentDate(), jan15 );
+        addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb15 );
+        addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar15 );
+        trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
         ProgramStageInstance psiA = createProgramStageInstance( psA, piA, ouI );
