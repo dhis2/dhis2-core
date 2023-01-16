@@ -557,6 +557,26 @@ class PredictionServiceTest extends IntegrationTestBase
     }
 
     @Test
+    void testPredictWithSkipTest()
+    {
+        useDataValue( dataElementA, makeMonth( 2023, 1 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2023, 2 ), sourceA, 20 );
+        useDataValue( dataElementA, makeMonth( 2023, 3 ), sourceA, 40 );
+
+        useDataValue( dataElementB, makeMonth( 2023, 2 ), sourceA, 10 );
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "sum(#{" + dataElementA.getUid() + "})", "expression" );
+        Expression skipTest = new Expression( "#{" + dataElementB.getUid() + "} == 10", "skipTest" );
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithSkip", expression, skipTest,
+            periodTypeMonthly, orgUnitLevel1, 3, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2023, 4 ), monthStart( 2023, 5 ), summary );
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "50.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2023, 4 ) ) );
+    }
+
+    @Test
     void testPredictSequentialStddevPop()
     {
         setupTestData();
