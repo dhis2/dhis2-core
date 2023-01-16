@@ -159,45 +159,42 @@ class DefaultProgramRuleService
             .collect( Collectors.toList() );
     }
 
-    // TODO: Every action rule will be changed to be more expressive and convert the data-field-content
-    // rule engine model to something that make sense for the validators
-    // i.e. Not all actions need attributes
     private ActionRule buildEnrollmentActionRule( String ruleId, String data, RuleAction ruleAction,
         List<Attribute> attributes )
     {
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignActionRule( ruleId, data, action.field(), action.content(), attributes );
+            return new AssignActionRule( ruleId, data, action.field(), attributes );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {
             RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-            return new MandatoryActionRule( ruleId, data, action.field(), null, attributes );
+            return new MandatoryActionRule( ruleId, action.field() );
         }
         if ( ruleAction instanceof RuleActionShowError )
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
-            return new ErrorActionRule( ruleId, data, action.field(), action.content(), attributes );
+            return new ErrorActionRule( ruleId, data, action.field(), action.content() );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
-            return new WarningActionRule( ruleId, data, action.field(), action.content(), attributes );
+            return new WarningActionRule( ruleId, data, action.field(), action.content() );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
-            return new ErrorOnCompleteActionRule( ruleId, data, action.field(), action.content(), attributes );
+            return new ErrorOnCompleteActionRule( ruleId, data, action.field(), action.content() );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
-            return new WarningOnCompleteActionRule( ruleId, data, action.field(), action.content(), attributes );
+            return new WarningOnCompleteActionRule( ruleId, data, action.field(), action.content() );
         }
         if ( ruleAction instanceof RuleActionError )
         {
-            return new SyntaxErrorActionRule( ruleId, data, null, null, attributes );
+            return new SyntaxErrorActionRule( ruleId, data );
         }
         return null;
     }

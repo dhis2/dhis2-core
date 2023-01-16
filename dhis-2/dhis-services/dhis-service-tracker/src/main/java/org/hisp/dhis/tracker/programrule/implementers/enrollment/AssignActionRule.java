@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -37,17 +36,14 @@ import org.hisp.dhis.tracker.domain.Attribute;
 
 @Getter
 @RequiredArgsConstructor
-@AllArgsConstructor
 public class AssignActionRule
     implements ActionRule
 {
     private final String ruleUid;
 
-    private final String data;
+    private final String value;
 
-    private final String field;
-
-    private String content;
+    private final String attribute;
 
     private final List<Attribute> attributes;
 }

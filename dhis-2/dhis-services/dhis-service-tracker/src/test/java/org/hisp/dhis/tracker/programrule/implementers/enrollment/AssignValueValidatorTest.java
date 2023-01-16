@@ -204,7 +204,6 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
         assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
@@ -452,6 +451,6 @@ class AssignValueValidatorTest extends DhisConvenienceTest
     private List<AssignActionRule> getRuleEnrollmentEffects( List<Attribute> attributes )
     {
         return Lists
-            .newArrayList( new AssignActionRule( "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, null, attributes ) );
+            .newArrayList( new AssignActionRule( "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, attributes ) );
     }
 }

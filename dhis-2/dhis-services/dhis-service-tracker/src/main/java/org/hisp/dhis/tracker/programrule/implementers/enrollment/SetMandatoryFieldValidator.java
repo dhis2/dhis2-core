@@ -81,7 +81,7 @@ public class SetMandatoryFieldValidator implements RuleActionEnrollmentValidator
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
         return effects.stream()
             .map( action -> {
-                TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( action.getField() );
+                TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( action.getAttribute() );
                 Optional<Attribute> any = enrollment.getAttributes().stream()
                     .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
                     .findAny();

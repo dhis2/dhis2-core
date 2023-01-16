@@ -63,7 +63,7 @@ public class RuleEngineErrorValidator implements RuleActionEnrollmentValidator<S
     {
         return enrollmentActionRules.stream()
             .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
+                Lists.newArrayList( e.getError() ), IssueType.WARNING ) )
             .collect( Collectors.toList() );
     }
 }

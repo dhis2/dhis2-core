@@ -90,13 +90,13 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
             {
                 addOrOverwriteAttribute( enrollment, actionRule, bundle );
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1310,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getData() ),
+                    Lists.newArrayList( actionRule.getAttribute(), actionRule.getValue() ),
                     IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1309,
-                    Lists.newArrayList( actionRule.getField(), enrollment.getEnrollment() ),
+                    Lists.newArrayList( actionRule.getAttribute(), enrollment.getEnrollment() ),
                     IssueType.ERROR ) );
             }
         }
@@ -106,7 +106,7 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
 
     private Optional<Attribute> getAttribute( AssignActionRule actionRule, TrackerPreheat preheat )
     {
-        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getAttribute() );
         return actionRule.getAttributes()
             .stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
@@ -115,8 +115,8 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
 
     private boolean isTheSameValue( AssignActionRule actionRule, TrackerPreheat preheat )
     {
-        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
-        String value = actionRule.getData();
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getAttribute() );
+        String value = actionRule.getValue();
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
@@ -153,7 +153,7 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
 
     private void addOrOverwriteAttribute( Enrollment enrollment, AssignActionRule actionRule, TrackerBundle bundle )
     {
-        TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getField() );
+        TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getAttribute() );
         Optional<TrackedEntity> trackedEntity = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
         List<Attribute> attributes;
 
@@ -165,7 +165,7 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
                 .findAny();
             if ( optionalAttribute.isPresent() )
             {
-                optionalAttribute.get().setValue( actionRule.getData() );
+                optionalAttribute.get().setValue( actionRule.getValue() );
                 return;
             }
         }
@@ -176,12 +176,12 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
-            optionalAttribute.get().setValue( actionRule.getData() );
+            optionalAttribute.get().setValue( actionRule.getValue() );
         }
         else
         {
             attributes.add( createAttribute( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( attribute ),
-                actionRule.getData() ) );
+                actionRule.getValue() ) );
         }
     }
 

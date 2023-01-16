@@ -27,17 +27,11 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.domain.Attribute;
-
 @Getter
 @RequiredArgsConstructor
-@AllArgsConstructor
 public class ErrorActionRule
     implements ErrorWarningActionRule
 {
@@ -47,7 +41,5 @@ public class ErrorActionRule
 
     private final String field;
 
-    private String content;
-
-    private final List<Attribute> attributes;
+    private final String content;
 }

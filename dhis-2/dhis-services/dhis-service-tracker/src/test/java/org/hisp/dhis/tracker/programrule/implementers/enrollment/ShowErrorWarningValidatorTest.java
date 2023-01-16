@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -218,28 +217,24 @@ class ShowErrorWarningValidatorTest extends DhisConvenienceTest
     private List<ErrorActionRule> getErrorActionRules()
     {
         return Lists.newArrayList(
-            new ErrorActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT,
-                Collections.emptyList() ) );
+            new ErrorActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT ) );
     }
 
     private List<WarningActionRule> getWarningActionRules()
     {
         return Lists.newArrayList(
-            new WarningActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT,
-                Collections.emptyList() ) );
+            new WarningActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT ) );
     }
 
     private List<ErrorOnCompleteActionRule> getErrorOnCompleteActionRules()
     {
         return Lists.newArrayList(
-            new ErrorOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT,
-                Collections.emptyList() ) );
+            new ErrorOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT ) );
     }
 
     private List<WarningOnCompleteActionRule> getWarningOnCompleteActionRules()
     {
         return Lists.newArrayList(
-            new WarningOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT,
-                Collections.emptyList() ) );
+            new WarningOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT ) );
     }
 }

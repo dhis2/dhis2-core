@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -234,6 +233,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     private List<MandatoryActionRule> getRuleEnrollmentEffects()
     {
         return Lists.newArrayList(
-            new MandatoryActionRule( "RULE_ATTRIBUTE", null, ATTRIBUTE_ID, null, Collections.emptyList() ) );
+            new MandatoryActionRule( "RULE_ATTRIBUTE", ATTRIBUTE_ID ) );
     }
 }

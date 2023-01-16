@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -97,7 +96,6 @@ class RuleEngineErrorValidatorTest extends DhisConvenienceTest
 
     private List<SyntaxErrorActionRule> getRuleEnrollmentEffects()
     {
-        return Lists.newArrayList( new SyntaxErrorActionRule( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE, null, null,
-            Collections.emptyList() ) );
+        return Lists.newArrayList( new SyntaxErrorActionRule( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE ) );
     }
 }
