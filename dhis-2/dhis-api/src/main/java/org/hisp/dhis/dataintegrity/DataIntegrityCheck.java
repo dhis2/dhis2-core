@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -83,11 +84,12 @@ public final class DataIntegrityCheck implements Serializable
     @JsonProperty
     private final boolean isSlow;
 
-    @JsonProperty( "code" )
+    @JsonProperty
     public String getCode()
     {
-        return Arrays.stream( name.split( "_" ) ).map( f -> String.valueOf( f.charAt( 0 ) ).toUpperCase() )
-            .collect( Collectors.joining() );
+        return Stream.of( name.split( "_" ) )
+            .map( f -> String.valueOf( f.charAt( 0 ) ).toUpperCase() )
+            .collect( joining() );
     }
 
     private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;

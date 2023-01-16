@@ -34,8 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,6 +74,7 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
         assertNotNull( summary.getStartTime() );
+        assertNotNull( summary.getCode() );
         assertFalse( summary.getStartTime().isAfter( summary.getFinishedTime() ) );
     }
 
@@ -89,5 +92,20 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         //OBS! The result is based on application scoped map so there might be other values from other tests
         assertTrue(
             GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "categories_no_options" ) );
+    }
+
+    @Test
+    void testRunSummaryCheck_WithBody()
+    {
+        JsonObject trigger = POST( "/dataIntegrity/summary", "['IN']" ).content(); // indicator_noanalysis
+        assertTrue( trigger.isA( JsonWebMessage.class ) );
+
+        // wait for check to complete
+        JsonDataIntegritySummary details = GET( "/dataIntegrity/IN/summary?timeout=1000" )
+            .content().as( JsonDataIntegritySummary.class );
+        assertTrue( details.isObject() );
+
+        assertTrue(
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "indicator_noanalysis" ) );
     }
 }

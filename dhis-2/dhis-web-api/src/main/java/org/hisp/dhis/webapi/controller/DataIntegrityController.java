@@ -28,12 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,6 +58,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -81,21 +81,22 @@ public class DataIntegrityController
     @PostMapping
     @ResponseBody
     public WebMessage runDataIntegrity(
-        @RequestParam( required = false ) List<String> checks,
+        @RequestParam( required = false ) Set<String> checks,
+        @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
-
-        return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
-            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
+        Set<String> names = getCheckNames( checks, checksBody );
+        return runDataIntegrityAsync( names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
+            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( names ) );
     }
 
-    private WebMessage runDataIntegrityAsync( Collection<String> checks,
+    private WebMessage runDataIntegrityAsync( Set<String> checks,
         User currentUser,
         String description,
         DataIntegrityReportType type )
     {
         DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-        params.setChecks( toUniformCheckNames( checks ) );
+        params.setChecks( checks );
         params.setType( type );
         JobConfiguration config = new JobConfiguration( description, JobType.DATA_INTEGRITY, null,
             params, true, true );
@@ -115,8 +116,7 @@ public class DataIntegrityController
         @RequestParam( required = false ) Set<String> checks,
         @RequestParam( required = false ) String section )
     {
-        Collection<DataIntegrityCheck> matches = dataIntegrityService
-            .getDataIntegrityChecks( toUniformCheckNames( checks ) );
+        Collection<DataIntegrityCheck> matches = dataIntegrityService.getDataIntegrityChecks( checks );
         return section == null || section.isBlank()
             ? matches
             : matches.stream().filter( check -> section.equals( check.getSection() ) ).collect( toList() );
@@ -143,7 +143,7 @@ public class DataIntegrityController
         @RequestParam( required = false ) Set<String> checks,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), timeout );
+        return dataIntegrityService.getSummaries( checks, timeout );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -151,10 +151,12 @@ public class DataIntegrityController
     @ResponseBody
     public WebMessage runSummariesCheck(
         @RequestParam( required = false ) Set<String> checks,
+        @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
-        return runDataIntegrityAsync( checks, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY )
-            .setLocation( "/dataIntegrity/summary?checks=" + toChecksList( checks ) );
+        Set<String> names = getCheckNames( checks, checksBody );
+        return runDataIntegrityAsync( names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY )
+            .setLocation( "/dataIntegrity/summary?checks=" + toChecksList( names ) );
     }
 
     @GetMapping( "/details/running" )
@@ -178,7 +180,7 @@ public class DataIntegrityController
         @RequestParam( required = false ) Set<String> checks,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        return dataIntegrityService.getDetails( toUniformCheckNames( checks ), timeout );
+        return dataIntegrityService.getDetails( checks, timeout );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -186,10 +188,12 @@ public class DataIntegrityController
     @ResponseBody
     public WebMessage runDetailsCheck(
         @RequestParam( required = false ) Set<String> checks,
+        @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
-        return runDataIntegrityAsync( checks, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS )
-            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
+        Set<String> names = getCheckNames( checks, checksBody );
+        return runDataIntegrityAsync( names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS )
+            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( names ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -198,8 +202,9 @@ public class DataIntegrityController
     public DataIntegritySummary getSummary( @PathVariable String check,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        Set<String> checks = toUniformCheckNames( Set.of( check ) );
-        return dataIntegrityService.getSummaries( checks, timeout ).get( checks.iterator().next() );
+        Collection<DataIntegritySummary> summaries = dataIntegrityService.getSummaries( Set.of( check ), timeout )
+            .values();
+        return summaries.isEmpty() ? null : summaries.iterator().next();
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -208,18 +213,21 @@ public class DataIntegrityController
     public DataIntegrityDetails getDetails( @PathVariable String check,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        Set<String> checks = toUniformCheckNames( Set.of( check ) );
-        return dataIntegrityService.getDetails( checks, timeout ).get( checks.iterator().next() );
+        Collection<DataIntegrityDetails> details = dataIntegrityService.getDetails( Set.of( check ), timeout ).values();
+        return details.isEmpty() ? null : details.iterator().next();
     }
 
-    /**
-     * Allow both dash or underscore in the API
-     */
-    private static Set<String> toUniformCheckNames( Collection<String> checks )
+    private static Set<String> getCheckNames( Set<String> checks, Set<String> checksBody )
     {
-        return checks == null
-            ? Set.of()
-            : checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
+        if ( !isEmpty( checksBody ) )
+        {
+            return checksBody;
+        }
+        if ( !isEmpty( checks ) )
+        {
+            return checks;
+        }
+        return Set.of();
     }
 
     private String toChecksList( Collection<String> checks )

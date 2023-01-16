@@ -674,7 +674,7 @@ public class DefaultDataIntegrityService
             ProgramRule.class, this::getProgramRuleActionsWithNoNotificationTemplate );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
             ProgramRule.class, this::getProgramRuleActionsWithNoSectionId );
-        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE,
+        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
             ProgramRule.class, this::getProgramRuleActionsWithNoProgramStageId );
     }
 
@@ -1010,21 +1010,28 @@ public class DefaultDataIntegrityService
 
         for ( String name : names )
         {
-            String uniformName = name.toLowerCase().replace( '-', '_' );
-            if ( uniformName.contains( "*" ) )
+            if ( name.toUpperCase().equals( name ) && name.indexOf( '_' ) < 0 )
             {
-                String pattern = uniformName.replace( "*", ".*" );
-                for ( String existingName : checksByName.keySet() )
+                // assume it is a code
+                checksByName.values().stream()
+                    .filter( check -> check.getCode().equals( name ) )
+                    .map( DataIntegrityCheck::getName )
+                    .forEach( expanded::add );
+            }
+            else if ( name.contains( "*" ) )
+            {
+                String pattern = name.toLowerCase().replace( '-', '_' ).replace( "*", ".*" );
+                for ( DataIntegrityCheck check : checksByName.values() )
                 {
-                    if ( existingName.matches( pattern ) )
+                    if ( !check.isSlow() && check.getName().matches( pattern ) )
                     {
-                        expanded.add( existingName );
+                        expanded.add( check.getName() );
                     }
                 }
             }
             else
             {
-                expanded.add( uniformName );
+                expanded.add( name.toLowerCase().replace( '-', '_' ) );
             }
         }
         return expanded;
