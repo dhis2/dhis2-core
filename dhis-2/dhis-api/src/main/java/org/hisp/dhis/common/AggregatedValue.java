@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.common;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
 public abstract class AggregatedValue
 {
     public static final Double ZERO = 0d;
@@ -61,98 +66,4 @@ public abstract class AggregatedValue
     // ----------------------------------------------------------------------
 
     public abstract long getElementId();
-
-    // ----------------------------------------------------------------------
-    // Getters and setters
-    // ----------------------------------------------------------------------
-
-    public long getPeriodId()
-    {
-        return periodId;
-    }
-
-    public void setPeriodId( long periodId )
-    {
-        this.periodId = periodId;
-    }
-
-    public long getPeriodTypeId()
-    {
-        return periodTypeId;
-    }
-
-    public void setPeriodTypeId( long periodTypeId )
-    {
-        this.periodTypeId = periodTypeId;
-    }
-
-    public long getOrganisationUnitId()
-    {
-        return organisationUnitId;
-    }
-
-    public void setOrganisationUnitId( long organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
-    }
-
-    public long getOrganisationUnitGroupId()
-    {
-        return organisationUnitGroupId;
-    }
-
-    public void setOrganisationUnitGroupId( long organisationUnitGroupId )
-    {
-        this.organisationUnitGroupId = organisationUnitGroupId;
-    }
-
-    public int getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( int level )
-    {
-        this.level = level;
-    }
-
-    public double getValue()
-    {
-        return value;
-    }
-
-    public void setValue( double value )
-    {
-        this.value = value;
-    }
-
-    public String getPeriodName()
-    {
-        return periodName;
-    }
-
-    public void setPeriodName( String periodName )
-    {
-        this.periodName = periodName;
-    }
-
-    public String getOrganisationUnitName()
-    {
-        return organisationUnitName;
-    }
-
-    public void setOrganisationUnitName( String organisationUnitName )
-    {
-        this.organisationUnitName = organisationUnitName;
-    }
-
-    public double getTrendValue()
-    {
-        return trendValue;
-    }
-
-    public void setTrendValue( double trendValue )
-    {
-        this.trendValue = trendValue;
-    }
 }

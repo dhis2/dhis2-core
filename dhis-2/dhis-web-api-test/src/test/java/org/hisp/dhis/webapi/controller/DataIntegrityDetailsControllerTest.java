@@ -29,7 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
@@ -70,11 +74,28 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
 
         assertTrue( details.exists() );
         assertTrue( details.isObject() );
+        assertNotNull( details.getStartTime() );
+        assertFalse( details.getStartTime().isAfter( details.getFinishedTime() ) );
         JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
         assertEquals( uid, issues.get( 0 ).getId() );
         assertEquals( "CatDog", issues.get( 0 ).getName() );
         assertEquals( "categories", details.getIssuesIdType() );
+    }
+
+    @Test
+    void testCompletedChecks()
+    {
+        String uid = assertStatus( HttpStatus.CREATED,
+            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postDetails( "categories-no-options" );
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
+            .content().as( JsonDataIntegrityDetails.class );
+        assertNotNull( details );
+
+        assertEquals( List.of( "categories_no_options" ),
+            GET( "/dataIntegrity/details/completed" ).content().stringValues() );
     }
 }

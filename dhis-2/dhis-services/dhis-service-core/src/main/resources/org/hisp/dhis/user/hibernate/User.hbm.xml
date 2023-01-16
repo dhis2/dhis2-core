@@ -119,8 +119,6 @@
 
     <property name="secret" type="text" not-null="false" />
 
-    <property name="twoFA" not-null="false" />
-
     <property name="externalAuth" column="externalauth" />
 
     <property name="openId" column="openid" unique="true" type="text" />

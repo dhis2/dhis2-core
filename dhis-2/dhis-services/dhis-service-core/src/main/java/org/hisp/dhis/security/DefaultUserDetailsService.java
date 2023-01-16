@@ -60,6 +60,6 @@ public class DefaultUserDetailsService
             throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
         }
 
-        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+        return userService.createUserDetails( user );
     }
 }

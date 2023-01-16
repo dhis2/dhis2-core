@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import lombok.Builder;
@@ -111,6 +112,8 @@ public class OpenApiGenerator extends JsonGenerator
             .syntheticSummary( true )
             .syntheticDescription( true )
             .missingDescription( "[no description yet]" )
+            .qualifiedNameDelimiter( "-" )
+            .syntheticNamePrefixDelimiter( "-" )
             .build();
 
         String title;
@@ -130,6 +133,34 @@ public class OpenApiGenerator extends JsonGenerator
         String contactEmail;
 
         String missingDescription;
+
+        /**
+         * The characters(s) used to join the "package" part of a qualified name
+         * with the simple name.
+         *
+         * For example, the {@code -} in the below name examples:
+         *
+         * <pre>
+         *     SimpleName
+         *     FromPackage-SimpleName
+         *     FromAnotherPackage-SimpleName
+         * </pre>
+         */
+        String qualifiedNameDelimiter;
+
+        /**
+         * The character(s) used to join the prefix, like {@code Ref} or
+         * {@code UID} with the rest of the type name.
+         *
+         * For example, the {@code -} in the below examples, where simple name
+         * is what the Ref/UID refers to:
+         *
+         * <pre>
+         * Ref-SimpleName
+         * UID-SimpleName
+         * </pre>
+         */
+        String syntheticNamePrefixDelimiter;
 
         boolean syntheticSummary;
 
@@ -237,6 +268,8 @@ public class OpenApiGenerator extends JsonGenerator
         return gen.toString();
     }
 
+    private static final Pattern VALID_NAME_INFIX = Pattern.compile( "^[-_a-zA-Z0-9.]*$" );
+
     private final Api api;
 
     private final Configuration configuration;
@@ -246,6 +279,22 @@ public class OpenApiGenerator extends JsonGenerator
         super( out, format );
         this.api = api;
         this.configuration = configuration;
+        checkConfiguration( configuration );
+    }
+
+    private void checkConfiguration( Configuration configuration )
+    {
+        checkValidNameInfix( "qualifiedNameDelimiter", configuration.qualifiedNameDelimiter );
+        checkValidNameInfix( "syntheticNamePrefixDelimiter", configuration.syntheticNamePrefixDelimiter );
+    }
+
+    private void checkValidNameInfix( String name, String value )
+    {
+        if ( !VALID_NAME_INFIX.matcher( value ).matches() )
+        {
+            throw new IllegalArgumentException( format( "Configuration.%s must match pattern %s but was: %s",
+                name, VALID_NAME_INFIX.pattern(), value ) );
+        }
     }
 
     private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
@@ -417,7 +466,7 @@ public class OpenApiGenerator extends JsonGenerator
                 Api.Schema.Type.UID, "UID",
                 Api.Schema.Type.ENUM, ((Class<?>) schema.getSource()).getSimpleName() );
             String prefix = prefixes.get( type );
-            String name = prefix + ":" + getUniqueSchemaName( to );
+            String name = prefix + configuration.getSyntheticNamePrefixDelimiter() + getUniqueSchemaName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
             syntheticTypesByName.putIfAbsent( name, schema );
             return;
@@ -523,7 +572,13 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateSimpleTypeSchema( SimpleType simpleType )
     {
-        addStringMember( "type", simpleType.getType() );
+        String type = simpleType.getType();
+        addStringMember( "type", type );
+        if ( "array".equals( type ) )
+        {
+            addObjectMember( "items", () -> {
+            } );
+        }
         addStringMember( "format", simpleType.getFormat() );
         addNumberMember( "minLength", simpleType.getMinLength() );
         addNumberMember( "maxLength", simpleType.getMaxLength() );
@@ -587,7 +642,7 @@ public class OpenApiGenerator extends JsonGenerator
         String[] segments = name.split( "\\." );
         name = stream( segments ).limit( segments.length - 1L )
             .map( word -> Character.toUpperCase( word.charAt( 0 ) ) + word.substring( 1 ) )
-            .collect( joining( "" ) ) + ":" + segments[segments.length - 1];
+            .collect( joining( "" ) ) + configuration.getQualifiedNameDelimiter() + segments[segments.length - 1];
         typesByName.put( name, type );
         return name;
     }

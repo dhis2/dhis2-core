@@ -67,8 +67,9 @@ public class DefaultLdapUserDetailsService
         }
 
         String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
+        user.setPassword( password );
 
-        return userService.validateAndCreateUserDetails( user, password );
+        return userService.createUserDetails( user );
     }
 
 }

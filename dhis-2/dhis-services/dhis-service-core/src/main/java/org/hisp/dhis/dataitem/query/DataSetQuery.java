@@ -71,7 +71,8 @@ public class DataSetQuery implements DataItemQuery
         + " cast (null as text) as program_shortname, dataset.uid as item_uid, dataset.name as item_name,"
         + " dataset.shortname as item_shortname, cast (null as text) as item_valuetype, dataset.code as item_code,"
         + " dataset.sharing as item_sharing, cast (null as text) as item_domaintype,"
-        + " cast('REPORTING_RATE' as text) as item_type";
+        + " cast('REPORTING_RATE' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -96,7 +97,7 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append(
             " group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name,"
-                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression" );
+                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -179,7 +180,7 @@ public class DataSetQuery implements DataItemQuery
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", dataset.name as i18n_first_name, cast (null as text) as i18n_second_name" )
             .append(
-                ", dataset.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname, cast (null as text) as expression" )
+                ", dataset.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( " from dataset " ).toString();
     }
 }

@@ -122,6 +122,20 @@ public class DataIntegrityController
             : matches.stream().filter( check -> section.equals( check.getSection() ) ).collect( toList() );
     }
 
+    @GetMapping( "/summary/running" )
+    @ResponseBody
+    public Set<String> getRunningSummaryChecks()
+    {
+        return dataIntegrityService.getRunningSummaryChecks();
+    }
+
+    @GetMapping( "/summary/completed" )
+    @ResponseBody
+    public Set<String> getCompletedSummaryChecks()
+    {
+        return dataIntegrityService.getCompletedSummaryChecks();
+    }
+
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/summary" )
     @ResponseBody
@@ -141,6 +155,20 @@ public class DataIntegrityController
     {
         return runDataIntegrityAsync( checks, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY )
             .setLocation( "/dataIntegrity/summary?checks=" + toChecksList( checks ) );
+    }
+
+    @GetMapping( "/details/running" )
+    @ResponseBody
+    public Set<String> getRunningDetailsChecks()
+    {
+        return dataIntegrityService.getRunningDetailsChecks();
+    }
+
+    @GetMapping( "/details/completed" )
+    @ResponseBody
+    public Set<String> getCompletedDetailsChecks()
+    {
+        return dataIntegrityService.getCompletedDetailsChecks();
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
