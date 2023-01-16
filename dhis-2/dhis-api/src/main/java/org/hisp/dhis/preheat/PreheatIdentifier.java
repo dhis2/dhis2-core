@@ -80,6 +80,21 @@ public enum PreheatIdentifier
         return new ArrayList<>();
     }
 
+    /**
+     * Get the column name of the Identifier to be used in JPA Query.
+     */
+    public String getIdentifierColumnName()
+    {
+        switch ( this )
+        {
+        case UID:
+            return "id";
+        case CODE:
+            return "code";
+        }
+        throw new RuntimeException( "Unhandled identifier type." );
+    }
+
     public <T extends IdentifiableObject> String getIdentifiersWithName( T object )
     {
         List<String> identifiers = getIdentifiers( object );

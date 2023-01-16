@@ -41,19 +41,39 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.*;
 import org.hisp.dhis.commons.timer.*;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.*;
-import org.hisp.dhis.dataset.*;
-import org.hisp.dhis.hibernate.*;
-import org.hisp.dhis.period.*;
-import org.hisp.dhis.query.*;
-import org.hisp.dhis.schema.*;
-import org.hisp.dhis.system.util.*;
-import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.user.*;
-import org.hisp.dhis.util.*;
-import org.springframework.context.annotation.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.document.Document;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.report.Report;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.util.SharingUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.*;
 
@@ -268,6 +288,7 @@ public class DefaultPreheatService implements PreheatService
 
         handleAttributes( params.getObjects(), preheat );
         handleSharing( params, preheat );
+        handleDashboard( params, preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
@@ -277,6 +298,60 @@ public class DefaultPreheatService implements PreheatService
             + timer.toString() );
 
         return preheat;
+    }
+
+    /**
+     * This is to allow preheating all DashboardItem's objects without sharing
+     * check.
+     *
+     * @param params {@link PreheatParams} contains parameters use for
+     *        preheating object.s
+     * @param preheat {@link Preheat} store objects retrieved from database.
+     */
+    private void handleDashboard( PreheatParams params, Preheat preheat )
+    {
+        List<IdentifiableObject> dashboards = params.getObjects().get( Dashboard.class );
+
+        if ( CollectionUtils.isEmpty( dashboards ) )
+        {
+            return;
+        }
+
+        Map<Class<? extends IdentifiableObject>, Set<String>> mapItemObjectIDs = new HashMap<>();
+
+        dashboards.forEach( dashboard -> ((Dashboard) dashboard).getItems()
+            .forEach( item -> collectDashboardItemObjects( item, mapItemObjectIDs ) ) );
+
+        mapItemObjectIDs.forEach( ( klass, ids ) -> queryAndPreheat( preheat, params, klass, ids ) );
+    }
+
+    /**
+     * Collect all DashboardItem's embedded objects to given map
+     *
+     * @param dashboardItem {@link DashboardItem} used to collect objects.
+     * @param mapItemObjectIDs Map stored all object IDs belong to given
+     *        {@link DashboardItem}
+     */
+    private void collectDashboardItemObjects( DashboardItem dashboardItem,
+        Map<Class<? extends IdentifiableObject>, Set<String>> mapItemObjectIDs )
+    {
+        if ( dashboardItem.getEmbeddedItem() != null )
+        {
+            mapItemObjectIDs.computeIfAbsent( dashboardItem.getEmbeddedItem().getClass(), key -> new HashSet<>() )
+                .add( dashboardItem.getEmbeddedItem().getUid() );
+        }
+
+        mapItemObjectIDs.computeIfAbsent( Document.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getResources().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
+
+        mapItemObjectIDs.computeIfAbsent( Report.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getReports().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
+
+        mapItemObjectIDs.computeIfAbsent( User.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getUsers().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
     }
 
     private void handleSharing( PreheatParams params, Preheat preheat )
@@ -991,5 +1066,30 @@ public class DefaultPreheatService implements PreheatService
     private boolean isOnlyUID( Class<?> klass )
     {
         return UserGroup.class.isAssignableFrom( klass ) || User.class.isAssignableFrom( klass );
+    }
+
+    /**
+     * Execute select query for given klass and list of IDs, then put returned
+     * objects to {@link Preheat}.
+     *
+     * @param preheat {@link Preheat} to store returned objects.
+     * @param params {@link PreheatParams}
+     * @param klass Class for querying objects from database.
+     * @param ids IDs for querying objects from database.
+     */
+    private void queryAndPreheat( Preheat preheat, PreheatParams params,
+        Class<? extends IdentifiableObject> klass, Set<String> ids )
+    {
+        if ( CollectionUtils.isEmpty( ids ) )
+        {
+            return;
+        }
+
+        Query query = Query.from( schemaService.getDynamicSchema( klass ) );
+        query.setUser( preheat.getUser() );
+        query.add( Restrictions.in( params.getPreheatIdentifier().getIdentifierColumnName(), ids ) );
+        query.setSkipSharing( true );
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        preheat.put( PreheatIdentifier.UID, objects );
     }
 }

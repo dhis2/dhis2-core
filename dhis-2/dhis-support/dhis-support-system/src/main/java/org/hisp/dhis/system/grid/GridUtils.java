@@ -64,6 +64,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -164,6 +165,8 @@ public class GridUtils
     private static final String ATTR_ROW = "row";
 
     private static final String ATTR_FIELD = "field";
+
+    private static final String DECIMAL_DIGITS_MASK = "#.##########";
 
     /**
      * Writes a PDF representation of the given Grid to the given OutputStream.
@@ -343,6 +346,8 @@ public class GridUtils
 
         rowNumber++;
 
+        CellStyle numberCellStyle = getNumberCellStyle( sheet );
+
         for ( List<Object> row : grid.getVisibleRows() )
         {
             Row xlsRow = sheet.createRow( rowNumber );
@@ -355,8 +360,9 @@ public class GridUtils
             {
                 if ( column != null && Number.class.isAssignableFrom( column.getClass() ) )
                 {
-                    xlsRow.createCell( columnIndex++, CellType.STRING )
-                        .setCellValue( String.valueOf( maybeFormat( column ) ) );
+                    Cell cell = xlsRow.createCell( columnIndex++, CellType.NUMERIC );
+                    cell.setCellStyle( numberCellStyle );
+                    cell.setCellValue( ((Number) column).doubleValue() );
                 }
                 else
                 {
@@ -367,6 +373,23 @@ public class GridUtils
 
             rowNumber++;
         }
+    }
+
+    /**
+     * Returns a {@CellStyle} object with a default number format/mask.
+     *
+     * @param sheet the {@link Sheet}
+     * @return the cell style object
+     */
+    private static CellStyle getNumberCellStyle( Sheet sheet )
+    {
+        Workbook wb = sheet.getWorkbook();
+        DataFormat format = wb.createDataFormat();
+
+        CellStyle cs = wb.createCellStyle();
+        cs.setDataFormat( format.getFormat( DECIMAL_DIGITS_MASK ) );
+
+        return cs;
     }
 
     /**
