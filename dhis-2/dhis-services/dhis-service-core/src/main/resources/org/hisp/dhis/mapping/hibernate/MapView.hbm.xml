@@ -204,6 +204,8 @@
 
     <property name="labelFontColor" />
 
+    <property name="labelTemplate" length="50" />
+
     <property name="eventClustering" />
 
     <property name="eventCoordinateField" />
