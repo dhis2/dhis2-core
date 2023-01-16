@@ -31,10 +31,12 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -79,6 +81,32 @@ public class TwoFactorController
     private final UserService defaultUserService;
 
     private final SystemSettingManager systemSettingManager;
+
+    /**
+     * @deprecated Use {@link #generateQRCode}.
+     * @param currentUser
+     * @return
+     * @throws WebMessageException
+     */
+    @Deprecated( since = "2.39" )
+    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    @ResponseBody
+    public Map<String, Object> getQrCode( @CurrentUser User currentUser )
+            throws WebMessageException
+    {
+        if ( currentUser == null )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
+        }
+
+        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+
+        Map<String, Object> map = new HashMap<>();
+        map.put( "url", "url" );
+
+        return map;
+    }
 
     @GetMapping( value = "/qrCode", produces = APPLICATION_OCTET_STREAM )
     @ResponseStatus( HttpStatus.ACCEPTED )
