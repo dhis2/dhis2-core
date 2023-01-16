@@ -38,7 +38,6 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 
@@ -67,13 +66,17 @@ import org.skyscreamer.jsonassert.JSONAssert;
 public class TrackerExportTests
     extends TrackerNtiApiTest
 {
-    private static String teiId;
+    private static String teiA;
 
-    private static String enrollmentId;
+    private static String teiB;
 
-    private static String eventId;
+    private static String enrollment;
 
-    private static String relationshipId;
+    private static String event;
+
+    private static String teiToTeiRelationship;
+
+    private static String enrollmentToTeiRelationship;
 
     @BeforeAll
     public void beforeAll()
@@ -83,23 +86,35 @@ public class TrackerExportTests
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport(new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
 
-        teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
-        enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) ).extractImportedRelationships().get( 0 );
-        eventId = response.extractImportedEvents().get( 0 );
+        teiA = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
+        teiB = response.validateSuccessfulImport().extractImportedTeis().get( 1 );
+
+        enrollment = response.extractImportedEnrollments().get( 0 );
+
+        teiToTeiRelationship = importRelationshipBetweenTeis( teiA, teiB )
+            .extractImportedRelationships().get( 0 );
+        enrollmentToTeiRelationship = importRelationshipEnrollmentToTei( enrollment, teiB )
+            .extractImportedRelationships().get( 0 );
+
+        event = response.extractImportedEvents().get( 0 );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
-            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]", "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
-            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
-            Arguments.of( "/trackedEntities/" + teiId, "*",
-                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
-            Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]", "from,to.trackedEntity.trackedEntity" )
-         );
+            Arguments.of( "/trackedEntities/" + teiA,
+                "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]",
+                "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity" ),
+            Arguments.of( "/trackedEntities/" + teiA, "trackedEntity,enrollments", null ),
+            Arguments.of( "/enrollments/" + enrollment, "program,status,enrolledAt,relationships,attributes", null ),
+            Arguments.of( "/trackedEntities/" + teiA, "*",
+                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes",
+                null ),
+            Arguments.of( "/events/" + event, "enrollment,createdAt", null ),
+            Arguments.of( "/relationships/" + teiToTeiRelationship, "from,to[trackedEntity[trackedEntity]]",
+                "from,to.trackedEntity.trackedEntity" ),
+            Arguments.of( "/relationships/" + enrollmentToTeiRelationship, "from,from[enrollment[enrollment]]",
+                "from,from.enrollment.enrollment" ) );
     }
 
     @MethodSource
@@ -138,7 +153,6 @@ public class TrackerExportTests
 
         JSONAssert.assertEquals( trackedEntity.getBody().toString(), trackedEntities.extractJsonObject( "instances[0]" ).toString(),
             false );
-
     }
 
     private List<String> splitFields( String fields )
@@ -207,8 +221,9 @@ public class TrackerExportTests
     @Test
     public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
     {
-
-        trackerActions.get( "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
+        trackerActions
+            .get(
+                "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
@@ -218,13 +233,13 @@ public class TrackerExportTests
     @Test
     public void shouldReturnRelationshipsByTei()
     {
-        trackerActions.getRelationship( "?trackedEntity=" + teiId )
+        trackerActions.getRelationship( "?trackedEntity=" + teiA )
             .validate()
             .statusCode( 200 )
             .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .rootPath( "instances[0]" )
-            .body( "relationship", equalTo( relationshipId ) )
-            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
-            .body( "to.trackedEntity.trackedEntity", notNullValue() );
+            .body( "relationship", equalTo( teiToTeiRelationship ) )
+            .body( "from.trackedEntity.trackedEntity", equalTo( teiA ) )
+            .body( "to.trackedEntity.trackedEntity", equalTo( teiB ) );
     }
 }

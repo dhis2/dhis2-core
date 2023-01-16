@@ -93,6 +93,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
     private DataElement deD;
 
+    private DataElement deE;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
@@ -130,6 +132,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         deC.setValueType( ValueType.DATE );
         deD = createDataElement( 'D' );
         deD.setValueType( ValueType.ORGANISATION_UNIT );
+        deE = createDataElement( 'E' );
+        deE.setValueType( ValueType.TEXT );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         psA = createProgramStage( 'A', prA );
@@ -183,6 +187,23 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
         assertTrue( paramsA.hasNumericValueDimension() );
         assertFalse( paramsB.hasNumericValueDimension() );
+    }
+
+    @Test
+    void testHasTextDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deE )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        assertTrue( paramsA.hasTextValueDimension() );
+        assertFalse( paramsB.hasTextValueDimension() );
     }
 
     @Test

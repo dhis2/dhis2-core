@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util;
+package org.hisp.dhis.common;
 
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
-
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-class AnalyticsSqlUtilsTest
+class MetadataItemTest
 {
-
     @Test
-    void testQuoteWithAlias()
+    void testCreateForDataElement()
     {
-        assertEquals( "ougs.\"Short name\"", AnalyticsSqlUtils.quote( "ougs", "Short name" ) );
-        assertEquals( "ous.\"uid\"", AnalyticsSqlUtils.quote( "ous", "uid" ) );
+        DataElement deA = createDataElement( 'A' );
+        deA.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
+        deA.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
+
+        MetadataItem miA = new MetadataItem( "MIA", deA );
+
+        assertEquals( "MIA", miA.getName() );
+        assertEquals( ValueType.NUMBER, miA.getValueType() );
+        assertEquals( AggregationType.AVERAGE_SUM_ORG_UNIT, miA.getAggregationType() );
     }
 
     @Test
-    void testQuoteAliasCommaSeparate()
+    void testCreateForDataElementOperand()
     {
-        assertEquals( "ax.\"de\",ax.\"pe\",ax.\"ou\"",
-            AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "de", "pe", "ou" ) ) );
-        assertEquals( "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
-            AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "gender", "date of \"birth\"" ) ) );
-    }
+        DataElement deA = createDataElement( 'A' );
+        deA.setValueType( ValueType.BOOLEAN );
+        deA.setAggregationType( AggregationType.COUNT );
 
-    @Test
-    void testGetClosingParentheses()
-    {
-        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( null ) );
-        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( "" ) );
-        assertEquals( ")", AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ) );
-        assertEquals( "))", AnalyticsSqlUtils.getClosingParentheses( "((" ) );
+        CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
+
+        DataElementOperand doA = new DataElementOperand( deA, cocA );
+
+        MetadataItem miA = new MetadataItem( "MIA", doA );
+
+        assertEquals( "MIA", miA.getName() );
+        assertEquals( ValueType.BOOLEAN, miA.getValueType() );
+        assertEquals( AggregationType.COUNT, miA.getAggregationType() );
     }
 }

@@ -29,42 +29,45 @@ package org.hisp.dhis.analytics;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.util.ObjectUtils;
 
 import com.google.common.base.MoreObjects;
 
 /**
+ * Enum which represents the aggregation type for analytics requests.
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsAggregationType
 {
-    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.SUM );
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.SUM );
 
-    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE,
-        AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType(
+        AggregationType.AVERAGE, AggregationType.AVERAGE );
 
-    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT,
-        AggregationType.COUNT );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType(
+        AggregationType.COUNT, AggregationType.COUNT );
 
-    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST,
-        AggregationType.FIRST );
+    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.FIRST );
 
-    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST,
-        AggregationType.LAST );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.LAST );
 
     public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType(
-        AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );
+        AggregationType.SUM, AggregationType.LAST_IN_PERIOD );
 
     /**
      * General aggregation type.
      */
-    private AggregationType aggregationType;
+    private final AggregationType aggregationType;
 
     /**
      * Aggregation type for the period dimension.
      */
-    private AggregationType periodAggregationType;
+    private final AggregationType periodAggregationType;
 
     /**
      * Analytics data type.
@@ -80,12 +83,28 @@ public class AnalyticsAggregationType
     // Constructors
     // -------------------------------------------------------------------------
 
+    /**
+     * Constructor.
+     *
+     * @param aggregationType the {@link AggregationType}.
+     * @param periodAggregationType the period {@link AggregationType}.
+     */
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType )
     {
         this.aggregationType = aggregationType;
         this.periodAggregationType = periodAggregationType;
+        Validate.notNull( this.aggregationType );
+        Validate.notNull( this.periodAggregationType );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param aggregationType the {@link AggregationType}.
+     * @param periodAggregationType the period {@link AggregationType}.
+     * @param dataType the {@link DataType}.
+     * @param disaggregation indicates whether disaggregation is involved.
+     */
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
         DataType dataType, boolean disaggregation )
     {
@@ -122,6 +141,9 @@ public class AnalyticsAggregationType
         case LAST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
             break;
+        case LAST_LAST_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+            break;
         case LAST_IN_PERIOD:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM,
                 AggregationType.LAST_IN_PERIOD );
@@ -135,6 +157,9 @@ public class AnalyticsAggregationType
             break;
         case FIRST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST );
+            break;
+        case FIRST_FIRST_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
             break;
         default:
             analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );
@@ -193,21 +218,34 @@ public class AnalyticsAggregationType
     // Get methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns the general {@link AggregationType}.
+     */
     public AggregationType getAggregationType()
     {
         return aggregationType;
     }
 
+    /**
+     * Returns the period {@link AggregationType}, with fallback to the general
+     * {@link AggregationType} if not specified.
+     */
     public AggregationType getPeriodAggregationType()
     {
         return ObjectUtils.firstNonNull( periodAggregationType, aggregationType );
     }
 
+    /**
+     * Returns the {@link DataType}.
+     */
     public DataType getDataType()
     {
         return dataType;
     }
 
+    /**
+     * Indicates whether disaggregation is involved.
+     */
     public boolean isDisaggregation()
     {
         return disaggregation;

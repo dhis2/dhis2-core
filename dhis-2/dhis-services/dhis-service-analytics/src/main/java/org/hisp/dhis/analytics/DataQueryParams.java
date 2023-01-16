@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -112,6 +113,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -385,6 +387,11 @@ public class DataQueryParams
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
 
+    /**
+     * The database locale for the user making the request, can be null.
+     */
+    protected Locale locale;
+
     // -------------------------------------------------------------------------
     // Event transient properties
     // -------------------------------------------------------------------------
@@ -594,6 +601,7 @@ public class DataQueryParams
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
+        params.locale = this.locale;
 
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
@@ -633,6 +641,14 @@ public class DataQueryParams
      * caching.
      */
     public String getKey()
+    {
+        return getQueryKey().build();
+    }
+
+    /**
+     * Returns a unique {@link QueryKey}.
+     */
+    protected QueryKey getQueryKey()
     {
         QueryKey key = new QueryKey();
 
@@ -674,8 +690,8 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
-            .add( "userOrgUnitType", userOrgUnitType )
-            .addIgnoreNull( "apiVersion", apiVersion ).build();
+            .addIgnoreNull( "apiVersion", apiVersion )
+            .addIgnoreNull( "locale", locale );
     }
 
     private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
@@ -935,7 +951,8 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !(isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType);
+        return !(isAnyAggregationType( AggregationType.NONE, AggregationType.FIRST, AggregationType.LAST ) ||
+            DataType.TEXT == dataType);
     }
 
     /**
@@ -943,7 +960,15 @@ public class DataQueryParams
      */
     public boolean isAggregationType( AggregationType type )
     {
-        return aggregationType != null && aggregationType.isAggregationType( type );
+        return hasAggregationType() && aggregationType.isAggregationType( type );
+    }
+
+    /**
+     * Indicates whether this query has any of the given aggregation types.
+     */
+    public boolean isAnyAggregationType( AggregationType... types )
+    {
+        return hasAggregationType() && Sets.newHashSet( types ).contains( aggregationType.getAggregationType() );
     }
 
     /**
@@ -1144,6 +1169,16 @@ public class DataQueryParams
         return getDimensionsAndFilters().stream()
             .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns all dimensions except any period dimension.
+     */
+    public List<DimensionalObject> getNonPeriodDimensions()
+    {
+        List<DimensionalObject> dims = new ArrayList<>( dimensions );
+        dims.remove( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        return List.copyOf( dims );
     }
 
     /**
@@ -2216,6 +2251,7 @@ public class DataQueryParams
             .add( "Measure criteria", measureCriteria )
             .add( "Output format", outputFormat )
             .add( "API version", apiVersion )
+            .add( "Locale", locale )
             .toString();
     }
 
@@ -2513,8 +2549,8 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getAllDataDimensionItems()
     {
-        return ImmutableList
-            .copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+        return ImmutableList.copyOf(
+            ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -3420,6 +3456,12 @@ public class DataQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withLocale( Locale locale )
+        {
+            this.params.locale = locale;
             return this;
         }
 
