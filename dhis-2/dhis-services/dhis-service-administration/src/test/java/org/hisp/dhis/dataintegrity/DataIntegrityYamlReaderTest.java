@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.stream.Collectors.*;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
@@ -63,17 +63,21 @@ class DataIntegrityYamlReaderTest
 
         //Names should be unique
         List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
-            .collect( Collectors.toUnmodifiableList() );
+            .collect( toUnmodifiableList() );
         assertEquals( allNames.size(), Set.copyOf( allNames ).size() );
-        //Config checks and Java checks should not have any of the same names
 
+        //Config checks and Java checks should not have any of the same names
         List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() ).map( e -> e.getName().toLowerCase() )
             .collect(
-                Collectors.toList() );
+                toList() );
         assertTrue( nonYamlChecks.size() > 0 );
-
         nonYamlChecks.retainAll( allNames );
         assertEquals( 0, nonYamlChecks.size() );
+
+        //Assert that all "codes" are unique.
+        List<String> codeList = checks.stream().map( DataIntegrityCheck::getCode )
+            .collect( toUnmodifiableList() );
+        assertEquals( codeList.size(), Set.copyOf( codeList ).size() );
 
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
@@ -89,4 +93,5 @@ class DataIntegrityYamlReaderTest
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
     }
+
 }
