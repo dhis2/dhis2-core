@@ -91,4 +91,31 @@ public class TrackedEntityInstanceParams
     {
         return dataSynchronizationQuery;
     }
+
+    public EnrollmentParams getEnrollmentParams()
+    {
+        return this.teiEnrollmentParams.getEnrollmentParams();
+    }
+
+    public TrackedEntityInstanceParams withEnrollmentParams( EnrollmentParams enrollmentParams )
+    {
+        return this.withTeiEnrollmentParams( getTeiEnrollmentParams().withEnrollmentParams( enrollmentParams ) );
+    }
+
+    public EventParams getEventParams()
+    {
+        return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
+    }
+
+    public TrackedEntityInstanceParams withEventParams( EventParams eventParams )
+    {
+        EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
+
+        EnrollmentEventsParams eventParamsToUpdate = enrollmentParams
+            .getEnrollmentEventsParams()
+            .withEventParams( eventParams );
+
+        return withTeiEnrollmentParams( this.teiEnrollmentParams.withEnrollmentParams( enrollmentParams
+            .withEnrollmentEventsParams( eventParamsToUpdate ) ) );
+    }
 }

@@ -139,6 +139,10 @@ public class JobConfiguration
 
     private boolean leaderOnlyJob = false;
 
+    private String queueName;
+
+    private Integer queuePosition;
+
     public JobConfiguration()
     {
     }
@@ -467,5 +471,38 @@ public class JobConfiguration
     public void setUserUid( String userUid )
     {
         this.userUid = userUid;
+    }
+
+    public String getQueueIdentifier()
+    {
+        return getQueueName() == null ? getUid() : getQueueName();
+    }
+
+    public String getQueueName()
+    {
+        return queueName;
+    }
+
+    public void setQueueName( String name )
+    {
+        this.queueName = name;
+    }
+
+    public Integer getQueuePosition()
+    {
+        return queuePosition;
+    }
+
+    public void setQueuePosition( Integer position )
+    {
+        this.queuePosition = position;
+    }
+
+    /**
+     * @return true if this configuration is part of a queue, false otherwise
+     */
+    public boolean isUsedInQueue()
+    {
+        return getQueueName() != null;
     }
 }

@@ -29,18 +29,16 @@ package org.hisp.dhis.analytics.orgunit;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -48,15 +46,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
 {
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
-
-    @Mock
-    private OrgUnitAnalyticsManager analyticsManager;
-
-    @Mock
-    private OrgUnitQueryPlanner queryPlanner;
-
     @InjectMocks
     private DefaultOrgUnitAnalyticsService subject;
 
@@ -64,8 +53,21 @@ class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
     void testValidateNoOrgUnits()
     {
         OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) ).build();
+            .withOrgUnitGroupSets( List.of( createOrganisationUnitGroupSet( 'A' ) ) )
+            .build();
+
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
             ErrorCode.E7300 );
+    }
+
+    @Test
+    void testValidateNoOrgUnitGroupSets()
+    {
+        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
+            .withOrgUnits( List.of( createOrganisationUnit( 'A' ) ) )
+            .build();
+
+        assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
+            ErrorCode.E7301 );
     }
 }

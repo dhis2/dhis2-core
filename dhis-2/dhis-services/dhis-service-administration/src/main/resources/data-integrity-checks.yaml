@@ -26,6 +26,7 @@ checks:
   - orgunits/orgunits_not_contained_by_parent.yaml
   - orgunits/orgunits_invalid_geometry.yaml
   - orgunits/orgunits_no_geometry.yaml
+  - orgunits/orgunits_same_name_and_parent.yaml
   - option_sets/option_sets_empty.yaml
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
@@ -41,6 +42,7 @@ checks:
   - data_elements/aggregate_des_inconsistent_agg_operator.yaml
   - data_elements/aggregate_des_excess_groupset_membership.yaml
   - data_elements/aggregate_des_no_analysis.yaml
+  - data_elements/aggregate_des_datasets_different_period_types.yaml
   - data_elements/aggregate_des_nodata.yaml
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml

@@ -94,7 +94,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
@@ -108,7 +108,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
 public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EventAnalyticsManager

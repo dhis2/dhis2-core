@@ -28,10 +28,16 @@
 package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
-import static org.hisp.dhis.expression.Expression.*;
+import static org.hisp.dhis.expression.Expression.EXP_CLOSE;
+import static org.hisp.dhis.expression.Expression.EXP_OPEN;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -53,8 +59,7 @@ import com.google.common.base.Joiner;
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" )
 @RequiredArgsConstructor
 public class CategoryOptionGroupTaglessResolver
-    implements
-    ExpressionResolver
+    implements ExpressionResolver
 {
     private final ExpressionService expressionService;
 

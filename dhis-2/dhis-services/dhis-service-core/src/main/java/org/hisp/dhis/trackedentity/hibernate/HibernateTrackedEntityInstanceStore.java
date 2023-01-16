@@ -428,7 +428,15 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getCountQuery( TrackedEntityInstanceQueryParams params )
     {
-        return getCountQuery( params );
+        return new StringBuilder()
+            .append( getQueryCountSelect( params ) )
+            .append( getQuerySelect( params, true ) )
+            .append( "FROM " )
+            .append( getFromSubQuery( params, true, true ) )
+            .append( getQueryRelatedTables( params ) )
+            .append( getQueryGroupBy( params ) )
+            .append( " ) teicount" )
+            .toString();
     }
 
     /**

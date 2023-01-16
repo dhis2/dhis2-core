@@ -1166,7 +1166,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * returns PSID.ITEM_ID of given queryItem.
+     * Returns PSID.ITEM_ID of given queryItem.
      */
     private String getIdentifier( QueryItem queryItem )
     {

@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
@@ -69,5 +71,23 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
+        assertNotNull( summary.getStartTime() );
+        assertFalse( summary.getStartTime().isAfter( summary.getFinishedTime() ) );
+    }
+
+    @Test
+    void testCompletedChecks()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postSummary( "categories-no-options" );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
+            .as( JsonDataIntegritySummary.class );
+        assertNotNull( summary );
+
+        //OBS! The result is based on application scoped map so there might be other values from other tests
+        assertTrue(
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "categories_no_options" ) );
     }
 }

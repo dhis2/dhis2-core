@@ -61,7 +61,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
@@ -71,7 +71,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.analytics.RawAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.RawAnalyticsManager" )
 public class JdbcRawAnalyticsManager
     implements RawAnalyticsManager
 {

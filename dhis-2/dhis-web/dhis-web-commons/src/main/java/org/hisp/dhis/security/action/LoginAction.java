@@ -80,6 +80,8 @@ public class LoginAction
         return cspNonce;
     }
 
+    private Boolean twoFactor = false;
+
     private Boolean failed = false;
 
     private Boolean oidcFailure = false;
@@ -92,6 +94,16 @@ public class LoginAction
     public Boolean getFailed()
     {
         return failed;
+    }
+
+    public Boolean getTwoFactor()
+    {
+        return twoFactor;
+    }
+
+    public void setTwoFactor( Boolean twoFactor )
+    {
+        this.twoFactor = twoFactor;
     }
 
     public Boolean getOidcFailure()

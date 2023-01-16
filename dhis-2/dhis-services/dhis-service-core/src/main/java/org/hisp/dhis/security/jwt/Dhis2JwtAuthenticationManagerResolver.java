@@ -184,8 +184,7 @@ public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationMana
                     mappingClaimKey, mappingValue ) );
             }
 
-            CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user,
-                user.getPassword() );
+            CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
 
             Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
