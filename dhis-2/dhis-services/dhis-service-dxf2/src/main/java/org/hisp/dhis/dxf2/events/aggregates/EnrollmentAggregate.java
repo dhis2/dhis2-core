@@ -86,11 +86,11 @@ public class EnrollmentAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
-            ctx.getParams().getTeiEnrollmentParams().isIncludeEvents(),
+            ctx.getParams().getEnrollmentParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships(),
+            ctx.getParams().getEnrollmentParams().isIncludeRelationships(),
             () -> enrollmentStore.getRelationships( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(

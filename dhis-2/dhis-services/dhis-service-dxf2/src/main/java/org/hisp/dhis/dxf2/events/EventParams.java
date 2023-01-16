@@ -25,55 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.dxf2.events;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.Value;
+import lombok.With;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-
-/**
- * Provides basic methods to transform input fields into {@link FieldPath }
- * based on {@link FieldFilterParser }. It follows the principles of
- * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
- */
-class FieldsParamMapper
+@With
+@Value
+public class EventParams
 {
-    private FieldsParamMapper()
-    {
-    }
+    public static final EventParams TRUE = new EventParams( true );
 
-    static final String FIELD_RELATIONSHIPS = "relationships";
+    public static final EventParams FALSE = new EventParams( false );
 
-    static final String FIELD_EVENTS = "events";
-
-    static final String FIELD_ATTRIBUTES = "attributes";
-
-    static Map<String, FieldPath> getRoots( List<String> fields )
-    {
-        return rootFields( getFieldPaths( fields ) );
-    }
-
-    static List<FieldPath> getFieldPaths( List<String> fields )
-    {
-        return FieldFilterParser
-            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
-    }
-
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
-    {
-        Map<String, FieldPath> roots = new HashMap<>();
-        for ( FieldPath p : fieldPaths )
-        {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
-            {
-                roots.put( p.getName(), p );
-            }
-        }
-        return roots;
-    }
+    private boolean includeRelationships;
 }

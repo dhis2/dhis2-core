@@ -250,4 +250,33 @@ class TrackedEntityFieldsParamMapperTest
         assertEquals( expectEvents, params.getTeiEnrollmentParams().isIncludeEvents() );
         assertEquals( expectEnrollments, params.isIncludeEnrollments() );
     }
+
+    static Stream<Arguments> shouldSetCorrectRelationshipsWhenMixedRelationshipFields()
+    {
+        return Stream.of(
+            arguments( List.of( "!relationships,enrollments[relationships,events]" ), false, true,
+                true ),
+            arguments( List.of( "relationships,enrollments[!relationships,events]" ), true, false,
+                true ),
+            arguments( List.of( "relationships,enrollments[relationships,events[!relationships]]" ),
+                true, true, false ),
+            arguments( List.of( "!relationships,enrollments[!relationships,events[!relationships]]" ),
+                false, false, false ),
+            arguments( List.of( "!enrollments", "relationships,enrollments[relationships,events[!relationships]]" ),
+                true, false, false ) );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void shouldSetCorrectRelationshipsWhenMixedRelationshipFields( List<String> fields, boolean expectTeiRelationship,
+        boolean expectEnrollmentRelationship,
+        boolean expectEventRelationships )
+    {
+
+        TrackedEntityInstanceParams params = map( fields );
+
+        assertEquals( expectTeiRelationship, params.isIncludeRelationships() );
+        assertEquals( expectEnrollmentRelationship, params.getEnrollmentParams().isIncludeRelationships() );
+        assertEquals( expectEventRelationships, params.getEventParams().isIncludeRelationships() );
+    }
 }
