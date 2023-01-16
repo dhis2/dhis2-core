@@ -105,7 +105,6 @@ import com.google.common.collect.Sets;
  */
 class DataQueryServiceTest extends SingleSetupIntegrationTestBase
 {
-
     private Program prA;
 
     private DataElement deA;

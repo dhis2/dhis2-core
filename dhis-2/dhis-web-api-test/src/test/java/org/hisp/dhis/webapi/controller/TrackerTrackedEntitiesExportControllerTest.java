@@ -308,9 +308,9 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertEquals( HttpStatus.OK, response.status() );
 
-        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_TEXT_CSV ),
-            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ),
-            () -> response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
+        assertAll( () -> assertTrue( response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV ) ),
+            () -> assertTrue( response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ) ),
+            () -> assertTrue( response.content().toString().contains( "trackedEntity,trackedEntityType" ) ) );
     }
 
     @Test
@@ -322,8 +322,9 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertEquals( HttpStatus.OK, response.status() );
 
-        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_ZIP ),
-            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.zip\"" ) );
+        assertAll( () -> assertTrue( response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_ZIP ) ),
+            () -> assertTrue(
+                response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.zip\"" ) ) );
     }
 
     @Test
@@ -335,8 +336,9 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertEquals( HttpStatus.OK, response.status() );
 
-        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_GZIP ),
-            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.gz\"" ) );
+        assertAll( () -> assertTrue( response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_GZIP ) ),
+            () -> assertTrue(
+                response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.gz\"" ) ) );
     }
 
     @Test

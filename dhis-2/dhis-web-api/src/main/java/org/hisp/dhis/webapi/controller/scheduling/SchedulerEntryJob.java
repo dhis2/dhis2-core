@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.webapi.controller.scheduling;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.Date;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.Value;
 
-/**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
- */
-public interface DataIntegrityService
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Value
+class SchedulerEntryJob
 {
-    /*
-     * Old API
-     */
+    @JsonProperty
+    @OpenApi.Property( { SchemaGenerators.UID.class, JobConfiguration.class } )
+    String id;
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+    @JsonProperty
+    String name;
 
-    /*
-     * New generic API
-     */
+    @JsonProperty
+    JobType type;
 
-    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    @JsonProperty
+    String cronExpression;
+
+    @JsonProperty
+    Date nextExecutionTime;
+
+    @JsonProperty
+    JobStatus status;
+
+    static SchedulerEntryJob of( JobConfiguration config )
     {
-        return getDataIntegrityChecks( Set.of() );
+        return new SchedulerEntryJob(
+            config.getUid(),
+            config.getName(),
+            config.getJobType(),
+            config.getCronExpression(),
+            config.getNextExecutionTime(),
+            config.getJobStatus() );
     }
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
-
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
-
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
-
-    Set<String> getRunningSummaryChecks();
-
-    Set<String> getRunningDetailsChecks();
-
-    Set<String> getCompletedSummaryChecks();
-
-    Set<String> getCompletedDetailsChecks();
-
 }

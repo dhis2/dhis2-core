@@ -109,16 +109,6 @@ public interface DataQueryService
     }
 
     /**
-     * Creates a list of DimensionalObject from the given set of dimension
-     * params.
-     *
-     * @param request request parameters
-     * @return a list of DimensionalObject.
-     * @throws IllegalQueryException if the query is illegal.
-     */
-    List<DimensionalObject> getDimensionalObjects( DataQueryRequest request );
-
-    /**
      * Returns a persisted DimensionalObject generated from the given dimension
      * identifier and list of dimension options.
      *
