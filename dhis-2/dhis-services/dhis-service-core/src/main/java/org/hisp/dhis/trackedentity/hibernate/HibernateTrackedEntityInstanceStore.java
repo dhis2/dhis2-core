@@ -807,7 +807,7 @@ public class HibernateTrackedEntityInstanceStore
 
     /**
      * Generates an INNER JOIN for program owner. This segment is only included
-     * if program is specified.
+     * if program is specified or user is not super.
      *
      * @param params
      * @return a SQL INNER JOIN for program owner, or empty string if no program
@@ -815,7 +815,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
     {
-        if ( !params.hasProgram() )
+        if ( !params.hasProgram() || skipOwnershipCheck( params ) )
         {
             return "";
         }
@@ -848,7 +848,8 @@ public class HibernateTrackedEntityInstanceStore
         orgUnits
             .append( " INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
-            .append( params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid " );
+            .append( params.hasProgram() && !skipOwnershipCheck( params ) ? "PO.organisationunitid "
+                : "TEI.organisationunitid " );
 
         if ( !params.hasOrganisationUnits() )
         {
@@ -1594,5 +1595,10 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return StringUtils.EMPTY;
+    }
+
+    private boolean skipOwnershipCheck( TrackedEntityInstanceQueryParams params )
+    {
+        return params.getUser() != null && params.getUser().isSuper();
     }
 }

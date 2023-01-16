@@ -70,6 +70,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,6 +103,9 @@ class DataQueryServiceDimensionItemKeywordTest
 
     @Mock
     private SystemSettingManager systemSettingManager;
+
+    @Mock
+    private UserSettingService userSettingService;
 
     @Mock
     private AclService aclService;
@@ -137,7 +141,7 @@ class DataQueryServiceDimensionItemKeywordTest
     public void setUp()
     {
         target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,
-            securityManager, systemSettingManager, aclService, currentUserService, i18nManager );
+            securityManager, systemSettingManager, userSettingService, aclService, currentUserService, i18nManager );
 
         rb = new RequestBuilder();
 

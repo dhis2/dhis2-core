@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.apache.commons.lang3.Validate.notNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -68,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -125,9 +127,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
@@ -151,6 +154,8 @@ public class DefaultDataQueryService
 
     private final SystemSettingManager systemSettingManager;
 
+    private final UserSettingService userSettingService;
+
     private final AclService aclService;
 
     private final CurrentUserService currentUserService;
@@ -169,6 +174,8 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
@@ -220,24 +227,29 @@ public class DefaultDataQueryService
             .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
             .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
-            .withOutputFormat( OutputFormat.ANALYTICS )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
+            .withLocale( locale )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .build();
     }
 
     @Override
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
-        Assert.notNull( object, "Analytical object cannot be null" );
+        notNull( object );
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         I18nFormat format = i18nManager.getI18nFormat();
+
         IdScheme idScheme = IdScheme.UID;
+
         Date date = object.getRelativePeriodDate();
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         String userOrgUnit = object.getRelativeOrganisationUnit() != null
             ? object.getRelativeOrganisationUnit().getUid()
@@ -268,6 +280,7 @@ public class DefaultDataQueryService
         return params
             .withCompletedOnly( object.isCompletedOnly() )
             .withTimeField( object.getTimeField() )
+            .withLocale( locale )
             .build();
     }
 

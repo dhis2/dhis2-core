@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.visualization;
 
-import java.util.Objects;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hibernate.Hibernate;
-import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.HibernateProxyHelper;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class HibernateProxyUtils
+class VisualizationTypeTest
 {
-    private HibernateProxyUtils()
+    @Test
+    void testIsChart()
     {
-        throw new IllegalStateException( "Utility class" );
-    }
-
-    @SuppressWarnings( "rawtypes" )
-    public static Class getRealClass( Object object )
-    {
-        Objects.requireNonNull( object );
-
-        if ( object instanceof Class )
-        {
-            throw new IllegalArgumentException( "Input can't be a Class instance!" );
-        }
-
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
-    }
-
-    @SuppressWarnings( { "unchecked" } )
-    public static <T> T unproxy( T proxy )
-    {
-        return (T) Hibernate.unproxy( proxy );
-    }
-
-    public static <T> void initializeAndUnproxy( T entity )
-    {
-        if ( entity == null )
-        {
-            return;
-        }
-
-        Hibernate.initialize( entity );
-        if ( entity instanceof HibernateProxy )
-        {
-            ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
-        }
+        assertTrue( VisualizationType.LINE.isChart() );
+        assertFalse( VisualizationType.PIVOT_TABLE.isChart() );
     }
 }

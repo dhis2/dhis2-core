@@ -45,6 +45,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -213,8 +214,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
             Lists.newArrayList() );
         DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
             Lists.newArrayList() );
-        DataQueryParams params = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doB )
-            .addDimension( doC ).addDimension( doD ).addDimension( doE ).addDimension( doF ).addDimension( doG )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
             .build();
         List<DimensionalObject> dimensions = params.getDimensions();
         assertEquals( 7, dimensions.size() );
@@ -587,6 +594,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
                 Lists.newArrayList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
                 Lists.newArrayList( peA ) ) )
+            .withLocale( Locale.FRENCH )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,

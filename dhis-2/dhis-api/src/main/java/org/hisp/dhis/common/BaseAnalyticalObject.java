@@ -488,15 +488,15 @@ public abstract class BaseAnalyticalObject
             if ( organisationUnitLevels != null && !organisationUnitLevels.isEmpty()
                 && organisationUnitsAtLevel != null )
             {
-                items.addAll( organisationUnitsAtLevel ); // Must be set
-                                                          // externally
+                // Must be set externally
+                items.addAll( organisationUnitsAtLevel );
             }
 
             if ( itemOrganisationUnitGroups != null && !itemOrganisationUnitGroups.isEmpty()
                 && organisationUnitsInGroups != null )
             {
-                items.addAll( organisationUnitsInGroups ); // Must be set
-                                                           // externally
+                // Must be set externally
+                items.addAll( organisationUnitsInGroups );
             }
 
             type = DimensionType.ORGANISATION_UNIT;
