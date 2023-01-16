@@ -36,6 +36,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -81,8 +84,8 @@ public class DataIntegrityController
     @PostMapping
     @ResponseBody
     public WebMessage runDataIntegrity(
-        @RequestParam( required = false ) Set<String> checks,
-        @RequestBody( required = false ) Set<String> checksBody,
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
         Set<String> names = getCheckNames( checksBody, checks );
@@ -90,7 +93,7 @@ public class DataIntegrityController
             .setLocation( "/dataIntegrity/details?checks=" + toChecksList( names ) );
     }
 
-    private WebMessage runDataIntegrityAsync( Set<String> checks,
+    private WebMessage runDataIntegrityAsync( @Nonnull Set<String> checks,
         User currentUser,
         String description,
         DataIntegrityReportType type )
@@ -113,8 +116,8 @@ public class DataIntegrityController
     @GetMapping
     @ResponseBody
     public Collection<DataIntegrityCheck> getAvailableChecks(
-        @RequestParam( required = false ) Set<String> checks,
-        @RequestParam( required = false ) String section )
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestParam( required = false ) String section )
     {
         Collection<DataIntegrityCheck> matches = dataIntegrityService.getDataIntegrityChecks( getCheckNames( checks ) );
         return section == null || section.isBlank()
@@ -140,7 +143,7 @@ public class DataIntegrityController
     @GetMapping( "/summary" )
     @ResponseBody
     public Map<String, DataIntegritySummary> getSummaries(
-        @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
         return dataIntegrityService.getSummaries( getCheckNames( checks ), timeout );
@@ -150,8 +153,8 @@ public class DataIntegrityController
     @PostMapping( "/summary" )
     @ResponseBody
     public WebMessage runSummariesCheck(
-        @RequestParam( required = false ) Set<String> checks,
-        @RequestBody( required = false ) Set<String> checksBody,
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
         Set<String> names = getCheckNames( checksBody, checks );
@@ -177,7 +180,7 @@ public class DataIntegrityController
     @GetMapping( "/details" )
     @ResponseBody
     public Map<String, DataIntegrityDetails> getDetails(
-        @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
         @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
         return dataIntegrityService.getDetails( getCheckNames( checks ), timeout );
@@ -187,7 +190,7 @@ public class DataIntegrityController
     @PostMapping( "/details" )
     @ResponseBody
     public WebMessage runDetailsCheck(
-        @RequestParam( required = false ) Set<String> checks,
+        @CheckForNull @RequestParam( required = false ) Set<String> checks,
         @RequestBody( required = false ) Set<String> checksBody,
         @CurrentUser User currentUser )
     {
@@ -218,6 +221,7 @@ public class DataIntegrityController
     }
 
     @SafeVarargs
+    @Nonnull
     private static Set<String> getCheckNames( Set<String>... checks )
     {
         for ( Set<String> names : checks )
