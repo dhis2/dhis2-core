@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -207,11 +208,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
             .withOrganisationUnits( List.of( ouA, ouB ) )
-            .addItem( qiA ).addItem( qiB ).build();
+            .addItem( qiA ).addItem( qiB )
+            .withLocale( Locale.FRENCH )
+            .build();
         EventQueryParams paramsB = new EventQueryParams.Builder()
             .withPeriods( List.of( peA, peB ), MONTHLY.getName() )
             .withOrganisationUnits( List.of( ouA ) )
-            .addItem( qiA ).addItem( qiB ).withGeometryOnly( true ).build();
+            .addItem( qiA ).addItem( qiB ).withGeometryOnly( true )
+            .build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
         assertNotNull( paramsB.getKey() );

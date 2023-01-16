@@ -36,6 +36,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -46,7 +47,6 @@ import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
@@ -158,7 +158,10 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         @Qualifier( "customLdapAuthenticationProvider" )
-        CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+        private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+        @Autowired
+        private CustomAuthFailureHandler customAuthFailureHandler;
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
@@ -204,6 +207,7 @@ public class DhisWebCommonsWebSecurityConfig
                 // Dynamic content
                 .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/enrolTwoFa.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
@@ -253,7 +257,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureHandler( authenticationFailureHandler() )
+                .failureHandler( customAuthFailureHandler )
                 .successHandler( authenticationSuccessHandler() )
                 .permitAll()
                 .and()
@@ -313,24 +317,6 @@ public class DhisWebCommonsWebSecurityConfig
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
-        }
-
-        @Bean
-        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-        {
-            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
-                i18nManager );
-
-            // Handles the special case when a user failed to login because it
-            // has expired...
-            handler.setExceptionMappings(
-                ImmutableMap.of(
-                    "org.springframework.security.authentication.CredentialsExpiredException",
-                    "/dhis-web-commons/security/expired.action" ) );
-
-            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-
-            return handler;
         }
 
         @Bean

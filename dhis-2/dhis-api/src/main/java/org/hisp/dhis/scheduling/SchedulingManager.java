@@ -101,12 +101,13 @@ public interface SchedulingManager
     /**
      * Ad-hoc execution of a {@link JobConfiguration}.
      *
-     * This only starts a new new task if no job with the same {@link JobType}
-     * is running.
+     * This only starts a new task if no job with the same {@link JobType} is
+     * running.
      *
      * @param configuration The configuration of the job to be executed
-     * @return true, if the job was was not already running and got started now,
-     *         otherwise false
+     * @return true, if the job was executed successful. If the execution is
+     *         asynchronous true is returned if the job was accepted for
+     *         execution.
      */
     boolean executeNow( JobConfiguration configuration );
 
