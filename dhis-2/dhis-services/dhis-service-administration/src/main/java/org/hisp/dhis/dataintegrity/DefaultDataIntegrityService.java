@@ -65,6 +65,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -198,24 +199,28 @@ public class DefaultDataIntegrityService
             .collect( toUnmodifiableList() );
     }
 
+    @Nonnull
     @Override
     public Set<String> getRunningSummaryChecks()
     {
         return Set.copyOf( runningSummaryChecks );
     }
 
+    @Nonnull
     @Override
     public Set<String> getRunningDetailsChecks()
     {
         return Set.copyOf( runningDetailsChecks );
     }
 
+    @Nonnull
     @Override
     public Set<String> getCompletedSummaryChecks()
     {
         return stream( summaryCache.keys().spliterator(), false ).collect( toUnmodifiableSet() );
     }
 
+    @Nonnull
     @Override
     public Set<String> getCompletedDetailsChecks()
     {
@@ -678,6 +683,7 @@ public class DefaultDataIntegrityService
             ProgramRule.class, this::getProgramRuleActionsWithNoProgramStageId );
     }
 
+    @Nonnull
     @Override
     @Transactional( readOnly = true )
     public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
@@ -867,6 +873,7 @@ public class DefaultDataIntegrityService
 
     private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
 
+    @Nonnull
     @Override
     public Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks )
     {
@@ -876,8 +883,9 @@ public class DefaultDataIntegrityService
             : expandChecks( checks ).stream().map( checksByName::get ).collect( toList() );
     }
 
+    @Nonnull
     @Override
-    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout )
+    public Map<String, DataIntegritySummary> getSummaries( @Nonnull Set<String> checks, long timeout )
     {
         return getCached( checks, timeout, summaryCache );
     }
@@ -885,7 +893,7 @@ public class DefaultDataIntegrityService
     // OBS! We intentionally do not open the transaction here to have each check
     // be independent
     @Override
-    public void runSummaryChecks( Set<String> checks, JobProgress progress )
+    public void runSummaryChecks( @Nonnull Set<String> checks, JobProgress progress )
     {
         runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
             summaryCache, runningSummaryChecks,
@@ -894,8 +902,9 @@ public class DefaultDataIntegrityService
                 errorMessage( check, ex ), -1, null ) );
     }
 
+    @Nonnull
     @Override
-    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout )
+    public Map<String, DataIntegrityDetails> getDetails( @Nonnull Set<String> checks, long timeout )
     {
         return getCached( checks, timeout, detailsCache );
     }
@@ -903,7 +912,7 @@ public class DefaultDataIntegrityService
     // OBS! We intentionally do not open the transaction here to have each check
     // be independent
     @Override
-    public void runDetailsChecks( Set<String> checks, JobProgress progress )
+    public void runDetailsChecks( @Nonnull Set<String> checks, JobProgress progress )
     {
         runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
             detailsCache, runningDetailsChecks,
