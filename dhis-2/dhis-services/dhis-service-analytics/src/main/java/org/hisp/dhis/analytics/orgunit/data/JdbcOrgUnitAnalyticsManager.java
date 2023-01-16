@@ -121,8 +121,8 @@ public class JdbcOrgUnitAnalyticsManager
             .map( uid -> quote( "ougs", uid ) )
             .collect( Collectors.toList() );
 
-        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) +
-            ", count(ougs.organisationunitid) as count " +
+        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", " +
+            "count(ougs.organisationunitid) as count " +
             "from " + quote( "_orgunitstructure" ) + " ous " +
             "inner join " + quote( "_organisationunitgroupsetstructure" ) + " " +
             "ougs on ous.organisationunitid = ougs.organisationunitid " +
