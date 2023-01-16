@@ -60,7 +60,7 @@ public class SetMandatoryFieldValidator implements RuleActionEnrollmentValidator
     {
         return actionRules
             .stream()
-            .filter( a -> a instanceof MandatoryActionRule )
+            .filter( MandatoryActionRule.class::isInstance )
             .map( a -> (MandatoryActionRule) a )
             .collect( Collectors.toList() );
     }

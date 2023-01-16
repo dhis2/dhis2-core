@@ -52,7 +52,7 @@ public class RuleEngineErrorValidator implements RuleActionEnrollmentValidator<S
     {
         return actionRules
             .stream()
-            .filter( a -> a instanceof SyntaxErrorActionRule )
+            .filter( SyntaxErrorActionRule.class::isInstance )
             .map( a -> (SyntaxErrorActionRule) a )
             .collect( Collectors.toList() );
     }

@@ -46,8 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningOnCompleteValidator" )
 public class ShowWarningOnCompleteValidator
-    extends ErrorWarningValidator
-    implements RuleActionEnrollmentValidator<WarningOnCompleteActionRule>
+    implements ErrorWarningValidator, RuleActionEnrollmentValidator<WarningOnCompleteActionRule>
 {
     @Override
     public boolean isOnComplete()
@@ -66,7 +65,7 @@ public class ShowWarningOnCompleteValidator
     {
         return actionRules
             .stream()
-            .filter( a -> a instanceof WarningOnCompleteActionRule )
+            .filter( WarningOnCompleteActionRule.class::isInstance )
             .map( a -> (WarningOnCompleteActionRule) a )
             .collect( Collectors.toList() );
     }
@@ -75,6 +74,6 @@ public class ShowWarningOnCompleteValidator
     public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
         List<WarningOnCompleteActionRule> ruleEffects, Enrollment enrollment )
     {
-        return super.validateEnrollment( ruleEffects, enrollment );
+        return validateEnrollment( ruleEffects, enrollment );
     }
 }

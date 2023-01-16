@@ -69,7 +69,7 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
     {
         return actionRules
             .stream()
-            .filter( a -> a instanceof AssignActionRule )
+            .filter( AssignActionRule.class::isInstance )
             .map( a -> (AssignActionRule) a )
             .collect( Collectors.toList() );
     }

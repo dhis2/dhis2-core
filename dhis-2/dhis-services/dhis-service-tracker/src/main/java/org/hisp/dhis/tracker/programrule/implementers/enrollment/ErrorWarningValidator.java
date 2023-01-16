@@ -49,13 +49,13 @@ import com.google.common.collect.Lists;
  *
  * @Author Enrico Colasante
  */
-public abstract class ErrorWarningValidator
+public interface ErrorWarningValidator
 {
-    public abstract boolean isOnComplete();
+    boolean isOnComplete();
 
-    public abstract IssueType getIssueType();
+    IssueType getIssueType();
 
-    public List<ProgramRuleIssue> validateEnrollment( List<? extends ErrorWarningActionRule> enrollmentActionRules,
+    default List<ProgramRuleIssue> validateEnrollment( List<? extends ErrorWarningActionRule> enrollmentActionRules,
         Enrollment enrollment )
     {
         if ( needsToRun( enrollment ) )
