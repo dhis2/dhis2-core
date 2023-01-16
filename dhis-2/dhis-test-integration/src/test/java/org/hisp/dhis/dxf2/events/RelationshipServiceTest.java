@@ -29,9 +29,11 @@ package org.hisp.dhis.dxf2.events;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -184,12 +186,17 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         ImportSummary importSummary = relationshipService.addRelationship( relationshipPayload, new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( r.getFrom(), from );
+                assertEquals( r.getTo(), to );
+            } ) );
     }
 
     @Test
@@ -214,13 +221,18 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.updateRelationship( relationshipPayload,
             new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( relationship.getUid(), r.getRelationship() );
+                assertEquals( from, r.getFrom() );
+                assertEquals( to, r.getTo() );
+            } ) );
     }
 
     @Test
@@ -241,12 +253,17 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         ImportSummary importSummary = relationshipService.addRelationship( relationship, new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( from, r.getFrom() );
+                assertEquals( to, r.getTo() );
+            } ) );
     }
 
     @Test
@@ -271,13 +288,18 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.updateRelationship( relationshipPayload,
             new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( relationship.getUid(), r.getRelationship() );
+                assertEquals( from, r.getFrom() );
+                assertEquals( to, r.getTo() );
+            } ) );
     }
 
     @Test
@@ -298,12 +320,17 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         ImportSummary importSummary = relationshipService.addRelationship( relationshipPayload, new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( from, r.getFrom() );
+                assertEquals( to, r.getTo() );
+            } ) );
     }
 
     @Test
@@ -328,13 +355,18 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = relationshipService.updateRelationship( relationshipPayload,
             new ImportOptions() );
 
-        Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
+        Optional<Relationship> relationshipDb = relationshipService
+            .findRelationshipByUid( importSummary.getReference() );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
             () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+            () -> assertAll( () -> {
+                assertTrue( relationshipDb.isPresent() );
+                Relationship r = relationshipDb.get();
+                assertEquals( relationship.getUid(), r.getRelationship() );
+                assertEquals( from, r.getFrom() );
+                assertEquals( to, r.getTo() );
+            } ) );
     }
 
     private RelationshipItem teiFrom()

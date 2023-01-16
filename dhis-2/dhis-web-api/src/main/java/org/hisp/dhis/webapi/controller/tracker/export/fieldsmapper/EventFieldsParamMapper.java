@@ -27,53 +27,51 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import java.util.Collections;
-import java.util.HashMap;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getRoots;
+
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 
-/**
- * Provides basic methods to transform input fields into {@link FieldPath }
- * based on {@link FieldFilterParser }. It follows the principles of
- * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
- */
-class FieldsParamMapper
+public class EventFieldsParamMapper
 {
-    private FieldsParamMapper()
+    private EventFieldsParamMapper()
     {
     }
 
-    static final String FIELD_RELATIONSHIPS = "relationships";
-
-    static final String FIELD_EVENTS = "events";
-
-    static final String FIELD_ATTRIBUTES = "attributes";
-
-    static Map<String, FieldPath> getRoots( List<String> fields )
+    public static EventParams map( List<String> fields )
     {
-        return rootFields( getFieldPaths( fields ) );
+        Map<String, FieldPath> roots = getRoots( fields );
+        EventParams params = initUsingAllOrNoFields( roots );
+
+        params = withFieldRelationships( roots, params );
+
+        return params;
     }
 
-    static List<FieldPath> getFieldPaths( List<String> fields )
+    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
-        return FieldFilterParser
-            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
-    }
-
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
-    {
-        Map<String, FieldPath> roots = new HashMap<>();
-        for ( FieldPath p : fieldPaths )
+        EventParams params = EventParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
         {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
             {
-                roots.put( p.getName(), p );
+                params = EventParams.TRUE;
             }
         }
-        return roots;
+        return params;
+    }
+
+    private static EventParams withFieldRelationships( Map<String, FieldPath> roots,
+        EventParams params )
+    {
+        return roots.containsKey( FIELD_RELATIONSHIPS )
+            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
+            : params;
     }
 }

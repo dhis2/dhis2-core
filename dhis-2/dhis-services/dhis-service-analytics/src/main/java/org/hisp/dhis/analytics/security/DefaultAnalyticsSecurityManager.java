@@ -60,13 +60,13 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.AnalyticsSecurityManager" )
+@Service( "org.hisp.dhis.analytics.AnalyticsSecurityManager" )
 @RequiredArgsConstructor
 public class DefaultAnalyticsSecurityManager
     implements AnalyticsSecurityManager
