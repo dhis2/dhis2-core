@@ -33,13 +33,11 @@ import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -48,15 +46,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
 {
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
-
-    @Mock
-    private OrgUnitAnalyticsManager analyticsManager;
-
-    @Mock
-    private OrgUnitQueryPlanner queryPlanner;
-
     @InjectMocks
     private DefaultOrgUnitAnalyticsService subject;
 
