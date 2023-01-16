@@ -45,14 +45,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
 @RequiredArgsConstructor
 public class JdbcOrgUnitAnalyticsManager
     implements OrgUnitAnalyticsManager
