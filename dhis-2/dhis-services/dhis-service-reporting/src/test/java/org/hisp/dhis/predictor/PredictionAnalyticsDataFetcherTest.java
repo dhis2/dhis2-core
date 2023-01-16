@@ -179,7 +179,7 @@ class PredictionAnalyticsDataFetcherTest
             .addValue( programIndicatorB.getUid() )
             .addValue( orgUnitA.getUid() )
             .addValue( aocC.getUid() )
-            .addValue( 20 ); // Note: boxed as Long, not Double
+            .addValue( 20L ); // Note: boxed as Long, not Double
 
         aocGrid.addRow()
             .addValue( periodB.getIsoDate() )
