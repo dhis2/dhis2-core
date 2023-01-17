@@ -75,10 +75,8 @@ public class UserControllerUtils
      * those levels to approve (and accept if configured) data.
      *
      * @param user the user
-     * @throws Exception if an error occurs
      */
     public ObjectNode getUserDataApprovalWorkflows( User user )
-        throws Exception
     {
         ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
 

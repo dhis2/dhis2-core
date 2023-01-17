@@ -271,6 +271,12 @@ public class TrackedEntityInstanceQueryParams
     private Date skipChangedBefore;
 
     /**
+     * Potential Duplicate query parameter value. If null, we don't check
+     * whether a TEI is a potentialDuplicate or not
+     */
+    private Boolean potentialDuplicate;
+
+    /**
      * TEI order params
      */
     private List<OrderParam> orders;
@@ -403,9 +409,7 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasFilterForEvents()
     {
-        return this.getAssignedUserQueryParam().hasAssignedUsers()
-            || AssignedUserSelectionMode.ANY == this.getAssignedUserQueryParam().getMode()
-            || AssignedUserSelectionMode.NONE == this.getAssignedUserQueryParam().getMode()
+        return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
             || hasEventStatus();
     }
 
@@ -702,6 +706,14 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Check whether we are filtering for potential duplicate property.
+     */
+    public boolean hasPotentialDuplicateFilter()
+    {
+        return potentialDuplicate != null;
+    }
+
+    /**
      * Checks if there is atleast one unique filter in the params. In attributes
      * or filters.
      *
@@ -834,7 +846,9 @@ public class TrackedEntityInstanceQueryParams
             .add( "synchronizationQuery", synchronizationQuery )
             .add( "skipChangedBefore", skipChangedBefore )
             .add( "orders", orders )
-            .add( "user", user ).toString();
+            .add( "user", user )
+            .add( "potentialDuplicate", potentialDuplicate )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -932,6 +946,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
+    }
+
+    public Boolean getPotentialDuplicate()
+    {
+        return this.potentialDuplicate;
+    }
+
+    public TrackedEntityInstanceQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
+    {
+        this.potentialDuplicate = potentialDuplicate;
         return this;
     }
 

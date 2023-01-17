@@ -32,7 +32,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityG
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +71,7 @@ import com.google.common.base.Enums;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataImportService" )
 public class DefaultMetadataImportService implements MetadataImportService
 {
@@ -292,11 +292,6 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, params.getUser() );
         }
 
-        if ( object.getCreatedBy() == null )
-        {
-            object.setCreatedBy( params.getUser() );
-        }
-
         object.setLastUpdatedBy( params.getUser() );
     }
 
@@ -312,6 +307,11 @@ public class DefaultMetadataImportService implements MetadataImportService
 
     private void postCreateBundleObject( IdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
+        if ( object.getCreatedBy() == null )
+        {
+            return;
+        }
+
         IdentifiableObject userByReference = bundle.getPreheat().get( params.getPreheatIdentifier(),
             User.class, params.getPreheatIdentifier().getIdentifier( object.getCreatedBy() ) );
 

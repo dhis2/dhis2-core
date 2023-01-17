@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.service.attribute;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -55,7 +56,7 @@ public class TrackedAttributeValidationService
      * @author Luca Cambi
      */
     @Getter
-    @AllArgsConstructor
+    @RequiredArgsConstructor
     private static class ValueTypeValidationFunction
     {
         private final ValueType valueType;
@@ -65,9 +66,9 @@ public class TrackedAttributeValidationService
         private final String message;
     }
 
-    private final FileResourceService fileResourceService;
-
     private static final String VALUE_STRING = "Value";
+
+    private final FileResourceService fileResourceService;
 
     private final List<ValueTypeValidationFunction> valueTypeValidationFunctions;
 
@@ -101,7 +102,6 @@ public class TrackedAttributeValidationService
     @Transactional( readOnly = true )
     public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
     {
-
         ValueType valueType = Optional.ofNullable( trackedEntityAttribute )
             .orElseThrow( () -> new IllegalArgumentException( "tracked entity attribute is required" ) )
             .getValueType();

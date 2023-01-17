@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import java.io.File;
@@ -50,6 +49,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -91,6 +91,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Stian Sandvold
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.appmanager.JCloudsAppStorageService" )
 public class JCloudsAppStorageService
     implements AppStorageService
@@ -130,20 +131,6 @@ public class JCloudsAppStorageService
     private final DhisConfigurationProvider configurationProvider;
 
     private final ObjectMapper jsonMapper;
-
-    public JCloudsAppStorageService(
-        LocationManager locationManager,
-        DhisConfigurationProvider configurationProvider,
-        ObjectMapper jsonMapper )
-    {
-        checkNotNull( locationManager );
-        checkNotNull( configurationProvider );
-        checkNotNull( jsonMapper );
-
-        this.locationManager = locationManager;
-        this.configurationProvider = configurationProvider;
-        this.jsonMapper = jsonMapper;
-    }
 
     @PostConstruct
     public void init()

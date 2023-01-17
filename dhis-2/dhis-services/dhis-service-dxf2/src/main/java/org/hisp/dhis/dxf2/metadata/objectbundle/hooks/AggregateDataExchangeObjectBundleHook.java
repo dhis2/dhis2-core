@@ -33,6 +33,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.function.Consumer;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -49,19 +51,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Component
 public class AggregateDataExchangeObjectBundleHook
     extends AbstractObjectBundleHook<AggregateDataExchange>
 {
     private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
 
+    @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PooledPBEStringEncryptor encryptor;
-
-    public AggregateDataExchangeObjectBundleHook(
-        @Qualifier( AES_128_STRING_ENCRYPTOR ) PooledPBEStringEncryptor encryptor )
-    {
-        this.encryptor = encryptor;
-    }
 
     @Override
     public void validate( AggregateDataExchange exchange, ObjectBundle bundle,

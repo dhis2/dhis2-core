@@ -55,8 +55,8 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
@@ -131,7 +131,7 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
+    public ResponseEntity<ImportReport> syncPostJsonTracker(
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
         throws InvalidEnumValueException
@@ -147,13 +147,13 @@ public class TrackerImportController
 
         TrackerImportParamsValidator.validateRequest( trackerImportRequest );
 
-        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
+        ImportReport importReport = trackerImporter.importTracker( trackerImportRequest );
 
-        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
+        ResponseEntity.BodyBuilder builder = importReport.getStatus() == Status.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
             : ResponseEntity.ok();
 
-        return builder.body( trackerImportReport );
+        return builder.body( importReport );
     }
 
     @PostMapping( value = "", consumes = { "application/csv", "text/csv" }, produces = APPLICATION_JSON_VALUE )
@@ -195,7 +195,7 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = { "application/csv",
         "text/csv" }, produces = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    public ResponseEntity<TrackerImportReport> syncPostCsvTracker(
+    public ResponseEntity<ImportReport> syncPostCsvTracker(
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser )
@@ -219,13 +219,13 @@ public class TrackerImportController
 
         TrackerImportParamsValidator.validateRequest( trackerImportRequest );
 
-        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
+        ImportReport importReport = trackerImporter.importTracker( trackerImportRequest );
 
-        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
+        ResponseEntity.BodyBuilder builder = importReport.getStatus() == Status.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
             : ResponseEntity.ok();
 
-        return builder.body( trackerImportReport );
+        return builder.body( importReport );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )
@@ -237,7 +237,7 @@ public class TrackerImportController
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
-    public TrackerImportReport getJobReport( @PathVariable String uid,
+    public ImportReport getJobReport( @PathVariable String uid,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode,
         HttpServletResponse response )
         throws HttpStatusCodeException,
@@ -250,7 +250,7 @@ public class TrackerImportController
 
         return Optional.ofNullable( notifier
             .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report,
+            .map( report -> trackerImportService.buildImportReport( (ImportReport) report,
                 trackerBundleReportMode ) )
             .orElseThrow( () -> NotFoundException.notFoundUid( uid ) );
     }

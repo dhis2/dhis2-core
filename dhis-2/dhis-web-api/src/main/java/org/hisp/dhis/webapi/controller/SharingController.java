@@ -37,12 +37,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -67,6 +71,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.util.SharingUtils;
+import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
@@ -367,9 +372,14 @@ public class SharingController
 
         manager.updateNoAcl( object );
 
-        if ( Program.class.isInstance( object ) )
+        if ( object instanceof Program )
         {
             syncSharingForEventProgram( (Program) object );
+        }
+        else if ( object instanceof Visualization )
+        {
+            syncSharingForExpressionDimensionItems( (Visualization) object,
+                sharing.getObject().getUserAccesses(), sharing.getObject().getUserGroupAccesses() );
         }
 
         log.info( SharingUtils.sharingToString( object, currentUserService.getCurrentUsername() ) );
@@ -454,5 +464,31 @@ public class SharingController
 
         programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
+    }
+
+    private void syncSharingForExpressionDimensionItems( Visualization visualization,
+        List<SharingUserAccess> sharingUserAccesses, List<SharingUserGroupAccess> sharingUserGroupAccesses )
+    {
+        List<IdentifiableObject> expressionDimensionItems = visualization.getDataDimensionItems()
+            .stream()
+            .map( DataDimensionItem::getExpressionDimensionItem )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+
+        expressionDimensionItems.forEach( edi -> {
+            org.hisp.dhis.user.sharing.Sharing sharing = edi.getSharing();
+
+            Set<UserAccess> userAccess = sharingUserAccesses.stream()
+                .map( sua -> new UserAccess( sua.getAccess(), sua.getId() ) ).collect( Collectors.toUnmodifiableSet() );
+            sharing.setUserAccesses( userAccess );
+
+            Set<UserGroupAccess> userGroupAccess = sharingUserGroupAccesses.stream()
+                .map( sua -> new UserGroupAccess( sua.getAccess(), sua.getId() ) )
+                .collect( Collectors.toUnmodifiableSet() );
+
+            sharing.setUserGroupAccess( userGroupAccess );
+        } );
+
+        manager.update( expressionDimensionItems );
     }
 }

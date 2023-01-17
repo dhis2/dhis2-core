@@ -119,7 +119,6 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
 
         configResponseForJson( response );

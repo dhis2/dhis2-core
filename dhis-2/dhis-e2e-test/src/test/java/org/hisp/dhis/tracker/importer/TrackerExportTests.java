@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -37,10 +38,11 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -53,6 +55,7 @@ import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,13 +71,21 @@ import org.skyscreamer.jsonassert.JSONAssert;
 public class TrackerExportTests
     extends TrackerNtiApiTest
 {
-    private static String teiId;
+    private static String teiA;
 
-    private static String enrollmentId;
+    private static String teiB;
 
-    private static String eventId;
+    private static String enrollment;
 
-    private static String relationshipId;
+    private static String event;
+
+    private static String teiToTeiRelationship;
+
+    private static String enrollmentToTeiRelationship;
+
+    private static final String TEI = "Kj6vYde4LHh";
+
+    private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
 
     @BeforeAll
     public void beforeAll()
@@ -85,27 +96,35 @@ public class TrackerExportTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
             new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
-        teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
-        enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) )
+        teiA = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
+        teiB = response.validateSuccessfulImport().extractImportedTeis().get( 1 );
+
+        enrollment = response.extractImportedEnrollments().get( 0 );
+
+        teiToTeiRelationship = importRelationshipBetweenTeis( teiA, teiB )
             .extractImportedRelationships().get( 0 );
-        eventId = response.extractImportedEvents().get( 0 );
+        enrollmentToTeiRelationship = importRelationshipEnrollmentToTei( enrollment, teiB )
+            .extractImportedRelationships().get( 0 );
+
+        event = response.extractImportedEvents().get( 0 );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
-            Arguments.of( "/trackedEntities/" + teiId,
+            Arguments.of( "/trackedEntities/" + teiA,
                 "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]",
                 "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity" ),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
-            Arguments.of( "/trackedEntities/" + teiId, "*",
+            Arguments.of( "/trackedEntities/" + teiA, "trackedEntity,enrollments", null ),
+            Arguments.of( "/enrollments/" + enrollment, "program,status,enrolledAt,relationships,attributes", null ),
+            Arguments.of( "/trackedEntities/" + teiA, "*",
                 "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes",
                 null ),
-            Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]",
-                "from,to.trackedEntity.trackedEntity" ) );
+            Arguments.of( "/events/" + event, "enrollment,createdAt", null ),
+            Arguments.of( "/relationships/" + teiToTeiRelationship, "from,to[trackedEntity[trackedEntity]]",
+                "from,to.trackedEntity.trackedEntity" ),
+            Arguments.of( "/relationships/" + enrollmentToTeiRelationship, "from,from[enrollment[enrollment]]",
+                "from,from.enrollment.enrollment" ) );
     }
 
     @MethodSource
@@ -145,7 +164,6 @@ public class TrackerExportTests
         JSONAssert.assertEquals( trackedEntity.getBody().toString(),
             trackedEntities.extractJsonObject( "instances[0]" ).toString(),
             false );
-
     }
 
     private List<String> splitFields( String fields )
@@ -217,7 +235,6 @@ public class TrackerExportTests
     @Test
     public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
     {
-
         trackerActions
             .get(
                 "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
@@ -231,14 +248,14 @@ public class TrackerExportTests
     @Test
     public void shouldReturnRelationshipsByTei()
     {
-        trackerActions.getRelationship( "?trackedEntity=" + teiId )
+        trackerActions.getRelationship( "?trackedEntity=" + teiA )
             .validate()
             .statusCode( 200 )
             .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .rootPath( "instances[0]" )
-            .body( "relationship", equalTo( relationshipId ) )
-            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
-            .body( "to.trackedEntity.trackedEntity", notNullValue() );
+            .body( "relationship", equalTo( teiToTeiRelationship ) )
+            .body( "from.trackedEntity.trackedEntity", equalTo( teiA ) )
+            .body( "to.trackedEntity.trackedEntity", equalTo( teiB ) );
     }
 
     @Test
@@ -274,5 +291,53 @@ public class TrackerExportTests
             .body( "instances", hasSize( equalTo( 2 ) ) );
         List<String> events = response.extractList( "instances.event.flatten()" );
         assertEquals( List.of( "ZwwuwNp6gVd", "olfXZzSGacW" ), events, "Events are not in the correct order" );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamNull()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder() );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 2 ) );
+
+        assertThat( response.getBody().getAsJsonObject(),
+            matchesJSON( new JsonObjectBuilder()
+                .addArray( "trackedEntityInstances",
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI ).build(),
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI_POTENTIAL_DUPLICATE ).build() )
+                .build() ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamFalse()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( false ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamTrue()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI_POTENTIAL_DUPLICATE ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( true ) );
+    }
+
+    private static QueryParamsBuilder teiParamsBuilder()
+    {
+        return new QueryParamsBuilder().addAll(
+            "trackedEntityInstance=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
+            "trackedEntityType=" + "Q9GufDoplCL",
+            "ou=" + "O6uvpzGd5pu" );
     }
 }

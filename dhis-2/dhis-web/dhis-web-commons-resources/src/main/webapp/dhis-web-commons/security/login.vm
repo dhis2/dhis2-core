@@ -6,30 +6,57 @@
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="shortcut icon" href="../../favicon.ico"/>
-    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.1.min.js"></script>
-    <script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
+    <script nonce="$cspNonce">
         $.ajaxSetup( {
-          beforeSend: function(xhr) {
-            xhr.setRequestHeader(
-                'X-Requested-With',
-                {
-                  toString: function() {
-                    return '';
-                  }
-                }
-            );
-          }
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(
+                        'X-Requested-With',
+                        {
+                            toString: function() {
+                                return '';
+                            }
+                        }
+                );
+            }
         } );
     </script>
     <script type="text/javascript" src="../javascripts/login.js"></script>
     <link type="text/css" rel="stylesheet" href="../css/widgets.css">
     <link type="text/css" rel="stylesheet" href="../css/login.css">
     <link type="text/css" rel="stylesheet" href="../../api/files/style/external"/>
+    <style nonce="$cspNonce">
+        .displayNoneClass {
+            display: none;
+        }
+        .borderNoneClass {
+            border: none;
+        }
+        .paddingTenClass {
+            padding-bottom: 10px;
+        }
+        .whiteRedClass {
+            color: white;
+            background-color: red;
+        }
+        .marginLeftClass {
+            margin-left: 30px;
+        }
+
+            #foreach( $provider in $oidcConfig.providers )
+            .oidc${provider.id}Class {
+                width: 269px;
+                height: 46px;
+                border: none;
+                background: url($provider.icon) no-repeat scroll $provider.iconPadding, #fff;
+            }
+            #end
+    </style>
 </head>
 
 <body class="loginPage">
-<h1 style="display:none">$!encoder.htmlEncode( ${applicationTitle} )</h1>
-<div style="display:none">DHIS 2</div>
+<h1 class="displayNoneClass">$!encoder.htmlEncode( ${applicationTitle} )</h1>
+<div class="displayNoneClass">DHIS 2</div>
 <div>
     #if ( $keyFlag )
         <img id="flagArea" src="../flags/$!{keyFlagImage}">
@@ -50,7 +77,7 @@
 <div id="loginField">
     <div id="loginArea">
         <div id="bannerArea">
-            <a href="http://www.dhis2.org"><img src="../../api/staticContent/logo_front" style="border:none"></a>
+            <a href="http://www.dhis2.org"><img src="../../api/staticContent/logo_front" class="borderNoneClass"></a>
         </div>
 
         <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
@@ -59,22 +86,23 @@
                 <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
                 <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"
                             required></div>
-                <div>
-                  <input type="checkbox" name="2fa" value="2fa" id="2fa"/><label id="2FaLabel">$i18n.getString('login_using_two_factor_authentication')</label>
+                    #if( $twoFactor == true )
+                    <div>
                     <input type="code" id="2fa_code" name="2fa_code"
-                           placeholder="$i18n.getString('two_factor_authentication_code')" hidden readonly>
-                </div>
+                               placeholder="$i18n.getString('two_factor_authentication_code')">
+                    </div>
+                    #end
             </div>
             <div id="submitDiv">
                 <input id="submit" class="button" type="submit" value="$i18n.getString('sign_in')">
             </div>
             #if( $keyAccountRecovery )
-                <div style="padding-bottom: 10px">
+                <div class="paddingTenClass">
                     <a id="forgotPasswordLink" href="recovery.action">$i18n.getString('forgot_password')</a>
                 </div>
             #end
             #if( $keyConfig.selfRegistrationAllowed() )
-                <div style="padding-bottom: 10px">
+                <div class="paddingTenClass">
                     <a id="createAccountLink" href="account.action">$i18n.getString('create_an_account')</a>
                 </div>
             #end
@@ -83,8 +111,7 @@
         #foreach( $provider in $oidcConfig.providers )
             <form id="oidcProvider_$provider.id" action="../../oauth2/authorization/$provider.id" method="get">
                 <div id="submitDiv">
-                    <input style="width: 269px; height:46px; border:none; background: url($provider.icon) no-repeat scroll $provider.iconPadding, #fff;"
-                           id="submit" class="button" type="submit"
+                    <input id="submit" class="button oidc${provider.id}Class" type="submit"
                            value="$i18n.getString( $provider.loginText )">
                 </div>
             </form>
@@ -109,7 +136,7 @@
             </div>
         #end
         <!--[if lte IE 8]>
-            <div id="notificationArea" style="color: white; background-color: red;">$i18n.getString(
+            <div id="notificationArea" class="whiteRedClass">$i18n.getString(
             "unsupported_browser" )</div>
             <![endif]-->
     </div>
@@ -121,7 +148,7 @@
     </div>
     <div id="rightFooterArea" class="innerFooterArea">
         <span id="applicationRightFooter">$!{keyApplicationRightFooter}</span>
-        <select id="localeSelect" onchange="login.localeChanged()" style="margin-left: 30px">
+        <select id="localeSelect" onchange="login.localeChanged()" class="marginLeftClass">
             <option value="">[ $i18n.getString( "change_language" ) ]</option>
             #foreach( $locale in $availableLocales )
                 <option value="${locale.language}">${locale.displayName}</option>

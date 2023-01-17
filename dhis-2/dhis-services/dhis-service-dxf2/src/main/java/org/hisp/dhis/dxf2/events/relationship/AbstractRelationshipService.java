@@ -35,9 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +43,8 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -130,7 +130,10 @@ public abstract class AbstractRelationshipService
             .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( mapDaoToDto( user ) ).filter( Objects::nonNull ).collect( Collectors.toList() );
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -144,7 +147,10 @@ public abstract class AbstractRelationshipService
         return relationshipService
             .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -159,7 +165,10 @@ public abstract class AbstractRelationshipService
             .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
-            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
+            .map( r -> getRelationship( r, user ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -458,13 +467,13 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public Relationship getRelationshipByUid( String id )
+    public Optional<Relationship> findRelationshipByUid( String id )
     {
         org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
 
         if ( relationship == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         return getRelationship( relationship, currentUserService.getCurrentUser() );
@@ -472,7 +481,8 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
+    public Optional<Relationship> findRelationship( org.hisp.dhis.relationship.Relationship dao,
+        RelationshipParams params,
         User user )
     {
         List<String> errors = trackerAccessManager.canRead( user, dao );
@@ -480,7 +490,7 @@ public abstract class AbstractRelationshipService
         if ( !errors.isEmpty() )
         {
             // Dont include relationship
-            return null;
+            return Optional.empty();
         }
 
         Relationship relationship = new Relationship();
@@ -497,19 +507,18 @@ public abstract class AbstractRelationshipService
         relationship.setCreated( DateUtils.getIso8601NoTz( dao.getCreated() ) );
         relationship.setLastUpdated( DateUtils.getIso8601NoTz( dao.getLastUpdated() ) );
 
-        return relationship;
+        return Optional.of( relationship );
 
     }
 
-    private Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, User user )
+    private Optional<Relationship> getRelationship( org.hisp.dhis.relationship.Relationship dao, User user )
     {
-        return getRelationship( dao, RelationshipParams.TRUE, user );
+        return findRelationship( dao, RelationshipParams.TRUE, user );
     }
 
     private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao,
         boolean uidOnly )
     {
-        TrackedEntityInstanceParams teiParams = TrackedEntityInstanceParams.FALSE;
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
         if ( dao.getTrackedEntityInstance() != null )
@@ -525,7 +534,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 tei = trackedEntityInstanceService
-                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), teiParams );
+                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.FALSE );
             }
 
             relationshipItem.setTrackedEntityInstance( tei );
@@ -543,7 +552,8 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), teiParams );
+                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(),
+                    EnrollmentParams.FALSE );
             }
 
             relationshipItem.setEnrollment( enrollment );
@@ -560,7 +570,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance(), teiParams.isIncludeRelationships() );
+                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.FALSE );
             }
 
             relationshipItem.setEvent( event );
@@ -908,11 +918,6 @@ public abstract class AbstractRelationshipService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
-    }
-
-    private Function<org.hisp.dhis.relationship.Relationship, Relationship> mapDaoToDto( User user )
-    {
-        return relationship -> getRelationship( relationship, user );
     }
 
     private void sortCreatesAndUpdates( Relationship relationship, List<Relationship> create,

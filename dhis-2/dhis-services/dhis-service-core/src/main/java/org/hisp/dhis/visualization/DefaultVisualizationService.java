@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -35,21 +35,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.visualization.VisualizationService" )
 public class DefaultVisualizationService
     extends GenericAnalyticalObjectService<Visualization>
     implements VisualizationService
 {
+    @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
     private final AnalyticalObjectStore<Visualization> visualizationStore;
-
-    public DefaultVisualizationService(
-        @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
-        final AnalyticalObjectStore<Visualization> visualizationStore )
-    {
-        checkNotNull( visualizationStore );
-
-        this.visualizationStore = visualizationStore;
-    }
 
     @Override
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()

@@ -52,6 +52,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -1130,6 +1132,16 @@ public abstract class DhisConvenienceTest
     public static Period createPeriod( String isoPeriod )
     {
         return PeriodType.getPeriodFromIsoString( isoPeriod );
+    }
+
+    /**
+     * @param isoPeriod the ISO period strings.
+     */
+    public static List<Period> createPeriods( String... isoPeriod )
+    {
+        return Stream.of( isoPeriod )
+            .map( PeriodType::getPeriodFromIsoString )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -2699,7 +2711,7 @@ public abstract class DhisConvenienceTest
         hibernateService.flushSession();
         user = userService.getUser( user.getUid() );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails, "",
             currentUserDetails.getAuthorities() );
@@ -2946,7 +2958,7 @@ public abstract class DhisConvenienceTest
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails,
             DEFAULT_ADMIN_PASSWORD,
             List.of( new SimpleGrantedAuthority( "ALL" ) ) );

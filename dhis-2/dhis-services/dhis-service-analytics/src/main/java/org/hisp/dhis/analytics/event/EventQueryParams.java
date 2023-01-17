@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -73,6 +74,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -420,8 +422,7 @@ public class EventQueryParams
     @Override
     public String getKey()
     {
-        QueryKey key = new QueryKey()
-            .add( super.getKey() );
+        QueryKey key = super.getQueryKey();
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
@@ -767,29 +768,6 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} LAST
-     */
-    public boolean isLastPeriodAggregationType()
-    {
-        return getAggregationType() != null && getAggregationType().isLastPeriodAggregationType();
-    }
-
-    /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} FIRST
-     */
-    public boolean isFirstPeriodAggregationType()
-    {
-        return getAggregationType() != null && getAggregationType().isFirstPeriodAggregationType();
-    }
-
-    public boolean isFirstOrLastPeriodAggregationType()
-    {
-        return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
-    }
-
-    /**
      * Returns true if a program indicator exists with non-default analytics
      * period boundaries.
      */
@@ -866,9 +844,40 @@ public class EventQueryParams
         return isNotEmpty( getEventStatus() );
     }
 
+    /**
+     * Checks if a value dimension exists.
+     *
+     * @return true if a value dimension exists, false if not.
+     */
     public boolean hasValueDimension()
     {
         return value != null;
+    }
+
+    /**
+     * Checks if a value dimension with a numeric value type exists.
+     *
+     * @return true if a value dimension with a numeric value type exists, false
+     *         if not.
+     */
+    public boolean hasNumericValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
+    }
+
+    /**
+     * Checks if a value dimension with a text value type exists.
+     *
+     * @return true if a value dimension with a text value type exists, false if
+     *         not.
+     */
+    public boolean hasTextValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isText();
     }
 
     @Override
@@ -1475,6 +1484,12 @@ public class EventQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withLocale( Locale locale )
+        {
+            this.params.locale = locale;
             return this;
         }
 

@@ -114,11 +114,6 @@ public class User
     private String password;
 
     /**
-     * Required. Does this user have two factor authentication
-     */
-    private boolean twoFA;
-
-    /**
      * Required. Automatically set in constructor
      */
     private String secret;
@@ -279,7 +274,6 @@ public class User
 
     public User()
     {
-        this.twoFA = false;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         if ( uuid == null )
@@ -316,6 +310,25 @@ public class User
     }
 
     /**
+     * "Get all the restrictions from all the user roles."
+     *
+     * @return A set of all the restrictions for all the user roles.
+     */
+    public Set<String> getAllRestrictions()
+    {
+        Set<String> restrictions = new HashSet<>();
+
+        for ( UserRole group : userRoles )
+        {
+            restrictions.addAll( group.getRestrictions() );
+        }
+
+        restrictions = Collections.unmodifiableSet( restrictions );
+
+        return restrictions;
+    }
+
+    /**
      * Indicates whether this user has at least one authority through its user
      * authority groups.
      */
@@ -342,6 +355,20 @@ public class User
     public boolean hasAnyAuthority( Collection<String> auths )
     {
         return getAllAuthorities().stream().anyMatch( auths::contains );
+    }
+
+    /**
+     * "Return true if any of the restrictions in the collection are in the list
+     * of all restrictions."
+     *
+     * @param restrictions A collection of strings that represent the
+     *        restrictions that are being checked for.
+     *
+     * @return A boolean value.
+     */
+    public boolean hasAnyRestrictions( Collection<String> restrictions )
+    {
+        return getAllRestrictions().stream().anyMatch( restrictions::contains );
     }
 
     /**
@@ -512,10 +539,6 @@ public class User
         return password != null;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // ----------
-
     public UUID getUuid()
     {
         return uuid;
@@ -543,24 +566,9 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isTwoFA()
+    public boolean isTwoFactorEnabled()
     {
-        return twoFA;
-    }
-
-    /**
-     * Set 2FA on user.
-     *
-     * @param twoFA true/false depending on activate or deactivate
-     */
-    public void setTwoFA( boolean twoFA )
-    {
-        this.twoFA = twoFA;
-    }
-
-    public boolean getTwoFA()
-    {
-        return twoFA;
+        return this.secret != null && !this.secret.isEmpty();
     }
 
     @JsonIgnore
@@ -792,9 +800,6 @@ public class User
         this.settings = settings;
     }
 
-    // -------------------------------------------------------------------------
-    // Two Factor Authentication methods
-    // -------------------------------------------------------------------------
     @Override
     public Collection<GrantedAuthority> getAuthorities()
     {

@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.sms;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageSender;
@@ -43,6 +42,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.sms.SmsConsumerThread" )
 public class SmsConsumerThread
 {
@@ -50,21 +50,10 @@ public class SmsConsumerThread
 
     private final MessageQueue messageQueue;
 
+    @Qualifier( "smsMessageSender" )
     private final MessageSender smsSender;
 
     private final IncomingSmsService incomingSmsService;
-
-    public SmsConsumerThread( MessageQueue messageQueue, @Qualifier( "smsMessageSender" ) MessageSender smsSender,
-        IncomingSmsService incomingSmsService )
-    {
-        checkNotNull( messageQueue );
-        checkNotNull( smsSender );
-        checkNotNull( incomingSmsService );
-
-        this.messageQueue = messageQueue;
-        this.smsSender = smsSender;
-        this.incomingSmsService = incomingSmsService;
-    }
 
     public void spawnSmsConsumer()
     {

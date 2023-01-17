@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +61,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
@@ -70,21 +70,15 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.RawAnalyticsManager" )
+@RequiredArgsConstructor
+@Service( "org.hisp.dhis.analytics.RawAnalyticsManager" )
 public class JdbcRawAnalyticsManager
     implements RawAnalyticsManager
 {
     private static final String DIM_NAME_OU = "ou.path";
 
+    @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
-
-    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     // -------------------------------------------------------------------------
     // RawAnalyticsManager implementation
@@ -103,8 +97,8 @@ public class JdbcRawAnalyticsManager
         {
             dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC,
                 PERIOD_START_DATE_NAME, new ArrayList<>() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME,
-                new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC,
+                PERIOD_END_DATE_NAME, List.of() ) );
         }
 
         String sql = getSelectStatement( params, dimensions );

@@ -72,7 +72,8 @@ abstract class EventAnalyticsTest
 
     private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
-    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
+    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of(
+        COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
         COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
 
     @Mock

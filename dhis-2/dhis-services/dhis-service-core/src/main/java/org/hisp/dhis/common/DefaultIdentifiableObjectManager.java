@@ -1295,18 +1295,16 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             dimensionalObjectStores );
     }
 
+    @SuppressWarnings( "unchecked" )
     private <T extends E, E extends IdentifiableObject, S extends IdentifiableObjectStore<? extends E>> S getObjectStore(
         Class<T> type, Map<Class<? extends E>, S> cache, Set<S> stores )
     {
-        @SuppressWarnings( "unchecked" )
         Class<T> realType = HibernateProxy.class.isAssignableFrom( type ) ? (Class<T>) type.getSuperclass() : type;
         return cache.computeIfAbsent( realType, key -> {
             S store = stores.stream().filter( s -> s.getClazz() == key ).findFirst().orElse( null );
             if ( store == null )
             {
-                // as this is within the "loader" function this will only get
-                // logged once
-                log.warn( "No IdentifiableObjectStore found for class: '{}'", realType );
+                log.debug( "No IdentifiableObjectStore found for class: '{}'", realType );
             }
             return store;
         } );

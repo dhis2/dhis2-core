@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.sms.job;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 import java.util.HashSet;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -45,21 +46,14 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 public class SendSmsJob implements Job
 {
+    @Qualifier( "smsMessageSender" )
     private final MessageSender smsSender;
 
     private final OutboundSmsService outboundSmsService;
-
-    public SendSmsJob( @Qualifier( "smsMessageSender" ) MessageSender smsSender, OutboundSmsService outboundSmsService )
-    {
-        checkNotNull( smsSender );
-        checkNotNull( outboundSmsService );
-
-        this.smsSender = smsSender;
-        this.outboundSmsService = outboundSmsService;
-    }
 
     @Override
     public JobType getJobType()

@@ -29,11 +29,15 @@ package org.hisp.dhis.dataintegrity;
 
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
@@ -48,23 +52,40 @@ class DataIntegrityYamlReaderTest
     @Test
     void testReadDataIntegrityYaml()
     {
+
         List<DataIntegrityCheck> checks = new ArrayList<>();
         readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
             ( property, defaultValue ) -> defaultValue,
-            sql -> check -> new DataIntegritySummary( check, new Date(), null, 1, 100d ),
-            sql -> check -> new DataIntegrityDetails( check, new Date(), null,
+            sql -> check -> new DataIntegritySummary( check, new Date(), new Date(), null, 1, 100d ),
+            sql -> check -> new DataIntegrityDetails( check, new Date(), new Date(), null,
                 List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 6, checks.size() );
+        assertEquals( 63, checks.size() );
+
+        //Names should be unique
+        List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
+            .collect( Collectors.toUnmodifiableList() );
+        assertEquals( allNames.size(), Set.copyOf( allNames ).size() );
+        //Config checks and Java checks should not have any of the same names
+
+        List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() ).map( e -> e.getName().toLowerCase() )
+            .collect(
+                Collectors.toList() );
+        assertTrue( nonYamlChecks.size() > 0 );
+
+        nonYamlChecks.retainAll( allNames );
+        assertEquals( 0, nonYamlChecks.size() );
+
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );
         assertEquals( "Categories", check.getSection() );
         assertEquals( "categories", check.getIssuesIdType() );
         assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
-        assertEquals( "Categories should always have at least a single category options.", check.getIntroduction() );
+        assertEquals( "Categories should always have at least one category option.", check.getIntroduction() );
         assertEquals( "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
             + " should be added to the category.", check.getRecommendation() );
+        assertFalse( check.isSlow() );
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
     }

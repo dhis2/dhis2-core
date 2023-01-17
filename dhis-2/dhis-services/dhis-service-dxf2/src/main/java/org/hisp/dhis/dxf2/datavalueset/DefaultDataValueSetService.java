@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -130,7 +130,7 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultDataValueSetService
     implements DataValueSetService
 {
@@ -895,12 +895,16 @@ public class DefaultDataValueSetService
 
         if ( !context.isDryRun() )
         {
-            DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
-            if ( valueContext.getDataElement().isFileType() && actualDataValue != null )
+            if ( valueContext.getDataElement().isFileType() )
             {
-                FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+                DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
 
-                fileResourceService.updateFileResource( fr );
+                if ( actualDataValue != null )
+                {
+                    FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+
+                    fileResourceService.updateFileResource( fr );
+                }
             }
 
             context.getDataValueBatchHandler().updateObject( internalValue );
@@ -1070,6 +1074,12 @@ public class DefaultDataValueSetService
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
             .strictOrgUnits( options.isStrictOrganisationUnits()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .strictDataSetApproval( options.isStrictDataSetApproval()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_APPROVAL ) )
+            .strictDataSetLocking( options.isStrictDataSetLocking()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_LOCKING ) )
+            .strictDataSetInputPeriods( options.isStrictDataSetInputPeriods()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_INPUT_PERIODS ) )
             .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()

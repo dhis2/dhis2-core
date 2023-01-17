@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -46,9 +47,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -66,17 +64,17 @@ class PartitionUtilsTest
     @Test
     void testGetPartitions()
     {
-        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ),
+        assertEquals( new Partitions( Set.of( 2000 ) ),
             PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001 ) ),
+        assertEquals( new Partitions( Set.of( 2001 ) ),
             PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2002 ) ),
+        assertEquals( new Partitions( Set.of( 2002 ) ),
             PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2003 ) ),
+        assertEquals( new Partitions( Set.of( 2003 ) ),
             PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2000, 2001 ) ),
+        assertEquals( new Partitions( Set.of( 2000, 2001 ) ),
             PartitionUtils.getPartitions( createPeriod( "2000July" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001, 2002 ) ),
+        assertEquals( new Partitions( Set.of( 2001, 2002 ) ),
             PartitionUtils.getPartitions( createPeriod( "2001April" ) ) );
     }
 
@@ -86,41 +84,51 @@ class PartitionUtilsTest
         Period period = new Period();
         period.setStartDate( new DateTime( 2008, 3, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2011, 7, 1, 0, 0 ).toDate() );
-        Partitions expected = new Partitions( Sets.newHashSet( 2008, 2009, 2010, 2011 ) );
+        Partitions expected = new Partitions( Set.of( 2008, 2009, 2010, 2011 ) );
+
         assertEquals( expected, PartitionUtils.getPartitions( period ) );
+
         period = new Period();
         period.setStartDate( new DateTime( 2009, 8, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2010, 2, 1, 0, 0 ).toDate() );
-        expected = new Partitions( Sets.newHashSet( 2009, 2010 ) );
+        expected = new Partitions( Set.of( 2009, 2010 ) );
+
         assertEquals( expected, PartitionUtils.getPartitions( period ) );
     }
 
     @Test
     void testGetTablePartitions()
     {
-        List<AnalyticsTableColumn> dimensions = Lists.newArrayList( new AnalyticsTableColumn( "dx", TEXT, "dx" ) );
-        List<AnalyticsTableColumn> values = Lists.newArrayList( new AnalyticsTableColumn( "value", DOUBLE, "value" ) );
+        List<AnalyticsTableColumn> dimensions = List.of( new AnalyticsTableColumn( "dx", TEXT, "dx" ) );
+        List<AnalyticsTableColumn> values = List.of( new AnalyticsTableColumn( "value", DOUBLE, "value" ) );
         AnalyticsTable tA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, dimensions, values );
         tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(),
             new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
         tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(),
             new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
         AnalyticsTable tB = new AnalyticsTable( AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values );
-        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( Lists.newArrayList( tA, tB ) );
+        List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( List.of( tA, tB ) );
+
         assertEquals( 3, partitions.size() );
     }
 
     @Test
     void testGetTablePartitionsFromQuery()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withPeriods( Lists.newArrayList( q1, q2, q3 ) ).build();
+        DataQueryParams params = DataQueryParams.newBuilder().withPeriods( List.of( q1, q2, q3 ) ).build();
         Partitions partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.DATA_VALUE );
+
         assertEquals( 3, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
         assertTrue( partitions.getPartitions().contains( 2019 ) );
         assertTrue( partitions.getPartitions().contains( 0 ) );
-        params = DataQueryParams.newBuilder().withPeriods( Lists.newArrayList( q1 ) ).build();
+
+        params = DataQueryParams.newBuilder()
+            .withPeriods( List.of( q1 ) )
+            .build();
+
         partitions = PartitionUtils.getPartitions( params, AnalyticsTableType.ORG_UNIT_TARGET );
+
         assertEquals( 1, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
     }
