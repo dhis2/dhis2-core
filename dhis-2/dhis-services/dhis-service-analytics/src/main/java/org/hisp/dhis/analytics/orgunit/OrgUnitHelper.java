@@ -84,7 +84,7 @@ public class OrgUnitHelper
                 .filter( org -> orgUidList.stream().anyMatch( uid -> org.getUid().equals( uid ) ) )
                 .collect( Collectors.toList() );
 
-            return activated.size() > 0 ? activated : organisationUnits;
+            return activated.isEmpty() ? organisationUnits : activated;
         }
 
         return organisationUnits;
