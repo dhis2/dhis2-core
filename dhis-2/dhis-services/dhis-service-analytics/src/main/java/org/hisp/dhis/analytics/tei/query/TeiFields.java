@@ -50,7 +50,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -182,21 +181,21 @@ public class TeiFields
         return headers;
     }
 
-    private static GridHeader getHeaderForField(
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+    private static GridHeader getHeaderForField( DimensionParam dimensionParam )
     {
-        String uid = dimensionIdentifier.getDimension().getUid();
-        String name = dimensionIdentifier.getDimension().getName();
-        ValueType valueType = dimensionIdentifier.getDimension().getValueType();
+        String uid = dimensionParam.getUid();
+        String name = dimensionParam.getName();
+        ValueType valueType = dimensionParam.getValueType();
         return new GridHeader( uid, name, valueType, false, true );
     }
 
-    private static DimensionIdentifier<Program, ProgramStage, DimensionParam> findDimensionIdentifier(
+    private static DimensionParam findDimensionIdentifier(
         TeiQueryParams teiQueryParams, Field field )
     {
         return teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
             .flatMap( Collection::stream )
             .filter( di -> di.getDimension().getUid().equals( field.getFieldAlias() ) )
+            .map( DimensionIdentifier::getDimension )
             .findFirst()
             .orElseThrow( IllegalStateException::new );
     }
