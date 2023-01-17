@@ -42,14 +42,18 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 public class TeiFields
 {
@@ -112,23 +116,38 @@ public class TeiFields
 
     public static Stream<Field> getDimensionFields( final TeiQueryParams teiQueryParams )
     {
-        // Attributes from Tracked entity Type
-        Stream<TrackedEntityAttribute> trackedEntityTypeAttributes = teiQueryParams.getTrackedEntityType()
-            .getTrackedEntityAttributes().stream();
+        return getAllAttributes( teiQueryParams )
+            .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
+    }
 
+    public static Stream<String> getAllAttributes( final TeiQueryParams teiQueryParams )
+    {
+        Stream<TrackedEntityAttribute> trackedEntityAttributesFromType = getTrackedEntityAttributes(
+            teiQueryParams.getTrackedEntityType() );
+
+        Stream<TrackedEntityAttribute> programAttributes = getProgramAttributes(
+            teiQueryParams.getCommonParams().getPrograms() );
+
+        // TET and program attribute fields
+        return Stream.concat( trackedEntityAttributesFromType, programAttributes )
+            .map( BaseIdentifiableObject::getUid )
+            // distinct to remove overlapping attributes
+            .distinct();
+    }
+
+    public static Stream<TrackedEntityAttribute> getProgramAttributes( Collection<Program> programs )
+    {
         // Attributes from Programs
-        Stream<TrackedEntityAttribute> programAttributes = teiQueryParams.getCommonParams().getPrograms().stream()
+        return programs.stream()
             .map( Program::getProgramAttributes )
             .flatMap( Collection::stream )
             .map( ProgramTrackedEntityAttribute::getAttribute );
+    }
 
-        // TET and program attribute fields
-        return Stream.concat(
-            trackedEntityTypeAttributes, programAttributes )
-            .map( BaseIdentifiableObject::getUid )
-            // distinct to remove overlapping attributes
-            .distinct()
-            .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
+    public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes( TrackedEntityType trackedEntityType )
+    {
+        // Attributes from Tracked entity Type
+        return trackedEntityType.getTrackedEntityAttributes().stream();
     }
 
     private static Stream<Field> getStaticFields()
@@ -155,10 +174,30 @@ public class TeiFields
         Stream.concat( stream( Static.values() ), stream( Dynamic.values() ) )
             .forEach( f -> headers.add( new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
-        // TODO: Map the correct columns alias, names and types.
-        getDimensionFields( teiQueryParams ).forEach(
-            f -> headers.add( new GridHeader( f.getFieldAlias(), "", TEXT, false, true ) ) );
+        getDimensionFields( teiQueryParams )
+            .map( field -> findDimensionIdentifier( teiQueryParams, field ) )
+            .map( TeiFields::getHeaderForField )
+            .forEach( headers::add );
 
         return headers;
+    }
+
+    private static GridHeader getHeaderForField(
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+    {
+        String uid = dimensionIdentifier.getDimension().getUid();
+        String name = dimensionIdentifier.getDimension().getName();
+        ValueType valueType = dimensionIdentifier.getDimension().getValueType();
+        return new GridHeader( uid, name, valueType, false, true );
+    }
+
+    private static DimensionIdentifier<Program, ProgramStage, DimensionParam> findDimensionIdentifier(
+        TeiQueryParams teiQueryParams, Field field )
+    {
+        return teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
+            .flatMap( Collection::stream )
+            .filter( di -> di.getDimension().getUid().equals( field.getFieldAlias() ) )
+            .findFirst()
+            .orElseThrow( IllegalStateException::new );
     }
 }

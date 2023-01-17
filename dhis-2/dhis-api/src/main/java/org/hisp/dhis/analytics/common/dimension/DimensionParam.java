@@ -224,6 +224,19 @@ public class DimensionParam implements UidObject
         return isDimensionalObject() && dimensionalObject.getDimensionType() == DimensionType.PERIOD;
     }
 
+    public String getName()
+    {
+        if ( isDimensionalObject() )
+        {
+            return dimensionalObject.getName();
+        }
+        if ( isQueryItem() )
+        {
+            return queryItem.getItem().getName();
+        }
+        return staticDimension.name();
+    }
+
     @RequiredArgsConstructor
     enum StaticDimension
     {

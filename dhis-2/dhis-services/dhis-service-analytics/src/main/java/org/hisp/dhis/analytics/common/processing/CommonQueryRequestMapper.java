@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParam.isStaticDimensionIdentifier;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENS
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.HEADERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.SORTING;
+import static org.hisp.dhis.analytics.tei.query.TeiFields.getProgramAttributes;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryRequestBuilder.DIMENSION_OR_SEPARATOR;
@@ -45,14 +46,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
@@ -63,6 +68,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -97,6 +103,22 @@ public class CommonQueryRequestMapper
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
         List<Program> programs = getPrograms( request );
 
+        Map<String, String> dimensionsByUid = request.getDimension().stream()
+            .collect( Collectors.toMap( identity(), identity() ) );
+
+        programs.stream()
+            .flatMap( program -> getProgramAttributes( List.of( program ) )
+                .map( BaseIdentifiableObject::getUid )
+                // we need fully qualified dimension identifiers
+                .map( attributeUid -> Pair.of( program, attributeUid ) ) )
+            .forEach( fqDimension -> dimensionsByUid.put(
+                fqDimension.getRight(), fqDimension.getLeft().getUid() + "." + fqDimension.getRight() ) );
+
+        // removes all items already existing for which exists a FQ dimension name
+        request.getDimension().removeIf( dimensionsByUid::containsKey );
+        // adds all dimensions from programs
+        request.getDimension().addAll( dimensionsByUid.values() );
+
         return CommonParams.builder()
             .programs( programs )
             .pagingAndSortingParams( AnalyticsPagingParams.builder()
@@ -119,9 +141,7 @@ public class CommonQueryRequestMapper
      */
     private Set<String> getHeaders( CommonQueryRequest request )
     {
-        return HEADERS.getUidsGetter().apply( request )
-            .stream()
-            .collect( toSet() );
+        return new HashSet<>( HEADERS.getUidsGetter().apply( request ) );
     }
 
     /**
