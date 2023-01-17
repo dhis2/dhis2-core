@@ -207,7 +207,7 @@ public class ExpressionParams
      * {@see ExpressionInfo} instance.
      */
     @Builder.Default
-    private ExpressionInfo expressionInfo = new ExpressionInfo();
+    private final ExpressionInfo expressionInfo = new ExpressionInfo();
 
     // -------------------------------------------------------------------------
     // Logic
