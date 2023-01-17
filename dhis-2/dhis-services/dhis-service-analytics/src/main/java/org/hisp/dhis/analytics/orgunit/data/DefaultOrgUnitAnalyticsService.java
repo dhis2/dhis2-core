@@ -42,9 +42,17 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.analytics.util.GridRenderUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -105,19 +113,24 @@ public class DefaultOrgUnitAnalyticsService
     @Override
     public void validate( OrgUnitQueryParams params )
     {
+        ErrorMessage error = null;
+
         if ( params == null )
         {
-            throw new IllegalQueryException( ErrorCode.E7100 );
+            error = new ErrorMessage( ErrorCode.E7100 );
+        }
+        else if ( params.getOrgUnits().isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E7300 );
+        }
+        else if ( params.getOrgUnitGroupSets().isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E7301 );
         }
 
-        if ( params.getOrgUnits().isEmpty() )
+        if ( error != null )
         {
-            throw new IllegalQueryException( ErrorCode.E7300 );
-        }
-
-        if ( params.getOrgUnitGroupSets().isEmpty() )
-        {
-            throw new IllegalQueryException( ErrorCode.E7301 );
+            throw new IllegalQueryException( error );
         }
     }
 

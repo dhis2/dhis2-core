@@ -50,10 +50,6 @@ import com.google.common.base.Joiner;
 @RequiredArgsConstructor
 public class CategoryOptionResolver implements ExpressionResolver
 {
-    private final ExpressionService expressionService;
-
-    private final CategoryOptionStore categoryOptionStore;
-
     private static final String LEFT_BRACKET = "(";
 
     private static final String RIGHT_BRACKET = ")";
@@ -61,6 +57,10 @@ public class CategoryOptionResolver implements ExpressionResolver
     private static final String CATEGORY_OPTION_PREFIX = "co:";
 
     private static final String EMPTY_STRING = "";
+
+    private final ExpressionService expressionService;
+
+    private final CategoryOptionStore categoryOptionStore;
 
     @Override
     public String resolve( String expression )
