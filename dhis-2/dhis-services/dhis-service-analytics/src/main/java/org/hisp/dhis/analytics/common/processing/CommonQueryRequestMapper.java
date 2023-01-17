@@ -111,12 +111,13 @@ public class CommonQueryRequestMapper
                 .map( BaseIdentifiableObject::getUid )
                 // we need fully qualified dimension identifiers
                 .map( attributeUid -> Pair.of( program, attributeUid ) ) )
-            .forEach( fqDimension -> dimensionsByUid.put(
-                fqDimension.getRight(), fqDimension.getLeft().getUid() + "." + fqDimension.getRight() ) );
+            .forEach( fullyQualifiedDimension -> dimensionsByUid.put(
+                fullyQualifiedDimension.getRight(),
+                fullyQualifiedDimension.getLeft().getUid() + "." + fullyQualifiedDimension.getRight() ) );
 
-        // removes all items already existing for which exists a FQ dimension name
+        // removes all items already existing for which exists a fully qualified dimension name
         request.getDimension().removeIf( dimensionsByUid::containsKey );
-        // adds all dimensions from programs
+        // adds all dimensions from all programs
         request.getDimension().addAll( dimensionsByUid.values() );
 
         return CommonParams.builder()
