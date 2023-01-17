@@ -101,15 +101,11 @@ public class Field extends BaseRenderable
 
         if ( quotingNeeded )
         {
-
             rendered = rendered + doubleQuoteIfNeeded( name.render() );
-
         }
         else
         {
-
             rendered = rendered + name.render();
-
         }
 
         if ( isNotBlank( fieldAlias ) )
