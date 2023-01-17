@@ -795,22 +795,14 @@ public class AnalyticsUtils
                     map.put( isoDate,
                         new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
-                else if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
-                {
-                    if ( OrgUnitHelper.isOrganisationUnitInGridRows( (OrganisationUnit) item, grid ) )
-                    {
-                        organisationUnitList = OrgUnitHelper.getGridRelevantOrganisationUnits( grid,
-                            organisationUnitList );
-                    }
-                    else
-                    {
-                        map.put( item.getDimensionItem(),
-                            new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
-                                includeMetadataDetails ? item : null ) );
-                    }
-                }
                 else
                 {
+                    if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
+                    {
+                        organisationUnitList = OrgUnitHelper.getActiveOrganisationUnits( grid,
+                            organisationUnitList );
+                    }
+
                     map.put( item.getDimensionItem(),
                         new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
                             includeMetadataDetails ? item : null ) );
