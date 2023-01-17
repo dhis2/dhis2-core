@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -51,6 +52,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.TestCache;
@@ -61,7 +63,8 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
@@ -76,7 +79,7 @@ import org.springframework.util.concurrent.SuccessCallback;
  * implementation this test focuses on testing the
  * {@link DefaultSchedulingManager} implementation.
  *
- * This does not run any actual {@link Job} but checks that the ceremony around
+ * This does not run any actual {@link Job}s but checks that the ceremony around
  * running them works.
  *
  * @author Jan Bernitt
@@ -108,8 +111,8 @@ class SchedulingManagerTest
             mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ), cacheProvider );
     }
 
-    @Test
-    void testScheduleRunCronJob()
+    @TestFactory
+    Stream<DynamicTest> testScheduleRunCronJob()
     {
         JobConfiguration configuration = createCronJonConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
@@ -117,11 +120,12 @@ class SchedulingManagerTest
         ArgumentCaptor<Runnable> cronTask = ArgumentCaptor.forClass( Runnable.class );
         when( taskScheduler.schedule( cronTask.capture(), any( Trigger.class ) ) ).thenReturn( new MockFuture<>() );
         schedulingManager.schedule( configuration );
-        assertScheduledJob( configuration, SchedulingManagerTest::createCronJonConfiguration, cronTask.getValue() );
+        return assertScheduledJob( configuration, SchedulingManagerTest::createCronJonConfiguration,
+            cronTask.getValue() );
     }
 
-    @Test
-    void testScheduleRunFixedDelayJob()
+    @TestFactory
+    Stream<DynamicTest> testScheduleRunFixedDelayJob()
     {
         JobConfiguration configuration = createFixedDelayJobConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
@@ -130,12 +134,12 @@ class SchedulingManagerTest
         when( taskScheduler.scheduleWithFixedDelay( delayTask.capture(), any( Instant.class ), any( Duration.class ) ) )
             .thenReturn( new MockFuture<>() );
         schedulingManager.schedule( configuration );
-        assertScheduledJob( configuration, SchedulingManagerTest::createFixedDelayJobConfiguration,
+        return assertScheduledJob( configuration, SchedulingManagerTest::createFixedDelayJobConfiguration,
             delayTask.getValue() );
     }
 
-    @Test
-    void testScheduleRunWithStartTimeJob()
+    @TestFactory
+    Stream<DynamicTest> testScheduleRunWithStartTimeJob()
     {
         JobConfiguration configuration = createStartTimeJobConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
@@ -143,7 +147,7 @@ class SchedulingManagerTest
         ArgumentCaptor<Runnable> startTimeTask = ArgumentCaptor.forClass( Runnable.class );
         when( taskScheduler.schedule( startTimeTask.capture(), any( Date.class ) ) ).thenReturn( new MockFuture<>() );
         schedulingManager.scheduleWithStartTime( configuration, new Date() );
-        assertScheduledJob( configuration, SchedulingManagerTest::createStartTimeJobConfiguration,
+        return assertScheduledJob( configuration, SchedulingManagerTest::createStartTimeJobConfiguration,
             startTimeTask.getValue() );
     }
 
@@ -171,15 +175,23 @@ class SchedulingManagerTest
         return new JobConfiguration( "CLUSTER_LEADER_RENEWAL", JobType.LEADER_RENEWAL, null, true );
     }
 
-    private void assertScheduledJob( JobConfiguration configuration, Supplier<JobConfiguration> copy, Runnable task )
+    private Stream<DynamicTest> assertScheduledJob( JobConfiguration configuration, Supplier<JobConfiguration> copy,
+        Runnable task )
     {
         assertNotNull( task, "job was not scheduled" );
-        assertScheduledJobCompletes( configuration, task );
-        assertScheduledJobDoesNotStartWhenAlreadyRunning( configuration, task );
-        assertScheduledJobStops( configuration, task );
-        assertScheduledJobStopWhenInterrupted( configuration, task );
-        assertScheduledJobFailsGraceful( configuration, task );
-        assertScheduledJobStaysDisabled( configuration, copy, task );
+        return Stream.of(
+            dynamicTest( "assertScheduledJobCompletes",
+                () -> assertScheduledJobCompletes( configuration, task ) ),
+            dynamicTest( "assertScheduledJobDoesNotStartWhenAlreadyRunning",
+                () -> assertScheduledJobDoesNotStartWhenAlreadyRunning( configuration, task ) ),
+            dynamicTest( "assertScheduledJobCancelsToStopped",
+                () -> assertScheduledJobCancelsToStopped( configuration, task ) ),
+            dynamicTest( "assertScheduledJobStopWhenInterrupted",
+                () -> assertScheduledJobStopWhenInterrupted( configuration, task ) ),
+            dynamicTest( "assertScheduledJobFailsGraceful",
+                () -> assertScheduledJobFailsGraceful( configuration, task ) ),
+            dynamicTest( "assertScheduledJobStaysDisabled",
+                () -> assertScheduledJobStaysDisabled( configuration, copy, task ) ) );
     }
 
     private void assertScheduledJobCompletes( JobConfiguration configuration, Runnable task )
@@ -211,10 +223,10 @@ class SchedulingManagerTest
         assertTrue( schedulingManager.executeNow( configuration ) );
     }
 
-    private void assertScheduledJobStops( JobConfiguration configuration, Runnable task )
+    private void assertScheduledJobCancelsToStopped( JobConfiguration configuration, Runnable task )
     {
         // once running the job stops itself
-        setUpJobExecute( jobConfiguration -> schedulingManager.stop( jobConfiguration ) );
+        setUpJobExecute( jobConfiguration -> schedulingManager.cancel( jobConfiguration.getJobType() ) );
         // synchronously
         task.run();
         assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
@@ -226,7 +238,7 @@ class SchedulingManagerTest
         setUpJobExecute( jobConfiguration -> Thread.currentThread().interrupt() );
         // synchronously
         task.run();
-        assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
+        assertEquals( JobStatus.FAILED, configuration.getLastExecutedStatus() );
         assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
     }
 
@@ -263,6 +275,8 @@ class SchedulingManagerTest
     {
         doAnswer( invocation -> {
             execute.accept( invocation.getArgument( 0, JobConfiguration.class ) );
+            if ( Thread.currentThread().isInterrupted() )
+                throw new InterruptedException();
             return null;
         } ).when( job ).execute( any( JobConfiguration.class ), any( JobProgress.class ) );
     }

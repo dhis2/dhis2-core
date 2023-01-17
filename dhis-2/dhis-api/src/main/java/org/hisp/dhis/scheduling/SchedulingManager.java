@@ -93,8 +93,13 @@ public interface SchedulingManager
     void scheduleWithStartTime( JobConfiguration configuration, Date startTime );
 
     /**
-     * Stops the currently running task with the same {@link JobType} as the
-     * provided configuration.
+     * Removes any existing schedule for the given {@link JobConfiguration}.
+     *
+     * If the configuration does not have an ID nor a name this operation has no
+     * effect.
+     *
+     * This will not interrupt and abort a currently running job. To abort
+     * execution use {@link #cancel(JobType)}.
      */
     void stop( JobConfiguration configuration );
 
@@ -105,14 +110,20 @@ public interface SchedulingManager
      * running.
      *
      * @param configuration The configuration of the job to be executed
-     * @return true, if the job was executed successful. If the execution is
-     *         asynchronous true is returned if the job was accepted for
-     *         execution.
+     * @return true, if the job was accepted for execution. This means no job of
+     *         the same type was running but the another job might still manage
+     *         to reach the {@link Job#execute(JobConfiguration, JobProgress)}
+     *         method first in which case this execution is aborted.
      */
     boolean executeNow( JobConfiguration configuration );
 
     /**
-     * Request cancellation for job of given type potentially running currently
+     * Request cancellation for job of given type. If no job of that type is
+     * currently running the operation has no effect.
+     *
+     * Cancellation is cooperative abort. The job will abort at the next
+     * possible "safe-point". This is the next step or item in the overall
+     * process which checks for cancellation.
      *
      * @param type job type to cancel
      */
