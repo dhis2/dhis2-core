@@ -44,7 +44,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "aggregate_data_element_no_groups";
+    private final static String check = "data_elements_aggregate_no_groups";
+
+    private final static String detailsIDType = "dataElements";
 
     private String dataElementA;
 
@@ -67,7 +69,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
         JsonList<JsonDataElement> des = deg.getDataElements();
         assertEquals( 1, des.size() );
 
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 50, dataElementA, "ANC1", null,
+        assertHasDataIntegrityIssues( detailsIDType, check, 50, dataElementA, "ANC1", null,
             true );
 
     }
@@ -87,7 +89,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
         JsonList<JsonDataElement> des = deg.getDataElements();
         assertEquals( 2, des.size() );
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -95,7 +97,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
     void testDataElementsInGroupDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

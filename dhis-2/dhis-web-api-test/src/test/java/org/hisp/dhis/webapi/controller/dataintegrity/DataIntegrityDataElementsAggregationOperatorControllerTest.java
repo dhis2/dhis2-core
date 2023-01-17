@@ -42,7 +42,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAggregationOperatorControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "aggregate_data_elements_aggregation_operator";
+    private final String check = "data_elements_aggregate_aggregation_operator";
+
+    private final String detailsIDType = "dataElements";
 
     private String dataElementB;
 
@@ -56,7 +58,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
                 "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 33,
+        assertHasDataIntegrityIssues( detailsIDType, check, 33,
             dataElementB, "ANC3", null, true );
 
     }
@@ -72,7 +74,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
                 "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }" ) );
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -80,7 +82,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
     void testDataElementsAggregationDividedByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

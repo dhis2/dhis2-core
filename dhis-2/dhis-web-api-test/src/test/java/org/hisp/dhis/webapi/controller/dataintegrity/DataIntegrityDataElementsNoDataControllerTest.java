@@ -45,7 +45,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "aggregate_des_nodata";
+    private final static String check = "data_elements_aggregate_no_data";
+
+    private final static String detailsIDType = "dataElements";
 
     private String dataElementA;
 
@@ -69,7 +71,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -84,7 +86,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
             postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
         dbmsManager.clearSession();
         //One of the data elements should not have data
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 50,
+        assertHasDataIntegrityIssues( detailsIDType, check, 50,
             dataElementA, "ANC1", null, true );
 
     }
@@ -92,7 +94,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
     @Test
     void testDataElementsNoDataRuns()
     {
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
     }
 
     void setUpTest()

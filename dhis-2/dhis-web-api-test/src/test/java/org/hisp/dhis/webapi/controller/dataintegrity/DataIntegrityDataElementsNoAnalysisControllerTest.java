@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private static final String check = "aggregate_des_no_analysis";
+    private static final String check = "data_elements_aggregate_no_analysis";
+
+    private static final String detailsIDType = "dataElements";
 
     @Test
     void testDataElementNoAnalysis()
@@ -54,7 +56,7 @@ class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataInte
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 100,
+        assertHasDataIntegrityIssues( detailsIDType, check, 100,
             dataElementA, "ANC1", null, true );
 
     }
@@ -100,13 +102,13 @@ class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataInte
                     +
                     "'grandParentOrganisationUnit':false},'name':'Test viz'}" ) );
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
     void testDataElementHasAnalysisRuns()
     {
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
     }
 }

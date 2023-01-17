@@ -34,14 +34,16 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which belong to datasets of different periodtypes.
+ * Test for data elements which belong to datasets of different period types.
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_datasets_different_period_types.yaml}
  *
  * @author Jason P. Pickering
  */
 class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "aggregate_data_elements_datasets_different_period_types";
+    private final String check = "data_elements_aggregate_with_different_period_types";
+
+    private final String detailsIDType = "dataElements";
 
     private String dataElementA;
 
@@ -61,7 +63,7 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", datasetMetadata ) );
 
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 100,
+        assertHasDataIntegrityIssues( detailsIDType, check, 100,
             dataElementA, "ANC1", "Test Weekly", true );
 
     }
@@ -79,14 +81,14 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", datasetMetadata ) );
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
     void testDataElementPeriodTypeCheckRuns()
     {
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
     }
 
     void setUpTest()
