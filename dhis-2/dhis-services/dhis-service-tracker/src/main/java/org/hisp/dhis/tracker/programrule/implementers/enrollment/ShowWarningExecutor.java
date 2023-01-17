@@ -27,53 +27,43 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors on a completed enrollment or event calculated by
- * Rule Engine.
+ * This implementer show warnings calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorOnCompleteValidator" )
-public class ShowErrorOnCompleteValidator
-    implements ErrorWarningValidator, RuleActionEnrollmentValidator<ErrorOnCompleteActionRule>
+@RequiredArgsConstructor
+public class ShowWarningExecutor
+    implements ErrorWarningExecutor
 {
+    private final WarningRuleAction ruleAction;
+
     @Override
     public boolean isOnComplete()
     {
-        return true;
+        return false;
     }
 
     @Override
     public IssueType getIssueType()
     {
-        return ERROR;
+        return WARNING;
     }
 
     @Override
-    public List<ErrorOnCompleteActionRule> filter( List<ActionRule> actionRules )
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
-        return actionRules
-            .stream()
-            .filter( ErrorOnCompleteActionRule.class::isInstance )
-            .map( a -> (ErrorOnCompleteActionRule) a )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<ErrorOnCompleteActionRule> ruleEffects,
-        Enrollment enrollment )
-    {
-        return validateEnrollment( ruleEffects, enrollment );
+        return validateEnrollment( ruleAction, enrollment );
     }
 }

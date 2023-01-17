@@ -27,19 +27,12 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class WarningActionRule
-    implements ErrorWarningActionRule
+public interface ErrorWarningRuleAction
+    extends RuleAction
 {
-    private final String ruleUid;
+    String getData();
 
-    private final String data;
+    String getField();
 
-    private final String field;
-
-    private final String content;
+    String getContent();
 }

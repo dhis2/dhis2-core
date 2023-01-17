@@ -27,23 +27,44 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
-import lombok.Getter;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
-@Getter
+/**
+ * This implementer show errors on a completed enrollment or event calculated by
+ * Rule Engine.
+ *
+ * @Author Enrico Colasante
+ */
 @RequiredArgsConstructor
-public class AssignActionRule
-    implements ActionRule
+public class ShowErrorOnCompleteExecutor
+    implements ErrorWarningExecutor
 {
-    private final String ruleUid;
+    private final ErrorOnCompleteRuleAction ruleAction;
 
-    private final String value;
+    @Override
+    public boolean isOnComplete()
+    {
+        return true;
+    }
 
-    private final String attribute;
+    @Override
+    public IssueType getIssueType()
+    {
+        return ERROR;
+    }
 
-    private final List<Attribute> attributes;
+    @Override
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    {
+        return validateEnrollment( ruleAction, enrollment );
+    }
 }

@@ -62,7 +62,7 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ShowErrorWarningValidatorTest extends DhisConvenienceTest
+class ShowErrorWarningExecutorTest extends DhisConvenienceTest
 {
 
     private final static String CONTENT = "SHOW ERROR DATA";

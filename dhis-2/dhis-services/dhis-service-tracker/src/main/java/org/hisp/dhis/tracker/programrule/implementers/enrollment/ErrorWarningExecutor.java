@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -49,46 +46,41 @@ import com.google.common.collect.Lists;
  *
  * @Author Enrico Colasante
  */
-public interface ErrorWarningValidator
+public interface ErrorWarningExecutor extends RuleActionExecutor
 {
     boolean isOnComplete();
 
     IssueType getIssueType();
 
-    default List<ProgramRuleIssue> validateEnrollment( List<? extends ErrorWarningActionRule> enrollmentActionRules,
+    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction enrollmentActionRules,
         Enrollment enrollment )
     {
         if ( needsToRun( enrollment ) )
         {
-            return parseErrors( enrollmentActionRules );
+            return Optional.of( parseErrors( enrollmentActionRules ) );
         }
-        return Collections.emptyList();
+        return Optional.empty();
     }
 
-    private <U extends ErrorWarningActionRule> List<ProgramRuleIssue> parseErrors( List<U> effects )
+    private ProgramRuleIssue parseErrors( ErrorWarningRuleAction ruleAction )
     {
-        return effects
-            .stream()
-            .map( actionRule -> {
-                String field = actionRule.getField();
-                String content = actionRule.getContent();
-                String data = actionRule.getData();
 
-                StringBuilder stringBuilder = new StringBuilder( content );
-                if ( !StringUtils.isEmpty( data ) )
-                {
-                    stringBuilder.append( " " ).append( data );
-                }
-                if ( !StringUtils.isEmpty( field ) )
-                {
-                    stringBuilder.append( " (" ).append( field ).append( ")" );
-                }
+        String field = ruleAction.getField();
+        String content = ruleAction.getContent();
+        String data = ruleAction.getData();
 
-                return Pair.of( actionRule.getRuleUid(), stringBuilder.toString() );
-            } )
-            .map( message -> new ProgramRuleIssue( message.getKey(), ValidationCode.E1300,
-                Lists.newArrayList( message.getValue() ), getIssueType() ) )
-            .collect( Collectors.toList() );
+        StringBuilder stringBuilder = new StringBuilder( content );
+        if ( !StringUtils.isEmpty( data ) )
+        {
+            stringBuilder.append( " " ).append( data );
+        }
+        if ( !StringUtils.isEmpty( field ) )
+        {
+            stringBuilder.append( " (" ).append( field ).append( ")" );
+        }
+
+        return new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
+            Lists.newArrayList( stringBuilder.toString() ), getIssueType() );
     }
 
     private boolean needsToRun( Enrollment enrollment )

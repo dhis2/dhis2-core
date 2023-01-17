@@ -32,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class WarningOnCompleteActionRule
-    implements ErrorWarningActionRule
+public class WarningOnCompleteRuleAction
+    implements ErrorWarningRuleAction
 {
     private final String ruleUid;
 

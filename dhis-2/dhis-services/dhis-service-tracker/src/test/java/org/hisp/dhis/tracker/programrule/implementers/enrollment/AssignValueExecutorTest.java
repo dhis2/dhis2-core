@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -70,7 +69,7 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class AssignValueValidatorTest extends DhisConvenienceTest
+class AssignValueExecutorTest extends DhisConvenienceTest
 {
 
     private final static String TRACKED_ENTITY_ID = "TrackedEntityUid";
@@ -78,10 +77,6 @@ class AssignValueValidatorTest extends DhisConvenienceTest
     private final static String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
     private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
-
-    private final static String FIRST_EVENT_ID = "EventUid";
-
-    private final static String SECOND_EVENT_ID = "CompletedEventUid";
 
     private final static String DATA_ELEMENT_ID = "DataElementId";
 
@@ -92,12 +87,6 @@ class AssignValueValidatorTest extends DhisConvenienceTest
     private final static String ATTRIBUTE_ID = "AttributeId";
 
     private final static String ATTRIBUTE_CODE = "AttributeCode";
-
-    private final static String DATA_ELEMENT_OLD_VALUE = "1";
-
-    private final static String DATA_ELEMENT_NEW_VALUE_PAYLOAD = "23";
-
-    private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
 
     private final static String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
 
@@ -120,9 +109,6 @@ class AssignValueValidatorTest extends DhisConvenienceTest
 
     @Mock
     private SystemSettingManager systemSettingManager;
-
-    @InjectMocks
-    private AssignValueValidator enrollmentValidatorToTest;
 
     @BeforeEach
     void setUpTest()
@@ -171,9 +157,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
         bundle.setEnrollments( enrollments );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeNOTSet.getAttributes() ),
-            enrollmentWithAttributeNOTSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeNOTSet.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -181,9 +168,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> assertEquals( WARNING, w.getIssueType() ) );
     }
 
     @Test
@@ -193,9 +179,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
         bundle.setEnrollments( enrollments );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeSet.getAttributes() ),
-            enrollmentWithAttributeSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -203,8 +190,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( error.isPresent() );
+        error.ifPresent( w -> assertEquals( ERROR, w.getIssueType() ) );
     }
 
     @Test
@@ -220,9 +207,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
         bundle.setEnrollments( enrollments );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeSet.getAttributes() ),
-            enrollmentWithAttributeSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -230,9 +218,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofCode( ATTRIBUTE_CODE ) ) ).findAny();
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( error.isPresent() );
+        error.ifPresent( w -> assertEquals( ERROR, w.getIssueType() ) );
     }
 
     @Test
@@ -244,9 +231,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( getTrackedEntitiesWithAttributeSet().getAttributes() ),
-            enrollmentWithAttributeNOTSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( getTrackedEntitiesWithAttributeSet().getAttributes() ) );
+
+        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -259,9 +247,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         assertFalse( enrollmentAttribute.isPresent() );
         assertTrue( teiAttribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( error.isPresent() );
+        error.ifPresent( w -> assertEquals( ERROR, w.getIssueType() ) );
     }
 
     @Test
@@ -275,9 +262,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeNOTSet.getAttributes() ),
-            enrollmentWithAttributeNOTSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeNOTSet.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -290,9 +278,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         assertFalse( enrollmentAttribute.isPresent() );
         assertTrue( teiAttribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> assertEquals( WARNING, w.getIssueType() ) );
     }
 
     @Test
@@ -302,9 +289,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSetSameValue );
         bundle.setEnrollments( enrollments );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeSetSameValue.getAttributes() ),
-            enrollmentWithAttributeSetSameValue );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeSetSameValue.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSetSameValue );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -312,9 +300,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> assertEquals( WARNING, w.getIssueType() ) );
     }
 
     @Test
@@ -326,9 +313,10 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
 
-        List<ProgramRuleIssue> enrollmentIssues = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects( enrollmentWithAttributeSet.getAttributes() ),
-            enrollmentWithAttributeSet );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+
+        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -336,38 +324,41 @@ class AssignValueValidatorTest extends DhisConvenienceTest
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> assertEquals( WARNING, w.getIssueType() ) );
     }
 
     @Test
     void testIsEqual()
     {
-        assertTrue( enrollmentValidatorToTest.isEqual( "first_dose", "first_dose", ValueType.TEXT ) );
-        assertTrue( enrollmentValidatorToTest.isEqual( "2020-01-01", "2020-01-01", ValueType.DATE ) );
-        assertTrue( enrollmentValidatorToTest.isEqual( "true", "true", ValueType.BOOLEAN ) );
-        assertTrue( enrollmentValidatorToTest.isEqual( "26.4", "26.4", ValueType.TEXT ) );
-        assertTrue( enrollmentValidatorToTest.isEqual( "24.8", "24.8", ValueType.NUMBER ) );
-        assertTrue( enrollmentValidatorToTest.isEqual( "32", "32", ValueType.INTEGER ) );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null );
 
-        assertFalse( enrollmentValidatorToTest.isEqual( "first_dose", "second_dose", ValueType.TEXT ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "2020-01-01", "2020-01-02", ValueType.DATE ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "true", "false", ValueType.BOOLEAN ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "26.4", "26.5", ValueType.TEXT ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "24.8", "24.9", ValueType.NUMBER ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "32", "33", ValueType.INTEGER ) );
+        assertTrue( executor.isEqual( "first_dose", "first_dose", ValueType.TEXT ) );
+        assertTrue( executor.isEqual( "2020-01-01", "2020-01-01", ValueType.DATE ) );
+        assertTrue( executor.isEqual( "true", "true", ValueType.BOOLEAN ) );
+        assertTrue( executor.isEqual( "26.4", "26.4", ValueType.TEXT ) );
+        assertTrue( executor.isEqual( "24.8", "24.8", ValueType.NUMBER ) );
+        assertTrue( executor.isEqual( "32", "32", ValueType.INTEGER ) );
+
+        assertFalse( executor.isEqual( "first_dose", "second_dose", ValueType.TEXT ) );
+        assertFalse( executor.isEqual( "2020-01-01", "2020-01-02", ValueType.DATE ) );
+        assertFalse( executor.isEqual( "true", "false", ValueType.BOOLEAN ) );
+        assertFalse( executor.isEqual( "26.4", "26.5", ValueType.TEXT ) );
+        assertFalse( executor.isEqual( "24.8", "24.9", ValueType.NUMBER ) );
+        assertFalse( executor.isEqual( "32", "33", ValueType.INTEGER ) );
     }
 
     @Test
     void testIsEqualDataTypeIntegrity()
     {
-        assertFalse( enrollmentValidatorToTest.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "24", "second_dose", ValueType.NUMBER ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( null, "46.2", ValueType.NUMBER ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "26.4", null, ValueType.NUMBER ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( "first_dose", null, ValueType.TEXT ) );
-        assertFalse( enrollmentValidatorToTest.isEqual( null, "second_dose", ValueType.TEXT ) );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null );
+
+        assertFalse( executor.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
+        assertFalse( executor.isEqual( "24", "second_dose", ValueType.NUMBER ) );
+        assertFalse( executor.isEqual( null, "46.2", ValueType.NUMBER ) );
+        assertFalse( executor.isEqual( "26.4", null, ValueType.NUMBER ) );
+        assertFalse( executor.isEqual( "first_dose", null, ValueType.TEXT ) );
+        assertFalse( executor.isEqual( null, "second_dose", ValueType.TEXT ) );
     }
 
     private Enrollment getEnrollmentWithAttributeSet()
@@ -448,9 +439,8 @@ class AssignValueValidatorTest extends DhisConvenienceTest
         return Lists.newArrayList( attribute );
     }
 
-    private List<AssignActionRule> getRuleEnrollmentEffects( List<Attribute> attributes )
+    private AssignValueRuleAction getRuleAction( List<Attribute> attributes )
     {
-        return Lists
-            .newArrayList( new AssignActionRule( "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, attributes ) );
+        return new AssignValueRuleAction( "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, attributes );
     }
 }

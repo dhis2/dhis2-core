@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -42,63 +41,45 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
 /**
- * This implementer check if a field is not empty in the {@link TrackerBundle}
+ * This executor checks if a field is not empty in the {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldValidator" )
-public class SetMandatoryFieldValidator implements RuleActionEnrollmentValidator<MandatoryActionRule>
+@RequiredArgsConstructor
+public class SetMandatoryFieldExecutor implements RuleActionExecutor
 {
 
-    @Override
-    public List<MandatoryActionRule> filter( List<ActionRule> actionRules )
-    {
-        return actionRules
-            .stream()
-            .filter( MandatoryActionRule.class::isInstance )
-            .map( a -> (MandatoryActionRule) a )
-            .collect( Collectors.toList() );
-    }
+    private final MandatoryRuleAction ruleAction;
 
     @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
-        List<MandatoryActionRule> enrollmentActionRules, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
-        return enrollmentActionRules.stream()
-            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                enrollment, enrollmentActionRules, bundle.getPreheat() ).stream() )
-            .collect( Collectors.toList() );
+        return checkMandatoryEnrollmentAttribute( enrollment, bundle.getPreheat() );
     }
 
-    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
-        List<MandatoryActionRule> effects, TrackerPreheat preheat )
+    private Optional<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
+        TrackerPreheat preheat )
     {
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        return effects.stream()
-            .map( action -> {
-                TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( action.getAttribute() );
-                Optional<Attribute> any = enrollment.getAttributes().stream()
-                    .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
-                    .findAny();
-                if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
-                {
-                    return new ProgramRuleIssue( action.getRuleUid(),
-                        ValidationCode.E1306,
-                        Lists.newArrayList(
-                            idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
-                        IssueType.ERROR );
-                }
-                else
-                {
-                    return null;
-                }
-            } )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
+        TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( ruleAction.getAttribute() );
+        Optional<Attribute> any = enrollment.getAttributes().stream()
+            .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
+            .findAny();
+        if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
+        {
+            return Optional.of( new ProgramRuleIssue( ruleAction.getRuleUid(),
+                ValidationCode.E1306,
+                Lists.newArrayList(
+                    idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
+                IssueType.ERROR ) );
+        }
+        else
+        {
+            return Optional.empty();
+        }
     }
 }

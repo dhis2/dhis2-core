@@ -32,14 +32,10 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ErrorActionRule
-    implements ErrorWarningActionRule
+public class SyntaxErrorRuleAction
+    implements RuleAction
 {
     private final String ruleUid;
 
-    private final String data;
-
-    private final String field;
-
-    private final String content;
+    private final String error;
 }

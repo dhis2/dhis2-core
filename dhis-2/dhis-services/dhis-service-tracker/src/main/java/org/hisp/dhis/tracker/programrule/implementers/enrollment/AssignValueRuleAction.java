@@ -27,52 +27,23 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * This implementer show warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningValidator" )
-public class ShowWarningValidator
-    implements ErrorWarningValidator, RuleActionEnrollmentValidator<WarningActionRule>
+import org.hisp.dhis.tracker.domain.Attribute;
+
+@Getter
+@RequiredArgsConstructor
+public class AssignValueRuleAction
+    implements RuleAction
 {
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+    private final String ruleUid;
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+    private final String value;
 
-    @Override
-    public List<WarningActionRule> filter( List<ActionRule> actionRules )
-    {
-        return actionRules
-            .stream()
-            .filter( WarningActionRule.class::isInstance )
-            .map( a -> (WarningActionRule) a )
-            .collect( Collectors.toList() );
-    }
+    private final String attribute;
 
-    @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<WarningActionRule> ruleEffects,
-        Enrollment enrollment )
-    {
-        return validateEnrollment( ruleEffects, enrollment );
-    }
+    private final List<Attribute> attributes;
 }

@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -45,10 +45,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 @ExtendWith( MockitoExtension.class )
-class RuleEngineErrorValidatorTest extends DhisConvenienceTest
+class RuleEngineErrorExecutorTest extends DhisConvenienceTest
 {
     private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
 
@@ -58,7 +56,8 @@ class RuleEngineErrorValidatorTest extends DhisConvenienceTest
 
     private final static String TEI_ID = "TeiId";
 
-    private final RuleEngineErrorValidator ruleEngineErrorImplementer = new RuleEngineErrorValidator();
+    private final RuleEngineErrorExecutor ruleEngineErrorImplementer = new RuleEngineErrorExecutor(
+        getRuleEnrollmentEffect() );
 
     private TrackerBundle bundle;
 
@@ -75,15 +74,16 @@ class RuleEngineErrorValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateEnrollmentWithError()
     {
-        List<ProgramRuleIssue> issues = ruleEngineErrorImplementer.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            getEnrollment() );
+        Optional<ProgramRuleIssue> warning = ruleEngineErrorImplementer.validateEnrollment( bundle, getEnrollment() );
 
-        assertFalse( issues.isEmpty() );
-        assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_ENROLLMENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( ENROLLMENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> {
+            assertEquals( WARNING, w.getIssueType() );
+            assertEquals( RULE_ENROLLMENT_ID, w.getRuleUid() );
+            assertEquals( ValidationCode.E1300, w.getIssueCode() );
+            assertEquals( ENROLLMENT_ERROR_MESSAGE, w.getArgs().get( 0 ) );
+        } );
+
     }
 
     private Enrollment getEnrollment()
@@ -94,8 +94,8 @@ class RuleEngineErrorValidatorTest extends DhisConvenienceTest
             .build();
     }
 
-    private List<SyntaxErrorActionRule> getRuleEnrollmentEffects()
+    private SyntaxErrorRuleAction getRuleEnrollmentEffect()
     {
-        return Lists.newArrayList( new SyntaxErrorActionRule( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE ) );
+        return new SyntaxErrorRuleAction( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE );
     }
 }

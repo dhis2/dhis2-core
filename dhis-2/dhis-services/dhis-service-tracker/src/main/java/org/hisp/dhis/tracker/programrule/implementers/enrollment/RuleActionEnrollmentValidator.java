@@ -36,10 +36,10 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 /**
  * @author Enrico Colasante
  */
-public interface RuleActionEnrollmentValidator<T extends ActionRule>
+public interface RuleActionEnrollmentValidator<T extends RuleAction>
 {
 
-    List<T> filter( List<ActionRule> actionRules );
+    List<T> filter( List<RuleAction> ruleActions );
 
     /**
      * Get the validation for enrollment evaluated by rule engine

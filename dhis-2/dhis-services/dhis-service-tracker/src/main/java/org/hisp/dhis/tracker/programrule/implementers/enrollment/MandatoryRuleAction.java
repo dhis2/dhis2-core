@@ -25,43 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Enrico Colasante
- */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.RuleEngineValidator" )
-class RuleEngineValidator
-    implements Validator<Enrollment>
+@Getter
+@RequiredArgsConstructor
+public class MandatoryRuleAction
+    implements RuleAction
 {
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        if ( !bundle.getEnrollmentActionRules().containsKey( enrollment ) )
-        {
-            return;
-        }
+    private final String ruleUid;
 
-        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentActionRules().get( enrollment )
-            .stream()
-            .map( e -> e.validateEnrollment( bundle, enrollment ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
-    }
+    private final String attribute;
 }

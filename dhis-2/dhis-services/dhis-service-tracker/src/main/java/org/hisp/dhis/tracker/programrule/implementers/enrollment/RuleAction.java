@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-public interface ActionRule
+public interface RuleAction
 {
     String getRuleUid();
 }

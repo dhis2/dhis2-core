@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ActionRule;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleActionExecutor;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -162,7 +162,7 @@ public class TrackerBundle
      * Rule effects for Enrollments.
      */
     @Builder.Default
-    private Map<TrackerDto, List<ActionRule>> enrollmentActionRules = new HashMap<>();
+    private Map<TrackerDto, List<RuleActionExecutor>> enrollmentActionRules = new HashMap<>();
 
     /**
      * Rule effects for Events.

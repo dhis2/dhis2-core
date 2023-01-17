@@ -27,43 +27,33 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
 /**
- * This implementer log as a warning any error raised by rule engine execution
+ * This executor log as a warning any error raised by rule engine execution
  *
  * @Author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorImplementer" )
-public class RuleEngineErrorValidator implements RuleActionEnrollmentValidator<SyntaxErrorActionRule>
+@RequiredArgsConstructor
+public class RuleEngineErrorExecutor implements RuleActionExecutor
 {
-    @Override
-    public List<SyntaxErrorActionRule> filter( List<ActionRule> actionRules )
-    {
-        return actionRules
-            .stream()
-            .filter( SyntaxErrorActionRule.class::isInstance )
-            .map( a -> (SyntaxErrorActionRule) a )
-            .collect( Collectors.toList() );
-    }
+    private final SyntaxErrorRuleAction ruleAction;
 
     @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
-        List<SyntaxErrorActionRule> enrollmentActionRules, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
-        return enrollmentActionRules.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getError() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
+        return Optional.of(
+            new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
+                Lists.newArrayList( ruleAction.getError() ), IssueType.WARNING ) );
     }
 }

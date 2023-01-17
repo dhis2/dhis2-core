@@ -27,12 +27,45 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-public interface ErrorWarningActionRule
-    extends ActionRule
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+
+/**
+ * This implementer show warnings on a completed enrollment or event calculated
+ * by Rule Engine.
+ *
+ * @Author Enrico Colasante
+ */
+@RequiredArgsConstructor
+public class ShowWarningOnCompleteExecutor
+    implements ErrorWarningExecutor
 {
-    String getData();
+    private final WarningOnCompleteRuleAction ruleAction;
 
-    String getField();
+    @Override
+    public boolean isOnComplete()
+    {
+        return true;
+    }
 
-    String getContent();
+    @Override
+    public IssueType getIssueType()
+    {
+        return WARNING;
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
+        Enrollment enrollment )
+    {
+        return validateEnrollment( ruleAction, enrollment );
+    }
 }

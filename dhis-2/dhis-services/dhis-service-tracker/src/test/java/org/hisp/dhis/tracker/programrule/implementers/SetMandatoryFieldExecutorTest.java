@@ -64,7 +64,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 @ExtendWith( MockitoExtension.class )
-class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
+class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
 {
     private final static String FIRST_EVENT_ID = "EventUid";
 

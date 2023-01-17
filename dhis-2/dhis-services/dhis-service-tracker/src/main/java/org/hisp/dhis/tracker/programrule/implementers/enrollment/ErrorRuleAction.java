@@ -32,10 +32,14 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class MandatoryActionRule
-    implements ActionRule
+public class ErrorRuleAction
+    implements ErrorWarningRuleAction
 {
     private final String ruleUid;
 
-    private final String attribute;
+    private final String data;
+
+    private final String field;
+
+    private final String content;
 }

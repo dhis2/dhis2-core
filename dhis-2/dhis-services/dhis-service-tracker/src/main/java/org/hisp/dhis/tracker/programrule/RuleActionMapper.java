@@ -50,6 +50,7 @@ import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -58,26 +59,36 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionType;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorOnCompleteActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.MandatoryActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.SyntaxErrorActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.WarningActionRule;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.WarningOnCompleteActionRule;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorOnCompleteRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.MandatoryRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.SyntaxErrorRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.WarningOnCompleteRuleAction;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.WarningRuleAction;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 
 @Service
 @RequiredArgsConstructor
-class ActionRuleBuilder
+class RuleActionMapper
 {
-    public Map<TrackerDto, List<ActionRule>> buildEnrollmentActionRules( List<RuleEffects> ruleEffects,
+    private final SystemSettingManager systemSettingManager;
+
+    public Map<TrackerDto, List<RuleActionExecutor>> mapEnrollmentRuleActions( List<RuleEffects> ruleEffects,
         TrackerBundle bundle )
     {
-        return buildEnrollmentEffects( filterEnrollments( ruleEffects, bundle ), bundle );
+        List<RuleEffects> filteredEffects = filterEnrollments( ruleEffects, bundle );
+        return mapEnrollmentEffects( filteredEffects, bundle );
     }
 
     public Map<TrackerDto, List<EventActionRule>> buildEventActionRules( List<RuleEffects> ruleEffects,
@@ -94,13 +105,13 @@ class ActionRuleBuilder
             .collect( Collectors.toList() );
     }
 
-    private Map<TrackerDto, List<ActionRule>> buildEnrollmentEffects( List<RuleEffects> ruleEffects,
+    private Map<TrackerDto, List<RuleActionExecutor>> mapEnrollmentEffects( List<RuleEffects> ruleEffects,
         TrackerBundle bundle )
     {
         return ruleEffects
             .stream()
             .collect( Collectors.toMap( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(),
-                e -> buildEnrollmentActionRules( bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(), e,
+                e -> mapEnrollmentRuleActions( bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(), e,
                     bundle ) ) );
     }
 
@@ -116,7 +127,7 @@ class ActionRuleBuilder
                 e -> buildEventActionRules( bundle.findEventByUid( e.getTrackerObjectUid() ).get(), e, bundle ) ) );
     }
 
-    private List<ActionRule> buildEnrollmentActionRules( Enrollment enrollment, RuleEffects ruleEffects,
+    private List<RuleActionExecutor> mapEnrollmentRuleActions( Enrollment enrollment, RuleEffects ruleEffects,
         TrackerBundle bundle )
     {
         List<Attribute> payloadTeiAttributes = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
@@ -134,42 +145,45 @@ class ActionRuleBuilder
             .collect( Collectors.toList() );
     }
 
-    private ActionRule buildEnrollmentActionRule( String ruleId, String data, RuleAction ruleAction,
+    private RuleActionExecutor buildEnrollmentActionRule( String ruleId, String data, RuleAction ruleAction,
         List<Attribute> attributes )
     {
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignActionRule( ruleId, data, action.field(), attributes );
+            return new AssignValueExecutor( systemSettingManager,
+                new AssignValueRuleAction( ruleId, data, action.field(), attributes ) );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {
             RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-            return new MandatoryActionRule( ruleId, action.field() );
+            return new SetMandatoryFieldExecutor( new MandatoryRuleAction( ruleId, action.field() ) );
         }
         if ( ruleAction instanceof RuleActionShowError )
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
-            return new ErrorActionRule( ruleId, data, action.field(), action.content() );
+            return new ShowErrorExecutor( new ErrorRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
-            return new WarningActionRule( ruleId, data, action.field(), action.content() );
+            return new ShowWarningExecutor( new WarningRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
-            return new ErrorOnCompleteActionRule( ruleId, data, action.field(), action.content() );
+            return new ShowErrorOnCompleteExecutor(
+                new ErrorOnCompleteRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
-            return new WarningOnCompleteActionRule( ruleId, data, action.field(), action.content() );
+            return new ShowWarningOnCompleteExecutor(
+                new WarningOnCompleteRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {
-            return new SyntaxErrorActionRule( ruleId, data );
+            return new RuleEngineErrorExecutor( new SyntaxErrorRuleAction( ruleId, data ) );
         }
         return null;
     }

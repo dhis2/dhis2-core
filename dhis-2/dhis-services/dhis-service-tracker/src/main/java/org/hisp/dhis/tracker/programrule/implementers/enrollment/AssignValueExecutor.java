@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,63 +47,46 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
 /**
- * This implementer assign a value to a field if it is empty, otherwise returns
- * an error
+ * This executor assign a value to a field if it is empty, otherwise returns an
+ * error
  *
  * @Author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueImplementer" )
 @RequiredArgsConstructor
-public class AssignValueValidator implements RuleActionEnrollmentValidator<AssignActionRule>
+public class AssignValueExecutor implements RuleActionExecutor
 {
     private final SystemSettingManager systemSettingManager;
 
-    @Override
-    public List<AssignActionRule> filter( List<ActionRule> actionRules )
-    {
-        return actionRules
-            .stream()
-            .filter( AssignActionRule.class::isInstance )
-            .map( a -> (AssignActionRule) a )
-            .collect( Collectors.toList() );
-    }
+    private final AssignValueRuleAction actionRule;
 
     @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle,
-        List<AssignActionRule> enrollmentActionRules, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
-        List<ProgramRuleIssue> issues = Lists.newArrayList();
         Boolean canOverwrite = systemSettingManager
             .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
-        for ( AssignActionRule actionRule : enrollmentActionRules )
+        if ( getAttribute( actionRule, bundle.getPreheat() ).isEmpty() ||
+            Boolean.TRUE.equals( canOverwrite ) ||
+            isTheSameValue( actionRule, bundle.getPreheat() ) )
         {
-            if ( getAttribute( actionRule, bundle.getPreheat() ).isEmpty() ||
-                Boolean.TRUE.equals( canOverwrite ) ||
-                isTheSameValue( actionRule, bundle.getPreheat() ) )
-            {
-                addOrOverwriteAttribute( enrollment, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1310,
-                    Lists.newArrayList( actionRule.getAttribute(), actionRule.getValue() ),
-                    IssueType.WARNING ) );
-            }
-            else
-            {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1309,
-                    Lists.newArrayList( actionRule.getAttribute(), enrollment.getEnrollment() ),
-                    IssueType.ERROR ) );
-            }
+            addOrOverwriteAttribute( enrollment, actionRule, bundle );
+            return Optional.of( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1310,
+                Lists.newArrayList( actionRule.getAttribute(), actionRule.getValue() ),
+                IssueType.WARNING ) );
         }
-
-        return issues;
+        else
+        {
+            return Optional.of( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1309,
+                Lists.newArrayList( actionRule.getAttribute(), enrollment.getEnrollment() ),
+                IssueType.ERROR ) );
+        }
     }
 
-    private Optional<Attribute> getAttribute( AssignActionRule actionRule, TrackerPreheat preheat )
+    private Optional<Attribute> getAttribute( AssignValueRuleAction actionRule, TrackerPreheat preheat )
     {
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getAttribute() );
         return actionRule.getAttributes()
@@ -113,7 +95,7 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
             .findAny();
     }
 
-    private boolean isTheSameValue( AssignActionRule actionRule, TrackerPreheat preheat )
+    private boolean isTheSameValue( AssignValueRuleAction actionRule, TrackerPreheat preheat )
     {
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getAttribute() );
         String value = actionRule.getValue();
@@ -151,7 +133,8 @@ public class AssignValueValidator implements RuleActionEnrollmentValidator<Assig
         }
     }
 
-    private void addOrOverwriteAttribute( Enrollment enrollment, AssignActionRule actionRule, TrackerBundle bundle )
+    private void addOrOverwriteAttribute( Enrollment enrollment, AssignValueRuleAction actionRule,
+        TrackerBundle bundle )
     {
         TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getAttribute() );
         Optional<TrackedEntity> trackedEntity = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );

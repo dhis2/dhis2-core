@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,7 +61,7 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ShowErrorWarningValidatorTest extends DhisConvenienceTest
+class ShowErrorWarningExecutorTest extends DhisConvenienceTest
 {
 
     private final static String CONTENT = "SHOW ERROR DATA";
@@ -83,13 +84,15 @@ class ShowErrorWarningValidatorTest extends DhisConvenienceTest
 
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
-    private ShowWarningOnCompleteValidator warningOnCompleteImplementer = new ShowWarningOnCompleteValidator();
+    private ShowWarningOnCompleteExecutor warningOnCompleteImplementer = new ShowWarningOnCompleteExecutor(
+        getWarningOnCompleteActionRule() );
 
-    private ShowErrorOnCompleteValidator errorOnCompleteImplementer = new ShowErrorOnCompleteValidator();
+    private ShowErrorOnCompleteExecutor errorOnCompleteImplementer = new ShowErrorOnCompleteExecutor(
+        getErrorOnCompleteActionRule() );
 
-    private ShowErrorValidator errorImplementer = new ShowErrorValidator();
+    private ShowErrorExecutor errorImplementer = new ShowErrorExecutor( getErrorActionRule() );
 
-    private ShowWarningValidator warningImplementer = new ShowWarningValidator();
+    private ShowWarningExecutor warningImplementer = new ShowWarningExecutor( getWarningActionRule() );
 
     private TrackerBundle bundle;
 
@@ -126,49 +129,42 @@ class ShowErrorWarningValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> errors = errorImplementer.validateEnrollment( bundle, getErrorActionRules(),
-            activeEnrollment() );
-        assertErrors( errors, 1 );
+        Optional<ProgramRuleIssue> error = errorImplementer.validateEnrollment( bundle, activeEnrollment() );
+        assertTrue( error.isPresent() );
 
-        errorImplementer.validateEnrollment( bundle, getErrorActionRules(), completedEnrollment() );
-        assertErrors( errors, 1 );
+        error = errorImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertTrue( error.isPresent() );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> warnings = warningImplementer.validateEnrollment( bundle, getWarningActionRules(),
-            activeEnrollment() );
-        assertWarnings( warnings, 1 );
+        Optional<ProgramRuleIssue> warning = warningImplementer.validateEnrollment( bundle, activeEnrollment() );
+        assertTrue( warning.isPresent() );
 
-        warningImplementer.validateEnrollment( bundle, getWarningActionRules(), completedEnrollment() );
-        assertWarnings( warnings, 1 );
+        warning = warningImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertTrue( warning.isPresent() );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEnrollment( bundle,
-            getErrorOnCompleteActionRules(),
-            activeEnrollment() );
-        assertTrue( errors.isEmpty() );
+        Optional<ProgramRuleIssue> error = errorOnCompleteImplementer.validateEnrollment( bundle, activeEnrollment() );
+        assertFalse( error.isPresent() );
 
-        errors = errorOnCompleteImplementer.validateEnrollment( bundle, getErrorOnCompleteActionRules(),
-            completedEnrollment() );
-        assertErrors( errors, 1 );
+        error = errorOnCompleteImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertTrue( error.isPresent() );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEnrollment( bundle,
-            getWarningOnCompleteActionRules(),
+        Optional<ProgramRuleIssue> warning = warningOnCompleteImplementer.validateEnrollment( bundle,
             activeEnrollment() );
-        assertTrue( warnings.isEmpty() );
+        assertFalse( warning.isPresent() );
 
-        warnings = warningOnCompleteImplementer.validateEnrollment( bundle, getWarningOnCompleteActionRules(),
-            completedEnrollment() );
-        assertWarnings( warnings, 1 );
+        warning = warningOnCompleteImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertTrue( warning.isPresent() );
     }
 
     public void assertErrors( List<ProgramRuleIssue> errors, int numberOfErrors )
@@ -214,27 +210,23 @@ class ShowErrorWarningValidatorTest extends DhisConvenienceTest
         return completedEnrollment;
     }
 
-    private List<ErrorActionRule> getErrorActionRules()
+    private ErrorRuleAction getErrorActionRule()
     {
-        return Lists.newArrayList(
-            new ErrorActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT ) );
+        return new ErrorRuleAction( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT );
     }
 
-    private List<WarningActionRule> getWarningActionRules()
+    private WarningRuleAction getWarningActionRule()
     {
-        return Lists.newArrayList(
-            new WarningActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT ) );
+        return new WarningRuleAction( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT );
     }
 
-    private List<ErrorOnCompleteActionRule> getErrorOnCompleteActionRules()
+    private ErrorOnCompleteRuleAction getErrorOnCompleteActionRule()
     {
-        return Lists.newArrayList(
-            new ErrorOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT ) );
+        return new ErrorOnCompleteRuleAction( "", EVALUATED_DATA, null, IssueType.ERROR.name() + CONTENT );
     }
 
-    private List<WarningOnCompleteActionRule> getWarningOnCompleteActionRules()
+    private WarningOnCompleteRuleAction getWarningOnCompleteActionRule()
     {
-        return Lists.newArrayList(
-            new WarningOnCompleteActionRule( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT ) );
+        return new WarningOnCompleteRuleAction( "", EVALUATED_DATA, null, IssueType.WARNING.name() + CONTENT );
     }
 }

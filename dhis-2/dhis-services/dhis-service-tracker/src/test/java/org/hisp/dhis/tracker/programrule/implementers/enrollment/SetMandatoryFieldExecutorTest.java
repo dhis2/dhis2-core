@@ -28,10 +28,12 @@
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,9 +62,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 @ExtendWith( MockitoExtension.class )
-class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
+class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
 {
-
     private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
     private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
@@ -87,7 +88,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
-    private final SetMandatoryFieldValidator enrollmentValidatorToTest = new SetMandatoryFieldValidator();
+    private final SetMandatoryFieldExecutor enrollmentValidatorToTest = new SetMandatoryFieldExecutor(
+        getRuleEnrollmentEffect() );
 
     private TrackerBundle bundle;
 
@@ -126,11 +128,10 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
 
-        List<ProgramRuleIssue> errors = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
+        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.validateEnrollment( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
-        assertTrue( errors.isEmpty() );
+        assertFalse( error.isPresent() );
     }
 
     @Test
@@ -143,11 +144,10 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
 
-        List<ProgramRuleIssue> errors = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
+        Optional<ProgramRuleIssue> errors = enrollmentValidatorToTest.validateEnrollment( bundle,
             getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
 
-        assertTrue( errors.isEmpty() );
+        assertFalse( errors.isPresent() );
     }
 
     @Test
@@ -158,16 +158,16 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
-        List<ProgramRuleIssue> errors = enrollmentValidatorToTest.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
+        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.validateEnrollment( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
-        assertTrue( errors.isEmpty() );
+        assertFalse( error.isPresent() );
 
-        errors = enrollmentValidatorToTest.validateEnrollment( bundle, getRuleEnrollmentEffects(),
-            getEnrollmentWithMandatoryAttributeNOTSet() );
+        error = enrollmentValidatorToTest.validateEnrollment( bundle, getEnrollmentWithMandatoryAttributeNOTSet() );
 
-        errors.forEach( e -> {
+        assertTrue( error.isPresent() );
+
+        error.ifPresent( e -> {
             assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
             assertEquals( ValidationCode.E1306, e.getIssueCode() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
@@ -230,9 +230,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .build();
     }
 
-    private List<MandatoryActionRule> getRuleEnrollmentEffects()
+    private MandatoryRuleAction getRuleEnrollmentEffect()
     {
-        return Lists.newArrayList(
-            new MandatoryActionRule( "RULE_ATTRIBUTE", ATTRIBUTE_ID ) );
+        return new MandatoryRuleAction( "RULE_ATTRIBUTE", ATTRIBUTE_ID );
     }
 }

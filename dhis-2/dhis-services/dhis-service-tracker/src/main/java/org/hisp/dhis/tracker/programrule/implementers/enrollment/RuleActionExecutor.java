@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 
-@Getter
-@RequiredArgsConstructor
-public class ErrorOnCompleteActionRule
-    implements ErrorWarningActionRule
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+
+public interface RuleActionExecutor
 {
-    private final String ruleUid;
-
-    private final String data;
-
-    private final String field;
-
-    private final String content;
+    /**
+     * Execute rule action on given enrollment
+     *
+     * @return list of issues
+     */
+    Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment );
 }
