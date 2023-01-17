@@ -414,9 +414,7 @@ public class HibernateTrackedEntityInstanceStore
                 "A query parameter is used in the request but there aren't filterable attributes" );
         }
 
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append( getQuerySelect( params ) );
+        StringBuilder stringBuilder = new StringBuilder( getQuerySelect( params ) );
 
         if ( !isGridQuery )
         {
@@ -487,7 +485,7 @@ public class HibernateTrackedEntityInstanceStore
         StringBuilder select = new StringBuilder()
             .append( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID + ", " )
             .append( "TEI.created AS " + CREATED_ID + ", " )
-            .append( "TEI.lastupdated AS " + LAST_UPDATED_ID + ", " )
+            .append( "TEI.lastUpdated AS " + LAST_UPDATED_ID + ", " )
             .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
             .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
@@ -500,13 +498,10 @@ public class HibernateTrackedEntityInstanceStore
                         + UID_VALUE_PAIR_SEPARATOR + "') AS tea_values"
                     : "" );
 
-        for ( OrderParam orderParam : params.getOrders() )
-        {
-            Optional<TrackedEntityInstanceQueryParams.OrderColumn> column = findColumn( orderParam.getField() );
-
-            column.ifPresent(
-                s -> select.append( ", " ).append( column.get().getColumnWithMainTableSql() ) );
-        }
+        params.getOrders().stream()
+            .map( o -> findColumn( o.getField() ) )
+            .filter( c -> c.isPresent() && !select.toString().contains( c.get().getSqlColumnWithMainTable() ) )
+            .forEach( c -> select.append( ", " ).append( c.get().getSqlColumnWithMainTable() ) );
 
         select.append( SPACE );
 
@@ -576,18 +571,21 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
     {
-        LinkedHashSet<String> columns = new LinkedHashSet<>(
-            List.of( "TEI.trackedentityinstanceid", "TEI.uid", "TEI.created", "TEI.lastupdated",
-                "TEI.inactive", "TEI.trackedentitytypeid", "TEI.potentialduplicate", "TEI.deleted", "OU.uid as ou",
-                "OU.name as ouname " ) );
+        List<String> defaultSelectFields = List.of( "TEI.trackedentityinstanceid", "TEI.uid", "TEI.created",
+            "TEI.lastUpdated",
+            "TEI.inactive", "TEI.trackedentitytypeid", "TEI.potentialduplicate", "TEI.deleted", "OU.uid as ou",
+            "OU.name as ouname " );
+
+        LinkedHashSet<String> columns = new LinkedHashSet<>( defaultSelectFields );
 
         for ( OrderParam orderParam : params.getOrders() )
         {
             Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( orderParam.getField() );
 
-            if ( orderColumn.isPresent() )
+            if ( orderColumn.isPresent()
+                && !defaultSelectFields.contains( orderColumn.get().getSqlColumnWithTableAlias() ) )
             {
-                columns.add( orderColumn.get().getColumnWithTableAliasSql() );
+                columns.add( orderColumn.get().getSqlColumnWithTableAlias() );
             }
             else
             {
@@ -604,20 +602,20 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * Get a list of QueryItem that contains sortable attributes also defined as
+     * Get a set of QueryItem that contains sortable attributes also defined as
      * filers
      *
      * @param params
      * @return List of QueryItem
      */
-    private List<QueryItem> sortableAttributesAndFilters( TrackedEntityInstanceQueryParams params )
+    private Set<QueryItem> sortableAttributesAndFilters( TrackedEntityInstanceQueryParams params )
     {
         List<String> ordersIdentifier = params.getOrders().stream()
             .map( OrderParam::getField )
             .collect( Collectors.toList() );
         return params.getAttributesAndFilters().stream()
             .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -1286,9 +1284,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.inactive " )
             .append( params.isIncludeDeleted() ? ", TEI.deleted " : "" );
 
-        List<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
-
-        for ( QueryItem queryItem : sortableAttributesAndFilters )
+        for ( QueryItem queryItem : sortableAttributesAndFilters( params ) )
         {
             groupBy
                 .append( ", TEI." )
@@ -1319,7 +1315,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        List<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
+        Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
         if ( !isGridQuery || !sortableAttributesAndFilters.isEmpty() )
         {
             List<String> orderFields = new ArrayList<>();
@@ -1331,8 +1327,8 @@ public class HibernateTrackedEntityInstanceStore
                 if ( orderColumn.isPresent() )
                 {
                     String orderField = innerOrder
-                        ? orderColumn.get().getColumnWithTableAliasSql()
-                        : orderColumn.get().getColumnWithMainTableSql();
+                        ? orderColumn.get().getSqlColumnWithTableAlias()
+                        : orderColumn.get().getSqlColumnWithMainTable();
 
                     orderFields.add( orderField + SPACE + order.getDirection() );
                 }

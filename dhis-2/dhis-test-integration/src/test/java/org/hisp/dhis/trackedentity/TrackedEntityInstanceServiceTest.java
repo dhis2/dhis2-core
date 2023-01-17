@@ -59,7 +59,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -365,11 +364,30 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceA1.getId(), entityInstanceB1.getId(), entityInstanceC1.getId(),
+            entityInstanceD1.getId() ), teiIdList );
+    }
+
+    @Test
+    void shouldOrderEntitiesByIdWhenParamUpdatedAtSupplied()
+    {
+        injectSecurityContext( superUser );
+
+        entityInstanceA1.setLastUpdated( DateTime.now().plusDays( 1 ).toDate() );
+        entityInstanceB1.setLastUpdated( DateTime.now().toDate() );
+        entityInstanceC1.setLastUpdated( DateTime.now().minusDays( 1 ).toDate() );
+        entityInstanceD1.setLastUpdated( DateTime.now().plusDays( 2 ).toDate() );
+
+        addEntityInstances();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders( List.of( new OrderParam( "updatedAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
+
+        assertEquals( List.of( entityInstanceA1.getId(), entityInstanceB1.getId(), entityInstanceC1.getId(),
+            entityInstanceD1.getId() ), teiIdList );
     }
 
     @Test
@@ -468,7 +486,6 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
         assertEquals( List.of( entityInstanceA1.getId(), entityInstanceB1.getId(), entityInstanceC1.getId(),
             entityInstanceD1.getId() ), teiIdList );
     }

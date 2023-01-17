@@ -1276,7 +1276,7 @@ public class TrackedEntityInstanceQueryParams
 
         /**
          * @param property
-         * @return an Optinal of an OrderColumn matching by property name
+         * @return an Optional of an OrderColumn matching by property name
          */
         public static Optional<OrderColumn> findColumn( String property )
         {
@@ -1289,7 +1289,7 @@ public class TrackedEntityInstanceQueryParams
          * @return a Sql string composed by the actual table alias and column.
          *         In use for the inner query select fields and order by
          */
-        public String getColumnWithTableAliasSql()
+        public String getSqlColumnWithTableAlias()
         {
             return tableAlias + "." + column;
         }
@@ -1298,7 +1298,7 @@ public class TrackedEntityInstanceQueryParams
          * @return a Sql string composed by the main query alias and column. In
          *         use for the outer query select fields and order by
          */
-        public String getColumnWithMainTableSql()
+        public String getSqlColumnWithMainTable()
         {
             return MAIN_QUERY_ALIAS + "." + column;
         }
