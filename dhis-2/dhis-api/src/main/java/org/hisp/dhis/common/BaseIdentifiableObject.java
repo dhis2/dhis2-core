@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,6 +62,8 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -651,6 +654,16 @@ public class BaseIdentifiableObject
     public void setExternalAccess( boolean externalAccess )
     {
         getSharing().setExternal( externalAccess );
+    }
+
+    public Collection<UserAccess> getUserAccesses()
+    {
+        return getSharing().getUsers().values();
+    }
+
+    public Collection<UserGroupAccess> getUserGroupAccesses()
+    {
+        return getSharing().getUserGroups().values();
     }
 
     @Override

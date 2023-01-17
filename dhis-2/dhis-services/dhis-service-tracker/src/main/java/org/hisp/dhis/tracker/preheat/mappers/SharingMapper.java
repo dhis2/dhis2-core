@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Map;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -38,26 +36,25 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.MapMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class } )
+@Mapper( uses = { DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class } )
 public interface SharingMapper extends PreheatMapper<Sharing>
 {
     SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "public" )
+    @Mapping( target = "publicAccess" )
     @Mapping( target = "external" )
     @Mapping( target = "owner" )
-    @Mapping( target = "users", qualifiedByName = "users" )
-    @MapMapping( valueQualifiedBy = "userGroups" )
-    Sharing map( User Sharing );
+    @Mapping( target = "users" )
+    @Mapping( target = "userGroups" )
+    Sharing map( Sharing sharing );
 
-    @Named( "userGroups" )
-    Map<String, UserGroupAccess> userGroups( Map<String, UserGroup> groups );
+    @MapMapping( keyTargetType = String.class, valueTargetType = UserAccess.class )
+    Map<String, UserAccess> users( Map<String, UserAccess> users );
 
-    @Named( "users" )
-    Map<String, UserAccess> users( Map<String, UserAccess> groups );
+    @MapMapping( keyTargetType = String.class, valueTargetType = UserGroupAccess.class )
+    Map<String, UserGroupAccess> userGroups( Map<String, UserGroupAccess> userGroups );
 
 }

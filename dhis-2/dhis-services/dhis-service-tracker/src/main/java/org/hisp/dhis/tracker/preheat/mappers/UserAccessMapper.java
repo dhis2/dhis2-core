@@ -41,5 +41,6 @@ public interface UserAccessMapper extends PreheatMapper<UserAccess>
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "access" )
+    @Mapping( target = "displayName" )
     UserAccess map( UserAccess userAccess );
 }

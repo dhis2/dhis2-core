@@ -40,7 +40,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -79,7 +78,6 @@ public class Sharing
     /**
      * Map of user access. Key is user UID.
      */
-    @Setter
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserAccess> users = new HashMap<>();
@@ -87,7 +85,6 @@ public class Sharing
     /**
      * Map of user group access. Key is user group UID.
      */
-    @Setter
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
@@ -110,26 +107,6 @@ public class Sharing
         {
             userGroups.put( userGroupAccess.getId(), userGroupAccess );
         }
-    }
-
-    public Map<String, UserAccess> getUsers()
-    {
-        if ( users == null )
-        {
-            users = new HashMap<>();
-        }
-
-        return users;
-    }
-
-    public Map<String, UserGroupAccess> getUserGroups()
-    {
-        if ( userGroups == null )
-        {
-            userGroups = new HashMap<>();
-        }
-
-        return userGroups;
     }
 
     public void setOwner( User user )
