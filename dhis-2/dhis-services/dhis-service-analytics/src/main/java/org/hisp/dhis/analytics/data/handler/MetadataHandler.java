@@ -133,23 +133,22 @@ public class MetadataHandler
 
             List<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
+            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
+
             if ( params.isHierarchyMeta() )
             {
                 metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(
-                    OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnits ), roots ) );
+                    activeOrgUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
-                List<OrganisationUnit> gridRelevantOrgUnits = OrgUnitHelper.getGridRelevantOrganisationUnits( grid,
-                    organisationUnits );
-
-                Map<Object, List<?>> ancestorMap = gridRelevantOrgUnits.stream()
+                Map<Object, List<?>> ancestorMap = activeOrgUnits.stream()
                     .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
 
                 internalMetaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
                 metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( gridRelevantOrgUnits, roots, true ) );
+                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
             }
 
             grid.setMetaData( copyOf( metaData ) );

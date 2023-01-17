@@ -346,22 +346,23 @@ public abstract class AbstractAnalyticsService
         if ( params.isHierarchyMeta() || params.isShowHierarchy() )
         {
             User user = securityManager.getCurrentUser( params );
+
             List<OrganisationUnit> organisationUnits = asTypedList(
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+
             Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
 
-            List<OrganisationUnit> gridRelevantOrgUnits = OrgUnitHelper.getGridRelevantOrganisationUnits( grid,
-                organisationUnits );
+            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
 
             if ( params.isHierarchyMeta() )
             {
-                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( gridRelevantOrgUnits, roots ) );
+                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( activeOrgUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
                 metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( gridRelevantOrgUnits, roots, true ) );
+                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
             }
         }
     }

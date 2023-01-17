@@ -45,13 +45,14 @@ public class OrgUnitHelper
     }
 
     /**
-     * Consolidate organisation unit list by intersection with grid rows data
+     * Consolidate organisation unit list by intersection with grid rows data.
+     * If the intersection is empty return all requested organisation units.
      *
      * @param grid
      * @param organisationUnits
      * @return
      */
-    public static List<OrganisationUnit> getGridRelevantOrganisationUnits( Grid grid,
+    public static List<OrganisationUnit> getActiveOrganisationUnits( Grid grid,
         List<OrganisationUnit> organisationUnits )
     {
         if ( grid == null )
@@ -78,41 +79,14 @@ public class OrgUnitHelper
                 .distinct()
                 .collect( Collectors.toList() );
 
-            return organisationUnits.stream()
+            List<OrganisationUnit> activated = organisationUnits.stream()
                 .distinct()
                 .filter( org -> orgUidList.stream().anyMatch( uid -> org.getUid().equals( uid ) ) )
                 .collect( Collectors.toList() );
+
+            return activated.size() > 0 ? activated : organisationUnits;
         }
 
         return organisationUnits;
-    }
-
-    public static boolean isOrganisationUnitInGridRows( OrganisationUnit organisationUnit, Grid grid )
-    {
-        if ( grid == null )
-        {
-            return false;
-        }
-
-        int index = -1;
-
-        for ( int i = 0; i < grid.getHeaders().size(); i++ )
-        {
-            if ( ORGUNIT_DIM_ID.equalsIgnoreCase( grid.getHeaders().get( i ).getName() ) )
-            {
-                index = i;
-                break;
-            }
-        }
-
-        if ( index >= 0 )
-        {
-            final int i = index;
-
-            return grid.getRows().stream()
-                .anyMatch( r -> String.valueOf( r.get( i ) ).equalsIgnoreCase( organisationUnit.getUid() ) );
-        }
-
-        return false;
     }
 }
