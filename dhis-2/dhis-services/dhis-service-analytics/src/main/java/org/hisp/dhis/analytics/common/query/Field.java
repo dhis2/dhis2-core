@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuoteIfNeeded;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -48,9 +48,45 @@ public class Field extends BaseRenderable
     @Getter
     private final String fieldAlias;
 
-    public static Renderable ofQuotedField( String field )
+    private final Boolean quotingNeeded;
+
+    /**
+     * Static constructor for a field which double quote "name" when rendered.
+     *
+     * @param tableAlias the table alias
+     * @param name the name of the field
+     * @param fieldAlias the alias of the field
+     * @return a new Field instance
+     */
+    public static Field of( String tableAlias, Renderable name, String fieldAlias )
     {
-        return of( EMPTY, () -> doubleQuote( field ), EMPTY );
+        return of( tableAlias, name, fieldAlias, true );
+    }
+
+    /**
+     * Static constructor for a field which will not double quote "name" when
+     * rendered.
+     *
+     * @param tableAlias the table alias
+     * @param name the name of the field
+     * @param fieldAlias the alias of the field
+     * @return a new Field instance
+     */
+    public static Field ofUnquotedField( String tableAlias, Renderable name, String fieldAlias )
+    {
+        return of( tableAlias, name, fieldAlias, false );
+    }
+
+    /**
+     * Simplest field renderer without table alias or field alias, to simplify
+     * the code.
+     *
+     * @param field
+     * @return a new Field instance
+     */
+    public static Field ofFieldName( String field )
+    {
+        return of( EMPTY, () -> field, EMPTY );
     }
 
     @Override
@@ -63,7 +99,18 @@ public class Field extends BaseRenderable
             rendered = tableAlias + ".";
         }
 
-        rendered = rendered + name.render();
+        if ( quotingNeeded )
+        {
+
+            rendered = rendered + doubleQuoteIfNeeded( name.render() );
+
+        }
+        else
+        {
+
+            rendered = rendered + name.render();
+
+        }
 
         if ( isNotBlank( fieldAlias ) )
         {

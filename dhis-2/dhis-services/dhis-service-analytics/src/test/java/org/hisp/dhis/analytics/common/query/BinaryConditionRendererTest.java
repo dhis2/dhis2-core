@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.analytics.common.query.Field.ofQuotedField;
+import static org.hisp.dhis.analytics.common.query.Field.ofFieldName;
 import static org.hisp.dhis.common.QueryOperator.*;
 import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -301,7 +301,7 @@ class BinaryConditionRendererTest
     {
         QueryContext queryContext = QueryContext.of( null );
         String render = BinaryConditionRenderer
-            .of( ofQuotedField( "field" ), operator, values, valueTypeMapping, queryContext )
+            .of( ofFieldName( "field" ), operator, values, valueTypeMapping, queryContext )
             .render();
         assertEquals( expectedSql, render );
         queryContextConsumers.forEach(
@@ -323,7 +323,7 @@ class BinaryConditionRendererTest
     {
         QueryContext queryContext = QueryContext.of( null );
         List<String> values = List.of( "v1", "v2" );
-        BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( ofQuotedField( "field" ),
+        BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( ofFieldName( "field" ),
             QueryOperator.EW,
             values, ValueTypeMapping.STRING, queryContext );
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,

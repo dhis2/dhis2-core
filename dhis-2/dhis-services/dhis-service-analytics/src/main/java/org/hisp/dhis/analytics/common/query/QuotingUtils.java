@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+
+import java.util.Optional;
+
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -44,5 +48,21 @@ public class QuotingUtils
     public static String doubleQuote( String value )
     {
         return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
+    }
+
+    public static String doubleQuoteIfNeeded( String value )
+    {
+        value = Optional.ofNullable( value )
+            .map( String::trim )
+            .orElse( EMPTY );
+
+        if ( value.startsWith( "\"" ) && value.endsWith( "\"" ) )
+        {
+            return value;
+        }
+        else
+        {
+            return doubleQuote( value );
+        }
     }
 }

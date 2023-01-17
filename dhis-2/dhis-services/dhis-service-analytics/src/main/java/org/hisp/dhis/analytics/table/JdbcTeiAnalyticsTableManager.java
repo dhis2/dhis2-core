@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
@@ -42,6 +41,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_1200;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.IndexType.GIST;
@@ -141,7 +141,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "uidlevel4" ), CHARACTER_11, NULL, "ous.uidlevel4" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), VARCHAR_255, NULL, "ou.name" ),
-        new AnalyticsTableColumn( quote( "oucode" ), CHARACTER_32, NULL, "ou.code" ),
+        new AnalyticsTableColumn( quote( "oucode" ), VARCHAR_50, NULL, "ou.code" ),
         new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, NULL, "ous.level" ) );
 
     private static final List<AnalyticsTableColumn> NON_GROUP_BY_COLS = List.of(

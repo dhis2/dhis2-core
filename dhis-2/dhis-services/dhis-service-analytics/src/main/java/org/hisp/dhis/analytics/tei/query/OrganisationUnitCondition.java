@@ -88,7 +88,7 @@ public class OrganisationUnitCondition extends AbstractCondition
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.ofQuotedField( OU_FIELD ),
+                Field.ofFieldName( OU_FIELD ),
                 IN,
                 item.getValues(),
                 STRING,

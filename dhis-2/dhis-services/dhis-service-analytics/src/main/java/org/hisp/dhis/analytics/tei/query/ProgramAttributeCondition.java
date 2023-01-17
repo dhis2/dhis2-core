@@ -62,7 +62,7 @@ public class ProgramAttributeCondition extends BaseRenderable
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
+                Field.ofFieldName( dimensionIdentifier.getDimension().getUid() ),
                 item.getOperator(),
                 item.getValues(),
                 valueTypeMapping,

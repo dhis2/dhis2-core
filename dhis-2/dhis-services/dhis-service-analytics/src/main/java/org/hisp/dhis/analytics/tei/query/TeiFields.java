@@ -32,10 +32,10 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -49,6 +49,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 public class TeiFields
 {
@@ -111,24 +112,22 @@ public class TeiFields
 
     public static Stream<Field> getDimensionFields( final TeiQueryParams teiQueryParams )
     {
-        // TODO: remove next line when attributes match those in the table.
-        final List<String> notGeneratedColumns = List.of( "Jdd8hMStmvF", "EGn5VqU7pHv", "JBJ3AWsrg9P" );
+        // Attributes from Tracked entity Type
+        Stream<TrackedEntityAttribute> trackedEntityTypeAttributes = teiQueryParams.getTrackedEntityType()
+            .getTrackedEntityAttributes().stream();
+
+        // Attributes from Programs
+        Stream<TrackedEntityAttribute> programAttributes = teiQueryParams.getCommonParams().getPrograms().stream()
+            .map( Program::getProgramAttributes )
+            .flatMap( Collection::stream )
+            .map( ProgramTrackedEntityAttribute::getAttribute );
 
         // TET and program attribute fields
         return Stream.concat(
-            // Tracked entity Type attributes
-            teiQueryParams.getTrackedEntityType().getTrackedEntityTypeAttributes().stream(),
-            // Program attributes
-            teiQueryParams.getCommonParams().getPrograms().stream()
-                .map( Program::getProgramAttributes )
-                .flatMap( Collection::stream )
-                .map( ProgramTrackedEntityAttribute::getAttribute ) )
+            trackedEntityTypeAttributes, programAttributes )
             .map( BaseIdentifiableObject::getUid )
             // distinct to remove overlapping attributes
             .distinct()
-            // TODO: remove next line when attributes match those in the table.
-            .filter( uid -> !notGeneratedColumns.contains( uid ) )
-            .map( attributeUid -> "\"" + attributeUid + "\"" )
             .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
@@ -140,7 +139,7 @@ public class TeiFields
     private static Stream<Field> getDynamicFields()
     {
         return Stream.of( Dynamic.values() )
-            .map( dynamic -> Field.of( "", () -> dynamic.query, dynamic.alias ) );
+            .map( dynamic -> Field.ofUnquotedField( EMPTY, () -> dynamic.query, dynamic.alias ) );
     }
 
     public static Stream<Field> getTeiFields()
