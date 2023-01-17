@@ -289,8 +289,8 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
         assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
-        assertEquals( deA.getUserGroupAccesses(), deB.getUserGroupAccesses() );
-        assertEquals( deA.getUserAccesses(), deB.getUserAccesses() );
+        assertEquals( deA.getSharing().getUserGroups(), deB.getSharing().getUserGroups() );
+        assertEquals( deA.getSharing().getUsers(), deB.getSharing().getUsers() );
     }
 
     @Test

@@ -39,7 +39,9 @@ public interface UserGroupAccessMapper extends PreheatMapper<UserGroupAccess>
     UserGroupAccessMapper INSTANCE = Mappers.getMapper( UserGroupAccessMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    @Mapping( target = "userGroup" )
+    @Mapping( target = "id" )
+    @Mapping( target = "access" )
+    @Mapping( target = "displayName" )
     UserGroupAccess map( UserGroupAccess userGroupAccess );
+
 }
