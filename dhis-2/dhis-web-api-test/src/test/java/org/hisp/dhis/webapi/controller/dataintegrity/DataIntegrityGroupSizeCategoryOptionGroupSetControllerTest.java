@@ -43,9 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "category_option_group_sets_scarce";
+    private static final String check = "category_option_group_sets_scarce";
 
-    private final static String detailsIDType = "categoryOptionGroupSets";
+    private static final String detailsIDType = "categoryOptionGroupSets";
 
     private String categoryOptionGroupTaste;
 

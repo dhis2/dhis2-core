@@ -42,9 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "program_indicator_groups_scarce";
+    private static final String check = "program_indicator_groups_scarce";
 
-    private final static String detailsIDType = "programIndicatorGroups";
+    private static final String detailsIDType = "programIndicatorGroups";
 
     @Autowired
     private ProgramIndicatorService programIndicatorService;

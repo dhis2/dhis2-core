@@ -45,9 +45,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "data_elements_aggregate_no_data";
+    private static final String check = "data_elements_aggregate_no_data";
 
-    private final static String detailsIDType = "dataElements";
+    private static final String detailsIDType = "dataElements";
 
     private String dataElementA;
 

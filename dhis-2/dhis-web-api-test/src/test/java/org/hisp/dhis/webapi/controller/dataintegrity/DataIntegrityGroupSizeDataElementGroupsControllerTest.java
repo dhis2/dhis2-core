@@ -43,9 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "data_element_groups_scarce";
+    private static final String check = "data_element_groups_scarce";
 
-    private final static String detailsIDType = "dataElementGroups";
+    private static final String detailsIDType = "dataElementGroups";
 
     private String dataElementA;
 

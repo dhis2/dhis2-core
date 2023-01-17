@@ -50,9 +50,9 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
     @Autowired
     UserService userService;
 
-    private final static String check = "user_groups_scarce";
+    private static final String check = "user_groups_scarce";
 
-    private final static String detailsIDType = "userGroups";
+    private static final String detailsIDType = "userGroups";
 
     private User bill;
 

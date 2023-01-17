@@ -45,9 +45,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "options_sets_empty";
+    private static final String check = "options_sets_empty";
 
-    private final static String detailsIDType = "optionSets";
+    private static final String detailsIDType = "optionSets";
 
     @Test
     void testOptionSetInvalid()

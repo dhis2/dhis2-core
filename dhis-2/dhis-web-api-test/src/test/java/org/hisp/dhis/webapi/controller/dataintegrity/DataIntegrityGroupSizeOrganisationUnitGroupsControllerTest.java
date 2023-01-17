@@ -42,9 +42,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "orgunit_groups_scarce";
+    private static final String check = "orgunit_groups_scarce";
 
-    private final static String detailsIDType = "organisationUnitGroups";
+    private static final String detailsIDType = "organisationUnitGroups";
 
     private String orgunitB;
 

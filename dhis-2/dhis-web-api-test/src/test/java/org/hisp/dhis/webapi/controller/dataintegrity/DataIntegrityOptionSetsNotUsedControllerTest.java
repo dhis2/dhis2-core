@@ -46,9 +46,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final static String check = "options_sets_unused";
+    private static final String check = "options_sets_unused";
 
-    private final static String detailsIDType = "optionSets";
+    private static final String detailsIDType = "optionSets";
 
     private String goodOptionSet;
 

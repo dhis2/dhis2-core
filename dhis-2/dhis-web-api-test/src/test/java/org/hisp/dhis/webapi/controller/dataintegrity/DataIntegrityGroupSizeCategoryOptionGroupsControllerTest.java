@@ -45,7 +45,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
 {
     private final String check = "category_option_groups_scarce";
 
-    private final static String detailsIDType = "categoryOptionGroups";
+    private static final String detailsIDType = "categoryOptionGroups";
 
     @Test
     void testCategoryOptionGroupSizeTooSmall()
