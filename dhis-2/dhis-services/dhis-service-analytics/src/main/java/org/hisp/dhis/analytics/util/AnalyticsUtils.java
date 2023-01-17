@@ -828,7 +828,6 @@ public class AnalyticsUtils
                 }
             }
 
-            //            for ( OrganisationUnit unit : OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnitList ) )
             for ( OrganisationUnit unit : organisationUnitList )
             {
                 for ( OrganisationUnit ancestor : unit.getAncestors() )
