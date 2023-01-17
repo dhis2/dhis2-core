@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "group_size_data_element_groups";
+    private final static String check = "data_element_groups_scarce";
+
+    private final static String detailsIDType = "dataElementGroups";
 
     private String dataElementA;
 
@@ -68,7 +70,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
             POST( "/dataElementGroups",
                 "{ 'name': 'Morbidity', 'shortName': 'Morbidity' }" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66,
+        assertHasDataIntegrityIssues( detailsIDType, check, 66,
             Set.of( dataElementGroupB, dataElementGroupC ), Set.of( "ANC", "Morbidity" ), Set.of( "0", "1" ),
             true );
 
@@ -84,7 +86,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
                 "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
                     "'dataElements':[{'id':'" + dataElementA + "'},{'id': '" + dataElementB + "'}]}" ) );
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -92,7 +94,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
     void testDataElementGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

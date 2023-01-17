@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private static final String check = "group_size_validation_rule_groups";
+    private static final String check = "validation_rule_groups_scarce";
+
+    private static final String detailsIDType = "validationRuleGroups";
 
     private String validationRuleA;
 
@@ -61,7 +63,7 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
             POST( "/validationRuleGroups",
                 "{ 'name' : 'None', 'shortName' : 'None'} " ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66,
+        assertHasDataIntegrityIssues( detailsIDType, check, 66,
             Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "One", "None" ), Set.of( "0", "1" ), true );
     }
 
@@ -71,13 +73,13 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
     }
 
     @Test
     void testIndicatorsInGroupsRuns()
     {
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
     }
 
     void setUpTest()

@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "group_size_category_option_groups";
+    private final String check = "category_option_groups_scarce";
+
+    private final static String detailsIDType = "categoryOptionGroups";
 
     @Test
     void testCategoryOptionGroupSizeTooSmall()
@@ -63,7 +65,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
             POST( "/categoryOptionGroups",
                 "{ 'name': 'Nil', 'shortName': 'Nil' }" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66,
+        assertHasDataIntegrityIssues( detailsIDType, check, 66,
             Set.of( categoryOptionGroupColors, categoryOptionGroupNil ), Set.of( "Taste", "Nil" ), Set.of( "0", "1" ),
             true );
 
@@ -74,7 +76,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     {
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -82,7 +84,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     void testCategoryOptionGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

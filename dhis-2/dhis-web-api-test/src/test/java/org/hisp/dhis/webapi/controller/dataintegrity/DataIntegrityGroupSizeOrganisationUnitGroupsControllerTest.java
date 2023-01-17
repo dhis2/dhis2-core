@@ -42,7 +42,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "group_size_orgunit_groups";
+    private final static String check = "orgunit_groups_scarce";
+
+    private final static String detailsIDType = "organisationUnitGroups";
 
     private String orgunitB;
 
@@ -60,7 +62,8 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
         String testOrgUnitGroupC = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type C', 'shortName': 'Type C' }" ) );
-        assertHasDataIntegrityIssues( "group_size", check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
+
+        assertHasDataIntegrityIssues( detailsIDType, check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
             Set.of( "Type B", "Type C" ), Set.of( "0", "1" ), true );
 
     }
@@ -71,7 +74,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
@@ -79,7 +82,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
     void testOrgunitGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

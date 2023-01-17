@@ -25,8 +25,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_user_groups
-description: Organisation unit groups should have at least two members.
+name: user_groups_scarce
+description: User groups should have at least two members.
 section: Group size
 section_order: 9
 summary_uid: UoQRMf3RMMW
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing user groups with less than two users, or alternatively, add additional
   users to the group to make it more useful.
-details_id_type: group_size
+details_id_type: userGroups

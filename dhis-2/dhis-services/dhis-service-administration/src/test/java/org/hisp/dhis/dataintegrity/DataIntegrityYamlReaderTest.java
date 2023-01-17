@@ -29,6 +29,7 @@ package org.hisp.dhis.dataintegrity;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -97,19 +98,16 @@ class DataIntegrityYamlReaderTest
             .collect( toUnmodifiableList() );
         assertEquals( detailsIDs.size(), Set.copyOf( detailsIDs ).size() );
 
-        String uidRegex = "^[A-Za-z][A-Za-z0-9]{10}$";
-        Predicate<String> IS_NOT_UID = Pattern.compile( uidRegex ).asPredicate().negate();
-        List<String> badDetailsUIDs = detailsIDs.stream().filter( IS_NOT_UID )
-            .collect( Collectors.toUnmodifiableList() );
+        List<String> badDetailsUIDs = detailsIDs.stream().filter( e -> !isValidUid( e ) ).collect( toList() );
         assertEquals( 0, badDetailsUIDs.size() );
 
         //Assert that all checks have summary ID and are unique and are UIDish
         List<String> summaryIDs = checks.stream()
             .map( DataIntegrityCheck::getSummaryID )
             .collect( toUnmodifiableList() );
+
         assertEquals( summaryIDs.size(), Set.copyOf( summaryIDs ).size() );
-        List<String> badSummaryUIDs = summaryIDs.stream().filter( IS_NOT_UID )
-            .collect( Collectors.toUnmodifiableList() );
+        List<String> badSummaryUIDs = summaryIDs.stream().filter( e -> !isValidUid( e ) ).collect( toList() );
         assertEquals( 0, badSummaryUIDs.size() );
 
         DataIntegrityCheck check = checks.get( 0 );
