@@ -46,13 +46,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -74,16 +74,12 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.DailyPeriodType;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -159,6 +155,8 @@ class DataQueryParamsTest extends DhisConvenienceTest
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
+
+    //pe:202305:SCHEDULED_DATE;202303:SCHEDULED_DATE;202302:SCHEDULED_DATE
 
     @BeforeEach
     void setUpTest()
@@ -717,6 +715,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
             .withDataDimensionItems( List.of( deA, deB ) )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA ) )
+            .withLocale( Locale.FRENCH )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withDataDimensionItems( List.of( deA ) )
@@ -748,78 +747,5 @@ class DataQueryParamsTest extends DhisConvenienceTest
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ),
                 hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ) ) );
-    }
-
-    @Test
-    void testContinuousDateRangeListForThisWeeklyAndDailyPeriods()
-    {
-        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                List.of( weeklyPeriod, todayPeriod ) ) )
-            .build();
-
-        params = new EventQueryParams.Builder( params )
-            .withStartEndDatesForPeriods()
-            .build();
-
-        assertEquals( 2, params.getDateRangeList().size() );
-        assertEquals( weeklyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
-        assertEquals( weeklyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
-        assertEquals( todayPeriod.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
-        assertEquals( todayPeriod.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
-        assertTrue( params.hasContinuousDateRangeList() );
-    }
-
-    @Test
-    void testContinuousDateRangeListForThisWeeklyDailyAndMonthlyPeriods()
-    {
-        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
-            .build();
-
-        params = new EventQueryParams.Builder( params )
-            .withStartEndDatesForPeriods()
-            .build();
-
-        assertEquals( 3, params.getDateRangeList().size() );
-        assertEquals( weeklyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
-        assertEquals( weeklyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
-        assertEquals( todayPeriod.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
-        assertEquals( todayPeriod.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
-        assertEquals( monthlyPeriod.getStartDate(), params.getDateRangeList().get( 2 ).getStartDate() );
-        assertEquals( monthlyPeriod.getEndDate(), params.getDateRangeList().get( 2 ).getEndDate() );
-        assertTrue( params.hasContinuousDateRangeList() );
-    }
-
-    @Test
-    void testNotContinuousDateRangeListForWeeklyDailyAndMonthly()
-    {
-        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
-        // Due to sorting monthly period will be first one
-        Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
-            .build();
-
-        params = new EventQueryParams.Builder( params )
-            .withStartEndDatesForPeriods()
-            .build();
-
-        assertEquals( 3, params.getDateRangeList().size() );
-        assertEquals( monthlyPeriod.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
-        assertEquals( monthlyPeriod.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
-        assertEquals( weeklyPeriod.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
-        assertEquals( weeklyPeriod.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
-        assertEquals( todayPeriod.getStartDate(), params.getDateRangeList().get( 2 ).getStartDate() );
-        assertEquals( todayPeriod.getEndDate(), params.getDateRangeList().get( 2 ).getEndDate() );
-        assertFalse( params.hasContinuousDateRangeList() );
     }
 }

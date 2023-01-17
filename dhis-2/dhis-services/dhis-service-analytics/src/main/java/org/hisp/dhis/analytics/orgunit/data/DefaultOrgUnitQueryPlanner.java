@@ -30,17 +30,20 @@ package org.hisp.dhis.analytics.orgunit.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" )
+@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" )
+@NoArgsConstructor
 public class DefaultOrgUnitQueryPlanner
     implements OrgUnitQueryPlanner
 {

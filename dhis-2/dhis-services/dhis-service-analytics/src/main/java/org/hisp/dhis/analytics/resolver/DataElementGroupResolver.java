@@ -50,10 +50,6 @@ import com.google.common.base.Joiner;
 @RequiredArgsConstructor
 public class DataElementGroupResolver implements ExpressionResolver
 {
-    private final ExpressionService expressionService;
-
-    private final DataElementGroupStore dataElementGroupStore;
-
     private static final String LEFT_BRACKET = "(";
 
     private static final String RIGHT_BRACKET = ")";
@@ -61,6 +57,10 @@ public class DataElementGroupResolver implements ExpressionResolver
     private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
     private static final String EMPTY_STRING = "";
+
+    private final ExpressionService expressionService;
+
+    private final DataElementGroupStore dataElementGroupStore;
 
     @Override
     public String resolve( String expression )

@@ -244,4 +244,10 @@ public class OrgUnitField
 
         return quote( tableAlias, col );
     }
+
+    @Override
+    public String toString()
+    {
+        return "[" + field + "-" + type + "]";
+    }
 }

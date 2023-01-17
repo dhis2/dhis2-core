@@ -68,6 +68,7 @@ public class TrackedEntityFieldsParamMapper
         params = withFieldEnrollmentsAndEvents( fieldPaths, roots, params );
         params = withFieldEnrollmentAndAttributes( fieldPaths, roots, params );
         params = withFieldEnrollmentAndRelationships( fieldPaths, roots, params );
+        params = withFieldEventsAndRelationships( fieldPaths, roots, params );
 
         return params;
     }
@@ -127,7 +128,7 @@ public class TrackedEntityFieldsParamMapper
         Map<String, FieldPath> roots,
         TrackedEntityInstanceParams params )
     {
-        FieldPath events = getFieldPath( fieldPaths, FIELD_EVENTS );
+        FieldPath events = fieldPathByNestedField( fieldPaths, FIELD_EVENTS, List.of( FIELD_ENROLLMENTS ) );
 
         if ( events == null )
         {
@@ -153,7 +154,8 @@ public class TrackedEntityFieldsParamMapper
         Map<String, FieldPath> roots,
         TrackedEntityInstanceParams params )
     {
-        FieldPath attribute = getFieldPath( fieldPaths, FIELD_ATTRIBUTES );
+        FieldPath attribute = fieldPathByNestedField( fieldPaths, FIELD_ATTRIBUTES,
+            List.of( FIELD_ENROLLMENTS ) );
 
         if ( attribute == null )
         {
@@ -180,7 +182,8 @@ public class TrackedEntityFieldsParamMapper
         Map<String, FieldPath> roots,
         TrackedEntityInstanceParams params )
     {
-        FieldPath relationship = getFieldPath( fieldPaths, FIELD_RELATIONSHIPS );
+        FieldPath relationship = fieldPathByNestedField( fieldPaths, FIELD_RELATIONSHIPS,
+            List.of( FIELD_ENROLLMENTS ) );
 
         if ( relationship == null )
         {
@@ -189,30 +192,56 @@ public class TrackedEntityFieldsParamMapper
 
         if ( relationship.isExclude() )
         {
-            return params.withTeiEnrollmentParams(
-                params.getTeiEnrollmentParams().withIncludeRelationships( false ) );
+            return params.withEnrollmentParams(
+                params.getEnrollmentParams().withIncludeRelationships( false ) );
+        }
+        // since exclusion takes precedence if "!enrollments" we do not need to
+        // check the relationship field value
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
+        {
+            return params.withEnrollmentParams(
+                params.getEnrollmentParams().withIncludeRelationships( !relationship.isExclude() ) );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldEventsAndRelationships( List<FieldPath> fieldPaths,
+        Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+        FieldPath relationship = fieldPathByNestedField( fieldPaths, FIELD_RELATIONSHIPS,
+            List.of( FIELD_ENROLLMENTS, FIELD_EVENTS ) );
+
+        if ( relationship == null )
+        {
+            return params;
+        }
+
+        if ( relationship.isExclude() )
+        {
+            return params.withEventParams( params.getEventParams().withIncludeRelationships( false ) );
         }
         // since exclusion takes precedence if "!enrollments" we do not need to
         // check the relationship field value
         if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
         {
             return params
-                .withTeiEnrollmentParams(
-                    params.getTeiEnrollmentParams()
-                        .withIncludeRelationships( !relationship.isExclude() ) );
+                .withEventParams( params.getEventParams().withIncludeRelationships( !relationship.isExclude() ) );
         }
         return params;
     }
 
-    private static FieldPath getFieldPath( List<FieldPath> fieldPaths, String field )
+    private static FieldPath fieldPathByNestedField( List<FieldPath> fieldPaths, String nestedField,
+        List<String> fieldToMatch )
     {
-        return fieldPaths.stream().filter( fp -> isEnrollmentField( fp, field ) && fp.isExclude() ).findFirst()
+        return fieldPaths.stream().filter( fp -> isNestedField( fp, nestedField, fieldToMatch ) && fp.isExclude() )
+            .findFirst()
             .orElse( null );
     }
 
-    private static boolean isEnrollmentField( FieldPath path, String field )
+    private static boolean isNestedField( FieldPath fieldPath, String field, List<String> fieldToMatch )
     {
-        return !path.isRoot() && field.equals( path.getName() )
-            && path.getPath().get( 0 ).equals( FIELD_ENROLLMENTS );
+        return !fieldPath.isRoot() && field.equals( fieldPath.getName() )
+            && fieldPath.getPath().equals( fieldToMatch );
     }
 }
