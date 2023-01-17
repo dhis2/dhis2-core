@@ -799,7 +799,14 @@ public class AnalyticsUtils
                 {
                     if ( OrgUnitHelper.isOrganisationUnitInGridRows( (OrganisationUnit) item, grid ) )
                     {
-                        OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnitList );
+                        organisationUnitList = OrgUnitHelper.getGridRelevantOrganisationUnits( grid,
+                            organisationUnitList );
+                    }
+                    else
+                    {
+                        map.put( item.getDimensionItem(),
+                            new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
+                                includeMetadataDetails ? item : null ) );
                     }
                 }
                 else
@@ -807,11 +814,6 @@ public class AnalyticsUtils
                     map.put( item.getDimensionItem(),
                         new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
                             includeMetadataDetails ? item : null ) );
-                }
-
-                if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
-                {
-                    organisationUnitList.add( (OrganisationUnit) item );
                 }
 
                 if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
@@ -826,7 +828,8 @@ public class AnalyticsUtils
                 }
             }
 
-            for ( OrganisationUnit unit : OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnitList ) )
+            //            for ( OrganisationUnit unit : OrgUnitHelper.getGridRelevantOrganisationUnits( grid, organisationUnitList ) )
+            for ( OrganisationUnit unit : organisationUnitList )
             {
                 for ( OrganisationUnit ancestor : unit.getAncestors() )
                 {
