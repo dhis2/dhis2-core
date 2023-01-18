@@ -500,7 +500,7 @@ public class HibernateTrackedEntityInstanceStore
 
         params.getOrders().stream()
             .map( o -> findColumn( o.getField() ) )
-            .filter( c -> c.isPresent() && !select.toString().contains( c.get().getSqlColumnWithMainTable() ) )
+            .filter( Optional::isPresent )
             .forEach( c -> select.append( ", " ).append( c.get().getSqlColumnWithMainTable() ) );
 
         select.append( SPACE );
@@ -571,19 +571,15 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
     {
-        List<String> defaultSelectFields = List.of( "TEI.trackedentityinstanceid", "TEI.uid", "TEI.created",
-            "TEI.lastUpdated",
-            "TEI.inactive", "TEI.trackedentitytypeid", "TEI.potentialduplicate", "TEI.deleted", "OU.uid as ou",
-            "OU.name as ouname " );
-
-        LinkedHashSet<String> columns = new LinkedHashSet<>( defaultSelectFields );
+        LinkedHashSet<String> columns = new LinkedHashSet<>( List.of( "TEI.trackedentityinstanceid", "TEI.uid",
+            "TEI.created", "TEI.lastUpdated", "TEI.inactive", "TEI.trackedentitytypeid", "TEI.potentialduplicate",
+            "TEI.deleted", "OU.uid as ou", "OU.name as ouname " ) );
 
         for ( OrderParam orderParam : params.getOrders() )
         {
             Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( orderParam.getField() );
 
-            if ( orderColumn.isPresent()
-                && !defaultSelectFields.contains( orderColumn.get().getSqlColumnWithTableAlias() ) )
+            if ( orderColumn.isPresent() )
             {
                 columns.add( orderColumn.get().getSqlColumnWithTableAlias() );
             }
