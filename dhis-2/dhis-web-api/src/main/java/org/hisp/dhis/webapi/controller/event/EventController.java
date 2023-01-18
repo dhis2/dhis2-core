@@ -75,6 +75,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -715,7 +716,7 @@ public class EventController
         throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
-            true );
+            EventParams.TRUE );
 
         if ( event == null )
         {
@@ -734,7 +735,7 @@ public class EventController
         throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
-            true );
+            EventParams.TRUE );
 
         if ( event == null )
         {

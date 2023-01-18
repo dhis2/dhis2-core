@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -271,7 +272,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -301,7 +302,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -331,7 +332,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
+        assertThrows( IllegalQueryException.class,
+            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
     }
 
     /**
@@ -359,7 +361,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
+        assertThrows( IllegalQueryException.class,
+            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
     }
 
     /**
@@ -386,7 +389,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
+        assertThrows( IllegalQueryException.class,
+            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
     }
 
     /**
@@ -413,7 +417,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }

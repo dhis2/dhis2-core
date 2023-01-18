@@ -1617,10 +1617,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
                 {
-                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
+                        relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
-
-                    trackedEntityInstance.getRelationships().add( relationship );
+                    relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );
                 }
             }
         }
@@ -1634,7 +1634,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     trackedEntityInstance.getEnrollments()
                         .add( enrollmentService.getEnrollment( user, programInstance,
-                            params.getTeiEnrollmentParams().getEnrollmentParams(), true ) );
+                            params.getEnrollmentParams(), true ) );
                 }
             }
         }
