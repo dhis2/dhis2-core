@@ -95,12 +95,28 @@ public class Assertions
      * assertHasWarnings asserts the report contains only given warnings in any
      * order.
      *
+     * @param report import report to be asserted on
+     * @param warnings expected warnings
+     */
+    public static void assertHasOnlyWarnings( ImportReport report, Warning... warnings )
+    {
+        assertAll(
+            () -> assertNoErrors( report ),
+            () -> assertHasWarnings( report.getValidationReport(), warnings.length, warnings ) );
+    }
+
+    /**
+     * assertHasWarnings asserts the report contains only given warnings in any
+     * order.
+     *
      * @param report validation report to be asserted on
      * @param warnings expected warnings
      */
     public static void assertHasOnlyWarnings( ValidationReport report, Warning... warnings )
     {
-        assertHasWarnings( report, warnings.length, warnings );
+        assertAll(
+            () -> assertNoErrors( report ),
+            () -> assertHasWarnings( report, warnings.length, warnings ) );
     }
 
     /**
@@ -212,8 +228,9 @@ public class Assertions
         assertTrue( report.hasWarning( w -> Objects.equals( warning.getWarningCode(), w.getWarningCode() ) &&
             Objects.equals( warning.getUid(), w.getUid() ) &&
             w.getWarningMessage().contains( warning.getWarningMessage() ) ),
-            String.format( "warning with code %s for object %s not found in report with warning(s) %s",
-                warning.getWarningCode(), warning.getUid(), report.getWarnings() ) );
+            String.format(
+                "warning with code %s for object %s and partial message %s not found in report with warning(s) %s",
+                warning.getWarningCode(), warning.getUid(), warning.getWarningMessage(), report.getWarnings() ) );
     }
 
     public static void assertHasError( ValidationReport report, ValidationCode code )
