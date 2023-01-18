@@ -25,23 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+
+import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * Calculates rule effects calling rule engine on enrollments and events.
- *
  * @author Enrico Colasante
  */
-public interface ProgramRuleService
+public interface RuleActionEnrollmentValidator<T extends RuleAction>
 {
+
+    List<T> filter( List<RuleAction> ruleActions );
+
     /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
+     * Get the validation for enrollment evaluated by rule engine
      *
-     * @return Enhance bundle with rule effects.
+     * @return list of issues
      */
-    void calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
+    List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<T> ruleEffects, Enrollment enrollment );
 }

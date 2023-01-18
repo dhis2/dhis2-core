@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
+import java.util.Optional;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
-@Getter
+import com.google.common.collect.Lists;
+
+/**
+ * This executor log as a warning any error raised by rule engine execution
+ *
+ * @Author Enrico Colasante
+ */
 @RequiredArgsConstructor
-@AllArgsConstructor
-public class EnrollmentActionRule
-    implements ActionRule
+public class RuleEngineErrorExecutor implements RuleActionExecutor
 {
-    private final String ruleUid;
+    private final SyntaxErrorRuleAction ruleAction;
 
-    private final String data;
-
-    private final String field;
-
-    private String content;
-
-    private final List<Attribute> attributes;
+    @Override
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    {
+        return Optional.of(
+            new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
+                Lists.newArrayList( ruleAction.getError() ), IssueType.WARNING ) );
+    }
 }

@@ -25,51 +25,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.Optional;
 
-import org.hisp.dhis.rules.models.RuleActionError;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
 /**
- * This implementer log as a warning any error raised by rule engine execution
+ * This implementer check if there are errors or warnings the
+ * {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */
-@Component
-public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
+public interface ErrorWarningExecutor extends RuleActionExecutor
 {
-    @Override
-    public Class<RuleActionError> getActionClass()
+    boolean isOnComplete();
+
+    IssueType getIssueType();
+
+    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction enrollmentActionRules,
+        Enrollment enrollment )
     {
-        return RuleActionError.class;
+        if ( needsToRun( enrollment ) )
+        {
+            return Optional.of( parseErrors( enrollmentActionRules ) );
+        }
+        return Optional.empty();
     }
 
-    @Override
-    public String getField( RuleActionError ruleAction )
+    private ProgramRuleIssue parseErrors( ErrorWarningRuleAction ruleAction )
     {
-        return null;
+
+        String field = ruleAction.getField();
+        String content = ruleAction.getContent();
+        String data = ruleAction.getData();
+
+        StringBuilder stringBuilder = new StringBuilder( content );
+        if ( !StringUtils.isEmpty( data ) )
+        {
+            stringBuilder.append( " " ).append( data );
+        }
+        if ( !StringUtils.isEmpty( field ) )
+        {
+            stringBuilder.append( " (" ).append( field ).append( ")" );
+        }
+
+        return new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
+            Lists.newArrayList( stringBuilder.toString() ), getIssueType() );
     }
 
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
+    private boolean needsToRun( Enrollment enrollment )
     {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
+        if ( isOnComplete() )
+        {
+            return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
+        }
+        else
+        {
+            return true;
+        }
     }
 }

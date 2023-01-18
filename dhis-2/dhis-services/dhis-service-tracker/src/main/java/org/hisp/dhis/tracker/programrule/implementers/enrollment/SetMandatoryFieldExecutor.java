@@ -25,51 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.hisp.dhis.rules.models.RuleActionError;
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
 /**
- * This implementer log as a warning any error raised by rule engine execution
+ * This executor checks if a field is not empty in the {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */
-@Component
-public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
+@RequiredArgsConstructor
+public class SetMandatoryFieldExecutor implements RuleActionExecutor
 {
-    @Override
-    public Class<RuleActionError> getActionClass()
-    {
-        return RuleActionError.class;
-    }
+
+    private final MandatoryRuleAction ruleAction;
 
     @Override
-    public String getField( RuleActionError ruleAction )
+    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
-        return null;
+        return checkMandatoryEnrollmentAttribute( enrollment, bundle.getPreheat() );
     }
 
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
+    private Optional<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
+        TrackerPreheat preheat )
     {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+        TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( ruleAction.getAttribute() );
+        Optional<Attribute> any = enrollment.getAttributes().stream()
+            .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
+            .findAny();
+        if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
+        {
+            return Optional.of( new ProgramRuleIssue( ruleAction.getRuleUid(),
+                ValidationCode.E1306,
+                Lists.newArrayList(
+                    idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
+                IssueType.ERROR ) );
+        }
+        else
+        {
+            return Optional.empty();
+        }
     }
 }

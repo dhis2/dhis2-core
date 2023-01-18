@@ -29,9 +29,7 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.needsToValidateDataValues;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,10 +41,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
@@ -83,17 +78,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
         TrackerBundle bundle );
 
     /**
-     * Apply rule actions to enrollments in the bundle
-     *
-     * @param enrollmentActionRules Actions to be applied to the bundle
-     * @param bundle where to get the enrollments from
-     * @return A list of program rule issues that can be either warnings or
-     *         errors
-     */
-    abstract List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment,
-        List<EnrollmentActionRule> enrollmentActionRules, TrackerBundle bundle );
-
-    /**
      * Get the content from the action.
      *
      * @param ruleAction to get the content from
@@ -110,15 +94,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
         List<EventActionRule> eventEffects = getEventEffects( event, ruleEffects, bundle );
 
         return applyToEvents( event, eventEffects, bundle );
-    }
-
-    @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
-        Enrollment enrollment )
-    {
-        List<EnrollmentActionRule> enrollmentEffects = getEnrollmentEffects( enrollment, ruleEffects, bundle );
-
-        return applyToEnrollments( enrollment, enrollmentEffects, bundle );
     }
 
     /**
@@ -145,32 +120,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toList() );
     }
 
-    /**
-     * Filter the actions by the action class of the implementer
-     *
-     * @param effects a map of enrollments and effects
-     * @param bundle
-     * @return A map of actions by enrollment
-     */
-    @SuppressWarnings( "unchecked" )
-    public List<EnrollmentActionRule> getEnrollmentEffects( Enrollment enrollment, List<RuleEffect> effects,
-        TrackerBundle bundle )
-    {
-        List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-            .map( TrackedEntity::getAttributes )
-            .orElse( Collections.emptyList() );
-        List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
-            payloadTeiAttributes );
-
-        return effects
-            .stream()
-            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .map( effect -> new EnrollmentActionRule( effect.ruleId(), effect.data(),
-                getField( (T) effect.ruleAction() ),
-                getContent( (T) effect.ruleAction() ), attributes ) )
-            .collect( Collectors.toList() );
-    }
-
     private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
@@ -191,13 +140,5 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
             .stream()
             .map( BaseIdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
-    }
-
-    private Optional<TrackedEntity> getTrackedEntity( TrackerBundle bundle, String teiUid )
-    {
-        return bundle.getTrackedEntities()
-            .stream()
-            .filter( e -> e.getTrackedEntity().equals( teiUid ) )
-            .findAny();
     }
 }

@@ -74,31 +74,23 @@ class DefaultProgramRuleService
 
     private final TrackerConverterService<Attribute, TrackedEntityAttributeValue> attributeValueTrackerConverterService;
 
+    private final RuleActionMapper ruleActionMapper;
+
     @Override
     @Transactional( readOnly = true )
-    public List<RuleEffects> calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
+    public void calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
     {
-        return ListUtils.union(
+        List<RuleEffects> ruleEffects = ListUtils.union(
             calculateEnrollmentRuleEffects( bundle, preheat ),
             ListUtils.union(
                 calculateProgramEventRuleEffects( bundle, preheat ),
-                calculateTrackerEventRuleEffects( bundle, preheat ) ) )
-            .stream()
-            .filter( effects -> isPresentInBundle( effects, bundle ) )
-            .collect( Collectors.toList() );
-    }
+                calculateTrackerEventRuleEffects( bundle, preheat ) ) );
 
-    private boolean isPresentInBundle( RuleEffects effects, TrackerBundle bundle )
-    {
-        switch ( effects.getTrackerObjectType() )
-        {
-        case ENROLLMENT:
-            return bundle.findEnrollmentByUid( effects.getTrackerObjectUid() ).isPresent();
-        case EVENT:
-            return bundle.findEventByUid( effects.getTrackerObjectUid() ).isPresent();
-        default:
-            return false;
-        }
+        // This is needed for bunlde side effects process
+        bundle.setRuleEffects( ruleEffects );
+
+        // These are needed for rule engine validation
+        bundle.setEnrollmentActionRules( ruleActionMapper.mapEnrollmentRuleActions( ruleEffects, bundle ) );
     }
 
     private List<RuleEffects> calculateEnrollmentRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
@@ -164,7 +156,7 @@ class DefaultProgramRuleService
         TrackerPreheat preheat )
     {
         List<TrackedEntityAttributeValue> attributeValues = bundle.findEnrollmentByUid( enrollmentUid )
-            .map( e -> e.getAttributes() )
+            .map( Enrollment::getAttributes )
             .map( attributes -> attributeValueTrackerConverterService.from( preheat, attributes ) )
             .orElse( new ArrayList<>() );
 
