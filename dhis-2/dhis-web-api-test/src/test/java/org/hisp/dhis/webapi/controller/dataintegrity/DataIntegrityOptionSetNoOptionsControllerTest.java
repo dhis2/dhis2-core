@@ -45,7 +45,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "options_sets_empty";
+    private static final String check = "options_sets_empty";
+
+    private static final String detailsIdType = "optionSets";
 
     @Test
     void testOptionSetInvalid()
@@ -77,15 +79,15 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
             POST( "/optionSets",
                 "{ 'name': 'Color', 'shortName': 'Color', 'valueType' : 'TEXT' }" ) );
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
+        JsonObject content = GET( "/" + detailsIdType + "/" + goodOptionSet ).content();
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( 2, optionSetOptions.size() );
 
-        content = GET( "/optionSets/" + badOptionSet ).content();
+        content = GET( "/" + detailsIdType + "/" + badOptionSet ).content();
         optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( 0, optionSetOptions.size() );
 
-        assertHasDataIntegrityIssues( "option_sets", check, 50, badOptionSet, "Color", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, badOptionSet, "Color", null,
             true );
 
     }
@@ -120,15 +122,15 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
                     "    'id': '" + badOptionSet + "'" +
                     "  }}" ) );
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
+        JsonObject content = GET( "/" + detailsIdType + "/" + goodOptionSet ).content();
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( 1, optionSetOptions.size() );
 
-        content = GET( "/optionSets/" + badOptionSet ).content();
+        content = GET( "/" + detailsIdType + "/" + badOptionSet ).content();
         optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( 1, optionSetOptions.size() );
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -136,7 +138,7 @@ class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrit
     void testInvalidCategoriesDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

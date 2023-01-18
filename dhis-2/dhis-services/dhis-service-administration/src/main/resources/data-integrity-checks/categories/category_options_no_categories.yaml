@@ -52,7 +52,7 @@
   severity: WARNING
   introduction: >
     All category options should belong to at least one category.
-  details_id_type: categories
+  details_id_type: categoryOptions
   recommendation: >
     Category options which are not part of any category should be removed
     or alternatively should be added to an appropriate category.

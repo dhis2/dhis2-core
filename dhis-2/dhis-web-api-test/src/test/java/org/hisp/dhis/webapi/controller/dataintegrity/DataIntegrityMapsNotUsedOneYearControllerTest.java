@@ -57,7 +57,7 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
 
     private DataStatisticsEvent dse1;
 
-    private static final String check = "maps_notviewed_1y";
+    private static final String check = "maps_not_viewed_one_year";
 
     @Test
     void testUnusedVisualizationsExist()
@@ -71,7 +71,7 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
         dbmsManager.clearSession();
 
         assertNamedMetadataObjectExists( "maps", "MapA" );
-        assertHasDataIntegrityIssues( "visualizations", check, 100, BASE_UID, "MapA", null, true );
+        assertHasDataIntegrityIssues( "maps", check, 100, BASE_UID, "MapA", null, true );
     }
 
     @Test
@@ -86,13 +86,13 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "visualizations", check, true );
+        assertHasNoDataIntegrityIssues( "maps", check, true );
     }
 
     @Test
     void testUnusedVisualizationsRuns()
     {
-        assertHasNoDataIntegrityIssues( "visualizations", check, false );
+        assertHasNoDataIntegrityIssues( "maps", check, false );
     }
 
     @BeforeEach

@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: missing_value_strategy_null
+name: validation_rules_missing_value_strategy_null
 description: All validation rule expressions should have a missing value strategy.
 section: Validation rules
 section_order: 1
@@ -45,7 +45,7 @@ details_sql: >-
     from validationrule a
     INNER JOIN expression b on a.leftexpressionid = b.expressionid
     where b.missingvaluestrategy IS NULL;
-details_id_type: validation_rules
+details_id_type: validationRules
 severity: SEVERE
 introduction: >
     Validation rules are composed of a left and right side expression. In certain systems

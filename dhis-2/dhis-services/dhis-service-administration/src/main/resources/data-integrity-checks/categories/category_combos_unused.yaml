@@ -76,7 +76,7 @@
      to situations where users and implementers are confused about which category combination should actually be used.
      In general, it should be safe to delete unused category combinations, except in situations where existing data
      has been associated with them.
-  details_id_type: categories
+  details_id_type: categoryCombos
   recommendation: >
      Check to see if any data is associated with the category combination before attempting to delete it. Category combinations
      which are not currently used in any metadata objects may still be valid for legacy reasons, but they should be reviewed

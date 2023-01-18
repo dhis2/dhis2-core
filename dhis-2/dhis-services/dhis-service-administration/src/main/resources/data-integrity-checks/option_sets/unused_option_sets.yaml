@@ -49,7 +49,7 @@ details_sql: >-
     SELECT DISTINCT commentoptionsetid from dataelement where commentoptionsetid IS NOT NULL UNION
     SELECT DISTINCT optionsetid FROM trackedentityattribute WHERE optionsetid IS NOT NULL)
     ORDER BY name;
-details_id_type: option_sets
+details_id_type: optionSets
 severity: WARNING
 introduction: >
     Option sets should be used for some purpose. The may be used by data elements, comments,  attributes, or tracked entity

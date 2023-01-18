@@ -43,13 +43,13 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private String clinicA;
-
     private String clinicB;
 
     private String districtA;
 
-    private final String check = "organisation_units_not_contained_by_parent";
+    private static final String check = "orgunits_not_contained_by_parent";
+
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgunitsNotContainedByParent()
@@ -60,7 +60,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'District A', 'shortName': 'District A', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
@@ -72,7 +72,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 50, clinicB, "Clinic B", null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, clinicB, "Clinic B", null, true );
 
     }
 
@@ -85,7 +85,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'District A', 'shortName': 'District A', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
@@ -96,14 +96,14 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
-    void testOrgunitsContainedByParentDivideByZero()
+    void testOrgunitsContainedByParentDivideRuns()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

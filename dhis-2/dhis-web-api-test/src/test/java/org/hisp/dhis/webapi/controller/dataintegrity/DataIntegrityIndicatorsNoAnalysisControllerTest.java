@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityIndicatorsNoAnalysisControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private static final String check = "indicator_noanalysis";
+    private static final String check = "indicator_no_analysis";
 
     private String indicatorA;
 

@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: ezQJxORagqI
-name: orgunit_multiple_roots
+name: orgunits_multiple_roots
 description: The organisation unit hierarchy should have a single root.
 section: Organisation units
 section_order: 8
@@ -52,7 +52,7 @@ details_sql: >-
   SELECT uid,name,
   array_to_string(comment,  ' ; ') as comment from duplicate_roots
   where array_length(comment, 1) > 1;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: CRITICAL
 introduction: >
   Every DHIS2 system should have a single root organisation unit. This means a single organisation

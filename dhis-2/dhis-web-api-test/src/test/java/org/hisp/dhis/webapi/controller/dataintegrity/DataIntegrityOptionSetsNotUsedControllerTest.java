@@ -46,7 +46,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "options_sets_unused";
+    private static final String check = "options_sets_unused";
+
+    private static final String detailsIdType = "optionSets";
 
     private String goodOptionSet;
 
@@ -77,14 +79,14 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
                     "  }}" ) );
 
         JsonObject content = GET( "/optionSets?fields=id,name,options[id]" ).content();
-        JsonList<JsonOptionSet> myOptionSets = content.getList( "optionSets", JsonOptionSet.class );
+        JsonList<JsonOptionSet> myOptionSets = content.getList( detailsIdType, JsonOptionSet.class );
         assertEquals( 1, myOptionSets.size() );
         JsonOptionSet myOptionSet = myOptionSets.get( 0 );
         assertEquals( goodOptionSet, myOptionSet.getId() );
         JsonList<JsonOption> optionSetOptions = myOptionSet.getOptions();
         assertEquals( 2, optionSetOptions.size() );
 
-        assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, goodOptionSet, "Taste", null,
             true );
 
     }
@@ -127,7 +129,7 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
         assertEquals( "Candy", testDataElementJSON.get( 0 ).getName() );
         assertEquals( goodOptionSet, testDataElementJSON.get( 0 ).getOptionSet().getId() );
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -135,7 +137,7 @@ class DataIntegrityOptionSetsNotUsedControllerTest extends AbstractDataIntegrity
     void testInvalidCategoriesDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 
