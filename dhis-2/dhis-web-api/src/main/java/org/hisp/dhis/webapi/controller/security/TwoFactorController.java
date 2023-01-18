@@ -100,12 +100,7 @@ public class TwoFactorController
             throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
         }
 
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-
-        Map<String, Object> map = new HashMap<>();
-        map.put( "url", "url" );
-
-        return map;
+        return Map.of( "url", "url" );
     }
 
     @GetMapping( value = "/qrCode", produces = APPLICATION_OCTET_STREAM )
