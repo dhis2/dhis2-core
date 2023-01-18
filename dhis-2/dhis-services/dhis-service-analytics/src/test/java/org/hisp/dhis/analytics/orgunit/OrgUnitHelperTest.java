@@ -43,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class OrgUnitHelperTest
+class OrgUnitHelperTest
 {
     @Test
     void getActiveOrganisationUnits_returns_only_active_units()
