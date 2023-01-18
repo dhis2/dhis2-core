@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: aggregate_data_elements_datasets_different_period_types
+  name: data_elements_aggregate_with_different_period_types
   description: Aggregate data elements which belong to datasets with different period types.
   section: Data elements (aggregate)
   section_order: 7
@@ -86,7 +86,7 @@
   severity: SEVERE
   introduction: >
     Data elements should not belong to datasets with different period types.
-  details_id_type: data_elements_aggregate
+  details_id_type: dataElements
   recommendation: >
     If you need to collect data with different period types (e.g. weekly and monthly) you should
     use different data elements for each period type. In general, it is not recommended to 
