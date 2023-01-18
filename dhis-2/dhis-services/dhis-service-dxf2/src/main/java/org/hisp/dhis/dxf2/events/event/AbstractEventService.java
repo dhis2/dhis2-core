@@ -306,12 +306,11 @@ public abstract class AbstractEventService implements EventService
             return events;
         }
 
-        final Pager pager;
+        Pager pager;
+        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
 
         if ( params.isTotalPages() )
         {
-            eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
-
             int count = eventStore.getEventCount( params, organisationUnits );
             pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
         }
@@ -340,14 +339,12 @@ public abstract class AbstractEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( final EventSearchParams params,
-        final List<Event> eventList, final List<OrganisationUnit> organisationUnits )
+    private Pager handleLastPageFlag( EventSearchParams params,
+        List<Event> eventList, final List<OrganisationUnit> organisationUnits )
     {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
-
-        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
 
         if ( isNotEmpty( eventList ) )
         {
