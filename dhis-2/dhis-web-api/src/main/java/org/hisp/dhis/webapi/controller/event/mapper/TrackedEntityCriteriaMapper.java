@@ -366,7 +366,8 @@ public class TrackedEntityCriteriaMapper
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
+                if ( !findColumn( orderParam.getField() ).isPresent()
+                    && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }
