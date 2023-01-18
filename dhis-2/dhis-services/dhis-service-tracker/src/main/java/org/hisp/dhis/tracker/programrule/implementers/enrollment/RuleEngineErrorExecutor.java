@@ -47,13 +47,15 @@ import com.google.common.collect.Lists;
 @RequiredArgsConstructor
 public class RuleEngineErrorExecutor implements RuleActionExecutor
 {
-    private final SyntaxErrorRuleAction ruleAction;
+    private final String ruleUid;
+
+    private final String error;
 
     @Override
     public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
     {
         return Optional.of(
-            new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( ruleAction.getError() ), IssueType.WARNING ) );
+            new ProgramRuleIssue( ruleUid, ValidationCode.E1300,
+                Lists.newArrayList( error ), IssueType.WARNING ) );
     }
 }

@@ -52,8 +52,9 @@ import com.google.common.collect.Lists;
 @RequiredArgsConstructor
 public class SetMandatoryFieldExecutor implements RuleActionExecutor
 {
+    private final String ruleUid;
 
-    private final MandatoryRuleAction ruleAction;
+    private final String attributeUid;
 
     @Override
     public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
@@ -65,13 +66,13 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor
         TrackerPreheat preheat )
     {
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( ruleAction.getAttribute() );
+        TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( attributeUid );
         Optional<Attribute> any = enrollment.getAttributes().stream()
             .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
             .findAny();
         if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
         {
-            return Optional.of( new ProgramRuleIssue( ruleAction.getRuleUid(),
+            return Optional.of( new ProgramRuleIssue( ruleUid,
                 ValidationCode.E1306,
                 Lists.newArrayList(
                     idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),

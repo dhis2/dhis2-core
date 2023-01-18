@@ -39,8 +39,8 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * This implementer show warnings on a completed enrollment or event calculated
- * by Rule Engine.
+ * This executor shows warnings on a completed enrollment or event calculated by
+ * Rule Engine.
  *
  * @Author Enrico Colasante
  */
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 public class ShowWarningOnCompleteExecutor
     implements ErrorWarningExecutor
 {
-    private final WarningOnCompleteRuleAction ruleAction;
+    private final ErrorWarningRuleAction ruleAction;
 
     @Override
     public boolean isOnComplete()

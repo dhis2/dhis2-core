@@ -56,8 +56,8 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
 
     private final static String TEI_ID = "TeiId";
 
-    private final RuleEngineErrorExecutor ruleEngineErrorImplementer = new RuleEngineErrorExecutor(
-        getRuleEnrollmentEffect() );
+    private final RuleEngineErrorExecutor ruleEngineErrorExecutor = new RuleEngineErrorExecutor( RULE_ENROLLMENT_ID,
+        ENROLLMENT_ERROR_MESSAGE );
 
     private TrackerBundle bundle;
 
@@ -74,7 +74,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
     @Test
     void testValidateEnrollmentWithError()
     {
-        Optional<ProgramRuleIssue> warning = ruleEngineErrorImplementer.validateEnrollment( bundle, getEnrollment() );
+        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.validateEnrollment( bundle, getEnrollment() );
 
         assertTrue( warning.isPresent() );
         warning.ifPresent( w -> {
@@ -92,10 +92,5 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .trackedEntity( TEI_ID )
             .build();
-    }
-
-    private SyntaxErrorRuleAction getRuleEnrollmentEffect()
-    {
-        return new SyntaxErrorRuleAction( RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE );
     }
 }

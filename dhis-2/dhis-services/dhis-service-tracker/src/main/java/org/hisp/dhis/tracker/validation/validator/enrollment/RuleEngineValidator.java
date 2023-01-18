@@ -50,12 +50,12 @@ class RuleEngineValidator
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        if ( !bundle.getEnrollmentActionRules().containsKey( enrollment ) )
+        if ( !bundle.getEnrollmentRuleActionExecutors().containsKey( enrollment ) )
         {
             return;
         }
 
-        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentActionRules().get( enrollment )
+        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentRuleActionExecutors().get( enrollment )
             .stream()
             .map( e -> e.validateEnrollment( bundle, enrollment ) )
             .filter( Optional::isPresent )

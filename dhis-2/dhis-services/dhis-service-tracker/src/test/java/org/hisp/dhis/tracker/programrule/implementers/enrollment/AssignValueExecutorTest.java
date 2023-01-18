@@ -158,7 +158,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeNOTSet.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
@@ -180,7 +180,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
@@ -208,7 +208,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
@@ -232,7 +232,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( getTrackedEntitiesWithAttributeSet().getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, getTrackedEntitiesWithAttributeSet().getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
@@ -263,7 +263,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeNOTSet.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
 
@@ -290,7 +290,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeSetSameValue.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSetSameValue.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSetSameValue );
 
@@ -314,7 +314,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
             .thenReturn( Boolean.TRUE );
 
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
-            getRuleAction( enrollmentWithAttributeSet.getAttributes() ) );
+            "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
 
@@ -331,7 +331,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     @Test
     void testIsEqual()
     {
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
 
         assertTrue( executor.isEqual( "first_dose", "first_dose", ValueType.TEXT ) );
         assertTrue( executor.isEqual( "2020-01-01", "2020-01-01", ValueType.DATE ) );
@@ -351,7 +351,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     @Test
     void testIsEqualDataTypeIntegrity()
     {
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null );
+        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
 
         assertFalse( executor.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
         assertFalse( executor.isEqual( "24", "second_dose", ValueType.NUMBER ) );
@@ -437,10 +437,5 @@ class AssignValueExecutorTest extends DhisConvenienceTest
             .value( TEI_ATTRIBUTE_NEW_VALUE )
             .build();
         return Lists.newArrayList( attribute );
-    }
-
-    private AssignValueRuleAction getRuleAction( List<Attribute> attributes )
-    {
-        return new AssignValueRuleAction( "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, attributes );
     }
 }

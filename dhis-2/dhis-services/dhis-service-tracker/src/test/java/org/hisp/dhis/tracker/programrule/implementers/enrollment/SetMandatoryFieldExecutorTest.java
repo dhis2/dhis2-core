@@ -88,8 +88,8 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
-    private final SetMandatoryFieldExecutor enrollmentValidatorToTest = new SetMandatoryFieldExecutor(
-        getRuleEnrollmentEffect() );
+    private final SetMandatoryFieldExecutor enrollmentValidatorToTest = new SetMandatoryFieldExecutor( "RULE_ATTRIBUTE",
+        ATTRIBUTE_ID );
 
     private TrackerBundle bundle;
 
@@ -228,10 +228,5 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
             .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
             .value( ATTRIBUTE_VALUE )
             .build();
-    }
-
-    private MandatoryRuleAction getRuleEnrollmentEffect()
-    {
-        return new MandatoryRuleAction( "RULE_ATTRIBUTE", ATTRIBUTE_ID );
     }
 }

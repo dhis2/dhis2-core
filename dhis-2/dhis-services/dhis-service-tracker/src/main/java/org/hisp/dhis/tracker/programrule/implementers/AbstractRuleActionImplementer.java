@@ -39,14 +39,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-
-import com.google.common.collect.Lists;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
@@ -118,15 +115,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
             .filter( effect -> isDataElementPartOfProgramStage( effect.getField(), programStage ) )
             .filter( effect -> needsToValidateDataValues( event, programStage ) )
             .collect( Collectors.toList() );
-    }
-
-    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
-    {
-
-        List<Attribute> mergedAttributes = Lists.newArrayList();
-        mergedAttributes.addAll( attributes );
-        mergedAttributes.addAll( enrollmentAttributes );
-        return mergedAttributes;
     }
 
     private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )

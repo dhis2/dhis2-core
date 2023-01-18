@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * This implementer show warnings calculated by Rule Engine.
+ * This executor shows warnings calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 public class ShowWarningExecutor
     implements ErrorWarningExecutor
 {
-    private final WarningRuleAction ruleAction;
+    private final ErrorWarningRuleAction ruleAction;
 
     @Override
     public boolean isOnComplete()

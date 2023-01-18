@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
 import com.google.common.collect.Lists;
 
 /**
- * This implementer check if there are errors or warnings the
+ * This executor checks if there are errors or warnings in the
  * {@link TrackerBundle}
  *
  * @Author Enrico Colasante
@@ -52,12 +52,12 @@ public interface ErrorWarningExecutor extends RuleActionExecutor
 
     IssueType getIssueType();
 
-    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction enrollmentActionRules,
+    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction erroRuleAction,
         Enrollment enrollment )
     {
         if ( needsToRun( enrollment ) )
         {
-            return Optional.of( parseErrors( enrollmentActionRules ) );
+            return Optional.of( parseErrors( erroRuleAction ) );
         }
         return Optional.empty();
     }
