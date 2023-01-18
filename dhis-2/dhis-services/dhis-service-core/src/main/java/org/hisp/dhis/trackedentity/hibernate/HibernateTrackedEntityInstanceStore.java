@@ -482,30 +482,24 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQuerySelect( TrackedEntityInstanceQueryParams params )
     {
-        StringBuilder select = new StringBuilder()
-            .append( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID + ", " )
-            .append( "TEI.created AS " + CREATED_ID + ", " )
-            .append( "TEI.lastUpdated AS " + LAST_UPDATED_ID + ", " )
-            .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
-            .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
-            .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
-            .append( "TEI.inactive AS " + INACTIVE_ID + ", " )
-            .append( "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE )
-            .append( params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "" )
-            .append(
+        LinkedHashSet<String> select = new LinkedHashSet<>(
+            List.of( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
+                "TEI.created AS " + CREATED_ID,
+                "TEI.lastUpdated AS " + LAST_UPDATED_ID, "TEI.ou AS " + ORG_UNIT_ID,
+                "TEI.ouname AS " + ORG_UNIT_NAME, "TET.uid AS " + TRACKED_ENTITY_ID, "TEI.inactive AS " + INACTIVE_ID,
+                "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE,
+                params.isIncludeDeleted() ? "TEI.deleted AS " + DELETED : "",
                 params.hasAttributes()
-                    ? ", string_agg(TEA.uid || '" + UID_VALUE_SEPARATOR + "' || TEAV.value, '"
+                    ? "string_agg(TEA.uid || '" + UID_VALUE_SEPARATOR + "' || TEAV.value, '"
                         + UID_VALUE_PAIR_SEPARATOR + "') AS tea_values"
-                    : "" );
+                    : "" ) );
 
         params.getOrders().stream()
             .map( o -> findColumn( o.getField() ) )
             .filter( Optional::isPresent )
-            .forEach( c -> select.append( ", " ).append( c.get().getSqlColumnWithMainTable() ) );
+            .forEach( c -> select.add( c.get().getSqlColumnWithMainTable() ) );
 
-        select.append( SPACE );
-
-        return select.toString();
+        return select.stream().filter( c -> !c.isEmpty() ).collect( Collectors.joining( ", " ) ) + SPACE;
     }
 
     /**
