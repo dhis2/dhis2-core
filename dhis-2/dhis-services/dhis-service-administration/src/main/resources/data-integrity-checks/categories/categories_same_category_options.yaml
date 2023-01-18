@@ -29,7 +29,7 @@
   name: categories_same_category_options
   description: Categories with the same category options
   section: Categories
-  section_order: 10
+  section_order: 6
   summary_sql: >-
     WITH duplicative_categories  AS (
     SELECT catoptions, COUNT(*) as count

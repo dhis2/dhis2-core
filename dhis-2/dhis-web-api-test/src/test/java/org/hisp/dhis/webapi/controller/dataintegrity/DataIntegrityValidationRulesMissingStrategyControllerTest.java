@@ -45,10 +45,12 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityValidationRulesMissingStrategyControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private static final String check = "missing_value_strategy_null";
+    private static final String check = "validation_rules_missing_value_strategy_null";
+
+    private static final String detailsIdType = "validationRules";
 
     @Test
-    void testUsedVisualizationsExist()
+    void testValidationRulesWithNoStrategyExist()
     {
 
         String ruleMissingStrategy = assertStatus( HttpStatus.CREATED,
@@ -59,13 +61,13 @@ class DataIntegrityValidationRulesMissingStrategyControllerTest extends Abstract
                     "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
                     "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}" ) );
 
-        assertHasNoDataIntegrityIssues( "validation_rules", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testValidationRulesMissingStrategyRuns()
     {
-        assertHasNoDataIntegrityIssues( "visualizations", "visualizations_notviewed_1y", false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

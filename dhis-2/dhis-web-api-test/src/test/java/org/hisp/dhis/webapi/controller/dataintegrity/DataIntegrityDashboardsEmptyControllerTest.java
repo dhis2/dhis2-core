@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.visualization.VisualizationType;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,6 +62,8 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
 
     private static final String viz_uid = BASE_UID + "2";
 
+    private static final String detailsIdType = "dashboards";
+
     @Test
     void testUnusedDashboardExist()
     {
@@ -69,8 +74,13 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         dashboardService.saveDashboard( dashboardA );
         dbmsManager.clearSession();
 
-        assertNamedMetadataObjectExists( "dashboards", "Test Dashboard" );
-        assertHasDataIntegrityIssues( "visualizations", check, 100, dashboard_uid, "Test Dashboard", null, true );
+        JsonDataIntegrityCheck thisCheck = GET( "/dataIntegrity/?checks=" + check ).content()
+            .asList( JsonDataIntegrityCheck.class ).get( 0 );
+        String detailsType = thisCheck.getIssuesIdType();
+        assertEquals( detailsType, detailsIdType );
+
+        assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, dashboard_uid, "Test Dashboard", null, true );
     }
 
     @Test
@@ -94,13 +104,13 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         dashboardService.saveDashboard( dashboardA );
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "visualizations", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testUnusedDashboardsRuns()
     {
-        assertHasNoDataIntegrityIssues( "visualizations", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

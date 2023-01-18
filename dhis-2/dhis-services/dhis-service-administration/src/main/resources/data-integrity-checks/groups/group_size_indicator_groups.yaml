@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_indicator_groups
+name: indicator_groups_scarce
 description: Indicator groups should have at least two members.
 section: Group size
 section_order: 2
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing groups with zero or one groups, or alternatively, add additional
   members to the group to make it more useful.
-details_id_type: group_size
+details_id_type: indicatorGroups

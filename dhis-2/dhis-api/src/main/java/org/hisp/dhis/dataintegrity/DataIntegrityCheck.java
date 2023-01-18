@@ -92,6 +92,10 @@ public final class DataIntegrityCheck implements Serializable
             .collect( joining() );
     }
 
+    private final String detailsID;
+
+    private final String summaryID;
+
     private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
     private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;

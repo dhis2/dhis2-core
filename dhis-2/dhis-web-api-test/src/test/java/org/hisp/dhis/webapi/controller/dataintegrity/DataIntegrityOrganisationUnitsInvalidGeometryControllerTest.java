@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private static final String check = "orgunit_invalid_geometry";
+    private static final String check = "orgunits_invalid_geometry";
+
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgunitsInvalidGeometry()
@@ -55,7 +57,7 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
         createFacilities( districtA );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 33,
+        assertHasDataIntegrityIssues( detailsIdType, check, 33,
             districtA, "Bowtie District", "Self-intersection", true );
     }
 
@@ -70,14 +72,14 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
         createFacilities( districtA );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

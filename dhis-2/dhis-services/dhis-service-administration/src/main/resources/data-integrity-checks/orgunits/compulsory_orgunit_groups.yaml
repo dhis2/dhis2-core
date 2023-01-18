@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: lFkN6LopXcz
-name: orgunit_compulsory_group_count
+name: orgunits_compulsory_group_count
 description: Orgunits that are not in all compulsory orgunit group sets
 section: Organisation units
 section_order: 2
@@ -69,7 +69,7 @@ details_sql: >-
     SELECT uid, name from orgunits_not_in_compulsory_groups
     where has_compulsory = FALSE
     ORDER BY name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: SEVERE
 introduction: >
     If any organisation unit groups have been marked as compulsory, each and every organisation unit should

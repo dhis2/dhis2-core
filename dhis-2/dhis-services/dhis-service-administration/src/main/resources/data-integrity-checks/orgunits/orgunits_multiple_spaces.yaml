@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: BQymdCGR1sz
-name: orgunit_multiple_spaces
+name: orgunits_multiple_spaces
 description: Organisation units should not have multiple spaces in their names or shortnames.
 section: Organisation units
 section_order: 6
@@ -43,7 +43,7 @@ details_uid: spwhfsg5Kkn
 details_sql: >-
   SELECT uid, name, shortname as comment from organisationunit 
   where name ~('\s{2,}') OR shortname ~('\s{2,}');
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: >
   Names and/or shortnames of organisation units should not contain multiple spaces. They are superfluous
