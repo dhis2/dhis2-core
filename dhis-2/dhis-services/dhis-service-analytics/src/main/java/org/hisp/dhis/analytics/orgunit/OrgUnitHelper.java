@@ -42,38 +42,41 @@ public class OrgUnitHelper
 {
     private OrgUnitHelper()
     {
+        throw new UnsupportedOperationException( "helper" );
     }
 
     /**
      * Consolidate organisation unit list by intersection with grid rows data.
      * If the intersection is empty return all requested organisation units.
      *
-     * @param grid
-     * @param organisationUnits
-     * @return
+     * @param grid response grid {@link Grid}
+     * @param organisationUnits organisation unit collection
+     *        {@link List<OrganisationUnit>}
+     * @return organisation unit collection with units present in grid rows
+     *         (data) or (no data in grid) incoming org units
      */
     public static List<OrganisationUnit> getActiveOrganisationUnits( Grid grid,
         List<OrganisationUnit> organisationUnits )
     {
-        if ( grid == null )
+        if ( grid == null || organisationUnits == null )
         {
             return organisationUnits;
         }
 
-        int index = -1;
+        int orgUnitIndex = -1;
 
         for ( int i = 0; i < grid.getHeaders().size(); i++ )
         {
             if ( ORGUNIT_DIM_ID.equalsIgnoreCase( grid.getHeaders().get( i ).getName() ) )
             {
-                index = i;
+                orgUnitIndex = i;
                 break;
             }
         }
 
-        if ( index >= 0 )
+        if ( orgUnitIndex >= 0 )
         {
-            final int i = index;
+            final int i = orgUnitIndex;
 
             List<String> orgUidList = grid.getRows().stream().map( r -> String.valueOf( r.get( i ) ) )
                 .distinct()
