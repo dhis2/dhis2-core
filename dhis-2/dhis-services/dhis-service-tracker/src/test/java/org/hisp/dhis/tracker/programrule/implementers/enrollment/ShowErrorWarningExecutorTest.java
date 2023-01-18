@@ -89,41 +89,43 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEnrollment()
     {
-        Optional<ProgramRuleIssue> error = showErrorExecutor.validateEnrollment( bundle, activeEnrollment() );
+        Optional<ProgramRuleIssue> error = showErrorExecutor.executeEnrollmentRuleAction( bundle, activeEnrollment() );
         assertTrue( error.isPresent() );
 
-        error = showErrorExecutor.validateEnrollment( bundle, completedEnrollment() );
+        error = showErrorExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
         assertTrue( error.isPresent() );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEnrollment()
     {
-        Optional<ProgramRuleIssue> warning = showWarningExecutor.validateEnrollment( bundle, activeEnrollment() );
+        Optional<ProgramRuleIssue> warning = showWarningExecutor.executeEnrollmentRuleAction( bundle,
+            activeEnrollment() );
         assertTrue( warning.isPresent() );
 
-        warning = showWarningExecutor.validateEnrollment( bundle, completedEnrollment() );
+        warning = showWarningExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
         assertTrue( warning.isPresent() );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.validateEnrollment( bundle, activeEnrollment() );
+        Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
+            activeEnrollment() );
         assertFalse( error.isPresent() );
 
-        error = errorOnCompleteExecutor.validateEnrollment( bundle, completedEnrollment() );
+        error = errorOnCompleteExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
         assertTrue( error.isPresent() );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
-        Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.validateEnrollment( bundle,
+        Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
             activeEnrollment() );
         assertFalse( warning.isPresent() );
 
-        warning = warningOnCompleteExecutor.validateEnrollment( bundle, completedEnrollment() );
+        warning = warningOnCompleteExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
         assertTrue( warning.isPresent() );
     }
 

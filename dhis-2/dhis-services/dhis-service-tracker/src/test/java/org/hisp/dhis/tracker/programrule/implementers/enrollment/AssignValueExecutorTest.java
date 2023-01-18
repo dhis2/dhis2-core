@@ -160,7 +160,8 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+            enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -182,7 +183,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -210,7 +211,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -234,7 +235,8 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, getTrackedEntitiesWithAttributeSet().getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
+        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+            enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -265,7 +267,8 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeNOTSet );
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+            enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -292,7 +295,8 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSetSameValue.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSetSameValue );
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+            enrollmentWithAttributeSetSameValue );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -316,7 +320,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.validateEnrollment( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();

@@ -74,7 +74,8 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
     @Test
     void testValidateEnrollmentWithError()
     {
-        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.validateEnrollment( bundle, getEnrollment() );
+        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.executeEnrollmentRuleAction( bundle,
+            getEnrollment() );
 
         assertTrue( warning.isPresent() );
         warning.ifPresent( w -> {

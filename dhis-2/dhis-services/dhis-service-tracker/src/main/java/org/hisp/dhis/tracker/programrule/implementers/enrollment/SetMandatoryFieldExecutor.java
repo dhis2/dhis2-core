@@ -57,7 +57,7 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor
     private final String attributeUid;
 
     @Override
-    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return checkMandatoryEnrollmentAttribute( enrollment, bundle.getPreheat() );
     }

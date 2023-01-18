@@ -40,5 +40,5 @@ public interface RuleActionExecutor
      *
      * @return list of issues
      */
-    Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment );
+    Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment );
 }

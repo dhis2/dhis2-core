@@ -52,7 +52,7 @@ public class RuleEngineErrorExecutor implements RuleActionExecutor
     private final String error;
 
     @Override
-    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return Optional.of(
             new ProgramRuleIssue( ruleUid, ValidationCode.E1300,

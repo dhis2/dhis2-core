@@ -61,7 +61,7 @@ public class ShowErrorExecutor implements ErrorWarningExecutor
     }
 
     @Override
-    public Optional<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return validateEnrollment( ruleAction, enrollment );
     }

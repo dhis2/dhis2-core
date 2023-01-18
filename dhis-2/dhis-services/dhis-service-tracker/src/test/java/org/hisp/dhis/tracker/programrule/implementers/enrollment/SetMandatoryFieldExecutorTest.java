@@ -128,7 +128,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
 
-        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.validateEnrollment( bundle,
+        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.executeEnrollmentRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertFalse( error.isPresent() );
@@ -144,7 +144,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
 
-        Optional<ProgramRuleIssue> errors = enrollmentValidatorToTest.validateEnrollment( bundle,
+        Optional<ProgramRuleIssue> errors = enrollmentValidatorToTest.executeEnrollmentRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
 
         assertFalse( errors.isPresent() );
@@ -158,12 +158,13 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
-        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.validateEnrollment( bundle,
+        Optional<ProgramRuleIssue> error = enrollmentValidatorToTest.executeEnrollmentRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertFalse( error.isPresent() );
 
-        error = enrollmentValidatorToTest.validateEnrollment( bundle, getEnrollmentWithMandatoryAttributeNOTSet() );
+        error = enrollmentValidatorToTest.executeEnrollmentRuleAction( bundle,
+            getEnrollmentWithMandatoryAttributeNOTSet() );
 
         assertTrue( error.isPresent() );
 
