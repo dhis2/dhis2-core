@@ -339,8 +339,7 @@ public abstract class AbstractEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( EventSearchParams params,
-        List<Event> eventList, final List<OrganisationUnit> organisationUnits )
+    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
