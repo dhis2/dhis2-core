@@ -42,6 +42,6 @@ details_sql: >-
 severity: WARNING
 introduction: >
   All datasets should have data elements assigned to them.
-details_id_type: datasets
+details_id_type: dataSets
 recommendation: >
   Remove empty datasets, or alternatively, assign data elements to them.

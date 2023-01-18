@@ -51,7 +51,9 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends Abs
 
     private String orgunitC;
 
-    private final String check = "orgunit_multiple_spaces";
+    private static final String check = "orgunits_multiple_spaces";
+
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgUnitMultipleSpaces()
@@ -70,7 +72,7 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends Abs
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( orgunitA, orgunitB ), Set.of(), Set.of(), true );
     }
 
@@ -81,13 +83,13 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends Abs
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testOrgunitsMultipleSpacesZeroCase()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

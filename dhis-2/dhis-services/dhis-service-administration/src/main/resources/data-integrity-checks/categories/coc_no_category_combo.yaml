@@ -50,7 +50,7 @@
     All category option combinations should be associated with a category combo.
     In certain cases, when category combinations are deleted,the linkage between
     a category option combination and a category combination may become corrupted.
-  details_id_type: categories
+  details_id_type: categoryOptionCombos
   recommendation: >
     Check if any data is associated with the category option combination in question. Likely,
     the data should either be deleted or migrated to a valid category option combination.
