@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +92,7 @@ public class TwoFactorController
     @ResponseStatus( HttpStatus.ACCEPTED )
     @ResponseBody
     public Map<String, Object> getQrCode( @CurrentUser User currentUser )
-            throws WebMessageException
+        throws WebMessageException
     {
         if ( currentUser == null )
         {
