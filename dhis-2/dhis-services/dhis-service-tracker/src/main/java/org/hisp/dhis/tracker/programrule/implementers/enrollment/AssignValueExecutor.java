@@ -123,12 +123,11 @@ public class AssignValueExecutor implements RuleActionExecutor
     {
         TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
         Optional<TrackedEntity> trackedEntity = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
-        List<Attribute> attributes;
 
         if ( trackedEntity.isPresent() )
         {
-            attributes = trackedEntity.get().getAttributes();
-            Optional<Attribute> optionalAttribute = attributes.stream()
+            List<Attribute> teiAttributes = trackedEntity.get().getAttributes();
+            Optional<Attribute> optionalAttribute = teiAttributes.stream()
                 .filter( at -> at.getAttribute().isEqualTo( attribute ) )
                 .findAny();
             if ( optionalAttribute.isPresent() )
@@ -138,8 +137,8 @@ public class AssignValueExecutor implements RuleActionExecutor
             }
         }
 
-        attributes = enrollment.getAttributes();
-        Optional<Attribute> optionalAttribute = attributes.stream()
+        List<Attribute> enrollmentAttributes = enrollment.getAttributes();
+        Optional<Attribute> optionalAttribute = enrollmentAttributes.stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
@@ -148,8 +147,9 @@ public class AssignValueExecutor implements RuleActionExecutor
         }
         else
         {
-            attributes.add( createAttribute( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( attribute ),
-                value ) );
+            enrollmentAttributes
+                .add( createAttribute( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( attribute ),
+                    value ) );
         }
     }
 
