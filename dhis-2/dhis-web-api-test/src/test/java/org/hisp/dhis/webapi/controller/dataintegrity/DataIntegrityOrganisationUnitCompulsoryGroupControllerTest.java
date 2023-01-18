@@ -46,7 +46,9 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
 
     private String testOrgUnitGroup;
 
-    private final String check = "orgunit_compulsory_group_count";
+    private static final String check = "orgunits_compulsory_group_count";
+
+    private static final String detailsIDType = "organisationUnits";
 
     @Test
     void testOrgUnitNotInCompulsoryGroup()
@@ -72,7 +74,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check,
+        assertHasDataIntegrityIssues( detailsIDType, check,
             50, outOfGroup, "Fish District", "", true );
     }
 
@@ -96,14 +98,14 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
-    void testOrgunitsInvalidGeometryDivideByZero()
+    void testOrgUnitsCompulsoryGroupsRuns()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

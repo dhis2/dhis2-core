@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,7 +49,9 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
 
     private String orgunitC;
 
-    private final String check = "orgunit_orphaned";
+    private static final String check = "orgunits_orphaned";
+
+    private static final String detailsIDType = "organisationUnits";
 
     @Test
     void testOrphanedOrganisationUnits()
@@ -71,7 +71,7 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check,
+        assertHasDataIntegrityIssues( detailsIDType, check,
             33, orgunitC, "Cupcake District", null, true );
 
     }
@@ -88,29 +88,14 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
     void testOrphansZeroCase()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", orgunitC );
-        deleteMetadataObject( "organisationUnits", orgunitB );
-        deleteMetadataObject( "organisationUnits", orgunitA );
-
-    }
 }

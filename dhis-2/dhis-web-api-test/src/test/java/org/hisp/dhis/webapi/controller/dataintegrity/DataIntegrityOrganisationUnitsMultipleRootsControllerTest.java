@@ -42,7 +42,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private static final String check = "orgunit_multiple_roots";
+    private static final String check = "orgunits_multiple_roots";
+
+    private static final String detailsIDType = "organisationUnits";
 
     private String nullIsland;
 
@@ -67,7 +69,7 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
         {
             orgUnitUIDs = Set.of( nullIsland, notNullIsland );
         }
-        assertHasDataIntegrityIssues( "orgunits", "orgunit_multiple_roots", 100, orgUnitUIDs, Set.of(), Set.of(),
+        assertHasDataIntegrityIssues( detailsIDType, check, 100, orgUnitUIDs, Set.of(), Set.of(),
             true );
 
     }
@@ -87,14 +89,14 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
                     "'parent' : {'id': '" + nullIsland + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
-    void testOrgunitsInvalidGeometryDivideByZero()
+    void testOrgUnitsMultipleRootsRuns()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 

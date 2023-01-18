@@ -44,7 +44,9 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
 
     private String nullIsland;
 
-    final String check = "orgunit_null_island";
+    private static final String check = "orgunits_null_island";
+
+    private static final String detailsIDType = "organisationUnits";
 
     @Test
     void testOrgUnitNullIsland()
@@ -60,7 +62,7 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 50, nullIsland,
+        assertHasDataIntegrityIssues( detailsIDType, check, 50, nullIsland,
             "Null Island", null, true );
 
     }
@@ -79,14 +81,14 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 
     @Test
     void testOrgUnitNotNullIslandZeroCase()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
 
     }
 
