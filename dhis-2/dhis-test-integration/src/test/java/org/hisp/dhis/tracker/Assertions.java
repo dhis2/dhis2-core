@@ -210,7 +210,8 @@ public class Assertions
     {
         assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
         assertTrue( report.hasWarning( w -> Objects.equals( warning.getWarningCode(), w.getWarningCode() ) &&
-            Objects.equals( warning.getUid(), w.getUid() ) ),
+            Objects.equals( warning.getUid(), w.getUid() ) &&
+            w.getWarningMessage().contains( warning.getWarningMessage() ) ),
             String.format( "warning with code %s for object %s not found in report with warning(s) %s",
                 warning.getWarningCode(), warning.getUid(), report.getWarnings() ) );
     }

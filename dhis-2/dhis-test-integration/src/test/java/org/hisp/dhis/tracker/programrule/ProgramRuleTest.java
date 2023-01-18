@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
@@ -39,14 +35,10 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrorsAndNoWarnings;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1308;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -64,7 +56,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -99,6 +90,8 @@ class ProgramRuleTest extends TrackerTest
 
     private ProgramStage programStage;
 
+    private ProgramStage programStage2;
+
     @Override
     public void initTest()
         throws IOException
@@ -110,6 +103,7 @@ class ProgramRuleTest extends TrackerTest
         dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
         programStage = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO" );
+        programStage2 = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKS2" );
         ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
             dataElement2 );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
@@ -136,7 +130,7 @@ class ProgramRuleTest extends TrackerTest
             .importTracker( fromJson( "tracker/programrule/tei_enrollment.json" ) );
 
         assertHasOnlyWarnings( report.getValidationReport(),
-            new Warning( "", E1300.name(), ENROLLMENT.name(), ENROLLMENT_UID ) );
+            new Warning( "ProgramRulC", E1300.name(), ENROLLMENT.name(), ENROLLMENT_UID ) );
     }
 
     @Test
@@ -159,7 +153,7 @@ class ProgramRuleTest extends TrackerTest
             .importTracker( fromJson( "tracker/programrule/program_event.json" ) );
 
         assertHasOnlyWarnings( report.getValidationReport(),
-            new Warning( "", E1300.name(), EVENT.name(), PROGRAM_EVENT_UID ) );
+            new Warning( "ProgramRulD", E1300.name(), EVENT.name(), PROGRAM_EVENT_UID ) );
     }
 
     @Test
@@ -194,7 +188,8 @@ class ProgramRuleTest extends TrackerTest
         alwaysTrueWarningProgramRule();
         report = trackerImportService.importTracker( fromJson( "tracker/programrule/event.json" ) );
 
-        assertHasOnlyWarnings( report.getValidationReport(), new Warning( "", E1300.name(), EVENT.name(), EVENT_UID ) );
+        assertHasOnlyWarnings( report.getValidationReport(),
+            new Warning( "ProgramRulC", E1300.name(), EVENT.name(), EVENT_UID ) );
     }
 
     @Test
@@ -265,18 +260,82 @@ class ProgramRuleTest extends TrackerTest
     }
 
     @Test
-    void testImportEventWithFutureDate()
+    void shouldImportWithWarningWhenARuleWithASyntaxErrorIsTriggered()
+        throws IOException
+    {
+        syntaxErrorRule();
+        TrackerImportParams params = fromJson( "tracker/programrule/tei_enrollment.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning( "ProgramRulH", E1300.name(), ENROLLMENT.name(), ENROLLMENT_UID ) );
+    }
+
+    @Test
+    void shouldImportWithWarningWhenAWarningIsTriggeredOnEventInSameProgramStage()
         throws IOException
     {
         programStageWarningRule();
-        TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
+        TrackerImportParams params = fromJson( "tracker/programrule/tei_enrollment_completed_event.json" );
 
-        Instant oneWeekFromNow = LocalDateTime.now().plusWeeks( 1 ).toInstant( ZoneOffset.UTC );
-        params.getEvents().forEach( e -> e.setOccurredAt( oneWeekFromNow ) );
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertNoErrors( importReport );
-        assertEquals( 1, importReport.getValidationReport().getWarnings().size() );
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning( "programRulG", E1300.name(), EVENT.name(), EVENT_UID ) );
+    }
+
+    @Test
+    void shouldImportWithNoWarningsWhenAWarningIsTriggeredOnEventInDifferentProgramStage()
+        throws IOException
+    {
+        programStageWarningRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertNoErrorsAndNoWarnings( importReport );
+    }
+
+    @Test
+    void shouldImportWithNoWarningsWhenAWarningIsTriggeredOnActiveEventInOnCompleteProgramStage()
+        throws IOException
+    {
+        programStage2WarningRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_event_from_another_program_stage.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertNoErrorsAndNoWarnings( importReport );
+    }
+
+    @Test
+    void shouldImportWithWarningsWhenAWarningIsTriggeredOnCompletedEventInOnCompleteProgramStage()
+        throws IOException
+    {
+        programStage2WarningRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning( "programRulI", E1300.name(), EVENT.name(), EVENT_UID ) );
+    }
+
+    @Test
+    void shouldImportWithNoWarningsWhenAWarningIsTriggeredWithADataElementFromADifferentProgramStage()
+        throws IOException
+    {
+        programStage2WrongDataElementWarningRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertNoErrorsAndNoWarnings( importReport );
     }
 
     @Test
@@ -288,39 +347,30 @@ class ProgramRuleTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertNoErrors( importReport );
-        List<Warning> warningReports = importReport.getValidationReport().getWarnings();
-        assertEquals( 1, warningReports.size() );
-        assertEquals( 1,
-            warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT.name() ) ).count() );
-        assertEquals( 0,
-            warningReports.stream().filter( w -> w.getTrackerType().equals( ENROLLMENT.name() ) ).count() );
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning(
+                "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `D9PbzJY8bJO`",
+                E1308.name(), EVENT.name(), EVENT_UID ) );
 
         params = fromJson( "tracker/event_update_no_datavalue.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         importReport = trackerImportService.importTracker( params );
 
-        assertNoErrors( importReport );
-        warningReports = importReport.getValidationReport().getWarnings();
-        assertEquals( 1, warningReports.size() );
-        assertThat( importReport.getValidationReport().getWarnings(),
-            hasItem( hasProperty( "warningCode", equalTo( ValidationCode.E1308.name() ) ) ) );
-        assertThat( importReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
-            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`" ) ) ) );
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning(
+                "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `D9PbzJY8bJO`",
+                E1308.name(), EVENT.name(), EVENT_UID ) );
 
         params = fromJson( "tracker/event_update_datavalue.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         importReport = trackerImportService.importTracker( params );
 
-        assertNoErrors( importReport );
-        warningReports = importReport.getValidationReport().getWarnings();
-        assertEquals( 1, warningReports.size() );
-        assertThat( importReport.getValidationReport().getWarnings(),
-            hasItem( hasProperty( "warningCode", equalTo( ValidationCode.E1308.name() ) ) ) );
-        assertThat( importReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
-            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`" ) ) ) );
+        assertHasOnlyWarnings( importReport.getValidationReport(),
+            new Warning(
+                "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `D9PbzJY8bJO`",
+                E1308.name(), EVENT.name(), EVENT_UID ) );
     }
 
     private void createProgramRule( char uniqueCharacter, Program program, ProgramRuleActionType actionType )
@@ -380,6 +430,7 @@ class ProgramRuleTest extends TrackerTest
     {
         ProgramRule programRuleB = createProgramRule( 'G', program );
         programRuleB.setProgramStage( programStage );
+        programRuleB.setUid( "programRulG" );
         programRuleService.addProgramRule( programRuleB );
 
         ProgramRuleAction programRuleActionShowWarningForProgramStage = createProgramRuleAction( 'B', programRuleB );
@@ -389,5 +440,54 @@ class ProgramRuleTest extends TrackerTest
 
         programRuleB.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
         programRuleService.updateProgramRule( programRuleB );
+    }
+
+    private void syntaxErrorRule()
+    {
+        ProgramRule errorProgramRule = createProgramRule( 'H', program );
+        errorProgramRule.setCondition( "ERROR" );
+        errorProgramRule.setUid( "ProgramRulH" );
+        programRuleService.addProgramRule( errorProgramRule );
+
+        ProgramRuleAction programRuleActionError = createProgramRuleAction( 'E', errorProgramRule );
+        programRuleActionError.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
+        programRuleActionError.setContent( "ERROR" );
+        programRuleActionService.addProgramRuleAction( programRuleActionError );
+
+        errorProgramRule.getProgramRuleActions().add( programRuleActionError );
+        programRuleService.updateProgramRule( errorProgramRule );
+    }
+
+    private void programStage2WarningRule()
+    {
+        ProgramRule programRuleI = createProgramRule( 'I', program );
+        programRuleI.setProgramStage( programStage2 );
+        programRuleI.setUid( "programRulI" );
+        programRuleService.addProgramRule( programRuleI );
+
+        ProgramRuleAction programRuleActionShowWarningForProgramStage = createProgramRuleAction( 'B', programRuleI );
+        programRuleActionShowWarningForProgramStage.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
+        programRuleActionShowWarningForProgramStage.setContent( "PROGRAM STAGE WARNING" );
+        programRuleActionService.addProgramRuleAction( programRuleActionShowWarningForProgramStage );
+
+        programRuleI.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
+        programRuleService.updateProgramRule( programRuleI );
+    }
+
+    private void programStage2WrongDataElementWarningRule()
+    {
+        ProgramRule programRuleI = createProgramRule( 'I', program );
+        programRuleI.setProgramStage( programStage2 );
+        programRuleI.setUid( "programRulI" );
+        programRuleService.addProgramRule( programRuleI );
+
+        ProgramRuleAction programRuleActionShowWarningForProgramStage = createProgramRuleAction( 'B', programRuleI );
+        programRuleActionShowWarningForProgramStage.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
+        programRuleActionShowWarningForProgramStage.setContent( "PROGRAM STAGE WARNING" );
+        programRuleActionShowWarningForProgramStage.setDataElement( dataElement1 );
+        programRuleActionService.addProgramRuleAction( programRuleActionShowWarningForProgramStage );
+
+        programRuleI.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
+        programRuleService.updateProgramRule( programRuleI );
     }
 }
