@@ -77,7 +77,7 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         JsonDataIntegrityCheck thisCheck = GET( "/dataIntegrity/?checks=" + check ).content()
             .asList( JsonDataIntegrityCheck.class ).get( 0 );
         String detailsType = thisCheck.getIssuesIdType();
-        assertEquals( detailsType, detailsIdType );
+        assertEquals( detailsIdType, detailsType );
 
         assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
         assertHasDataIntegrityIssues( detailsIdType, check, 100, dashboard_uid, "Test Dashboard", null, true );
