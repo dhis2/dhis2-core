@@ -51,7 +51,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -59,7 +59,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
+@Service( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
 @RequiredArgsConstructor
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner

@@ -1647,10 +1647,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
                     && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
-                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
+                        relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
-
-                    trackedEntityInstance.getRelationships().add( relationship );
+                    relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );
                 }
             }
         }
@@ -1664,7 +1664,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 {
                     trackedEntityInstance.getEnrollments()
                         .add( enrollmentService.getEnrollment( user, programInstance,
-                            params.getTeiEnrollmentParams().getEnrollmentParams(), true ) );
+                            params.getEnrollmentParams(), true ) );
                 }
             }
         }

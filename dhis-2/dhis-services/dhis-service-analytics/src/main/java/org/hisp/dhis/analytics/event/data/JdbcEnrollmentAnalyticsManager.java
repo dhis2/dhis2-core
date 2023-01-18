@@ -76,7 +76,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
 
@@ -84,7 +84,7 @@ import com.google.common.collect.Sets;
  * @author Markus Bekken
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
@@ -235,7 +235,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderTimeFieldSql( params );
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units

@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -357,7 +358,7 @@ public abstract class AbstractEnrollmentService
                 {
                     enrollment.getEvents().add(
                         eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
-                            true ) );
+                            params.getEnrollmentEventsParams().getEventParams() ) );
                 }
             }
         }
@@ -370,9 +371,10 @@ public abstract class AbstractEnrollmentService
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
                     && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
-                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
+                        relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
-                    enrollment.getRelationships().add( relationship );
+                    relationship.ifPresent( r -> enrollment.getRelationships().add( r ) );
                 }
             }
         }
