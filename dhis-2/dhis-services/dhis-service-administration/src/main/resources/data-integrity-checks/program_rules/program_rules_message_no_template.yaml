@@ -49,7 +49,7 @@ severity: SEVERE
 introduction: >
     Program rule actions of type "Send message" or "Schedule message"
     should have an associated message template.
-details_id_type: program_rules
+details_id_type: programRules
 recommendation: >
     Using the DHIS2 user interface, assign a message template to each
     of the program rule actions which send or schedule messages but

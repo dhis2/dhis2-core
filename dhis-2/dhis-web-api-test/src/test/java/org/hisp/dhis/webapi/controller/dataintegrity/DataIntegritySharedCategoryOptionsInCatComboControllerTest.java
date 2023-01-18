@@ -44,7 +44,9 @@ import org.junit.jupiter.api.Test;
 
 class DataIntegritySharedCategoryOptionsInCatComboControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "category_option_shared_within_category_combo";
+    private static final String check = "category_options_shared_within_category_combo";
+
+    private static final String detailsIDType = "categoryCombos";
 
     private String categoryColor;
 
@@ -81,7 +83,7 @@ class DataIntegritySharedCategoryOptionsInCatComboControllerTest extends Abstrac
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
 
-        assertHasDataIntegrityIssues( "categories", check, 100, testCatCombo, "Taste and color", null,
+        assertHasDataIntegrityIssues( detailsIDType, check, 100, testCatCombo, "Taste and color", null,
             true );
 
     }
@@ -107,7 +109,7 @@ class DataIntegritySharedCategoryOptionsInCatComboControllerTest extends Abstrac
             POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
 
     }
 

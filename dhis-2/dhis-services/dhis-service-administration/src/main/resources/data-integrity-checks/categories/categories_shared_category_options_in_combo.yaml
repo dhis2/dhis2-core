@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: s9rs1qOwn0C
-name: category_option_shared_within_category_combo
+name: category_options_shared_within_category_combo
 description:  Category combinations with categories which share the same category options.
 section: Categories
 section_order: 7
@@ -54,15 +54,13 @@ details_sql: >-
     co_name as comment from category_option_multiple_member_category;
 severity: SEVERE
 introduction: >
-    Category options should usually be reused where possible between categories. The exception
+    As a general rule, category options should be reused where possible between categories. The exception
     to this rule however, is when you have a category combo with multiple categories, and within those
     categories, a category option is shared. As a simple example, lets say you have a category called "Sex" with
     options "Male"", "Female" and "Unknown". There is also a second category called "Age" with options "<15", "15+",
     and "Unknown". A category combination called "Age/Sex" is then created with these two categories, which share
-    the option "Unknown". 
-    
-    This situation should be avoided, as it creates issues when analyzing data.
-details_id_type: categories
+    the option "Unknown". This situation should be avoided, as it creates issues when analyzing data.
+details_id_type: categoryCombos
 recommendation: >
     The recommended approach to dealing with this situation is to create a new category combination, using two new categories.
     Using the example from the introduction, you should create two new category options called "Unknown age" and "Unknown sex".
