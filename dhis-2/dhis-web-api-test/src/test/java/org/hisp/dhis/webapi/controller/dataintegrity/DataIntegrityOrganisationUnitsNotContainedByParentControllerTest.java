@@ -43,8 +43,6 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private String clinicA;
-
     private String clinicB;
 
     private String districtA;
@@ -62,7 +60,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'District A', 'shortName': 'District A', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
@@ -87,7 +85,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'District A', 'shortName': 'District A', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
 
-        clinicA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
                     "'parent': {'id' : '" + districtA + "'}, " +

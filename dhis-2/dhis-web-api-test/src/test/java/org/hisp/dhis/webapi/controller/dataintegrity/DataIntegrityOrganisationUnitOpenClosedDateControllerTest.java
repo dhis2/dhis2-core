@@ -46,12 +46,6 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
     @Autowired
     private OrganisationUnitService orgUnitService;
 
-    private OrganisationUnit unitA;
-
-    private OrganisationUnit unitB;
-
-    private OrganisationUnit unitC;
-
     private static final String check = "orgunits_openingdate_gt_closeddate";
 
     private static final String detailsIdType = "organisationUnits";
@@ -60,17 +54,17 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
     void testOrgUnitOpeningDateAfterClosedDate()
     {
 
-        unitA = createOrganisationUnit( 'A' );
+        OrganisationUnit unitA = createOrganisationUnit( 'A' );
         unitA.setOpeningDate( getDate( "2022-01-01" ) );
         unitA.setClosedDate( getDate( "2020-01-01" ) );
         orgUnitService.addOrganisationUnit( unitA );
 
-        unitB = createOrganisationUnit( 'B' );
+        OrganisationUnit unitB = createOrganisationUnit( 'B' );
         unitB.setOpeningDate( getDate( "2022-01-01" ) );
         unitB.setClosedDate( getDate( "2023-01-01" ) );
         orgUnitService.addOrganisationUnit( unitB );
 
-        unitC = createOrganisationUnit( 'C' );
+        OrganisationUnit unitC = createOrganisationUnit( 'C' );
         unitC.setOpeningDate( getDate( "2022-01-01" ) );
         unitC.setClosedDate( null );
         orgUnitService.addOrganisationUnit( unitC );

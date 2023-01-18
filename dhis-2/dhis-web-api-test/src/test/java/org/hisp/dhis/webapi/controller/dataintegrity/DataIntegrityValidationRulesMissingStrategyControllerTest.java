@@ -53,7 +53,7 @@ class DataIntegrityValidationRulesMissingStrategyControllerTest extends Abstract
     void testValidationRulesWithNoStrategyExist()
     {
 
-        String ruleMissingStrategy = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/validationRules",
                 "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
                     + "" +

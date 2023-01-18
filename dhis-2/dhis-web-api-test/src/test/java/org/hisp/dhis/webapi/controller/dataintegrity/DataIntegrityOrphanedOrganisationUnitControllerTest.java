@@ -45,10 +45,6 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
 
     private String orgunitA;
 
-    private String orgunitB;
-
-    private String orgunitC;
-
     private static final String check = "orgunits_orphaned";
 
     private static final String detailsIdType = "organisationUnits";
@@ -61,13 +57,13 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
         /* Create the orphaned organisation unit */
-        orgunitC = assertStatus( HttpStatus.CREATED,
+        String orgunitC = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
@@ -83,7 +79,7 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
