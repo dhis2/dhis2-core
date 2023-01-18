@@ -97,7 +97,7 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
     @Test
     void testRunSummaryCheck_WithBody()
     {
-        JsonObject trigger = POST( "/dataIntegrity/summary", "['IN']" ).content(); // indicator_noanalysis
+        JsonObject trigger = POST( "/dataIntegrity/summary", "['INA']" ).content(); // indicator_no_analysis
         assertTrue( trigger.isA( JsonWebMessage.class ) );
 
         // wait for check to complete
@@ -106,6 +106,6 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertTrue( details.isObject() );
 
         assertTrue(
-            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "indicator_noanalysis" ) );
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "indicator_no_analysis" ) );
     }
 }
