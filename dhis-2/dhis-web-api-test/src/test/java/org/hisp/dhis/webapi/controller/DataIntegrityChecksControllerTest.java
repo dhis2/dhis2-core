@@ -97,7 +97,7 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerT
         JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=program*" ).content()
             .asList( JsonDataIntegrityCheck.class );
         assertTrue( checks.size() > 0, "there should be matches" );
-        checks.forEach( check -> assertTrue( check.getSection().startsWith( "Program" ) ) );
+        checks.forEach( check -> assertTrue( check.getName().toLowerCase().startsWith( "program" ) ) );
     }
 
     @Test
