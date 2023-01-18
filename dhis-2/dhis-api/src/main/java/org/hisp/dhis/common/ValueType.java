@@ -54,6 +54,7 @@ public enum ValueType
 {
     TEXT( String.class, true ),
     LONG_TEXT( String.class, true ),
+    MULTI_TEXT( String.class, true ),
     LETTER( String.class, true ),
     PHONE_NUMBER( String.class, false ),
     EMAIL( String.class, false ),
@@ -78,8 +79,7 @@ public enum ValueType
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
-    GEOJSON( String.class, false ),
-    MULTI_TEXT( String.class, true );
+    GEOJSON( String.class, false );
 
     /**
      * The character used to separate values in a multi-text value.
