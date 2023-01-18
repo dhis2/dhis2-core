@@ -316,7 +316,7 @@ public abstract class AbstractEventService implements EventService
         }
         else
         {
-            pager = handleLastPageFlag( params, eventList, organisationUnits );
+            pager = handleLastPageFlag( params, eventList );
         }
 
         events.setPager( pager );
