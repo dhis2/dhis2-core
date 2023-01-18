@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -52,15 +52,9 @@ import com.google.common.base.Joiner;
  * @author Dusan Bernat
  */
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CategoryOptionGroupResolver implements ExpressionResolver
 {
-    private final ExpressionService expressionService;
-
-    private final CategoryOptionGroupStore categoryOptionGroupStore;
-
-    private final CategoryOptionComboStore categoryOptionComboStore;
-
     private static final String LEFT_BRACKET = "(";
 
     private static final String RIGHT_BRACKET = ")";
@@ -70,6 +64,12 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
     private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
 
     private static final String EMPTY_STRING = "";
+
+    private final ExpressionService expressionService;
+
+    private final CategoryOptionGroupStore categoryOptionGroupStore;
+
+    private final CategoryOptionComboStore categoryOptionComboStore;
 
     @Override
     public String resolve( String expression )

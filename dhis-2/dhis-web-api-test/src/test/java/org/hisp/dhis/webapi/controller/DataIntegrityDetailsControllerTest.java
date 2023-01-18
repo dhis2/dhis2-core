@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
@@ -95,7 +93,8 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
             .content().as( JsonDataIntegrityDetails.class );
         assertNotNull( details );
 
-        assertEquals( List.of( "categories_no_options" ),
-            GET( "/dataIntegrity/details/completed" ).content().stringValues() );
+        //OBS! The result is based on application scoped map so there might be other values from other tests
+        assertTrue(
+            GET( "/dataIntegrity/details/completed" ).content().stringValues().contains( "categories_no_options" ) );
     }
 }
