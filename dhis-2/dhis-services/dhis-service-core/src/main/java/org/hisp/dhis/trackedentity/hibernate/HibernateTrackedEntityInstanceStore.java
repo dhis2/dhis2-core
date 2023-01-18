@@ -1268,29 +1268,11 @@ public class HibernateTrackedEntityInstanceStore
         Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
         if ( !isGridQuery || !sortableAttributesAndFilters.isEmpty() )
         {
-            List<String> orderFields = new ArrayList<>();
-
-            for ( OrderParam order : params.getOrders() )
-            {
-                Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( order.getField() );
-
-                if ( orderColumn.isPresent() )
-                {
-                    String orderField = innerOrder
-                        ? orderColumn.get().getSqlColumnWithTableAlias()
-                        : orderColumn.get().getSqlColumnWithMainTable();
-
-                    orderFields.add( orderField + SPACE + order.getDirection() );
-                }
-                else if ( sortableAttributesAndFilters.stream()
-                    .anyMatch( i -> i.getItem().getUid().equals( order.getField() ) ) )
-                {
-                    String orderField = innerOrder ? statementBuilder.columnQuote( order.getField() ) + ".value "
-                        : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote( order.getField() );
-
-                    orderFields.add( orderField + SPACE + order.getDirection() );
-                }
-            }
+            List<String> orderFields = params.getOrders().stream()
+                .map( orderParam -> buildOrderByStatement( orderParam, innerOrder, sortableAttributesAndFilters ) )
+                .filter( Optional::isPresent )
+                .map( Optional::get )
+                .collect( Collectors.toList() );
 
             if ( !orderFields.isEmpty() )
             {
@@ -1305,6 +1287,39 @@ public class HibernateTrackedEntityInstanceStore
         {
             return "";
         }
+    }
+
+    /**
+     * Builds the order by statement based on the order parameters
+     *
+     * @param order
+     * @param innerOrder
+     * @param sortableAttributesAndFilters
+     * @return the order by statement
+     */
+    private Optional<String> buildOrderByStatement( OrderParam order, boolean innerOrder,
+        Set<QueryItem> sortableAttributesAndFilters )
+    {
+        Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( order.getField() );
+
+        if ( orderColumn.isPresent() )
+        {
+            String orderField = innerOrder
+                ? orderColumn.get().getSqlColumnWithTableAlias()
+                : orderColumn.get().getSqlColumnWithMainTable();
+
+            return Optional.of( orderField + SPACE + order.getDirection() );
+        }
+        else if ( sortableAttributesAndFilters.stream()
+            .anyMatch( i -> i.getItem().getUid().equals( order.getField() ) ) )
+        {
+            String orderField = innerOrder ? statementBuilder.columnQuote( order.getField() ) + ".value "
+                : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote( order.getField() );
+
+            return Optional.of( orderField + SPACE + order.getDirection() );
+        }
+
+        return Optional.empty();
     }
 
     /**
