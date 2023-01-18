@@ -313,6 +313,7 @@ public class EventQueryParams
         params.displayProperty = this.displayProperty;
         params.aggregationType = this.aggregationType;
         params.hierarchyMeta = this.hierarchyMeta;
+        params.showHierarchy = this.showHierarchy;
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
