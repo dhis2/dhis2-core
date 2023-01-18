@@ -46,7 +46,7 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
 
     private static final String check = "indicator_group_sets_scarce";
 
-    private static final String detailsIDType = "indicatorGroupSets";
+    private static final String detailsIdType = "indicatorGroupSets";
 
     private String indicatorGroupA;
 
@@ -64,7 +64,7 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
             POST( "/indicatorGroupSets",
                 "{ 'name' : 'IGS2', 'shortName' : 'IGS2' }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( indicatorGroupSetA, indicatorGroupSetB ), Set.of( "IGS1", "IGS2" ), Set.of( "0", "1" ), true );
     }
 
@@ -74,13 +74,13 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testIndicatorsInGroupsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     void setUpTest()

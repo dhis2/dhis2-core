@@ -54,7 +54,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
 
     private static final String check = "orgunits_openingdate_gt_closeddate";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgUnitOpeningDateAfterClosedDate()
@@ -77,7 +77,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
 
         dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 33, unitA.getUid(), unitA.getName(), null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 33, unitA.getUid(), unitA.getName(), null, true );
     }
 
     @Test
@@ -94,14 +94,14 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgunitsOpenClosedDateRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

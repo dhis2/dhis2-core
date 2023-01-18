@@ -52,7 +52,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
 
     private static final String check = "orgunit_group_sets_excess_groups";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrganisationUnitInMultipleGroupSetGroups()
@@ -84,7 +84,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, orgunitB, "Pizza District", "Type", true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true );
 
     }
 
@@ -118,14 +118,14 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrganisationMultipleGroupsInGroupSetDivideByZero()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

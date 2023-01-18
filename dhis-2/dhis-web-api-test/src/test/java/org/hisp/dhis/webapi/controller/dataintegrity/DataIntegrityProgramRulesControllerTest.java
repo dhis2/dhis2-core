@@ -65,7 +65,7 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
 
     private ProgramStage programStageA;
 
-    private static final String detailsIDType = "programRules";
+    private static final String detailsIdType = "programRules";
 
     @Test
     void testProgramRuleNoAction()
@@ -78,18 +78,18 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
 
         dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIDType, "program_rules_no_action", 100, programRuleA.getUid(),
+        assertHasDataIntegrityIssues( detailsIdType, "program_rules_no_action", 100, programRuleA.getUid(),
             programRuleA.getName(), null, true );
-        assertHasDataIntegrityIssues( detailsIDType, "program_rules_no_expression", 100, programRuleA.getUid(),
+        assertHasDataIntegrityIssues( detailsIdType, "program_rules_no_expression", 100, programRuleA.getUid(),
             programRuleA.getName(), null, true );
     }
 
     @Test
     void testProgramRuleChecksRun()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, "program_rules_no_action", false );
-        assertHasNoDataIntegrityIssues( detailsIDType, "program_rules_no_expression", false );
-        assertHasNoDataIntegrityIssues( detailsIDType, "program_rules_message_no_template", false );
+        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_no_action", false );
+        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_no_expression", false );
+        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_message_no_template", false );
     }
 
     @Test
@@ -108,7 +108,7 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
 
         dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIDType, "program_rules_message_no_template", 100, programRuleA.getUid(),
+        assertHasDataIntegrityIssues( detailsIdType, "program_rules_message_no_template", 100, programRuleA.getUid(),
             programRuleA.getName(), null, true );
 
     }

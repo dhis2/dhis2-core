@@ -44,7 +44,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
 {
     private static final String check = "program_indicator_groups_scarce";
 
-    private static final String detailsIDType = "programIndicatorGroups";
+    private static final String detailsIdType = "programIndicatorGroups";
 
     @Autowired
     private ProgramIndicatorService programIndicatorService;
@@ -75,7 +75,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         Set<String> expected_uids = Set.of( programIndicatorGroupC.getUid(), programIndicatorGroupB.getUid() );
         Set<String> expected_names = Set.of( programIndicatorGroupC.getName(), programIndicatorGroupB.getName() );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66, expected_uids, expected_names,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, expected_uids, expected_names,
             Set.of( "0", "1" ), true );
     }
 
@@ -87,7 +87,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -95,7 +95,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     void testProgramIndicatorGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

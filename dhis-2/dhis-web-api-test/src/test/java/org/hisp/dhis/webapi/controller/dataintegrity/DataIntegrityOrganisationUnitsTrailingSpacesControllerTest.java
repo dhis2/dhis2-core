@@ -59,7 +59,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
 
     private static final String check = "orgunits_trailing_spaces";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void DataIntegrityOrganisationUnitsTrailingSpacesTest()
@@ -90,7 +90,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
         Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
         Set<String> orgunitNames = Set.of( unitA.getName(), unitB.getName() );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
     }
 
     @Test
@@ -100,13 +100,13 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testOrgunitsTrailingSpacesZeroCase()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

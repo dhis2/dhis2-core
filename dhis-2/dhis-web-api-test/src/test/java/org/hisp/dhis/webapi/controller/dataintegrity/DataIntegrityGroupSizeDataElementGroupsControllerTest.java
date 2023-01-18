@@ -45,7 +45,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
 {
     private static final String check = "data_element_groups_scarce";
 
-    private static final String detailsIDType = "dataElementGroups";
+    private static final String detailsIdType = "dataElementGroups";
 
     private String dataElementA;
 
@@ -70,7 +70,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
             POST( "/dataElementGroups",
                 "{ 'name': 'Morbidity', 'shortName': 'Morbidity' }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( dataElementGroupB, dataElementGroupC ), Set.of( "ANC", "Morbidity" ), Set.of( "0", "1" ),
             true );
 
@@ -86,7 +86,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
                 "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
                     "'dataElements':[{'id':'" + dataElementA + "'},{'id': '" + dataElementB + "'}]}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -94,7 +94,7 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
     void testDataElementGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

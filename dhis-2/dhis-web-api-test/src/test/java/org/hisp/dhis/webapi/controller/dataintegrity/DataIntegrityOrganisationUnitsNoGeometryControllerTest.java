@@ -51,7 +51,7 @@ class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDat
 
     private static final String check = "orgunits_no_coordinates";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgunitsNoGeometry()
@@ -72,8 +72,8 @@ class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDat
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        assertNamedMetadataObjectExists( detailsIDType, "Clinic B" );
-        assertHasDataIntegrityIssues( detailsIDType, check, 33, districtA, "Offgrid District", "1", true );
+        assertNamedMetadataObjectExists( detailsIdType, "Clinic B" );
+        assertHasDataIntegrityIssues( detailsIdType, check, 33, districtA, "Offgrid District", "1", true );
 
     }
 
@@ -98,14 +98,14 @@ class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDat
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgunitsNoGeometryDivideByZero()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

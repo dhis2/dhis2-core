@@ -51,7 +51,7 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
 
     private static final String check = "orgunits_orphaned";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrphanedOrganisationUnits()
@@ -71,7 +71,7 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check,
+        assertHasDataIntegrityIssues( detailsIdType, check,
             33, orgunitC, "Cupcake District", null, true );
 
     }
@@ -88,14 +88,14 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrphansZeroCase()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

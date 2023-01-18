@@ -44,7 +44,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
 {
     private final String check = "data_elements_aggregate_aggregation_operator";
 
-    private final String detailsIDType = "dataElements";
+    private final String detailsIdType = "dataElements";
 
     private String dataElementB;
 
@@ -58,7 +58,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
                 "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 33,
+        assertHasDataIntegrityIssues( detailsIdType, check, 33,
             dataElementB, "ANC3", null, true );
 
     }
@@ -74,7 +74,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
                 "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -82,7 +82,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
     void testDataElementsAggregationDividedByZero()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

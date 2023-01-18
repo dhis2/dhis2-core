@@ -45,7 +45,7 @@ class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends Abst
 {
     private static final String check = "orgunits_same_name_and_parent";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     private String orgunitA;
 
@@ -61,7 +61,7 @@ class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends Abst
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2023-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66, Set.of( orgunitB, orgunitC ),
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( orgunitB, orgunitC ),
             Set.of( "Pizza District" ),
             Set.of(), true );
     }
@@ -75,13 +75,13 @@ class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends Abst
                 "{ 'name': 'Taco District', 'shortName': 'Taco District', 'openingDate' : '2023-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testOrgunitsSameNameParentZeroCase()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

@@ -47,7 +47,7 @@ class DataIntegrityValidationRulesMissingStrategyControllerTest extends Abstract
 
     private static final String check = "validation_rules_missing_value_strategy_null";
 
-    private static final String detailsIDType = "validationRules";
+    private static final String detailsIdType = "validationRules";
 
     @Test
     void testValidationRulesWithNoStrategyExist()
@@ -61,13 +61,13 @@ class DataIntegrityValidationRulesMissingStrategyControllerTest extends Abstract
                     "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
                     "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testValidationRulesMissingStrategyRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

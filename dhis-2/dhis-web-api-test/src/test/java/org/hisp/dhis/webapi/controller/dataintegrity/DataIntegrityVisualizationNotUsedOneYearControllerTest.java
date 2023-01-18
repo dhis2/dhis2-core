@@ -62,7 +62,7 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
 
     private static final String check = "visualizations_not_viewed_one_year";
 
-    private static final String detailsIDType = "visualizations";
+    private static final String detailsIdType = "visualizations";
 
     private static final String viz_uid = "YngaQVeOC44";
 
@@ -76,7 +76,7 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
         dataStatisticsEventStore.save( dse1 );
         dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 100, viz.getUid(), "myviz", null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, viz.getUid(), "myviz", null, true );
     }
 
     @Test
@@ -91,13 +91,13 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testUnusedVisualizationsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     @BeforeEach

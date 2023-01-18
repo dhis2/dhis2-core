@@ -45,7 +45,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
 {
     private final String check = "category_option_groups_scarce";
 
-    private static final String detailsIDType = "categoryOptionGroups";
+    private static final String detailsIdType = "categoryOptionGroups";
 
     @Test
     void testCategoryOptionGroupSizeTooSmall()
@@ -65,7 +65,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
             POST( "/categoryOptionGroups",
                 "{ 'name': 'Nil', 'shortName': 'Nil' }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( categoryOptionGroupColors, categoryOptionGroupNil ), Set.of( "Taste", "Nil" ), Set.of( "0", "1" ),
             true );
 
@@ -76,7 +76,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     {
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -84,7 +84,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest extends AbstractD
     void testCategoryOptionGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

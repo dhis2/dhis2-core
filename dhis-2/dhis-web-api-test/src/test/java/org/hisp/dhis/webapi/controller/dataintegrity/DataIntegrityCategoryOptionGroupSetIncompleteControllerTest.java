@@ -44,7 +44,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
 {
     private final String check = "category_option_group_sets_incomplete";
 
-    private final String detailsIDType = "categoryOptionGroupSets";
+    private final String detailsIdType = "categoryOptionGroupSets";
 
     private String categoryOptionBlue;
 
@@ -73,7 +73,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
                 "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '" +
                     warmGroup + "'}, {'id' : '" + coldGroup + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, testCatOptionGroupSet, "Color set", "Yellow",
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, testCatOptionGroupSet, "Color set", "Yellow",
             true );
 
     }
@@ -98,7 +98,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
                 "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '" +
                     warmGroup + "'}, {'id' : '" + coldGroup + "'}]}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -106,7 +106,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
     void testCategoryOptionsInGroupRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

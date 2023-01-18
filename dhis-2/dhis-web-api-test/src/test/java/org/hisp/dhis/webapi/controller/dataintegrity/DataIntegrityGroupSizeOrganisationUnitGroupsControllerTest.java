@@ -44,7 +44,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
 {
     private static final String check = "orgunit_groups_scarce";
 
-    private static final String detailsIDType = "organisationUnitGroups";
+    private static final String detailsIdType = "organisationUnitGroups";
 
     private String orgunitB;
 
@@ -63,7 +63,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
             POST( "/organisationUnitGroups",
                 "{'name': 'Type C', 'shortName': 'Type C' }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
             Set.of( "Type B", "Type C" ), Set.of( "0", "1" ), true );
 
     }
@@ -74,7 +74,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -82,7 +82,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
     void testOrgunitGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

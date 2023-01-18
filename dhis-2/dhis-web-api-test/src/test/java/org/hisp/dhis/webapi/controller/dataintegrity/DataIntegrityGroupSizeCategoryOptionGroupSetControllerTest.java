@@ -45,7 +45,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest extends Abstrac
 {
     private static final String check = "category_option_group_sets_scarce";
 
-    private static final String detailsIDType = "categoryOptionGroupSets";
+    private static final String detailsIdType = "categoryOptionGroupSets";
 
     private String categoryOptionGroupTaste;
 
@@ -64,7 +64,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest extends Abstrac
             POST( "/categoryOptionGroupSets",
                 "{ 'name': 'Nil', 'shortName': 'Nil' }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( categoryOptionGroupSetOne, categoryOptionGroupSetNil ), Set.of( "One", "Nil" ), Set.of( "0", "1" ),
             true );
 
@@ -75,7 +75,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest extends Abstrac
     {
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -83,7 +83,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest extends Abstrac
     void testCategoryOptionGroupSetSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

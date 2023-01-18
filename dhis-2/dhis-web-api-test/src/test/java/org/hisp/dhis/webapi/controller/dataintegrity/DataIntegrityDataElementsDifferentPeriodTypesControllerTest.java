@@ -43,7 +43,7 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
 {
     private final String check = "data_elements_aggregate_with_different_period_types";
 
-    private final String detailsIDType = "dataElements";
+    private final String detailsIdType = "dataElements";
 
     private String dataElementA;
 
@@ -63,7 +63,7 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", datasetMetadata ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 100,
+        assertHasDataIntegrityIssues( detailsIdType, check, 100,
             dataElementA, "ANC1", "Test Weekly", true );
 
     }
@@ -81,14 +81,14 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", datasetMetadata ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testDataElementPeriodTypeCheckRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     void setUpTest()

@@ -47,7 +47,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
 {
     private static final String check = "data_elements_aggregate_no_data";
 
-    private static final String detailsIDType = "dataElements";
+    private static final String detailsIdType = "dataElements";
 
     private String dataElementA;
 
@@ -71,7 +71,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -86,7 +86,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
             postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
         dbmsManager.clearSession();
         //One of the data elements should not have data
-        assertHasDataIntegrityIssues( detailsIDType, check, 50,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50,
             dataElementA, "ANC1", null, true );
 
     }
@@ -94,7 +94,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
     @Test
     void testDataElementsNoDataRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     void setUpTest()

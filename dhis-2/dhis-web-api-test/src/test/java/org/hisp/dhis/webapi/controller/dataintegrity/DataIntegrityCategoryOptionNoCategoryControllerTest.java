@@ -44,7 +44,7 @@ class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIn
 {
     private final String check = "category_options_no_categories";
 
-    private final String detailsIDType = "categoryOptions";
+    private final String detailsIdType = "categoryOptions";
 
     @Test
     void testCategoryOptionNoCategoriesExist()
@@ -60,7 +60,7 @@ class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIn
          * Note that the default category is implicit here, so the percentage
          * need to take that into account
          */
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, categoryOptionRed, "Red", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, categoryOptionRed, "Red", null,
             true );
 
     }
@@ -77,7 +77,7 @@ class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIn
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 

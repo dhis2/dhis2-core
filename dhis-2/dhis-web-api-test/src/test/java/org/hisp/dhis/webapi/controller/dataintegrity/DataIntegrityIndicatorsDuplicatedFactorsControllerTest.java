@@ -46,7 +46,7 @@ class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDat
 
     private static final String check = "indicator_types_duplicated";
 
-    private static final String detailsIDType = "indicatorTypes";
+    private static final String detailsIdType = "indicatorTypes";
 
     @Test
     void testDuplicatedIndicatorFactorsExist()
@@ -66,7 +66,7 @@ class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDat
         assertNamedMetadataObjectExists( "indicatorTypes", "Per cent" );
         assertNamedMetadataObjectExists( "indicatorTypes", "Per one hundred" );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66, Set.of( IndicatorA, IndicatorB ),
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( IndicatorA, IndicatorB ),
             Set.of(), Set.of(), true );
     }
 
@@ -82,13 +82,13 @@ class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDat
             POST( "/indicatorTypes",
                 "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testDuplicatedIndicatorFactorsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

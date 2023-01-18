@@ -48,7 +48,7 @@ class DataIntegrityCategoryOptionComboNoCatComboControllerTest extends AbstractD
 {
     private static final String check = "catoptioncombos_no_catcombo";
 
-    private static final String detailsIDType = "categoryOptionCombos";
+    private static final String detailsIdType = "categoryOptionCombos";
 
     @Test
     void testCategoryOptionCombosWithCatCombosExist()
@@ -81,7 +81,7 @@ class DataIntegrityCategoryOptionComboNoCatComboControllerTest extends AbstractD
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
 }

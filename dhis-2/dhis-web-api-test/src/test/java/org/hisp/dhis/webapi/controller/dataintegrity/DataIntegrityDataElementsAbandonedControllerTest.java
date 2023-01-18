@@ -51,7 +51,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
 {
     private static final String check = "data_elements_aggregate_abandoned";
 
-    private static final String detailsIDType = "dataElements";
+    private static final String detailsIdType = "dataElements";
 
     private static final String period = "202212";
 
@@ -61,7 +61,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -69,7 +69,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
     void testDataElementsAbandonedDividedByZero()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

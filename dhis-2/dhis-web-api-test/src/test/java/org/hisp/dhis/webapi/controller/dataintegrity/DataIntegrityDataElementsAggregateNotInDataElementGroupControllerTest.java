@@ -46,7 +46,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
 {
     private static final String check = "data_elements_aggregate_no_groups";
 
-    private static final String detailsIDType = "dataElements";
+    private static final String detailsIdType = "dataElements";
 
     private String dataElementA;
 
@@ -69,7 +69,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
         JsonList<JsonDataElement> des = deg.getDataElements();
         assertEquals( 1, des.size() );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, dataElementA, "ANC1", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, dataElementA, "ANC1", null,
             true );
 
     }
@@ -89,7 +89,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
         JsonList<JsonDataElement> des = deg.getDataElements();
         assertEquals( 2, des.size() );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -97,7 +97,7 @@ class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest exte
     void testDataElementsInGroupDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

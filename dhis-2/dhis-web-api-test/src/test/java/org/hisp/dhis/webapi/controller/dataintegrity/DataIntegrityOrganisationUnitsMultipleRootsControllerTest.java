@@ -44,7 +44,7 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
 {
     private static final String check = "orgunits_multiple_roots";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     private String nullIsland;
 
@@ -69,7 +69,7 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
         {
             orgUnitUIDs = Set.of( nullIsland, notNullIsland );
         }
-        assertHasDataIntegrityIssues( detailsIDType, check, 100, orgUnitUIDs, Set.of(), Set.of(),
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, orgUnitUIDs, Set.of(), Set.of(),
             true );
 
     }
@@ -89,14 +89,14 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
                     "'parent' : {'id': '" + nullIsland + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgUnitsMultipleRootsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

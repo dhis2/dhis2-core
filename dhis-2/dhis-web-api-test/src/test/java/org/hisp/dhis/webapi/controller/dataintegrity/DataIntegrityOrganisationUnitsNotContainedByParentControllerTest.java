@@ -51,7 +51,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     private static final String check = "orgunits_not_contained_by_parent";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgunitsNotContainedByParent()
@@ -74,7 +74,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, clinicB, "Clinic B", null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, clinicB, "Clinic B", null, true );
 
     }
 
@@ -98,14 +98,14 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgunitsContainedByParentDivideRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

@@ -45,7 +45,7 @@ class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataInte
 {
     private static final String check = "data_elements_aggregate_no_analysis";
 
-    private static final String detailsIDType = "dataElements";
+    private static final String detailsIdType = "dataElements";
 
     @Test
     void testDataElementNoAnalysis()
@@ -56,7 +56,7 @@ class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataInte
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 100,
+        assertHasDataIntegrityIssues( detailsIdType, check, 100,
             dataElementA, "ANC1", null, true );
 
     }
@@ -102,13 +102,13 @@ class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataInte
                     +
                     "'grandParentOrganisationUnit':false},'name':'Test viz'}" ) );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testDataElementHasAnalysisRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 }

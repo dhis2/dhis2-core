@@ -45,7 +45,7 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
     private static final String check = "orgunits_invalid_geometry";
 
-    private static final String detailsIDType = "organisationUnits";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgunitsInvalidGeometry()
@@ -57,7 +57,7 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
         createFacilities( districtA );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 33,
+        assertHasDataIntegrityIssues( detailsIdType, check, 33,
             districtA, "Bowtie District", "Self-intersection", true );
     }
 
@@ -72,14 +72,14 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
         createFacilities( districtA );
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

@@ -46,7 +46,7 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest extends Abs
 {
     private final String check = "cocs_wrong_cardinality";
 
-    private final String detailsIDType = "categoryOptionCombos";
+    private final String detailsIdType = "categoryOptionCombos";
 
     private String categoryColor;
 
@@ -62,7 +62,7 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest extends Abs
                 "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
                 "{'id' : '" + categoryColor + "'} ]} " ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 50, testCatCombo, "Taste and color", null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, testCatCombo, "Taste and color", null, true );
 
     }
 
@@ -71,7 +71,7 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest extends Abs
     {
 
         setupTest();
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 

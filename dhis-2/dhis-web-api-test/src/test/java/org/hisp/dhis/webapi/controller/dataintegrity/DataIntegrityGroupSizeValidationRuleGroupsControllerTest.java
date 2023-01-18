@@ -45,7 +45,7 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
 
     private static final String check = "validation_rule_groups_scarce";
 
-    private static final String detailsIDType = "validationRuleGroups";
+    private static final String detailsIdType = "validationRuleGroups";
 
     private String validationRuleA;
 
@@ -63,7 +63,7 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
             POST( "/validationRuleGroups",
                 "{ 'name' : 'None', 'shortName' : 'None'} " ) );
 
-        assertHasDataIntegrityIssues( detailsIDType, check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "One", "None" ), Set.of( "0", "1" ), true );
     }
 
@@ -73,13 +73,13 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testIndicatorsInGroupsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     void setUpTest()

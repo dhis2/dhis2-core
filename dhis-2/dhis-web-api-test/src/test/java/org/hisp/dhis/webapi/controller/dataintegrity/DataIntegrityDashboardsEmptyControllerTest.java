@@ -62,7 +62,7 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
 
     private static final String viz_uid = BASE_UID + "2";
 
-    private static final String detailsIDType = "dashboards";
+    private static final String detailsIdType = "dashboards";
 
     @Test
     void testUnusedDashboardExist()
@@ -77,10 +77,10 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         JsonDataIntegrityCheck thisCheck = GET( "/dataIntegrity/?checks=" + check ).content()
             .asList( JsonDataIntegrityCheck.class ).get( 0 );
         String detailsType = thisCheck.getIssuesIdType();
-        assertEquals( detailsType, detailsIDType );
+        assertEquals( detailsType, detailsIdType );
 
-        assertNamedMetadataObjectExists( detailsIDType, "Test Dashboard" );
-        assertHasDataIntegrityIssues( detailsIDType, check, 100, dashboard_uid, "Test Dashboard", null, true );
+        assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, dashboard_uid, "Test Dashboard", null, true );
     }
 
     @Test
@@ -104,13 +104,13 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         dashboardService.saveDashboard( dashboardA );
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIDType, check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testUnusedDashboardsRuns()
     {
-        assertHasNoDataIntegrityIssues( detailsIDType, check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }
