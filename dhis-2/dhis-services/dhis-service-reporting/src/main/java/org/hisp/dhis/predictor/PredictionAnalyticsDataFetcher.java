@@ -197,6 +197,11 @@ public class PredictionAnalyticsDataFetcher
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : null;
             Object vl = row.get( vlInx );
 
+            if ( vl instanceof Number && !(vl instanceof Double) )
+            {
+                vl = ((Number) vl).doubleValue();
+            }
+
             Period period = periodLookup.get( pe );
             DimensionalItemObject item = analyticsItemsLookup.get( dx );
             OrganisationUnit orgUnit = orgUnitLookup.get( ou );
