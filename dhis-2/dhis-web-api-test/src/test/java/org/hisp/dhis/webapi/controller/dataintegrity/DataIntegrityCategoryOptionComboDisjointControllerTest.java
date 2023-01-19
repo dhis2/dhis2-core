@@ -57,6 +57,8 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
 {
     private final String check = "category_option_combos_disjoint";
 
+    private final String detailsIdType = "categoryOptionCombos";
+
     private String categoryOptionSweet;
 
     @Test
@@ -82,7 +84,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
         catOptionCombos = response.getList( "categoryOptionCombos", JsonCategoryOptionCombo.class );
         assertEquals( 2, catOptionCombos.size() );
 
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
@@ -90,7 +92,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
     {
 
         setupTest();
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 

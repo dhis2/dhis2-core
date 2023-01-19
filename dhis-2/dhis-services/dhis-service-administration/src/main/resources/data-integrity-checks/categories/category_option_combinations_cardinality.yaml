@@ -72,7 +72,7 @@ introduction: >
     new category option combinations with three category options will be created and associated
     with this category combo. The original category option combinations would be considered to be
     invalid.
-details_id_type: categories
+details_id_type: categoryOptionCombos
 recommendation: >
     Category option combinations which have an incorrect cardinality will be ignored by the DHIS2
     analytics system and should be removed.

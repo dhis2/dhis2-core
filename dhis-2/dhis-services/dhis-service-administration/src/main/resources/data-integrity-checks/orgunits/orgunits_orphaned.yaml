@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: dXSwsjWqYd8
-name: orgunit_orphaned
+name: orgunits_orphaned
 description: Orphaned organisation units.
 section: Organisation units
 section_order: 9
@@ -59,7 +59,7 @@ details_sql: >-
       from organisationunit
       WHERE a.organisationunitid = parentid ) b on TRUE
   WHERE children_count = 0 );
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: CRITICAL
 introduction: >
   Orphaned organisation units are those which have neither parents nor any children.

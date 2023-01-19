@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: HJoHTRxcaVv
-name: orgunit_invalid_geometry
+name: orgunits_invalid_geometry
 description: Organisation units with invalid geometry.
 section: Organisation units
 section_order: 7
@@ -43,7 +43,7 @@ details_sql: >-
   SELECT uid,name,ST_IsValidReason(geometry) as comment from organisationunit
   where ST_IsValid(geometry) = FALSE
   ORDER BY name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: |
   DHIS2 uses the PostGIS database extension to manage the geographical information associated

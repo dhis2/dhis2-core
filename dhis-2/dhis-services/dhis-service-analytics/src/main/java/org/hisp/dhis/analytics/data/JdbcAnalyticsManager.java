@@ -95,7 +95,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableMap;
@@ -109,8 +109,8 @@ import com.google.common.collect.Maps;
  * @author Lars Helge Overland
  */
 @Slf4j
+@Service( "org.hisp.dhis.analytics.AnalyticsManager" )
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.analytics.AnalyticsManager" )
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
