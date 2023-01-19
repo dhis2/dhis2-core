@@ -363,7 +363,7 @@ public class JdbcEventStore implements EventStore
                 event.setProgram( rowSet.getString( "p_identifier" ) );
                 event.setProgramType( programType );
                 event.setProgramStage( rowSet.getString( "ps_identifier" ) );
-                event.setOrgUnit( rowSet.getString( "ou_identifier" ) );
+                event.setOrgUnit( rowSet.getString( "ou_uid" ) );
                 event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
 
                 if ( programType != ProgramType.WITHOUT_REGISTRATION )
@@ -657,7 +657,7 @@ public class JdbcEventStore implements EventStore
 
                 eventRow.setProgram( rowSet.getString( "p_identifier" ) );
                 eventRow.setProgramStage( rowSet.getString( "ps_identifier" ) );
-                eventRow.setOrgUnit( rowSet.getString( "ou_identifier" ) );
+                eventRow.setOrgUnit( rowSet.getString( "ou_uid" ) );
 
                 ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 

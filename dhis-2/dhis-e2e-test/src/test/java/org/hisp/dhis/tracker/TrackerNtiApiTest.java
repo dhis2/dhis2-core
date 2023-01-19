@@ -34,6 +34,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +55,8 @@ public class TrackerNtiApiTest
 
     protected TrackerActions trackerActions;
 
+    protected EventActions eventActions;
+
     protected ProgramActions programActions;
 
     protected LoginActions loginActions;
@@ -62,6 +65,7 @@ public class TrackerNtiApiTest
     public void beforeTrackerNti()
     {
         trackerActions = new TrackerActions();
+        eventActions = new EventActions();
         loginActions = new LoginActions();
         programActions = new ProgramActions();
     }

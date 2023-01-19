@@ -64,6 +64,12 @@ public class Query extends Criteria
 
     private boolean cacheable = true;
 
+    /**
+     * If this is TRUE then sharing predicates will not be added to current
+     * query's WHERE clause.
+     */
+    private boolean skipSharing;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -86,6 +92,7 @@ public class Query extends Criteria
         clone.setMaxResults( query.getMaxResults() );
         clone.add( query.getCriterions() );
         clone.setObjects( query.getObjects() );
+        clone.setSkipSharing( query.isSkipSharing() );
 
         return clone;
     }
@@ -239,6 +246,16 @@ public class Query extends Criteria
     {
         this.objects = objects;
         return this;
+    }
+
+    public boolean isSkipSharing()
+    {
+        return skipSharing;
+    }
+
+    public void setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
     }
 
     public Query addOrder( Order... orders )
