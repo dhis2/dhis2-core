@@ -61,8 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleAssignActionTest extends TrackerTest
 {
-    private static final String ENROLLMENT_UID = "TvctPPhpD8u";
-
     private static final String EVENT_UID = "D9PbzJY8bJO";
 
     @Autowired
@@ -84,10 +82,6 @@ class ProgramRuleAssignActionTest extends TrackerTest
 
     private DataElement dataElement1;
 
-    private ProgramStage programStageOnInsert;
-
-    private ProgramStage programStageOnComplete;
-
     @Override
     public void initTest()
         throws IOException
@@ -96,8 +90,6 @@ class ProgramRuleAssignActionTest extends TrackerTest
         program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
         dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
-        programStageOnInsert = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO" );
-        programStageOnComplete = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKS2" );
         ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
             dataElement2 );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
