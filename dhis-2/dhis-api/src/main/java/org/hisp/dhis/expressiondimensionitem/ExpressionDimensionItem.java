@@ -28,6 +28,7 @@
 package org.hisp.dhis.expressiondimensionitem;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -216,8 +217,9 @@ public class ExpressionDimensionItem
         return slidingWindow;
     }
 
-    public void setSlidingWindow( Boolean slidingWindow )
+    @Override
+    public DimensionItemType getDimensionItemType()
     {
-        this.slidingWindow = slidingWindow;
+        return DimensionItemType.EXPRESSION_DIMENSION_ITEM;
     }
 }
