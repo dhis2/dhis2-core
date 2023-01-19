@@ -225,7 +225,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows )
-            ? getMaybeAggregatedEventDataTableLayout( params, columns, rows )
+            ? getAggregatedEventDataTableLayout( params, columns, rows )
             : getAggregatedEventData( params );
     }
 
@@ -272,7 +272,7 @@ public class DefaultEventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    private Grid getMaybeAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
+    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
         List<String> rows )
     {
         params.removeProgramIndicatorItems();
@@ -390,7 +390,7 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            maybeAddValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
+            addValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
@@ -399,8 +399,10 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * return valid grid. Valid grid is first output grid with rows or the basic
-     * one
+     * Returns a valid grid.
+     *
+     * @param grid the {@link Grid}.
+     * @param outputGrid the output {@link Grid}.
      */
     private static Grid getGridWithRows( Grid grid, Grid outputGrid )
     {
@@ -408,15 +410,20 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * add values in output grid. Display objects are not empty if columns and
-     * rows are not epmty
+     * Adds values to the given output grid. Display objects are not empty if
+     * columns and rows are not empty.
+     *
+     * @param rowDimensions the list of row dimensions.
+     * @param grid the {@link Grid}.
+     * @param displayObjects the map of display objects.
+     * @param params the {@link EventQueryParams}.
      */
-    private static void maybeAddValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+    private static void addValuesInOutputGrid( List<String> rowDimensions, Grid grid,
         Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
     {
         if ( !displayObjects.isEmpty() )
         {
-            rowDimensions.forEach( dimension -> outputGrid
+            rowDimensions.forEach( dimension -> grid
                 .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
         }
     }
@@ -621,10 +628,10 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        maybeApplyIdScheme( params, grid );
+        applyIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
-        // Meta-data
+        // Meta-ata
         // ---------------------------------------------------------------------
 
         addMetadata( params, grid );
