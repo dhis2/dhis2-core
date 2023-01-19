@@ -1115,6 +1115,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return "";
         }
+
         return hlp.whereAnd() + " " + String.join( AND, sqlConditionByGroup.values() );
     }
 
@@ -1128,6 +1129,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return conditions.stream().collect( joiner );
         }
+
         return "";
     }
 
