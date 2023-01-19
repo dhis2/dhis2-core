@@ -28,7 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparing;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -103,7 +103,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
-import io.debezium.util.Strings;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -555,7 +554,7 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        return "SELECT " + Strings.join( ", ", columns );
+        return "SELECT " + String.join( ", ", columns );
     }
 
     /**
