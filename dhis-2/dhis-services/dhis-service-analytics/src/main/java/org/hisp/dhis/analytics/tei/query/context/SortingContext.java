@@ -170,7 +170,7 @@ public class SortingContext
             // desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
             return builder
-                .order( () -> Field.of( TEI_ALIAS,
+                .order( () -> Field.ofUnquotedField( TEI_ALIAS,
                     () -> column + SPACE + param.getSortDirection().name(),
                     EMPTY )
                     .render() );

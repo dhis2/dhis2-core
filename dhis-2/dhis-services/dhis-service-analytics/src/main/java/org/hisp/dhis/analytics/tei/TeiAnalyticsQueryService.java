@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING;
+import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.springframework.util.Assert.notNull;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.GridAdaptor;
@@ -39,6 +44,9 @@ import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.tei.query.TeiFullQuery;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.QueryRuntimeException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,6 +56,7 @@ import org.springframework.stereotype.Service;
  * @author maikel arabori
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService
 {
@@ -64,15 +73,27 @@ public class TeiAnalyticsQueryService
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
-    public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
+    public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
     {
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
-        // output should look like: https://pastebin.com/4aK9ZxEQ
-
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
-        final SqlQueryResult result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );
+        QueryContext queryContext = QueryContext.of( teiQueryParams );
+        SqlQueryResult result = null;
+
+        try
+        {
+            result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.info( ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( E7131.getMessage(), ex );
+            throw new QueryRuntimeException( E7131 );
+        }
 
         return gridAdaptor.createGrid( result, teiQueryParams, commonQueryRequest );
     }

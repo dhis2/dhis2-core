@@ -125,7 +125,7 @@ class OrganisationUnitConditionTest
                 "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
                 "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
                 "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.ou = :3)",
+                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" = :3)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -163,7 +163,7 @@ class OrganisationUnitConditionTest
                 "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
                 "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
                 "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.ou in (:3))",
+                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" in (:3))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -198,7 +198,7 @@ class OrganisationUnitConditionTest
                 "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
                 "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
                 "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr where enr.ou = :2)",
+                "enr where enr.\"ou\" = :2)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -231,7 +231,7 @@ class OrganisationUnitConditionTest
                 "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
                 "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
                 "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr where enr.ou in (:2))",
+                "enr where enr.\"ou\" in (:2))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );

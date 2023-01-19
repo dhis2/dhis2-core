@@ -62,6 +62,6 @@ public enum SortDirection
 
     public boolean isAscending()
     {
-        return this.equals( ASC ) || this.equals( IASC );
+        return this == ASC || this == IASC;
     }
 }

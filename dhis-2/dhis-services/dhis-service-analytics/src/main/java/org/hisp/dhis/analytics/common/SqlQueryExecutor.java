@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.common;
 
 import static org.springframework.util.Assert.notNull;
 
+import javax.annotation.Nonnull;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -45,8 +47,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
 {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public SqlQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
+    public SqlQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         notNull( jdbcTemplate, "jdbcTemplate cannot be null" );
 
@@ -57,11 +58,11 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public SqlQueryResult execute( final SqlQuery query )
+    public SqlQueryResult execute( @Nonnull SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.getStatement(),
+        SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.getStatement(),
             new MapSqlParameterSource().addValues( query.getParams() ) );
 
         return new SqlQueryResult( rowSet );

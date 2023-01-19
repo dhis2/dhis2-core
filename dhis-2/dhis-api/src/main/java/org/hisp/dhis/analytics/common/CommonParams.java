@@ -78,7 +78,7 @@ public class CommonParams
      * The object that groups the paging and sorting parameters.
      */
     @Builder.Default
-    private final AnalyticsPagingParams pagingAndSortingParams = AnalyticsPagingParams.builder().build();
+    private final AnalyticsPagingParams pagingParams = AnalyticsPagingParams.builder().build();
 
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );

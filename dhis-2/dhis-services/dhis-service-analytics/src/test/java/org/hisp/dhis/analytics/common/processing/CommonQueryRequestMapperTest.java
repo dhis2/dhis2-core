@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -44,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -101,7 +103,7 @@ class CommonQueryRequestMapperTest
 
         List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
-        List<Program> programs = List.of( program1, program2 );
+        List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
@@ -114,15 +116,15 @@ class CommonQueryRequestMapperTest
 
         CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withProgram( Set.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
-            .withDimension( Set.of( dimension + ":" + queryItem ) );
+            .withProgram( new HashSet<>( asList( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) ) )
+            .withDimension( new HashSet<>( asList( dimension + ":" + queryItem ) ) );
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
                 .thenReturn( dimensionalObject );
 
         // When
@@ -144,7 +146,7 @@ class CommonQueryRequestMapperTest
             "Program offset should be 1." );
         assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingAndSortingParams().isEmpty(), "Paging and sorting should not be empty." );
+        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
 
     @Test
@@ -206,7 +208,7 @@ class CommonQueryRequestMapperTest
             "Program offset should be 1." );
         assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingAndSortingParams().isEmpty(), "Paging and sorting should not be empty." );
+        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
 
     @Test
@@ -223,9 +225,9 @@ class CommonQueryRequestMapperTest
         String queryItemFilter = "PEZNsGbZaVJ";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
         String queryItemDimension = "EQ:john";
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
+        List<OrganisationUnit> organisationUnits = asList( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
-        List<Program> programs = List.of( program1, program2 );
+        List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
@@ -245,22 +247,22 @@ class CommonQueryRequestMapperTest
 
         CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( queryItemFilter )
-            .withProgram( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
-            .withDimension( Set.of( dimension + ":" + queryItemDimension ) )
-            .withFilter( Set.of( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) );
+            .withProgram( new HashSet<>( asList( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) ) )
+            .withDimension( new HashSet<>( asList( dimension + ":" + queryItemDimension ) ) )
+            .withFilter( new HashSet<>( asList( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) ) );
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            List.of( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            asList( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
             UID )) ).thenReturn( dimensionalObject );
 
         when( dimensionIdentifierConverter.fromString( programs, orgUnitDimension ) )
             .thenReturn( ouDimensionIdentifier );
         when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
-            List.of( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
+            asList( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
                 .thenReturn( orgUnitObject );
 
         // When
@@ -282,7 +284,7 @@ class CommonQueryRequestMapperTest
             "Program offset should be 1." );
         assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingAndSortingParams().isEmpty(), "Paging and sorting should not be empty." );
+        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
 
     @Test
@@ -336,9 +338,9 @@ class CommonQueryRequestMapperTest
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
         QueryItem anyQueryItem = new QueryItem( new DataElement() );
 
-        List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
+        List<OrganisationUnit> organisationUnits = asList( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
-        List<Program> programs = List.of( program1, program2 );
+        List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
@@ -347,18 +349,18 @@ class CommonQueryRequestMapperTest
 
         CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withProgram( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
-            .withDimension( Set.of( dimension + ":" + queryItem ) );
+            .withProgram( new HashSet<>( asList( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) ) )
+            .withDimension( new HashSet<>( asList( dimension + ":" + queryItem ) ) );
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
                 .thenReturn( null );
         when( eventDataQueryService.getQueryItem( deDimensionIdentifier.getDimension().getUid(),
-            (Program) deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
+            deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
                 .thenReturn( anyQueryItem );
 
         // When
@@ -379,7 +381,7 @@ class CommonQueryRequestMapperTest
             "Program offset should be 1." );
         assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
-        assertFalse( params.getPagingAndSortingParams().isEmpty(), "Paging and sorting should not be empty." );
+        assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
 
     @Test
@@ -400,7 +402,7 @@ class CommonQueryRequestMapperTest
 
         CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( "PEZNsGbZaVJ" )
-            .withDimension( Set.of( nonFullyQualifiedDimension + ":" + queryItem ) );
+            .withDimension( new HashSet<>( asList( nonFullyQualifiedDimension + ":" + queryItem ) ) );
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
@@ -408,7 +410,7 @@ class CommonQueryRequestMapperTest
         when( dimensionIdentifierConverter.fromString( noPrograms, nonFullyQualifiedDimension ) )
             .thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
                 .thenReturn( null );
 
         // When
@@ -452,7 +454,8 @@ class CommonQueryRequestMapperTest
             .withUserOrgUnit( "PEZNsGbZaVJ" )
             .withProgram( Set.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
             .withDimension(
-                Set.of( dimension + ":" + queryItem_1 + DIMENSION_OR_SEPARATOR + dimension + ":" + queryItem_2 ) );
+                new HashSet<>( asList(
+                    dimension + ":" + queryItem_1 + DIMENSION_OR_SEPARATOR + dimension + ":" + queryItem_2 ) ) );
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
@@ -460,11 +463,9 @@ class CommonQueryRequestMapperTest
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
 
         Stream.of( queryItem_1, queryItem_2 )
-            .forEach( s -> {
-                when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-                    List.of( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                        .thenReturn( dimensionalObject );
-            } );
+            .forEach( s -> when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
+                asList( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
+                    .thenReturn( dimensionalObject ) );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,

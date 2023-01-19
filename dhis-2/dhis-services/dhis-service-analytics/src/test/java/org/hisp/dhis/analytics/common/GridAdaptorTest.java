@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,14 +44,24 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
 
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -104,34 +120,122 @@ class GridAdaptorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testCreateGridWithNullSqlQueryResult()
+    void testCreateGridWithNullSqlResult()
     {
         // Given
         SqlQueryResult nullSqlResult = null;
+        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
+            .commonParams( stubCommonParams() ).build();
+
+        // When
+        Grid resultGrid = gridAdaptor.createGrid( nullSqlResult, teiQueryParams, new CommonQueryRequest() );
+
+        // Then
+        assertTrue( isNotEmpty( resultGrid.getHeaders() ) );
+        assertTrue( MapUtils.isNotEmpty( resultGrid.getMetaData() ) );
+        assertTrue( isEmpty( resultGrid.getRows() ) );
+    }
+
+    @Test
+    void testCreateGridWithNullTeiQueryParams()
+    {
+        // Given
+        SqlQueryResult anySqlResult = null;
+        TeiQueryParams nullTeiQueryParams = null;
 
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( nullSqlResult, TeiQueryParams.builder().build(),
-                new CommonQueryRequest() ),
+            () -> gridAdaptor.createGrid( anySqlResult, nullTeiQueryParams, new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
-        assertTrue( ex.getMessage().contains( "The 'sqlQueryResult' must not be null" ) );
+        assertTrue( ex.getMessage().contains( "The 'teiQueryParams' must not be null" ) );
+    }
+
+    @Test
+    void testCreateGridWithNullCommonQueryRequest()
+    {
+        // Given
+        SqlQueryResult anySqlResult = null;
+        CommonQueryRequest nullCommonQueryRequest = null;
+
+        // When
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> gridAdaptor.createGrid( anySqlResult, TeiQueryParams.builder().build(), nullCommonQueryRequest ),
+            "Expected exception not thrown: createGrid()" );
+
+        // Then
+        assertTrue( ex.getMessage().contains( "The 'commonQueryRequest' must not be null" ) );
     }
 
     private TrackedEntityType stubTrackedEntityType()
     {
+        TrackedEntityTypeAttribute tetaA = createTrackedEntityTypeAttribute( 'A', TEXT );
+        tetaA.setUid( "tetaA-uid" );
+        tetaA.getTrackedEntityAttribute().setUid( "teaA-uid" );
+        // tetaA.getTrackedEntityAttribute().setValueType( TEXT );
+
+        TrackedEntityTypeAttribute tetaB = createTrackedEntityTypeAttribute( 'B', TEXT );
+        tetaB.setUid( "tetaB-uid" );
+        tetaB.getTrackedEntityAttribute().setUid( "teaB-uid" );
+        // tetaB.getTrackedEntityAttribute().setValueType( TEXT );
+
         TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setTrackedEntityTypeAttributes( List.of(
-            createTrackedEntityTypeAttribute( 'A', TEXT ),
-            createTrackedEntityTypeAttribute( 'B', TEXT ) ) );
+        trackedEntityType.setUid( "tet-uid" );
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of( tetaA, tetaB ) );
 
         return trackedEntityType;
     }
 
     private CommonParams stubCommonParams()
     {
-        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) ).build();
+        List<String> ous = List.of( "ou1-uid", "ou2-uid" );
+
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
+            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaA-uid" );
+
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifierB = stubDimensionIdentifier(
+            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaB-uid" );
+
+        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimIdentifiers = new ArrayList<>();
+        dimIdentifiers.add( dimensionIdentifierA );
+        dimIdentifiers.add( dimensionIdentifierB );
+
+        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) )
+            .dimensionIdentifiers( List.of( dimIdentifiers ) )
+            .build();
+    }
+
+    private DimensionIdentifier<Program, ProgramStage, DimensionParam> stubDimensionIdentifier( List<String> ous,
+        String programUid, String programStageUid, String dimensionUid )
+    {
+        BaseDimensionalObject tea = new BaseDimensionalObject( dimensionUid, DATA_X,
+            ous.stream()
+                .map( item -> new BaseDimensionalItemObject( item ) )
+                .collect( Collectors.toList() ),
+            TEXT );
+
+        DimensionParam dimensionParam = DimensionParam.ofObject( tea, DIMENSIONS, ous );
+
+        DimensionIdentifier.ElementWithOffset program = emptyElementWithOffset();
+        DimensionIdentifier.ElementWithOffset programStage = emptyElementWithOffset();
+
+        if ( isNotBlank( programUid ) )
+        {
+            Program p = new Program();
+            p.setUid( programUid );
+            program = DimensionIdentifier.ElementWithOffset.of( p, null );
+        }
+
+        if ( isNotBlank( programStageUid ) )
+        {
+            ProgramStage ps = new ProgramStage();
+            ps.setUid( programStageUid );
+            programStage = DimensionIdentifier.ElementWithOffset.of( ps, null );
+        }
+
+        return DimensionIdentifier.of( program, programStage, dimensionParam );
     }
 }

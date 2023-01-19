@@ -122,7 +122,7 @@ public class CommonQueryRequestMapper
 
         return CommonParams.builder()
             .programs( programs )
-            .pagingAndSortingParams( AnalyticsPagingParams.builder()
+            .pagingParams( AnalyticsPagingParams.builder()
                 .countRequested( request.isTotalPages() )
                 .requestPaged( request.isPaging() )
                 .page( request.getPage() )

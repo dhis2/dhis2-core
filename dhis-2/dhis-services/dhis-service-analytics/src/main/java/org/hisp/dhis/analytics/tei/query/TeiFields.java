@@ -39,6 +39,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -69,10 +71,10 @@ public class TeiFields
     @RequiredArgsConstructor
     private enum Dynamic implements HeaderProvider
     {
-        ENROLLMENTS( "(select JSON_AGG(JSON_BUILD_OBJECT('programUid', p_0.uid," +
+        ENROLLMENTS( "(select json_agg(json_build_object('programUid', p_0.uid," +
             " 'programInstanceUid', pi_0.uid, 'enrollmentDate', pi_0.enrollmentdate," +
             " 'incidentDate', pi_0.incidentdate,'endDate', pi_0.enddate, 'events'," +
-            " (select JSON_AGG(JSON_BUILD_OBJECT('programStageUid', ps_0.uid," +
+            " (select json_agg(json_build_object('programStageUid', ps_0.uid," +
             " 'programStageInstanceUid', psi_0.uid, 'executionDate', psi_0.executiondate," +
             " 'dueDate', psi_0.duedate, 'eventDataValues', psi_0.eventdatavalues))" +
             " from programstageinstance psi_0, programstage ps_0" +
@@ -89,7 +91,6 @@ public class TeiFields
         private final String fullName;
 
         private final ValueType type;
-
     }
 
     @Getter
@@ -113,13 +114,13 @@ public class TeiFields
         private final ValueType type;
     }
 
-    public static Stream<Field> getDimensionFields( final TeiQueryParams teiQueryParams )
+    public static Stream<Field> getDimensionFields( TeiQueryParams teiQueryParams )
     {
         return getAllAttributes( teiQueryParams )
             .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
     }
 
-    public static Stream<String> getAllAttributes( final TeiQueryParams teiQueryParams )
+    public static Stream<String> getAllAttributes( TeiQueryParams teiQueryParams )
     {
         Stream<TrackedEntityAttribute> trackedEntityAttributesFromType = getTrackedEntityAttributes(
             teiQueryParams.getTrackedEntityType() );
@@ -143,7 +144,8 @@ public class TeiFields
             .map( ProgramTrackedEntityAttribute::getAttribute );
     }
 
-    public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes( TrackedEntityType trackedEntityType )
+    public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes(
+        @Nonnull TrackedEntityType trackedEntityType )
     {
         // Attributes from Tracked entity Type
         return trackedEntityType.getTrackedEntityAttributes().stream();
@@ -165,7 +167,7 @@ public class TeiFields
         return Stream.concat( getStaticFields(), getDynamicFields() );
     }
 
-    public static Set<GridHeader> getGridHeaders( final TeiQueryParams teiQueryParams )
+    public static Set<GridHeader> getGridHeaders( TeiQueryParams teiQueryParams )
     {
         final Set<GridHeader> headers = new LinkedHashSet<>();
 
@@ -186,6 +188,7 @@ public class TeiFields
         String uid = dimensionParam.getUid();
         String name = dimensionParam.getName();
         ValueType valueType = dimensionParam.getValueType();
+
         return new GridHeader( uid, name, valueType, false, true );
     }
 

@@ -75,8 +75,7 @@ class TeiFullQueryTest extends DhisConvenienceTest
 
         // then
         assertTrue( sql.contains( "ouname" ) );
-
-        assertContains( "order by t_1.\"OUNAME\" ASC".toLowerCase(), sql.toLowerCase() );
+        assertContains( "order by t_1.\"ouname\" ASC", sql );
     }
 
     @Test
@@ -95,14 +94,11 @@ class TeiFullQueryTest extends DhisConvenienceTest
             .queryContext( QueryContext.of( teiQueryParams ) )
             .build();
 
-        ProgramStage ps = query.getQueryContext().getTeiQueryParams().getCommonParams().getOrderParams().get( 0 )
-            .getOrderBy().getProgramStage().getElement();
-
         // when
         String sql = query.render();
 
         // then
-        assertTrue( sql.contains( "(\"abc_0\".eventdatavalues -> 'abc' ->> 'value')::TEXT ASC" ) );
+        assertTrue( sql.contains( "(\"abc_0\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT ASC" ) );
     }
 
     private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
@@ -131,7 +127,7 @@ class TeiFullQueryTest extends DhisConvenienceTest
 
         return CommonParams.builder()
             .orderParams( List.of( analyticsSortingParams ) )
-            .pagingAndSortingParams( analyticsPagingParams )
+            .pagingParams( analyticsPagingParams )
             .build();
     }
 }

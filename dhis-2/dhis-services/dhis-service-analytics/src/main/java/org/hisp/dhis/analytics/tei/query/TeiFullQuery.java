@@ -109,12 +109,10 @@ public class TeiFullQuery extends BaseRenderable
 
     private LimitOffset getLimit()
     {
-        AnalyticsPagingParams pagingAndSortingParams = teiQueryParams.getCommonParams()
-            .getPagingAndSortingParams();
+        AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
-        return LimitOffset.of(
-            pagingAndSortingParams.getPageSize(),
-            pagingAndSortingParams.getPageSize() * (pagingAndSortingParams.getPage() - 1) );
+        return LimitOffset.of( pagingParams.getPageSize(),
+            pagingParams.getPageSize() * (pagingParams.getPage() - 1) );
     }
 
     private Order getOrder()
