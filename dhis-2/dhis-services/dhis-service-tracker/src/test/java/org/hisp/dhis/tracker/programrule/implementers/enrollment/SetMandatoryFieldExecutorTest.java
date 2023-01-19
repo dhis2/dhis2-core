@@ -122,7 +122,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateOkMandatoryFieldsForEnrollment()
+    void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment()
     {
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
@@ -135,7 +135,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateOkMandatoryFieldsForEnrollmentUsingIdSchemeCode()
+    void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollmentUsingIdSchemeCode()
     {
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.CODE )
@@ -151,7 +151,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateWithErrorMandatoryFieldsForEnrollments()
+    void shouldReturnAnErrorWhenMandatoryFieldIsNotPresentForEnrollment()
     {
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );

@@ -72,7 +72,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateEnrollmentWithError()
+    void shouldReturnAWarningWhenThereIsSyntaxErrorInRule()
     {
         Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.executeEnrollmentRuleAction( bundle,
             getEnrollment() );

@@ -45,16 +45,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class ShowErrorWarningExecutorTest extends DhisConvenienceTest
 {
-
     private final static String CONTENT = "SHOW ERROR DATA";
 
     private final static String EVALUATED_DATA = "4.0";
@@ -87,45 +83,65 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateShowErrorRuleActionForEnrollment()
+    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> error = showErrorExecutor.executeEnrollmentRuleAction( bundle, activeEnrollment() );
-        assertTrue( error.isPresent() );
-
-        error = showErrorExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
         assertTrue( error.isPresent() );
     }
 
     @Test
-    void testValidateShowWarningRuleActionForEnrollment()
+    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
+    {
+        Optional<ProgramRuleIssue> error = showErrorExecutor.executeEnrollmentRuleAction( bundle,
+            completedEnrollment() );
+        assertTrue( error.isPresent() );
+    }
+
+    @Test
+    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> warning = showWarningExecutor.executeEnrollmentRuleAction( bundle,
             activeEnrollment() );
         assertTrue( warning.isPresent() );
+    }
 
-        warning = showWarningExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
+    @Test
+    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
+    {
+        Optional<ProgramRuleIssue> warning = showWarningExecutor.executeEnrollmentRuleAction( bundle,
+            completedEnrollment() );
         assertTrue( warning.isPresent() );
     }
 
     @Test
-    void testValidateShowErrorOnCompleteRuleActionForEnrollment()
+    void shouldNotReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
             activeEnrollment() );
         assertFalse( error.isPresent() );
+    }
 
-        error = errorOnCompleteExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
+    @Test
+    void shouldReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
+    {
+        Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
+            completedEnrollment() );
         assertTrue( error.isPresent() );
     }
 
     @Test
-    void testValidateShowWarningOnCompleteRuleActionForEnrollment()
+    void shouldNotReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
             activeEnrollment() );
         assertFalse( warning.isPresent() );
+    }
 
-        warning = warningOnCompleteExecutor.executeEnrollmentRuleAction( bundle, completedEnrollment() );
+    @Test
+    void shouldReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
+    {
+        Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeEnrollmentRuleAction( bundle,
+            completedEnrollment() );
         assertTrue( warning.isPresent() );
     }
 

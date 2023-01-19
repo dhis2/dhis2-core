@@ -132,15 +132,15 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
-            .thenReturn( firstProgramStage );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
-            .thenReturn( secondProgramStage );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementA.getUid() ) ) ).thenReturn( dataElementA );
+        //        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
+        //            .thenReturn( firstProgramStage );
+        //        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
+        //            .thenReturn( secondProgramStage );
+        //        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementA.getUid() ) ) ).thenReturn( dataElementA );
         when( preheat.getTrackedEntityAttribute( attributeA.getUid() ) )
             .thenReturn( attributeA );
-        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( attributeA.getUid() ) ) )
-            .thenReturn( attributeA );
+        //        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( attributeA.getUid() ) ) )
+        //            .thenReturn( attributeA );
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
@@ -148,7 +148,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
+    void shouldAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
     {
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeNOTSet() );
@@ -174,7 +174,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresent()
+    void shouldNotAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresent()
     {
         Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
@@ -196,13 +196,11 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentUsingIdSchemeCode()
+    void shouldNotAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentUsingIdSchemeCode()
     {
-
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attributeA );
         Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet( idSchemes );
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
@@ -224,7 +222,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTei()
+    void shouldNotAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTei()
     {
         Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeNOTSet );
@@ -254,7 +252,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
+    void shouldAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
     {
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
@@ -286,7 +284,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndHasTheSameValue()
+    void shouldAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndHasTheSameValue()
     {
         Enrollment enrollmentWithAttributeSetSameValue = getEnrollmentWithAttributeSetSameValue();
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSetSameValue );
@@ -309,7 +307,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
+    void shouldAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
     {
         Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
         List<Enrollment> enrollments = Lists.newArrayList( enrollmentWithAttributeSet );
@@ -333,7 +331,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testIsEqual()
+    void shouldTestIsEqualIsComparingCorrectlySameTypeValues()
     {
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
 
@@ -353,7 +351,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testIsEqualDataTypeIntegrity()
+    void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues()
     {
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
 
