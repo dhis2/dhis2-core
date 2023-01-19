@@ -36,6 +36,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -561,8 +562,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( params.hasValueDimension() )
                 {
-                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-                        + params.getValue().getUid();
+                    String itemId = params.getProgram().getUid() +
+                        COMPOSITE_DIM_OBJECT_PLAIN_SEP + params.getValue().getUid();
                     grid.addValue( itemId );
                 }
                 else if ( params.hasProgramIndicatorDimension() )
@@ -577,10 +578,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
                     ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, false, true );
                     String alias = columnAndAlias.getAlias();
-                    if ( StringUtils.isEmpty( alias ) )
+
+                    if ( isEmpty( alias ) )
                     {
                         alias = queryItem.getItemName();
                     }
+
                     String itemName = rowSet.getString( alias );
                     String itemValue = params.isCollapseDataDimensions()
                         ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
@@ -1202,7 +1205,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            // NV filter has its own specific logic, so we should skip values
+            // NV filter has its own specific logic, so skip values
             // comparisons when NV is set as filter
             if ( !NV.equals( filter.getFilter() ) )
             {

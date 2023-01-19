@@ -83,7 +83,8 @@ public class QueryFilter
         .put( SW, unused -> "like" )
         .put( EW, unused -> "like" )
         .put( NLIKE, unused -> "not like" )
-        .put( IN, unused -> "in" ).build();
+        .put( IN, unused -> "in" )
+        .build();
 
     protected QueryOperator operator;
 
@@ -123,10 +124,11 @@ public class QueryFilter
     }
 
     /**
+     * Returns a SQL operator string.
      *
      * @param isOperatorSubstitutionAllowed whether the operator should be
-     *        replaced to support null values or not
-     * @return
+     *        replaced to support null values.
+     * @return a SQL operator string.
      */
     public String getSqlOperator( boolean isOperatorSubstitutionAllowed )
     {
@@ -141,10 +143,11 @@ public class QueryFilter
     private String safelyGetOperator( boolean isOperatorSubstitutionAllowed )
     {
         Function<Boolean, String> operatorFunction = OPERATOR_MAP.get( operator );
+
         if ( operatorFunction != null )
         {
-            return operatorFunction
-                .apply( StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
+            return operatorFunction.apply(
+                StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
         }
 
         return null;
@@ -162,7 +165,7 @@ public class QueryFilter
             return null;
         }
 
-        if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
+        if ( operator.isLike() )
         {
             return "'%" +
                 encodedFilter
@@ -170,7 +173,7 @@ public class QueryFilter
                     .replace( "%", "\\%" )
                 + "%'";
         }
-        else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
+        else if ( operator.isEqualTo() )
         {
             if ( encodedFilter.equals( NV ) && isNullValueSubstitutionAllowed )
             {
@@ -197,11 +200,11 @@ public class QueryFilter
 
     public String getSqlBindFilter()
     {
-        if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
+        if ( operator.isLike() )
         {
             return "%" + this.filter + "%";
         }
-        else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
+        else if ( operator.isEqualTo() )
         {
             if ( this.filter.equals( NV ) )
             {
@@ -225,7 +228,8 @@ public class QueryFilter
     {
         final String sqlFilter = getSqlFilter( encodedFilter, isNullValueSubstitutionAllowed );
 
-        // Force lowercase so we can compare ignoring case.
+        // Force lowercase to compare ignoring case
+
         if ( IEQ == operator || NIEQ == operator )
         {
             return valueType.isText() ? sqlFilter.toLowerCase() : sqlFilter;
@@ -236,7 +240,8 @@ public class QueryFilter
 
     public String getSqlFilterColumn( final String column, final ValueType valueType )
     {
-        // Force lowercase so we can compare ignoring case.
+        // Force lowercase to compare ignoring case
+
         if ( IEQ == operator || NIEQ == operator )
         {
             return valueType.isText() ? wrapLower( column ) : column;
@@ -336,6 +341,8 @@ public class QueryFilter
             return other.operator == null;
         }
         else
+        {
             return operator.equals( other.operator );
+        }
     }
 }
