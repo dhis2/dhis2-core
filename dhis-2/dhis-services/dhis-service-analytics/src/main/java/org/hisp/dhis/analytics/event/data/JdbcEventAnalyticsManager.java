@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +100,6 @@ import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging. TODO introduce
@@ -435,10 +435,10 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
+            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField,
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
-            if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
+            if ( isNotEmpty( sqlSnippet ) )
             {
                 sql += hlp.whereAnd() + " " + sqlSnippet;
             }
@@ -449,7 +449,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
+            Set.of( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -459,8 +459,7 @@ public class JdbcEventAnalyticsManager
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
-        dynamicDimensions = params
-            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+        dynamicDimensions = params.getDimensionsAndFilters( Set.of( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -519,16 +518,15 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += hlp.whereAnd() + " pistatus in ("
-                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " pistatus in (" +
+                params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) ) +
+                ") ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += hlp.whereAnd() + " psistatus in ("
-                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " psistatus in (" +
+                params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
@@ -573,10 +571,10 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a filter by organisation -
-     * descendant level
+     * Generates a sub query which provides a filter by organisation descendant
+     * level.
      */
-    private String getOrgDescendantsSqlSnippet( OrgUnitField orgUnitField,
+    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
         Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
@@ -600,7 +598,7 @@ public class JdbcEventAnalyticsManager
     private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
     {
         return organisationUnits.stream()
-            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+            .filter( unit -> isNotEmpty( unit.getUid() ) )
             .map( unit -> "'" + unit.getUid() + "'" )
             .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
