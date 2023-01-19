@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
@@ -541,7 +542,10 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                dimensionItems.put( item.getItemId(), List.of( item.getFiltersAsString() ) );
+                dimensionItems.put( item.getItemId(),
+                    item.getFiltersAsString() != null
+                        ? List.of( item.getFiltersAsString() )
+                        : emptyList() );
             }
         }
 
