@@ -1044,12 +1044,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns SQL string based on both query items and filters
+     * Returns a SQL where clause string for query items and query item filters.
      *
-     * @param params a {@link EventQueryParams}.
-     * @param helper a {@link SqlHelper}.
+     * @param params the {@link EventQueryParams}.
+     * @param helper the {@link SqlHelper}.
      */
-    protected String getStatementForDimensionsAndFilters( EventQueryParams params, SqlHelper helper )
+    protected String getQueryItemsAndFiltersWhereClause( EventQueryParams params, SqlHelper helper )
     {
         if ( params.isEnhancedCondition() )
         {
@@ -1058,6 +1058,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
+
         // Only for enrollments, for events all query items are treated as
         // non-repeatable
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = Stream.concat(

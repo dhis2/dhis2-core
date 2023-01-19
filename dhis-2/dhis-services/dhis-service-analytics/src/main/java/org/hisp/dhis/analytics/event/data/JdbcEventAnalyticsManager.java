@@ -486,7 +486,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getStatementForDimensionsAndFilters( params, hlp );
+        sql += getQueryItemsAndFiltersWhereClause( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
