@@ -98,7 +98,7 @@ public class Assertions
      * @param report import report to be asserted on
      * @param warnings expected warnings
      */
-    public static void assertHasOnlyWarnings( ImportReport report, Warning... warnings )
+    public static void assertHasOnlyWarningsAndNoErrors( ImportReport report, Warning... warnings )
     {
         assertAll(
             () -> assertNoErrors( report ),
@@ -112,7 +112,7 @@ public class Assertions
      * @param report validation report to be asserted on
      * @param warnings expected warnings
      */
-    public static void assertHasOnlyWarnings( ValidationReport report, Warning... warnings )
+    public static void assertHasOnlyWarningsAndNoErrors( ValidationReport report, Warning... warnings )
     {
         assertAll(
             () -> assertNoErrors( report ),
@@ -167,7 +167,7 @@ public class Assertions
      * assertHasWarnings asserts the report contains given count of warnings and
      * warnings that contain given code and that are linked to given tracker
      * object in any order. <em>NOTE:</em> prefer
-     * {@link #assertHasOnlyWarnings(ValidationReport, Warning...)}
+     * {@link #assertHasOnlyWarningsAndNoErrors(ValidationReport, Warning...)}
      * (ImportReport, Warning...)}.Rethink your test if you need this assertion.
      * If you want to make sure a certain number of warnings are present, why do
      * you not care about what warnings are present? The intention of an
