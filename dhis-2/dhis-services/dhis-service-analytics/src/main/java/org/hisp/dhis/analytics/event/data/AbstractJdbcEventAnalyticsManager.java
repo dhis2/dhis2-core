@@ -1056,11 +1056,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return getItemsSqlForEnhancedConditions( params, helper );
         }
 
-        // Creates a map grouping queryItems referring to repeatable stages and
-        // those referring to non-repeatable stages
-
-        // Only for enrollments, for events all query items are treated as
-        // non-repeatable
+        // Creates a map grouping query items referring to repeatable stages and
+        // those referring to non-repeatable stages. This is for enrollment
+        // only, event query items are treated as non-repeatable.
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = Stream.concat(
             params.getItems().stream(), params.getItemFilters().stream() )
             .filter( QueryItem::hasFilter )
