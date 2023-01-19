@@ -1139,8 +1139,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private Stream<IdentifiableSql> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
     {
-        return emptyIfNull( queryItems )
-            .stream()
+        return emptyIfNull( queryItems ).stream()
             .map( queryItem -> toIdentifiableSql( queryItem, params ) );
     }
 
