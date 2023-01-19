@@ -459,9 +459,10 @@ public class JdbcEventAnalyticsManager
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
-        dynamicDimensions = params.getDimensionsAndFilters( Set.of( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+        List<DimensionalObject> orgUnitGroupSetDimension = params
+            .getDimensionsAndFilters( Set.of( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
 
-        for ( DimensionalObject dim : dynamicDimensions )
+        for ( DimensionalObject dim : orgUnitGroupSetDimension )
         {
             if ( !dim.isAllItems() )
             {
