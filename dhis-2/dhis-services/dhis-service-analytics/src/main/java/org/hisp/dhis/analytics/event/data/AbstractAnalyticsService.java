@@ -61,6 +61,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -325,9 +326,9 @@ public abstract class AbstractAnalyticsService
                 optionItems.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
             }
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems ) );
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems, grid ) );
             metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, optionsPresentInGrid ) );
-            maybeAddOrgUnitHierarchyInfo( params, metadata );
+            maybeAddOrgUnitHierarchyInfo( params, metadata, grid );
 
             grid.setMetaData( metadata );
         }
@@ -340,24 +341,28 @@ public abstract class AbstractAnalyticsService
      * @param params the {@link EventQueryParams}.
      * @param metadata the metadata map.
      */
-    private void maybeAddOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata )
+    private void maybeAddOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata, Grid grid )
     {
         if ( params.isHierarchyMeta() || params.isShowHierarchy() )
         {
             User user = securityManager.getCurrentUser( params );
+
             List<OrganisationUnit> organisationUnits = asTypedList(
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+
             Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
 
             if ( params.isHierarchyMeta() )
             {
-                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( activeOrgUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
                 metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( organisationUnits, roots, true ) );
+                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
             }
         }
     }
@@ -368,12 +373,13 @@ public abstract class AbstractAnalyticsService
      * @param params the {@link EventQueryParams}.
      * @param periodKeywords the period keywords.
      * @param itemOptions the set of item {@link Option}.
+     * @param grid the grid instance {@link Grid}.
      * @return a map.
      */
     private Map<String, MetadataItem> getMetadataItems( EventQueryParams params,
-        List<DimensionItemKeywords.Keyword> periodKeywords, Set<Option> itemOptions )
+        List<DimensionItemKeywords.Keyword> periodKeywords, Set<Option> itemOptions, Grid grid )
     {
-        Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+        Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params, grid );
 
         boolean includeDetails = params.isIncludeMetadataDetails();
 
