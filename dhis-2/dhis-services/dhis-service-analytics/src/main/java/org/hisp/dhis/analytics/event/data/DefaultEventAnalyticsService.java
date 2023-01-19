@@ -498,8 +498,7 @@ public class DefaultEventAnalyticsService
         else if ( eventDimensionalItemObject.hasLegendSet() )
         {
             List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() ))
-                    .get( dimension );
+                .get( DIMENSIONS.getKey() )).get( dimension );
 
             if ( legendOptions.isEmpty() )
             {
@@ -519,8 +518,7 @@ public class DefaultEventAnalyticsService
                 for ( String legend : legendOptions )
                 {
                     MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() ))
-                            .get( legend );
+                        .get( ITEMS.getKey() )).get( legend );
 
                     objects.add( new EventAnalyticsDimensionalItem(
                         new Option( metadataItem.getName(), legend ), parentUid ) );
@@ -594,7 +592,7 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                // Each query might be either an enrollment or event indicator
+                // Query might be either an enrollment or event indicator
 
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
