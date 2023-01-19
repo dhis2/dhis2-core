@@ -102,7 +102,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
-import io.debezium.util.Strings;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -550,7 +549,7 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        return "SELECT " + Strings.join( ", ", columns );
+        return "SELECT " + String.join( ", ", columns );
     }
 
     /**
