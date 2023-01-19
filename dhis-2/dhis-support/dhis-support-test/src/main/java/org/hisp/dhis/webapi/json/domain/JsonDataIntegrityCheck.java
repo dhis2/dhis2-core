@@ -85,4 +85,9 @@ public interface JsonDataIntegrityCheck extends JsonObject
     {
         return getBoolean( "isSlow" ).booleanValue();
     }
+
+    default String getCode()
+    {
+        return getString( "code" ).string();
+    }
 }

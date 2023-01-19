@@ -69,9 +69,7 @@ class DataIntegrityPeriodsDistantPastControllerTest extends AbstractDataIntegrit
         periodService.addPeriod( periodB );
         dbmsManager.clearSession();
 
-        String nullString = null;
-
-        assertHasDataIntegrityIssues( "periods", check, 50, nullString, nullString, nullString, true );
+        assertHasDataIntegrityIssues( "periods", check, 50, (String) null, null, null, true );
 
     }
 

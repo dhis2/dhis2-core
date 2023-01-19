@@ -50,12 +50,14 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
     @Autowired
     UserService userService;
 
-    private final String check = "group_size_user_groups";
+    private static final String check = "user_groups_scarce";
+
+    private static final String detailsIdType = "userGroups";
 
     private User bill;
 
     @Test
-    void testDataElementGroupSizeTooLow()
+    void testUserGroupsScarce()
     {
 
         setUpTest();
@@ -68,26 +70,26 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
             POST( "/userGroups",
                 "{'name' : 'TestC', 'code' : 'TestC', 'users' : [], 'managedGroups': [], 'attributeValues' : []}" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( userGroupB, userGroupC ), Set.of( "TestB", "TestC" ), Set.of( "0", "1" ),
             true );
 
     }
 
     @Test
-    void testDataElementGroupSizeOK()
+    void testUserGroupsOK()
     {
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
-    void testDataElementGroupSizeRuns()
+    void testUserGroupScarceRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

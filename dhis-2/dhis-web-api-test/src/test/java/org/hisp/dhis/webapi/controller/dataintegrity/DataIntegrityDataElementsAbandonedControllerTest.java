@@ -49,7 +49,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "aggregate_data_elements_abandoned";
+    private static final String check = "data_elements_aggregate_abandoned";
+
+    private static final String detailsIdType = "dataElements";
 
     private static final String period = "202212";
 
@@ -59,7 +61,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
 
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -67,7 +69,7 @@ class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataInteg
     void testDataElementsAbandonedDividedByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: TrWM0CtEL5N
-name: orgunit_trailing_spaces
+name: orgunits_trailing_spaces
 description: Organisation units should not have trailing spaces.
 section: Organisation units
 section_order: 4
@@ -42,7 +42,7 @@ details_uid: N2qHFwW0Yyr
 details_sql: >-
   SELECT uid, name, shortname as comment from organisationunit where name ~('\s+$') or shortname ~('\s+$') 
   ORDER BY name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: >
   Trailing spaces in organisation units are superfluous.
