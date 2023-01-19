@@ -90,7 +90,7 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
-        @RequestParam( required = false ) boolean skipCpl,
+        @RequestParam( required = false ) boolean skipTei,
         @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
@@ -119,7 +119,7 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
         }
 
-        if ( skipCpl )
+        if ( skipTei )
         {
             skipTableTypes.add( AnalyticsTableType.TRACKED_ENTITY_INSTANCE );
             skipTableTypes.add( AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS );
