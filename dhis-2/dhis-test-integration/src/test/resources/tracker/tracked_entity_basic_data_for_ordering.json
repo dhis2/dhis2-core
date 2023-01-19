@@ -1,0 +1,331 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "AS6w44flWAf",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2022-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "a first random value"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 88
+        }
+      ],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "dUE514NMOlo",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2021-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "uoNW0E3xXUy"
+      },
+      "inactive": true,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "a second random value"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "notUpdated0"
+          },
+          "value": "winter day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 70
+        }
+      ],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "tRE514NMOlo",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2022-02-20T12:09:21.844",
+      "updatedAt": "2024-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "uoNW0E3xXUy"
+      },
+      "inactive": true,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "random value"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "notUpdated0"
+          },
+          "value": "winter day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 70
+        }
+      ],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "cUA514NMOlo",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2018-02-20T12:09:21.844",
+      "updatedAt": "2016-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "uoNW0E3xXUy"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "test value"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "notUpdated0"
+          },
+          "value": "winter day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 70
+        }
+      ],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [
+    {
+      "enrollment": "nxP7UnKhomJ",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "AS6w44flWAf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2020-02-28T12:05:00.000",
+      "occurredAt": "2021-02-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "TvctPPhpD8z",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "dUE514NMOlo",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "RactPPhpD8z",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "tRE514NMOlo",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2018-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "InctPPhpD8z",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "cUA514NMOlo",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2022-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

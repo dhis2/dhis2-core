@@ -44,7 +44,7 @@
     All program rules should have an expression. Expressions are used by program rules
     to determine when they should be triggered. Program rules with no expression have 
     no purpose.
-  details_id_type: program_rules
+  details_id_type: programRules
   recommendation: >
     Using the DHIS2 user interface, assign an expression to each of the program rules
     which is missing one. Otherwise, if it is safe to delete the program rule with 

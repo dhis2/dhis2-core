@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_orgunit_groups
+name: orgunit_groups_scarce
 description: Organisation unit groups should have at least two members.
 section: Group size
 section_order: 1
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing groups with zero or one organisation units, or alternatively, add additional
   members to the group to make it more useful.
-details_id_type: group_size
+details_id_type: organisationUnitGroups

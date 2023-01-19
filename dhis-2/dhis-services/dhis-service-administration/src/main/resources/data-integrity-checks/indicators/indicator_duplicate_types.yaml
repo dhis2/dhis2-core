@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE./home/jason/Desktop
 #
 ---
-name: indicators_duplicated_factor
+name: indicator_types_duplicated
 description: Indicator types with the same factor.
 section: Indicators
 section_order: 5
@@ -56,7 +56,7 @@ introduction: Indicators can be assigned a factor which is multiplied by the
     be multiplied by the actual value of the indicator calculated by DHIS2.
     In general, having multiple indicator types with the same factor is not
     recommended. It is duplicative, and may lead to confusion.
-details_id_type: indicators
+details_id_type: indicatorTypes
 recommendation: Duplicated indicator types should consider to be removed
     from the system. Consider choosing one of the duplicated indicator types
     as the one to keep, and then update all indicators which share the same

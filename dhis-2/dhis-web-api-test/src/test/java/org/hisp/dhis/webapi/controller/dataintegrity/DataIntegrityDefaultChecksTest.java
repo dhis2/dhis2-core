@@ -54,7 +54,7 @@ class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTes
     @Test
     void testNonSlowChecksNotRunByDefault()
     {
-        final String check = "aggregate_data_elements_abandoned";
+        final String check = "data_elements_aggregate_abandoned";
         JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=" + check )
             .content()
             .asList( JsonDataIntegrityCheck.class );

@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: dashboards_notviewed_1y
+  name: dashboards_not_viewed_one_year
   summary_uid: UmKSWH5Id3E
   description: Dashboards which have not been actively viewed in the past 12 months
   section: Visualizations
@@ -64,7 +64,7 @@
     temporary purposes and then never delete them. This can eventually lead to a lack of tidiness
     in the system. This can lead to useful dashboards being difficult to find. This
     check identifies any dashboards which have not been viewed in the past year.
-  details_id_type: visualizations
+  details_id_type: dashboards
   recommendation: >
     Unused dashboards can be deleted in the entirety from the main dashboard app by clicking on the "Edit" 
     button and choosing "Delete". Note that this process cannot be undone! Another option would be to alter

@@ -46,10 +46,10 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
+@Service( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator
     implements EventQueryValidator

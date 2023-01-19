@@ -57,7 +57,9 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
 
     private DataStatisticsEvent dse1;
 
-    private static final String check = "dashboards_notviewed_1y";
+    private static final String check = "dashboards_not_viewed_one_year";
+
+    private static final String detailsIdType = "dashboards";
 
     @Test
     void testUnusedDashboardExist()
@@ -71,8 +73,8 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
 
         dbmsManager.clearSession();
 
-        assertNamedMetadataObjectExists( "dashboards", "Test Dashboard" );
-        assertHasDataIntegrityIssues( "visualizations", check, 100, BASE_UID, "Test Dashboard", null, true );
+        assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, BASE_UID, "Test Dashboard", null, true );
     }
 
     @Test
@@ -88,13 +90,13 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "visualizations", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testUnusedDashboardsRuns()
     {
-        assertHasNoDataIntegrityIssues( "visualizations", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
     void setUpDashboards()

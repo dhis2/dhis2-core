@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
@@ -63,12 +65,39 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerT
     }
 
     @Test
+    void testGetAvailableChecksNamesAreUnique()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+
+        assertEquals( checks.size(), Set.copyOf( checks.toList( JsonDataIntegrityCheck::getName ) ).size() );
+    }
+
+    @Test
+    void testGetAvailableChecksCodesAreUnique()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+
+        assertEquals( checks.size(), Set.copyOf( checks.toList( JsonDataIntegrityCheck::getCode ) ).size() );
+    }
+
+    @Test
+    void testGetAvailableChecks_FilterUsingCode()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=CNO" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+        assertEquals( 1, checks.size() );
+        assertEquals( "categories_no_options", checks.get( 0 ).getName() );
+    }
+
+    @Test
     void testGetAvailableChecks_FilterUsingChecksPatterns()
     {
         JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=program*" ).content()
             .asList( JsonDataIntegrityCheck.class );
         assertTrue( checks.size() > 0, "there should be matches" );
-        checks.forEach( check -> assertTrue( check.getSection().startsWith( "Program" ) ) );
+        checks.forEach( check -> assertTrue( check.getName().toLowerCase().startsWith( "program" ) ) );
     }
 
     @Test

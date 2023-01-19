@@ -408,7 +408,8 @@ public class DefaultPredictionService
         for ( Period p : allSamplePeriods )
         {
             if ( aocData.get( p ) != null &&
-                (Boolean) expressionService.getExpressionValue( baseExParams.toBuilder()
+            // Note: getExpressionValue could return null if no data is found
+                Boolean.TRUE == expressionService.getExpressionValue( baseExParams.toBuilder()
                     .expression( skipTest.getExpression() )
                     .parseType( PREDICTOR_SKIP_TEST )
                     .valueMap( aocData.get( p ) )

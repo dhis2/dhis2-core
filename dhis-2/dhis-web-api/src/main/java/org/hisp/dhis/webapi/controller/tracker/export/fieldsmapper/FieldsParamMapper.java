@@ -41,7 +41,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-public class FieldsParamMapper
+class FieldsParamMapper
 {
     private FieldsParamMapper()
     {
