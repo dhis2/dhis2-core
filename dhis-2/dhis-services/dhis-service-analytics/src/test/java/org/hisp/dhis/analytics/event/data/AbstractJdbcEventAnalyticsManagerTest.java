@@ -138,7 +138,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
 
-        eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+        eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, programIndicatorService,
             programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
 
         programA = createProgram( 'A' );

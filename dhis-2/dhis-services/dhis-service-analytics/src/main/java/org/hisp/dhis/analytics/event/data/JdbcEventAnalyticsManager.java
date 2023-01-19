@@ -84,7 +84,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -117,13 +116,11 @@ public class JdbcEventAnalyticsManager
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
-    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, executionPlanStore );
+        super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -520,14 +517,14 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += hlp.whereAnd() + " pistatus in (" +
-                params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) ) +
+                params.getProgramStatus().stream().map( p -> encode( p.name() ) ).collect( joining( "," ) ) +
                 ") ";
         }
 
         if ( params.hasEventStatus() )
         {
             sql += hlp.whereAnd() + " psistatus in (" +
-                params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) ) + ") ";
+                params.getEventStatus().stream().map( e -> encode( e.name() ) ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
