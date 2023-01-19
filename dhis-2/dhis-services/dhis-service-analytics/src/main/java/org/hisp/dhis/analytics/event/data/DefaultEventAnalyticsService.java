@@ -557,17 +557,18 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    grid.addHeader( new GridHeader(
-                        item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ),
+                    String displayProperty = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), displayProperty,
                         item.getValueType(), false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
 
             for ( DimensionalObject dimension : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader(
-                    dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),
-                    TEXT, false, true ) );
+                String displayProperty = dimension.getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( dimension.getDimension(), displayProperty, TEXT, false, true ) );
             }
 
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
