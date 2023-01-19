@@ -58,6 +58,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -360,7 +361,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "createdAt", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( "createdAt", SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -382,7 +383,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "updatedAt", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( "updatedAt", SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -399,7 +400,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "trackedEntity", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( "trackedEntity", SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -420,7 +421,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "updatedAtClient", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( "updatedAtClient", SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -441,7 +442,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -466,8 +467,8 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ),
-            new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( "inactive", SortDirection.DESC ),
+            new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -504,7 +505,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( filtH.getUid(), SortDirection.ASC ) ) );
         params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -532,8 +533,8 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.DESC ),
-            new OrderParam( "inactive", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( filtH.getUid(), SortDirection.DESC ),
+            new OrderParam( "inactive", SortDirection.ASC ) ) );
         params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
