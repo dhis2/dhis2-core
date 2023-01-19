@@ -332,9 +332,9 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
-                "lastupdatedbydisplayname", "lastupdated", "duedate" );
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>().add(
+            "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
+            "lastupdatedbydisplayname", "lastupdated", "duedate" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -344,8 +344,7 @@ public class JdbcEventAnalyticsManager
         String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
 
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
-            "oucode", "pistatus",
-            "psistatus" );
+            "oucode", "pistatus", "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
 
