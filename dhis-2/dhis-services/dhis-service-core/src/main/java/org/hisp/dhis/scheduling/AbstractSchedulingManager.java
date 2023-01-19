@@ -226,11 +226,12 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      * Runs a job queue sequence.
      *
      * @param name name of the queue to run
+     * @param startPosition first position in the queue to run
      * @return true, if the entire sequence ran successful, otherwise false
      */
-    protected final boolean executeQueue( String name )
+    protected final boolean executeQueue( String name, int startPosition )
     {
-        int position = 0;
+        int position = startPosition;
         while ( true )
         {
             // OBS! intentionally the sequence is reloaded every time to allow for changes of the sequence

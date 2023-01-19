@@ -111,6 +111,13 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     }
 
     @Override
+    public boolean isScheduled( JobConfiguration conf )
+    {
+        Future<?> removeFromSchedule = removeFromScheduleByIdOrName.get( getKey( conf ) );
+        return removeFromSchedule != null && !removeFromSchedule.isDone();
+    }
+
+    @Override
     public void schedule( JobConfiguration conf )
     {
         boolean isCronTriggered = conf.getJobType().getSchedulingType() == SchedulingType.CRON;
@@ -144,13 +151,13 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         String jobId = conf.getUid();
         if ( isNullOrEmpty( jobId ) && isNullOrEmpty( conf.getName() ) )
         {
-            log.warn( "Aborted scheduling of job of type {} as no UID or name was given", conf.getJobType() );
+            log.warn( "Job of type {} cannot be scheduled as it has no UID or name", conf.getJobType() );
             return false;
         }
         Runnable task = conf.isInMemoryJob()
             ? () -> execute( conf )
-            : !isNullOrEmpty( conf.getQueueName() )
-                ? () -> executeQueue( conf.getQueueName() )
+            : conf.isUsedInQueue()
+                ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
                 : () -> execute( jobId );
         Future<?> removeFromSchedule = schedule.apply( task );
         String key = getKey( conf );
@@ -186,7 +193,10 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
             return false;
         }
         log.info( "Scheduler initiated execution of job: {}", conf );
-        taskExecutor.executeTaskWithCancelation( () -> execute( conf ) );
+        Runnable task = conf.isUsedInQueue()
+            ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
+            : () -> execute( conf );
+        taskExecutor.executeTaskWithCancelation( task );
         return true;
     }
 
@@ -194,9 +204,9 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     public void stop( JobConfiguration conf )
     {
         String key = getKey( conf );
-        if ( isNullOrEmpty( key ) )
+        if ( !isNullOrEmpty( key ) )
         {
-            removeFromSchedule( conf, key, removeFromScheduleByIdOrName.get( key ) );
+            removeFromSchedule( conf, key, removeFromScheduleByIdOrName.remove( key ) );
         }
     }
 
@@ -205,16 +215,17 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         JobType type = conf.getJobType();
         if ( removeFromSchedule == null )
         {
-            log.info( "Tried to remove job '{}' of type '{}' from schedule but it was not scheduled.", key, type );
+            log.debug( "Job '{}' of type '{}' was not scheduled before.", key, type );
             return;
         }
         if ( removeFromSchedule.isDone() )
         {
-            log.info( "Tried to remove job '{}' of type '{}' from schedule but it was already removed.", key, type );
+            log.info( "Removing job '{}' of type '{}' from schedule had no effect as no further runs were scheduled.",
+                key, type );
             return;
         }
         boolean accepted = removeFromSchedule.cancel( false );
-        log.info( "Job '{}' of type: '{}' was removed from schedule: '{}'", key, type, accepted );
+        log.info( "Removed job '{}' of type: '{}' from schedule: '{}'", key, type, accepted );
     }
 
     private static String getKey( JobConfiguration conf )

@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,6 +97,7 @@ public class DefaultJobQueueService implements JobQueueService
             throw new ConflictException( ErrorCode.E7021, name );
         }
         Map<String, JobConfiguration> queueJobs = getQueueJobsByIds( sequence );
+        validateCronExpression( cronExpression );
         validateQueue( name, queueJobs.values() );
         addSequenceToQueue( name, cronExpression, sequence, queueJobs );
     }
@@ -112,6 +114,7 @@ public class DefaultJobQueueService implements JobQueueService
             throw new NotFoundException( ErrorCode.E7020, name );
         }
         Map<String, JobConfiguration> newQueueJobs = getQueueJobsByIds( newSequence );
+        validateCronExpression( newCronExpression );
         validateQueue( name, newQueueJobs.values() );
         addSequenceToQueue( name, newCronExpression, newSequence, newQueueJobs );
         oldQueueJobs.entrySet().stream()
@@ -157,6 +160,19 @@ public class DefaultJobQueueService implements JobQueueService
         {
             JobConfiguration config = systemJob.get();
             throw new ConflictException( ErrorCode.E7023, config.getUid() );
+        }
+    }
+
+    private void validateCronExpression( String cronExpression )
+        throws ConflictException
+    {
+        try
+        {
+            CronExpression.parse( cronExpression );
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            throw new ConflictException( ErrorCode.E7005, ex.getMessage() );
         }
     }
 

@@ -335,7 +335,7 @@ public enum ErrorCode
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
     E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),
     E7004( "Cron expression must be not null for job with scheduling type CRON: `{0}`" ),
-    E7005( "Cron expression is invalid for job: `{0}` " ),
+    E7005( "Cron expression is invalid: `{0}`" ),
     E7006( "Failed to execute job: `{0}`" ),
     E7007( "Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime: `{0}`" ),

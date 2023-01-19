@@ -71,8 +71,7 @@ public interface SchedulingManager
     /**
      * Schedules a job with the given job configuration.
      *
-     * This stops running jobs of the same {@link JobType} is necessary and
-     * replaces existing scheduled tasks in the future.
+     * This removes previously issued scheduling for the configuration.
      *
      * The job will be scheduled based on the
      * {@link JobConfiguration#getCronExpression()} property.
@@ -84,8 +83,7 @@ public interface SchedulingManager
     /**
      * Schedule a job with the given start time.
      *
-     * This stops running jobs of the same {@link JobType} is necessary and
-     * replaces existing scheduled tasks in the future.
+     * This removes previously issued scheduling for the configuration.
      *
      * @param configuration The configuration with job details to be scheduled
      * @param startTime The time at which the job should start
@@ -102,6 +100,19 @@ public interface SchedulingManager
      * execution use {@link #cancel(JobType)}.
      */
     void stop( JobConfiguration configuration );
+
+    /**
+     * Check if a configuration is already scheduled for execution(s) in the
+     * future.
+     *
+     * @param configuration the configuration to check
+     * @return true, if the configuration will execute in the future, false if
+     *         it has not been scheduled
+     */
+    default boolean isScheduled( JobConfiguration configuration )
+    {
+        return false; // overridden by implementations supporting scheduling
+    }
 
     /**
      * Ad-hoc execution of a {@link JobConfiguration}.
