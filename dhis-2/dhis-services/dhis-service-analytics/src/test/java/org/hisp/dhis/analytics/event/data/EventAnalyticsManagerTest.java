@@ -130,7 +130,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
 
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, programIndicatorService,
             programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );

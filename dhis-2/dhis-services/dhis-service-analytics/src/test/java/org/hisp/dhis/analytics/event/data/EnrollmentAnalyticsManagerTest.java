@@ -127,7 +127,7 @@ class EnrollmentAnalyticsManagerTest extends
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
 
-        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, programIndicatorService,
             programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
             executionPlanStore );
     }

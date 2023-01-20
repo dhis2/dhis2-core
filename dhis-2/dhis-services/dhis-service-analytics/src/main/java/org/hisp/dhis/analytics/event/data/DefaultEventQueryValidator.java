@@ -166,6 +166,8 @@ public class DefaultEventQueryValidator
                 {
                     error = new ErrorMessage( ErrorCode.E7229, queryFilter.getOperator().getValue() );
                 }
+
+                // To-Do Validate that query filter is valid according to query item value type
             }
         }
 

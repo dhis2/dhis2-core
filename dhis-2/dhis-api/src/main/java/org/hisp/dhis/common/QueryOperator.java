@@ -30,6 +30,8 @@ package org.hisp.dhis.common;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.Set;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -59,6 +61,10 @@ public enum QueryOperator
     ILIKE( "ilike" ),
     NILIKE( "not ilike" );
 
+    private static final Set<QueryOperator> EQ_OPERATORS = Set.of( EQ, NE, NEQ, IEQ, NIEQ );
+
+    private static final Set<QueryOperator> LIKE_OPERATORS = Set.of( LIKE, NLIKE, ILIKE, NILIKE );
+
     private final String value;
 
     private final boolean nullAllowed;
@@ -84,4 +90,13 @@ public enum QueryOperator
         return valueOf( string.toUpperCase() );
     }
 
+    public boolean isEqualTo()
+    {
+        return EQ_OPERATORS.contains( this );
+    }
+
+    public boolean isLike()
+    {
+        return LIKE_OPERATORS.contains( this );
+    }
 }

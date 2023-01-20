@@ -64,14 +64,14 @@ public class LabelMapper
     }
 
     /**
-     * Returns a custom label for the schedule date if it exists, otherwise the
+     * Returns a custom label for the scheduled date if it exists, otherwise the
      * given default label.
      *
      * @param programStage the {@link ProgramStage}.
      * @param defaultLabel the default label.
      * @return the custom label, otherwise the default label.
      */
-    public static String getScheduleDateLabel( ProgramStage programStage, String defaultLabel )
+    public static String getScheduledDateLabel( ProgramStage programStage, String defaultLabel )
     {
         if ( programStage != null && isNotBlank( programStage.getDisplayDueDateLabel() ) )
         {
