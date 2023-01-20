@@ -431,7 +431,7 @@ public class ValidationUtils
         return "[" + longitude + "," + latitude + "]";
     }
 
-    public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
+    public static String valueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
     {
         Objects.requireNonNull( value );
         Objects.requireNonNull( valueType );
@@ -474,14 +474,14 @@ public class ValidationUtils
         return options.getClass().equals( valueType.getValueTypeOptionsClass() );
     }
 
-    public static String dataValueIsValid( String value, DataElement dataElement )
+    public static String valueIsValid( String value, DataElement dataElement )
     {
-        return dataValueIsValid( value, dataElement, true );
+        return valueIsValid( value, dataElement, true );
     }
 
     /**
-     * Checks if the given data value is valid according to the value type of
-     * the given data element. Considers the value to be valid if null or empty.
+     * Checks if the given value is valid according to the value type of the
+     * given data element. Considers the value to be valid if null or empty.
      * Returns a string if the valid is invalid, possible values are:
      * <p/>
      * <ul>
@@ -501,52 +501,62 @@ public class ValidationUtils
      * <li>value_not_valid_letter</li>
      * </ul>
      *
-     * @param value the data value.
+     * @param value the value.
      * @param dataElement the data element.
+     * @param validateOptions indicates whether to validate against the options
+     *        of the option set of the given data element.
      *
-     * @return null if the value is valid, a string if not.
+     * @return null if the value is valid, a non-empty string if not.
      */
-    public static String dataValueIsValid( String value, DataElement dataElement, boolean validateOptions )
+    public static String valueIsValid( String value, DataElement dataElement, boolean validateOptions )
     {
         if ( dataElement == null )
         {
             return "data_element_or_type_null_or_empty";
         }
+
         ValueType valueType = dataElement.getValueType();
+
         if ( valueType == null )
         {
             return "data_element_or_type_null_or_empty";
         }
+
         OptionSet options = dataElement.getOptionSet();
+
         boolean isMultiText = valueType == ValueType.MULTI_TEXT;
+
         if ( isMultiText && options == null )
         {
             return "data_element_lacks_option_set";
         }
+
         if ( validateOptions && options != null )
         {
             if ( !isMultiText && options.getOptionByCode( value ) == null )
             {
                 return "value_not_valid_option";
             }
+
             if ( isMultiText && !options.hasAllOptions( ValueType.splitMultiText( value ) ) )
             {
                 return "value_not_valid_option";
             }
         }
-        return dataValueIsValid( value, valueType );
+
+        return valueIsValid( value, valueType );
     }
 
     /**
-     * Indicates whether the given data value is valid according to the given
-     * value type.
+     * Indicates whether the given value is valid according to the given value
+     * type.
      *
-     * @param value the data value.
+     * @param value the value.
      * @param valueType the {@link ValueType}.
      *
      * @return null if the value is valid, a string if not.
      */
-    public static String dataValueIsValid( String value, ValueType valueType )
+    public static String valueIsValid( String value, ValueType valueType )
     {
         if ( value == null || value.trim().isEmpty() )
         {
@@ -611,7 +621,7 @@ public class ValidationUtils
      * Indicates whether the given value is zero and not zero significant
      * according to its data element.
      *
-     * @param value the data value.
+     * @param value the value.
      * @param dataElement the data element.
      */
     public static boolean dataValueIsZeroAndInsignificant( String value, DataElement dataElement )
@@ -807,24 +817,21 @@ public class ValidationUtils
     }
 
     /**
-     * Validates a whatsapp handle
+     * Validates a WhatsApp handle.
      *
-     * @param whatsapp
-     *
-     * @return
+     * @param whatsApp the WhatsApp handle.
+     * @return true if valid.
      */
-    public static boolean validateWhatsapp( String whatsapp )
+    public static boolean validateWhatsApp( String whatsApp )
     {
-        // Whatsapp uses international phonenumbers to identify users
-        return validateInternationalPhoneNumber( whatsapp );
+        return validateInternationalPhoneNumber( whatsApp );
     }
 
     /**
-     * Validate an international phone number
+     * Validate an international phone number.
      *
-     * @param phoneNumber
-     *
-     * @return
+     * @param phoneNumber the phone number.
+     * @return true if valid.
      */
     public static boolean validateInternationalPhoneNumber( String phoneNumber )
     {
@@ -835,8 +842,8 @@ public class ValidationUtils
      * Validate a phone number using a generic rule which should be applicable
      * for any countries.
      *
-     * @param string phone number for checking.
-     * @return TRUE if given string is a phone number otherwise FALSE
+     * @param string a phone number string.
+     * @return true if given string is a valid phone number.
      */
     public static boolean isPhoneNumber( String string )
     {
