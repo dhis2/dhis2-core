@@ -145,7 +145,8 @@
           "attribute": "dIVt4l5vIOa",
           "value": "Test"
         }
-      ]
+      ],
+      "potentialDuplicate": true
     }
   ]
 }
