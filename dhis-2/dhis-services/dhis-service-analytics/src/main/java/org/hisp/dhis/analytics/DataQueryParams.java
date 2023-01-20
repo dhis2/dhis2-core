@@ -1748,7 +1748,8 @@ public class DataQueryParams
 
         if ( index != -1 )
         {
-            dimensions.set( index, new BaseDimensionalObject( dimension, type, dimensionName, null, options ) );
+            dimensions.set( index, new BaseDimensionalObject( dimension, type, dimensionName, null, options,
+                dimensions.get( index ).isAllItems() ) );
         }
         else
         {

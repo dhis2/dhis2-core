@@ -432,8 +432,7 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField,
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField, params );
 
             if ( isNotEmpty( sqlSnippet ) )
             {
@@ -571,18 +570,31 @@ public class JdbcEventAnalyticsManager
     /**
      * Generates a sub query which provides a filter by organisation descendant
      * level.
+     *
+     * @param orgUnitField organisation unit link the {@link OrgUnitField}
+     * @param params the {@link EventQueryParams}
+     * @return
      */
-    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField,
-        List<DimensionalItemObject> dimensionOrFilterItems )
+    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField, EventQueryParams params )
     {
-        Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
+        if ( params.getDimension( ORGUNIT_DIM_ID ) == null )
+        {
+            return "";
+        }
+
+        List<DimensionalItemObject> dimensionalItemObjects = params.getDimensionOrFilterItems( ORGUNIT_DIM_ID );
+        boolean isAllItems = params.getDimension( ORGUNIT_DIM_ID ).isAllItems();
+
+        Map<String, List<OrganisationUnit>> collect = dimensionalItemObjects
+            .stream()
             .map( object -> (OrganisationUnit) object )
             .collect( Collectors.groupingBy(
                 unit -> orgUnitField.getOrgUnitLevelCol( unit.getLevel(), getAnalyticsType() ) ) );
 
         return collect.keySet()
             .stream()
-            .map( org -> toInCondition( org, collect.get( org ) ) )
+            .map(
+                org -> toInOrNotNullCondition( org, collect.get( org ), isAllItems ) )
             .collect( joining( " and " ) );
     }
 
@@ -593,12 +605,14 @@ public class JdbcEventAnalyticsManager
      * @param organisationUnits the list of {@link OrganisationUnit}.
      * @return a SQL in condition.
      */
-    private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
+    private String toInOrNotNullCondition( String orgUnit, List<OrganisationUnit> organisationUnits,
+        boolean isAllItems )
     {
-        return organisationUnits.stream()
-            .filter( unit -> isNotEmpty( unit.getUid() ) )
-            .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
+        return isAllItems ? orgUnit + " is not null "
+            : organisationUnits.stream()
+                .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+                .map( unit -> "'" + unit.getUid() + "'" )
+                .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
 
     /**

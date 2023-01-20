@@ -415,6 +415,8 @@ public class DimensionalObjectProducer
         List<OrganisationUnit> ousList = asTypedList( ous );
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
+        boolean forAllItems = false;
+
         if ( !levels.isEmpty() )
         {
             orgUnitAtLevels.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
@@ -423,6 +425,8 @@ public class DimensionalObjectProducer
                 .map( organisationUnitService::getOrganisationUnitLevelByLevel )
                 .filter( Objects::nonNull )
                 .collect( toList() ) );
+
+            forAllItems = true;
         }
 
         if ( !groups.isEmpty() )
@@ -433,6 +437,8 @@ public class DimensionalObjectProducer
                 .map( group -> new BaseNameableObject( group.getUid(), group.getCode(),
                     group.getDisplayProperty( displayProperty ) ) )
                 .collect( toList() ) );
+
+            forAllItems = true;
         }
 
         // When levels / groups are present, OUs are considered boundaries
@@ -457,7 +463,7 @@ public class DimensionalObjectProducer
         orgUnitAtLevels = orgUnitAtLevels.stream().distinct().collect( toList() );
 
         return new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-            orgUnitAtLevels, dimensionalKeywords );
+            orgUnitAtLevels, dimensionalKeywords, forAllItems );
     }
 
     /**
