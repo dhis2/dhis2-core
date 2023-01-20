@@ -42,6 +42,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -52,6 +54,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +80,8 @@ public class FileResourceController
     private final FileResourceService fileResourceService;
 
     private final FileResourceUtils fileResourceUtils;
+
+    private final DhisConfigurationProvider dhisConfig;
 
     @GetMapping( value = "/{uid}" )
     public FileResource getFileResource( @PathVariable String uid,
@@ -122,6 +127,7 @@ public class FileResourceController
         response.setHeader( HttpHeaders.CONTENT_LENGTH,
             String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
         try
         {
@@ -162,15 +168,15 @@ public class FileResourceController
          * doesn't make sense So we will return false if the fileResource have
          * either of these domains.
          */
-        if ( fileResource.getDomain().equals( FileResourceDomain.DATA_VALUE )
-            || fileResource.getDomain().equals( FileResourceDomain.PUSH_ANALYSIS ) )
+        FileResourceDomain domain = fileResource.getDomain();
+        if ( domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS )
         {
             return false;
         }
 
-        if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )
+        if ( domain == FileResourceDomain.USER_AVATAR )
         {
-            return currentUser.isAuthorized( "F_USER_VIEW" ) || currentUser.getAvatar().equals( fileResource );
+            return currentUser.isAuthorized( "F_USER_VIEW" ) || fileResource.equals( currentUser.getAvatar() );
         }
 
         return true;

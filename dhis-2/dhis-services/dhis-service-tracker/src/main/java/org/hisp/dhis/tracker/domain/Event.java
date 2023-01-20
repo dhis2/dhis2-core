@@ -63,6 +63,9 @@ public class Event
     private EventStatus status = EventStatus.ACTIVE;
 
     @JsonProperty
+    private String trackedEntity;
+
+    @JsonProperty
     private String program;
 
     @JsonProperty

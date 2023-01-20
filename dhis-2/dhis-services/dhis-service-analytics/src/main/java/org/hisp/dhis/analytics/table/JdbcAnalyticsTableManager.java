@@ -50,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -110,18 +111,6 @@ import com.google.common.collect.Sets;
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-    public JdbcAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate );
-    }
-
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ),
         new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" )
@@ -134,6 +123,18 @@ public class JdbcAnalyticsTableManager
         new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ) );
+
+    public JdbcAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
+    {
+        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate, analyticsExportSettings );
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

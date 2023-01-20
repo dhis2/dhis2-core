@@ -373,11 +373,25 @@ public class JCloudsFileResourceContentStore
             throw new NoSuchElementException( "key '" + key + "' not found." );
         }
 
-        Blob blob = getBlob( key );
-
-        try ( InputStream in = blob.getPayload().openStream() )
+        try ( InputStream in = getBlob( key ).getPayload().openStream() )
         {
             IOUtils.copy( in, output );
+        }
+    }
+
+    @Override
+    public byte[] copyContent( String key )
+        throws IOException,
+        NoSuchElementException
+    {
+        if ( !blobExists( key ) )
+        {
+            throw new NoSuchElementException( "key '" + key + "' not found." );
+        }
+
+        try ( InputStream in = getBlob( key ).getPayload().openStream() )
+        {
+            return IOUtils.toByteArray( in );
         }
     }
 

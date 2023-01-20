@@ -28,12 +28,12 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -281,18 +282,36 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the select clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL select clause.
      */
     private String getSelectClause( DataQueryParams params )
     {
         String sql = "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
 
-        if ( params.isDataType( TEXT ) )
+        sql += getValueClause( params );
+
+        return sql;
+    }
+
+    /**
+     * Generates the value clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL value clause.
+     */
+    protected String getValueClause( DataQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isAggregation() )
+        {
+            sql += getAggregateValueColumn( params );
+        }
+        else
         {
             sql += params.getValueColumn();
-        }
-        else // NUMERIC and BOOLEAN
-        {
-            sql += getNumericValueColumn( params );
         }
 
         sql += " as value ";
@@ -301,9 +320,12 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a aggregate clause for the numeric value column.
+     * Returns an aggregate clause for the numeric value column.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL numeric value column.
      */
-    private String getNumericValueColumn( DataQueryParams params )
+    protected String getAggregateValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -344,10 +366,6 @@ public class JdbcAnalyticsManager
         {
             sql = "max(" + valueColumn + ")";
         }
-        else if ( aggType.isAggregationType( NONE ) )
-        {
-            sql = valueColumn;
-        }
         else // SUM and no value
         {
             sql = "sum(" + valueColumn + ")";
@@ -368,13 +386,13 @@ public class JdbcAnalyticsManager
             Date earliest = addYears( params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET );
             sql += getFirstOrLastValueSubquerySql( params, earliest );
         }
-        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
-        {
-            sql += getPreMeasureCriteriaSubquerySql( params );
-        }
         else if ( params.getAggregationType().isLastInPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
+        }
+        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        {
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -575,6 +593,8 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String partitionColumns = getFirstOrLastValuePartitionColumns( params );
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
@@ -584,17 +604,44 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
-        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
-
         sql += "row_number() over (" +
-            "partition by dx, ou, co, ao " +
+            "partition by " + partitionColumns + " " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null))";
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliest ) + "' " +
+            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
+            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
+    }
+
+    /**
+     * Returns the partition columns. If query is of "first" or "last"
+     * aggregation type (in all dimensions), the dimensions except the period
+     * dimension of the query are returned. This implies that the sub query
+     * window function will rank data values in all dimensions, and the outer
+     * query will perform the aggregation by filtering on the first ranked
+     * value.
+     * <p>
+     * Otherwise, the four data value composite primary key columns except the
+     * period column are returned, which implies that the sub query window
+     * function will rank data values in time ascending or descending, and the
+     * outer query will filter out all data except for the "first" or "last" in
+     * time.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the partition columns as a quoted and comma separated string.
+     */
+    private String getFirstOrLastValuePartitionColumns( DataQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
+        {
+            return getCommaDelimitedQuotedColumns( params.getNonPeriodDimensions() );
+        }
+        else
+        {
+            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
+        }
     }
 
     /**
@@ -678,8 +725,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
-                + " " + criterion + " ";
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " " +
+                OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
         return sql;
@@ -739,14 +786,18 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a comma-delimited string based on the dimension names of the
-     * given dimensions where each dimension name is quoted.
+     * Generates a comma-delimited string with the dimension names of the given
+     * dimensions where each dimension name is quoted. Dimensions which are
+     * considered fixed will be excluded.
+     *
+     * @param dimensions the collection of {@link Dimension}.
+     * @return a comma-delimited string of quoted dimension names.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {
         final StringBuilder builder = new StringBuilder();
 
-        if ( dimensions != null && !dimensions.isEmpty() )
+        if ( isNotEmpty( dimensions ) )
         {
             for ( DimensionalObject dimension : dimensions )
             {

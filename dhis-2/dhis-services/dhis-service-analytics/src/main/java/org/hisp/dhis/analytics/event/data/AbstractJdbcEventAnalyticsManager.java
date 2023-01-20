@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
@@ -55,6 +56,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.text.ParseException;
@@ -97,7 +99,6 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -129,19 +130,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final String COL_EXTENT = "extent";
 
-    private static final String LIMIT = "limit";
-
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final String _AND_ = " and ";
+    private static final String COL_VALUE = "value";
 
-    private static final String _OR_ = " or ";
+    private static final String AND = " and ";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final String OR = " or ";
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final String LIMIT = "limit";
+
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -225,18 +228,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.hasRepeatableStageParams() )
-                {
-                    sql += quote( item.getRepeatableStageParams().getDimension() );
-                }
-                else if ( item.getProgramStage() != null )
-                {
-                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
-                }
-                else
-                {
-                    sql += quote( item.getItem().getUid() );
-                }
+                sql += getSortColumnForDataElementDimensionType( item );
             }
             else
             {
@@ -255,6 +247,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    private String getSortColumnForDataElementDimensionType( QueryItem item )
+    {
+        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        {
+            return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+        }
+
+        if ( item.hasRepeatableStageParams() )
+        {
+            return quote( item.getRepeatableStageParams().getDimension() );
+        }
+
+        if ( item.getProgramStage() != null )
+        {
+            return quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+        }
+
+        return quote( item.getItem().getUid() );
     }
 
     /**
@@ -307,7 +319,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * group clause, as non default boundaries is defining their own period
      * groups within their where clause.
      */
-    private List<String> getGroupByColumnNames( EventQueryParams params, boolean isAggregated )
+    protected List<String> getGroupByColumnNames( EventQueryParams params, boolean isAggregated )
     {
         return getSelectColumns( params, true, isAggregated );
     }
@@ -332,8 +344,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * hard coded into the select statement with "(isoPeriod) as (periodType)".
      *
      * @param isGroupByClause used to avoid grouping by period when using
-     *        non-default boundaries where the column content would be hard
-     *        coded. Used by the group-by calls.
+     *        non-default boundaries where the column content would be fixed.
+     *        Used by the group by calls.
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause, boolean isAggregated )
     {
@@ -454,13 +466,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
     {
         String column = getColumn( queryItem );
+
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
+
         return ColumnAndAlias.ofColumn( column );
     }
 
@@ -475,9 +486,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String countClause = getAggregateClause( params );
+        String aggregateClause = getAggregateClause( params );
 
-        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
+        String sql = TextUtils.removeLastComma( "select " + aggregateClause + " as value," +
             StringUtils.join( getSelectColumns( params, true ), "," ) + " " );
 
         // ---------------------------------------------------------------------
@@ -488,16 +499,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        // ---------------------------------------------------------------------
-        // Group by
-        // ---------------------------------------------------------------------
-
-        List<String> selectColumnNames = getGroupByColumnNames( params, true );
-
-        if ( selectColumnNames.size() > 0 )
-        {
-            sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
-        }
+        sql += getGroupByClause( params );
 
         // ---------------------------------------------------------------------
         // Sort order
@@ -549,9 +551,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return grid;
     }
 
+    /**
+     * Returns a group by SQL clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @return a group by SQL clause.
+     */
+    private String getGroupByClause( EventQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isAggregation() )
+        {
+            List<String> selectColumnNames = getGroupByColumnNames( params, true );
+
+            if ( isNotEmpty( selectColumnNames ) )
+            {
+                sql += "group by " + getCommaDelimitedString( selectColumnNames ) + " ";
+            }
+        }
+
+        return sql;
+    }
+
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics enrollment aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -625,18 +650,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( params.hasValueDimension() )
             {
-                double value = rowSet.getDouble( "value" );
-                grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
+                if ( params.hasTextValueDimension() )
+                {
+                    String value = rowSet.getString( COL_VALUE );
+                    grid.addValue( value );
+                }
+                else // Numeric
+                {
+                    double value = rowSet.getDouble( COL_VALUE );
+                    grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
+                }
             }
             else if ( params.hasProgramIndicatorDimension() )
             {
-                double value = rowSet.getDouble( "value" );
+                double value = rowSet.getDouble( COL_VALUE );
                 ProgramIndicator indicator = params.getProgramIndicator();
                 grid.addValue( AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value ) );
             }
             else
             {
-                int value = rowSet.getInt( "value" );
+                int value = rowSet.getInt( COL_VALUE );
                 grid.addValue( value );
             }
 
@@ -648,7 +681,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the count clause based on value dimension and output type.
+     * Returns the aggregate clause based on value dimension and output type.
      *
      * @param params the {@link EventQueryParams}.
      *
@@ -658,7 +691,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
+        if ( !params.isAggregation() )
+        {
+            return quoteAlias( params.getValue().getUid() );
+        }
+        else if ( params.hasNumericValueDimension() )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
@@ -815,18 +852,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Checks if the ValueType, in the given params, is of type NUMERIC.
+     * Returns a filter string.
      *
-     * @param params the {@link EventQueryParams}
-     * @return true if params ValueType is NUMERIC, false otherwise
+     * @param filter the filter string.
+     * @param item the {@link QueryItem}.
+     * @return a filter string.
      */
-    private boolean isParamsValueTypeNumeric( EventQueryParams params )
-    {
-        return params != null &&
-            params.getValue() instanceof ValueTypedDimensionalItemObject &&
-            ((ValueTypedDimensionalItemObject) params.getValue()).getValueType() == ValueType.NUMBER;
-    }
-
     private String getFilter( String filter, QueryItem item )
     {
         try
@@ -1129,7 +1160,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .identifier( getIdentifier( queryItem ) )
             .sql( queryItem.getFilters().stream()
                 .map( filter -> toSql( queryItem, filter, params ) )
-                .collect( joining( _AND_ ) ) )
+                .collect( joining( AND ) ) )
             .build();
     }
 
@@ -1192,6 +1223,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NLIKE:
                 case NILIKE:
                     return nullAndEmptyMatcher( item, filter, field );
+                default:
+                    break;
                 }
             }
 

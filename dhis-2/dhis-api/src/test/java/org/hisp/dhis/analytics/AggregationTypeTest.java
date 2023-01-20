@@ -25,31 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.analytics;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.client.HttpClientErrorException;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-class TrackerBundleReportModeTest
+class AggregationTypeTest
 {
-
     @Test
-    void shouldFindReportMode()
+    void testIsFirst()
     {
-        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
+        assertTrue( AggregationType.FIRST.isFirst() );
+        assertTrue( AggregationType.FIRST_AVERAGE_ORG_UNIT.isFirst() );
+        assertFalse( AggregationType.SUM.isFirst() );
+        assertFalse( AggregationType.LAST.isFirst() );
     }
 
     @Test
-    void shouldThrowWhenReportModeNotFound()
+    void testIsLast()
     {
-        assertThrows( HttpClientErrorException.class,
-            () -> TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" ) );
+        assertTrue( AggregationType.LAST.isLast() );
+        assertTrue( AggregationType.LAST_AVERAGE_ORG_UNIT.isLast() );
+        assertFalse( AggregationType.SUM.isLast() );
+        assertFalse( AggregationType.FIRST.isLast() );
     }
 }

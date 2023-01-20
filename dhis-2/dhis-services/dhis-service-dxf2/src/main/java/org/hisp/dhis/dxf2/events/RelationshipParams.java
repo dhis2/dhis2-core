@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class RelationshipParams
 {
     public static final RelationshipParams TRUE = new RelationshipParams( true, true );
@@ -50,7 +48,6 @@ public class RelationshipParams
         this.includeTo = includeTo;
     }
 
-    @JsonProperty
     public boolean isIncludeFrom()
     {
         return includeFrom;
@@ -61,7 +58,6 @@ public class RelationshipParams
         this.includeFrom = includeFrom;
     }
 
-    @JsonProperty
     public boolean isIncludeTo()
     {
         return includeTo;

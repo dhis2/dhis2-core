@@ -700,8 +700,13 @@ public class DefaultUserService
         {
             List<UserRole> roles = userRoleStore.getByUid(
                 userRoles.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+
             roles.forEach( ur -> {
-                if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
+                if ( ur == null )
+                {
+                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3028, user.getUsername() ) );
+                }
+                else if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
                 {
                     errors.add( new ErrorReport( UserRole.class, ErrorCode.E3003, currentUser.getUsername(),
                         ur.getName() ) );

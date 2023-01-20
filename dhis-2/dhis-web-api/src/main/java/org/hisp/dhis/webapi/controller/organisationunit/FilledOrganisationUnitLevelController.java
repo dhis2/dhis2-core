@@ -35,27 +35,35 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping( value = "/filledOrganisationUnitLevels" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FilledOrganisationUnitLevelController
@@ -64,18 +72,18 @@ public class FilledOrganisationUnitLevelController
 
     private final OrganisationUnitService organisationUnitService;
 
-    public FilledOrganisationUnitLevelController(
-        ObjectMapper jsonMapper,
-        OrganisationUnitService organisationUnitService )
-    {
-        this.jsonMapper = jsonMapper;
-        this.organisationUnitService = organisationUnitService;
-    }
+    private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<OrganisationUnitLevel> getList()
+    public @ResponseBody ResponseEntity<List<ObjectNode>> getList(
+        @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        return organisationUnitService.getFilledOrganisationUnitLevels();
+        List<OrganisationUnitLevel> organisationUnitLevels = organisationUnitService.getFilledOrganisationUnitLevels();
+
+        FieldFilterParams<OrganisationUnitLevel> params = FieldFilterParams.of( organisationUnitLevels, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+
+        return ResponseEntity.ok( objectNodes );
     }
 
     @PostMapping( consumes = APPLICATION_JSON_VALUE )

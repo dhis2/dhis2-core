@@ -28,12 +28,14 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -48,6 +50,7 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -195,6 +198,10 @@ public class DefaultEventQueryPlanner
     }
 
     /**
+     * Groups by query item and set the value property to each item and item
+     * filter if exists and query is for aggregate data. Groups by program
+     * indicator if exists and query is for aggregate data.
+     * <p>
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
      *
@@ -209,10 +216,14 @@ public class DefaultEventQueryPlanner
         {
             for ( QueryItem item : params.getItemsAndItemFilters() )
             {
+                AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull(
+                    params.getAggregationType(), fromAggregationType( item.getAggregationType() ) );
+
                 EventQueryParams.Builder query = new EventQueryParams.Builder( params )
                     .removeItems()
                     .removeItemProgramIndicators()
-                    .withValue( item.getItem() );
+                    .withValue( item.getItem() )
+                    .withAggregationType( aggregationType );
 
                 if ( item.hasProgram() )
                 {

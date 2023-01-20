@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -121,6 +122,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -128,6 +131,7 @@ import org.springframework.util.Assert;
 /**
  * @author Lars Helge Overland
  */
+
 @Service( "org.hisp.dhis.analytics.DataQueryService" )
 public class DefaultDataQueryService
     implements DataQueryService
@@ -146,6 +150,8 @@ public class DefaultDataQueryService
 
     private SystemSettingManager systemSettingManager;
 
+    private UserSettingService userSettingService;
+
     private AclService aclService;
 
     private CurrentUserService currentUserService;
@@ -154,7 +160,8 @@ public class DefaultDataQueryService
 
     public DefaultDataQueryService( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, DimensionService dimensionService,
-        AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
+        AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager,
+        UserSettingService userSettingService, AclService aclService,
         CurrentUserService currentUserService, I18nManager i18nManager )
     {
         checkNotNull( idObjectManager );
@@ -162,6 +169,7 @@ public class DefaultDataQueryService
         checkNotNull( dimensionService );
         checkNotNull( securityManager );
         checkNotNull( systemSettingManager );
+        checkNotNull( userSettingService );
         checkNotNull( aclService );
         checkNotNull( currentUserService );
         checkNotNull( i18nManager );
@@ -171,6 +179,7 @@ public class DefaultDataQueryService
         this.dimensionService = dimensionService;
         this.securityManager = securityManager;
         this.systemSettingManager = systemSettingManager;
+        this.userSettingService = userSettingService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
         this.i18nManager = i18nManager;
@@ -188,6 +197,8 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
@@ -244,6 +255,7 @@ public class DefaultDataQueryService
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
+            .withLocale( locale )
             .withUserOrgUnitType( request.getUserOrgUnitType() )
             .build();
     }
@@ -256,8 +268,12 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         I18nFormat format = i18nManager.getI18nFormat();
+
         IdScheme idScheme = IdScheme.UID;
+
         Date date = object.getRelativePeriodDate();
+
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         String userOrgUnit = object.getRelativeOrganisationUnit() != null
             ? object.getRelativeOrganisationUnit().getUid()
@@ -288,6 +304,7 @@ public class DefaultDataQueryService
         return params
             .withCompletedOnly( object.isCompletedOnly() )
             .withTimeField( object.getTimeField() )
+            .withLocale( locale )
             .build();
     }
 

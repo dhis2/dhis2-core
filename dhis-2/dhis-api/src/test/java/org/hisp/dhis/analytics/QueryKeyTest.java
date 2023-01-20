@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,11 +48,16 @@ class QueryKeyTest
             .add( "filter", "ou" )
             .add( "aggregationType", AggregationType.SUM )
             .add( "skipMeta", true )
+            .add( "locale", Locale.FRENCH )
             .asPlainKey();
 
-        assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true", key );
+        assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true-locale:fr", key );
+    }
 
-        key = new QueryKey()
+    @Test
+    void testAsPlainKeyB()
+    {
+        String key = new QueryKey()
             .add( "dimension", "dx" )
             .add( "filter", "pe" )
             .add( "filter", "ou" )
@@ -59,6 +66,17 @@ class QueryKeyTest
             .asPlainKey();
 
         assertEquals( "dimension:dx-filter:pe-filter:ou-aggregationType:AVERAGE-skipMeta:true", key );
+    }
+
+    @Test
+    void testAsPlainKeyC()
+    {
+        String key = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "locale", null )
+            .asPlainKey();
+
+        assertEquals( "dimension:dx-locale:null", key );
     }
 
     @Test

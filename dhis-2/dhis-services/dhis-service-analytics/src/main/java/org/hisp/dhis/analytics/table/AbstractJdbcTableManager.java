@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
@@ -42,9 +41,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -75,7 +76,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -88,6 +88,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractJdbcTableManager
     implements AnalyticsTableManager
 {
@@ -107,8 +108,6 @@ public abstract class AbstractJdbcTableManager
     protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
 
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-
-    private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
     protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
@@ -134,37 +133,9 @@ public abstract class AbstractJdbcTableManager
 
     protected final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( categoryService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( dataApprovalLevelService );
-        checkNotNull( resourceTableService );
-        checkNotNull( tableHookService );
-        checkNotNull( statementBuilder );
-        checkNotNull( partitionManager );
-        checkNotNull( databaseInfo );
+    protected final AnalyticsExportSettings analyticsExportSettings;
 
-        this.idObjectManager = idObjectManager;
-        this.organisationUnitService = organisationUnitService;
-        this.categoryService = categoryService;
-        this.systemSettingManager = systemSettingManager;
-        this.dataApprovalLevelService = dataApprovalLevelService;
-        this.resourceTableService = resourceTableService;
-        this.tableHookService = tableHookService;
-        this.statementBuilder = statementBuilder;
-        this.partitionManager = partitionManager;
-        this.databaseInfo = databaseInfo;
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -379,7 +350,10 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
+        StringBuilder sqlCreate = new StringBuilder();
+
+        sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+            .append( tableName ).append( " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -413,22 +387,25 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " (";
+            StringBuilder sqlCreate = new StringBuilder();
+
+            sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+                .append( tableName ).append( "(" );
 
             if ( !checks.isEmpty() )
             {
                 StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
+                sqlCreate.append( TextUtils.removeLastComma( sqlCheck.toString() ) );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate.append( ") inherits (" ).append( table.getTempTableName() ).append( ") " )
+                .append( getTableOptions() );
 
             log.info( "Creating partition table: '{}'", tableName );
-
             log.debug( "Create SQL: {}", sqlCreate );
 
-            jdbcTemplate.execute( sqlCreate );
+            jdbcTemplate.execute( sqlCreate.toString() );
         }
     }
 
@@ -660,12 +637,6 @@ public abstract class AbstractJdbcTableManager
             "drop table if exists " + realTableName + " cascade",
             "alter table " + tempTableName + " rename to " + realTableName
         };
-
-        for ( int i = 0; i < sqlSteps.length; i++ )
-        {
-            log.debug( sqlSteps[i] );
-            executeSafely( sqlSteps[i] );
-        }
 
         executeSafely( sqlSteps, true );
     }

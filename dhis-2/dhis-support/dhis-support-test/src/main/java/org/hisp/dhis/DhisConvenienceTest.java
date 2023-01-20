@@ -49,6 +49,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -79,6 +81,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -169,6 +173,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
@@ -997,6 +1002,16 @@ public abstract class DhisConvenienceTest
     public static Period createPeriod( String isoPeriod )
     {
         return PeriodType.getPeriodFromIsoString( isoPeriod );
+    }
+
+    /**
+     * @param isoPeriod the ISO period strings.
+     */
+    public static List<Period> createPeriods( String... isoPeriod )
+    {
+        return Stream.of( isoPeriod )
+            .map( PeriodType::getPeriodFromIsoString )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -2187,6 +2202,26 @@ public abstract class DhisConvenienceTest
         lvlOneLeft.getChildren().addAll( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
         lvlTwoLeftLeft.setParent( lvlOneLeft );
         lvlTwoLeftRight.setParent( lvlOneLeft );
+    }
+
+    public static Dashboard createDashboardWithItem( String name, Sharing sharing )
+    {
+        DashboardItem dashboardItem = createDashboardItem( "A" );
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "dashboard " + name );
+        dashboard.setSharing( sharing );
+        dashboard.getItems().add( dashboardItem );
+
+        return dashboard;
+    }
+
+    public static DashboardItem createDashboardItem( String name )
+    {
+        DashboardItem dashboardItem = new DashboardItem();
+        dashboardItem.setName( "dashboardItem " + name );
+        dashboardItem.setAutoFields();
+
+        return dashboardItem;
     }
 
     // -------------------------------------------------------------------------
