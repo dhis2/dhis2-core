@@ -593,8 +593,7 @@ public class JdbcEventAnalyticsManager
 
         return collect.keySet()
             .stream()
-            .map(
-                org -> toInOrNotNullCondition( org, collect.get( org ), isAllItems ) )
+            .map( org -> toInOrNotNullCondition( org, collect.get( org ), isAllItems ) )
             .collect( joining( " and " ) );
     }
 
