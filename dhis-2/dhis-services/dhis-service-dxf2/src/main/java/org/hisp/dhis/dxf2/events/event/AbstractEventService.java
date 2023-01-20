@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -570,15 +572,15 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships )
+    public Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
     {
-        return getEvent( programStageInstance, false, false, includeRelationships );
+        return getEvent( programStageInstance, false, false, eventParams );
     }
 
     @Transactional( readOnly = true )
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, boolean includeRelationships )
+        boolean skipOwnershipCheck, EventParams eventParams )
     {
         if ( programStageInstance == null )
         {
@@ -693,13 +695,14 @@ public abstract class AbstractEventService implements EventService
 
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
-        if ( includeRelationships )
+        if ( eventParams.isIncludeRelationships() )
         {
             event.setRelationships( programStageInstance.getRelationshipItems()
                 .stream()
                 .filter( Objects::nonNull )
-                .map( r -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
+                .map( r -> relationshipService.findRelationship( r.getRelationship(), RelationshipParams.FALSE,
                     user ) )
+                .filter( Optional::isPresent ).map( Optional::get )
                 .collect( Collectors.toSet() ) );
         }
 

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -37,9 +38,11 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -78,13 +82,18 @@ public class TrackerExportTests
 
     private static String enrollmentToTeiRelationship;
 
+    private static final String TEI = "Kj6vYde4LHh";
+
+    private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
+
     @BeforeAll
     public void beforeAll()
         throws Exception
     {
         loginActions.loginAsSuperUser();
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport(new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         teiA = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
         teiB = response.validateSuccessfulImport().extractImportedTeis().get( 1 );
@@ -151,7 +160,8 @@ public class TrackerExportTests
             .add( "trackedEntity", "Kj6vYde4LHh" )
             .add( "orgUnit", "O6uvpzGd5pu" ) );
 
-        JSONAssert.assertEquals( trackedEntity.getBody().toString(), trackedEntities.extractJsonObject( "instances[0]" ).toString(),
+        JSONAssert.assertEquals( trackedEntity.getBody().toString(),
+            trackedEntities.extractJsonObject( "instances[0]" ).toString(),
             false );
     }
 
@@ -190,7 +200,8 @@ public class TrackerExportTests
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( is( "Bravo" ) ) );
     }
 
     Stream<Arguments> shouldReturnTeisMatchingAttributeCriteria()
@@ -205,7 +216,8 @@ public class TrackerExportTests
 
     @MethodSource( )
     @ParameterizedTest
-    public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria, Matcher everyItemMatcher )
+    public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria,
+        Matcher everyItemMatcher )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "orgUnit", "O6uvpzGd5pu" )
@@ -215,7 +227,8 @@ public class TrackerExportTests
         trackerActions.getTrackedEntities( queryParamsBuilder )
             .validate().statusCode( 200 )
             .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( everyItemMatcher ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( everyItemMatcher ) );
     }
 
     @Test
@@ -227,7 +240,8 @@ public class TrackerExportTests
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( is( "Bravo" ) ) );
     }
 
     @Test
@@ -241,5 +255,53 @@ public class TrackerExportTests
             .body( "relationship", equalTo( teiToTeiRelationship ) )
             .body( "from.trackedEntity.trackedEntity", equalTo( teiA ) )
             .body( "to.trackedEntity.trackedEntity", equalTo( teiB ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamNull()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder() );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 2 ) );
+
+        assertThat( response.getBody().getAsJsonObject(),
+            matchesJSON( new JsonObjectBuilder()
+                .addArray( "trackedEntityInstances",
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI ).build(),
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI_POTENTIAL_DUPLICATE ).build() )
+                .build() ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamFalse()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( false ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamTrue()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI_POTENTIAL_DUPLICATE ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( true ) );
+    }
+
+    private static QueryParamsBuilder teiParamsBuilder()
+    {
+        return new QueryParamsBuilder().addAll(
+            "trackedEntityInstance=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
+            "trackedEntityType=" + "Q9GufDoplCL",
+            "ou=" + "O6uvpzGd5pu" );
     }
 }
