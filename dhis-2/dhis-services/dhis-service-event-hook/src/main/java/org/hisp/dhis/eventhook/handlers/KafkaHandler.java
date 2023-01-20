@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.eventhook.handlers;
 
+import java.util.Map;
+import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 
@@ -40,13 +46,37 @@ public class KafkaHandler implements Handler
 {
     private final KafkaTarget target;
 
+    private KafkaProducer<String, String> producer;
+
     public KafkaHandler( KafkaTarget target )
     {
         this.target = target;
+        configure( target );
+    }
+
+    private void configure( KafkaTarget target )
+    {
+        Map<String, Object> properties = Map.of(
+            "client.id", UUID.randomUUID().toString(),
+            "bootstrap.servers", "localhost:9092",
+            "acks", "all",
+            "key.serializer", StringSerializer.class,
+            "value.serializer", StringSerializer.class );
+
+        this.producer = new KafkaProducer<>( properties );
     }
 
     public void run( String payload )
     {
-        log.info( payload );
+        producer.send( new ProducerRecord<>( "test2", null, payload ) );
+    }
+
+    @Override
+    public void close()
+    {
+        if ( producer != null )
+        {
+            producer.close();
+        }
     }
 }
