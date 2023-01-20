@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -62,8 +61,7 @@ public class DefaultEventQueryValidator
 
     @Override
     public void validate( EventQueryParams params )
-        throws IllegalQueryException,
-        MaintenanceModeException
+        throws IllegalQueryException
     {
         ErrorMessage error = validateForErrorMessage( params );
 
