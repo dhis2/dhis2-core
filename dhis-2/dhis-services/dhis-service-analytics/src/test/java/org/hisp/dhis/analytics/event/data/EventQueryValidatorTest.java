@@ -41,7 +41,9 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -150,6 +152,24 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     }
 
     @Test
+    void validateValidFilterForValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "68" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        eventQueryValidator.validate( params );
+    }
+
+    @Test
     void validateDuplicateQueryItems()
     {
         EventQueryParams params = new EventQueryParams.Builder()
@@ -199,6 +219,24 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
         assertValidatonError( ErrorCode.E7215, params );
+    }
+
+    @Test
+    void validateInvalidFilterForValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "male" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidatonError( ErrorCode.E7234, params );
     }
 
     @Test
