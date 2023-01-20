@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -198,7 +199,7 @@ public class EnrollmentCriteriaMapper
             trackerEnrollmentCriteria.getPage(),
             trackerEnrollmentCriteria.getPageSize(),
             trackerEnrollmentCriteria.isTotalPages(),
-            trackerEnrollmentCriteria.isSkipPaging(),
+            toBooleanDefaultIfNull( trackerEnrollmentCriteria.isSkipPaging(), false ),
             trackerEnrollmentCriteria.isIncludeDeleted(),
             trackerEnrollmentCriteria.getOrder() );
     }
