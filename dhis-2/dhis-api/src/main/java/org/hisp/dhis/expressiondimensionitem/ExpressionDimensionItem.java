@@ -217,6 +217,11 @@ public class ExpressionDimensionItem
         return slidingWindow;
     }
 
+    public void setSlidingWindow( Boolean slidingWindow )
+    {
+        this.slidingWindow = slidingWindow;
+    }
+
     @Override
     public DimensionItemType getDimensionItemType()
     {
