@@ -67,7 +67,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -136,16 +135,11 @@ public class CrudControllerAdvice
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
-    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
+    @ExceptionHandler( org.hisp.dhis.common.BadRequestException.class )
     @ResponseBody
-    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
+    public WebMessage badRequestException( org.hisp.dhis.common.BadRequestException ex )
     {
-        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
-        if ( !ex.getErrorReports().isEmpty() )
-        {
-            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
-        }
-        return message;
+        return badRequest( ex.getMessage(), ex.getErrorCode() );
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
