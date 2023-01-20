@@ -65,7 +65,7 @@ class LabelMapperTest
     {
         ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
-        String actualName = LabelMapper.getScheduleDateLabel( aMockedProgramStageWithLabels,
+        String actualName = LabelMapper.getScheduledDateLabel( aMockedProgramStageWithLabels,
             NAME_SCHEDULED_DATE );
 
         assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayDueDateLabel() ) );

@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: aggregate_data_elements_abandoned
+  name: data_elements_aggregate_abandoned
   description: Aggregate data elements that have not been changed in last 100 days and do not have any data values.
   section: Data elements (aggregate)
   section_order: 5
@@ -54,5 +54,5 @@
     Data elements that have no data associated with them and which there are no plans
     to start using for data collection should be deleted.
   is_slow: true
-  details_id_type: data_elements_aggregate
+  details_id_type: dataElements
 

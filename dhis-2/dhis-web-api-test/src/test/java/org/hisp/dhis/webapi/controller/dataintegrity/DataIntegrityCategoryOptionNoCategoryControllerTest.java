@@ -32,9 +32,19 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
+/**
+ *
+ * Tests metadata integrity check for category options with no category.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_options_no_categories.yaml
+ * }
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "category_options_no_categories";
+
+    private final String detailsIdType = "categoryOptions";
 
     @Test
     void testCategoryOptionNoCategoriesExist()
@@ -50,7 +60,7 @@ class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIn
          * Note that the default category is implicit here, so the percentage
          * need to take that into account
          */
-        assertHasDataIntegrityIssues( "categories", check, 50, categoryOptionRed, "Red", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, categoryOptionRed, "Red", null,
             true );
 
     }
@@ -67,7 +77,7 @@ class DataIntegrityCategoryOptionNoCategoryControllerTest extends AbstractDataIn
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
 
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 

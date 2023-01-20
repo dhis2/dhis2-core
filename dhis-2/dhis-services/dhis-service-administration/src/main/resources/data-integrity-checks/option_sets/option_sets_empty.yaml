@@ -48,7 +48,7 @@ details_sql: >-
     NOT IN (SELECT DISTINCT optionsetid
     from optionvalue WHERE optionsetid IS NOT NULL)
     ORDER BY name;
-details_id_type: option_sets
+details_id_type: optionSets
 severity: WARNING
 introduction: >
     All option sets should generally include at least two items. Empty option sets serve no purpose.

@@ -45,6 +45,8 @@ class DataIntegrityCategoryComboUnusedControllerTest extends AbstractDataIntegri
 {
     private final String check = "category_combos_unused";
 
+    private final String detailsIdType = "categoryCombos";
+
     @Test
     void testCatCombosNotUsed()
     {
@@ -78,7 +80,7 @@ class DataIntegrityCategoryComboUnusedControllerTest extends AbstractDataIntegri
          * Note that we already have default here even though it is not created
          * explicitly by this test
          */
-        assertHasDataIntegrityIssues( "categories", check, 50, testCatCombo, "Taste and color", null,
+        assertHasDataIntegrityIssues( detailsIdType, check, 50, testCatCombo, "Taste and color", null,
             true );
 
     }
@@ -88,7 +90,7 @@ class DataIntegrityCategoryComboUnusedControllerTest extends AbstractDataIntegri
     {
 
         setUpTest();
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
