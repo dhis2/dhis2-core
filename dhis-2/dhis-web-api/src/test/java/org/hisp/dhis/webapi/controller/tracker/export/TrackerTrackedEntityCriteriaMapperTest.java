@@ -319,6 +319,17 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
+    void shouldFailWithBadExceptionWhenBadFormattedQueryProvided()
+    {
+        criteria.setQuery( "wrong-query:" );
+
+        BadRequestException e = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "Query has invalid format: wrong-query:", e.getMessage() );
+    }
+
+    @Test
     void testFilterWhenTEAFilterIsRepeated()
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20" ) );

@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryFilter;
@@ -655,6 +656,20 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
+    void shouldFailWithBadRequestExceptionWhenCriteriaDataElementDoesNotExist()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        String filterName = "filter";
+        criteria.setFilter( Set.of( filterName ) );
+        when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "Dataelement does not exist: " + filterName, exception.getMessage() );
+    }
+
+    @Test
     void testFilterAttributesWhenTEAUidIsDuplicated()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -714,5 +729,24 @@ class TrackerEventCriteriaMapperTest
             () -> mapper.map( criteria ) );
 
         assertEquals( "User has no access to program stage: " + programStage.getUid(), exception.getMessage() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryCombo()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setAttributeCc( "Cc" );
+        criteria.setAttributeCos( "Cos" );
+        CategoryOptionCombo combo = new CategoryOptionCombo();
+        combo.setUid( "uid" );
+        when( inputUtils.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(), true ) )
+            .thenReturn( combo );
+        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
+            exception.getMessage() );
     }
 }
