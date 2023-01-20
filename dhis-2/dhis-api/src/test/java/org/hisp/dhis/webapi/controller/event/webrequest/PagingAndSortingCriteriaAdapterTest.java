@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -81,7 +82,7 @@ class PagingAndSortingCriteriaAdapterTest
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
         };
-        assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
+        assertFalse( toBooleanDefaultIfNull( pagingAndSortingCriteriaAdapter.isSkipPaging(), false ) );
         assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
 

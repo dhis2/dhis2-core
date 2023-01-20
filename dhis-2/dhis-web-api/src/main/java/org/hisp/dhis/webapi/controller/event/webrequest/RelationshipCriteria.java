@@ -47,7 +47,7 @@ public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
      * TODO Add Pager
      */
     @Override
-    public boolean isSkipPaging()
+    public Boolean isSkipPaging()
     {
         return true;
     }
