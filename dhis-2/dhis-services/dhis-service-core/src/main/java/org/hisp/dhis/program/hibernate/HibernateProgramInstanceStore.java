@@ -132,7 +132,7 @@ public class HibernateProgramInstanceStore
         }
 
         // When the clients choose to not show the total of pages.
-        if ( !params.isTotalPages() )
+        if ( !params.isTotalPages() && !params.isSkipPaging() )
         {
             // Get pageSize + 1, so we are able to know if there is another
             // page available. It adds one additional element into the list,
