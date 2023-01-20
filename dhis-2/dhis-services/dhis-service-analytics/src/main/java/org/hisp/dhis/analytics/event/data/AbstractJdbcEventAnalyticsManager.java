@@ -854,6 +854,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             throwIllegalQueryEx( ErrorCode.E7135, filter );
         }
+
         return filter;
     }
 
@@ -1201,6 +1202,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             InQueryFilter inQueryFilter = new InQueryFilter( field,
                 encode( filter.getFilter(), false ), item.isText() );
+
             return inQueryFilter.getSqlFilter();
         }
         else
