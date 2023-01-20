@@ -259,7 +259,7 @@ public class DefaultProgramStageInstanceService
                 + eventDataValue.getDataElement() );
         }
 
-        String result = ValidationUtils.dataValueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
+        String result = ValidationUtils.valueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
 
         return result == null ? null : "Value is not valid:  " + result;
     }

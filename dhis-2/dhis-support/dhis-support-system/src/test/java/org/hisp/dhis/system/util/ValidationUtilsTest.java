@@ -29,7 +29,6 @@ package org.hisp.dhis.system.util;
 
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
@@ -42,6 +41,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -199,47 +199,47 @@ class ValidationUtilsTest
     {
         DataElement de = new DataElement( "DEA" );
         de.setValueType( ValueType.INTEGER );
-        assertNull( dataValueIsValid( null, de ) );
-        assertNull( dataValueIsValid( "", de ) );
-        assertNull( dataValueIsValid( "34", de ) );
-        assertNotNull( dataValueIsValid( "Yes", de ) );
+        assertNull( valueIsValid( null, de ) );
+        assertNull( valueIsValid( "", de ) );
+        assertNull( valueIsValid( "34", de ) );
+        assertNotNull( valueIsValid( "Yes", de ) );
         de.setValueType( ValueType.NUMBER );
-        assertNull( dataValueIsValid( "3.7", de ) );
-        assertNotNull( dataValueIsValid( "No", de ) );
+        assertNull( valueIsValid( "3.7", de ) );
+        assertNotNull( valueIsValid( "No", de ) );
         de.setValueType( ValueType.INTEGER_POSITIVE );
-        assertNull( dataValueIsValid( "3", de ) );
-        assertNotNull( dataValueIsValid( "-4", de ) );
+        assertNull( valueIsValid( "3", de ) );
+        assertNotNull( valueIsValid( "-4", de ) );
         de.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
-        assertNull( dataValueIsValid( "3", de ) );
-        assertNotNull( dataValueIsValid( "-4", de ) );
+        assertNull( valueIsValid( "3", de ) );
+        assertNotNull( valueIsValid( "-4", de ) );
         de.setValueType( ValueType.INTEGER_NEGATIVE );
-        assertNull( dataValueIsValid( "-3", de ) );
-        assertNotNull( dataValueIsValid( "4", de ) );
+        assertNull( valueIsValid( "-3", de ) );
+        assertNotNull( valueIsValid( "4", de ) );
         de.setValueType( ValueType.TEXT );
-        assertNull( dataValueIsValid( "0", de ) );
+        assertNull( valueIsValid( "0", de ) );
         de.setValueType( ValueType.BOOLEAN );
-        assertNull( dataValueIsValid( "true", de ) );
-        assertNull( dataValueIsValid( "false", de ) );
-        assertNull( dataValueIsValid( "FALSE", de ) );
-        assertNotNull( dataValueIsValid( "yes", de ) );
+        assertNull( valueIsValid( "true", de ) );
+        assertNull( valueIsValid( "false", de ) );
+        assertNull( valueIsValid( "FALSE", de ) );
+        assertNotNull( valueIsValid( "yes", de ) );
         de.setValueType( ValueType.TRUE_ONLY );
-        assertNull( dataValueIsValid( "true", de ) );
-        assertNull( dataValueIsValid( "TRUE", de ) );
-        assertNotNull( dataValueIsValid( "false", de ) );
+        assertNull( valueIsValid( "true", de ) );
+        assertNull( valueIsValid( "TRUE", de ) );
+        assertNotNull( valueIsValid( "false", de ) );
         de.setValueType( ValueType.DATE );
-        assertNull( dataValueIsValid( "2013-04-01", de ) );
-        assertNotNull( dataValueIsValid( "2012304-01", de ) );
-        assertNotNull( dataValueIsValid( "Date", de ) );
+        assertNull( valueIsValid( "2013-04-01", de ) );
+        assertNotNull( valueIsValid( "2012304-01", de ) );
+        assertNotNull( valueIsValid( "Date", de ) );
         de.setValueType( ValueType.DATETIME );
-        assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412Z", de ) );
-        assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412", de ) );
-        assertNull( dataValueIsValid( "2013-04-01T11:12:05.5417Z", de ) );
-        assertNull( dataValueIsValid( "2013-04-01T11:12:05.5417", de ) );
-        assertNull( dataValueIsValid( "2013-04-01T11:12:02.541Z", de ) );
-        assertNull( dataValueIsValid( "2021-08-30T13:53:33.741", de ) );
-        assertNull( dataValueIsValid( "2013-04-01T11:12:00", de ) );
-        assertNotNull( dataValueIsValid( "2013-04-01", de ) );
-        assertNotNull( dataValueIsValid( "abcd", de ) );
+        assertNull( valueIsValid( "2021-08-30T13:53:33.767412Z", de ) );
+        assertNull( valueIsValid( "2021-08-30T13:53:33.767412", de ) );
+        assertNull( valueIsValid( "2013-04-01T11:12:05.5417Z", de ) );
+        assertNull( valueIsValid( "2013-04-01T11:12:05.5417", de ) );
+        assertNull( valueIsValid( "2013-04-01T11:12:02.541Z", de ) );
+        assertNull( valueIsValid( "2021-08-30T13:53:33.741", de ) );
+        assertNull( valueIsValid( "2013-04-01T11:12:00", de ) );
+        assertNotNull( valueIsValid( "2013-04-01", de ) );
+        assertNotNull( valueIsValid( "abcd", de ) );
     }
 
     @Test
@@ -317,11 +317,11 @@ class ValidationUtilsTest
         options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
         FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes, "md5sum",
             FileResourceDomain.DOCUMENT );
-        assertNull( dataValueIsValid( fileResource, valueType, options ) );
+        assertNull( valueIsValid( fileResource, valueType, options ) );
         fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L), "md5sum", FileResourceDomain.DOCUMENT );
-        assertEquals( "not_valid_file_size_too_big", dataValueIsValid( fileResource, valueType, options ) );
+        assertEquals( "not_valid_file_size_too_big", valueIsValid( fileResource, valueType, options ) );
         fileResource = new FileResource( "name", "exe", oneHundredMegaBytes, "md5sum", FileResourceDomain.DOCUMENT );
-        assertEquals( "not_valid_file_content_type", dataValueIsValid( fileResource, valueType, options ) );
+        assertEquals( "not_valid_file_content_type", valueIsValid( fileResource, valueType, options ) );
     }
 
     @Test
