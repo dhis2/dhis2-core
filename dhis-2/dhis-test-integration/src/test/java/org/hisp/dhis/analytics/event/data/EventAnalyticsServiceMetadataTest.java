@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -67,8 +68,6 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -128,7 +127,7 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
         leC = createLegend( 'C', 21d, 30d );
         leD = createLegend( 'D', 31d, 40d );
         lsA = createLegendSet( 'A' );
-        lsA.setLegends( Sets.newHashSet( leA, leB, leC, leD ) );
+        lsA.setLegends( Set.of( leA, leB, leC, leD ) );
         opA = createOption( 'A' );
         opB = createOption( 'B' );
         opC = createOption( 'C' );
@@ -211,13 +210,13 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
         assertEquals( itemsLegendSet, List.of( leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid() ) );
         assertEquals( 3, itemsLegendSetFilter.size() );
         assertTrue(
-            itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( leA, leB, leC ) ) ) );
+            itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Set.of( leA, leB, leC ) ) ) );
         assertTrue( items.isEmpty() );
         assertTrue( itemsFilter.isEmpty() );
         assertFalse( itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
         assertTrue(
-            itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
+            itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Set.of( opA, opB ) ) ) );
     }
 
     @Test
