@@ -37,12 +37,8 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-
-import com.google.common.collect.Lists;
 
 /**
  * This executor checks if a field is not empty in the {@link TrackerBundle}
@@ -59,24 +55,16 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor
     @Override
     public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
-        return checkMandatoryEnrollmentAttribute( enrollment, bundle.getPreheat() );
-    }
-
-    private Optional<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
-        TrackerPreheat preheat )
-    {
-        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( attributeUid );
+        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+        TrackedEntityAttribute ruleAttribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
         Optional<Attribute> any = enrollment.getAttributes().stream()
             .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
             .findAny();
         if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
         {
-            return Optional.of( new ProgramRuleIssue( ruleUid,
+            return Optional.of( ProgramRuleIssue.error( ruleUid,
                 ValidationCode.E1306,
-                Lists.newArrayList(
-                    idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
-                IssueType.ERROR ) );
+                idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ) );
         }
         else
         {

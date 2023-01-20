@@ -38,8 +38,6 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
-import com.google.common.collect.Lists;
-
 /**
  * This executor checks if there are errors or warnings in the
  * {@link TrackerBundle}
@@ -52,35 +50,41 @@ public interface ErrorWarningExecutor extends RuleActionExecutor
 
     IssueType getIssueType();
 
-    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction erroRuleAction,
+    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction ruleAction,
         Enrollment enrollment )
     {
         if ( needsToRun( enrollment ) )
         {
-            return Optional.of( parseErrors( erroRuleAction ) );
+            return mapToIssue( ruleAction );
         }
         return Optional.empty();
     }
 
-    private ProgramRuleIssue parseErrors( ErrorWarningRuleAction ruleAction )
+    private Optional<ProgramRuleIssue> mapToIssue( ErrorWarningRuleAction ruleAction )
     {
-
-        String field = ruleAction.getField();
-        String content = ruleAction.getContent();
+        StringBuilder validationMessage = new StringBuilder( ruleAction.getContent() );
         String data = ruleAction.getData();
-
-        StringBuilder stringBuilder = new StringBuilder( content );
         if ( !StringUtils.isEmpty( data ) )
         {
-            stringBuilder.append( " " ).append( data );
+            validationMessage.append( " " ).append( data );
         }
+        String field = ruleAction.getField();
         if ( !StringUtils.isEmpty( field ) )
         {
-            stringBuilder.append( " (" ).append( field ).append( ")" );
+            validationMessage.append( " (" ).append( field ).append( ")" );
         }
 
-        return new ProgramRuleIssue( ruleAction.getRuleUid(), ValidationCode.E1300,
-            Lists.newArrayList( stringBuilder.toString() ), getIssueType() );
+        switch ( getIssueType() )
+        {
+        case WARNING:
+            return Optional.of( ProgramRuleIssue.warning( ruleAction.getRuleUid(), ValidationCode.E1300,
+                validationMessage.toString() ) );
+        case ERROR:
+            return Optional.of(
+                ProgramRuleIssue.error( ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString() ) );
+        default:
+            return Optional.empty();
+        }
     }
 
     private boolean needsToRun( Enrollment enrollment )
@@ -89,9 +93,6 @@ public interface ErrorWarningExecutor extends RuleActionExecutor
         {
             return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
         }
-        else
-        {
-            return true;
-        }
+        return true;
     }
 }

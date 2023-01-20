@@ -33,11 +33,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-
-import com.google.common.collect.Lists;
 
 /**
  * This executor log as a warning any error raised by rule engine execution
@@ -54,8 +51,6 @@ public class RuleEngineErrorExecutor implements RuleActionExecutor
     @Override
     public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
-        return Optional.of(
-            new ProgramRuleIssue( ruleUid, ValidationCode.E1300,
-                Lists.newArrayList( error ), IssueType.WARNING ) );
+        return Optional.of( ProgramRuleIssue.warning( ruleUid, ValidationCode.E1300, error ) );
     }
 }

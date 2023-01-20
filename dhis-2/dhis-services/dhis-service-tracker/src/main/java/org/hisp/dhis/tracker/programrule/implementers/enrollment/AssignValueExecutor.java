@@ -43,11 +43,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-
-import com.google.common.collect.Lists;
 
 /**
  * This executor assigns a value to a field if it is empty, otherwise returns an
@@ -84,15 +81,12 @@ public class AssignValueExecutor implements RuleActionExecutor
             isEqual( value, payloadAttribute.get().getValue(), attribute.getValueType() ) )
         {
             addOrOverwriteAttribute( enrollment, bundle );
-            return Optional.of( new ProgramRuleIssue( ruleUid, ValidationCode.E1310,
-                Lists.newArrayList( attributeUid, value ),
-                IssueType.WARNING ) );
+            return Optional.of( ProgramRuleIssue.warning( ruleUid, ValidationCode.E1310, attributeUid, value ) );
         }
         else
         {
-            return Optional.of( new ProgramRuleIssue( ruleUid, ValidationCode.E1309,
-                Lists.newArrayList( attributeUid, enrollment.getEnrollment() ),
-                IssueType.ERROR ) );
+            return Optional.of(
+                ProgramRuleIssue.error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
         }
     }
 

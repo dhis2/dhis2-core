@@ -90,7 +90,7 @@ class DefaultProgramRuleService
         bundle.setRuleEffects( ruleEffects );
 
         // These are needed for rule engine validation
-        bundle.setEnrollmentRuleActionExecutors( ruleActionMapper.mapEnrollmentRuleActions( ruleEffects, bundle ) );
+        bundle.setEnrollmentRuleActionExecutors( ruleActionMapper.mapRuleEffects( ruleEffects, bundle ) );
     }
 
     private List<RuleEffects> calculateEnrollmentRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )

@@ -56,7 +56,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
 
     private final static String TEI_ID = "TeiId";
 
-    private final RuleEngineErrorExecutor ruleEngineErrorExecutor = new RuleEngineErrorExecutor( RULE_ENROLLMENT_ID,
+    private final RuleEngineErrorExecutor executor = new RuleEngineErrorExecutor( RULE_ENROLLMENT_ID,
         ENROLLMENT_ERROR_MESSAGE );
 
     private TrackerBundle bundle;
@@ -74,7 +74,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
     @Test
     void shouldReturnAWarningWhenThereIsSyntaxErrorInRule()
     {
-        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
             getEnrollment() );
 
         assertTrue( warning.isPresent() );
