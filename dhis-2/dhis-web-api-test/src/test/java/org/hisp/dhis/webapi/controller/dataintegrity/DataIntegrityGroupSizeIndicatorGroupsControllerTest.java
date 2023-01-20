@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "group_size_indicator_groups";
+    private static final String check = "indicator_groups_scarce";
+
+    private static final String detailsIdType = "indicatorGroups";
 
     private String indicatorA;
 
@@ -61,7 +63,7 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
             POST( "/indicatorGroups",
                 "{ 'name' : 'HIV/AIDS' }" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66,
             Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "ANC", "HIV/AIDS" ),
             Set.of( "0", "1" ), true );
 
@@ -72,7 +74,7 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
     {
         setUpTest();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -80,7 +82,7 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
     void testDataElementGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

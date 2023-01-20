@@ -44,7 +44,9 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    private static final String check = "indicators_duplicated_factor";
+    private static final String check = "indicator_types_duplicated";
+
+    private static final String detailsIdType = "indicatorTypes";
 
     @Test
     void testDuplicatedIndicatorFactorsExist()
@@ -64,7 +66,7 @@ class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDat
         assertNamedMetadataObjectExists( "indicatorTypes", "Per cent" );
         assertNamedMetadataObjectExists( "indicatorTypes", "Per one hundred" );
 
-        assertHasDataIntegrityIssues( "indicators", check, 66, Set.of( IndicatorA, IndicatorB ),
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( IndicatorA, IndicatorB ),
             Set.of(), Set.of(), true );
     }
 
@@ -80,13 +82,13 @@ class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDat
             POST( "/indicatorTypes",
                 "{ 'name': 'Per thousand', 'factor' : 1000, 'number' : false }" ) );
 
-        assertHasNoDataIntegrityIssues( "indicators", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testDuplicatedIndicatorFactorsRuns()
     {
-        assertHasNoDataIntegrityIssues( "indicators", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
     }
 
 }

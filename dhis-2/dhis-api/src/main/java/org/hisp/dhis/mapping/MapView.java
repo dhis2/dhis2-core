@@ -184,6 +184,8 @@ public class MapView
 
     private String labelFontColor;
 
+    private String labelTemplate;
+
     private boolean eventClustering;
 
     private String eventCoordinateField;
@@ -754,6 +756,18 @@ public class MapView
     public void setLabelFontColor( String labelFontColor )
     {
         this.labelFontColor = labelFontColor;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLabelTemplate()
+    {
+        return labelTemplate;
+    }
+
+    public void setLabelTemplate( String labelTemplate )
+    {
+        this.labelTemplate = labelTemplate;
     }
 
     @JsonProperty

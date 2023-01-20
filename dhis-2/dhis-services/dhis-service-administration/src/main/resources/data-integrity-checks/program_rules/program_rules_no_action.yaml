@@ -41,7 +41,7 @@ details_uid: oafNmCH85US
 details_sql: >-
      SELECT uid,name from programrule where programruleid
      NOT IN (SELECT DISTINCT programruleid from programruleaction);
-details_id_type: program_rules
+details_id_type: programRules
 severity: SEVERE
 introduction: >
     All program rules should have an action.

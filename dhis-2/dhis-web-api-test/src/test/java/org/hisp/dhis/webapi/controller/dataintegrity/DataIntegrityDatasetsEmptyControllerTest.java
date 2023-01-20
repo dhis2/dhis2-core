@@ -56,7 +56,7 @@ class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityInte
             POST( "/dataSets",
                 "{ 'name': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '" + defaultCatCombo + "'}}" ) );
 
-        assertHasDataIntegrityIssues( "datasets", check, 100, datasetA, "Test", null, true );
+        assertHasDataIntegrityIssues( "dataSets", check, 100, datasetA, "Test", null, true );
     }
 
     @Test
@@ -75,13 +75,13 @@ class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityInte
                     " 'dataSetElements': [{ 'dataSet': { 'id': '" + dataSetUID + "'}, 'dataElement': { 'id': '"
                     + dataElementA + "'}}]}" ) );
 
-        assertHasNoDataIntegrityIssues( "datasets", check, true );
+        assertHasNoDataIntegrityIssues( "dataSets", check, true );
     }
 
     @Test
     void testEmptyDataSetsRuns()
     {
-        assertHasNoDataIntegrityIssues( "datasets", check, false );
+        assertHasNoDataIntegrityIssues( "dataSets", check, false );
     }
 
 }

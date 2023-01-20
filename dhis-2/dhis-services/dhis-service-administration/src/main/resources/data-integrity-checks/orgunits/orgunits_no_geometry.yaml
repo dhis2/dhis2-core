@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: KVICQmNL1pc
-name: orgunit_no_coordinates
+name: orgunits_no_coordinates
 description: Organisation units with no coordinates.
 section: Organisation units
 section_order: 9
@@ -43,7 +43,7 @@ details_sql: >-
   SELECT uid,name, CAST(hierarchylevel as text) as comment from organisationunit
   where geometry IS NULL
   ORDER BY name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: |
   Ideally, all organisation units contained in the DHIS2 hierarchy should have a valid

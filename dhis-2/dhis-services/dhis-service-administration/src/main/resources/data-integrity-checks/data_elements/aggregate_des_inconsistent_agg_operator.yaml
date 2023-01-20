@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: aggregate_data_elements_aggregation_operator
+  name: data_elements_aggregate_aggregation_operator
   description: Non-numeric data elements which have an aggregation operator other than NONE.
   section: Data elements (aggregate)
   section_order: 8
@@ -71,4 +71,4 @@
   recommendation: >
     Open the affected data elements in the Maintenance App and change their aggregation type
     to an appropriate type. Alternatively, these can be altered via the API.
-  details_id_type: data_elements_aggregate
+  details_id_type: dataElements
