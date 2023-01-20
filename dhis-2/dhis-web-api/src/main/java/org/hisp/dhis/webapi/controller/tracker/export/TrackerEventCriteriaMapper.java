@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -209,7 +211,7 @@ class TrackerEventCriteriaMapper
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
             .setPage( eventCriteria.getPage() )
             .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
-            .setSkipPaging( eventCriteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( eventCriteria.isSkipPaging(), false ) )
             .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).addDataElements( dataElements )
             .addFilters( filters ).addFilterAttributes( filterAttributes )

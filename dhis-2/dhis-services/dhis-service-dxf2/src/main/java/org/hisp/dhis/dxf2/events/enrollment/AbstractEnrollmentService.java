@@ -200,23 +200,23 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
-        final Enrollments enrollments = new Enrollments();
-        final List<ProgramInstance> programInstances = new ArrayList<>();
+        Enrollments enrollments = new Enrollments();
+        List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
 
-        if ( params.isPaging() )
+        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+
+        if ( !params.isSkipPaging() )
         {
-            final Pager pager;
+            Pager pager;
 
             if ( params.isTotalPages() )
             {
-                programInstances.addAll( programInstanceService.getProgramInstances( params ) );
-
-                final int count = programInstanceService.countProgramInstances( params );
+                int count = programInstanceService.countProgramInstances( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
@@ -246,14 +246,12 @@ public abstract class AbstractEnrollmentService
      * @param programInstances the reference to the list of ProgramInstance
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
-        final List<ProgramInstance> programInstances )
+    private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
+        List<ProgramInstance> programInstances )
     {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
-
-        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
 
         if ( isNotEmpty( programInstances ) )
         {
