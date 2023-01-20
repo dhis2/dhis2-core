@@ -235,7 +235,7 @@ public class MeController
 
         merge( currentUser, user );
 
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp( user.getWhatsApp() ) )
         {
             throw new WebMessageException(
                 conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );

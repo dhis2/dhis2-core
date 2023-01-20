@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,14 +45,10 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -72,26 +67,13 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 {
-
-    private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
-
-    private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
-
     private final static String FIRST_EVENT_ID = "EventUid";
 
     private final static String SECOND_EVENT_ID = "CompletedEventUid";
 
     private final static String DATA_ELEMENT_ID = "DataElementId";
 
-    private final static String ATTRIBUTE_ID = "AttributeId";
-
-    private final static String ATTRIBUTE_CODE = "AttributeCode";
-
-    private final static String TEI_ID = "TeiId";
-
     private final static String DATA_ELEMENT_VALUE = "1.0";
-
-    private final static String ATTRIBUTE_VALUE = "23.0";
 
     private static ProgramStage firstProgramStage;
 
@@ -100,8 +82,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     private static DataElement dataElementA;
 
     private static DataElement dataElementB;
-
-    private TrackedEntityAttribute attribute;
 
     private final SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
 
@@ -126,10 +106,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-
-        attribute = createTrackedEntityAttribute( 'A' );
-        attribute.setUid( ATTRIBUTE_ID );
-        attribute.setCode( ATTRIBUTE_CODE );
 
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
@@ -215,59 +191,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         assertTrue( errors.isEmpty() );
     }
 
-    @Test
-    void testValidateOkMandatoryFieldsForEnrollment()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
-        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
-
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEnrollmentEffects(),
-            getEnrollmentWithMandatoryAttributeSet() );
-
-        assertTrue( errors.isEmpty() );
-    }
-
-    @Test
-    void testValidateOkMandatoryFieldsForEnrollmentUsingIdSchemeCode()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
-        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
-
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEnrollmentEffects(),
-            getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
-
-        assertTrue( errors.isEmpty() );
-    }
-
-    @Test
-    void testValidateWithErrorMandatoryFieldsForEnrollments()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
-        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
-            getEnrollmentWithMandatoryAttributeNOTSet() ) );
-
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEnrollmentEffects(),
-            getEnrollmentWithMandatoryAttributeSet() );
-
-        assertTrue( errors.isEmpty() );
-
-        errors = implementerToTest.validateEnrollment( bundle, getRuleEnrollmentEffects(),
-            getEnrollmentWithMandatoryAttributeNOTSet() );
-
-        errors.forEach( e -> {
-            assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
-            assertEquals( ValidationCode.E1306, e.getIssueCode() );
-            assertEquals( IssueType.ERROR, e.getIssueType() );
-            assertEquals( Lists.newArrayList( ATTRIBUTE_ID ), e.getArgs() );
-        } );
-    }
-
     private Event getEventWithMandatoryValueSet( TrackerIdSchemeParams idSchemes )
     {
         return Event.builder()
@@ -324,72 +247,10 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         return Sets.newHashSet( dataValue );
     }
 
-    private Enrollment getEnrollmentWithMandatoryAttributeSet( TrackerIdSchemeParams idSchemes )
-    {
-        return Enrollment.builder()
-            .enrollment( ACTIVE_ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .status( EnrollmentStatus.ACTIVE )
-            .attributes( getAttributes( idSchemes ) )
-            .build();
-    }
-
-    private Enrollment getEnrollmentWithMandatoryAttributeSet()
-    {
-        return Enrollment.builder()
-            .enrollment( ACTIVE_ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .status( EnrollmentStatus.ACTIVE )
-            .attributes( getAttributes() )
-            .build();
-    }
-
-    private Enrollment getEnrollmentWithMandatoryAttributeNOTSet()
-    {
-        return Enrollment.builder()
-            .enrollment( COMPLETED_ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .status( EnrollmentStatus.COMPLETED )
-            .build();
-    }
-
-    private List<Attribute> getAttributes( TrackerIdSchemeParams idSchemes )
-    {
-        return Lists.newArrayList( getAttribute( idSchemes ) );
-    }
-
-    private List<Attribute> getAttributes()
-    {
-        return Lists.newArrayList( getAttribute() );
-    }
-
-    private Attribute getAttribute( TrackerIdSchemeParams idSchemes )
-    {
-        return Attribute.builder()
-            .attribute( idSchemes.toMetadataIdentifier( attribute ) )
-            .value( ATTRIBUTE_VALUE )
-            .build();
-    }
-
-    private Attribute getAttribute()
-    {
-        return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
-            .value( ATTRIBUTE_VALUE )
-            .build();
-    }
-
     private List<RuleEffect> getRuleEventEffects()
     {
         RuleAction ruleActionSetMandatoryDataValue = RuleActionSetMandatoryField.create( DATA_ELEMENT_ID,
             DATA_ELEMENT );
         return Lists.newArrayList( RuleEffect.create( "RULE_DATA_VALUE", ruleActionSetMandatoryDataValue ) );
-    }
-
-    private List<RuleEffect> getRuleEnrollmentEffects()
-    {
-        RuleAction ruleActionSetMandatoryAttribute = RuleActionSetMandatoryField.create( ATTRIBUTE_ID,
-            TRACKED_ENTITY_ATTRIBUTE );
-        return Lists.newArrayList( RuleEffect.create( "RULE_ATTRIBUTE", ruleActionSetMandatoryAttribute ) );
     }
 }

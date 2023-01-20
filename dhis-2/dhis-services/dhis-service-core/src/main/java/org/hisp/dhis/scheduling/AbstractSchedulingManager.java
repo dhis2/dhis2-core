@@ -226,11 +226,12 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      * Runs a job queue sequence.
      *
      * @param name name of the queue to run
+     * @param startPosition first position in the queue to run
      * @return true, if the entire sequence ran successful, otherwise false
      */
-    protected final boolean executeQueue( String name )
+    protected final boolean executeQueue( String name, int startPosition )
     {
-        int position = 0;
+        int position = startPosition;
         while ( true )
         {
             // OBS! intentionally the sequence is reloaded every time to allow for changes of the sequence
@@ -323,18 +324,19 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 // complected by calling completedProcess at the end of the job
                 progress.completedProcess( "(process completed implicitly)" );
             }
+            boolean wasSuccessfulRun = !progress.isCancellationRequested()
+                && progress.getProcesses().stream().allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
             if ( configuration.getLastExecutedStatus() == RUNNING )
             {
-                boolean wasSuccessfulRun = progress.getProcesses().stream()
-                    .allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
-                configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : JobStatus.FAILED );
+                JobStatus errorStatus = progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
+                configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus );
             }
-            return true;
+            return wasSuccessfulRun;
         }
         catch ( Exception ex )
         {
             progress.failedProcess( ex );
-            whenRunThrewException( configuration, ex );
+            whenRunThrewException( configuration, ex, progress );
             return false;
         }
         finally
@@ -361,16 +363,15 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             log.debug( "Job executed successfully: '{}'. Time used: '{}'", configuration.getName(), duration );
         }
+        configuration.setJobStatus( JobStatus.SCHEDULED );
+        configuration.setNextExecutionTime( null );
+        configuration.setLastExecuted( new Date( clock.getStartTime() ) );
+        configuration.setLastRuntimeExecution( duration );
+
         if ( configuration.isInMemoryJob() )
         {
             return;
         }
-
-        configuration.setJobStatus( JobStatus.SCHEDULED );
-        configuration.setNextExecutionTime( null );
-        configuration.setLastExecuted( new Date() );
-        configuration.setLastRuntimeExecution( duration );
-
         JobConfiguration persistentConfiguration = jobConfigurationService
             .getJobConfigurationByUid( configuration.getUid() );
 
@@ -387,7 +388,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
-    private void whenRunThrewException( JobConfiguration configuration, Exception ex )
+    private void whenRunThrewException( JobConfiguration configuration, Exception ex, ControlledJobProgress progress )
     {
         String message = String.format( "Job failed: '%s'", configuration.getName() );
         log.error( message, ex );
@@ -396,7 +397,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             messageService.sendSystemErrorNotification( message, ex );
         }
-        configuration.setLastExecutedStatus( JobStatus.FAILED );
+        configuration
+            .setLastExecutedStatus( progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED );
         if ( ex instanceof InterruptedException )
         {
             Thread.currentThread().interrupt();

@@ -41,7 +41,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionError;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -63,15 +62,7 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
 
     private final static String EVENT_ERROR_MESSAGE = "Event error message";
 
-    private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
-
-    private final static String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
-
-    private final static String ENROLLMENT_ID = "EnrollmentUid";
-
     private final static String EVENT_ID = "EventUid";
-
-    private final static String TEI_ID = "TeiId";
 
     private static ProgramStage programStage;
 
@@ -106,20 +97,6 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
         assertEquals( EVENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
     }
 
-    @Test
-    void testValidateEnrollmentWithError()
-    {
-        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            getEnrollment() );
-
-        assertFalse( issues.isEmpty() );
-        assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_ENROLLMENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( ENROLLMENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
-    }
-
     private Event getEvent()
     {
         Event event = new Event();
@@ -128,23 +105,9 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
         return event;
     }
 
-    private Enrollment getEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .build();
-    }
-
     private List<RuleEffect> getRuleEventEffects()
     {
         RuleAction ruleActionError = RuleActionError.create( EVENT_ERROR_MESSAGE );
         return Lists.newArrayList( RuleEffect.create( RULE_EVENT_ID, ruleActionError, EVENT_ERROR_MESSAGE ) );
-    }
-
-    private List<RuleEffect> getRuleEnrollmentEffects()
-    {
-        RuleAction ruleActionError = RuleActionError.create( ENROLLMENT_ERROR_MESSAGE );
-        return Lists.newArrayList( RuleEffect.create( RULE_ENROLLMENT_ID, ruleActionError, ENROLLMENT_ERROR_MESSAGE ) );
     }
 }

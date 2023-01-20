@@ -49,8 +49,6 @@ import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -78,10 +76,6 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     private final static String DATA = "2 + 2";
 
     private final static String EVALUATED_DATA = "4.0";
-
-    private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
-
-    private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
     private final static String ACTIVE_EVENT_ID = "EventUid";
 
@@ -115,7 +109,6 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     {
         bundle = TrackerBundle.builder().build();
         bundle.setEvents( getEvents() );
-        bundle.setEnrollments( getEnrollments() );
         bundle.setPreheat( preheat );
         programStage = createProgramStage( 'A', 0 );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -164,34 +157,12 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateShowErrorRuleActionForEnrollment()
-    {
-        List<ProgramRuleIssue> errors = errorImplementer.validateEnrollment( bundle, getRuleEffects(),
-            activeEnrollment() );
-        assertErrors( errors, 1 );
-
-        errorImplementer.validateEnrollment( bundle, getRuleEffects(), completedEnrollment() );
-        assertErrors( errors, 1 );
-    }
-
-    @Test
     void testValidateShowWarningRuleActionForEvents()
     {
         List<ProgramRuleIssue> warnings = warningImplementer.validateEvent( bundle, getRuleEffects(), activeEvent() );
         assertWarnings( warnings, 1 );
 
         warnings = warningImplementer.validateEvent( bundle, getRuleEffects(), completedEvent() );
-        assertWarnings( warnings, 1 );
-    }
-
-    @Test
-    void testValidateShowWarningRuleActionForEnrollment()
-    {
-        List<ProgramRuleIssue> warnings = warningImplementer.validateEnrollment( bundle, getRuleEffects(),
-            activeEnrollment() );
-        assertWarnings( warnings, 1 );
-
-        warningImplementer.validateEnrollment( bundle, getRuleEffects(), completedEnrollment() );
         assertWarnings( warnings, 1 );
     }
 
@@ -207,26 +178,10 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    void testValidateShowErrorOnCompleteRuleActionForEnrollment()
-    {
-        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEnrollment( bundle, getRuleEffects(),
-            completedEnrollment() );
-        assertErrors( errors, 1 );
-    }
-
-    @Test
     void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
         List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEvent( bundle, getRuleEffects(),
             completedEvent() );
-        assertWarnings( warnings, 1 );
-    }
-
-    @Test
-    void testValidateShowWarningOnCompleteRuleActionForEnrollment()
-    {
-        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEnrollment( bundle, getRuleEffects(),
-            completedEnrollment() );
         assertWarnings( warnings, 1 );
     }
 
@@ -284,27 +239,6 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         completedEvent.setStatus( EventStatus.COMPLETED );
         completedEvent.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) );
         return completedEvent;
-    }
-
-    private List<Enrollment> getEnrollments()
-    {
-        return Lists.newArrayList( activeEnrollment(), completedEnrollment() );
-    }
-
-    private Enrollment activeEnrollment()
-    {
-        Enrollment activeEnrollment = new Enrollment();
-        activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
-        activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
-        return activeEnrollment;
-    }
-
-    private Enrollment completedEnrollment()
-    {
-        Enrollment completedEnrollment = new Enrollment();
-        completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
-        completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
-        return completedEnrollment;
     }
 
     private List<RuleEffect> getRuleEffects()
