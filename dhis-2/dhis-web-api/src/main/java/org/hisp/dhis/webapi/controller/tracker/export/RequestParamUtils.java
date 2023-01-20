@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -150,13 +150,13 @@ class RequestParamUtils
     {
         if ( attributes.isEmpty() )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         TrackedEntityAttribute at = attributes.get( identifier );
         if ( at == null )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
@@ -178,7 +178,7 @@ class RequestParamUtils
 
         if ( split.length % 2 != 1 )
         {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+            throw new BadRequestException( "Query item or filter is invalid: " + item );
         }
 
         QueryItem queryItem = map.apply( split[0] );

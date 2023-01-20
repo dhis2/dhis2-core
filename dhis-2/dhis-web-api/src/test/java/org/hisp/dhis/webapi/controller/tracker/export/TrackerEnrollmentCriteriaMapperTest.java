@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -165,7 +165,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setOrgUnit( "unknown;" + ORG_UNIT_2_UID );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit does not exist: unknown", exception.getMessage() );
     }
@@ -178,7 +178,7 @@ class TrackerEnrollmentCriteriaMapperTest
         when( organisationUnitService.isInUserHierarchy( ORG_UNIT_1_UID,
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, exception.getMessage() );
     }
@@ -200,7 +200,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setProgram( "unknown" );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
@@ -222,7 +222,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntityType( "unknown" );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Tracked entity type is specified but does not exist: unknown", exception.getMessage() );
     }
@@ -244,7 +244,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntity( "unknown" );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Tracked entity instance is specified but does not exist: unknown", exception.getMessage() );
     }

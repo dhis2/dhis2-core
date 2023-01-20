@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -113,7 +113,7 @@ class RequestParamUtilsTest
     {
         String param = TEA_1_UID + ":lt";
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
         assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
     }
@@ -123,7 +123,7 @@ class RequestParamUtilsTest
     {
         String param = TEA_1_UID + ":lt:";
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
         assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
     }
@@ -134,7 +134,7 @@ class RequestParamUtilsTest
         String param = TEA_1_UID + ":eq:2";
         Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
         assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
@@ -144,7 +144,7 @@ class RequestParamUtilsTest
     {
         String param = "JM5zWuf1mkb:eq:2";
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }

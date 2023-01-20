@@ -40,8 +40,8 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -127,7 +127,7 @@ public class TrackerEnrollmentCriteriaMapper
     {
         if ( isNotEmpty( id ) && program == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + id );
+            throw new BadRequestException( "Program is specified but does not exist: " + id );
         }
     }
 
@@ -135,7 +135,7 @@ public class TrackerEnrollmentCriteriaMapper
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
-            throw new IllegalQueryException( "Tracked entity type is specified but does not exist: " + id );
+            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + id );
         }
     }
 
@@ -143,7 +143,7 @@ public class TrackerEnrollmentCriteriaMapper
     {
         if ( isNotEmpty( id ) && trackedEntityInstance == null )
         {
-            throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + id );
+            throw new BadRequestException( "Tracked entity instance is specified but does not exist: " + id );
         }
     }
 
@@ -164,12 +164,12 @@ public class TrackerEnrollmentCriteriaMapper
 
                 if ( organisationUnit == null )
                 {
-                    throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnitId );
+                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
                 }
 
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
-                    throw new IllegalQueryException(
+                    throw new BadRequestException(
                         "Organisation unit is not part of the search scope: " + orgUnitId );
                 }
                 orgUnits.add( organisationUnit );

@@ -46,7 +46,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.BadRequestException;
+import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -135,6 +136,8 @@ class TrackerEventCriteriaMapperTest
 
     private ProgramStage programStage;
 
+    private OrganisationUnit ou;
+
     private TrackedEntityInstance trackedEntityInstance;
 
     private TrackedEntityAttribute tea1;
@@ -155,8 +158,7 @@ class TrackerEventCriteriaMapperTest
         when( programStageService.getProgramStage( "programstageuid" ) ).thenReturn( programStage );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
 
-        OrganisationUnit ou = new OrganisationUnit();
-
+        ou = new OrganisationUnit();
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
@@ -223,7 +225,7 @@ class TrackerEventCriteriaMapperTest
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setProgram( "unknown" );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
@@ -240,6 +242,41 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
+    void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownProgramStage()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgramStage( "unknown" );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program stage is specified but does not exist: unknown", exception.getMessage() );
+    }
+
+    @Test
+    void shouldReturnOrgUnitWhenCorrectOrgUnitMapped()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrgUnit( ou.getUid() );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        assertEquals( ou, params.getOrgUnit() );
+    }
+
+    @Test
+    void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrgUnit( "unknown" );
+        when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( null );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "Org unit is specified but does not exist: unknown", exception.getMessage() );
+    }
+
+    @Test
     void testMappingTrackedEntity()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -248,6 +285,20 @@ class TrackerEventCriteriaMapperTest
         EventSearchParams params = mapper.map( criteria );
 
         assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+    }
+
+    @Test
+    void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setTrackedEntity( "teiuid" );
+        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( null );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+
+        assertStartsWith( "Tracked entity instance is specified but does not exist: " + criteria.getTrackedEntity(),
+            exception.getMessage() );
     }
 
     @Test
@@ -435,7 +486,7 @@ class TrackerEventCriteriaMapperTest
         criteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
         criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Event UIDs and filters can not be specified at the same time", exception.getMessage() );
     }
@@ -470,7 +521,7 @@ class TrackerEventCriteriaMapperTest
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setOrder( OrderCriteria.fromOrderString( "nonSimple:desc" ) );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertStartsWith( "Order by property `nonSimple` is not supported", exception.getMessage() );
     }
@@ -482,7 +533,7 @@ class TrackerEventCriteriaMapperTest
         criteria.setOrder(
             OrderCriteria.fromOrderString( "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc" ) );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertAll(
             () -> assertStartsWith( "Order by property `", exception.getMessage() ),
@@ -610,7 +661,7 @@ class TrackerEventCriteriaMapperTest
         criteria.setFilterAttributes(
             Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
 
-        Exception exception = assertThrows( IllegalQueryException.class,
+        Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertAll(
             () -> assertStartsWith( "filterAttributes contains duplicate tracked entity attribute",
@@ -633,5 +684,35 @@ class TrackerEventCriteriaMapperTest
             List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
                 tea1.isUnique() ) ),
             params.getFilterAttributes() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgram( program.getUid() );
+        User user = new User();
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( aclService.canDataRead( user, program ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "User has no access to program: " + program.getUid(), exception.getMessage() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgramStage( programStage.getUid() );
+        User user = new User();
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( aclService.canDataRead( user, programStage ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( criteria ) );
+
+        assertEquals( "User has no access to program stage: " + programStage.getUid(), exception.getMessage() );
     }
 }

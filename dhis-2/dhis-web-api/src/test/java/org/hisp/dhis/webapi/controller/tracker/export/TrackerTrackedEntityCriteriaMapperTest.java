@@ -53,7 +53,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.BadRequestException;
+import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -322,7 +323,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20" ) );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class, () -> mapper.map( criteria ) );
+        BadRequestException e = assertThrows( BadRequestException.class, () -> mapper.map( criteria ) );
 
         assertStartsWith( "Filter for attribute TvjwTPToKHO was specified more than once.", e.getMessage() );
         assertThat( e.getMessage(), allOf( containsString( "GT:10" ), containsString( "LT:20" ) ) );
@@ -336,7 +337,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20",
             TEA_2_UID + ":gt:30", TEA_2_UID + ":lt:40" ) );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class, () -> mapper.map( criteria ) );
+        BadRequestException e = assertThrows( BadRequestException.class, () -> mapper.map( criteria ) );
 
         assertThat( e.getMessage(),
             containsString( "Filter for attribute " + TEA_1_UID + " was specified more than once." ) );
@@ -370,7 +371,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setAttribute( Set.of( TEA_1_UID, "unknown" ) );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Attribute does not exist: unknown", e.getMessage() );
     }
@@ -380,7 +381,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setAttribute( Set.of( TEA_1_UID, "unknown" ) );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Attribute does not exist: unknown", e.getMessage() );
     }
@@ -400,7 +401,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setProgram( "unknown" );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Program is specified but does not exist: unknown", e.getMessage() );
     }
@@ -421,7 +422,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setProgramStage( PROGRAM_STAGE_UID );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Program does not contain the specified programStage: " + PROGRAM_STAGE_UID, e.getMessage() );
     }
@@ -431,7 +432,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setProgramStage( "unknown" );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Program does not contain the specified programStage: unknown", e.getMessage() );
     }
@@ -451,7 +452,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setTrackedEntityType( "unknown" );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Tracked entity type does not exist: unknown", e.getMessage() );
     }
@@ -471,7 +472,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria.setOrgUnit( "unknown" );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit does not exist: unknown", e.getMessage() );
     }
@@ -484,7 +485,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         criteria.setOrgUnit( ORG_UNIT_1_UID );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        ForbiddenException e = assertThrows( ForbiddenException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage() );
     }
@@ -530,7 +531,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         OrderCriteria order1 = OrderCriteria.of( "invalid", OrderParam.SortDirection.DESC );
         criteria.setOrder( List.of( order1 ) );
 
-        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+        BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Invalid order property: invalid", e.getMessage() );
     }

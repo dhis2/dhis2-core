@@ -48,8 +48,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -220,7 +221,7 @@ class TrackerEventCriteriaMapper
     {
         if ( !StringUtils.isEmpty( program ) && pr == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + program );
+            throw new BadRequestException( "Program is specified but does not exist: " + program );
         }
     }
 
@@ -228,7 +229,7 @@ class TrackerEventCriteriaMapper
     {
         if ( !StringUtils.isEmpty( programStage ) && ps == null )
         {
-            throw new IllegalQueryException( "Program stage is specified but does not exist: " + programStage );
+            throw new BadRequestException( "Program stage is specified but does not exist: " + programStage );
         }
     }
 
@@ -236,7 +237,7 @@ class TrackerEventCriteriaMapper
     {
         if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
         {
-            throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
+            throw new BadRequestException( "Org unit is specified but does not exist: " + orgUnit );
         }
     }
 
@@ -244,12 +245,12 @@ class TrackerEventCriteriaMapper
     {
         if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
         {
-            throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
+            throw new ForbiddenException( "User has no access to program: " + pr.getUid() );
         }
 
         if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
         {
-            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
+            throw new ForbiddenException( "User has no access to program stage: " + ps.getUid() );
         }
     }
 
@@ -257,7 +258,7 @@ class TrackerEventCriteriaMapper
     {
         if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )
         {
-            throw new IllegalQueryException(
+            throw new BadRequestException(
                 "Tracked entity instance is specified but does not exist: " + trackedEntity );
         }
     }
@@ -267,7 +268,7 @@ class TrackerEventCriteriaMapper
         if ( attributeOptionCombo != null && !user.isSuper()
             && !aclService.canDataRead( user, attributeOptionCombo ) )
         {
-            throw new IllegalQueryException(
+            throw new ForbiddenException(
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
     }
@@ -277,11 +278,11 @@ class TrackerEventCriteriaMapper
     {
         if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
         {
-            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
+            throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
         }
         if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
         {
-            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
+            throw new BadRequestException( "ProgramStage needs to be specified for event filtering to work" );
         }
     }
 
@@ -334,7 +335,7 @@ class TrackerEventCriteriaMapper
 
         if ( !duplicates.isEmpty() )
         {
-            throw new IllegalQueryException( String.format(
+            throw new BadRequestException( String.format(
                 "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
                 String.join( ", ", duplicates ) ) );
         }
@@ -385,7 +386,7 @@ class TrackerEventCriteriaMapper
 
         if ( de == null )
         {
-            throw new IllegalQueryException( "Dataelement does not exist: " + item );
+            throw new BadRequestException( "Dataelement does not exist: " + item );
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
@@ -416,7 +417,7 @@ class TrackerEventCriteriaMapper
         requestProperties.removeAll( allowedProperties );
         if ( !requestProperties.isEmpty() )
         {
-            throw new IllegalQueryException(
+            throw new BadRequestException(
                 String.format( "Order by property `%s` is not supported. Supported are `%s`",
                     String.join( ", ", requestProperties ), String.join( ", ", allowedProperties ) ) );
         }

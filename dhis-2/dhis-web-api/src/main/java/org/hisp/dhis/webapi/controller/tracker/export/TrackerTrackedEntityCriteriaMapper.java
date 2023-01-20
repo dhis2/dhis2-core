@@ -49,9 +49,10 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -188,7 +189,7 @@ public class TrackerTrackedEntityCriteriaMapper
                 errorMessages.add( message );
             }
 
-            throw new IllegalQueryException( StringUtils.join( errorMessages, ", " ) );
+            throw new BadRequestException( StringUtils.join( errorMessages, ", " ) );
         }
     }
 
@@ -222,14 +223,14 @@ public class TrackerTrackedEntityCriteriaMapper
 
             if ( orgUnit == null )
             {
-                throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnitId );
+                throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
             }
 
             if ( user != null && !user.isSuper()
                 && !organisationUnitService.isInUserHierarchy( orgUnit.getUid(),
                     user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
-                throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnitId );
+                throw new ForbiddenException( "Organisation unit is not part of the search scope: " + orgUnitId );
             }
             orgUnits.add( orgUnit );
         }
@@ -259,7 +260,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
             if ( split.length != 2 )
             {
-                throw new IllegalQueryException( "Query has invalid format: " + query );
+                throw new BadRequestException( "Query has invalid format: " + query );
             }
 
             QueryOperator op = QueryOperator.fromString( split[0] );
@@ -272,7 +273,7 @@ public class TrackerTrackedEntityCriteriaMapper
     {
         if ( isNotEmpty( id ) && program == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + id );
+            throw new BadRequestException( "Program is specified but does not exist: " + id );
         }
     }
 
@@ -285,7 +286,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
         if ( programStage != null && ps == null )
         {
-            throw new IllegalQueryException( "Program does not contain the specified programStage: " + programStage );
+            throw new BadRequestException( "Program does not contain the specified programStage: " + programStage );
         }
         return ps;
     }
@@ -305,7 +306,7 @@ public class TrackerTrackedEntityCriteriaMapper
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
-            throw new IllegalQueryException( "Tracked entity type does not exist: " + id );
+            throw new BadRequestException( "Tracked entity type does not exist: " + id );
         }
     }
 
@@ -317,7 +318,7 @@ public class TrackerTrackedEntityCriteriaMapper
             {
                 if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
                 {
-                    throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
+                    throw new BadRequestException( "Invalid order property: " + orderParam.getField() );
                 }
             }
         }
