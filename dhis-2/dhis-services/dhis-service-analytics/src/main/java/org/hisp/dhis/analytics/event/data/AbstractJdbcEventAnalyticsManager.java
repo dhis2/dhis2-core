@@ -169,6 +169,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             int limit = params.isTotalPages() ? params.getPageSizeWithDefault()
                 : params.getPageSizeWithDefault() + 1;
+
             sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
