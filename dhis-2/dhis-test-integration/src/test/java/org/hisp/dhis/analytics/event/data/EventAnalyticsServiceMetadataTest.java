@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -68,15 +69,11 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
 class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private UserService _userService;
 
@@ -130,16 +127,16 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
         leC = createLegend( 'C', 21d, 30d );
         leD = createLegend( 'D', 31d, 40d );
         lsA = createLegendSet( 'A' );
-        lsA.setLegends( Sets.newHashSet( leA, leB, leC, leD ) );
+        lsA.setLegends( Set.of( leA, leB, leC, leD ) );
         opA = createOption( 'A' );
         opB = createOption( 'B' );
         opC = createOption( 'C' );
         osA = createOptionSet( 'A' );
-        osA.setOptions( Lists.newArrayList( opA, opB, opC ) );
+        osA.setOptions( List.of( opA, opB, opC ) );
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        deA.setLegendSets( Lists.newArrayList( lsA ) );
-        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
-        deB.setLegendSets( Lists.newArrayList( lsA ) );
+        deA.setLegendSets( List.of( lsA ) );
+        deB = createDataElement( 'B', ValueType.TEXT, AggregationType.SUM );
+        deB.setLegendSets( List.of( lsA ) );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.SUM );
         deE = createDataElement( 'E', ValueType.TEXT, AggregationType.NONE );
@@ -162,9 +159,9 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
     void testGetQueryItemDimensionMetadata()
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) );
+            List.of( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
+            DimensionType.ORGANISATION_UNIT, List.of( ouA ) );
         QueryItem itemLegendSet = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
         QueryItem itemLegendSetFilter = new QueryItem( deB, lsA, deB.getValueType(), deB.getAggregationType(), null );
         itemLegendSetFilter.addFilter(
@@ -176,10 +173,20 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
         QueryItem itemOptionSetFilter = new QueryItem( deF, null, deE.getValueType(), deE.getAggregationType(), osA );
         itemOptionSetFilter
             .addFilter( new QueryFilter( QueryOperator.IN, opA.getCode() + OPTION_SEP + opB.getCode() ) );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).addDimension( periods )
-            .addDimension( orgUnits ).addItem( itemLegendSet ).addItem( itemLegendSetFilter ).addItem( item )
-            .addItem( itemFilter ).addItem( itemOptionSet ).addItem( itemOptionSetFilter ).withSkipData( true )
-            .withSkipMeta( false ).withDisplayProperty( DisplayProperty.NAME ).build();
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( itemLegendSet )
+            .addItem( itemLegendSetFilter )
+            .addItem( item )
+            .addItem( itemFilter )
+            .addItem( itemOptionSet )
+            .addItem( itemOptionSetFilter )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .withDisplayProperty( DisplayProperty.NAME )
+            .build();
 
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
         Map<String, Object> metadata = grid.getMetaData();
@@ -200,16 +207,16 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
         assertNotNull( itemsOptionSet );
         assertNotNull( itemsOptionSetFilter );
         assertEquals( 4, itemsLegendSet.size() );
-        assertEquals( itemsLegendSet, Lists.newArrayList( leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid() ) );
+        assertEquals( itemsLegendSet, List.of( leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid() ) );
         assertEquals( 3, itemsLegendSetFilter.size() );
         assertTrue(
-            itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( leA, leB, leC ) ) ) );
+            itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Set.of( leA, leB, leC ) ) ) );
         assertTrue( items.isEmpty() );
         assertTrue( itemsFilter.isEmpty() );
         assertFalse( itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
         assertTrue(
-            itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
+            itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Set.of( opA, opB ) ) ) );
     }
 
     @Test
@@ -217,14 +224,21 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
     void testGetQueryItemMetadata()
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) );
+            List.of( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
+            DimensionType.ORGANISATION_UNIT, List.of( ouA ) );
         QueryItem qiA = new QueryItem( deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null );
         QueryItem qiB = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), deE.getOptionSet() );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).addDimension( periods )
-            .addDimension( orgUnits ).addItem( qiA ).addItemFilter( qiB ).withSkipData( true ).withSkipMeta( false )
-            .withApiVersion( DhisApiVersion.V29 ).build();
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( qiA )
+            .addItemFilter( qiB )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .withApiVersion( DhisApiVersion.V29 )
+            .build();
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
         Map<String, Object> metadata = grid.getMetaData();
         Map<String, MetadataItem> itemMap = (Map<String, MetadataItem>) metadata
@@ -248,7 +262,7 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
     @Test
     void testLegendSetSortedLegends()
     {
-        List<Legend> legends = Lists.newArrayList( leA, leB, leC, leD );
+        List<Legend> legends = List.of( leA, leB, leC, leD );
         assertEquals( legends, lsA.getSortedLegends() );
     }
 }
