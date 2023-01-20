@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,6 +83,9 @@ class AttributeValidatorTest
 
     @Mock
     private DhisConfigurationProvider dhisConfigurationProvider;
+
+    @Mock
+    private TrackedAttributeValidationService teAttrService;
 
     @Mock
     private TrackedEntityAttribute trackedEntityAttribute;
