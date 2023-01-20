@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -99,7 +99,6 @@ import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging. TODO introduce
@@ -117,13 +116,11 @@ public class JdbcEventAnalyticsManager
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
-    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, executionPlanStore );
+        super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -332,9 +329,9 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
-                "lastupdatedbydisplayname", "lastupdated", "duedate" );
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>().add(
+            "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
+            "lastupdatedbydisplayname", "lastupdated", "duedate" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -344,8 +341,7 @@ public class JdbcEventAnalyticsManager
         String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
 
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
-            "oucode", "pistatus",
-            "psistatus" );
+            "oucode", "pistatus", "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
 
@@ -436,21 +432,21 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
+            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField,
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
-            if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
+            if ( isNotEmpty( sqlSnippet ) )
             {
                 sql += hlp.whereAnd() + " " + sqlSnippet;
             }
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets, categories, category option group sets
+        // Categories, category option group sets, organisation unit group sets
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
+            Set.of( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -460,10 +456,10 @@ public class JdbcEventAnalyticsManager
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
-        dynamicDimensions = params
-            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+        List<DimensionalObject> orgUnitGroupSetDimension = params
+            .getDimensionsAndFilters( Set.of( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
 
-        for ( DimensionalObject dim : dynamicDimensions )
+        for ( DimensionalObject dim : orgUnitGroupSetDimension )
         {
             if ( !dim.isAllItems() )
             {
@@ -487,7 +483,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getStatementForDimensionsAndFilters( params, hlp );
+        sql += getQueryItemsAndFiltersWhereClause( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
@@ -520,16 +516,15 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += hlp.whereAnd() + " pistatus in ("
-                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " pistatus in (" +
+                params.getProgramStatus().stream().map( p -> encode( p.name() ) ).collect( joining( "," ) ) +
+                ") ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += hlp.whereAnd() + " psistatus in ("
-                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " psistatus in (" +
+                params.getEventStatus().stream().map( e -> encode( e.name() ) ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
@@ -574,10 +569,10 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a filter by organisation -
-     * descendant level
+     * Generates a sub query which provides a filter by organisation descendant
+     * level.
      */
-    private String getOrgDescendantsSqlSnippet( OrgUnitField orgUnitField,
+    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
         Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
@@ -601,7 +596,7 @@ public class JdbcEventAnalyticsManager
     private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
     {
         return organisationUnits.stream()
-            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+            .filter( unit -> isNotEmpty( unit.getUid() ) )
             .map( unit -> "'" + unit.getUid() + "'" )
             .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }

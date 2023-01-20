@@ -65,7 +65,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -104,13 +103,11 @@ public class JdbcEnrollmentAnalyticsManager
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
 
-    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
+    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, executionPlanStore );
+        super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -305,7 +302,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getStatementForDimensionsAndFilters( params, hlp );
+        sql += getQueryItemsAndFiltersWhereClause( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
@@ -328,7 +325,7 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += "and enrollmentstatus in ("
-                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) )
+                + params.getProgramStatus().stream().map( p -> encode( p.name() ) )
                     .collect( joining( "," ) )
                 + ") ";
         }

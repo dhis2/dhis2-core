@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.dimension;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.PrefixedDimension;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+class QueryOperatorTest
 {
-    private final Collection<DimensionMapper> mappers;
-
-    public List<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
-        PrefixStrategy prefixStrategy )
+    @Test
+    void testIsType()
     {
-        return mapToList( dimensions,
-            pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) );
-    }
+        assertTrue( QueryOperator.LIKE.isLike() );
+        assertTrue( QueryOperator.NLIKE.isLike() );
+        assertTrue( QueryOperator.EQ.isEqualTo() );
+        assertTrue( QueryOperator.IEQ.isEqualTo() );
 
-    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+        assertFalse( QueryOperator.LIKE.isEqualTo() );
+        assertFalse( QueryOperator.GT.isEqualTo() );
+        assertFalse( QueryOperator.LT.isLike() );
+        assertFalse( QueryOperator.EQ.isLike() );
     }
 }

@@ -36,6 +36,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -103,7 +104,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -149,8 +149,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     @Qualifier( "readOnlyJdbcTemplate" )
     protected final JdbcTemplate jdbcTemplate;
 
-    protected final StatementBuilder statementBuilder;
-
     protected final ProgramIndicatorService programIndicatorService;
 
     protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
@@ -171,6 +169,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             int limit = params.isTotalPages() ? params.getPageSizeWithDefault()
                 : params.getPageSizeWithDefault() + 1;
+
             sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
@@ -268,10 +267,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private String toWhenEntry( DimensionalItemObject item, String quotedAlias, DisplayProperty dp )
     {
         return "WHEN " +
-            quotedAlias + "=" + encode( item.getUid(), true ) +
+            quotedAlias + "=" + encode( item.getUid() ) +
             " THEN " + (dp == DisplayProperty.NAME
-                ? encode( item.getName(), true )
-                : encode( item.getShortName(), true ));
+                ? encode( item.getName() )
+                : encode( item.getShortName() ));
     }
 
     private boolean isSupported( DimensionalObject dimension )
@@ -344,7 +343,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( params.hasSinglePeriod() )
             {
                 Period period = (Period) params.getPeriods().get( 0 );
-                columns.add( statementBuilder.encode( period.getIsoDate() ) + " as " +
+                columns.add( encode( period.getIsoDate() ) + " as " +
                     period.getPeriodType().getName() );
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
@@ -353,7 +352,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get( 0 );
-                columns.add( statementBuilder.encode( period.getIsoDate() ) + " as " +
+                columns.add( encode( period.getIsoDate() ) + " as " +
                     period.getPeriodType().getName() );
             }
             else
@@ -564,8 +563,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( params.hasValueDimension() )
                 {
-                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-                        + params.getValue().getUid();
+                    String itemId = params.getProgram().getUid() +
+                        COMPOSITE_DIM_OBJECT_PLAIN_SEP + params.getValue().getUid();
                     grid.addValue( itemId );
                 }
                 else if ( params.hasProgramIndicatorDimension() )
@@ -580,10 +579,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
                     ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, false, true );
                     String alias = columnAndAlias.getAlias();
-                    if ( StringUtils.isEmpty( alias ) )
+
+                    if ( isEmpty( alias ) )
                     {
                         alias = queryItem.getItemName();
                     }
+
                     String itemName = rowSet.getString( alias );
                     String itemValue = params.isCollapseDataDimensions()
                         ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
@@ -854,6 +855,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             throwIllegalQueryEx( ErrorCode.E7135, filter );
         }
+
         return filter;
     }
 
@@ -866,7 +868,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getSqlFilter( QueryFilter queryFilter, QueryItem item )
     {
         String filter = getFilter( queryFilter.getFilter(), item );
-        String encodedFilter = statementBuilder.encode( filter, false );
+        String encodedFilter = encode( filter, false );
 
         return item.getSqlFilter( queryFilter, encodedFilter, true );
     }
@@ -1044,22 +1046,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns SQL string based on both query items and filters
+     * Returns a SQL where clause string for query items and query item filters.
      *
-     * @param params a {@link EventQueryParams}.
-     * @param helper a {@link SqlHelper}.
+     * @param params the {@link EventQueryParams}.
+     * @param helper the {@link SqlHelper}.
      */
-    protected String getStatementForDimensionsAndFilters( EventQueryParams params, SqlHelper helper )
+    protected String getQueryItemsAndFiltersWhereClause( EventQueryParams params, SqlHelper helper )
     {
         if ( params.isEnhancedCondition() )
         {
             return getItemsSqlForEnhancedConditions( params, helper );
         }
 
-        // Creates a map grouping queryItems referring to repeatable stages and
-        // those referring to non-repeatable stages
-        // Only for enrollments, for events all query items are treated as
-        // non-repeatable
+        // Creates a map grouping query items referring to repeatable stages and
+        // those referring to non-repeatable stages. This is for enrollment
+        // only, event query items are treated as non-repeatable.
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = Stream.concat(
             params.getItems().stream(), params.getItemFilters().stream() )
             .filter( QueryItem::hasFilter )
@@ -1069,9 +1070,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // Groups repeatable conditions based on PSI.DEID
         Map<String, List<String>> repeatableConditionsByIdentifier = asSqlCollection( itemsByRepeatableFlag.get( true ),
             params )
-                .collect( groupingBy(
-                    IdentifiableSql::getIdentifier,
-                    mapping( IdentifiableSql::getSql, toList() ) ) );
+                .collect( groupingBy( IdentifiableSql::getIdentifier, mapping( IdentifiableSql::getSql, toList() ) ) );
 
         // Joins each group with OR
         Collection<String> orConditions = repeatableConditionsByIdentifier.values()
@@ -1116,6 +1115,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return "";
         }
+
         return hlp.whereAnd() + " " + String.join( AND, sqlConditionByGroup.values() );
     }
 
@@ -1129,6 +1129,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return conditions.stream().collect( joiner );
         }
+
         return "";
     }
 
@@ -1138,8 +1139,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private Stream<IdentifiableSql> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
     {
-        return emptyIfNull( queryItems )
-            .stream()
+        return emptyIfNull( queryItems ).stream()
             .map( queryItem -> toIdentifiableSql( queryItem, params ) );
     }
 
@@ -1202,12 +1202,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( IN.equals( filter.getOperator() ) )
         {
             InQueryFilter inQueryFilter = new InQueryFilter( field,
-                statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+                encode( filter.getFilter(), false ), item.isText() );
+
             return inQueryFilter.getSqlFilter();
         }
         else
         {
-            // NV filter has its own specific logic, so we should skip values
+            // NV filter has its own specific logic, so skip values
             // comparisons when NV is set as filter
             if ( !NV.equals( filter.getFilter() ) )
             {
