@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -332,7 +334,7 @@ class EventRequestToSearchParamsMapper
             eventCriteria.getPage(),
             eventCriteria.getPageSize(),
             eventCriteria.isTotalPages(),
-            eventCriteria.isSkipPaging(),
+            toBooleanDefaultIfNull( eventCriteria.isSkipPaging(), false ),
             getOrderParams( eventCriteria.getOrder() ),
             getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
             false,
