@@ -94,7 +94,7 @@ public class QueryItem implements GroupableItem
     public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet )
     {
-        this.item = item;
+        this( item );
         this.legendSet = legendSet;
         this.valueType = valueType;
         this.aggregationType = aggregationType;
@@ -104,11 +104,7 @@ public class QueryItem implements GroupableItem
     public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet, Boolean unique )
     {
-        this.item = item;
-        this.legendSet = legendSet;
-        this.valueType = valueType;
-        this.aggregationType = aggregationType;
-        this.optionSet = optionSet;
+        this( item, legendSet, valueType, aggregationType, optionSet );
         this.unique = unique;
     }
 
@@ -123,7 +119,6 @@ public class QueryItem implements GroupableItem
         AggregationType aggregationType, OptionSet optionSet )
     {
         this( item, legendSet, valueType, aggregationType, optionSet );
-
         this.program = program;
     }
 
@@ -131,14 +126,13 @@ public class QueryItem implements GroupableItem
         AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
     {
         this( item, program, legendSet, valueType, aggregationType, optionSet );
-
         this.relationshipType = relationshipType;
     }
 
     public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet )
     {
-        this.item = item;
+        this( item );
         this.valueType = valueType;
         this.aggregationType = aggregationType;
         this.optionSet = optionSet;

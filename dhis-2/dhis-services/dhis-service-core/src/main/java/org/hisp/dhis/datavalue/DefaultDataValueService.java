@@ -28,8 +28,8 @@
 package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -97,7 +97,7 @@ public class DefaultDataValueService
             return false;
         }
 
-        String result = dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() );
+        String result = valueIsValid( dataValue.getValue(), dataValue.getDataElement() );
 
         if ( result != null )
         {
@@ -173,7 +173,7 @@ public class DefaultDataValueService
         {
             deleteDataValue( dataValue );
         }
-        else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
+        else if ( valueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
             dataValue.setLastUpdated( new Date() );
 

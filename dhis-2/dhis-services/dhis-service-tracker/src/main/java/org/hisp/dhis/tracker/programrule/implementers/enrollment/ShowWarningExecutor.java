@@ -25,16 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * @author Lars Helge Overland
+ * This executor shows warnings calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
  */
-public class MaintenanceModeException
-    extends RuntimeException
+@RequiredArgsConstructor
+public class ShowWarningExecutor
+    implements ErrorWarningExecutor
 {
-    public MaintenanceModeException( String message )
+    private final ErrorWarningRuleAction ruleAction;
+
+    @Override
+    public boolean isOnComplete()
     {
-        super( message );
+        return false;
+    }
+
+    @Override
+    public IssueType getIssueType()
+    {
+        return WARNING;
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
+    {
+        return validateEnrollment( ruleAction, enrollment );
     }
 }

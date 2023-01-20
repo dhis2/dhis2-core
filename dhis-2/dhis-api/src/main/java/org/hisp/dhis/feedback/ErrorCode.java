@@ -335,7 +335,7 @@ public enum ErrorCode
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
     E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),
     E7004( "Cron expression must be not null for job with scheduling type CRON: `{0}`" ),
-    E7005( "Cron expression is invalid for job: `{0}` " ),
+    E7005( "Cron expression is invalid: `{0}`" ),
     E7006( "Failed to execute job: `{0}`" ),
     E7007( "Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime: `{0}`" ),
@@ -413,10 +413,11 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
-    E7229( "Operator `{0}` does not allow missing value" ),
+    E7229( "Query operator `{0}` does not allow missing values" ),
     E7230( "Header param `{0}` does not exist" ),
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
+    E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
