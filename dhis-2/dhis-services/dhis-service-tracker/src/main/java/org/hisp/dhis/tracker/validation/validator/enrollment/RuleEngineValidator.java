@@ -30,16 +30,14 @@ package org.hisp.dhis.tracker.validation.validator.enrollment;
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,27 +47,19 @@ import org.springframework.stereotype.Component;
 class RuleEngineValidator
     implements Validator<Enrollment>
 {
-    private List<RuleActionImplementer> validators;
-
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
-    {
-        this.validators = validators;
-    }
-
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
-
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        if ( !bundle.getEnrollmentRuleActionExecutors().containsKey( enrollment ) )
         {
             return;
         }
 
-        List<ProgramRuleIssue> programRuleIssues = validators
+        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentRuleActionExecutors().get( enrollment )
             .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
+            .map( e -> e.executeEnrollmentRuleAction( bundle, enrollment ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, enrollment, programRuleIssues );

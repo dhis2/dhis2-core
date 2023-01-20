@@ -32,9 +32,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.rules.models.RuleActionError;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -70,16 +68,6 @@ public class RuleEngineErrorToTrackerWarningConverter
     List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
     {
         return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        return enrollmentActionRules.stream()
             .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
                 Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
             .collect( Collectors.toList() );

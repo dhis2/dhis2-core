@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
@@ -115,7 +116,7 @@ public class TrackerEnrollmentCriteriaMapper
         params.setPage( criteria.getPage() );
         params.setPageSize( criteria.getPageSize() );
         params.setTotalPages( criteria.isTotalPages() );
-        params.setSkipPaging( criteria.isSkipPaging() );
+        params.setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) );
         params.setIncludeDeleted( criteria.isIncludeDeleted() );
         params.setUser( user );
         params.setOrder( toOrderParams( criteria.getOrder() ) );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -158,14 +159,16 @@ public class DefaultEventQueryValidator
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
 
-            for ( QueryFilter queryFilter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                if ( !queryFilter.getOperator().isNullAllowed() && queryFilter.getFilter().contains( NV ) )
+                if ( !filter.getOperator().isNullAllowed() && filter.getFilter().contains( NV ) )
                 {
-                    error = new ErrorMessage( ErrorCode.E7229, queryFilter.getOperator().getValue() );
+                    error = new ErrorMessage( ErrorCode.E7229, filter.getOperator().getValue() );
                 }
-
-                // To-Do Validate that query filter is valid according to query item value type
+                else if ( isNotEmpty( ValidationUtils.valueIsValid( filter.getFilter(), item.getValueType() ) ) )
+                {
+                    error = new ErrorMessage( ErrorCode.E7234, filter.getFilter(), item.getValueType() );
+                }
             }
         }
 

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import static java.util.stream.Collectors.partitioningBy;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,6 @@ import org.apache.commons.collections4.CollectionUtils;
 @NoArgsConstructor( access = AccessLevel.PROTECTED )
 public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
 {
-
     /**
      * Page number to return.
      */
@@ -73,7 +73,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     /**
      * Indicates whether paging should be skipped.
      */
-    private boolean skipPaging;
+    private Boolean skipPaging;
 
     /**
      * order params
@@ -99,7 +99,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
 
     public boolean isPagingRequest()
     {
-        return !isSkipPaging();
+        return !toBooleanDefaultIfNull( isSkipPaging(), false );
     }
 
     @Override
@@ -136,9 +136,13 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
         return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
     }
 
+    public Boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
     public interface EntityNameSupplier
     {
         String getEntityName();
     }
-
 }

@@ -31,8 +31,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
@@ -468,7 +468,7 @@ public class DataValidator
 
         if ( valueType != null && valueTypeOptions != null )
         {
-            String validationResult = dataValueIsValid( fileResource, valueType, valueTypeOptions );
+            String validationResult = valueIsValid( fileResource, valueType, valueTypeOptions );
 
             if ( validationResult != null )
             {
@@ -561,7 +561,7 @@ public class DataValidator
     {
         final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
-        final String valueValid = dataValueIsValid( normalizedBoolean, dataElement, false );
+        final String valueValid = valueIsValid( normalizedBoolean, dataElement, false );
 
         if ( valueValid != null )
         {
