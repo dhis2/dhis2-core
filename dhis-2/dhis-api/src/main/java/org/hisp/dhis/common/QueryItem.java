@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -57,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 @Setter
 public class QueryItem implements GroupableItem
 {
-    // private UUID groupUUID; Why?
+    private UUID groupUUID;
 
     private DimensionalItemObject item; // TODO DimensionObject
 
