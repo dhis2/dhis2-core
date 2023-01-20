@@ -25,43 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
-
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * @author Enrico Colasante
+ * This executor checks if a field is not empty in the {@link TrackerBundle}
+ *
+ * @Author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.RuleEngineValidator" )
-class RuleEngineValidator
-    implements Validator<Enrollment>
+@RequiredArgsConstructor
+public class SetMandatoryFieldExecutor implements RuleActionExecutor
 {
+    private final String ruleUid;
+
+    private final String attributeUid;
+
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
-        if ( !bundle.getEnrollmentRuleActionExecutors().containsKey( enrollment ) )
+        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+        TrackedEntityAttribute ruleAttribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
+        Optional<Attribute> any = enrollment.getAttributes().stream()
+            .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
+            .findAny();
+        if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
         {
-            return;
+            return Optional.of( ProgramRuleIssue.error( ruleUid,
+                ValidationCode.E1306,
+                idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ) );
         }
-
-        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentRuleActionExecutors().get( enrollment )
-            .stream()
-            .map( e -> e.executeEnrollmentRuleAction( bundle, enrollment ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
+        else
+        {
+            return Optional.empty();
+        }
     }
 }

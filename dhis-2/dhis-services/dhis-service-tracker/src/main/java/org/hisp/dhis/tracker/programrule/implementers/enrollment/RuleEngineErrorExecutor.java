@@ -25,23 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * Calculates rule effects calling rule engine on enrollments and events.
+ * This executor log as a warning any error raised by rule engine execution
  *
- * @author Enrico Colasante
+ * @Author Enrico Colasante
  */
-public interface ProgramRuleService
+@RequiredArgsConstructor
+public class RuleEngineErrorExecutor implements RuleActionExecutor
 {
-    /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
-     *
-     * @return Enhance bundle with rule effects.
-     */
-    void calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
+    private final String ruleUid;
+
+    private final String error;
+
+    @Override
+    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
+    {
+        return Optional.of( ProgramRuleIssue.warning( ruleUid, ValidationCode.E1300, error ) );
+    }
 }
