@@ -187,8 +187,10 @@ class DefaultTrackerValidationServiceTest
     {
 
         // Test shows
-        // 1. Hooks with skipOnError==true will prevent subsequent hooks from validating an invalid entity
-        // 2. DefaultValidationService removes invalid entities from the TrackerBundle
+        // 1. Hooks with skipOnError==true will prevent subsequent hooks from
+        // validating an invalid entity
+        // 2. DefaultValidationService removes invalid entities from the
+        // TrackerBundle
 
         Event validEvent = event();
         Event invalidEvent = event();
