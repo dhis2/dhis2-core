@@ -127,6 +127,9 @@ public class EventHookListener
     {
         synchronized ( this )
         {
+            targets.values()
+                .forEach( handlers -> handlers.forEach( Handler::close ) );
+
             eventHooks.clear();
             targets.clear();
 
