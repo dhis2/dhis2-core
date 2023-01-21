@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import java.util.Map;
-import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,9 +56,8 @@ public class KafkaHandler implements Handler
     private void configure( KafkaTarget target )
     {
         Map<String, Object> properties = Map.of(
-            "client.id", UUID.randomUUID().toString(),
-            "bootstrap.servers", "localhost:9092",
-            "acks", "all",
+            "client.id", target.getClientId(),
+            "bootstrap.servers", target.getBootstrapServers(),
             "key.serializer", StringSerializer.class,
             "value.serializer", StringSerializer.class );
 
@@ -68,7 +66,7 @@ public class KafkaHandler implements Handler
 
     public void run( String payload )
     {
-        producer.send( new ProducerRecord<>( "test2", null, payload ) );
+        producer.send( new ProducerRecord<>( target.getTopic(), null, payload ) );
     }
 
     @Override

@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class JmsTarget extends Target
 {
     @JsonProperty( required = true )
-    private String name = "DHIS2-" + CodeGenerator.generateUid();
+    private String name = "dhis2-" + CodeGenerator.generateUid();
 
     @JsonProperty
     private String address = "dhis2.hooks";
