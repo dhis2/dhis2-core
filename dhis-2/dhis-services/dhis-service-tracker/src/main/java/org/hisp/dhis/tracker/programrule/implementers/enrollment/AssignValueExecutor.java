@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +47,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -53,7 +57,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignValueExecutor implements RuleActionExecutor
+public class AssignValueExecutor implements RuleActionExecutor<Enrollment>
 {
     private final SystemSettingManager systemSettingManager;
 
@@ -66,7 +70,13 @@ public class AssignValueExecutor implements RuleActionExecutor
     private final List<Attribute> attributes;
 
     @Override
-    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
+    public String getField()
+    {
+        return attributeUid;
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         Boolean canOverwrite = systemSettingManager
             .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
@@ -81,12 +91,12 @@ public class AssignValueExecutor implements RuleActionExecutor
             isEqual( value, payloadAttribute.get().getValue(), attribute.getValueType() ) )
         {
             addOrOverwriteAttribute( enrollment, bundle );
-            return Optional.of( ProgramRuleIssue.warning( ruleUid, ValidationCode.E1310, attributeUid, value ) );
+            return Optional.of( warning( ruleUid, ValidationCode.E1310, attributeUid, value ) );
         }
         else
         {
             return Optional.of(
-                ProgramRuleIssue.error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
+                error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
         }
     }
 

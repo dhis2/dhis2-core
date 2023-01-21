@@ -25,28 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
-import org.hisp.dhis.rules.models.RuleActionShowError;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * This implementer show errors calculated by Rule Engine.
+ * This executor shows warnings calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer<RuleActionShowError>
+@RequiredArgsConstructor
+public class ShowWarningExecutor
+    implements ErrorWarningExecutor
 {
-    @Override
-    public Class<RuleActionShowError> getActionClass()
-    {
-        return RuleActionShowError.class;
-    }
+    private final ErrorWarningRuleAction ruleAction;
 
     @Override
     public boolean isOnComplete()
@@ -57,6 +58,18 @@ public class ShowErrorValidator
     @Override
     public IssueType getIssueType()
     {
-        return ERROR;
+        return WARNING;
+    }
+
+    @Override
+    public String getField()
+    {
+        return ruleAction.getField();
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return validateEvent( ruleAction, event );
     }
 }

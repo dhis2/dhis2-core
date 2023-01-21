@@ -25,15 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-public interface ActionRule
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+
+/**
+ * This executor shows warnings on a completed event calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
+ */
+@RequiredArgsConstructor
+public class ShowWarningOnCompleteExecutor
+    implements ErrorWarningExecutor
 {
-    String getRuleUid();
+    private final ErrorWarningRuleAction ruleAction;
 
-    String getData();
+    @Override
+    public boolean isOnComplete()
+    {
+        return true;
+    }
 
-    String getField();
+    @Override
+    public IssueType getIssueType()
+    {
+        return WARNING;
+    }
 
-    String getContent();
+    @Override
+    public String getField()
+    {
+        return ruleAction.getField();
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return validateEvent( ruleAction, event );
+    }
 }

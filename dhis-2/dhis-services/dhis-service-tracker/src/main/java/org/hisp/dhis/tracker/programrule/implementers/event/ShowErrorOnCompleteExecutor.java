@@ -25,29 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
-import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
 /**
- * This implementer show warnings on a completed enrollment or event calculated
- * by Rule Engine.
+ * This executor shows errors on a completed event calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowWarningOnCompleteValidator
-    extends ErrorWarningImplementer<RuleActionWarningOnCompletion>
+@RequiredArgsConstructor
+public class ShowErrorOnCompleteExecutor
+    implements ErrorWarningExecutor
 {
-    @Override
-    public Class<RuleActionWarningOnCompletion> getActionClass()
-    {
-        return RuleActionWarningOnCompletion.class;
-    }
+    private final ErrorWarningRuleAction ruleAction;
 
     @Override
     public boolean isOnComplete()
@@ -58,6 +58,18 @@ public class ShowWarningOnCompleteValidator
     @Override
     public IssueType getIssueType()
     {
-        return WARNING;
+        return ERROR;
+    }
+
+    @Override
+    public String getField()
+    {
+        return ruleAction.getField();
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return validateEvent( ruleAction, event );
     }
 }

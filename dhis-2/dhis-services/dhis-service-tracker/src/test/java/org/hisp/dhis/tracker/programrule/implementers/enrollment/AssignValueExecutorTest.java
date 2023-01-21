@@ -36,14 +36,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -77,12 +72,6 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
     private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
-    private final static String DATA_ELEMENT_ID = "DataElementId";
-
-    private final static String DATA_ELEMENT_CODE = "DataElementCode";
-
-    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
-
     private final static String ATTRIBUTE_ID = "AttributeId";
 
     private final static String ATTRIBUTE_CODE = "AttributeCode";
@@ -90,14 +79,6 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     private final static String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
 
     private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
-
-    private static ProgramStage firstProgramStage;
-
-    private static ProgramStage secondProgramStage;
-
-    private static DataElement dataElementA;
-
-    private static DataElement dataElementB;
 
     private static TrackedEntityAttribute attributeA;
 
@@ -112,25 +93,10 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     @BeforeEach
     void setUpTest()
     {
-        firstProgramStage = createProgramStage( 'A', 0 );
-        firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeA.setUid( ATTRIBUTE_ID );
         attributeA.setCode( ATTRIBUTE_CODE );
         attributeA.setValueType( ValueType.NUMBER );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setUid( DATA_ELEMENT_ID );
-        dataElementA.setCode( DATA_ELEMENT_CODE );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
-            dataElementA, 0 );
-        firstProgramStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
-        secondProgramStage = createProgramStage( 'B', 0 );
-        secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        dataElementB = createDataElement( 'B' );
-        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
-            dataElementB, 0 );
-        secondProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
         when( preheat.getTrackedEntityAttribute( attributeA.getUid() ) )
             .thenReturn( attributeA );
         bundle = TrackerBundle.builder().build();
@@ -152,7 +118,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
@@ -173,7 +139,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -197,7 +163,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -219,7 +185,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, getTrackedEntitiesWithAttributeSet().getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
@@ -249,7 +215,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
@@ -275,7 +241,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSetSameValue.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeSetSameValue );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
@@ -298,7 +264,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();

@@ -57,7 +57,7 @@ class RuleEngineValidator
 
         List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentRuleActionExecutors().get( enrollment )
             .stream()
-            .map( e -> e.executeEnrollmentRuleAction( bundle, enrollment ) )
+            .map( e -> e.executeRuleAction( bundle, enrollment ) )
             .filter( Optional::isPresent )
             .map( Optional::get )
             .collect( Collectors.toList() );

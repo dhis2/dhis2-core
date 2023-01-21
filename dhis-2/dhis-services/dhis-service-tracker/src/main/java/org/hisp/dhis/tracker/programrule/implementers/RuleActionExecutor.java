@@ -27,49 +27,19 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.hisp.dhis.rules.models.RuleActionError;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
-import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
-/**
- * This implementer log as a warning any error raised by rule engine execution
- *
- * @Author Enrico Colasante
- */
-@Component
-public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
+public interface RuleActionExecutor<T>
 {
-    @Override
-    public Class<RuleActionError> getActionClass()
-    {
-        return RuleActionError.class;
-    }
+    String getField();
 
-    @Override
-    public String getField( RuleActionError ruleAction )
-    {
-        return null;
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
-    {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
-    }
+    /**
+     * Execute rule action on given enrollment
+     *
+     * @return list of issues
+     */
+    Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, T entity );
 }

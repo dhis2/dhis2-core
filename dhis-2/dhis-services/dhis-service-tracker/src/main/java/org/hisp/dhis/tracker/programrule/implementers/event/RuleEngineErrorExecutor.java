@@ -25,20 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+package org.hisp.dhis.tracker.programrule.implementers.event;
+
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import lombok.RequiredArgsConstructor;
 
-public interface RuleActionExecutor
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.validation.ValidationCode;
+
+/**
+ * This executor log as a warning any error raised by rule engine execution
+ *
+ * @Author Enrico Colasante
+ */
+@RequiredArgsConstructor
+public class RuleEngineErrorExecutor implements RuleActionExecutor<Event>
 {
-    /**
-     * Execute rule action on given enrollment
-     *
-     * @return list of issues
-     */
-    Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment );
+    private final String ruleUid;
+
+    private final String error;
+
+    @Override
+    public String getField()
+    {
+        return null;
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return Optional.of(
+            warning( ruleUid, ValidationCode.E1300, error ) );
+    }
 }
