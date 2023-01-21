@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
+
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -67,16 +69,12 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
         Optional<Attribute> any = enrollment.getAttributes().stream()
             .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
             .findAny();
+
         if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
         {
-            Optional<ProgramRuleIssue> error = Optional.of( ProgramRuleIssue.error( ruleUid,
-                ValidationCode.E1306,
+            return Optional.of( error( ruleUid, ValidationCode.E1306,
                 idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ) );
-            return error;
         }
-        else
-        {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 }
