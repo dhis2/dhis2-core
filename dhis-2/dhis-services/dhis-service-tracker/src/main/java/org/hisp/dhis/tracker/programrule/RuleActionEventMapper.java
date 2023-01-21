@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.programrule.implementers.event.ShowWarningExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
-@Service( "org.hisp.dhis.tracker.programrule.RuleActionEnrollmentMapper" )
+@Service( "org.hisp.dhis.tracker.programrule.RuleActionEventMapper" )
 @RequiredArgsConstructor
 class RuleActionEventMapper
 {
