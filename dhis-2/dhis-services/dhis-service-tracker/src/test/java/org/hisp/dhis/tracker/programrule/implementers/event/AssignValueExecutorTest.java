@@ -64,8 +64,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Sets;
-
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class AssignValueExecutorTest extends DhisConvenienceTest
@@ -110,14 +108,14 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         dataElementA.setCode( DATA_ELEMENT_CODE );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
             dataElementA, 0 );
-        firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
+        firstProgramStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
         secondProgramStage = createProgramStage( 'B', 0 );
         secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         dataElementB = createDataElement( 'B' );
         dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
-        secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+        secondProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
@@ -142,9 +140,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithDataValueNOTSet );
 
-        Event Event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
-        Optional<DataValue> dataValue = Event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) ) ).findAny();
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, SECOND_EVENT_ID, DATA_ELEMENT_ID );
 
         assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
     }
@@ -161,10 +157,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
         Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, eventWithDataValueSet );
 
-        Event Event = bundle.getEvents().stream()
-            .filter( e -> e.getEvent().equals( EVENT_ID ) ).findAny().get();
-        Optional<DataValue> dataValue = Event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) ) ).findAny();
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
 
         assertDataValueWasNotAssignedAndErrorIsPresent( DATAELEMENT_OLD_VALUE, dataValue, error );
     }
@@ -185,10 +178,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
         Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, eventWithDataValueSet );
 
-        Event Event = bundle.getEvents().stream()
-            .filter( e -> e.getEvent().equals( EVENT_ID ) ).findAny().get();
-        Optional<DataValue> dataValue = Event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofCode( DATA_ELEMENT_CODE ) ) ).findAny();
+        Optional<DataValue> dataValue = findDataValueByCode( bundle, EVENT_ID, DATA_ELEMENT_CODE );
 
         assertDataValueWasNotAssignedAndErrorIsPresent( DATAELEMENT_OLD_VALUE, dataValue, error );
     }
@@ -206,10 +196,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             eventWithDataValueSetSameValue );
 
-        Event Event = bundle.getEvents().stream()
-            .filter( e -> e.getEvent().equals( EVENT_ID ) ).findAny().get();
-        Optional<DataValue> dataValue = Event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) ) ).findAny();
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
 
         assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
     }
@@ -228,12 +215,25 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithDataValueSet );
 
-        Event Event = bundle.getEvents().stream()
-            .filter( e -> e.getEvent().equals( EVENT_ID ) ).findAny().get();
-        Optional<DataValue> dataValue = Event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) ) ).findAny();
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, DATA_ELEMENT_ID );
 
         assertDataValueWasAssignedAndWarningIsPresent( DATAELEMENT_NEW_VALUE, dataValue, warning );
+    }
+
+    private Optional<DataValue> findDataValueByUid( TrackerBundle bundle, String eventUid, String dataValueUid )
+    {
+        Event event = bundle.findEventByUid( eventUid ).get();
+        return event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofUid( dataValueUid ) ) )
+            .findAny();
+    }
+
+    private Optional<DataValue> findDataValueByCode( TrackerBundle bundle, String eventUid, String dataValueCode )
+    {
+        Event event = bundle.findEventByUid( eventUid ).get();
+        return event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( MetadataIdentifier.ofCode( dataValueCode ) ) )
+            .findAny();
     }
 
     @Test

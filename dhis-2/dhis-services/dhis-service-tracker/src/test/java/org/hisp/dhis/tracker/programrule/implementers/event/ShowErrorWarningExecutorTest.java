@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,8 +60,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
-import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
@@ -110,14 +109,14 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
         dataElementA.setUid( DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage, dataElementA,
             0 );
-        programStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
+        programStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
         anotherProgramStage = createProgramStage( 'B', 0 );
         anotherProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( anotherProgramStage,
             dataElementB, 0 );
-        anotherProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+        anotherProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) ).thenReturn( programStage );
 
         bundle = TrackerBundle.builder().build();

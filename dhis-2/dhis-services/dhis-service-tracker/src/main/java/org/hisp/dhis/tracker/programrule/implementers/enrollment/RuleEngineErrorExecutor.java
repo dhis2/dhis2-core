@@ -40,7 +40,8 @@ import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * This executor log as a warning any error raised by rule engine execution
+ * TThis executor emits a warning for any error raised by the rule engine
+ * execution.
  *
  * @Author Enrico Colasante
  */

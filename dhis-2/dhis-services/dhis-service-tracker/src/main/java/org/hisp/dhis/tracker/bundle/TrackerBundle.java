@@ -161,13 +161,13 @@ public class TrackerBundle
      * Rule action executors for Enrollments.
      */
     @Builder.Default
-    private Map<TrackerDto, List<RuleActionExecutor<Enrollment>>> enrollmentRuleActionExecutors = new HashMap<>();
+    private Map<Enrollment, List<RuleActionExecutor<Enrollment>>> enrollmentRuleActionExecutors = new HashMap<>();
 
     /**
      * Rule action executors for Events.
      */
     @Builder.Default
-    private Map<TrackerDto, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
+    private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
 
     /**
      * Rule effects for Enrollments.

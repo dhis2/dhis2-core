@@ -53,7 +53,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.ErrorWarningRuleAction;
@@ -71,26 +70,13 @@ class RuleActionEventMapper
 {
     private final SystemSettingManager systemSettingManager;
 
-    public Map<TrackerDto, List<RuleActionExecutor<Event>>> mapRuleEffects( List<RuleEffects> ruleEffects,
-        TrackerBundle bundle )
-    {
-        List<RuleEffects> filteredEffects = filterEvents( ruleEffects, bundle );
-        return mapEventEffects( filteredEffects, bundle );
-    }
-
-    private List<RuleEffects> filterEvents( List<RuleEffects> ruleEffects, TrackerBundle bundle )
-    {
-        return ruleEffects.stream()
-            .filter( RuleEffects::isEvent )
-            .filter( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).isPresent() )
-            .collect( Collectors.toList() );
-    }
-
-    private Map<TrackerDto, List<RuleActionExecutor<Event>>> mapEventEffects( List<RuleEffects> ruleEffects,
+    public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects( List<RuleEffects> ruleEffects,
         TrackerBundle bundle )
     {
         return ruleEffects
             .stream()
+            .filter( RuleEffects::isEvent )
+            .filter( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( e -> bundle.findEventByUid( e.getTrackerObjectUid() ).get(),
                 e -> mapRuleEffects( bundle.findEventByUid( e.getTrackerObjectUid() ).get(), e,
                     bundle ) ) );
@@ -100,12 +86,12 @@ class RuleActionEventMapper
         TrackerBundle bundle )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        Set<DataValue> dataValues = event.getDataValues();
+
         return ruleEffects
             .getRuleEffects()
             .stream()
             .map( effect -> buildEventRuleActionExecutor( effect.ruleId(), effect.data(),
-                effect.ruleAction(), dataValues ) )
+                effect.ruleAction(), event.getDataValues() ) )
             .filter( Objects::nonNull )
             .filter( executor -> isDataElementPartOfProgramStage( executor.getField(), programStage ) )
             .filter( executor -> needsToValidateDataValues( event, programStage ) )

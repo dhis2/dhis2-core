@@ -29,17 +29,35 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import java.util.Optional;
 
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
+import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.report.Warning;
 
+/**
+ * A {@link RuleActionExecutor} execute a rule action for an event or an
+ * enrollment. The execution can produce a {@link ProgramRuleIssue} that will be
+ * converted into an {@link org.hisp.dhis.tracker.report.Error} or a
+ * {@link Warning} and presented to the client in the {@link ValidationReport}.
+ *
+ * {@link AssignValueExecutor} can also mutate the Bundle, as it can add or
+ * change the value of an attribute.
+ * {@link org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor}
+ * can do the same for a data element.
+ */
 public interface RuleActionExecutor<T>
 {
+    /**
+     * A rule action can be associated with an attribute or a data element. When
+     * it is associated with a data element we need to make sure the data
+     * element is part of the {@link ProgramStage} of the event otherwise we do
+     * not need to execute the action.
+     *
+     * @return the attribute/dataElement Uid the rule action is associated with.
+     */
     String getField();
 
-    /**
-     * Execute rule action on given enrollment
-     *
-     * @return list of issues
-     */
     Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, T entity );
 }

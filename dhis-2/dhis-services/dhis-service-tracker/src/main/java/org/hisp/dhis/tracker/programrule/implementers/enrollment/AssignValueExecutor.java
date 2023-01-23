@@ -93,11 +93,8 @@ public class AssignValueExecutor implements RuleActionExecutor<Enrollment>
             addOrOverwriteAttribute( enrollment, bundle );
             return Optional.of( warning( ruleUid, ValidationCode.E1310, attributeUid, value ) );
         }
-        else
-        {
-            return Optional.of(
-                error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
-        }
+        return Optional.of(
+            error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
     }
 
     /**

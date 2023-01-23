@@ -58,8 +58,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 @ExtendWith( MockitoExtension.class )
 class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
 {
@@ -94,7 +92,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         dataElement.setUid( DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage,
             dataElement, 0 );
-        programStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
+        programStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
 
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
@@ -187,7 +185,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
             .value( DATA_ELEMENT_VALUE )
             .dataElement( idSchemes.toMetadataIdentifier( dataElement ) )
             .build();
-        return Sets.newHashSet( dataValue );
+        return Set.of( dataValue );
     }
 
     private Set<DataValue> getActiveEventDataValues()
@@ -196,6 +194,6 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
             .value( DATA_ELEMENT_VALUE )
             .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
             .build();
-        return Sets.newHashSet( dataValue );
+        return Set.of( dataValue );
     }
 }

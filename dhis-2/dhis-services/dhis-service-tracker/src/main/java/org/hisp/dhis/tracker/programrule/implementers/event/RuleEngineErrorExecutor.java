@@ -40,7 +40,8 @@ import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * This executor log as a warning any error raised by rule engine execution
+ * This executor emits a warning for any error raised by the rule engine
+ * execution.
  *
  * @Author Enrico Colasante
  */
@@ -60,7 +61,6 @@ public class RuleEngineErrorExecutor implements RuleActionExecutor<Event>
     @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
     {
-        return Optional.of(
-            warning( ruleUid, ValidationCode.E1300, error ) );
+        return Optional.of( warning( ruleUid, ValidationCode.E1300, error ) );
     }
 }

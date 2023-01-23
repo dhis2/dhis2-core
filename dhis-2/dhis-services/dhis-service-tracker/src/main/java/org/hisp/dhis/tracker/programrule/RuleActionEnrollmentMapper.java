@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorWarningRuleAction;
@@ -68,26 +67,13 @@ class RuleActionEnrollmentMapper
 {
     private final SystemSettingManager systemSettingManager;
 
-    public Map<TrackerDto, List<RuleActionExecutor<Enrollment>>> mapRuleEffects( List<RuleEffects> ruleEffects,
-        TrackerBundle bundle )
-    {
-        List<RuleEffects> filteredEffects = filterEnrollments( ruleEffects, bundle );
-        return mapEnrollmentEffects( filteredEffects, bundle );
-    }
-
-    private List<RuleEffects> filterEnrollments( List<RuleEffects> ruleEffects, TrackerBundle bundle )
-    {
-        return ruleEffects.stream()
-            .filter( RuleEffects::isEnrollment )
-            .filter( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
-            .collect( Collectors.toList() );
-    }
-
-    private Map<TrackerDto, List<RuleActionExecutor<Enrollment>>> mapEnrollmentEffects( List<RuleEffects> ruleEffects,
+    public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects( List<RuleEffects> ruleEffects,
         TrackerBundle bundle )
     {
         return ruleEffects
             .stream()
+            .filter( RuleEffects::isEnrollment )
+            .filter( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(),
                 e -> mapRuleEffects( bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(), e,
                     bundle ) ) );

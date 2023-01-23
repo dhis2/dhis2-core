@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.*;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
 import java.util.Set;
@@ -92,10 +93,7 @@ public class AssignValueExecutor implements RuleActionExecutor<Event>
             addOrOverwriteDataValue( event, bundle );
             return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
         }
-        else
-        {
-            return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, value ) );
-        }
+        return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, value ) );
     }
 
     private void addOrOverwriteDataValue( Event event, TrackerBundle bundle )
