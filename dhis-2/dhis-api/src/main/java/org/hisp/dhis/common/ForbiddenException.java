@@ -28,7 +28,7 @@
 package org.hisp.dhis.common;
 
 /**
- * Exception representing a forbidden query.
+ * Exception representing a forbidden.
  *
  * @author Marc Pratllusà
  */

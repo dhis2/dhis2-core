@@ -28,7 +28,7 @@
 package org.hisp.dhis.common;
 
 /**
- * Exception representing a bad request query.
+ * Exception representing a bad request.
  *
  * @author Marc Pratllusà
  */
