@@ -135,7 +135,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -267,7 +266,7 @@ public class ServiceConfig
     @Bean
     public List<Checker> checkersRunOnInsert()
     {
-        return ImmutableList.of(
+        return List.of(
             getCheckerByClass( EventDateCheck.class ),
             getCheckerByClass( OrgUnitCheck.class ),
             getCheckerByClass( SharedProgramCheck.class ),
@@ -291,7 +290,7 @@ public class ServiceConfig
     @Bean
     public List<Checker> checkersRunOnUpdate()
     {
-        return ImmutableList.of(
+        return List.of(
             getCheckerByClass( EventSimpleCheck.class ),
             getCheckerByClass( EventBaseCheck.class ),
             getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
@@ -310,9 +309,7 @@ public class ServiceConfig
     @Bean
     public List<Checker> checkersRunOnDelete()
     {
-        return ImmutableList.of(
-            getCheckerByClass(
-                DeleteProgramStageInstanceAclCheck.class ) );
+        return List.of( getCheckerByClass( DeleteProgramStageInstanceAclCheck.class ) );
     }
 
     private Checker getCheckerByClass( Class<? extends Checker> checkerClass )

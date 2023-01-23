@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -53,8 +54,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Cambi Luca
@@ -88,7 +87,7 @@ class DefaultTrackerPreheatServiceTest
     @BeforeEach
     public void setUp()
     {
-        preheatService = new DefaultTrackerPreheatService( manager, ImmutableList.of(
+        preheatService = new DefaultTrackerPreheatService( manager, List.of(
             ClassBasedSupplier.class.getSimpleName() ) );
 
         preheatService.setApplicationContext( applicationContext );

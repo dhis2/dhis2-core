@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -38,8 +39,6 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -63,14 +62,8 @@ public class ProgramRuleVariableSchemaDescriptor implements SchemaDescriptor
         schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAM_RULE_MANAGEMENT" ) ) );
         schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_RULE_MANAGEMENT" ) ) );
 
-        schema.setUniqueMultiPropertiesExctractors(
-            ImmutableMap.<Collection<String>, Collection<Function<IdentifiableObject, String>>> builder()
-                .put(
-                    ImmutableList.of( "name", "programuid" ),
-                    ImmutableList.of(
-                        nameExtractor(),
-                        programUidExtractor() ) )
-                .build() );
+        schema.setUniqueMultiPropertiesExctractors( Map.of(
+            List.of( "name", "programuid" ), List.of( nameExtractor(), programUidExtractor() ) ) );
 
         return schema;
     }
