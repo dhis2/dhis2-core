@@ -67,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -135,11 +136,16 @@ public class CrudControllerAdvice
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
-    @ExceptionHandler( org.hisp.dhis.common.BadRequestException.class )
+    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
     @ResponseBody
-    public WebMessage badRequestException( org.hisp.dhis.common.BadRequestException ex )
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
     {
-        return badRequest( ex.getMessage(), ex.getErrorCode() );
+        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
+        if ( !ex.getErrorReports().isEmpty() )
+        {
+            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
+        }
+        return message;
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
@@ -340,7 +346,8 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
+    @ExceptionHandler( { BadRequestException.class, org.hisp.dhis.common.BadRequestException.class,
+        IllegalArgumentException.class, SchemaPathException.class,
         JsonPatchException.class } )
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
