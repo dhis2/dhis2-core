@@ -66,8 +66,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -251,11 +249,11 @@ public class DefaultTrackerImportService
 
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
     {
-        return ImmutableMap.<TrackerType, Integer> builder()
-            .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
-            .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
-            .put( TrackerType.EVENT, bundle.getEvents().size() )
-            .put( TrackerType.RELATIONSHIP, bundle.getRelationships().size() ).build();
+        return Map.of(
+            TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size(),
+            TrackerType.ENROLLMENT, bundle.getEnrollments().size(),
+            TrackerType.EVENT, bundle.getEvents().size(),
+            TrackerType.RELATIONSHIP, bundle.getRelationships().size() );
     }
 
     protected TrackerBundle preheatBundle( TrackerImportParams params )

@@ -256,8 +256,9 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
 
     private MapMap<Period, DimensionalItemObject, Object> samples;
 
-    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new ImmutableMap.Builder<String, Integer>()
-        .put( "orgUnitGrpA", 1000000 ).put( "orgUnitGrpB", 2000000 ).build();
+    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = Map.of(
+        "orgUnitGrpA", 1000000,
+        "orgUnitGrpB", 2000000 );
 
     private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString( "20200101" );
 
@@ -1359,7 +1360,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         DimensionalItemId idC = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorC.getUid() );
         DimensionalItemId idD = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorD.getUid() );
         List<Indicator> indicators = singletonList( indicatorE );
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of( idB, indicatorB, idC,
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of( idB, indicatorB, idC,
             indicatorC, idD, indicatorD );
         Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
             .getIndicatorDimensionalItemMap( indicators );
@@ -1384,7 +1385,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
             "REPORTING_RATE" );
         DimensionalItemId id4 = new DimensionalItemId( DimensionItemType.PROGRAM_ATTRIBUTE, programA.getUid(),
             trackedEntityAttributeA.getUid() );
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of( id1,
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of( id1,
             new DataElementOperand( dataElementA, categoryOptionComboB ), id2,
             new DataElementOperand( dataElementB, categoryOptionComboA ), id3, new ReportingRate( dataSetA ), id4,
             new ProgramTrackedEntityAttributeDimensionItem( programA, trackedEntityAttributeA ) );

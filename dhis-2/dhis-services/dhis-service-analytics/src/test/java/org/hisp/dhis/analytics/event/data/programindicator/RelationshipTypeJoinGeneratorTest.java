@@ -32,14 +32,14 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTAN
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Map;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -160,9 +160,8 @@ class RelationshipTypeJoinGeneratorTest
 
     private String addWhere( RelationshipType relationshipType )
     {
-        return new StringSubstitutor(
-            ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipType.getId() ).build() )
-                .replace( RelationshipTypeJoinGenerator.RELATIONSHIP_JOIN );
+        return new StringSubstitutor( Map.of( "relationshipid", relationshipType.getId() ) )
+            .replace( RelationshipTypeJoinGenerator.RELATIONSHIP_JOIN );
     }
 
     private void asserter( RelationshipType relationshipType, AnalyticsType type )

@@ -56,8 +56,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -66,7 +64,6 @@ import com.google.common.collect.Maps;
  */
 class SmsUtilsTest
 {
-
     private User userA;
 
     private User userB;
@@ -163,8 +160,8 @@ class SmsUtilsTest
     void testGetOrganisationUnitsByPhoneNumber()
     {
         Collection<User> params = Collections.singleton( userA );
-        Map<String, Set<OrganisationUnit>> expected = ImmutableMap.of( userA.getUid(),
-            ImmutableSet.of( organisationUnitA ) );
+        Map<String, Set<OrganisationUnit>> expected = Map.of( userA.getUid(),
+            Set.of( organisationUnitA ) );
         assertEquals( expected, SmsUtils.getOrganisationUnitsByPhoneNumber( "sender", params ) );
     }
 
@@ -235,7 +232,7 @@ class SmsUtilsTest
     void testSelectOrganisationUnit()
     {
         OrganisationUnit expected = organisationUnitA;
-        Map<String, String> parsedMessage = Maps.newHashMap( ImmutableMap.of( "ORG", "TESTORGA" ) );
+        Map<String, String> parsedMessage = Maps.newHashMap( Map.of( "ORG", "TESTORGA" ) );
         SMSCommand smsCommand = new SMSCommand();
         assertEquals( expected,
             SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitA ), parsedMessage, smsCommand ) );

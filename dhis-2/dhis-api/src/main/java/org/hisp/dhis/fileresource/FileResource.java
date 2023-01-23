@@ -36,7 +36,6 @@ import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -48,7 +47,8 @@ public class FileResource
 
     public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
-    public static final Set<String> IMAGE_CONTENT_TYPES = ImmutableSet.of( "image/jpg", "image/png", "image/jpeg" );
+    public static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
+        "image/jpg", "image/png", "image/jpeg" );
 
     /**
      * MIME type.
@@ -127,9 +127,26 @@ public class FileResource
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Indicates whether the given content type is not null and a valid image
+     * content type.
+     *
+     * @param contentType the content type.
+     * @return true if the given content type is a valid image content type.
+     */
+    public static boolean isImage( String contentType )
+    {
+        return contentType != null && IMAGE_CONTENT_TYPES.contains( contentType );
+    }
+
+    // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getName()
@@ -137,6 +154,7 @@ public class FileResource
         return name;
     }
 
+    @Override
     public void setName( String name )
     {
         this.name = name;

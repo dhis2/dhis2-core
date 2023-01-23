@@ -52,8 +52,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Dang Duy Hieu
  */
@@ -63,11 +61,13 @@ public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
 {
-    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = ImmutableMap.of( SqlViewType.VIEW,
-        "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
+    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = Map.of(
+        SqlViewType.VIEW, "CREATE VIEW ",
+        SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
-    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = ImmutableMap.of( SqlViewType.VIEW,
-        "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
+    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = Map.of(
+        SqlViewType.VIEW, "DROP VIEW ",
+        SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
     private final StatementBuilder statementBuilder;
 
