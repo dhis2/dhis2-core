@@ -46,7 +46,7 @@ public enum FileResourceDomain
      */
     private String containerName;
 
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = Set.of(
+    public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = Set.of(
         DATA_VALUE, USER_AVATAR, ORG_UNIT );
 
     FileResourceDomain( String containerName )
@@ -59,8 +59,8 @@ public enum FileResourceDomain
         return containerName;
     }
 
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    public static boolean isDomainForMultipleImages( FileResourceDomain domain )
     {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains( domain );
     }
 }

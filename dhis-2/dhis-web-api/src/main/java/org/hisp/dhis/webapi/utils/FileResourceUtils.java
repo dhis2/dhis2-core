@@ -43,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -129,11 +128,8 @@ public class FileResourceUtils
 
     public static void setImageFileDimensions( FileResource fileResource, ImageFileDimension dimension )
     {
-        Validate.notNull( fileResource.getContentType() );
-        Validate.notNull( fileResource.getDomain() );
-
         if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
-            FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+            FileResourceDomain.isDomainForMultipleImages( fileResource.getDomain() ) )
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {

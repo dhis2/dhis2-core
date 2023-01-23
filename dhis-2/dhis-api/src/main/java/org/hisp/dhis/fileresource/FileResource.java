@@ -47,7 +47,8 @@ public class FileResource
 
     public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
-    public static final Set<String> IMAGE_CONTENT_TYPES = Set.of( "image/jpg", "image/png", "image/jpeg" );
+    public static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
+        "image/jpg", "image/png", "image/jpeg" );
 
     /**
      * MIME type.
@@ -123,6 +124,22 @@ public class FileResource
         this.contentMd5 = contentMd5;
         this.domain = domain;
         this.storageKey = FileResourceKeyUtil.makeKey( domain, Optional.of( key ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Indicates whether the given content type is not null and a valid image
+     * content type.
+     *
+     * @param contentType the content type.
+     * @return true if the given content type is a valid image content type.
+     */
+    public static boolean isImage( String contentType )
+    {
+        return contentType != null && IMAGE_CONTENT_TYPES.contains( contentType );
     }
 
     // -------------------------------------------------------------------------
