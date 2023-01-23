@@ -37,8 +37,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -69,17 +67,6 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
     public String getContent( RuleActionMessage ruleAction )
     {
         return ruleAction.content();
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        if ( needsToRun( enrollment ) )
-        {
-            return parseErrors( enrollmentActionRules );
-        }
-        return Collections.emptyList();
     }
 
     @Override
@@ -124,18 +111,6 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
         if ( isOnComplete() )
         {
             return Objects.equals( EventStatus.COMPLETED, event.getStatus() );
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-    private boolean needsToRun( Enrollment enrollment )
-    {
-        if ( isOnComplete() )
-        {
-            return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
         }
         else
         {

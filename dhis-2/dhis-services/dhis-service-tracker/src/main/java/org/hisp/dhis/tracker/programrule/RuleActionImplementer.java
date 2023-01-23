@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 
 /**
@@ -39,14 +38,6 @@ import org.hisp.dhis.tracker.domain.Event;
  */
 public interface RuleActionImplementer
 {
-    /**
-     * Get the validation for enrollment evaluated by rule engine
-     *
-     * @return list of issues
-     */
-    List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
-        Enrollment enrollment );
-
     /**
      * Get the validation for event evaluated by rule engine
      *
