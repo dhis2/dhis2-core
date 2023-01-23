@@ -31,6 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -46,8 +47,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -84,7 +83,7 @@ class ProgramOrgUnitCheckTest extends BaseValidationTest
         ou.setId( 1 );
         ou.setUid( orgUnitId );
         when( workContext.getOrganisationUnitMap() ).thenReturn( Map.of( event.getUid(), ou ) );
-        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( Map.of( 1L, ImmutableList.of( 1L ) ) );
+        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( Map.of( 1L, List.of( 1L ) ) );
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();

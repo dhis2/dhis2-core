@@ -52,12 +52,10 @@ import org.hisp.dhis.tracker.preheat.supplier.UsernameValueTypeSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.ImmutableList;
-
 @Configuration( "trackerPreheatConfig" )
 public class TrackerPreheatConfig
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
+    private final List<Class<? extends PreheatSupplier>> preheatOrder = List.of(
         ClassBasedSupplier.class,
         DefaultsSupplier.class,
         TrackedEntityProgramInstanceSupplier.class,

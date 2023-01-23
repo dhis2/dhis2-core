@@ -55,8 +55,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Luca Cambi
  */
@@ -146,7 +144,7 @@ class ProgramRuleVariableObjectBundleHookTest
         anotherExistingProgramRuleVariable.setUid( "uid2" );
 
         when( query.getResultList() )
-            .thenReturn( ImmutableList.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
+            .thenReturn( List.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
 
         when( programRuleVariable.getName() ).thenReturn( "word" );
         when( programRuleVariable.getUid() ).thenReturn( "uid1" );
