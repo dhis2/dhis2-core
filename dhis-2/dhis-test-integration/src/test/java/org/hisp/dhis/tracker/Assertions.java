@@ -42,7 +42,6 @@ import java.util.function.Supplier;
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.function.Executable;
 
@@ -96,13 +95,11 @@ public class Assertions
      * order.
      *
      * @param report import report to be asserted on
-     * @param warnings expected warnings
+     * @param codes expected warning codes
      */
-    public static void assertHasOnlyWarningsAndNoErrors( ImportReport report, Warning... warnings )
+    public static void assertHasOnlyWarnings( ImportReport report, ValidationCode... codes )
     {
-        assertAll(
-            () -> assertNoErrors( report ),
-            () -> assertHasWarnings( report.getValidationReport(), warnings.length, warnings ) );
+        assertHasOnlyWarnings( report.getValidationReport(), codes );
     }
 
     /**
@@ -110,13 +107,11 @@ public class Assertions
      * order.
      *
      * @param report validation report to be asserted on
-     * @param warnings expected warnings
+     * @param codes expected warning codes
      */
-    public static void assertHasOnlyWarningsAndNoErrors( ValidationReport report, Warning... warnings )
+    public static void assertHasOnlyWarnings( ValidationReport report, ValidationCode... codes )
     {
-        assertAll(
-            () -> assertNoErrors( report ),
-            () -> assertHasWarnings( report, warnings.length, warnings ) );
+        assertHasWarnings( report, codes.length, codes );
     }
 
     /**
@@ -167,24 +162,24 @@ public class Assertions
      * assertHasWarnings asserts the report contains given count of warnings and
      * warnings that contain given code and that are linked to given tracker
      * object in any order. <em>NOTE:</em> prefer
-     * {@link #assertHasOnlyWarningsAndNoErrors(ValidationReport, Warning...)}
-     * (ImportReport, Warning...)}.Rethink your test if you need this assertion.
-     * If you want to make sure a certain number of warnings are present, why do
-     * you not care about what warnings are present? The intention of an
-     * assertion like
+     * {@link #assertHasOnlyWarnings(ImportReport, ValidationCode...)} or
+     * {@link #assertHasOnlyWarnings(ValidationReport, ValidationCode...)}
+     * .Rethink your test if you need this assertion. If you want to make sure a
+     * certain number of warnings are present, why do you not care about what
+     * warnings are present? The intention of an assertion like
      * <code>assertHasWarnings(report, 13, ValidationCode.E1000);</code> is not
      * clear.
      *
      * @param report validation report to be asserted on
-     * @param warnings expected warnings
+     * @param codes expected warning codes
      */
-    public static void assertHasWarnings( ValidationReport report, int count, Warning... warnings )
+    public static void assertHasWarnings( ValidationReport report, int count, ValidationCode... codes )
     {
         assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
         ArrayList<Executable> executables = new ArrayList<>();
         executables.add( () -> assertEquals( count, report.getWarnings().size(),
             String.format( "mismatch in number of expected warning(s), got %s", report.getWarnings() ) ) );
-        Arrays.stream( warnings ).map( c -> ((Executable) () -> assertHasWarning( report, c )) )
+        Arrays.stream( codes ).map( c -> ((Executable) () -> assertHasWarning( report, c )) )
             .forEach( executables::add );
         assertAll( "assertHasWarnings", executables );
     }
@@ -222,15 +217,13 @@ public class Assertions
             () -> assertHasError( report.getValidationReport(), code, entityUid ) );
     }
 
-    public static void assertHasWarning( ValidationReport report, Warning warning )
+    public static void assertHasWarning( ValidationReport report, ValidationCode code )
     {
         assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
-        assertTrue( report.hasWarning( w -> Objects.equals( warning.getWarningCode(), w.getWarningCode() ) &&
-            Objects.equals( warning.getUid(), w.getUid() ) &&
-            w.getWarningMessage().contains( warning.getWarningMessage() ) ),
+        assertTrue( report.hasWarning( w -> Objects.equals( code.name(), w.getWarningCode() ) ),
             String.format(
-                "warning with code %s for object %s and partial message %s not found in report with warning(s) %s",
-                warning.getWarningCode(), warning.getUid(), warning.getWarningMessage(), report.getWarnings() ) );
+                "warning with code %s not found in report with warning(s) %s",
+                code, report.getWarnings() ) );
     }
 
     public static void assertHasError( ValidationReport report, ValidationCode code )

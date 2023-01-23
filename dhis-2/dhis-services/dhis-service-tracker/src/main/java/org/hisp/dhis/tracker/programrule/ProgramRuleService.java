@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
-
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
@@ -44,8 +41,7 @@ public interface ProgramRuleService
      * It feeds in all enrollments and event from the {@link TrackerBundle} into
      * rule engine and return a list of rule effects by tracker object.
      *
-     * @return List containing tracker object uids and their associated rule
-     *         effects.
+     * @return Enhance bundle with rule effects.
      */
-    List<RuleEffects> calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
+    void calculateRuleEffects( TrackerBundle bundle, TrackerPreheat preheat );
 }

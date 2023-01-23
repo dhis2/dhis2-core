@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
@@ -105,8 +106,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Lars Helge Overland
  */
@@ -164,6 +163,9 @@ public class DefaultEventDataQueryService
 
         Program pr = programService.getProgram( request.getProgram() );
 
+        List<String> coordinateFields = getCoordinateFields( request.getProgram(), request.getCoordinateField(),
+            request.getFallbackCoordinateField(), request.isDefaultCoordinateFallback() );
+
         if ( pr == null )
         {
             throwIllegalQueryEx( ErrorCode.E7129, request.getProgram() );
@@ -176,11 +178,11 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( ErrorCode.E7130, request.getStage() );
         }
 
-        addDimensionsIntoParams( params, request, userOrgUnits, pr, idScheme );
+        addDimensionsToParams( params, request, userOrgUnits, pr, idScheme );
 
-        addFiltersIntoParams( params, request, userOrgUnits, pr, idScheme );
+        addFiltersToParams( params, request, userOrgUnits, pr, idScheme );
 
-        addSortIntoParams( params, request, pr );
+        addSortToParams( params, request, pr );
 
         if ( request.getAggregationType() != null )
         {
@@ -193,7 +195,7 @@ public class DefaultEventDataQueryService
             .withShowHierarchy( request.isShowHierarchy() )
             .withSortOrder( request.getSortOrder() )
             .withLimit( request.getLimit() )
-            .withOutputType( MoreObjects.firstNonNull( request.getOutputType(), EventOutputType.EVENT ) )
+            .withOutputType( firstNonNull( request.getOutputType(), EventOutputType.EVENT ) )
             .withCollapseDataDimensions( request.isCollapseDataDimensions() )
             .withAggregateData( request.isAggregateData() )
             .withProgram( pr )
@@ -213,8 +215,7 @@ public class DefaultEventDataQueryService
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
-            .withCoordinateFields( getCoordinateFields( request.getProgram(), request.getCoordinateField(),
-                request.getFallbackCoordinateField(), request.isDefaultCoordinateFallback() ) )
+            .withCoordinateFields( coordinateFields )
             .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
@@ -235,8 +236,9 @@ public class DefaultEventDataQueryService
 
         EventQueryParams eventQueryParams = builder.build();
 
-        // partitioning can be used only when default period is specified.
-        // empty period dimension means default period.
+        // Partitioning applies only when default period is specified
+        // Empty period dimension means default period
+
         if ( hasPeriodDimension( eventQueryParams ) && hasNotDefaultPeriod( eventQueryParams ) )
         {
             builder.withSkipPartitioning( true );
@@ -270,7 +272,7 @@ public class DefaultEventDataQueryService
         return ((Period) dimensionalItemObject).isDefault();
     }
 
-    private void addSortIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request, Program pr )
+    private void addSortToParams( EventQueryParams.Builder params, EventDataQueryRequest request, Program pr )
     {
         if ( request.getAsc() != null )
         {
@@ -289,7 +291,7 @@ public class DefaultEventDataQueryService
         }
     }
 
-    private void addFiltersIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
+    private void addFiltersToParams( EventQueryParams.Builder params, EventDataQueryRequest request,
         List<OrganisationUnit> userOrgUnits, Program pr, IdScheme idScheme )
     {
         if ( request.getFilter() != null )
@@ -323,7 +325,7 @@ public class DefaultEventDataQueryService
         }
     }
 
-    private void addDimensionsIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
+    private void addDimensionsToParams( EventQueryParams.Builder params, EventDataQueryRequest request,
         List<OrganisationUnit> userOrgUnits, Program pr, IdScheme idScheme )
     {
         if ( request.getDimension() != null )
@@ -384,8 +386,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(),
-                    object.getOutputType() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(),
+                    object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -400,8 +402,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(),
-                    object.getOutputType() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(),
+                    object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -420,10 +422,10 @@ public class DefaultEventDataQueryService
      * Returns list of coordinateFields.
      *
      * All possible coordinate fields are collected. The order defines the
-     * priority of geometries and is used as a paramaters in sql coalesce
-     * function
+     * priority of geometries and is used as a parameters in SQL coalesce
+     * function.
      *
-     * @param program dhis program instance.
+     * @param program the program identifier.
      * @param coordinateField the coordinate field.
      * @param fallbackCoordinateField the fallback coordinate field applied if
      *        coordinate field in result set is null.
@@ -443,41 +445,39 @@ public class DefaultEventDataQueryService
         }
         else if ( COL_NAME_GEOMETRY_LIST.contains( coordinateField ) )
         {
-            coordinateFields
-                .add( eventCoordinateService.getCoordinateFieldOrFail( program, coordinateField, ErrorCode.E7221 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( program, coordinateField, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add(
-                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add(
-                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.TRACKER_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add(
-                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221 ) );
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
 
         if ( dataElement != null )
         {
-            coordinateFields
-                .add( eventCoordinateService.getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField,
-                    ErrorCode.E7219 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( dataElement.getValueType(), coordinateField, ErrorCode.E7219 ) );
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
         if ( attribute != null )
         {
-            coordinateFields
-                .add( eventCoordinateService.getCoordinateFieldOrFail( attribute.getValueType(), coordinateField,
-                    ErrorCode.E7220 ) );
+            coordinateFields.add( eventCoordinateService
+                .getCoordinateField( attribute.getValueType(), coordinateField, ErrorCode.E7220 ) );
         }
 
         if ( coordinateFields.isEmpty() )
@@ -487,11 +487,12 @@ public class DefaultEventDataQueryService
 
         coordinateFields.remove( StringUtils.EMPTY );
 
-        coordinateFields
-            .addAll( eventCoordinateService.getFallbackCoordinateFields( program, fallbackCoordinateField,
-                defaultCoordinateFallback ) );
+        coordinateFields.addAll( eventCoordinateService
+            .getFallbackCoordinateFields( program, fallbackCoordinateField, defaultCoordinateFallback ) );
 
-        return coordinateFields.stream().distinct().collect( Collectors.toList() );
+        return coordinateFields.stream()
+            .distinct()
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

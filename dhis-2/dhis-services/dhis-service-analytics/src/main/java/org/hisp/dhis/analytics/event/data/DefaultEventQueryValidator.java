@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -38,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -62,8 +62,7 @@ public class DefaultEventQueryValidator
 
     @Override
     public void validate( EventQueryParams params )
-        throws IllegalQueryException,
-        MaintenanceModeException
+        throws IllegalQueryException
     {
         ErrorMessage error = validateForErrorMessage( params );
 
@@ -160,11 +159,15 @@ public class DefaultEventQueryValidator
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
 
-            for ( QueryFilter queryFilter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                if ( !queryFilter.getOperator().isNullAllowed() && queryFilter.getFilter().contains( NV ) )
+                if ( !filter.getOperator().isNullAllowed() && filter.getFilter().contains( NV ) )
                 {
-                    error = new ErrorMessage( ErrorCode.E7229, queryFilter.getOperator().getValue() );
+                    error = new ErrorMessage( ErrorCode.E7229, filter.getOperator().getValue() );
+                }
+                else if ( isNotEmpty( ValidationUtils.valueIsValid( filter.getFilter(), item.getValueType() ) ) )
+                {
+                    error = new ErrorMessage( ErrorCode.E7234, filter.getFilter(), item.getValueType() );
                 }
             }
         }

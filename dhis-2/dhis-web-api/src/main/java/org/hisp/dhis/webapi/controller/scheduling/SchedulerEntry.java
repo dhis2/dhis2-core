@@ -80,8 +80,11 @@ class SchedulerEntry
             List.of( SchedulerEntryJob.of( config ) ) );
     }
 
-    static SchedulerEntry of( List<JobConfiguration> queue )
+    static SchedulerEntry of( List<JobConfiguration> jobs )
     {
+        List<JobConfiguration> queue = jobs.stream()
+            .sorted( comparing( JobConfiguration::getQueuePosition ) )
+            .collect( toList() );
         JobConfiguration trigger = queue.get( 0 );
         if ( !trigger.isUsedInQueue() )
         {

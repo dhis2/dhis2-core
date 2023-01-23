@@ -28,7 +28,7 @@
 summary_uid: hFeGvP851tv
 name: category_options_excess_groupset_membership
 description: Category options which belong to multiple groups in a category option group set.
-section: MSyNr8JyInB
+section: Categories
 section_order: 10
 summary_sql: >-
   WITH cos_multiple_groups as (
