@@ -155,9 +155,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         }
         Runnable task = conf.isInMemoryJob()
             ? () -> execute( conf )
-            : conf.isUsedInQueue()
-                ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
-                : () -> execute( jobId );
+            : () -> execute( jobId );
         Future<?> removeFromSchedule = schedule.apply( task );
         String key = getKey( conf );
         Future<?> removeScheduledBefore = removeFromScheduleByIdOrName.put( key, removeFromSchedule );
@@ -192,9 +190,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
             return false;
         }
         log.info( "Scheduler initiated execution of job: {}", conf );
-        Runnable task = conf.isUsedInQueue()
-            ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
-            : () -> execute( conf );
+        Runnable task = () -> execute( conf );
         taskExecutor.executeTaskWithCancelation( task );
         return true;
     }

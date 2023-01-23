@@ -50,7 +50,8 @@ public class TestJob implements Job
     }
 
     @Override
-    @SuppressWarnings( "java:S3776" ) // better keeping all processing in one loop
+    @SuppressWarnings( "java:S3776" ) // better keeping all processing in one
+                                      // loop
     public void execute( JobConfiguration conf, JobProgress progress )
     {
         TestJobParameters params = (TestJobParameters) conf.getJobParameters();

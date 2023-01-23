@@ -30,7 +30,6 @@ package org.hisp.dhis.scheduling;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
-import static java.util.Comparator.comparing;
 import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
@@ -39,13 +38,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -219,36 +216,6 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             // no matter which node received the cancel this is shared
             cancelledRemotely.put( type.name(), true );
-        }
-    }
-
-    /**
-     * Runs a job queue sequence.
-     *
-     * @param name name of the queue to run
-     * @param startPosition first position in the queue to run
-     * @return true, if the entire sequence ran successful, otherwise false
-     */
-    protected final boolean executeQueue( String name, int startPosition )
-    {
-        int position = startPosition;
-        while ( true )
-        {
-            // OBS! intentionally the sequence is reloaded every time to allow for changes of the sequence
-            //      while it is running
-            List<JobConfiguration> sequence = jobConfigurationService.getAllJobConfigurations().stream()
-                .filter( c -> name.equals( c.getQueueName() ) )
-                .sorted( comparing( JobConfiguration::getQueuePosition ) )
-                .collect( Collectors.toList() );
-            if ( position >= sequence.size() )
-            {
-                return true; // queue done
-            }
-            JobConfiguration config = sequence.get( position++ );
-            if ( !execute( config ) || config.getLastExecutedStatus() != JobStatus.COMPLETED )
-            {
-                return false; // stop queue due to error
-            }
         }
     }
 

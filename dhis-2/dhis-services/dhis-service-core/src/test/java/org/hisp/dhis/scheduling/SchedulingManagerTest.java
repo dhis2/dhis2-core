@@ -47,7 +47,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
@@ -148,37 +147,6 @@ class SchedulingManagerTest
         return createTestCases( conf, this::createStartTimeJobConfiguration, startTimeTask.getValue() );
     }
 
-    @TestFactory
-    Stream<DynamicTest> testScheduleRunWithQueue()
-    {
-        JobConfiguration conf = createCronJobConfiguration();
-        conf.setQueueName( "test" );
-        conf.setQueuePosition( 0 );
-        List<JobConfiguration> queue = List.of( conf,
-            createQueueJobConfiguration( JobType.SEND_SCHEDULED_MESSAGE, 1 ),
-            createQueueJobConfiguration( JobType.PROGRAM_NOTIFICATIONS, 2 ) );
-        when( jobConfigurationService.getAllJobConfigurations() ).thenReturn( queue );
-        queue.forEach( config -> when( jobConfigurationService.getJobConfigurationByUid( config.getUid() ) )
-            .thenReturn( config ) );
-        ArgumentCaptor<Runnable> queueStart = ArgumentCaptor.forClass( Runnable.class );
-        when( taskScheduler.schedule( queueStart.capture(), any( Trigger.class ) ) ).thenReturn( new MockFuture<>() );
-        schedulingManager.schedule( conf );
-        return createTestCases( conf, this::createCronJobConfiguration, queueStart.getValue() );
-    }
-
-    private JobConfiguration createQueueJobConfiguration( JobType type, int position )
-    {
-        JobConfiguration conf = new JobConfiguration();
-        conf.setName( "queue" + position );
-        conf.setUid( generateUid() );
-        conf.setJobType( type );
-        conf.setCronExpression( null );
-        conf.setQueueName( "test" );
-        conf.setQueuePosition( position );
-        addJob( conf );
-        return conf;
-    }
-
     private JobConfiguration createCronJobConfiguration()
     {
         JobConfiguration conf = new JobConfiguration( "cron", JobType.ANALYTICS_TABLE,
@@ -220,7 +188,8 @@ class SchedulingManagerTest
     {
         assertNotNull( task, "job was not scheduled" );
         return Stream.of(
-            //OBS! the order here is important because these are not isolated from each other
+            // OBS! the order here is important because these are not isolated
+            // from each other
             dynamicTest( "assertScheduledJobCompletesSuccessful",
                 () -> assertScheduledJobCompletesSuccessful( configuration, task ) ),
             dynamicTest( "assertJobDoesNotStartWhenAlreadyRunning",
