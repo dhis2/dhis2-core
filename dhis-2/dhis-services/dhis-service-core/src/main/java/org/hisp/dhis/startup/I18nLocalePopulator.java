@@ -30,14 +30,13 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Locale;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Populates default I18nLocales if none exists.
@@ -57,7 +56,7 @@ public class I18nLocalePopulator
         this.localeService = localeService;
     }
 
-    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
+    private static final Set<String> DEFAULT_LOCALES = Set.of(
         "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it",
         "km", "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh" );
 

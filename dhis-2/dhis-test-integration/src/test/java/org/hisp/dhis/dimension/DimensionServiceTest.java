@@ -671,7 +671,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         dimensionalItemIds.add( itemIdA );
         dimensionalItemIds.add( itemIdB );
         dimensionalItemIds.add( itemIdC );
-        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap.of( itemIdA, deA, itemIdB, deB,
+        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = Map.of( itemIdA, deA, itemIdB, deB,
             itemIdC, deC );
         // When
         result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );

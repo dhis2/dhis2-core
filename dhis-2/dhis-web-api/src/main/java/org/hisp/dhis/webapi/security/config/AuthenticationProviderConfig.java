@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Map;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
@@ -49,8 +51,6 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -127,7 +127,7 @@ public class AuthenticationProviderConfig
     {
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
         defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
+            Map.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
         return defaultAuthenticationEventPublisher;
     }
 

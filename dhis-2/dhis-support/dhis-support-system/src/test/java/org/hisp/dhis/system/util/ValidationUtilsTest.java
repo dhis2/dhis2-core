@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -59,8 +60,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -314,7 +313,7 @@ class ValidationUtilsTest
         ValueType valueType = ValueType.FILE_RESOURCE;
         FileTypeValueOptions options = new FileTypeValueOptions();
         options.setMaxFileSize( oneHundredMegaBytes );
-        options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
+        options.setAllowedContentTypes( Set.of( "jpg", "pdf" ) );
         FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes, "md5sum",
             FileResourceDomain.DOCUMENT );
         assertNull( valueIsValid( fileResource, valueType, options ) );
