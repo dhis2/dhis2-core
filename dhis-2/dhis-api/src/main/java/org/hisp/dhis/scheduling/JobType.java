@@ -43,6 +43,7 @@ import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 import com.google.common.collect.ImmutableMap;
@@ -109,6 +110,7 @@ public enum JobType
     ACCOUNT_EXPIRY_ALERT( false ),
 
     // Testing purposes
+    TEST( true, SchedulingType.CRON, TestJobParameters.class, null ),
     MOCK( false, SchedulingType.CRON, MockJobParameters.class, null ),
 
     // Deprecated, present to satisfy code using the old enumeration
