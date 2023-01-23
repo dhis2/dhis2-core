@@ -219,11 +219,24 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
+    /**
+     * Run a job potentially in the future.
+     *
+     * This is used for scheduled jobs to reload the job right before it is run
+     * so the most recent configuration is used.
+     *
+     * @param jobId ID of the job to run
+     * @return true when the job ran successful, otherwise false
+     */
     protected final boolean execute( String jobId )
     {
         return execute( jobConfigurationService.getJobConfigurationByUid( jobId ) );
     }
 
+    /**
+     * @param configuration the job to run now
+     * @return true when the job ran successful, otherwise false
+     */
     protected final boolean execute( JobConfiguration configuration )
     {
         if ( !configuration.isEnabled() )
@@ -278,17 +291,20 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 // complected by calling completedProcess at the end of the job
                 progress.completedProcess( "(process completed implicitly)" );
             }
+            boolean wasSuccessfulRun = !progress.isCancellationRequested()
+                && progress.getProcesses().stream().allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
             if ( configuration.getLastExecutedStatus() == RUNNING )
             {
-                boolean wasSuccessfulRun = progress.getProcesses().stream()
-                    .allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
-                configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : JobStatus.FAILED );
+                JobStatus errorStatus = progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
+                configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus );
             }
+            return wasSuccessfulRun;
         }
         catch ( Exception ex )
         {
             progress.failedProcess( ex );
-            whenRunThrewException( configuration, ex );
+            whenRunThrewException( configuration, ex, progress );
+            return false;
         }
         finally
         {
@@ -297,7 +313,6 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             whenRunIsDone( configuration, clock );
             MDC.remove( "sessionId" );
         }
-        return true;
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
@@ -315,16 +330,15 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             log.debug( "Job executed successfully: '{}'. Time used: '{}'", configuration.getName(), duration );
         }
+        configuration.setJobStatus( JobStatus.SCHEDULED );
+        configuration.setNextExecutionTime( null );
+        configuration.setLastExecuted( new Date( clock.getStartTime() ) );
+        configuration.setLastRuntimeExecution( duration );
+
         if ( configuration.isInMemoryJob() )
         {
             return;
         }
-
-        configuration.setJobStatus( JobStatus.SCHEDULED );
-        configuration.setNextExecutionTime( null );
-        configuration.setLastExecuted( new Date() );
-        configuration.setLastRuntimeExecution( duration );
-
         JobConfiguration persistentConfiguration = jobConfigurationService
             .getJobConfigurationByUid( configuration.getUid() );
 
@@ -341,7 +355,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
-    private void whenRunThrewException( JobConfiguration configuration, Exception ex )
+    private void whenRunThrewException( JobConfiguration configuration, Exception ex, ControlledJobProgress progress )
     {
         String message = String.format( "Job failed: '%s'", configuration.getName() );
         log.error( message, ex );
@@ -350,7 +364,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             messageService.sendSystemErrorNotification( message, ex );
         }
-        configuration.setLastExecutedStatus( JobStatus.FAILED );
+        configuration
+            .setLastExecutedStatus( progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED );
         if ( ex instanceof InterruptedException )
         {
             Thread.currentThread().interrupt();

@@ -71,8 +71,7 @@ public interface SchedulingManager
     /**
      * Schedules a job with the given job configuration.
      *
-     * This stops running jobs of the same {@link JobType} is necessary and
-     * replaces existing scheduled tasks in the future.
+     * This removes previously issued scheduling for the configuration.
      *
      * The job will be scheduled based on the
      * {@link JobConfiguration#getCronExpression()} property.
@@ -84,8 +83,7 @@ public interface SchedulingManager
     /**
      * Schedule a job with the given start time.
      *
-     * This stops running jobs of the same {@link JobType} is necessary and
-     * replaces existing scheduled tasks in the future.
+     * This removes previously issued scheduling for the configuration.
      *
      * @param configuration The configuration with job details to be scheduled
      * @param startTime The time at which the job should start
@@ -93,25 +91,50 @@ public interface SchedulingManager
     void scheduleWithStartTime( JobConfiguration configuration, Date startTime );
 
     /**
-     * Stops the currently running task with the same {@link JobType} as the
-     * provided configuration.
+     * Removes any existing schedule for the given {@link JobConfiguration}.
+     *
+     * If the configuration does not have an ID nor a name this operation has no
+     * effect.
+     *
+     * This will not interrupt and abort a currently running job. To abort
+     * execution use {@link #cancel(JobType)}.
      */
     void stop( JobConfiguration configuration );
 
     /**
+     * Check if a configuration is already scheduled for execution(s) in the
+     * future.
+     *
+     * @param configuration the configuration to check
+     * @return true, if the configuration will execute in the future, false if
+     *         it has not been scheduled
+     */
+    default boolean isScheduled( JobConfiguration configuration )
+    {
+        return false; // overridden by implementations supporting scheduling
+    }
+
+    /**
      * Ad-hoc execution of a {@link JobConfiguration}.
      *
-     * This only starts a new new task if no job with the same {@link JobType}
-     * is running.
+     * This only starts a new task if no job with the same {@link JobType} is
+     * running.
      *
      * @param configuration The configuration of the job to be executed
-     * @return true, if the job was was not already running and got started now,
-     *         otherwise false
+     * @return true, if the job was accepted for execution. This means no job of
+     *         the same type was running but the another job might still manage
+     *         to reach the {@link Job#execute(JobConfiguration, JobProgress)}
+     *         method first in which case this execution is aborted.
      */
     boolean executeNow( JobConfiguration configuration );
 
     /**
-     * Request cancellation for job of given type potentially running currently
+     * Request cancellation for job of given type. If no job of that type is
+     * currently running the operation has no effect.
+     *
+     * Cancellation is cooperative abort. The job will abort at the next
+     * possible "safe-point". This is the next step or item in the overall
+     * process which checks for cancellation.
      *
      * @param type job type to cancel
      */
