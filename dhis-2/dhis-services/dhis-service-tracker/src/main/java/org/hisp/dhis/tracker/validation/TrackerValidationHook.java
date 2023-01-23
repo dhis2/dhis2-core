@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
 /**
@@ -35,5 +40,72 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
  */
 public interface TrackerValidationHook
 {
-    void validate( ValidationErrorReporter report, TrackerBundle bundle );
+    /**
+     * Validate the tracker bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     */
+    default void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
+    {
+    }
+
+    /**
+     * Called on every event in the bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param event entity to validate
+     */
+    default void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+    }
+
+    /**
+     * Called on every enrollment in the bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param enrollment entity to validate
+     */
+    default void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+    }
+
+    /**
+     * Called on every relationship in the bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param relationship entity to validate
+     */
+    default void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
+    {
+    }
+
+    /**
+     * Called on every TEI in the bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param tei entity to validate
+     */
+    default void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    {
+    }
+
+    default boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy != TrackerImportStrategy.DELETE;
+    }
+
+    /**
+     * Signal that subsequent {@link TrackerValidationHook}s should be skipped
+     * for an entity that is invalid according to this hook.
+     */
+    default boolean skipOnError()
+    {
+        return false;
+    }
 }

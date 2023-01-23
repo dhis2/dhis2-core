@@ -39,8 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -60,7 +58,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
@@ -125,9 +122,9 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Builder
-    private static class ValidationHook extends AbstractTrackerDtoValidationHook
+    private static class ValidationHook implements TrackerValidationHook
     {
-        private Boolean removeOnError;
+        private Boolean skipOnError;
 
         private Boolean needsToRun;
 
@@ -166,12 +163,12 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public boolean removeOnError()
+        public boolean skipOnError()
         {
-            // using boxed Boolean, so we can test the default removeOnError
+            // using boxed Boolean, so we can test the default skipOnError
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.removeOnError, super::removeOnError );
+            return Objects.requireNonNullElseGet( this.skipOnError, TrackerValidationHook.super::skipOnError );
         }
 
         @Override
@@ -180,28 +177,20 @@ class DefaultTrackerValidationServiceTest
             // using boxed Boolean, so we can test the default needsToRun
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.needsToRun, () -> super.needsToRun( strategy ) );
+            return Objects.requireNonNullElseGet( this.needsToRun,
+                () -> TrackerValidationHook.super.needsToRun( strategy ) );
         }
     }
 
     @Test
-    void removeOnErrorHookPreventsFurtherValidationOfInvalidEntityEvenInFullValidationMode()
+    void skipOnErrorHookPreventsFurtherValidationOfInvalidEntityEvenInFullValidationMode()
     {
 
         // Test shows
-        // 1. Hooks with removeOnError==true remove invalid entities from the
-        // TrackerBundle to prevent
-        // subsequent hooks from validating it
-        // 2. the TrackerBundle is mutated to only contain valid DTOs after
-        // validation
-        //
-        // Currently, the bundle is mutated by
-        // 1. AbstractTrackerDtoValidationHook removes invalid DTOs if the hook
-        // has removeOnError == true
-        // 2. DefaultTrackerValidationService removes invalid DTOs if they were
-        // not previously removed
-        // by AbstractTrackerDtoValidationHook i.e. hooks having removeOnError
-        // == false
+        // 1. Hooks with skipOnError==true will prevent subsequent hooks from
+        // validating an invalid entity
+        // 2. DefaultValidationService removes invalid entities from the
+        // TrackerBundle
 
         Event validEvent = event();
         Event invalidEvent = event();
@@ -210,18 +199,17 @@ class DefaultTrackerValidationServiceTest
             .events( events( invalidEvent, validEvent ) )
             .build();
 
-        ValidationHook removeOnError = ValidationHook.builder()
-            .removeOnError( true )
+        ValidationHook skipOnError = ValidationHook.builder()
+            .skipOnError( true )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
-        // using default AbstractTrackerDtoValidationHook behavior of
-        // removeOnError==false
-        ValidationHook doNotRemoveOnError = ValidationHook.builder()
+        // using default TrackerValidationHook.skipOnError==false
+        ValidationHook doNotSkipOnError = ValidationHook.builder()
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E9999 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( removeOnError, doNotRemoveOnError ),
+        service = new DefaultTrackerValidationService( List.of( skipOnError, doNotSkipOnError ),
             Collections.emptyList() );
 
         TrackerValidationReport report = service.validate( bundle );
@@ -251,12 +239,12 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         ValidationHook hook1 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
         ValidationHook hook2 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E9999 ) )
             .build();
@@ -286,7 +274,7 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         ValidationHook hook1 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
@@ -464,29 +452,17 @@ class DefaultTrackerValidationServiceTest
 
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( trackedEntities ) );
+        return List.of( trackedEntities );
     }
 
     private List<Enrollment> enrollments( Enrollment... enrollments )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( enrollments ) );
+        return List.of( enrollments );
     }
 
     private List<Event> events( Event... events )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( events ) );
+        return List.of( events );
     }
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
