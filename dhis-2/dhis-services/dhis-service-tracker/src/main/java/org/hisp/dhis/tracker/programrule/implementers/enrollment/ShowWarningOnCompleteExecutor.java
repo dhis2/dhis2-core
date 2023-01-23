@@ -63,12 +63,6 @@ public class ShowWarningOnCompleteExecutor
     }
 
     @Override
-    public String getField()
-    {
-        return ruleAction.getField();
-    }
-
-    @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle,
         Enrollment enrollment )
     {

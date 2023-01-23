@@ -62,7 +62,7 @@ public class ShowErrorOnCompleteExecutor
     }
 
     @Override
-    public String getField()
+    public String getDataElementUid()
     {
         return ruleAction.getField();
     }

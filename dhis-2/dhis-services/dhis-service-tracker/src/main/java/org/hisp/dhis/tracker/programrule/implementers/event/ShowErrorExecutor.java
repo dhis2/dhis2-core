@@ -61,7 +61,7 @@ public class ShowErrorExecutor implements ErrorWarningExecutor
     }
 
     @Override
-    public String getField()
+    public String getDataElementUid()
     {
         return ruleAction.getField();
     }

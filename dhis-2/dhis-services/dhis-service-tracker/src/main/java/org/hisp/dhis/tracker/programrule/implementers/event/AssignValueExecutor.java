@@ -69,7 +69,7 @@ public class AssignValueExecutor implements RuleActionExecutor<Event>
     private final Set<DataValue> dataValues;
 
     @Override
-    public String getField()
+    public String getDataElementUid()
     {
         return dataElementUid;
     }

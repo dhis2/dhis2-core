@@ -70,12 +70,6 @@ public class AssignValueExecutor implements RuleActionExecutor<Enrollment>
     private final List<Attribute> attributes;
 
     @Override
-    public String getField()
-    {
-        return attributeUid;
-    }
-
-    @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         Boolean canOverwrite = systemSettingManager

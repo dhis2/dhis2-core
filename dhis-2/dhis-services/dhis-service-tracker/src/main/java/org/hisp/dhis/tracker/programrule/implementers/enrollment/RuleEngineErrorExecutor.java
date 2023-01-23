@@ -53,12 +53,6 @@ public class RuleEngineErrorExecutor implements RuleActionExecutor<Enrollment>
     private final String error;
 
     @Override
-    public String getField()
-    {
-        return null;
-    }
-
-    @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return Optional.of( warning( ruleUid, ValidationCode.E1300, error ) );

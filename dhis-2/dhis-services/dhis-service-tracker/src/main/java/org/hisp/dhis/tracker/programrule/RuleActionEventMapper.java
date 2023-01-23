@@ -93,7 +93,7 @@ class RuleActionEventMapper
             .map( effect -> buildEventRuleActionExecutor( effect.ruleId(), effect.data(),
                 effect.ruleAction(), event.getDataValues() ) )
             .filter( Objects::nonNull )
-            .filter( executor -> isDataElementPartOfProgramStage( executor.getField(), programStage ) )
+            .filter( executor -> isDataElementPartOfProgramStage( executor.getDataElementUid(), programStage ) )
             .filter( executor -> needsToValidateDataValues( event, programStage ) )
             .collect( Collectors.toList() );
     }

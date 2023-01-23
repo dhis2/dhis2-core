@@ -62,7 +62,7 @@ public class ShowWarningOnCompleteExecutor
     }
 
     @Override
-    public String getField()
+    public String getDataElementUid()
     {
         return ruleAction.getField();
     }

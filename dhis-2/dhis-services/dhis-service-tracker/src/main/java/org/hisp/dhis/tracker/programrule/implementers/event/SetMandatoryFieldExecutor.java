@@ -57,7 +57,7 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event>
     private final String fieldUid;
 
     @Override
-    public String getField()
+    public String getDataElementUid()
     {
         return fieldUid;
     }

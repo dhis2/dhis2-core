@@ -61,12 +61,6 @@ public class ShowErrorExecutor implements ErrorWarningExecutor
     }
 
     @Override
-    public String getField()
-    {
-        return ruleAction.getField();
-    }
-
-    @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return validateEnrollment( ruleAction, enrollment );

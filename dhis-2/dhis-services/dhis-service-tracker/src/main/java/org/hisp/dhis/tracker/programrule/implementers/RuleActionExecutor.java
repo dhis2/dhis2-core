@@ -55,9 +55,12 @@ public interface RuleActionExecutor<T>
      * element is part of the {@link ProgramStage} of the event otherwise we do
      * not need to execute the action.
      *
-     * @return the attribute/dataElement Uid the rule action is associated with.
+     * @return the dataElement Uid the rule action is associated with.
      */
-    String getField();
+    default String getDataElementUid()
+    {
+        return null;
+    }
 
     Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, T entity );
 }
