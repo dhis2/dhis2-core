@@ -130,6 +130,7 @@ public class FileResourceUtils
     public static void setImageFileDimensions( FileResource fileResource, ImageFileDimension dimension )
     {
         Validate.notNull( fileResource.getContentType() );
+        Validate.notNull( fileResource.getDomain() );
 
         if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
             FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
