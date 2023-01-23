@@ -47,7 +47,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 /**
@@ -212,15 +211,12 @@ class BaseNotificationMessageRendererTest
     // -------------------------------------------------------------------------
     // Mock classes
     // -------------------------------------------------------------------------
-    /**
-     * Thin mock implementation on top of BaseNotificationMessageRenderer
-     */
+
     static class MockNotificationMessageRenderer extends BaseNotificationMessageRenderer<Entity>
     {
-
-        static final ImmutableMap<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = ImmutableMap
-            .<TemplateVariable, Function<Entity, String>> builder().put( EntityTemplateVariable.a, e -> e.propertyA )
-            .put( EntityTemplateVariable.b, e -> e.propertyB ).build();
+        static final Map<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = Map.of(
+            EntityTemplateVariable.a, e -> e.propertyA,
+            EntityTemplateVariable.b, e -> e.propertyB );
 
         static final Map<String, String> ATTRIBUTE_VALUES = new HashMap<String, String>()
         {

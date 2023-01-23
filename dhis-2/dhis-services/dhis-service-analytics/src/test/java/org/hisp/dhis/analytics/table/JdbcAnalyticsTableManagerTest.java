@@ -67,8 +67,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Lars Helge Overland
  */
@@ -147,7 +145,7 @@ class JdbcAnalyticsTableManagerTest
             .build();
 
         List<Map<String, Object>> queryResp = new ArrayList<>();
-        queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
+        queryResp.add( Map.of( "dataelementid", 1 ) );
 
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
             .thenReturn( lastFullTableUpdate );

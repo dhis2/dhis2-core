@@ -118,7 +118,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class ExpressionService2Test extends DhisConvenienceTest
 {
-
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
 
@@ -419,6 +418,7 @@ class ExpressionService2Test extends DhisConvenienceTest
         }
     }
 
+    @SafeVarargs
     private <T extends IdentifiableObject> Map<String, T> getMap( T... idObjects )
     {
         return IdentifiableObjectUtils.getIdMap( List.of( idObjects ), IdScheme.UID );
@@ -440,11 +440,9 @@ class ExpressionService2Test extends DhisConvenienceTest
 
     private void mockConstantService()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        when( constantService.getConstantMap() ).thenReturn( Map.of(
+            constantA.getUid(), constantA,
+            constantB.getUid(), constantB ) );
     }
 
     // -------------------------------------------------------------------------

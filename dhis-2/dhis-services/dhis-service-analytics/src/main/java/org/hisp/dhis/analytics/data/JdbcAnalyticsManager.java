@@ -98,7 +98,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -118,15 +117,15 @@ public class JdbcAnalyticsManager
 
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES = Set.of( COUNT, STDDEV, VARIANCE, MIN, MAX );
+    private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES = Set.of(
+        COUNT, STDDEV, VARIANCE, MIN, MAX );
 
-    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String> builder()
-        .put( MeasureFilter.EQ, "=" )
-        .put( MeasureFilter.GT, ">" )
-        .put( MeasureFilter.GE, ">=" )
-        .put( MeasureFilter.LT, "<" )
-        .put( MeasureFilter.LE, "<=" )
-        .build();
+    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = Map.of(
+        MeasureFilter.EQ, "=",
+        MeasureFilter.GT, ">",
+        MeasureFilter.GE, ">=",
+        MeasureFilter.LT, "<",
+        MeasureFilter.LE, "<=" );
 
     private final QueryPlanner queryPlanner;
 

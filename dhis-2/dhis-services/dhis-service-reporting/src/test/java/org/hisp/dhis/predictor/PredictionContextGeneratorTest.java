@@ -146,7 +146,7 @@ class PredictionContextGeneratorTest
     // This may seem like a lot of work, but it makes it extremely easier to
     // read any test failures.
 
-    private final Map<DimensionalItemObject, String> itemName = ImmutableMap.of(
+    private final Map<DimensionalItemObject, String> itemName = Map.of(
         deA, "deA",
         deaA, "deaA",
         piA, "piA",
@@ -154,23 +154,15 @@ class PredictionContextGeneratorTest
         paA, "paA",
         paB, "paB" );
 
-    private final Map<Period, String> periodName = ImmutableMap.of(
+    private final Map<Period, String> periodName = Map.of(
         periodA, "periodA",
         periodB, "periodB",
         periodC, "periodC" );
 
-    private final Map<CategoryOptionCombo, String> aocName = ImmutableMap.of(
+    private final Map<CategoryOptionCombo, String> aocName = Map.of(
         aocA, "aocA",
         aocB, "aocB",
         aocX, "aocX" );
-
-    private final Map<FoundDimensionItemValue, String> valueName = ImmutableMap.of(
-        aocVal1, "aocVal1",
-        aocVal2, "aocVal2",
-        aocVal3, "aocVal3",
-        aocVal4, "aocVal4",
-        nonAocVal5, "nonAocVal5",
-        nonAocVal6, "nonAocVal6" );
 
     private List<String> formatPredictionContextList( List<PredictionContext> contexts )
     {
