@@ -27,40 +27,38 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import java.util.Optional;
-
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignAttributeExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.AssignDataValueExecutor;
-import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.report.Warning;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.system.util.MathUtils;
 
 /**
- * A {@link RuleActionExecutor} execute a rule action for an event or an
- * enrollment. The execution can produce a {@link ProgramRuleIssue} that will be
- * converted into an {@link org.hisp.dhis.tracker.report.Error} or a
- * {@link Warning} and presented to the client in the {@link ValidationReport}.
+ * This executor assigns a value to a field if it is empty, otherwise returns an
+ * error
  *
- * {@link AssignAttributeExecutor} can also mutate the Bundle, as it can add or
- * change the value of an attribute. {@link AssignDataValueExecutor} can do the
- * same for a data element.
+ * @Author Enrico Colasante
  */
-public interface RuleActionExecutor<T>
+public interface AssignValueExecutor<T> extends RuleActionExecutor<T>
 {
     /**
-     * A rule action can be associated with an attribute or a data element. When
-     * it is associated with a data element we need to make sure the data
-     * element is part of the {@link ProgramStage} of the event otherwise we do
-     * not need to execute the action.
+     * Tests whether the given values are equal. If the given value type is
+     * numeric, the values are converted to doubles before being checked for
+     * equality.
      *
-     * @return the dataElement Uid the rule action is associated with.
+     * @param value1 the first value.
+     * @param value2 the second value.
+     * @param valueType the value type.
+     * @return true if the values are equal, false if not.
      */
-    default String getDataElementUid()
+    default boolean isEqual( String value1, String value2, ValueType valueType )
     {
-        return null;
+        if ( valueType.isNumeric() )
+        {
+            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
+                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
+        }
+        else
+        {
+            return value1 != null && value1.equals( value2 );
+        }
     }
-
-    Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, T entity );
 }

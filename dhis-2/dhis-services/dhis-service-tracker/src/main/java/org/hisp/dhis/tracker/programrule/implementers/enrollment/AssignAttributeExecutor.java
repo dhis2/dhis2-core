@@ -35,11 +35,8 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.math.NumberUtils;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -47,7 +44,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.AssignValueExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -57,7 +54,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignValueExecutor implements RuleActionExecutor<Enrollment>
+public class AssignAttributeExecutor implements AssignValueExecutor<Enrollment>
 {
     private final SystemSettingManager systemSettingManager;
 
@@ -89,29 +86,6 @@ public class AssignValueExecutor implements RuleActionExecutor<Enrollment>
         }
         return Optional.of(
             error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
-    }
-
-    /**
-     * Tests whether the given values are equal. If the given value type is
-     * numeric, the values are converted to doubles before being checked for
-     * equality.
-     *
-     * @param value1 the first value.
-     * @param value2 the second value.
-     * @param valueType the value type.
-     * @return true if the values are equal, false if not.
-     */
-    protected boolean isEqual( String value1, String value2, ValueType valueType )
-    {
-        if ( valueType.isNumeric() )
-        {
-            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
-                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
-        }
-        else
-        {
-            return value1 != null && value1.equals( value2 );
-        }
     }
 
     private void addOrOverwriteAttribute( Enrollment enrollment, TrackerBundle bundle )

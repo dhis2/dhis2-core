@@ -35,18 +35,15 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.math.NumberUtils;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.AssignValueExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -56,7 +53,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignValueExecutor implements RuleActionExecutor<Event>
+public class AssignDataValueExecutor implements AssignValueExecutor<Event>
 {
     private final SystemSettingManager systemSettingManager;
 
@@ -113,29 +110,6 @@ public class AssignValueExecutor implements RuleActionExecutor<Event>
             event.getDataValues()
                 .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
                     value ) );
-        }
-    }
-
-    /**
-     * Tests whether the given values are equal. If the given value type is
-     * numeric, the values are converted to doubles before being checked for
-     * equality.
-     *
-     * @param value1 the first value.
-     * @param value2 the second value.
-     * @param valueType the value type.
-     * @return true if the values are equal, false if not.
-     */
-    protected boolean isEqual( String value1, String value2, ValueType valueType )
-    {
-        if ( valueType.isNumeric() )
-        {
-            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
-                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
-        }
-        else
-        {
-            return value1 != null && value1.equals( value2 );
         }
     }
 
