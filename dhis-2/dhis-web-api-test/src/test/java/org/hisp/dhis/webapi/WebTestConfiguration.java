@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -88,8 +89,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
@@ -211,7 +210,7 @@ public class WebTestConfiguration
     {
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
         defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
+            Map.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
         return defaultAuthenticationEventPublisher;
     }
 

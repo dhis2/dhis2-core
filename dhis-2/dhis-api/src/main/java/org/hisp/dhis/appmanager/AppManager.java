@@ -31,11 +31,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Saptarshi Purkayastha
@@ -46,7 +45,7 @@ public interface AppManager
 
     String BUNDLED_APP_PREFIX = "dhis-web-";
 
-    ImmutableSet<String> BUNDLED_APPS = ImmutableSet.of(
+    Set<String> BUNDLED_APPS = Set.of(
         // Javascript apps
         "aggregate-data-entry",
         "app-management",
@@ -75,7 +74,6 @@ public interface AppManager
         "usage-analytics",
         "user",
         "user-profile",
-
         // Struts apps
         "approval",
         "dataentry",

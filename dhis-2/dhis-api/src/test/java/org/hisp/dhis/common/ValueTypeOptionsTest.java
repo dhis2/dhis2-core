@@ -30,9 +30,9 @@ package org.hisp.dhis.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -45,7 +45,7 @@ class ValueTypeOptionsTest
     {
         FileTypeValueOptions ftvo = new FileTypeValueOptions();
         ftvo.setMaxFileSize( 100L );
-        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
+        ftvo.setAllowedContentTypes( Set.of( "jpg" ) );
         assertEquals( 100L, ftvo.getMaxFileSize() );
         assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
     }
