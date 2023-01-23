@@ -79,8 +79,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
  * authentication and authorization NOT on the /api endpoint.
@@ -384,11 +382,11 @@ public class DhisWebCommonsWebSecurityConfig
         public LogicalOrAccessDecisionManager accessDecisionManager()
         {
             List<AccessDecisionManager> decisionVoters = Arrays.asList(
-                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
-                new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
-                new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+                new UnanimousBased( List.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( List.of( actionAccessVoter(), moduleAccessVoter() ) ),
+                new UnanimousBased( List.of( webExpressionVoter() ) ),
+                new UnanimousBased( List.of( externalAccessVoter ) ),
+                new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }
