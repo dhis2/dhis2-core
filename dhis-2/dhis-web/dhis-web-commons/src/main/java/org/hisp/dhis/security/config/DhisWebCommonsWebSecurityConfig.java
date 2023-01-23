@@ -31,6 +31,8 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -78,8 +80,6 @@ import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
@@ -169,6 +169,7 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
@@ -313,7 +314,7 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of( "/dhis-web-commons-stream/ping.action", "/" ) );
+            mappedRedirectStrategy.setRedirectMap( Map.of( "/dhis-web-commons-stream/ping.action", "/" ) );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
@@ -339,7 +340,7 @@ public class DhisWebCommonsWebSecurityConfig
         {
             ModuleAccessVoter voter = new ModuleAccessVoter();
             voter.setAttributePrefix( "M_" );
-            voter.setAlwaysAccessible( ImmutableSet.of(
+            voter.setAlwaysAccessible( Set.of(
                 "dhis-web-commons-menu",
                 "dhis-web-commons-oust",
                 "dhis-web-commons-ouwt",

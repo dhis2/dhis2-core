@@ -829,7 +829,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
@@ -867,7 +867,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ), getId( opE ), getId( opF ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA,
             getId( opE ), opE,
             getId( opF ), opF );
@@ -1024,7 +1024,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
@@ -1074,7 +1074,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );

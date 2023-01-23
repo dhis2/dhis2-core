@@ -58,7 +58,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -272,17 +271,17 @@ class PredictionContextGeneratorTest
     void testGetContextsWithAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
-        Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocAPerBValueMap = Map.of(
             deaA, 2.0,
             piA, 3.0 );
 
         // valueMap for attributeOptionCombo B, period C:
-        Map<DimensionalItemObject, Object> aocBPerCValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocBPerCValueMap = Map.of(
             teaA, 4.0 );
 
         // periodValueMap for attributeOptionCombo A:
         MapMap<Period, DimensionalItemObject, Object> aocAPeriodValueMap = MapMap.ofEntries(
-            immutableEntry( periodA, ImmutableMap.of(
+            immutableEntry( periodA, Map.of(
                 deA, 1.0 ) ),
             immutableEntry( periodB, aocAPerBValueMap ) );
 
@@ -313,7 +312,7 @@ class PredictionContextGeneratorTest
     void testGetContextsWithNonAocData()
     {
         // valueMap for attributeOptionCombo X, period B:
-        Map<DimensionalItemObject, Object> aocXPerBValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocXPerBValueMap = Map.of(
             paA, 5.0,
             paB, 6.0 );
 
@@ -340,24 +339,24 @@ class PredictionContextGeneratorTest
     void testGetContextsWithAocAndNonAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
-        Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocAPerBValueMap = Map.of(
             deaA, 2.0,
             piA, 3.0,
             paA, 5.0,
             paB, 6.0 );
 
         // valueMap for attributeOptionCombo A, period B:
-        Map<DimensionalItemObject, Object> aocBPerBValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocBPerBValueMap = Map.of(
             paA, 5.0,
             paB, 6.0 );
 
         // valueMap for attributeOptionCombo B, period C:
-        Map<DimensionalItemObject, Object> aocBPerCValueMap = ImmutableMap.of(
+        Map<DimensionalItemObject, Object> aocBPerCValueMap = Map.of(
             teaA, 4.0 );
 
         // periodValueMap for attributeOptionCombo A:
         MapMap<Period, DimensionalItemObject, Object> aocAPeriodValueMap = MapMap.ofEntries(
-            immutableEntry( periodA, ImmutableMap.of(
+            immutableEntry( periodA, Map.of(
                 deA, 1.0 ) ),
             immutableEntry( periodB, aocAPerBValueMap ) );
 

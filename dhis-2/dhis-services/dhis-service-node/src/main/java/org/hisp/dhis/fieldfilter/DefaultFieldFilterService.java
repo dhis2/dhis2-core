@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -113,9 +114,9 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final Set<NodeTransformer> nodeTransformers;
 
-    private ImmutableMap<String, Preset> presets = ImmutableMap.of();
+    private Map<String, Preset> presets = Map.of();
 
-    private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
+    private Map<String, NodeTransformer> transformers = Map.of();
 
     private Property baseIdentifiableIdProperty;
 
