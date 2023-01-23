@@ -47,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 /**
@@ -54,10 +55,10 @@ import com.google.common.collect.Sets;
  */
 class BaseNotificationMessageRendererTest
 {
-
     // -------------------------------------------------------------------------
     // Setup
     // -------------------------------------------------------------------------
+
     private BaseNotificationMessageRenderer<Entity> renderer;
 
     private static final Pair<String, String> ATTR_A = ImmutablePair.of( "a1234567890", "Attribute A value" );
@@ -188,6 +189,7 @@ class BaseNotificationMessageRendererTest
     // -------------------------------------------------------------------------
     // Factory methods
     // -------------------------------------------------------------------------
+
     private static Entity entity( String a, String b )
     {
         return new Entity( a, b );
@@ -214,9 +216,9 @@ class BaseNotificationMessageRendererTest
 
     static class MockNotificationMessageRenderer extends BaseNotificationMessageRenderer<Entity>
     {
-        static final Map<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = Map.of(
-            EntityTemplateVariable.a, e -> e.propertyA,
-            EntityTemplateVariable.b, e -> e.propertyB );
+        static final ImmutableMap<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = ImmutableMap
+            .<TemplateVariable, Function<Entity, String>> builder().put( EntityTemplateVariable.a, e -> e.propertyA )
+            .put( EntityTemplateVariable.b, e -> e.propertyB ).build();
 
         static final Map<String, String> ATTRIBUTE_VALUES = new HashMap<String, String>()
         {
