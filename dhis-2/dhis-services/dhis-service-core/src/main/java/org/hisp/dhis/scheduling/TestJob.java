@@ -31,7 +31,6 @@ import static java.lang.String.format;
 
 import java.util.stream.IntStream;
 
-import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.springframework.stereotype.Component;
 
@@ -70,14 +69,11 @@ public class TestJob implements Job
         int failAtItemDefault = items > 0 && failAtStage >= 0 ? 0 : -1;
         int failAtItem = params.getFailAtItem() == null ? failAtItemDefault : params.getFailAtItem();
         String msg = params.getFailWithMessage() == null ? "Simulated error" : params.getFailWithMessage();
-        FailurePolicy policy = params.getFailWithPolicy() == null
-            ? FailurePolicy.PARENT
-            : params.getFailWithPolicy();
         if ( stages > 0 )
         {
             for ( int stage = 0; stage < stages; stage++ )
             {
-                progress.startingStage( format( "Stage %d", stage ), items, policy );
+                progress.startingStage( format( "Stage %d", stage ), items );
                 if ( items > 0 )
                 {
                     if ( params.isFailWithException() )

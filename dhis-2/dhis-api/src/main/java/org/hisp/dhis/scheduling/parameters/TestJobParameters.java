@@ -32,7 +32,6 @@ import java.util.Optional;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -82,11 +81,6 @@ public class TestJobParameters implements JobParameters
      * api is used
      */
     private boolean failWithException;
-
-    /**
-     * Stage failure policy to use, when {@code null} it is the default policy
-     */
-    private FailurePolicy failWithPolicy;
 
     private boolean runStagesParallel;
 
@@ -184,18 +178,6 @@ public class TestJobParameters implements JobParameters
     public void setFailWithException( boolean failWithException )
     {
         this.failWithException = failWithException;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FailurePolicy getFailWithPolicy()
-    {
-        return failWithPolicy;
-    }
-
-    public void setFailWithPolicy( FailurePolicy failWithPolicy )
-    {
-        this.failWithPolicy = failWithPolicy;
     }
 
     @JsonProperty
