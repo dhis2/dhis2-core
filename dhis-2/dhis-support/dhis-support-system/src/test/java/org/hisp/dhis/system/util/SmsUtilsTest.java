@@ -56,7 +56,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -162,7 +161,7 @@ class SmsUtilsTest
     {
         Collection<User> params = Collections.singleton( userA );
         Map<String, Set<OrganisationUnit>> expected = Map.of( userA.getUid(),
-            ImmutableSet.of( organisationUnitA ) );
+            Set.of( organisationUnitA ) );
         assertEquals( expected, SmsUtils.getOrganisationUnitsByPhoneNumber( "sender", params ) );
     }
 

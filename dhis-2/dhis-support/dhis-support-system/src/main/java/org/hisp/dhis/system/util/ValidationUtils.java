@@ -57,7 +57,6 @@ import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.hisp.dhis.util.DateUtils;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -105,10 +104,10 @@ public class ValidationUtils
 
     private static final int LAT_MIN = -90;
 
-    private static final ImmutableSet<Character> SQL_VALID_CHARS = ImmutableSet.of(
+    private static final Set<Character> SQL_VALID_CHARS = Set.of(
         '&', '|', '=', '!', '<', '>', '/', '%', '"', '\'', '*', '+', '-', '^', ',', '.' );
 
-    public static final ImmutableSet<String> ILLEGAL_SQL_KEYWORDS = ImmutableSet.of( "alter", "before", "case",
+    public static final Set<String> ILLEGAL_SQL_KEYWORDS = Set.of( "alter", "before", "case",
         "commit", "copy", "create", "createdb", "createrole", "createuser", "close", "delete", "destroy", "drop",
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 
