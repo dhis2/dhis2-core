@@ -53,7 +53,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
      * @return the processed {@link CommonQueryRequest}
      */
     @Override
-    public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
+    public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )
     {
         return commonQueryRequest
             .withPageSize( computePageSize( commonQueryRequest ) );

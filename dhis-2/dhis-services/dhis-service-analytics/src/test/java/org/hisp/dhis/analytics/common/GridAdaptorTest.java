@@ -46,6 +46,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
@@ -54,6 +55,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.processing.ParamsEvaluator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -80,13 +82,16 @@ class GridAdaptorTest extends DhisConvenienceTest
 {
     private static GridAdaptor gridAdaptor;
 
+    private static ParamsEvaluator paramsEvaluator;
+
     @Mock
-    static private CurrentUserService currentUserService;
+    private static CurrentUserService currentUserService;
 
     @BeforeAll
     static void setUp()
     {
-        gridAdaptor = new GridAdaptor( currentUserService );
+        paramsEvaluator = new ParamsEvaluator();
+        gridAdaptor = new GridAdaptor( currentUserService, paramsEvaluator );
     }
 
     @Test
@@ -109,7 +114,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
 
         // When
-        Grid grid = gridAdaptor.createGrid( mockSqlResult, teiQueryParams, new CommonQueryRequest() );
+        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), teiQueryParams, new CommonQueryRequest() );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -120,15 +125,15 @@ class GridAdaptorTest extends DhisConvenienceTest
     }
 
     @Test
-    void testCreateGridWithNullSqlResult()
+    void testCreateGridWithEmptySqlResult()
     {
         // Given
-        SqlQueryResult nullSqlResult = null;
+        Optional<SqlQueryResult> emptySqlResult = Optional.empty();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
 
         // When
-        Grid resultGrid = gridAdaptor.createGrid( nullSqlResult, teiQueryParams, new CommonQueryRequest() );
+        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, teiQueryParams, new CommonQueryRequest() );
 
         // Then
         assertTrue( isNotEmpty( resultGrid.getHeaders() ) );
@@ -140,7 +145,7 @@ class GridAdaptorTest extends DhisConvenienceTest
     void testCreateGridWithNullTeiQueryParams()
     {
         // Given
-        SqlQueryResult anySqlResult = null;
+        Optional<SqlQueryResult> anySqlResult = Optional.empty();
         TeiQueryParams nullTeiQueryParams = null;
 
         // When
@@ -157,13 +162,14 @@ class GridAdaptorTest extends DhisConvenienceTest
     void testCreateGridWithNullCommonQueryRequest()
     {
         // Given
-        SqlQueryResult anySqlResult = null;
+        Optional<SqlQueryResult> anySqlResult = Optional.empty();
         CommonQueryRequest nullCommonQueryRequest = null;
 
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, TeiQueryParams.builder().build(), nullCommonQueryRequest ),
+            () -> gridAdaptor.createGrid( anySqlResult, TeiQueryParams.builder().build(),
+                nullCommonQueryRequest ),
             "Expected exception not thrown: createGrid()" );
 
         // Then

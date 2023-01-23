@@ -31,6 +31,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXIS
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
@@ -79,11 +81,11 @@ public class TeiAnalyticsQueryService
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         QueryContext queryContext = QueryContext.of( teiQueryParams );
-        SqlQueryResult result = null;
+        Optional<SqlQueryResult> result = Optional.empty();
 
         try
         {
-            result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );
+            result = Optional.of( queryExecutor.execute( new TeiFullQuery( queryContext ).statement() ) );
         }
         catch ( BadSqlGrammarException ex )
         {

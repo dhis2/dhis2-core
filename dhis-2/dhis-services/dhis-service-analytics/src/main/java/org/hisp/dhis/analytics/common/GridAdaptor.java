@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -55,9 +56,11 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.processing.ParamsEvaluator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
@@ -80,13 +83,15 @@ public class GridAdaptor
 {
     private final CurrentUserService currentUserService;
 
+    private final ParamsEvaluator paramsProcessor;
+
     /**
      * Based on the given headers and result map, this method takes care of the
      * logic needed to create a valid {@link Grid} object. If the given
-     * "sqlQueryResult" is null, the resulting {@link Grid} will have empty
-     * rows.
+     * "sqlQueryResult" is not present, the resulting {@link Grid} will have
+     * empty rows.
      *
-     * @param sqlQueryResult the {@link SqlQueryResult}
+     * @param sqlQueryResult the optional of {@link SqlQueryResult}
      * @param teiQueryParams the {@link TeiQueryParams}
      * @param commonQueryRequest the {@link CommonQueryRequest}
      * @return the {@link Grid} object
@@ -94,21 +99,22 @@ public class GridAdaptor
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( SqlQueryResult sqlQueryResult, @Nonnull TeiQueryParams teiQueryParams,
+    public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, @Nonnull TeiQueryParams teiQueryParams,
         @Nonnull CommonQueryRequest commonQueryRequest )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         Grid grid = new ListGrid();
+        Set<GridHeader> headers = paramsProcessor.applyHeaders( getGridHeaders( teiQueryParams ),
+            teiQueryParams.getCommonParams().getHeaders() );
 
-        // Adding headers.
-        getGridHeaders( teiQueryParams ).forEach( grid::addHeader );
+        headers.forEach( grid::addHeader );
 
         // Adding rows.
-        if ( sqlQueryResult != null )
+        if ( sqlQueryResult.isPresent() )
         {
-            grid.addRows( sqlQueryResult.result() );
+            grid.addRows( sqlQueryResult.get().result() );
         }
 
         if ( !commonQueryRequest.isSkipMeta() )

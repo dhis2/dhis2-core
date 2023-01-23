@@ -53,7 +53,6 @@ import org.hisp.dhis.program.ProgramStage;
 @Builder( toBuilder = true )
 public class CommonParams
 {
-
     /**
      * The list of Program objects carried on by this object.
      */
@@ -82,5 +81,4 @@ public class CommonParams
 
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
-
 }

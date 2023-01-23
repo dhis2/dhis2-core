@@ -789,7 +789,7 @@ public class ListGrid
 
         for ( int i = 0; i < column.size(); i++ )
         {
-            final double predicted = regression.predict( i );
+            double predicted = regression.predict( i );
 
             // Enough values must exist for regression
 
@@ -1076,13 +1076,13 @@ public class ListGrid
     }
 
     @Override
-    public Grid addHeaders( final SqlRowSetMetaData rowSetMetaData, final boolean withTypes )
+    public Grid addHeaders( SqlRowSetMetaData rowSetMetaData, boolean withTypes )
     {
-        final int columnNo = rowSetMetaData.getColumnCount();
+        int columnNo = rowSetMetaData.getColumnCount();
 
         for ( int i = 1; i <= columnNo; i++ )
         {
-            final GridHeader gridHeader;
+            GridHeader gridHeader;
 
             if ( withTypes )
             {
@@ -1190,13 +1190,13 @@ public class ListGrid
     @Override
     public void retainColumns( Set<String> headers )
     {
-        final List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
+        List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
         exclusions.removeAll( headers );
 
-        for ( final String headerToExclude : exclusions )
+        for ( String headerToExclude : exclusions )
         {
-            final int headerIndex = getIndexOfHeader( headerToExclude );
-            final boolean hasHeader = headerIndex != -1;
+            int headerIndex = getIndexOfHeader( headerToExclude );
+            boolean hasHeader = headerIndex != -1;
 
             if ( hasHeader )
             {
@@ -1210,9 +1210,9 @@ public class ListGrid
     {
         verifyGridState();
 
-        final List<String> headerNames = mapToList( getHeaders(), GridHeader::getName );
-        final List<GridHeader> orderedHeaders = new ArrayList<>();
-        final List<Integer> columnIndexes = new ArrayList<>();
+        List<String> headerNames = mapToList( getHeaders(), GridHeader::getName );
+        List<GridHeader> orderedHeaders = new ArrayList<>();
+        List<Integer> columnIndexes = new ArrayList<>();
 
         for ( String header : headers )
         {
@@ -1374,8 +1374,8 @@ public class ListGrid
                 return order > 0 ? -1 : 1;
             }
 
-            final Comparable<Object> value1 = (Comparable<Object>) list1.get( columnIndex );
-            final Comparable<Object> value2 = (Comparable<Object>) list2.get( columnIndex );
+            Comparable<Object> value1 = (Comparable<Object>) list1.get( columnIndex );
+            Comparable<Object> value2 = (Comparable<Object>) list2.get( columnIndex );
 
             return order > 0 ? value2.compareTo( value1 ) : value1.compareTo( value2 );
         }
