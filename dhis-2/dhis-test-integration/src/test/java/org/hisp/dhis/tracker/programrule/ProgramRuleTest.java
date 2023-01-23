@@ -31,10 +31,9 @@ import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrorsAndNoWarnings;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -52,12 +51,10 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,8 +126,7 @@ class ProgramRuleTest extends TrackerTest
         ImportReport report = trackerImportService
             .importTracker( fromJson( "tracker/programrule/tei_enrollment.json" ) );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( report.getValidationReport(),
-            new Warning( "ProgramRulC", E1300.name(), ENROLLMENT.name(), ENROLLMENT_UID ) );
+        assertHasOnlyWarnings( report, E1300 );
     }
 
     @Test
@@ -141,7 +137,7 @@ class ProgramRuleTest extends TrackerTest
         ImportReport report = trackerImportService
             .importTracker( fromJson( "tracker/programrule/tei_enrollment.json" ) );
 
-        assertHasOnlyErrors( report.getValidationReport(), E1300 );
+        assertHasOnlyErrors( report, E1300 );
     }
 
     @Test
@@ -152,8 +148,7 @@ class ProgramRuleTest extends TrackerTest
         ImportReport report = trackerImportService
             .importTracker( fromJson( "tracker/programrule/program_event.json" ) );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( report.getValidationReport(),
-            new Warning( "ProgramRulD", E1300.name(), EVENT.name(), PROGRAM_EVENT_UID ) );
+        assertHasOnlyWarnings( report, E1300 );
     }
 
     @Test
@@ -164,7 +159,7 @@ class ProgramRuleTest extends TrackerTest
         ImportReport report = trackerImportService
             .importTracker( fromJson( "tracker/programrule/program_event.json" ) );
 
-        assertHasOnlyErrors( report.getValidationReport(), E1300 );
+        assertHasOnlyErrors( report, E1300 );
     }
 
     @Test
@@ -188,8 +183,7 @@ class ProgramRuleTest extends TrackerTest
         alwaysTrueWarningProgramRule();
         report = trackerImportService.importTracker( fromJson( "tracker/programrule/event.json" ) );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( report.getValidationReport(),
-            new Warning( "ProgramRulC", E1300.name(), EVENT.name(), EVENT_UID ) );
+        assertHasOnlyWarnings( report, E1300 );
     }
 
     @Test
@@ -203,7 +197,7 @@ class ProgramRuleTest extends TrackerTest
         alwaysTrueErrorProgramRule();
         report = trackerImportService.importTracker( fromJson( "tracker/programrule/event.json" ) );
 
-        assertHasOnlyErrors( report.getValidationReport(), E1300 );
+        assertHasOnlyErrors( report, E1300 );
     }
 
     @Test
@@ -214,7 +208,7 @@ class ProgramRuleTest extends TrackerTest
         ImportReport report = trackerImportService
             .importTracker( fromJson( "tracker/programrule/tei_enrollment_completed_event.json" ) );
 
-        assertHasOnlyErrors( report.getValidationReport(), E1300 );
+        assertHasOnlyErrors( report, E1300 );
     }
 
     @Test
@@ -268,8 +262,7 @@ class ProgramRuleTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( importReport.getValidationReport(),
-            new Warning( "ProgramRulH", E1300.name(), ENROLLMENT.name(), ENROLLMENT_UID ) );
+        assertHasOnlyWarnings( importReport, E1300 );
     }
 
     @Test
@@ -281,8 +274,7 @@ class ProgramRuleTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( importReport.getValidationReport(),
-            new Warning( "ProgramRulG", E1300.name(), EVENT.name(), EVENT_UID ) );
+        assertHasOnlyWarnings( importReport, E1300 );
     }
 
     @Test
@@ -321,8 +313,7 @@ class ProgramRuleTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        Assertions.assertHasOnlyWarningsAndNoErrors( importReport.getValidationReport(),
-            new Warning( "ProgramRulI", E1300.name(), EVENT.name(), EVENT_UID ) );
+        assertHasOnlyWarnings( importReport, E1300 );
     }
 
     @Test

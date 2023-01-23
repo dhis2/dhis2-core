@@ -25,24 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionError;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -52,21 +45,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 @ExtendWith( MockitoExtension.class )
-class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
+class RuleEngineErrorExecutorTest extends DhisConvenienceTest
 {
+    private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
 
-    private final static String RULE_EVENT_ID = "Rule_event_id";
+    private final static String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
-    private final static String EVENT_ERROR_MESSAGE = "Event error message";
+    private final static String ENROLLMENT_ID = "EnrollmentUid";
 
-    private final static String EVENT_ID = "EventUid";
+    private final static String TEI_ID = "TeiId";
 
-    private static ProgramStage programStage;
-
-    private final RuleEngineErrorToTrackerWarningConverter ruleEngineErrorToTrackerWarningConverter = new RuleEngineErrorToTrackerWarningConverter();
+    private final RuleEngineErrorExecutor executor = new RuleEngineErrorExecutor( RULE_ENROLLMENT_ID,
+        ENROLLMENT_ERROR_MESSAGE );
 
     private TrackerBundle bundle;
 
@@ -76,38 +67,31 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
     @BeforeEach
     void setUpTest()
     {
-        programStage = createProgramStage( 'A', 0 );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
     }
 
     @Test
-    void testValidateEventWithError()
+    void shouldReturnAWarningWhenThereIsSyntaxErrorInRule()
     {
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) ).thenReturn( programStage );
-        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEvent( bundle,
-            getRuleEventEffects(),
-            getEvent() );
+        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+            getEnrollment() );
 
-        assertFalse( issues.isEmpty() );
-        assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_EVENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( EVENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
+        assertTrue( warning.isPresent() );
+        warning.ifPresent( w -> {
+            assertEquals( WARNING, w.getIssueType() );
+            assertEquals( RULE_ENROLLMENT_ID, w.getRuleUid() );
+            assertEquals( ValidationCode.E1300, w.getIssueCode() );
+            assertEquals( ENROLLMENT_ERROR_MESSAGE, w.getArgs().get( 0 ) );
+        } );
+
     }
 
-    private Event getEvent()
+    private Enrollment getEnrollment()
     {
-        Event event = new Event();
-        event.setEvent( EVENT_ID );
-        event.setProgramStage( MetadataIdentifier.ofUid( programStage ) );
-        return event;
-    }
-
-    private List<RuleEffect> getRuleEventEffects()
-    {
-        RuleAction ruleActionError = RuleActionError.create( EVENT_ERROR_MESSAGE );
-        return Lists.newArrayList( RuleEffect.create( RULE_EVENT_ID, ruleActionError, EVENT_ERROR_MESSAGE ) );
+        return Enrollment.builder()
+            .enrollment( ENROLLMENT_ID )
+            .trackedEntity( TEI_ID )
+            .build();
     }
 }

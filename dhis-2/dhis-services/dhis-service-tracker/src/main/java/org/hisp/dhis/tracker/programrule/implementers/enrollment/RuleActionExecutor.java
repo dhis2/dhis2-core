@@ -25,29 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import java.util.List;
+import java.util.Optional;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
-import org.hisp.dhis.tracker.domain.Attribute;
-
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class EnrollmentActionRule
-    implements ActionRule
+public interface RuleActionExecutor
 {
-    private final String ruleUid;
-
-    private final String data;
-
-    private final String field;
-
-    private String content;
-
-    private final List<Attribute> attributes;
+    /**
+     * Execute rule action on given enrollment
+     *
+     * @return list of issues
+     */
+    Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment );
 }

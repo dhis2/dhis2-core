@@ -29,23 +29,16 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -101,43 +94,6 @@ public class SetMandatoryFieldValidator
             .map( e -> new ProgramRuleIssue( mandatoryDataElementsByActionRule.get( e ).getRuleUid(),
                 ValidationCode.E1301,
                 Lists.newArrayList( e.getIdentifierOrAttributeValue() ), IssueType.ERROR ) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        return enrollmentActionRules.stream()
-            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                enrollment, enrollmentActionRules, bundle.getPreheat() ).stream() )
-            .collect( Collectors.toList() );
-    }
-
-    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
-        List<EnrollmentActionRule> effects, TrackerPreheat preheat )
-    {
-        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        return effects.stream()
-            .map( action -> {
-                TrackedEntityAttribute ruleAttribute = preheat.getTrackedEntityAttribute( action.getField() );
-                Optional<Attribute> any = enrollment.getAttributes().stream()
-                    .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
-                    .findAny();
-                if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
-                {
-                    return new ProgramRuleIssue( action.getRuleUid(),
-                        ValidationCode.E1306,
-                        Lists.newArrayList(
-                            idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
-                        IssueType.ERROR );
-                }
-                else
-                {
-                    return null;
-                }
-            } )
-            .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
 }
