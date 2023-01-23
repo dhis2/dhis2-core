@@ -44,14 +44,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Luciano Fiandesio
  */
 class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
 {
-
     private ProgramOrgUnitSupplier subject;
 
     @BeforeEach
@@ -87,7 +84,7 @@ class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
         // mock result-set extraction
         mockResultSetExtractor( mockResultSet );
         final Map<Long, List<Long>> longListMap = subject.get( ImportOptions.getDefaultImportOptions(),
-            ImmutableList.of( event, event2 ), organisationUnitMap );
+            List.of( event, event2 ), organisationUnitMap );
         assertThat( longListMap.keySet(), hasSize( 1 ) );
         assertThat( longListMap.get( 100L ), hasSize( 2 ) );
         assertThat( longListMap.get( 100L ), containsInAnyOrder( 1L, 2L ) );

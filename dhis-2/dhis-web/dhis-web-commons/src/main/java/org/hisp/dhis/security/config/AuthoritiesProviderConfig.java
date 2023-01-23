@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.config;
 
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.appmanager.AppManager;
@@ -60,8 +61,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -195,7 +194,7 @@ public class AuthoritiesProviderConfig
         unitsAction.setSelectionTreeManager( selectionTreeManager );
 
         LoginInterceptor interceptor = new LoginInterceptor();
-        interceptor.setActions( ImmutableList.of( unitsAction ) );
+        interceptor.setActions( List.of( unitsAction ) );
 
         return interceptor;
     }
