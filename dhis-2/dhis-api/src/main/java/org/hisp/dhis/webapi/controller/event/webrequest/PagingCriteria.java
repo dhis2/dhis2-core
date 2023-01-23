@@ -59,7 +59,7 @@ public interface PagingCriteria
     /**
      * Indicates whether paging should be skipped.
      */
-    boolean isSkipPaging();
+    Boolean isSkipPaging();
 
     default Integer getFirstResult()
     {

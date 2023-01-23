@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
@@ -57,6 +58,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -221,13 +223,13 @@ public class EventAnalyticsController
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
-                dimensionsCriteria,
-                fields );
+
+        List<BaseIdentifiableObject> dimensions = eventAnalyticsDimensionsService
+            .getAggregateDimensionsByProgramStageId( programStageId );
+
+        List<DimensionResponse> dimResponse = dimensionMapperService.toDimensionResponse( dimensions, programStageId );
+
+        return dimensionFilteringAndPagingService.pageAndFilter( dimResponse, dimensionsCriteria, fields );
     }
 
     // -------------------------------------------------------------------------
@@ -389,13 +391,13 @@ public class EventAnalyticsController
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
-                dimensionsCriteria,
-                fields );
+
+        List<BaseIdentifiableObject> dimensions = eventAnalyticsDimensionsService
+            .getQueryDimensionsByProgramStageId( programStageId );
+
+        List<DimensionResponse> dimResponse = dimensionMapperService.toDimensionResponse( dimensions, programStageId );
+
+        return dimensionFilteringAndPagingService.pageAndFilter( dimResponse, dimensionsCriteria, fields );
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
@@ -406,8 +408,9 @@ public class EventAnalyticsController
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            file, false );
+        contextUtils.configureResponse( response, contentType,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
+
         return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
     }
@@ -420,17 +423,18 @@ public class EventAnalyticsController
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
+
         return analyticsService.getEvents( params );
     }
 
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
-        criteria
-            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+        criteria.definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria
+                .withQueryEndpointAction()
                 .withEndpointItem( RequestTypeAware.EndpointItem.EVENT ) )
             .program( program )
             .apiVersion( apiVersion ).build();

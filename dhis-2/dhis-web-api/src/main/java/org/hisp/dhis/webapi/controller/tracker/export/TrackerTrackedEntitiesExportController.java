@@ -167,7 +167,6 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
@@ -181,7 +180,6 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws IOException
     {
-
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
 

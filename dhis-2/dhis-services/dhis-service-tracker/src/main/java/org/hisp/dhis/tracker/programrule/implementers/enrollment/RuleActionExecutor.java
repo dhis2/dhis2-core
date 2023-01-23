@@ -25,16 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-/**
- * @author Lars Helge Overland
- */
-public class MaintenanceModeException
-    extends RuntimeException
+import java.util.Optional;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+
+public interface RuleActionExecutor
 {
-    public MaintenanceModeException( String message )
-    {
-        super( message );
-    }
+    /**
+     * Execute rule action on given enrollment
+     *
+     * @return list of issues
+     */
+    Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment );
 }

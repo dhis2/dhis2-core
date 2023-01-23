@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
@@ -163,7 +164,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
             .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setPotentialDuplicate( criteria.getPotentialDuplicate() )
@@ -315,7 +316,7 @@ public class TrackerTrackedEntityCriteriaMapper
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }

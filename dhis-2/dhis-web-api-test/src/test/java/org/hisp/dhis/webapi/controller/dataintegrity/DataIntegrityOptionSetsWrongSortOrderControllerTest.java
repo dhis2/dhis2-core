@@ -59,7 +59,9 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
 
     private String goodOptionSet;
 
-    private final static String check = "option_sets_wrong_sort_order";
+    private static final String check = "option_sets_wrong_sort_order";
+
+    private static final String detailsIdType = "optionSets";
 
     @Test
     @Disabled( "Cannot directly set the sort order of option sets" )
@@ -90,7 +92,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         Set<Integer> expectedSortOrders = Set.of( 1, 4 );
         assertEquals( expectedSortOrders, sortOrders );
 
-        assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", "4 != 2", true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 100, goodOptionSet, "Taste", "4 != 2", true );
     }
 
     @Test
@@ -129,14 +131,14 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         Set<Number> expectedSortOrders = Set.of( 1, 2 );
         assertEquals( expectedSortOrders, sortOrders );
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testInvalidCategoriesDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "option_sets", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

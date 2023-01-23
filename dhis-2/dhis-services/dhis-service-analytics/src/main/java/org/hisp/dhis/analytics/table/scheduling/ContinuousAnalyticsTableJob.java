@@ -31,7 +31,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -66,7 +66,7 @@ import com.google.common.base.Preconditions;
  */
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ContinuousAnalyticsTableJob implements Job
 {
     private static final int DEFAULT_HOUR_OF_DAY = 0;

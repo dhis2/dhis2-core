@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -167,7 +168,7 @@ public class TrackedEntityInstanceCriteriaMapper
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
-        validateOrderParams( program, orderParams, attributes );
+        validateOrderParams( orderParams, attributes );
 
         params.setQuery( getQueryFilter( criteria.getQuery() ) )
             .setProgram( program )
@@ -192,7 +193,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
             .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setPotentialDuplicate( criteria.getPotentialDuplicate() )
@@ -340,14 +341,14 @@ public class TrackedEntityInstanceCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( Program program, List<OrderParam> orderParams,
+    private void validateOrderParams( List<OrderParam> orderParams,
         Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }

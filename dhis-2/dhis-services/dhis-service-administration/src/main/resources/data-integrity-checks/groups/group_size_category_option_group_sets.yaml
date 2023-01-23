@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_category_option_group_sets
+name: category_option_group_sets_scarce
 description: Category option groups should have at least two members.
 section: Group size
 section_order: 8
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing groups with zero or one category option groups, or alternatively, add additional
   category option groups to the group set to make it more useful.
-details_id_type: group_size
+details_id_type: categoryOptionGroupSets

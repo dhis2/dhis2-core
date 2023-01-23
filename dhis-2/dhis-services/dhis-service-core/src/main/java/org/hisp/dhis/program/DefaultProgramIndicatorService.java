@@ -30,10 +30,12 @@ package org.hisp.dhis.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
 import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
@@ -331,7 +333,8 @@ public class DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, null, null );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, DEFAULT_EXPRESSION_PARAMS,
+            DEFAULT_PROGRAM_EXPRESSION_PARAMS );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 

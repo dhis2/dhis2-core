@@ -48,7 +48,7 @@
     FROM cocs_disjoint_associations;
   details_uid: VFqTzfnhQoy
   details_sql: >-
-      SELECT DISTINCT   d.uid, d.name, e.name as comment from
+      SELECT DISTINCT d.uid, d.name, e.name as comment from
       categoryoptioncombos_categoryoptions a
       INNER JOIN categorycombos_optioncombos b USING(categoryoptioncomboid)
       INNER JOIN (  SELECT DISTINCT a.categorycomboid, b.categoryoptionid from categorycombos_optioncombos a
@@ -59,7 +59,7 @@
       ON b.categorycomboid = c.categorycomboid AND a.categoryoptionid = c.categoryoptionid
       INNER JOIN categoryoptioncombo d on a.categoryoptioncomboid = d.categoryoptioncomboid
       INNER JOIN categorycombo e on c.categorycomboid = e.categorycomboid
-  details_id_type: categories
+  details_id_type: categoryOptionCombos
   severity: SEVERE
   introduction: >
     Under certain circumstances, category option combinations may exist in the system, but not have any direct

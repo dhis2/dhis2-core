@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AnalyticsTableJob implements Job
 {
     private final AnalyticsTableGenerator analyticsTableGenerator;

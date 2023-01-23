@@ -42,8 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Tests for organisation units with trailing spaces. Currently, the API should
  * trim trailing spaces from organisation units but this may still be an issue
- * with legacy databases.
- *
+ * with legacy databases.*
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
  *
  * @author Jason P. Pickering
@@ -53,11 +52,13 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
     @Autowired
     private OrganisationUnitService orgUnitService;
 
-    final String unitAName = "Space District   ";
+    private static final String unitAName = "Space District   ";
 
-    final String unitBName = "Spaced Out District";
+    private static final String unitBName = "Spaced Out District";
 
-    final String check = "orgunit_trailing_spaces";
+    private static final String check = "orgunits_trailing_spaces";
+
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void DataIntegrityOrganisationUnitsTrailingSpacesTest()
@@ -83,12 +84,12 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
         dbmsManager.clearSession();
 
         JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
-        assertEquals( json_unitA.getString( "name" ).string(), unitAName );
+        assertEquals( unitAName, json_unitA.getString( "name" ).string() );
 
         Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
         Set<String> orgunitNames = Set.of( unitA.getName(), unitB.getName() );
 
-        assertHasDataIntegrityIssues( "orgunits", check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
     }
 
     @Test
@@ -98,13 +99,13 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
     }
 
     @Test
     void testOrgunitsTrailingSpacesZeroCase()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

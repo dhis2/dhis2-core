@@ -128,6 +128,17 @@ public class AnalyticsSqlUtils
     }
 
     /**
+     * Encodes and quotes the given value.
+     *
+     * @param value the value.
+     * @return the encoded and quoted value.
+     */
+    public static String encode( String value )
+    {
+        return encode( value, true );
+    }
+
+    /**
      * Encodes the given value.
      *
      * @param value the value.

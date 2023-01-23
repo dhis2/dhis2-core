@@ -25,29 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getRoots;
 
 import java.util.List;
+import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dxf2.events.EventParams;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 
-import org.hisp.dhis.tracker.domain.Attribute;
-
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class EnrollmentActionRule
-    implements ActionRule
+public class EventFieldsParamMapper
 {
-    private final String ruleUid;
+    private EventFieldsParamMapper()
+    {
+    }
 
-    private final String data;
+    public static EventParams map( List<String> fields )
+    {
+        Map<String, FieldPath> roots = getRoots( fields );
+        EventParams params = initUsingAllOrNoFields( roots );
 
-    private final String field;
+        params = withFieldRelationships( roots, params );
 
-    private String content;
+        return params;
+    }
 
-    private final List<Attribute> attributes;
+    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+        EventParams params = EventParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = EventParams.TRUE;
+            }
+        }
+        return params;
+    }
+
+    private static EventParams withFieldRelationships( Map<String, FieldPath> roots,
+        EventParams params )
+    {
+        return roots.containsKey( FIELD_RELATIONSHIPS )
+            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
+            : params;
+    }
 }

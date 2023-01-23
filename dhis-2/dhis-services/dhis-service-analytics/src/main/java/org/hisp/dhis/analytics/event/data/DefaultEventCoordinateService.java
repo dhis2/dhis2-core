@@ -53,7 +53,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultEventCoordinateService implements EventCoordinateService
+public class DefaultEventCoordinateService
+    implements EventCoordinateService
 {
     public static final String COL_NAME_PI_GEOMETRY = "pigeometry";
 
@@ -78,9 +79,6 @@ public class DefaultEventCoordinateService implements EventCoordinateService
     @Nonnull
     private final TrackedEntityAttributeService attributeService;
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
     {
@@ -103,7 +101,6 @@ public class DefaultEventCoordinateService implements EventCoordinateService
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
-        // when the coordinate field is real uid
         if ( dataElement != null || attribute != null )
         {
             return true;
@@ -114,20 +111,17 @@ public class DefaultEventCoordinateService implements EventCoordinateService
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public List<String> getFallbackCoordinateFields( String program, String fallbackCoordinateField,
         boolean defaultCoordinateFallback )
     {
-        Program prg = programService.getProgram( program );
+        Program pr = programService.getProgram( program );
 
         List<String> fallbackCoordinateFields = new ArrayList<>();
 
         if ( fallbackCoordinateField != null )
         {
-            if ( !isFallbackCoordinateFieldValid( prg.isRegistration(), fallbackCoordinateField ) )
+            if ( !isFallbackCoordinateFieldValid( pr.isRegistration(), fallbackCoordinateField ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7232, fallbackCoordinateField ) );
             }
@@ -139,7 +133,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService
             if ( defaultCoordinateFallback )
             {
                 List<String> items = new ArrayList<>(
-                    prg.isRegistration() ? COL_NAME_GEOMETRY_LIST : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST );
+                    pr.isRegistration() ? COL_NAME_GEOMETRY_LIST : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST );
 
                 fallbackCoordinateFields.addAll( items );
             }
@@ -148,28 +142,23 @@ public class DefaultEventCoordinateService implements EventCoordinateService
         return fallbackCoordinateFields;
     }
 
-    /**
-     * @inheritDoc
-     */
     @Override
-    public String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
+    public String getCoordinateField( ValueType valueType, String field, ErrorCode errorCode )
     {
         if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
         {
             throwIllegalQueryEx( errorCode, field );
         }
+
         return field;
     }
 
-    /**
-     * @inheritDoc
-     */
     @Override
-    public String getCoordinateFieldOrFail( String program, String coordinateField, ErrorCode errorCode )
+    public String getCoordinateField( String program, String coordinateField, ErrorCode errorCode )
     {
-        Program prg = programService.getProgram( program );
+        Program pr = programService.getProgram( program );
 
-        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) && !prg.isRegistration() )
+        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) && !pr.isRegistration() )
         {
             throwIllegalQueryEx( errorCode, coordinateField );
         }
