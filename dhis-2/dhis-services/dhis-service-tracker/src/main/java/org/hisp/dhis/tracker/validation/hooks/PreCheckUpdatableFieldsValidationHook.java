@@ -39,11 +39,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,10 +53,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PreCheckUpdatableFieldsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
         TrackedEntityInstance trackedEntityInstance = reporter.getBundle()
@@ -66,7 +67,7 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         ProgramInstance pi = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() );
         Program program = pi.getProgram();
@@ -78,7 +79,7 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStageInstance programStageInstance = reporter.getBundle().getProgramStageInstance( event.getEvent() );
         ProgramStage programStage = programStageInstance.getProgramStage();
@@ -96,17 +97,4 @@ public class PreCheckUpdatableFieldsValidationHook
     {
         return strategy == TrackerImportStrategy.UPDATE;
     }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        // Nothing to do
-    }
-
-    @Override
-    public boolean removeOnError()
-    {
-        return false;
-    }
-
 }

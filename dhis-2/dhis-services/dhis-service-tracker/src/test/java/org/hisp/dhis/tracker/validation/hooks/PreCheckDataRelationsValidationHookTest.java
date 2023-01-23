@@ -136,7 +136,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -158,7 +158,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_UID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
     }
@@ -182,7 +182,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
     }
@@ -208,7 +208,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
@@ -238,7 +238,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
@@ -272,7 +272,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -304,7 +304,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
     }
@@ -335,7 +335,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
@@ -371,7 +371,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
@@ -408,7 +408,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
@@ -424,7 +424,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Event event = eventBuilder()
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -445,7 +445,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -471,7 +471,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( defaultCO.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -494,7 +494,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -517,7 +517,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -540,7 +540,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( aoc.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -560,7 +560,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( defaultAOC.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -579,7 +579,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( UNKNOWN_AOC_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -599,7 +599,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( UNKNOWN_AOC_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -619,7 +619,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( aoc.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
@@ -641,7 +641,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( defaultAOC.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -661,7 +661,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( aoc.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
@@ -689,7 +689,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( defaultCO.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -712,7 +712,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -736,7 +736,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -761,7 +761,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -786,7 +786,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( UNKNOWN_CO_ID )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
@@ -816,7 +816,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2 )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 3, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -845,7 +845,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( eventCO.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -873,7 +873,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co1.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -899,7 +899,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( co1.getUid() )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -919,7 +919,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        hook.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
@@ -953,7 +953,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        hook.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, bundle, relationship );
 
         assertFalse( reporter.hasErrors() );
     }

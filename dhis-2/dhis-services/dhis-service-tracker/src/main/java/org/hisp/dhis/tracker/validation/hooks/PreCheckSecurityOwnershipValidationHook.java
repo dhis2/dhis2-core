@@ -67,13 +67,13 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -85,7 +85,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PreCheckSecurityOwnershipValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @NonNull
     private final AclService aclService;
@@ -99,10 +99,10 @@ public class PreCheckSecurityOwnershipValidationHook
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( trackedEntity );
-        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -176,10 +176,9 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( enrollment );
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
         Program program = strategy.isUpdateOrDelete()
@@ -269,10 +268,9 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
 
@@ -327,7 +325,7 @@ public class PreCheckSecurityOwnershipValidationHook
         }
         else
         {
-            validateCreateEvent( reporter, event, user,
+            validateCreateEvent( reporter, bundle, event, user,
                 categoryOptionCombo,
                 programStage,
                 teiUid,
@@ -337,13 +335,8 @@ public class PreCheckSecurityOwnershipValidationHook
         }
     }
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        // NOTHING TO DO HERE
-    }
-
-    private void validateCreateEvent( ValidationErrorReporter reporter, Event event, User actingUser,
+    private void validateCreateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
         OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
         boolean isCreatableInSearchScope )
@@ -425,7 +418,7 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateOptionSet;
 
 import java.util.Collections;
 import java.util.Map;
@@ -55,6 +56,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +68,7 @@ import com.google.common.collect.Streams;
  */
 @Component
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
+    implements TrackerValidationHook
 {
 
     public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
@@ -75,9 +78,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

@@ -102,7 +102,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -119,7 +119,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -136,7 +136,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -154,7 +154,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -175,7 +175,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         bundle = TrackerBundle.builder().preheat( preheat ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -195,7 +195,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // when
         programStage.setEnableUserAssignment( false );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -219,7 +219,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // when
         programStage.setEnableUserAssignment( null );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );

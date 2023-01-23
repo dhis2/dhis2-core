@@ -99,7 +99,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -114,7 +114,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "orgUnit" );
     }
@@ -129,7 +129,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "trackedEntityType" );
     }
@@ -145,7 +145,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -161,7 +161,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "trackedEntity" );
     }
@@ -177,7 +177,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "program" );
     }
@@ -193,7 +193,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "orgUnit" );
     }
@@ -209,7 +209,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -225,7 +225,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "program" );
     }
@@ -243,7 +243,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         when( preheat.getProgramStage( anyString() ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -261,7 +261,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "programStage" );
     }
@@ -277,7 +277,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "orgUnit" );
     }
@@ -297,7 +297,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -314,7 +314,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "from" );
     }
@@ -331,7 +331,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "to" );
     }
@@ -350,7 +350,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "relationshipType" );
     }

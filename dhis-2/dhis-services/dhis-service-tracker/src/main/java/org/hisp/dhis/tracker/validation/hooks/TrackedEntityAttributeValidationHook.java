@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateOptionSet;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,10 +51,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +65,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
+    implements TrackerValidationHook
 {
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
@@ -70,7 +74,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = reporter.getBundle().getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );

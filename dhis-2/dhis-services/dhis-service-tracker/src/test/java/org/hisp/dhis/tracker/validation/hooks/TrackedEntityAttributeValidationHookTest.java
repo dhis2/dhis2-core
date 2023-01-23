@@ -111,8 +111,7 @@ class TrackedEntityAttributeValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
         assertEquals( 0, reporter.getReportList().size() );
@@ -148,8 +147,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( contextAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -169,8 +167,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 2, reporter.getReportList().size() );
@@ -203,8 +200,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityAttribute( tea ) ).thenReturn( trackedEntityAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -295,8 +291,7 @@ class TrackedEntityAttributeValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -319,8 +314,7 @@ class TrackedEntityAttributeValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
         assertEquals( 0, reporter.getReportList().size() );
@@ -350,8 +344,7 @@ class TrackedEntityAttributeValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
         assertEquals( 0, reporter.getReportList().size() );
@@ -383,8 +376,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );

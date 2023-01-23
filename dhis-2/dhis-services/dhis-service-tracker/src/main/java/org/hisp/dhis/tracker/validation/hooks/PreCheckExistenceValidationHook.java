@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,10 +58,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckExistenceValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( trackedEntity );
 
@@ -85,7 +87,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( enrollment );
 
@@ -109,7 +111,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( event );
 
@@ -133,9 +135,9 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship(
             relationship );
@@ -165,7 +167,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

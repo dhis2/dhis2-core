@@ -57,7 +57,7 @@ import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValida
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
+public abstract class AttributeValidationHook
 {
 
     private final TrackedAttributeValidationService teAttrService;

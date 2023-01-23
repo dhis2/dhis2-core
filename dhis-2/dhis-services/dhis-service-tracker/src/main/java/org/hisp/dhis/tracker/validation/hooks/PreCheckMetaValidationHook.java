@@ -42,6 +42,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -49,6 +50,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,10 +58,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckMetaValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
@@ -76,7 +78,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
             .getOrganisationUnit( enrollment.getOrgUnit() );
@@ -91,7 +93,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
@@ -104,7 +106,8 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
         RelationshipType relationshipType = preheat.get( RelationshipType.class, relationship.getRelationshipType() );
@@ -113,7 +116,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

@@ -252,7 +252,7 @@ class ReportSummaryIntegrationTest extends TransactionalIntegrationTest
     void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollmentAndOneInvalidEnrollment()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/one_update_tei_and_one_new_tei.json" )
+        InputStream inputStream = new ClassPathResource( "tracker/three_teis.json" )
             .getInputStream();
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );

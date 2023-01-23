@@ -72,6 +72,7 @@ import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -80,17 +81,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PreCheckDataRelationsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
-    {
-        // NOTHING TO DO HERE
-    }
-
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
@@ -120,7 +114,7 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
@@ -458,7 +452,8 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         validateRelationshipReference( reporter, relationship, relationship.getFrom() );
         validateRelationshipReference( reporter, relationship, relationship.getTo() );
@@ -492,7 +487,7 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

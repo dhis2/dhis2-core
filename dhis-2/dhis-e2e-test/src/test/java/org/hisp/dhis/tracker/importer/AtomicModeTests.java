@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 import java.io.File;
 
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -66,8 +67,8 @@ public class AtomicModeTests
             .body( "stats.ignored", equalTo( 3 ) );
 
         response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
+            .body( "", hasSize( 3 ) )
+            .body( "errorCode", contains( "E1121", "E4014", "E4011" ) );
     }
 
     @Test
@@ -83,17 +84,17 @@ public class AtomicModeTests
             .body( "stats.created", equalTo( 1 ) );
 
         response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
-
+            .body( "", hasSize( 3 ) )
+            .body( "errorCode", contains( "E1121", "E4014", "E4011" ) );
     }
 
     private JsonObject createWrongPayload()
         throws Exception
     {
-        JsonObject object = new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ))
-            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
-            .get( JsonObject.class );
+        JsonObject object = new JsonFileReader(
+            new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
+                .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
+                .get( JsonObject.class );
 
         object = JsonObjectBuilder.jsonObject( object )
             .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
