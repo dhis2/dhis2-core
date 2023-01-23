@@ -73,6 +73,7 @@ class FileResourceControllerMockTest
         controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
         FileResource fileResource = new FileResource();
         fileResource.setDomain( FileResourceDomain.ORG_UNIT );
+        fileResource.setContentType( "image/png" );
         fileResource.setUid( "id" );
 
         when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
