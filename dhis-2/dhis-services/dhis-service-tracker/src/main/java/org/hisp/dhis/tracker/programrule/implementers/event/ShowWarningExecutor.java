@@ -37,6 +37,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 
 /**
  * This executor shows warnings calculated by Rule Engine.
@@ -44,15 +46,14 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class ShowWarningExecutor
-    implements ErrorWarningExecutor
+public class ShowWarningExecutor implements ValidationExecutor<Event>
 {
-    private final ErrorWarningRuleAction ruleAction;
+    private final ValidationRuleAction ruleAction;
 
     @Override
-    public boolean isOnComplete()
+    public boolean needsToRun( Event event )
     {
-        return false;
+        return true;
     }
 
     @Override
@@ -70,6 +71,6 @@ public class ShowWarningExecutor
     @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
     {
-        return validateEvent( ruleAction, event );
+        return execute( ruleAction, event );
     }
 }

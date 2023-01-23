@@ -51,8 +51,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorWarningRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorExecutor;
@@ -114,25 +114,25 @@ class RuleActionEnrollmentMapper
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
             return new ShowErrorExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
             return new ShowWarningExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
             return new ShowErrorOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
             return new ShowWarningOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {

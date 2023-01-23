@@ -33,10 +33,13 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 
 /**
  * This executor shows errors on a completed event calculated by Rule Engine.
@@ -44,21 +47,20 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class ShowErrorOnCompleteExecutor
-    implements ErrorWarningExecutor
+public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event>
 {
-    private final ErrorWarningRuleAction ruleAction;
-
-    @Override
-    public boolean isOnComplete()
-    {
-        return true;
-    }
+    private final ValidationRuleAction ruleAction;
 
     @Override
     public IssueType getIssueType()
     {
         return ERROR;
+    }
+
+    @Override
+    public boolean needsToRun( Event event )
+    {
+        return EventStatus.COMPLETED.equals( event.getStatus() );
     }
 
     @Override
@@ -70,6 +72,6 @@ public class ShowErrorOnCompleteExecutor
     @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
     {
-        return validateEvent( ruleAction, event );
+        return execute( ruleAction, event );
     }
 }

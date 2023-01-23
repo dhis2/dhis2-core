@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,14 +83,14 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
     private ShowWarningOnCompleteExecutor warningOnCompleteExecutor = new ShowWarningOnCompleteExecutor(
-        getErrorActionRule( WARNING ) );
+        getErrorRuleAction( WARNING ) );
 
     private ShowErrorOnCompleteExecutor errorOnCompleteExecutor = new ShowErrorOnCompleteExecutor(
-        getErrorActionRule( ERROR ) );
+        getErrorRuleAction( ERROR ) );
 
-    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getErrorActionRule( ERROR ) );
+    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getErrorRuleAction( ERROR ) );
 
-    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getErrorActionRule( WARNING ) );
+    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getErrorRuleAction( WARNING ) );
 
     private TrackerBundle bundle;
 
@@ -201,9 +202,9 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
         assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
     }
 
-    private ErrorWarningRuleAction getErrorActionRule( IssueType issueType )
+    private ValidationRuleAction getErrorRuleAction( IssueType issueType )
     {
-        return new ErrorWarningRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
+        return new ValidationRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
     }
 
     private List<Event> getEvents()

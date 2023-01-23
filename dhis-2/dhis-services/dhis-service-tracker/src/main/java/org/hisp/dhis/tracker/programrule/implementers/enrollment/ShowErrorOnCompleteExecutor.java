@@ -35,8 +35,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 
 /**
  * This executor shows errors on a completed enrollment calculated by Rule
@@ -45,15 +48,14 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class ShowErrorOnCompleteExecutor
-    implements ErrorWarningExecutor
+public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Enrollment>
 {
-    private final ErrorWarningRuleAction ruleAction;
+    private final ValidationRuleAction ruleAction;
 
     @Override
-    public boolean isOnComplete()
+    public boolean needsToRun( Enrollment enrollment )
     {
-        return true;
+        return EnrollmentStatus.COMPLETED.equals( enrollment.getStatus() );
     }
 
     @Override
@@ -65,6 +67,6 @@ public class ShowErrorOnCompleteExecutor
     @Override
     public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
-        return validateEnrollment( ruleAction, enrollment );
+        return execute( ruleAction, enrollment );
     }
 }

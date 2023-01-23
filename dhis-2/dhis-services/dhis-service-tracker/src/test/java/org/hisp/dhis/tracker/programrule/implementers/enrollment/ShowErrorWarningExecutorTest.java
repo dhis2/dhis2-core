@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,14 +67,14 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
     private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
     private ShowWarningOnCompleteExecutor warningOnCompleteExecutor = new ShowWarningOnCompleteExecutor(
-        getErrorActionRule( WARNING ) );
+        getValidationRuleAction( WARNING ) );
 
     private ShowErrorOnCompleteExecutor errorOnCompleteExecutor = new ShowErrorOnCompleteExecutor(
-        getErrorActionRule( ERROR ) );
+        getValidationRuleAction( ERROR ) );
 
-    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getErrorActionRule( ERROR ) );
+    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getValidationRuleAction( ERROR ) );
 
-    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getErrorActionRule( WARNING ) );
+    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getValidationRuleAction( WARNING ) );
 
     private TrackerBundle bundle;
 
@@ -186,9 +187,9 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
             .build();
     }
 
-    private ErrorWarningRuleAction getErrorActionRule( IssueType issueType )
+    private ValidationRuleAction getValidationRuleAction( IssueType issueType )
     {
-        return new ErrorWarningRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
+        return new ValidationRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
     }
 
     private String validationMessage( IssueType issueType )

@@ -54,8 +54,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ErrorWarningRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.event.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.ShowErrorExecutor;
@@ -115,25 +115,25 @@ class RuleActionEventMapper
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
             return new ShowErrorExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
             return new ShowWarningExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
             return new ShowErrorOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
             return new ShowWarningOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {
