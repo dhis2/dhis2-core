@@ -84,8 +84,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
  * and for the logo on the top banner (logo_banner).
@@ -113,7 +111,7 @@ public class StaticContentController
 
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = Map.of(
         LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
         LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
 
