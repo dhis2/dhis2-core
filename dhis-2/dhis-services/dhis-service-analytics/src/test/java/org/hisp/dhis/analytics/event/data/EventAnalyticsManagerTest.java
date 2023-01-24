@@ -47,6 +47,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -77,6 +78,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -107,6 +109,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
     private JdbcTemplate jdbcTemplate;
 
     @Mock
+    private OrganisationUnitStore organisationUnitStore;
+
+    @Mock
     private ExecutionPlanStore executionPlanStore;
 
     private JdbcEventAnalyticsManager subject;
@@ -130,8 +135,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
 
+        when( organisationUnitStore.getOrganisationUnitUids( any() ) ).thenReturn( List.of( "ouabcdefghA" ) );
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, programIndicatorService,
-            programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore );
+            programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore, organisationUnitStore );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }

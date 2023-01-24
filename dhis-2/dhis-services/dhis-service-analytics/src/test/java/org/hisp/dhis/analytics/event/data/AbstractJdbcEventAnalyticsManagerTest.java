@@ -52,6 +52,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +89,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -118,6 +120,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private OrganisationUnitStore organisationUnitStore;
+
+    @Mock
     private ExecutionPlanStore executionPlanStore;
 
     private JdbcEventAnalyticsManager eventSubject;
@@ -139,7 +144,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
             programIndicatorService );
 
         eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
+            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore,
+            organisationUnitStore );
 
         programA = createProgram( 'A' );
 
@@ -432,6 +438,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
             List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ), createOrganisationUnit( 'C' ) ) );
+
+        when( organisationUnitStore.getOrganisationUnitUids( any() ) )
+            .thenReturn( List.of( "ouabcdefghA", "ouabcdefghB", "ouabcdefghC" ) );
 
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )

@@ -63,6 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -71,6 +72,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -85,6 +87,8 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -116,12 +120,16 @@ public class JdbcEventAnalyticsManager
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
+    private final OrganisationUnitStore organisationUnitStore;
+
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore,
+        OrganisationUnitStore organisationUnitStore )
     {
         super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
+        this.organisationUnitStore = organisationUnitStore;
     }
 
     @Override
@@ -432,7 +440,7 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField, params );
+            String sqlSnippet = getOrgUnitDescendantsClause( params );
 
             if ( isNotEmpty( sqlSnippet ) )
             {
@@ -571,47 +579,82 @@ public class JdbcEventAnalyticsManager
      * Generates a sub query which provides a filter by organisation descendant
      * level.
      *
-     * @param orgUnitField organisation unit link the {@link OrgUnitField}
      * @param params the {@link EventQueryParams}
      * @return
      */
-    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField, EventQueryParams params )
+    private String getOrgUnitDescendantsClause( EventQueryParams params )
     {
         if ( params.getDimension( ORGUNIT_DIM_ID ) == null )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         List<DimensionalItemObject> dimensionalItemObjects = params.getDimensionOrFilterItems( ORGUNIT_DIM_ID );
-        boolean isAllItems = params.getDimension( ORGUNIT_DIM_ID ).isAllItems();
 
-        Map<String, List<OrganisationUnit>> collect = dimensionalItemObjects
+        Map<Integer, List<OrganisationUnit>> collect = dimensionalItemObjects
             .stream()
             .map( object -> (OrganisationUnit) object )
-            .collect( Collectors.groupingBy(
-                unit -> orgUnitField.getOrgUnitLevelCol( unit.getLevel(), getAnalyticsType() ) ) );
+            .collect( Collectors.groupingBy( OrganisationUnit::getLevel ) );
 
         return collect.keySet()
             .stream()
-            .map( org -> toInOrNotNullCondition( org, collect.get( org ), isAllItems ) )
+            .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
     }
 
     /**
      * Generates an in condition.
      *
-     * @param orgUnit the org unit identifier.
-     * @param organisationUnits the list of {@link OrganisationUnit}.
-     * @return a SQL in condition.
+     * @param level organisation unit level
+     * @param organisationUnits collection of user granted organisation units
+     * @return
      */
-    private String toInOrNotNullCondition( String orgUnit, List<OrganisationUnit> organisationUnits,
-        boolean isAllItems )
+    private String toInCondition( int level, List<OrganisationUnit> organisationUnits )
     {
-        return isAllItems ? orgUnit + " is not null "
-            : organisationUnits.stream()
+        if ( organisationUnits == null || organisationUnits.isEmpty() )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        List<String> allOrgUnitUidInLevel = getAllOrUnitIdsInLevel( level );
+
+        //is amount of requested level org units less than 50% of all level org units
+        if ( organisationUnits.size() == allOrgUnitUidInLevel.size()
+            || (double) organisationUnits.size() / allOrgUnitUidInLevel.size() < 0.5 )
+        {
+            //for less level org units in compare to all level units 'in level' will be used
+            return organisationUnits.stream()
                 .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
                 .map( unit -> "'" + unit.getUid() + "'" )
-                .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
+                .collect( joining( ",", "ax.\"" + DataQueryParams.LEVEL_PREFIX + level + "\"" + OPEN_IN, ") " ) );
+
+        }
+        else
+        {
+            //for more level org units in compare to all level units 'not in level' with will be used
+            allOrgUnitUidInLevel.removeAll(
+                organisationUnits.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+            return allOrgUnitUidInLevel.stream()
+                .filter( uid -> uid != null && !uid.trim().isEmpty() )
+                .map( uid -> "'" + uid + "'" )
+                .collect(
+                    joining( ",", "ax.\"" + DataQueryParams.LEVEL_PREFIX + level + "\"" + " not " + OPEN_IN, ") " ) );
+        }
+    }
+
+    /**
+     * Delivers all org units belong to the level
+     *
+     * @param level level of org unit
+     * @return
+     */
+    private List<String> getAllOrUnitIdsInLevel( int level )
+    {
+        OrganisationUnitQueryParams ouParams = new OrganisationUnitQueryParams();
+
+        ouParams.setQuery( "select uid from organisationunit where hierarchylevel=" + level );
+
+        return organisationUnitStore.getOrganisationUnitUids( ouParams );
     }
 
     /**
