@@ -75,12 +75,14 @@ public class EventHookListener
 
     private final EventHookService eventHookService;
 
-    @Async
+    @Async( "eventHookTaskExecutor" )
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
         throws EventHookException,
         JsonProcessingException
     {
+        System.err.println( "Thread: " + Thread.currentThread().getName() );
+
         for ( EventHook eventHook : eventHooks )
         {
             if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
