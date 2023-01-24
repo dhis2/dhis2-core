@@ -93,7 +93,6 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -106,7 +105,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = Set.of( IdScheme.UID, IdScheme.NAME,
         IdScheme.CODE );
 
     // -------------------------------------------------------------------------

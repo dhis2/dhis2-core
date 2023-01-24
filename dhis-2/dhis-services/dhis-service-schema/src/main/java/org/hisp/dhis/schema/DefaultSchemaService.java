@@ -67,7 +67,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -80,13 +79,12 @@ public class DefaultSchemaService
     implements SchemaService
 {
     // Simple alias map for our concrete implementations of the core interfaces
-    private static final ImmutableMap<Class<?>, Class<?>> BASE_ALIAS_MAP = ImmutableMap.<Class<?>, Class<?>> builder()
-        .put( IdentifiableObject.class, BaseIdentifiableObject.class )
-        .put( NameableObject.class, BaseNameableObject.class )
-        .put( DimensionalObject.class, BaseDimensionalObject.class )
-        .put( DimensionalItemObject.class, BaseDimensionalItemObject.class )
-        .put( AnalyticalObject.class, BaseAnalyticalObject.class )
-        .build();
+    private static final Map<Class<?>, Class<?>> BASE_ALIAS_MAP = Map.of(
+        IdentifiableObject.class, BaseIdentifiableObject.class,
+        NameableObject.class, BaseNameableObject.class,
+        DimensionalObject.class, BaseDimensionalObject.class,
+        DimensionalItemObject.class, BaseDimensionalItemObject.class,
+        AnalyticalObject.class, BaseAnalyticalObject.class );
 
     private final Map<Class<?>, SchemaDescriptor> descriptors = new ConcurrentHashMap<>();
 

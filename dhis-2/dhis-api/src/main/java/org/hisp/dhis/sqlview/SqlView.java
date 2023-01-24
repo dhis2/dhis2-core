@@ -44,7 +44,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Dang Duy Hieu
@@ -56,19 +55,19 @@ public class SqlView
 {
     public static final String PREFIX_VIEWNAME = "_view";
 
-    public static final Set<String> PROTECTED_TABLES = ImmutableSet.<String> builder().add(
-        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue", "oauth_access_token",
-        "oauth2client" ).build();
+    public static final Set<String> PROTECTED_TABLES = Set.of(
+        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue",
+        "oauth_access_token", "oauth2client" );
 
-    public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String> builder().add(
+    public static final Set<String> ILLEGAL_KEYWORDS = Set.of(
         "delete", "alter", "update", "create", "drop", "commit", "createdb",
-        "createuser", "insert", "rename", "restore", "write" ).build();
+        "createuser", "insert", "rename", "restore", "write" );
 
     public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
 
     public static final String CURRENT_USERNAME_VARIABLE = "_current_username";
 
-    public static final Set<String> STANDARD_VARIABLES = ImmutableSet.of(
+    public static final Set<String> STANDARD_VARIABLES = Set.of(
         CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE );
 
     private static final String CRITERIA_SEP = ":";

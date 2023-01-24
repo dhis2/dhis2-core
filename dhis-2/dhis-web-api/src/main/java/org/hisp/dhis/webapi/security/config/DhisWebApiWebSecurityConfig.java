@@ -67,7 +67,11 @@ import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
@@ -110,8 +114,6 @@ import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
@@ -245,7 +247,7 @@ public class DhisWebApiWebSecurityConfig
         public void configure( final AuthorizationServerEndpointsConfigurer endpoints )
         {
             ProviderManager providerManager = new ProviderManager(
-                ImmutableList.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
+                List.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
 
             if ( authenticationEventPublisher != null )
             {
@@ -448,10 +450,10 @@ public class DhisWebApiWebSecurityConfig
         public LogicalOrAccessDecisionManager apiAccessDecisionManager()
         {
             List<AccessDecisionManager> decisionVoters = Arrays.asList(
-                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
-                new UnanimousBased( ImmutableList.of( apiWebExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+                new UnanimousBased( List.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( List.of( apiWebExpressionVoter() ) ),
+                new UnanimousBased( List.of( externalAccessVoter ) ),
+                new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
 
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }

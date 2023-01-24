@@ -40,8 +40,6 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 
-import com.google.common.collect.ImmutableList;
-
 @RequiredArgsConstructor
 abstract class ImplementableRuleService
 {
@@ -71,7 +69,7 @@ abstract class ImplementableRuleService
 
         if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );

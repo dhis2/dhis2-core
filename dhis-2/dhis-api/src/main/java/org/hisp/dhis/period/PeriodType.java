@@ -55,7 +55,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 /**
@@ -154,7 +153,7 @@ public abstract class PeriodType
         new FinancialOctoberPeriodType(),
         new FinancialNovemberPeriodType() );
 
-    public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
+    public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = Map.of(
         PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
         PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
         PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
