@@ -25,23 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import java.util.Optional;
+
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Enrico Colasante
- */
-public interface RuleActionImplementer
+@ExtendWith( MockitoExtension.class )
+class RuleEngineErrorExecutorTest extends DhisConvenienceTest
 {
-    /**
-     * Get the validation for event evaluated by rule engine
-     *
-     * @return A map of events and list of issues
-     */
-    List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event );
+    private final static String RULE_ID = "Rule_id";
+
+    private final static String ERROR_MESSAGE = "Error message";
+
+    private final static String EVENT_ID = "EventUid";
+
+    private final RuleEngineErrorExecutor ruleEngineErrorExecutor = new RuleEngineErrorExecutor( RULE_ID,
+        ERROR_MESSAGE );
+
+    private TrackerBundle bundle;
+
+    @BeforeEach
+    void setUpTest()
+    {
+        bundle = TrackerBundle.builder().build();
+    }
+
+    @Test
+    void shouldReturnAWarningWhenRuleWithSyntaxErrorIsTriggeredOnEvent()
+    {
+        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.executeRuleAction( bundle, getEvent() );
+
+        assertTrue( warning.isPresent() );
+        assertEquals( warning( RULE_ID, E1300, ERROR_MESSAGE ), warning.get() );
+    }
+
+    private Event getEvent()
+    {
+        return Event.builder()
+            .event( EVENT_ID )
+            .build();
+    }
 }

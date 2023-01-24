@@ -25,38 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
-
-/**
- * This implementer show warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowWarningValidator
-    extends ErrorWarningImplementer<RuleActionShowWarning>
+@Getter
+@RequiredArgsConstructor
+public class ErrorWarningRuleAction
 {
-    @Override
-    public Class<RuleActionShowWarning> getActionClass()
-    {
-        return RuleActionShowWarning.class;
-    }
+    private final String ruleUid;
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+    private final String data;
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+    private final String field;
+
+    private final String content;
 }
