@@ -531,7 +531,7 @@ public class TrackedEntityInstanceServiceTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders(
-            Arrays.asList(
+            Collections.singletonList(
                 OrderParam.builder().field( filtH.getUid() ).direction( OrderParam.SortDirection.ASC ).build() ) );
         params.setAttributes( Collections.singletonList( new QueryItem( filtH ) ) );
 
@@ -569,6 +569,54 @@ public class TrackedEntityInstanceServiceTest
 
         assertEquals( Arrays.asList( entityInstanceB1.getId(), entityInstanceA1.getId(), entityInstanceD1.getId(),
             entityInstanceC1.getId() ), teiIdList );
+    }
+
+    @Test
+    public void shouldSortEntitiesByAttributeDescendingWhenAttributeDescendingProvided()
+    {
+        TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+        addEntityInstances();
+
+        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders(
+            Collections.singletonList(
+                OrderParam.builder().field( tea.getUid() ).direction( OrderParam.SortDirection.DESC ).build() ) );
+
+        List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
+
+        assertEquals( Arrays.asList( entityInstanceB1.getId(), entityInstanceC1.getId(), entityInstanceD1.getId(),
+            entityInstanceA1.getId() ), teiIdList );
+    }
+
+    @Test
+    public void shouldSortEntitiesByAttributeAscendingWhenAttributeAscendingProvided()
+    {
+        TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+        addEntityInstances();
+
+        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders(
+            Collections.singletonList(
+                OrderParam.builder().field( tea.getUid() ).direction( OrderParam.SortDirection.ASC ).build() ) );
+
+        List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
+
+        assertEquals( Arrays.asList( entityInstanceA1.getId(), entityInstanceD1.getId(), entityInstanceC1.getId(),
+            entityInstanceB1.getId() ), teiIdList );
     }
 
     private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
@@ -614,5 +662,25 @@ public class TrackedEntityInstanceServiceTest
         trackedEntityAttributeValue.setEntityInstance( entityInstance );
         trackedEntityAttributeValue.setValue( attributeValue );
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
+    }
+
+    private TrackedEntityAttribute createTrackedEntityAttribute()
+    {
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'X' );
+        attributeService.addTrackedEntityAttribute( tea );
+
+        return tea;
+    }
+
+    private void createTrackedEntityInstanceAttribute( TrackedEntityInstance trackedEntityInstance,
+        TrackedEntityAttribute attribute, String value )
+    {
+        TrackedEntityAttributeValue trackedEntityAttributeValueA1 = new TrackedEntityAttributeValue();
+
+        trackedEntityAttributeValueA1.setAttribute( attribute );
+        trackedEntityAttributeValueA1.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValueA1.setValue( value );
+
+        attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA1 );
     }
 }

@@ -47,6 +47,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -246,10 +248,10 @@ public class DefaultTrackedEntityInstanceService
 
     /**
      * This method handles any dynamic sort order columns in the params. These
-     * has to be added to attribute list if there it is neither present in
-     * attribute list nor filter list.
+     * have to be added to the attribute list if neither are present in the
+     * attribute list nor the filter list.
      *
-     * For example, if attributes or filters doesnt have a specific
+     * For example, if attributes or filters don't have a specific
      * trackedentityattribute uid, but sorting has been requested for that tea
      * uid, then we need to add them to the attribute list.
      *
@@ -257,19 +259,21 @@ public class DefaultTrackedEntityInstanceService
      */
     private void handleSortAttributes( TrackedEntityInstanceQueryParams params )
     {
-        List<String> ordersIdentifier = params.getOrders().stream()
+        List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
             .map( OrderParam::getField )
-            .collect( Collectors.toList() );
-        List<QueryItem> sortableAttributes = params.getAttributesAndFilters().stream()
-            .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
-            .collect( Collectors.toList() );
-
-        List<TrackedEntityAttribute> sortAttributes = sortableAttributes.stream()
-            .map( item -> attributeService.getTrackedEntityAttribute( item.getItemId() ) )
+            .filter( this::isDynamicColumn )
+            .map( attributeService::getTrackedEntityAttribute )
+            .filter( Objects::nonNull )
             .collect( Collectors.toList() );
 
         params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
             .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
+    }
+
+    public boolean isDynamicColumn( String propName )
+    {
+        return Arrays.stream( TrackedEntityInstanceQueryParams.OrderColumn.values() )
+            .noneMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
     }
 
     @Override
