@@ -213,8 +213,8 @@ public class SchedulingManagerTest
 
     private void assertScheduledJobStops( JobConfiguration configuration, Runnable task )
     {
-        // once running the job stops itself
-        setUpJobExecute( jobConfiguration -> schedulingManager.stop( jobConfiguration ) );
+        // once running the job cancels itself
+        setUpJobExecute( conf -> schedulingManager.cancel( conf.getJobType() ) );
         // synchronously
         task.run();
         assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
