@@ -598,7 +598,7 @@ public class JdbcEventAnalyticsManager
 
         return collect.keySet()
             .stream()
-            .map( org -> toInCondition( org, collect.get( org ) ) )
+            .map( org -> toInOrgUnitsCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
     }
 
@@ -609,7 +609,7 @@ public class JdbcEventAnalyticsManager
      * @param organisationUnits collection of user granted organisation units
      * @return
      */
-    private String toInCondition( int level, List<OrganisationUnit> organisationUnits )
+    private String toInOrgUnitsCondition( int level, List<OrganisationUnit> organisationUnits )
     {
         if ( organisationUnits == null || organisationUnits.isEmpty() )
         {
@@ -652,7 +652,7 @@ public class JdbcEventAnalyticsManager
     {
         OrganisationUnitQueryParams ouParams = new OrganisationUnitQueryParams();
 
-        ouParams.setQuery( "select uid from organisationunit where hierarchylevel=" + level );
+        ouParams.setQuery( "select uid from organisationunit where hierarchylevel= " + level );
 
         return organisationUnitStore.getOrganisationUnitUids( ouParams );
     }
