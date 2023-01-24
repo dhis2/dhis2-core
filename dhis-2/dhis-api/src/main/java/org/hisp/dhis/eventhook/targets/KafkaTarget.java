@@ -49,11 +49,11 @@ public class KafkaTarget extends Target
     @JsonProperty( required = true )
     private String clientId = "dhis2-" + CodeGenerator.generateUid();
 
-    @JsonProperty
-    private String topic = "dhis2.hooks";
-
     @JsonProperty( required = true )
     private String bootstrapServers = "localhost:9092";
+
+    @JsonProperty( required = true )
+    private String topic = "dhis2.hooks";
 
     public KafkaTarget()
     {

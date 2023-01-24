@@ -52,7 +52,7 @@ public class JmsTarget extends Target
     @JsonProperty( required = true )
     private String groupId = "dhis2";
 
-    @JsonProperty
+    @JsonProperty( required = true )
     private String address = "dhis2.hooks";
 
     @JsonProperty( required = true )
