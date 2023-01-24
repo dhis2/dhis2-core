@@ -61,6 +61,7 @@ public class SortingContext
     @Singular
     private final List<Field> fields;
 
+    @Getter
     @Singular
     private final List<Pair<Renderable, Renderable>> leftJoins;
 
@@ -68,10 +69,6 @@ public class SortingContext
     @Singular
     private final List<Renderable> orders;
 
-    public JoinsWithConditions getLeftJoins()
-    {
-        return JoinsWithConditions.of( leftJoins );
-    }
 
     @RequiredArgsConstructor( staticName = "of" )
     public static class SortingContextBuilder

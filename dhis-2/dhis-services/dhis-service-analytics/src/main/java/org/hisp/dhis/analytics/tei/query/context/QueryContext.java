@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.tei.query.context;
 
 import static java.util.Collections.emptyList;
-import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
@@ -36,8 +35,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.experimental.Delegate;
 
 import org.hisp.dhis.analytics.common.CommonParams;
@@ -45,15 +46,14 @@ import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
-@RequiredArgsConstructor( access = PRIVATE )
+@With
+@Getter
+@RequiredArgsConstructor (staticName = "of")
 public class QueryContext
 {
-    @Getter
     private final TeiQueryParams teiQueryParams;
-
-    @Getter
     private final SortingContext sortingContext;
-
+    private final ProgramIndicatorContext programIndicatorContext;
     @Delegate
     private final ParameterManager parameterManager;
 
@@ -62,18 +62,18 @@ public class QueryContext
         ParameterManager parameterManager = new ParameterManager();
 
         return new QueryContext( teiQueryParams,
-            SortingContext.SortingContextBuilder.of(
-                Optional.ofNullable( teiQueryParams )
-                    .map( TeiQueryParams::getCommonParams )
-                    .map( CommonParams::getOrderParams )
-                    .orElse( emptyList() ),
-                Optional.ofNullable( teiQueryParams )
-                    .map( TeiQueryParams::getTrackedEntityType )
-                    .orElse( null ),
-                parameterManager ).build(),
-            parameterManager );
+                SortingContext.SortingContextBuilder.of(
+                        Optional.ofNullable( teiQueryParams )
+                                .map( TeiQueryParams::getCommonParams )
+                                .map(CommonParams::getOrderParams)
+                                .orElse( emptyList() ),
+                        Optional.ofNullable( teiQueryParams )
+                                .map( TeiQueryParams::getTrackedEntityType )
+                                .orElse( null ),
+                        parameterManager ).build(),
+                null,
+                parameterManager );
     }
-
     public String getMainTableName()
     {
         return ANALYTICS_TEI + getTetTableSuffix();

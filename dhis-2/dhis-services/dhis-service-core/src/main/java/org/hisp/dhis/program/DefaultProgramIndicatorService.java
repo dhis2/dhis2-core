@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -379,9 +380,15 @@ public class DefaultProgramIndicatorService
         return expression
             + "|" + dataType.name()
             + "|" + programIndicator.getUid()
-            + "|" + startDate.getTime()
-            + "|" + endDate.getTime()
+            + dateIfPresent( startDate )
+            + dateIfPresent( endDate )
             + "|" + (tableAlias == null ? "" : tableAlias);
+    }
+
+    private String dateIfPresent(Date startDate) {
+        return Optional.ofNullable( startDate )
+                .map(date -> "|" + startDate.getTime())
+                .orElse(StringUtils.EMPTY);
     }
 
     private String _getAnalyticsSql( String expression, DataType dataType, ProgramIndicator programIndicator,

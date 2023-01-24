@@ -68,6 +68,7 @@ import org.hisp.dhis.relationship.RelationshipType;
  */
 public interface ProgramIndicatorSubqueryBuilder
 {
+
     /**
      * Generates the program indicator sub-query to be used as aggregation
      * column within an enrollment/event list query.
@@ -80,8 +81,26 @@ public interface ProgramIndicatorSubqueryBuilder
      *
      * @return a string containing a program indicator sub-query.
      */
+    default String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator, AnalyticsType outerSqlEntity,
+                                                  Date earliestStartDate, Date latestDate ) {
+        return getAggregateClauseForProgramIndicator( programIndicator, outerSqlEntity, earliestStartDate, latestDate,null );
+    }
+
+    /**
+     * Generates the program indicator sub-query to be used as aggregation
+     * column within an enrollment/event list query.
+     *
+     * @param programIndicator a {@link ProgramIndicator} object
+     * @param outerSqlEntity a {@link AnalyticsType} object, representing the
+     *        outer SQL context.
+     * @param earliestStartDate the earliest reporting start date.
+     * @param latestDate the latest reporting end date.
+     * @param outerSqlAlias the alias of the outer SQL entity.
+     *
+     * @return a string containing a program indicator sub-query.
+     */
     String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator, AnalyticsType outerSqlEntity,
-        Date earliestStartDate, Date latestDate );
+                                                  Date earliestStartDate, Date latestDate, String outerSqlAlias );
 
     /**
      * Generates the program indicator sub-query to be used as aggregation

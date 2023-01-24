@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static java.util.Collections.singletonList;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -45,7 +49,7 @@ class SortingContextUtils
     static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
     {
-        return "select innermost_enr.*" +
+        return "select innermost_enr.*, innermost_enr.programinstanceuid as pi" +
             " from (select *," +
             " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn " +
             " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +

@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
 
 import java.util.Collection;
@@ -62,6 +63,7 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.From;
+import org.hisp.dhis.analytics.common.query.JoinsWithConditions;
 import org.hisp.dhis.analytics.common.query.LimitOffset;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Order;
@@ -127,11 +129,13 @@ public class TeiFullQuery extends BaseRenderable
         Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
+        Stream<Field> programIndicatorFields = queryContext.getProgramIndicatorContext().getFields().stream();
 
         Stream<Field> fields = Stream.of(
             teiFields,
             dimensionsFields,
-            orderingFields )
+            orderingFields,
+            programIndicatorFields )
             .flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
@@ -142,9 +146,20 @@ public class TeiFullQuery extends BaseRenderable
         return Select.of( fields.collect( toList() ) );
     }
 
+    private boolean isProgramIndicator( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+    {
+        return dimensionIdentifier.getDimension().getDimensionParamObjectType() == PROGRAM_INDICATOR;
+    }
+
     private From getFrom()
     {
-        return From.of( queryContext.getMainTable(), queryContext.getSortingContext().getLeftJoins() );
+        JoinsWithConditions joinsWithConditions = JoinsWithConditions.of(
+                Stream.concat(
+                                queryContext.getSortingContext().getLeftJoins().stream(),
+                                queryContext.getProgramIndicatorContext().getLeftJoins().stream())
+                        .collect(toList()));
+
+        return From.of( queryContext.getMainTable(), joinsWithConditions );
     }
 
     private Where getWhere()

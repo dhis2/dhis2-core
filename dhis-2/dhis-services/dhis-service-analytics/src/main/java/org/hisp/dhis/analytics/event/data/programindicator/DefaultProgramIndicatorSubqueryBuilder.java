@@ -30,8 +30,10 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 
 import java.util.Date;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,9 +63,9 @@ public class DefaultProgramIndicatorSubqueryBuilder
 
     @Override
     public String getAggregateClauseForProgramIndicator( ProgramIndicator pi, AnalyticsType outerSqlEntity,
-        Date earliestStartDate, Date latestDate )
+        Date earliestStartDate, Date latestDate, String outerSqlAlias )
     {
-        return getAggregateClauseForPIandRelationshipType( pi, null, outerSqlEntity, earliestStartDate, latestDate );
+        return getAggregateClauseForPIandRelationshipType( pi, null, outerSqlEntity, earliestStartDate, latestDate, outerSqlAlias );
     }
 
     @Override
@@ -71,7 +73,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
         RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
     {
         return getAggregateClauseForPIandRelationshipType( programIndicator, relationshipType, outerSqlEntity,
-            earliestStartDate, latestDate );
+            earliestStartDate, latestDate, null );
     }
 
     /**
@@ -88,7 +90,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
      */
     private String getAggregateClauseForPIandRelationshipType( ProgramIndicator programIndicator,
         RelationshipType relationshipType,
-        AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
+        AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate, String outerSqlAlias )
     {
         // Define aggregation function (avg, sum, ...) //
         String function = TextUtils.emptyIfEqual( programIndicator.getAggregationTypeFallback().getValue(),
@@ -105,7 +107,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
         aggregateSql += getFrom( programIndicator );
 
         // Determine JOIN
-        String where = getWhere( outerSqlEntity, programIndicator, relationshipType );
+        String where = getWhere( outerSqlEntity, programIndicator, relationshipType, outerSqlAlias );
 
         aggregateSql += where;
 
@@ -145,8 +147,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
      * @return a SQL where clause.
      */
     private String getWhere( AnalyticsType outerSqlEntity,
-        ProgramIndicator programIndicator, RelationshipType relationshipType )
+        ProgramIndicator programIndicator, RelationshipType relationshipType, String outerSqlEntityAlias )
     {
+        outerSqlEntityAlias = Optional.ofNullable( outerSqlEntityAlias ).orElse( ANALYTICS_TBL_ALIAS );
+
         String condition = "";
         if ( relationshipType != null )
         {
@@ -157,13 +161,13 @@ public class DefaultProgramIndicatorSubqueryBuilder
         {
             if ( AnalyticsType.ENROLLMENT == outerSqlEntity )
             {
-                condition = "pi = ax.pi";
+                condition = "pi = " + outerSqlEntityAlias + ".pi";
             }
             else
             {
                 if ( AnalyticsType.EVENT == programIndicator.getAnalyticsType() )
                 {
-                    condition = "psi = ax.psi";
+                    condition = "psi = " + outerSqlEntityAlias + ".psi";
                 }
             }
         }
