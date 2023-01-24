@@ -109,7 +109,6 @@ public class EventHookSecretManager
             {
                 apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
             }
-
             break;
         }
     }

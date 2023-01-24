@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -35,6 +36,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
@@ -45,14 +49,30 @@ public class EventHookService
 {
     private final EventHookStore eventHookStore;
 
+    private final ObjectMapper objectMapper;
+
     private final EventHookSecretManager secretManager;
 
     @Nonnull
     @Transactional( readOnly = true )
     public List<EventHook> getAll()
     {
-        List<EventHook> eventHooks = eventHookStore.getAll();
-        eventHooks.forEach( secretManager::decrypt );
+        List<EventHook> eventHooks = new ArrayList<>();
+
+        for ( EventHook eventHook : eventHookStore.getAll() )
+        {
+            try
+            {
+                // TODO: this is a bit of a hack, but we need to decrypt the password and not change the object in the database
+                EventHook eh = objectMapper.readValue( objectMapper.writeValueAsString( eventHook ), EventHook.class );
+                secretManager.decrypt( eh );
+                eventHooks.add( eh );
+            }
+            catch ( JsonProcessingException e )
+            {
+                throw new RuntimeException( e );
+            }
+        }
 
         return eventHooks;
     }
