@@ -78,12 +78,11 @@ public class EventHookListener
     @Async( "eventHookTaskExecutor" )
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
-        throws EventHookException,
-        JsonProcessingException
+        throws EventHookException, JsonProcessingException
     {
         for ( EventHook eventHook : eventHooks )
         {
-            if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
+            if ( event.getPath().startsWith( eventHook.getSource().getPath() ) )
             {
                 if ( !targets.containsKey( eventHook.getUid() ) || targets.get( eventHook.getUid() ).isEmpty() )
                 {
@@ -92,7 +91,7 @@ public class EventHookListener
 
                 if ( event.getObject() instanceof Collection )
                 {
-                    Collection<ObjectNode> objects = new ArrayList<>();
+                    List<ObjectNode> objects = new ArrayList<>();
 
                     ((Collection<?>) event.getObject()).forEach( object -> {
                         ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
