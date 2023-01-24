@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.collection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -215,6 +216,17 @@ public class CollectionUtils
     public static <T> Set<T> emptyIfNull( Set<T> set )
     {
         return set != null ? set : new HashSet<>();
+    }
+
+    /**
+     * Returns an empty set if the given set is null, if not returns the set.
+     *
+     * @param map the map.
+     * @return a non-null map.
+     */
+    public static <T, V> Map<T, V> emptyIfNull( Map<T, V> map )
+    {
+        return map != null ? map : new HashMap<>();
     }
 
     /**
