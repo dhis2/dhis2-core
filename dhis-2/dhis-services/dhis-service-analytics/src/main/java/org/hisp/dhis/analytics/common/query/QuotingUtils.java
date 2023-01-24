@@ -47,11 +47,6 @@ public class QuotingUtils
 
     public static String doubleQuote( String value )
     {
-        return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
-    }
-
-    public static String doubleQuoteIfNeeded( String value )
-    {
         value = Optional.ofNullable( value )
             .map( String::trim )
             .orElse( EMPTY );
@@ -62,7 +57,7 @@ public class QuotingUtils
         }
         else
         {
-            return doubleQuote( value );
+            return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
         }
     }
 }

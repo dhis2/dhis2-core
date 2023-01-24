@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.dimension;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 
 import java.util.ArrayList;
@@ -155,6 +156,14 @@ public class DimensionParam implements UidObject
         return type == FILTERS;
     }
 
+    /**
+     * @return true if this DimensionParam is a dimension
+     */
+    public boolean isDimension()
+    {
+        return type == DIMENSIONS;
+    }
+
     public boolean isDimensionalObject()
     {
         return Objects.nonNull( dimensionalObject );
@@ -185,6 +194,11 @@ public class DimensionParam implements UidObject
         }
 
         return DimensionParamObjectType.STATIC_DIMENSION;
+    }
+
+    public boolean isOfType( DimensionParamObjectType type )
+    {
+        return getDimensionParamObjectType() == type;
     }
 
     public ValueType getValueType()

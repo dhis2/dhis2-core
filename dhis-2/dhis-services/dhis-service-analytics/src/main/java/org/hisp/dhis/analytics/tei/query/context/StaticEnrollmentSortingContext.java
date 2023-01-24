@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.field
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
+import static org.hisp.dhis.analytics.tei.query.context.ContextUtils.enrollmentSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;

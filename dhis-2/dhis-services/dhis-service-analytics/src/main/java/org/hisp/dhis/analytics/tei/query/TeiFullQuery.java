@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.From;
+import org.hisp.dhis.analytics.common.query.JoinsWithConditions;
 import org.hisp.dhis.analytics.common.query.LimitOffset;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Order;
@@ -118,7 +119,11 @@ public class TeiFullQuery extends BaseRenderable
     private Order getOrder()
     {
         return Order.builder()
-            .orders( queryContext.getSortingContext().getOrders() )
+            .orders(
+                Stream.concat(
+                    queryContext.getSortingContext().getOrders().stream(),
+                    queryContext.getProgramIndicatorContext().getOrders().stream() )
+                    .collect( toList() ) )
             .build();
     }
 
@@ -127,11 +132,13 @@ public class TeiFullQuery extends BaseRenderable
         Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
+        Stream<Field> programIndicatorFields = queryContext.getProgramIndicatorContext().getFields().stream();
 
         Stream<Field> fields = Stream.of(
             teiFields,
             dimensionsFields,
-            orderingFields )
+            orderingFields,
+            programIndicatorFields )
             .flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
@@ -144,7 +151,13 @@ public class TeiFullQuery extends BaseRenderable
 
     private From getFrom()
     {
-        return From.of( queryContext.getMainTable(), queryContext.getSortingContext().getLeftJoins() );
+        JoinsWithConditions joinsWithConditions = JoinsWithConditions.of(
+            Stream.concat(
+                queryContext.getSortingContext().getLeftJoins().stream(),
+                queryContext.getProgramIndicatorContext().getLeftJoins().stream() )
+                .collect( toList() ) );
+
+        return From.of( queryContext.getMainTable(), joinsWithConditions );
     }
 
     private Where getWhere()
@@ -181,6 +194,7 @@ public class TeiFullQuery extends BaseRenderable
                 Stream.of(
                     programConditions,
                     dimensionConditions,
+                    queryContext.getProgramIndicatorContext().getConditions().stream(),
                     Stream.of( periodConditions ) )
                     .flatMap( Function.identity() )
                     .collect( toList() ) ) );

@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuoteIfNeeded;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +101,7 @@ public class Field extends BaseRenderable
 
         if ( quotingNeeded )
         {
-            rendered = rendered + doubleQuoteIfNeeded( name.render() );
+            rendered = rendered + doubleQuote( name.render() );
         }
         else
         {
@@ -110,7 +110,7 @@ public class Field extends BaseRenderable
 
         if ( isNotBlank( fieldAlias ) )
         {
-            rendered = rendered + " as " + fieldAlias;
+            rendered = rendered + " as " + doubleQuote( fieldAlias );
         }
 
         return rendered;
