@@ -25,51 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
-import org.hisp.dhis.rules.models.RuleActionError;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
- * This implementer log as a warning any error raised by rule engine execution
+ * This executor shows warnings calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
-@Component
-public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
+@RequiredArgsConstructor
+public class ShowWarningExecutor
+    implements ErrorWarningExecutor
 {
+    private final ErrorWarningRuleAction ruleAction;
+
     @Override
-    public Class<RuleActionError> getActionClass()
+    public boolean isOnComplete()
     {
-        return RuleActionError.class;
+        return false;
     }
 
     @Override
-    public String getField( RuleActionError ruleAction )
+    public IssueType getIssueType()
     {
-        return null;
+        return WARNING;
     }
 
     @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
+    public String getDataElementUid()
     {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
+        return ruleAction.getField();
+    }
+
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return validateEvent( ruleAction, event );
     }
 }

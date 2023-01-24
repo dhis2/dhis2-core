@@ -278,13 +278,6 @@ public class EventQueryParams
     protected Map<TimeField, List<DateRange>> timeDateRanges = new EnumMap<>( TimeField.class );
 
     /**
-     * A list that holds the range of dates({@link DateRange}) of each period
-     * (pe).
-     */
-    @Getter
-    protected List<DateRange> periodDateRanges = new ArrayList<>();
-
-    /**
      * Flag to enable enhanced OR conditions.
      */
     @Getter
@@ -359,7 +352,6 @@ public class EventQueryParams
         params.periodType = this.periodType;
         params.explainOrderId = this.explainOrderId;
         params.timeDateRanges = this.timeDateRanges;
-        params.periodDateRanges = this.periodDateRanges;
         params.skipPartitioning = this.skipPartitioning;
         params.enhancedCondition = this.enhancedCondition;
         params.endpointItem = this.endpointItem;
@@ -497,8 +489,6 @@ public class EventQueryParams
             // The "dateField" can be: SCHEDULED_DATE, INCIDENT_DATE, etc. See {@link org.hisp.dhis.analytics.TimeField}
             boolean blankDateField = isBlank( period.getDateField() );
 
-            periodDateRanges.add( dateRange );
-
             if ( blankDateField )
             {
                 // Needed because of some internal flows.
@@ -529,8 +519,6 @@ public class EventQueryParams
         }
 
         // Sorting lists of data ranges.
-        periodDateRanges.sort( Comparator.comparing( DateRange::getStartDate ) );
-
         for ( List<DateRange> ranges : timeDateRanges.values() )
         {
             ranges.sort( Comparator.comparing( DateRange::getStartDate ) );

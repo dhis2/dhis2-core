@@ -25,17 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.MathUtils;
@@ -43,91 +45,75 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.EventActionRule;
-import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
- * This implementer assign a value to a field if it is empty, otherwise returns
- * an error
+ * This executor assigns a value to a field if it is empty, otherwise returns an
+ * error
  *
  * @Author Enrico Colasante
  */
-@Component
 @RequiredArgsConstructor
-public class AssignValueImplementer
-    extends AbstractRuleActionImplementer<RuleActionAssign>
+public class AssignValueExecutor implements RuleActionExecutor<Event>
 {
     private final SystemSettingManager systemSettingManager;
 
+    private final String ruleUid;
+
+    private final String value;
+
+    private final String dataElementUid;
+
+    private final Set<DataValue> dataValues;
+
     @Override
-    public Class<RuleActionAssign> getActionClass()
+    public String getDataElementUid()
     {
-        return RuleActionAssign.class;
+        return dataElementUid;
     }
 
     @Override
-    public String getField( RuleActionAssign ruleAction )
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
     {
-        return ruleAction.field();
-    }
-
-    @Override
-    public List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActionRules,
-        TrackerBundle bundle )
-    {
-        List<ProgramRuleIssue> issues = Lists.newArrayList();
         Boolean canOverwrite = systemSettingManager
             .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
-        TrackerPreheat preheat = bundle.getPreheat();
-        for ( EventActionRule actionRule : eventActionRules )
-        {
-            if ( getDataValue( actionRule, preheat ).isEmpty() ||
-                Boolean.TRUE.equals( canOverwrite ) ||
-                isTheSameValue( actionRule, bundle.getPreheat() ) )
-            {
-                addOrOverwriteDataValue( event, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1308,
-                    Lists.newArrayList( actionRule.getField(), event.getEvent() ), IssueType.WARNING ) );
-            }
-            else
-            {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1307,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getData() ), IssueType.ERROR ) );
-            }
-        }
+        DataElement dataElement = bundle.getPreheat().getDataElement( dataElementUid );
 
-        return issues;
-    }
-
-    public Optional<DataValue> getDataValue( EventActionRule actionRule, TrackerPreheat preheat )
-    {
-        DataElement dataElement = preheat.getDataElement( actionRule.getField() );
-        return actionRule.getDataValues()
-            .stream()
+        Optional<DataValue> payloadDataValue = dataValues.stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
             .findAny();
+
+        if ( payloadDataValue.isEmpty() ||
+            Boolean.TRUE.equals( canOverwrite ) ||
+            isEqual( value, payloadDataValue.get().getValue(), dataElement.getValueType() ) )
+        {
+            addOrOverwriteDataValue( event, bundle );
+            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
+        }
+        return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, value ) );
     }
 
-    private boolean isTheSameValue( EventActionRule actionRule, TrackerPreheat preheat )
+    private void addOrOverwriteDataValue( Event event, TrackerBundle bundle )
     {
-        DataElement dataElement = preheat.getDataElement( actionRule.getField() );
-        String dataValue = actionRule.getData();
-        Optional<DataValue> optionalDataValue = actionRule.getDataValues().stream()
+        DataElement dataElement = bundle.getPreheat().getDataElement( dataElementUid );
+
+        Optional<DataValue> dataValue = event.getDataValues().stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
             .findAny();
-        if ( optionalDataValue.isPresent() )
-        {
-            return isEqual( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
-        }
 
-        return false;
+        if ( dataValue.isPresent() )
+        {
+            dataValue.get().setValue( value );
+        }
+        else
+        {
+            event.getDataValues()
+                .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
+                    value ) );
+        }
     }
 
     /**
@@ -150,26 +136,6 @@ public class AssignValueImplementer
         else
         {
             return value1 != null && value1.equals( value2 );
-        }
-    }
-
-    private void addOrOverwriteDataValue( Event event, EventActionRule actionRule, TrackerBundle bundle )
-    {
-        DataElement dataElement = bundle.getPreheat().getDataElement( actionRule.getField() );
-
-        Optional<DataValue> dataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
-            .findAny();
-
-        if ( dataValue.isPresent() )
-        {
-            dataValue.get().setValue( actionRule.getData() );
-        }
-        else
-        {
-            event.getDataValues()
-                .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
-                    actionRule.getData() ) );
         }
     }
 

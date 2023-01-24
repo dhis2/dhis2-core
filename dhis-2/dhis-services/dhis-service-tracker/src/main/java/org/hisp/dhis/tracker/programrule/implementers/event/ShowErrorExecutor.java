@@ -25,29 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import java.util.Set;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
-@Getter
+/**
+ * This executor shows errors calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
+ */
 @RequiredArgsConstructor
-@AllArgsConstructor
-public class EventActionRule
-    implements ActionRule
+public class ShowErrorExecutor implements ErrorWarningExecutor
 {
-    private final String ruleUid;
+    private final ErrorWarningRuleAction ruleAction;
 
-    private final String data;
+    @Override
+    public boolean isOnComplete()
+    {
+        return false;
+    }
 
-    private final String field;
+    @Override
+    public IssueType getIssueType()
+    {
+        return ERROR;
+    }
 
-    private String content;
+    @Override
+    public String getDataElementUid()
+    {
+        return ruleAction.getField();
+    }
 
-    private Set<DataValue> dataValues;
+    @Override
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
+    {
+        return validateEvent( ruleAction, event );
+    }
 }
