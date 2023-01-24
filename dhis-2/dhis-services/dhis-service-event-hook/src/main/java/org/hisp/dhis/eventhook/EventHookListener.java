@@ -81,8 +81,6 @@ public class EventHookListener
         throws EventHookException,
         JsonProcessingException
     {
-        System.err.println( "Thread: " + Thread.currentThread().getName() );
-
         for ( EventHook eventHook : eventHooks )
         {
             if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
