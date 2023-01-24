@@ -58,7 +58,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
-import org.hisp.dhis.webapi.security.config.StringToOrderCriteriaListConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +65,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -232,12 +230,6 @@ public class MvcTestConfig implements WebMvcConfigurer
 
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
         registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
-    }
-
-    @Override
-    public void addFormatters( FormatterRegistry registry )
-    {
-        registry.addConverter( new StringToOrderCriteriaListConverter() );
     }
 
     @Bean

@@ -251,7 +251,7 @@ public class DefaultTrackedEntityInstanceService
     {
         List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
             .map( OrderParam::getField )
-            .filter( DefaultTrackedEntityInstanceService::isDynamicColumn )
+            .filter( this::isDynamicColumn )
             .map( attributeService::getTrackedEntityAttribute )
             .collect( Collectors.toList() );
 
@@ -259,7 +259,7 @@ public class DefaultTrackedEntityInstanceService
             .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
     }
 
-    public static boolean isDynamicColumn( String propName )
+    public boolean isDynamicColumn( String propName )
     {
         return Arrays.stream( TrackedEntityInstanceQueryParams.OrderColumn.values() )
             .noneMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
