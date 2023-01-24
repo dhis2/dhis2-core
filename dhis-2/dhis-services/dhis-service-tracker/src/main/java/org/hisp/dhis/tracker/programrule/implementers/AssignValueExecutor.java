@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
+import java.util.Objects;
+
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.system.util.MathUtils;
@@ -58,7 +60,7 @@ public interface AssignValueExecutor<T> extends RuleActionExecutor<T>
         }
         else
         {
-            return value1 != null && value1.equals( value2 );
+            return Objects.equals( value1, value2 );
         }
     }
 }
