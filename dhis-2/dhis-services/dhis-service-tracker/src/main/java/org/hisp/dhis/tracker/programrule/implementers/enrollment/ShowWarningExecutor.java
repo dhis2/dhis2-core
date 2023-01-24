@@ -62,7 +62,7 @@ public class ShowWarningExecutor
     }
 
     @Override
-    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         return validateEnrollment( ruleAction, enrollment );
     }

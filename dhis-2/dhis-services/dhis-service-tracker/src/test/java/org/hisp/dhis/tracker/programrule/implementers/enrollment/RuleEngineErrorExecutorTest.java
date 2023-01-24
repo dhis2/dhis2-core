@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,7 +39,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,16 +74,11 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest
     @Test
     void shouldReturnAWarningWhenThereIsSyntaxErrorInRule()
     {
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             getEnrollment() );
 
         assertTrue( warning.isPresent() );
-        warning.ifPresent( w -> {
-            assertEquals( WARNING, w.getIssueType() );
-            assertEquals( RULE_ENROLLMENT_ID, w.getRuleUid() );
-            assertEquals( ValidationCode.E1300, w.getIssueCode() );
-            assertEquals( ENROLLMENT_ERROR_MESSAGE, w.getArgs().get( 0 ) );
-        } );
+        assertEquals( warning( RULE_ENROLLMENT_ID, E1300, ENROLLMENT_ERROR_MESSAGE ), warning.get() );
 
     }
 
