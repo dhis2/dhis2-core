@@ -47,7 +47,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class JmsTarget extends Target
 {
     @JsonProperty( required = true )
-    private String name = "dhis2-" + CodeGenerator.generateUid();
+    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+
+    @JsonProperty( required = true )
+    private String groupId = "dhis2";
 
     @JsonProperty
     private String address = "dhis2.hooks";

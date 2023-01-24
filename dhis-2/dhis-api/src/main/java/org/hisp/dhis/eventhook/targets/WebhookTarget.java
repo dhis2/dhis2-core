@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
 import org.hisp.dhis.eventhook.targets.auth.Auth;
 
@@ -49,6 +50,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class WebhookTarget extends Target
 {
+    @JsonProperty( required = true )
+    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+
     @JsonProperty( required = true )
     private String url;
 

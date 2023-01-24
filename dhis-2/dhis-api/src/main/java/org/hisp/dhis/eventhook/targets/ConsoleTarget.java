@@ -32,7 +32,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
@@ -43,6 +46,9 @@ import org.hisp.dhis.eventhook.Target;
 @Accessors( chain = true )
 public class ConsoleTarget extends Target
 {
+    @JsonProperty( required = true )
+    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+
     public ConsoleTarget()
     {
         super( "console" );

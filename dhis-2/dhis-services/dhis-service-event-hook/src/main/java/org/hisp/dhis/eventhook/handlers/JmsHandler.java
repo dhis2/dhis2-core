@@ -66,6 +66,20 @@ public class JmsHandler implements Handler
             connectionFactory = ActiveMQJMSClient.createConnectionFactory( target.getBrokerUrl(),
                 target.getUsername() );
             connectionFactory.setPassword( target.getPassword() );
+            connectionFactory.setClientID( target.getClientId() );
+            connectionFactory.setGroupID( target.getGroupId() );
+
+            connectionFactory.setConnectionTTL( 60_000 );
+            connectionFactory.setCallTimeout( 30_000 );
+            connectionFactory.setCallFailoverTimeout( 30_000 );
+            connectionFactory.setRetryInterval( 2_000 );
+            connectionFactory.setMaxRetryInterval( 2_000 );
+            connectionFactory.setReconnectAttempts( 0 );
+
+            connectionFactory.setAutoGroup( false );
+            connectionFactory.setBlockOnAcknowledge( false );
+            connectionFactory.setBlockOnDurableSend( true );
+            connectionFactory.setBlockOnNonDurableSend( false );
 
             // open and close a connection to see that the configuration is correct
             connectionFactory.createConnection().close();
