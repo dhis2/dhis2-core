@@ -101,7 +101,7 @@ public abstract class TimeFieldSqlRenderer
 
         if ( params.hasStartEndDate() )
         {
-            addDefaultDateToConditions( params, orConditions );
+            addStartEndDateToCondition( params, orConditions );
         }
 
         params.getTimeDateRanges().forEach( ( timeField, dateRanges ) -> {
@@ -154,7 +154,7 @@ public abstract class TimeFieldSqlRenderer
      * @param params the {@link EventQueryParams}
      * @param conditions a list of SQL conditions
      */
-    private void addDefaultDateToConditions( EventQueryParams params, List<String> conditions )
+    private void addStartEndDateToCondition( EventQueryParams params, List<String> conditions )
     {
         ColumnWithDateRange defaultDateRangeColumn = ColumnWithDateRange.builder()
             .column( getColumnName( getTimeField( params ), params.getOutputType() ) )
