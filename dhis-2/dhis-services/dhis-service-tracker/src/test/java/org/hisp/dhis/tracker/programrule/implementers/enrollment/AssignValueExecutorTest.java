@@ -36,14 +36,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -77,12 +72,6 @@ class AssignValueExecutorTest extends DhisConvenienceTest
 
     private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
-    private final static String DATA_ELEMENT_ID = "DataElementId";
-
-    private final static String DATA_ELEMENT_CODE = "DataElementCode";
-
-    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
-
     private final static String ATTRIBUTE_ID = "AttributeId";
 
     private final static String ATTRIBUTE_CODE = "AttributeCode";
@@ -90,14 +79,6 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     private final static String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
 
     private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
-
-    private static ProgramStage firstProgramStage;
-
-    private static ProgramStage secondProgramStage;
-
-    private static DataElement dataElementA;
-
-    private static DataElement dataElementB;
 
     private static TrackedEntityAttribute attributeA;
 
@@ -112,25 +93,10 @@ class AssignValueExecutorTest extends DhisConvenienceTest
     @BeforeEach
     void setUpTest()
     {
-        firstProgramStage = createProgramStage( 'A', 0 );
-        firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeA.setUid( ATTRIBUTE_ID );
         attributeA.setCode( ATTRIBUTE_CODE );
         attributeA.setValueType( ValueType.NUMBER );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setUid( DATA_ELEMENT_ID );
-        dataElementA.setCode( DATA_ELEMENT_CODE );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
-            dataElementA, 0 );
-        firstProgramStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
-        secondProgramStage = createProgramStage( 'B', 0 );
-        secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        dataElementB = createDataElement( 'B' );
-        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
-            dataElementB, 0 );
-        secondProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
         when( preheat.getTrackedEntityAttribute( attributeA.getUid() ) )
             .thenReturn( attributeA );
         bundle = TrackerBundle.builder().build();
@@ -152,13 +118,10 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> attribute = findAttributeByUid( bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertAttributeWasAssignedAndWarningIsPresent( TEI_ATTRIBUTE_NEW_VALUE, attribute, warning );
     }
@@ -173,12 +136,9 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> attribute = findAttributeByUid( bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertAttributeWasNotAssignedAndErrorIsPresent( TEI_ATTRIBUTE_OLD_VALUE, attribute, error );
     }
@@ -197,12 +157,9 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofCode( ATTRIBUTE_CODE ) ) ).findAny();
+        Optional<Attribute> attribute = findAttributeByCode( bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_CODE );
 
         assertAttributeWasNotAssignedAndErrorIsPresent( TEI_ATTRIBUTE_OLD_VALUE, attribute, error );
     }
@@ -219,17 +176,11 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, getTrackedEntitiesWithAttributeSet().getAttributes() );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream()
-            .filter( e -> e.getTrackedEntity().equals( TRACKED_ENTITY_ID ) ).findAny().get();
-        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> teiAttribute = findTeiAttributeByUid( bundle, TRACKED_ENTITY_ID, ATTRIBUTE_ID );
+        Optional<Attribute> enrollmentAttribute = findAttributeByUid( bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertFalse( enrollmentAttribute.isPresent() );
         assertAttributeWasNotAssignedAndErrorIsPresent( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute, error );
@@ -249,17 +200,11 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeNOTSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
-        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream()
-            .filter( e -> e.getTrackedEntity().equals( TRACKED_ENTITY_ID ) ).findAny().get();
-        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
-        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> teiAttribute = findTeiAttributeByUid( bundle, TRACKED_ENTITY_ID, ATTRIBUTE_ID );
+        Optional<Attribute> enrollmentAttribute = findAttributeByUid( bundle, SECOND_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertFalse( enrollmentAttribute.isPresent() );
         assertAttributeWasAssignedAndWarningIsPresent( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute, warning );
@@ -275,13 +220,10 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSetSameValue.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
             enrollmentWithAttributeSetSameValue );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> attribute = findAttributeByUid( bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertAttributeWasAssignedAndWarningIsPresent( TEI_ATTRIBUTE_NEW_VALUE, attribute, warning );
     }
@@ -298,14 +240,35 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
-        Optional<ProgramRuleIssue> warning = executor.executeEnrollmentRuleAction( bundle, enrollmentWithAttributeSet );
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
 
-        Enrollment enrollment = bundle.getEnrollments().stream()
-            .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
-        Optional<Attribute> attribute = enrollment.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) ) ).findAny();
+        Optional<Attribute> attribute = findAttributeByUid( bundle, FIRST_ENROLLMENT_ID, ATTRIBUTE_ID );
 
         assertAttributeWasAssignedAndWarningIsPresent( TEI_ATTRIBUTE_NEW_VALUE, attribute, warning );
+    }
+
+    private Optional<Attribute> findTeiAttributeByUid( TrackerBundle bundle, String teiUid, String attributeUid )
+    {
+        TrackedEntity tei = bundle.findTrackedEntityByUid( teiUid ).get();
+        return tei.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( attributeUid ) ) )
+            .findAny();
+    }
+
+    private Optional<Attribute> findAttributeByUid( TrackerBundle bundle, String enrollmentUid, String attributeUid )
+    {
+        Enrollment enrollment = bundle.findEnrollmentByUid( enrollmentUid ).get();
+        return enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofUid( attributeUid ) ) )
+            .findAny();
+    }
+
+    private Optional<Attribute> findAttributeByCode( TrackerBundle bundle, String enrollmentUid, String attributeCode )
+    {
+        Enrollment enrollment = bundle.findEnrollmentByUid( enrollmentUid ).get();
+        return enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofCode( attributeCode ) ) )
+            .findAny();
     }
 
     @Test

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
+
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -46,29 +49,26 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class SetMandatoryFieldExecutor implements RuleActionExecutor
+public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
 {
     private final String ruleUid;
 
     private final String attributeUid;
 
     @Override
-    public Optional<ProgramRuleIssue> executeEnrollmentRuleAction( TrackerBundle bundle, Enrollment enrollment )
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
         TrackedEntityAttribute ruleAttribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
         Optional<Attribute> any = enrollment.getAttributes().stream()
             .filter( attribute -> attribute.getAttribute().isEqualTo( ruleAttribute ) )
             .findAny();
+
         if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
         {
-            return Optional.of( ProgramRuleIssue.error( ruleUid,
-                ValidationCode.E1306,
+            return Optional.of( error( ruleUid, ValidationCode.E1306,
                 idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ) );
         }
-        else
-        {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 }

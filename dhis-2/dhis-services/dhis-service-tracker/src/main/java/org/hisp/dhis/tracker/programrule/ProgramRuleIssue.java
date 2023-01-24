@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  *
  * @Author Enrico Colasante
  */
-@RequiredArgsConstructor// Will add this in next PR (access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 @Getter
 @EqualsAndHashCode
 public class ProgramRuleIssue

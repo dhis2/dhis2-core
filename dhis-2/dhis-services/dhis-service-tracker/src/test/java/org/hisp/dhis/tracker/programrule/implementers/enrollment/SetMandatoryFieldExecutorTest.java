@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.validation.ValidationCode.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -125,7 +126,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( List.of( getEnrollmentWithMandatoryAttributeSet() ) );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertFalse( error.isPresent() );
@@ -141,7 +142,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( List.of( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
 
         assertFalse( error.isPresent() );
@@ -155,16 +156,16 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( List.of( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
-        Optional<ProgramRuleIssue> error = executor.executeEnrollmentRuleAction( bundle,
+        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertFalse( error.isPresent() );
 
-        error = executor.executeEnrollmentRuleAction( bundle,
+        error = executor.executeRuleAction( bundle,
             getEnrollmentWithMandatoryAttributeNOTSet() );
 
         assertTrue( error.isPresent() );
-        assertEquals( ProgramRuleIssue.error( "RULE_ATTRIBUTE", E1306, ATTRIBUTE_ID ), error.get() );
+        assertEquals( error( "RULE_ATTRIBUTE", E1306, ATTRIBUTE_ID ), error.get() );
     }
 
     private Enrollment getEnrollmentWithMandatoryAttributeSet( TrackerIdSchemeParams idSchemes )

@@ -25,39 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers;
+package org.hisp.dhis.tracker.programrule.implementers.event;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.tracker.programrule.IssueType;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
+import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 
 /**
- * This implementer show errors on a completed enrollment or event calculated by
- * Rule Engine.
+ * This executor checks if a field is not empty in the {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowErrorOnCompleteValidator
-    extends ErrorWarningImplementer<RuleActionErrorOnCompletion>
+@RequiredArgsConstructor
+public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event>
 {
+    private final String ruleUid;
+
+    private final String fieldUid;
+
     @Override
-    public Class<RuleActionErrorOnCompletion> getActionClass()
+    public String getDataElementUid()
     {
-        return RuleActionErrorOnCompletion.class;
+        return fieldUid;
     }
 
     @Override
-    public boolean isOnComplete()
+    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
     {
-        return true;
-    }
+        TrackerPreheat preheat = bundle.getPreheat();
+        ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
+        return ValidationUtils.validateMandatoryDataValue( programStage, event,
+            List.of( idSchemes.toMetadataIdentifier( preheat.getDataElement( fieldUid ) ) ) )
+            .stream()
+            .map( e -> error( ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue() ) )
+            .findAny();
     }
 }
