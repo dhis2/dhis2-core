@@ -105,7 +105,9 @@
         "F_DATAELEMENTGROUPSET_PUBLIC_ADD"
       ],
       "dataSets": [ ],
-      "publicAccess": "--------"
+      "sharing" : {
+        "public": "--------"
+      }
     }
   ],
   "organisationUnitGroups": [
@@ -117,14 +119,16 @@
           "id": "uyHni0GvBpD"
         }
       ],
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
       "user": {
         "id": "M5zQapPyTZI"
       },
       "created": "2016-03-17T01:52:11.957+0000",
       "name": "OrgUnitGroupA",
       "id": "K82vX2wgq6j",
-      "userGroupAccesses": [ ],
       "attributeValues": [ ],
       "shortName": "OrgUnitGroupA"
     }
@@ -215,25 +219,25 @@
   ],
   "visualizations": [
     {
-      "userGroupAccesses": [
-        {
-          "userGroup": {
-            "id": "ugabcdefghA",
-            "code": "UserGroupCodeA"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":
+          {
+            "ugabcdefghA": {
+              "id": "ugabcdefghA",
+              "access": "rwrw----"
+            }
           },
-          "access": "rwrw----"
-        }
-      ],
-      "userAccesses":[
-        {
-          "user": {
+        "users": {
+          "userabcdefA" : {
+            "access":"rwrw----",
             "id": "userabcdefA"
-          },
-          "access":"rwrw----"
+          }
         }
-      ],
+      },
+
       "completedOnly": false,
-      "externalAccess": false,
       "showData": true,
       "organisationUnits": [
         {
@@ -281,7 +285,6 @@
       "organisationUnitGroups": [ ],
       "name": "VisualizationA",
       "sortOrder": 0,
-      "publicAccess": "rw------",
       "category": "pe",
       "categoryOptionGroups": [ ],
       "dataElementGroups": [ ],

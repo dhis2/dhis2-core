@@ -72,13 +72,14 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "userGroups": {
+          "OPVIvvXzNTw" : {
+            "id" : "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
       "userAccesses": [],
       "categories": [

@@ -250,7 +250,6 @@
       "displayDescription": "Person",
       "displayFormName": "Person",
       "displayName": "Person",
-      "externalAccess": false,
       "favorite": false,
       "favorites": [],
       "featureType": "NONE",
@@ -258,7 +257,24 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------",
+        "external": false,
+        "userGroups": {
+          "VLIaHu6ou8E": {
+            "id": "VLIaHu6ou8E",
+            "access": "r-r-----"
+          },
+          "AEAQ9LktNze": {
+            "id": "AEAQ9LktNze",
+            "access": "rwrw----"
+          },
+          "q3Nh5xhJEy2": {
+            "id": "q3Nh5xhJEy2",
+            "access": "r-rw----"
+          }
+        }
+      },
       "style": {
         "icon": "man_positive"
       },
@@ -370,28 +386,7 @@
       ],
       "user": {
         "id": "vUeLeQMSwhN"
-      },
-      "userAccesses": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-r-----",
-          "displayName": "COVAC - Covid-19 Immunization Data Analysis",
-          "id": "VLIaHu6ou8E",
-          "userGroupUid": "VLIaHu6ou8E"
-        },
-        {
-          "access": "rwrw----",
-          "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
-          "id": "AEAQ9LktNze",
-          "userGroupUid": "AEAQ9LktNze"
-        },
-        {
-          "access": "r-rw----",
-          "displayName": "COVAC - Covid-19 Immunization Data Entry",
-          "id": "q3Nh5xhJEy2",
-          "userGroupUid": "q3Nh5xhJEy2"
-        }
-      ]
+      }
     },
     {
       "featureType": "NONE",
@@ -400,7 +395,9 @@
       "maxTeiCountToReturn": 0,
       "id": "bPJ0FMtcnEh",
       "userGroupAccesses": [],
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "minAttributesRequiredToSearch": 1,
       "lastUpdated": "2019-03-29T09:20:08.103",
       "trackedEntityTypeAttributes": [
@@ -451,14 +448,16 @@
     {
       "attributeValues": [],
       "displayName": "COVAC - Covid-19 Immunization Data Analysis",
-      "externalAccess": false,
       "favorite": false,
       "favorites": [],
       "id": "VLIaHu6ou8E",
       "managedByGroups": [],
       "managedGroups": [],
       "name": "COVAC - Covid-19 Immunization Data Analysis",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
       "translations": [
         {
           "locale": "cs",
@@ -474,21 +473,21 @@
       "user": {
         "id": "vUeLeQMSwhN"
       },
-      "userAccesses": [],
-      "userGroupAccesses": [],
       "users": []
     },
     {
       "attributeValues": [],
       "displayName": "COVAC - Covid-19 Immunization Data Entry",
-      "externalAccess": false,
       "favorite": false,
       "favorites": [],
       "id": "q3Nh5xhJEy2",
       "managedByGroups": [],
       "managedGroups": [],
       "name": "COVAC - Covid-19 Immunization Data Entry",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
       "translations": [
         {
           "locale": "cs",
@@ -511,14 +510,16 @@
     {
       "attributeValues": [],
       "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
-      "externalAccess": false,
       "favorite": false,
+      "sharing" : {
+        "public": "rw------",
+        "external": false
+      },
       "favorites": [],
       "id": "AEAQ9LktNze",
       "managedByGroups": [],
       "managedGroups": [],
       "name": "COVAC - Covid-19 Immunization Metadata Admin",
-      "publicAccess": "rw------",
       "translations": [
         {
           "locale": "es",
@@ -534,8 +535,6 @@
       "user": {
         "id": "vUeLeQMSwhN"
       },
-      "userAccesses": [],
-      "userGroupAccesses": [],
       "users": []
     }
   ],
@@ -613,10 +612,11 @@
       "id": "yrB6vc5Ip3r",
       "lastUpdated": "2016-02-17T06:14:12.260+0000",
       "name": "SuperuserX",
-      "userGroupAccesses": [ ],
       "dataSets": [ ],
       "programs": [ ],
       "created": "2016-02-17T06:14:12.260+0000",
-      "publicAccess": "--------"
+      "sharing" : {
+        "public": "--------"
+      }
     }]
 }

@@ -555,7 +555,6 @@
       "name": "TA Event_program",
       "code": "TA EVENT_PROGRAM",
       "shortName": "TAEP",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -600,13 +599,16 @@
           "code": "OU_525"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "rw------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
+
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -614,8 +616,7 @@
           "id": "jKLB23QZS4I",
           "code": "TA_EVENT_PROGRAM_STAGE"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "lastUpdated": "2019-02-28T12:42:58.283",

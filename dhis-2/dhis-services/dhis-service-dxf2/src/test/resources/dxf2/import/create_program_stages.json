@@ -67,10 +67,12 @@
       "userGroupAccesses": [],
       "dataSets": [],
       "programs": [],
-      "publicAccess": "--------",
       "id": "VIkpd2KHCb1",
       "name": "Superuser",
-      "lastUpdated": "2016-03-10T05:00:11.778+0000"
+      "lastUpdated": "2016-03-10T05:00:11.778+0000",
+      "sharing" : {
+        "public": "--------"
+      }
     }
   ],
   "programs": [

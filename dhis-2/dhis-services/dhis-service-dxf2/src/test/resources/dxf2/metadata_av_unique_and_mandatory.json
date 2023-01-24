@@ -211,7 +211,9 @@
         }
       ],
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "dataDimension": true,
       "userGroupAccesses": [],
       "name": "default",
@@ -232,7 +234,9 @@
   "categoryCombos": [
     {
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "categories": [
         {
           "id": "jOWiRnMhvNe"
@@ -286,8 +290,9 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "publicAccess": "--------",
-      "userGroupAccesses": [],
+      "sharing" : {
+        "public": "--------"
+      },
       "created": "2016-02-29T07:55:39.074+0000",
       "id": "UXQbi5J5qtG",
       "name": "Superuser"
@@ -295,7 +300,9 @@
   ],
   "categoryOptions": [
     {
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "attributeValues": [],
       "organisationUnits": [],
       "shortName": "default",
@@ -303,7 +310,6 @@
       "name": "default",
       "id": "GHqcjafnddq",
       "created": "2016-02-29T07:54:45.270+0000",
-      "userGroupAccesses": []
     }
   ],
   "users": [

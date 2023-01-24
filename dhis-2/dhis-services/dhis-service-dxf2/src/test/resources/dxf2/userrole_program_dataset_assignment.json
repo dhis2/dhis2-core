@@ -114,7 +114,9 @@
         }
       ],
       "code": "Superuser",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "description": "Superuser",
       "created": "2016-03-31T05:06:45.437+0000",
       "name": "Superuser",

@@ -154,11 +154,12 @@
       "id": "rKLtmQLRMU8",
       "lastUpdated": "2016-02-17T06:14:12.260+0000",
       "name": "Superuser",
-      "userGroupAccesses": [ ],
       "dataSets": [ ],
       "programs": [ ],
       "created": "2016-02-17T06:14:12.260+0000",
-      "publicAccess": "--------"
+      "sharing" : {
+        "public": "--------"
+      }
     }
   ],
   "trackedEntityTypes": [
@@ -187,13 +188,17 @@
         "id": "ueKaFVdR8Fz"
       },
       "zeroIsSignificant": false,
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "code": "DataElementCodeA",
       "name": "DataElementA"
     },
     {
       "code": "DataElementCodeB",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "name": "DataElementB",
       "attributeValues": [ ],
       "userGroupAccesses": [ ],

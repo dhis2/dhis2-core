@@ -151,7 +151,9 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "programs": [ ]
     }
   ],
@@ -160,7 +162,9 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "categoryOptions": [
         {
           "id": "JYiFOMKa25J"

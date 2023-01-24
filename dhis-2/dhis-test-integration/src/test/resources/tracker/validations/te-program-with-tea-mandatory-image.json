@@ -204,7 +204,9 @@
       "lastUpdated": "2020-02-10T09:52:02.499",
       "name": "Superuser",
       "id": "yrB6vc5Ip3r",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "description": "Superuser",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
