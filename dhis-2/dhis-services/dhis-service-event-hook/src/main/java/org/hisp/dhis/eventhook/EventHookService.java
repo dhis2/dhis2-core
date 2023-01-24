@@ -45,10 +45,15 @@ public class EventHookService
 {
     private final EventHookStore eventHookStore;
 
+    private final EventHookSecretManager secretManager;
+
     @Nonnull
     @Transactional( readOnly = true )
     public List<EventHook> getAll()
     {
-        return eventHookStore.getAll();
+        List<EventHook> eventHooks = eventHookStore.getAll();
+        eventHooks.forEach( secretManager::decrypt );
+
+        return eventHooks;
     }
 }

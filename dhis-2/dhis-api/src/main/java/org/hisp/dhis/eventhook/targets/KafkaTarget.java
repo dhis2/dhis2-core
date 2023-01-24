@@ -55,6 +55,12 @@ public class KafkaTarget extends Target
     @JsonProperty( required = true )
     private String topic = "dhis2.hooks";
 
+    @JsonProperty
+    private String username;
+
+    @JsonProperty
+    private String password;
+
     public KafkaTarget()
     {
         super( "kafka" );

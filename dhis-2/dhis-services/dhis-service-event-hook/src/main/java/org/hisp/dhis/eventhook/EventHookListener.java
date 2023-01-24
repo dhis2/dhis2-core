@@ -78,7 +78,8 @@ public class EventHookListener
     @Async( "eventHookTaskExecutor" )
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
-        throws EventHookException, JsonProcessingException
+        throws EventHookException,
+        JsonProcessingException
     {
         for ( EventHook eventHook : eventHooks )
         {
