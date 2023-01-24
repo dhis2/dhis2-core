@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.hisp.dhis.eventhook.Event;
+import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 
@@ -53,18 +55,31 @@ public class KafkaHandler implements Handler
         configure( target );
     }
 
+    /**
+     * These are mostly defaults taken from {@see KafkaProducer} documentation.
+     * Some of these are configurable today and we might want to expose more
+     * config props in the future, for now we are using the defaults.
+     *
+     * @param target A ready configured KafkaTarget
+     */
     private void configure( KafkaTarget target )
     {
         Map<String, Object> properties = Map.of(
             "client.id", target.getClientId(),
             "bootstrap.servers", target.getBootstrapServers(),
+            "delivery.timeout.ms", 120000,
+            "request.timeout.ms", 30000,
+            "max.request.size", 1048576,
+            "security.protocol", "PLAINTEXT", // PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
+            "acks", "all", // all (full replica), -1 (leader ack), 0 (no wait), 1 (full replica)
             "key.serializer", StringSerializer.class,
             "value.serializer", StringSerializer.class );
 
         this.producer = new KafkaProducer<>( properties );
     }
 
-    public void run( String payload )
+    @Override
+    public void run( EventHook eventHook, Event event, String payload )
     {
         producer.send( new ProducerRecord<>( target.getTopic(), null, payload ) );
     }

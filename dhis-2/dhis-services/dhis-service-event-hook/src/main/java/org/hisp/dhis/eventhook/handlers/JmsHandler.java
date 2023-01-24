@@ -34,6 +34,8 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQDestination;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
+import org.hisp.dhis.eventhook.Event;
+import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.springframework.jms.JmsException;
@@ -59,7 +61,6 @@ public class JmsHandler implements Handler
 
     private void configure( JmsTarget target )
     {
-
         try
         {
             connectionFactory = ActiveMQJMSClient.createConnectionFactory( target.getBrokerUrl(),
@@ -79,7 +80,8 @@ public class JmsHandler implements Handler
         this.jmsTemplate = new JmsTemplate( connectionFactory );
     }
 
-    public void run( String payload )
+    @Override
+    public void run( EventHook eventHook, Event event, String payload )
     {
         if ( jmsTemplate == null )
         {

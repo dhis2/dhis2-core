@@ -33,7 +33,7 @@ package org.hisp.dhis.eventhook;
 @FunctionalInterface
 public interface Handler
 {
-    void run( String payload );
+    void run( EventHook eventHook, Event event, String payload );
 
     default void close()
     {

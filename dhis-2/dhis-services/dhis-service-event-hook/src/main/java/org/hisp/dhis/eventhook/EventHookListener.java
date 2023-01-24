@@ -115,7 +115,7 @@ public class EventHookListener
 
                 for ( Handler handler : handlers )
                 {
-                    handler.run( payload );
+                    handler.run( eventHook, event, payload );
                 }
             }
         }

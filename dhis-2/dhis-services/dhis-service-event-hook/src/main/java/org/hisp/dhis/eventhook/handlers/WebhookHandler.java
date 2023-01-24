@@ -29,12 +29,15 @@ package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.eventhook.Event;
+import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -52,9 +55,22 @@ public class WebhookHandler implements Handler
     {
         this.webhookTarget = target;
         this.restTemplate = new RestTemplate();
+        configure( target );
     }
 
-    public void run( String payload )
+    private void configure( WebhookTarget target )
+    {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectionRequestTimeout( 1_000 );
+        requestFactory.setConnectTimeout( 5_000 );
+        requestFactory.setReadTimeout( 10_000 );
+        requestFactory.setBufferRequestBody( true );
+
+        restTemplate.setRequestFactory( requestFactory );
+    }
+
+    @Override
+    public void run( EventHook eventHook, Event event, String payload )
     {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
