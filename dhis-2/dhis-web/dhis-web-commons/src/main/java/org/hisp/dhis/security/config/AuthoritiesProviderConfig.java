@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.security.config;
 
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
@@ -58,9 +61,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -108,7 +108,7 @@ public class AuthoritiesProviderConfig
         detectingSystemAuthoritiesProvider.setRequiredAuthoritiesProvider( requiredAuthoritiesProvider() );
 
         CompositeSystemAuthoritiesProvider provider = new CompositeSystemAuthoritiesProvider();
-        provider.setSources( ImmutableSet.of(
+        provider.setSources( Set.of(
             new CachingSystemAuthoritiesProvider( detectingSystemAuthoritiesProvider ),
             new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider() ),
             new CachingSystemAuthoritiesProvider( simpleSystemAuthoritiesProvider() ),
@@ -130,7 +130,7 @@ public class AuthoritiesProviderConfig
         DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
         provider.setRequiredAuthoritiesKey( "requiredAuthorities" );
         provider.setAnyAuthoritiesKey( "anyAuthorities" );
-        provider.setGlobalAttributes( ImmutableSet.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
+        provider.setGlobalAttributes( Set.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
         return provider;
     }
 
@@ -139,7 +139,7 @@ public class AuthoritiesProviderConfig
         ModuleSystemAuthoritiesProvider provider = new ModuleSystemAuthoritiesProvider();
         provider.setAuthorityPrefix( "M_" );
         provider.setModuleManager( moduleManager );
-        provider.setExcludes( ImmutableSet.of(
+        provider.setExcludes( Set.of(
             "dhis-web-commons-menu",
             "dhis-web-commons-menu-management",
             "dhis-web-commons-oust",
@@ -165,7 +165,7 @@ public class AuthoritiesProviderConfig
         DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
         provider.setRequiredAuthoritiesKey( "requiredAuthorities" );
         provider.setAnyAuthoritiesKey( "anyAuthorities" );
-        provider.setGlobalAttributes( ImmutableSet.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
+        provider.setGlobalAttributes( Set.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
 
         SpringSecurityActionAccessResolver resolver = new SpringSecurityActionAccessResolver();
         resolver.setRequiredAuthoritiesProvider( provider );
@@ -194,7 +194,7 @@ public class AuthoritiesProviderConfig
         unitsAction.setSelectionTreeManager( selectionTreeManager );
 
         LoginInterceptor interceptor = new LoginInterceptor();
-        interceptor.setActions( ImmutableList.of( unitsAction ) );
+        interceptor.setActions( List.of( unitsAction ) );
 
         return interceptor;
     }

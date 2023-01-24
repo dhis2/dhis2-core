@@ -50,7 +50,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Zubair Asghar.
@@ -67,7 +66,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
-    private static final Set<ImportStrategy> UPDATE_STRATEGIES = ImmutableSet.of(
+    private static final Set<ImportStrategy> UPDATE_STRATEGIES = Set.of(
         ImportStrategy.UPDATE,
         ImportStrategy.CREATE_AND_UPDATE,
         ImportStrategy.NEW_AND_UPDATES,
