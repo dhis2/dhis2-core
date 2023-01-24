@@ -226,7 +226,7 @@ public class SchedulingManagerTest
         setUpJobExecute( jobConfiguration -> Thread.currentThread().interrupt() );
         // synchronously
         task.run();
-        assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
+        assertEquals( JobStatus.FAILED, configuration.getLastExecutedStatus() );
         assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
     }
 
@@ -263,6 +263,8 @@ public class SchedulingManagerTest
     {
         doAnswer( invocation -> {
             execute.accept( invocation.getArgument( 0, JobConfiguration.class ) );
+            if ( Thread.currentThread().isInterrupted() )
+                throw new InterruptedException();
             return null;
         } ).when( job ).execute( any( JobConfiguration.class ), any( JobProgress.class ) );
     }
