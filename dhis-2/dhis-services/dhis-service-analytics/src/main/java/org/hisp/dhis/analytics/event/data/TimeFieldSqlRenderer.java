@@ -157,7 +157,7 @@ public abstract class TimeFieldSqlRenderer
     private void addDefaultDateToConditions( EventQueryParams params, List<String> conditions )
     {
         ColumnWithDateRange defaultDateRangeColumn = ColumnWithDateRange.builder()
-            .column( getColumnName( TimeField.of( params.getTimeField() ), params.getOutputType() ) )
+            .column( getColumnName( getTimeField( params ), params.getOutputType() ) )
             .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
             .build();
 
@@ -174,8 +174,7 @@ public abstract class TimeFieldSqlRenderer
      */
     protected Optional<TimeField> getTimeField( EventQueryParams params )
     {
-        return TimeField.of( params.getTimeField() )
-            .filter( this::isAllowed );
+        return TimeField.of( params.getTimeField() ).filter( this::isAllowed );
     }
 
     @Data
