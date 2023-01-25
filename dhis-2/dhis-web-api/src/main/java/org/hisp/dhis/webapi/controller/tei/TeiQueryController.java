@@ -122,7 +122,7 @@ class TeiQueryController
 
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
-        final TeiQueryParams params = mapper.map( queryRequest );
+        TeiQueryParams params = mapper.map( queryRequest );
 
         return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
     }
@@ -140,6 +140,7 @@ class TeiQueryController
         HttpServletResponse response )
     {
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
+
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
