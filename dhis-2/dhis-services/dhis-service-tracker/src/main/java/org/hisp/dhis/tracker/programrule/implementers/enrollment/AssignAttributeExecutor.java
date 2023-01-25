@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+import static org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor.isEqual;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -54,7 +55,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignAttributeExecutor implements AssignValueExecutor<Enrollment>
+public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment>
 {
     private final SystemSettingManager systemSettingManager;
 

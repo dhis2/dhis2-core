@@ -27,24 +27,19 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
+import static org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor.isEqual;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class AssignValueExecutorTest
+class RuleActionExecutorTest
 {
-    private static AssignValueExecutor executor;
-
     private static Stream<Arguments> equalValues()
     {
         return Stream.of(
@@ -78,37 +73,24 @@ class AssignValueExecutorTest
             Arguments.of( null, "second_dose", ValueType.TEXT ) );
     }
 
-    @BeforeAll
-    static void setup()
-    {
-        executor = new AssignValueExecutor()
-        {
-            @Override
-            public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Object entity )
-            {
-                return Optional.empty();
-            }
-        };
-    }
-
     @ParameterizedTest
     @MethodSource( "equalValues" )
     void shouldCheckValuesAreEqual( String value, ValueType valueType )
     {
-        assertTrue( executor.isEqual( value, value, valueType ) );
+        assertTrue( isEqual( value, value, valueType ) );
     }
 
     @ParameterizedTest
     @MethodSource( "differentValues" )
     void shouldCheckDifferentValuesOfSameTypeAreDifferent( String value1, String value2, ValueType valueType )
     {
-        assertFalse( executor.isEqual( value1, value2, valueType ) );
+        assertFalse( isEqual( value1, value2, valueType ) );
     }
 
     @ParameterizedTest
     @MethodSource( "valuesOfDifferentTypes" )
     void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues( String value1, String value2, ValueType valueType )
     {
-        assertFalse( executor.isEqual( value1, value2, valueType ) );
+        assertFalse( isEqual( value1, value2, valueType ) );
     }
 }

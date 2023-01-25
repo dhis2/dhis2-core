@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule.implementers.event;
 
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
+import static org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor.isEqual;
 
 import java.util.Optional;
 import java.util.Set;
@@ -43,7 +44,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -53,7 +54,7 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  * @Author Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignDataValueExecutor implements AssignValueExecutor<Event>
+public class AssignDataValueExecutor implements RuleActionExecutor<Event>
 {
     private final SystemSettingManager systemSettingManager;
 
