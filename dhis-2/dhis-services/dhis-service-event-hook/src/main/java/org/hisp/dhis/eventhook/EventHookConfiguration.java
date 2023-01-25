@@ -45,8 +45,8 @@ public class EventHookConfiguration
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         // setting static defaults for now, we might to make this configurable in dhis.conf in the future
-        executor.setCorePoolSize( 10 );
-        executor.setMaxPoolSize( 50 );
+        executor.setCorePoolSize( 50 );
+        executor.setMaxPoolSize( 500 );
         executor.setQueueCapacity( 5000 );
         executor.setThreadNamePrefix( "EventHook-" );
         executor.initialize();

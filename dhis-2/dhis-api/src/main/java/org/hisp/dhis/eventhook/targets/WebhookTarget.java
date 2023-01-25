@@ -51,7 +51,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class WebhookTarget extends Target
 {
     @JsonProperty( required = true )
-    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+    private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
 
     @JsonProperty( required = true )
     private String url;

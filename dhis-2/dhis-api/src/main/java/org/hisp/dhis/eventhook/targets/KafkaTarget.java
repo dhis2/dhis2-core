@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class KafkaTarget extends Target
 {
     @JsonProperty( required = true )
-    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+    private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
 
     @JsonProperty( required = true )
     private String bootstrapServers = "localhost:9092";

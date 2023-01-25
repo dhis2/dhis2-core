@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class JmsTarget extends Target
 {
     @JsonProperty( required = true )
-    private String clientId = "dhis2-" + CodeGenerator.generateUid();
+    private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
 
     @JsonProperty( required = true )
     private String groupId = "dhis2";
