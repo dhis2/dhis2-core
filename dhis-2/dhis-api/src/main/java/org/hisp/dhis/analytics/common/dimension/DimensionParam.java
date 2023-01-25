@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.STATIC_DIMENSION;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,17 +53,15 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 
 /**
- * A wrapper for DimensionObject|QueryItem|StaticDimension to abstract them
+ * Object responsible to wrap/encapsulate instances of
+ * DimensionObject|QueryItem|StaticDimension.
  */
 @Data
 @Slf4j
@@ -74,16 +81,19 @@ public class DimensionParam implements UidObject
     private final List<DimensionParamItem> items = new ArrayList<>();
 
     /**
-     * allows to create an instance of DimensionParam passing the object to wrap
-     * (a DimensionalObject, a QueryItem or a static dimension), the type and a
-     * list of filters (can be empty)
+     * Allows to create an instance of DimensionParam. We should pass the object
+     * to be wrapped (a {@link DimensionalObject}, a {@link QueryItem} or a
+     * static dimension), the type ({@link DimensionParamType}) and a list of
+     * filters ({@link List<String>}). This last can be empty.
      *
-     * @param dimensionalObjectOrQueryItem either an DimensionalObject or
-     *        QueryItem, this instance wraps
-     * @param dimensionParamType type of this parameter (wether it's a filter or
-     *        a dimension)
-     * @param items the items parameters fot this DimensionParam
-     * @return a new instance of DimensionParams
+     * @param dimensionalObjectOrQueryItem either a {@link DimensionalObject} or
+     *        {@link QueryItem}, or a static dimension.
+     * @param dimensionParamType the {@link DimensionParamType} for the
+     *        {@link DimensionParam} returned (weather it's a filter or a
+     *        dimension).
+     * @param items the list of items parameters for this DimensionParam.
+     *
+     * @return a new instance of {@link DimensionParam}.
      */
     public static DimensionParam ofObject( Object dimensionalObjectOrQueryItem, DimensionParamType dimensionParamType,
         List<String> items )
@@ -93,9 +103,7 @@ public class DimensionParam implements UidObject
 
         if ( dimensionParamType == DATE_FILTERS )
         {
-            items = items.stream()
-                .map( item -> QueryOperator.EQ + ":" + item )
-                .collect( Collectors.toList() );
+            items = items.stream().map( item -> EQ + ":" + item ).collect( Collectors.toList() );
         }
 
         DimensionParamBuilder builder = DimensionParam.builder()
@@ -104,10 +112,9 @@ public class DimensionParam implements UidObject
 
         if ( dimensionalObjectOrQueryItem instanceof DimensionalObject )
         {
-            return builder
-                .dimensionalObject( (DimensionalObject) dimensionalObjectOrQueryItem )
-                .build();
+            return builder.dimensionalObject( (DimensionalObject) dimensionalObjectOrQueryItem ).build();
         }
+
         if ( dimensionalObjectOrQueryItem instanceof QueryItem )
         {
             return builder
@@ -115,14 +122,12 @@ public class DimensionParam implements UidObject
                 .build();
         }
 
-        // if it's neither a DimensionalObject nor a QueryItem, we try to see if
-        // it's a static Dimension
+        // If this is neither a DimensionalObject nor a QueryItem, we try to see if it's a static Dimension.
         Optional<StaticDimension> staticDimension = StaticDimension.of( dimensionalObjectOrQueryItem.toString() );
+
         if ( staticDimension.isPresent() )
         {
-            return builder
-                .staticDimension( staticDimension.get() )
-                .build();
+            return builder.staticDimension( staticDimension.get() ).build();
         }
 
         String receivedIdentifier = dimensionalObjectOrQueryItem.getClass().equals( String.class )
@@ -130,8 +135,8 @@ public class DimensionParam implements UidObject
             : dimensionalObjectOrQueryItem.getClass().getName();
 
         throw new IllegalArgumentException(
-            "Only DimensionalObject, QueryItem or static dimensions are allowed. Received " +
-                receivedIdentifier + " instead" );
+            "Only DimensionalObject, QueryItem or static dimensions are allowed. Received " + receivedIdentifier
+                + " instead" );
     }
 
     public static boolean isStaticDimensionIdentifier( String dimensionIdentifier )
@@ -140,15 +145,15 @@ public class DimensionParam implements UidObject
     }
 
     /**
-     * @return true if this DimensionParams has some items on it
+     * @return true if this DimensionParams has some items on it.
      */
     public boolean hasRestrictions()
     {
-        return CollectionUtils.isNotEmpty( items );
+        return isNotEmpty( items );
     }
 
     /**
-     * @return true if this DimensionParam is a filter
+     * @return true if this DimensionParam is a filter.
      */
     public boolean isFilter()
     {
@@ -157,12 +162,12 @@ public class DimensionParam implements UidObject
 
     public boolean isDimensionalObject()
     {
-        return Objects.nonNull( dimensionalObject );
+        return nonNull( dimensionalObject );
     }
 
     public boolean isQueryItem()
     {
-        return Objects.nonNull( queryItem );
+        return nonNull( queryItem );
     }
 
     public boolean isStaticDimension()
@@ -171,20 +176,21 @@ public class DimensionParam implements UidObject
     }
 
     /**
-     * @return the DimensionParamObjectType of this DimensionParam
+     * @return the DimensionParamObjectType of this DimensionParam.
      */
     public DimensionParamObjectType getDimensionParamObjectType()
     {
         if ( isDimensionalObject() )
         {
-            return DimensionParamObjectType.byForeignType( dimensionalObject.getDimensionType() );
-        }
-        if ( isQueryItem() )
-        {
-            return DimensionParamObjectType.byForeignType( queryItem.getItem().getDimensionItemType() );
+            return byForeignType( dimensionalObject.getDimensionType() );
         }
 
-        return DimensionParamObjectType.STATIC_DIMENSION;
+        if ( isQueryItem() )
+        {
+            return byForeignType( queryItem.getItem().getDimensionItemType() );
+        }
+
+        return STATIC_DIMENSION;
     }
 
     public ValueType getValueType()
@@ -193,10 +199,12 @@ public class DimensionParam implements UidObject
         {
             return dimensionalObject.getValueType();
         }
+
         if ( isQueryItem() )
         {
             return queryItem.getValueType();
         }
+
         return staticDimension.valueType;
     }
 
@@ -206,10 +214,12 @@ public class DimensionParam implements UidObject
         {
             return dimensionalObject.getUid();
         }
+
         if ( isQueryItem() )
         {
             return queryItem.getItem().getUid();
         }
+
         return staticDimension.getColumnName();
     }
 
@@ -221,7 +231,7 @@ public class DimensionParam implements UidObject
 
     public boolean isPeriodDimension()
     {
-        return isDimensionalObject() && dimensionalObject.getDimensionType() == DimensionType.PERIOD;
+        return isDimensionalObject() && dimensionalObject.getDimensionType() == PERIOD;
     }
 
     public String getName()
@@ -230,23 +240,25 @@ public class DimensionParam implements UidObject
         {
             return dimensionalObject.getName();
         }
+
         if ( isQueryItem() )
         {
             return queryItem.getItem().getName();
         }
+
         return staticDimension.name();
     }
 
     @RequiredArgsConstructor
     enum StaticDimension
     {
-        OUNAME( ValueType.TEXT ),
-        ENROLLMENTDATE( ValueType.DATETIME ),
-        ENDDATE( ValueType.DATETIME ),
-        INCIDENTDATE( ValueType.DATETIME ),
-        EXECUTIONDATE( ValueType.DATETIME ),
-        LASTUPDATED( ValueType.DATETIME ),
-        CREATED( ValueType.DATETIME );
+        OUNAME( TEXT ),
+        ENROLLMENTDATE( DATETIME ),
+        ENDDATE( DATETIME ),
+        INCIDENTDATE( DATETIME ),
+        EXECUTIONDATE( DATETIME ),
+        LASTUPDATED( DATETIME ),
+        CREATED( DATETIME );
 
         private final ValueType valueType;
 
@@ -256,8 +268,9 @@ public class DimensionParam implements UidObject
         StaticDimension( ValueType valueType )
         {
             this.valueType = valueType;
-            // by default, columnName is "name" in lowercase
-            this.columnName = StringUtils.lowerCase( name() );
+
+            // By default, columnName is its own "name" in lowercase.
+            this.columnName = lowerCase( name() );
         }
 
         static Optional<StaticDimension> of( String value )
