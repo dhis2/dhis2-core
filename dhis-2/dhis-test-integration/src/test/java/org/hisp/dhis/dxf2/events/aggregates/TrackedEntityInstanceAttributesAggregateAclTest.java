@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
@@ -44,7 +45,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 /**
@@ -93,8 +93,8 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
                 .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-            this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
             this.persistTrackedEntityInstance();
             this.persistTrackedEntityInstance();
         } );

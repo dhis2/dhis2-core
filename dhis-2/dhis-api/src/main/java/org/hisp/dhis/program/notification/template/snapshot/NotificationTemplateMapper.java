@@ -32,6 +32,7 @@ import static java.util.Collections.singleton;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -46,8 +47,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
 @Service( "org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper" )
 public class NotificationTemplateMapper
 {
@@ -55,7 +54,7 @@ public class NotificationTemplateMapper
     public ProgramNotificationTemplate toProgramNotificationTemplate(
         ProgramNotificationTemplateSnapshot templateSnapshot )
     {
-        return toBaseIdentifiableObject( templateSnapshot, ProgramNotificationTemplate::new, ImmutableList.of(
+        return toBaseIdentifiableObject( templateSnapshot, ProgramNotificationTemplate::new, List.of(
             t -> t.setMessageTemplate( templateSnapshot.getMessageTemplate() ),
             t -> t.setNotificationRecipient( templateSnapshot.getNotificationRecipient() ),
             t -> t.setRecipientProgramAttribute(
@@ -75,7 +74,7 @@ public class NotificationTemplateMapper
         ProgramNotificationTemplate template )
     {
 
-        return toIdentifiableObjectSnapshot( template, ProgramNotificationTemplateSnapshot::new, ImmutableList.of(
+        return toIdentifiableObjectSnapshot( template, ProgramNotificationTemplateSnapshot::new, List.of(
             t -> t.setMessageTemplate( template.getMessageTemplate() ),
             t -> t.setNotificationRecipient( template.getNotificationRecipient() ),
             t -> t.setRecipientProgramAttribute(
@@ -95,7 +94,7 @@ public class NotificationTemplateMapper
 
     private UserGroup toUserGroup( UserGroupSnapshot userGroupSnapshot )
     {
-        return toBaseIdentifiableObject( userGroupSnapshot, UserGroup::new, ImmutableList.of(
+        return toBaseIdentifiableObject( userGroupSnapshot, UserGroup::new, List.of(
             ug -> ug.setMembers( toUsers( userGroupSnapshot.getMembers() ) ) ) );
     }
 
@@ -103,7 +102,7 @@ public class NotificationTemplateMapper
         UserGroup userGroup )
     {
         return toIdentifiableObjectSnapshot( userGroup,
-            UserGroupSnapshot::new, ImmutableList.of(
+            UserGroupSnapshot::new, List.of(
                 ug -> ug.setMembers( toUserSnapshot( userGroup.getMembers(), 0 ) ) ) );
     }
 
@@ -115,7 +114,7 @@ public class NotificationTemplateMapper
         {
             users.add(
                 toBaseIdentifiableObject( userSnapshot, User::new,
-                    ImmutableList.of(
+                    List.of(
                         u -> u.setName( userSnapshot.getName() ),
                         u -> u.setUsername( userSnapshot.getUsername() ),
                         u -> u.setEmail( userSnapshot.getEmail() ),
@@ -135,7 +134,7 @@ public class NotificationTemplateMapper
         {
             userSnapshots.add(
                 toIdentifiableObjectSnapshot( user, UserSnapshot::new,
-                    ImmutableList.of(
+                    List.of(
                         u -> u.setName( user.getName() ),
                         u -> u.setUsername( user.getUsername() ),
                         u -> u.setEmail( user.getEmail() ),
@@ -151,7 +150,7 @@ public class NotificationTemplateMapper
         return toBaseIdentifiableObject(
             organisationUnitSnapshot,
             OrganisationUnit::new,
-            ImmutableList.of(
+            List.of(
                 ou -> ou.setName( organisationUnitSnapshot.getName() ),
                 ou -> ou.setDescription( organisationUnitSnapshot.getDescription() ),
                 ou -> ou.setShortName( organisationUnitSnapshot.getShortName() ),
@@ -170,7 +169,7 @@ public class NotificationTemplateMapper
             return toIdentifiableObjectSnapshot(
                 organisationUnit,
                 OrganisationUnitSnapshot::new,
-                ImmutableList.of(
+                List.of(
                     ou -> ou.setName( organisationUnit.getName() ),
                     ou -> ou.setDescription( organisationUnit.getDescription() ),
                     ou -> ou.setShortName( organisationUnit.getShortName() ),
