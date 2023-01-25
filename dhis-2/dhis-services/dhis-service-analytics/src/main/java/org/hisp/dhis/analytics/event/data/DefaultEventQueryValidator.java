@@ -249,7 +249,7 @@ public class DefaultEventQueryValidator
     /**
      * Some filter values may require some conversion, so they can be correctly
      * evaluated and properly validated. This method will provide the conversion
-     * needed for each {@link ValueType} applicable.
+     * needed for each {@link ValueType} if applicable.
      *
      * @param valueType the {@link ValueType}.
      * @param filterValue the value to be converted.
