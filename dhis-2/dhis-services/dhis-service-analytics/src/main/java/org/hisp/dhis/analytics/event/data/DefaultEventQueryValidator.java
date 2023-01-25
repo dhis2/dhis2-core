@@ -228,7 +228,8 @@ public class DefaultEventQueryValidator
      * @param valueType the {@link ValueType}.
      * @param filterValue the filter value.
      *
-     * @return the validation{@link ErrorMessage}, or null if no error is found.
+     * @return the validation {@link ErrorMessage}, or null if no error is
+     *         found.
      */
     private ErrorMessage validateFilterValue( QueryOperator operator, ValueType valueType, String filterValue )
     {
@@ -271,15 +272,13 @@ public class DefaultEventQueryValidator
      * Based on the given input, this method will replace the first two ".", by
      * ":". ie:
      *
-     * "12.02" -> "12:02"
-     *
-     * "2023-12-25T12.02.00" -> "2023-12-25T12:02:00"
+     * "12.02" -> "12:02", "2023-12-25T12.02.00" -> "2023-12-25T12:02:00"
      *
      * This is required because of the URL params uses "." as separator, so it
      * does not clash with the character ":", used by dimensions. But
      * internally, the date/time masks requires the separator ":".
      *
-     * @param dateTime time, or date/time
+     * @param dateTime time, or date/time.
      *
      * @return the value with the correct separators.
      */
