@@ -222,16 +222,7 @@ class ValidationUtilsTest
     }
 
     @Test
-    void testValueIsComparable()
-    {
-        testIntegerTypes();
-        testDoubleTypes();
-        testBooleanTypes();
-        testDateTimeTypes();
-        testStringTypes();
-    }
-
-    private void testIntegerTypes()
+    void testValueIsComparableForIntegerTypes()
     {
         ValueType valueType = INTEGER;
         assertTrue( valueIsComparable( "0", valueType ) );
@@ -266,7 +257,8 @@ class ValidationUtilsTest
         assertFalse( valueIsComparable( "a", valueType ) );
     }
 
-    private void testDoubleTypes()
+    @Test
+    void testValueIsComparableForDoubleTypes()
     {
         ValueType valueType;
         valueType = NUMBER;
@@ -300,7 +292,8 @@ class ValidationUtilsTest
         assertFalse( valueIsComparable( "a", valueType ) );
     }
 
-    private void testBooleanTypes()
+    @Test
+    void testValueIsComparableForBooleanTypes()
     {
         ValueType valueType;
         valueType = BOOLEAN;
@@ -324,7 +317,8 @@ class ValidationUtilsTest
         assertFalse( valueIsComparable( "a", valueType ) );
     }
 
-    private void testDateTimeTypes()
+    @Test
+    void testValueIsComparableForDateTimeTypes()
     {
         ValueType valueType;
         valueType = DATE;
@@ -357,7 +351,8 @@ class ValidationUtilsTest
         assertFalse( valueIsComparable( "-", valueType ) );
     }
 
-    private void testStringTypes()
+    @Test
+    void testValueIsComparableForStringTypes()
     {
         ValueType valueType;
         valueType = LONG_TEXT;
