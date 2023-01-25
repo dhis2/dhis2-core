@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tei.query.context;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.ProgramIndicatorContext.EMPTY_PROGRAM_INDICATOR_CONTEXT;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +75,7 @@ public class QueryContext
                     .map( TeiQueryParams::getTrackedEntityType )
                     .orElse( null ),
                 parameterManager ).build(),
-            null,
+            EMPTY_PROGRAM_INDICATOR_CONTEXT,
             parameterManager );
     }
 

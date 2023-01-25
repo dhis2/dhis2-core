@@ -64,6 +64,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Builder( access = PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
 public class ProgramIndicatorContext
 {
+    static final ProgramIndicatorContext EMPTY_PROGRAM_INDICATOR_CONTEXT = ProgramIndicatorContext.builder().build();
+
     @Getter
     @Singular
     private final List<Field> fields;
