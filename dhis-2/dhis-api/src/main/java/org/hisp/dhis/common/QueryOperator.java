@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 import java.util.Set;
@@ -77,7 +78,7 @@ public enum QueryOperator
 
     public static QueryOperator fromString( String string )
     {
-        if ( string == null || string.isEmpty() )
+        if ( isBlank( string ) )
         {
             return null;
         }
@@ -104,5 +105,10 @@ public enum QueryOperator
     public boolean isLike()
     {
         return LIKE_OPERATORS.contains( this );
+    }
+
+    public boolean isIn()
+    {
+        return IN == this;
     }
 }
