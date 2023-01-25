@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +44,24 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventHookPublisher
 {
+    static private final List<?> BLACKLIST = List.of(
+        User.class,
+        EventHook.class );
+
     private final DhisConfigurationProvider dhisConfig;
 
     private final ApplicationEventPublisher publisher;
 
     public void publishEvent( Event event )
     {
-        if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED ) )
+        // TODO: Should there always be an object?
+        if ( event == null || event.getObject() == null )
+        {
+            return;
+        }
+
+        if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED )
+            && !BLACKLIST.contains( event.getObject().getClass() ) )
         {
             publisher.publishEvent( event );
         }
