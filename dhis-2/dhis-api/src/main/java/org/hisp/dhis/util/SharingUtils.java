@@ -44,7 +44,7 @@ import com.google.common.collect.*;
 public class SharingUtils
 {
     private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
-        "userAccesses", "userGroupAccess", "publicAccess", "externalAccess" ).build();
+        "userAccesses", "userGroupAccesses", "publicAccess", "externalAccess" ).build();
 
     private static final ImmutableList<String> SHARING_PROPERTIES = ImmutableList.<String> builder().add(
         "userGroups", "users" ).build();

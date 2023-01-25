@@ -76,7 +76,7 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
     private UserService _userService;
 
     @Autowired
-    private IdentifiableObjectManager manager;
+    protected IdentifiableObjectManager manager;
 
     private MockMvc mvc;
 

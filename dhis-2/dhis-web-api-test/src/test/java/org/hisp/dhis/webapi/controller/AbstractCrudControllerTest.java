@@ -34,12 +34,16 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
+import java.util.Collections;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
@@ -259,6 +263,30 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         assertEquals( "Fancy Mike", GET( "/users/{id}", id )
             .content().as( JsonUser.class ).getFirstName() );
+    }
+
+    @Test
+    public void testPatchSharingUserGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', Collections.emptySet() );
+        userGroupA.setUid( "th4S6ovwcr8" );
+        UserGroup userGroupB = createUserGroup( 'B', Collections.emptySet() );
+        userGroupB.setUid( "ZoHNWQajIoe" );
+        manager.save( userGroupA );
+        manager.save( userGroupB );
+
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+
+        assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
+            "[{'op': 'add', 'path': '/sharing/userGroups/th4S6ovwcr8', 'value': { 'access': 'rw------', 'id': 'th4S6ovwcr8' } }]" ) );
+
+        assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
+            "[{'op': 'add', 'path': '/sharing/userGroups/ZoHNWQajIoe', 'value': { 'access': 'rw------', 'id': 'ZoHNWQajIoe' } }]" ) );
+
+        JsonResponse dataSet = GET( "/dataSets/{id}", dsId ).content();
+        assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "th4S6ovwcr8" ) );
+        assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "ZoHNWQajIoe" ) );
     }
 
     @Test
