@@ -60,7 +60,7 @@ public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event>
     @Override
     public boolean needsToRun( Event event )
     {
-        return EventStatus.COMPLETED.equals( event.getStatus() );
+        return EventStatus.COMPLETED == event.getStatus();
     }
 
     @Override

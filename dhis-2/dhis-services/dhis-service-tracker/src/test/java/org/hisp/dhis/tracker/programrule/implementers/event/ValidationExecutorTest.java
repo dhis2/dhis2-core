@@ -64,7 +64,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ShowErrorWarningExecutorTest extends DhisConvenienceTest
+class ValidationExecutorTest extends DhisConvenienceTest
 {
     private final static String RULE_UID = "Rule uid";
 
@@ -83,14 +83,14 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
     private ShowWarningOnCompleteExecutor warningOnCompleteExecutor = new ShowWarningOnCompleteExecutor(
-        getErrorRuleAction( WARNING ) );
+        getValidationRuleAction( WARNING ) );
 
     private ShowErrorOnCompleteExecutor errorOnCompleteExecutor = new ShowErrorOnCompleteExecutor(
-        getErrorRuleAction( ERROR ) );
+        getValidationRuleAction( ERROR ) );
 
-    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getErrorRuleAction( ERROR ) );
+    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getValidationRuleAction( ERROR ) );
 
-    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getErrorRuleAction( WARNING ) );
+    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getValidationRuleAction( WARNING ) );
 
     private TrackerBundle bundle;
 
@@ -202,7 +202,7 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
         assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
     }
 
-    private ValidationRuleAction getErrorRuleAction( IssueType issueType )
+    private ValidationRuleAction getValidationRuleAction( IssueType issueType )
     {
         return new ValidationRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
     }

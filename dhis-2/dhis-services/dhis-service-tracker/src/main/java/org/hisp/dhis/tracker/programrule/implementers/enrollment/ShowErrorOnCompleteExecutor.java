@@ -55,7 +55,7 @@ public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Enrollmen
     @Override
     public boolean needsToRun( Enrollment enrollment )
     {
-        return EnrollmentStatus.COMPLETED.equals( enrollment.getStatus() );
+        return EnrollmentStatus.COMPLETED == enrollment.getStatus();
     }
 
     @Override

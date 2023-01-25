@@ -54,7 +54,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class ShowErrorWarningExecutorTest extends DhisConvenienceTest
+class ValidationExecutorTest extends DhisConvenienceTest
 {
     private final static String RULE_UID = "Rule uid";
 

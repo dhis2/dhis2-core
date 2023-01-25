@@ -48,7 +48,7 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T>
 {
     IssueType getIssueType();
 
-    boolean needsToRun( T dto );
+    boolean needsToRun( T t );
 
     default Optional<ProgramRuleIssue> execute( ValidationRuleAction ruleAction, T dto )
     {

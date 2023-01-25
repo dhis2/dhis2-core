@@ -51,7 +51,7 @@ public class ShowWarningExecutor implements ValidationExecutor<Enrollment>
     private final ValidationRuleAction ruleAction;
 
     @Override
-    public boolean needsToRun( Enrollment dto )
+    public boolean needsToRun( Enrollment enrollment )
     {
         return true;
     }
