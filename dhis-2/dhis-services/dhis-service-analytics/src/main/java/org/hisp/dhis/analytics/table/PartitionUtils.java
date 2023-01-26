@@ -71,7 +71,6 @@ public class PartitionUtils
     /**
      * Returns the start date for the given year, inclusive.
      *
-     * @param calendar the calendar to base the date on.
      * @param year the year.
      * @return the start date.
      */
@@ -98,7 +97,6 @@ public class PartitionUtils
      * Returns the end date for the given year, exclusive, i.e. the start date
      * of the year after the given year.
      *
-     * @param calendar the calendar to base the date on.
      * @param year the year.
      * @return the start date.
      */
