@@ -222,7 +222,8 @@ public class DimensionParam implements UidObject
         return staticDimension.valueType;
     }
 
-    public String getDimensionObjectUid()
+    @Override
+    public String getUid()
     {
         if ( isDimensionalObject() )
         {
@@ -235,12 +236,6 @@ public class DimensionParam implements UidObject
         }
 
         return staticDimension.getColumnName();
-    }
-
-    @Override
-    public String getUid()
-    {
-        return getDimensionObjectUid();
     }
 
     public boolean isPeriodDimension()

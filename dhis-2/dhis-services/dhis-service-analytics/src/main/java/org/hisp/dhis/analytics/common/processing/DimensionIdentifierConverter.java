@@ -61,8 +61,7 @@ public class DimensionIdentifierConverter
      * @throws IllegalArgumentException if the programUid in the
      *         "fullDimensionId" does not belong the list of "programsAllowed"
      */
-    public DimensionIdentifier<StringUid> fromString( List<Program> allowedPrograms,
-        String fullDimensionId )
+    public DimensionIdentifier<StringUid> fromString( List<Program> allowedPrograms, String fullDimensionId )
     {
         StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
             fullDimensionId );
@@ -78,42 +77,33 @@ public class DimensionIdentifierConverter
         ElementWithOffset<StringUid> programStageWithOffset = dimensionIdentifier.getProgramStage();
         StringUid dimensionId = dimensionIdentifier.getDimension();
 
-        if ( dimensionIdentifier.getProgramStage().isPresent() )
-        { // Contains a fully qualified dimension. ie.:
-         // {programUid}.{programStageUid}.DataElementUid.
-            if ( programOptional.isPresent() )
-            {
-                Program program = programOptional.get();
-
-                return extractProgramStageIfExists( program, programStageWithOffset.getElement() )
-                    .map( programStage -> DimensionIdentifier.of(
-                        ElementWithOffset.of( program, programWithOffset.getOffset() ),
-                        ElementWithOffset.of( programStage, programStageWithOffset.getOffset() ),
-                        dimensionId ) )
-                    .orElseThrow( () -> new IllegalArgumentException(
-                        "Program stage " + programStageWithOffset + " is not defined in program "
-                            + programWithOffset ) );
+        if ( !dimensionIdentifier.getProgramStage().isPresent() )
+        {
+            if ( !dimensionIdentifier.getProgram().isPresent() )
+            { // Contains only a dimension.
+                return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
             }
-            else
-            {
-                throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
-            }
-        }
-        else if ( dimensionIdentifier.getProgram().isPresent() )
-        { // Contains only program + dimension. ie.: {programUid}.dimensionUid.
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(
                     ("Specified program " + programWithOffset + " does not exist") ) );
-
             return DimensionIdentifier.of(
                 ElementWithOffset.of( program, programWithOffset.getOffset() ),
                 emptyElementWithOffset(),
                 dimensionId );
         }
-        else
-        { // Contains only a dimension.
-            return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
+        if ( programOptional.isEmpty() )
+        {
+            throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
         }
+        Program program = programOptional.get();
+        return extractProgramStageIfExists( program, programStageWithOffset.getElement() )
+            .map( programStage -> DimensionIdentifier.of(
+                ElementWithOffset.of( program, programWithOffset.getOffset() ),
+                ElementWithOffset.of( programStage, programStageWithOffset.getOffset() ),
+                dimensionId ) )
+            .orElseThrow( () -> new IllegalArgumentException(
+                "Program stage " + programStageWithOffset + " is not defined in program "
+                    + programWithOffset ) );
     }
 
     /**

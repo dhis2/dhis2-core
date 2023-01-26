@@ -65,7 +65,7 @@ public class EventDataValueCondition extends AbstractCondition
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
 
         DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
-        String doUid = dimensionIdentifier.getDimension().getDimensionObjectUid();
+        String doUid = dimensionIdentifier.getDimension().getUid();
 
         return BinaryConditionRenderer.of(
             RenderableDataValue.of( EVT_ALIAS, doUid, valueTypeMapping ),
