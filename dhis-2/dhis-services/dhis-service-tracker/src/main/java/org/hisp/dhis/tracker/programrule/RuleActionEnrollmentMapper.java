@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignAttributeExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorWarningRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldExecutor;
@@ -103,7 +103,7 @@ class RuleActionEnrollmentMapper
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignValueExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
+            return new AssignAttributeExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {
