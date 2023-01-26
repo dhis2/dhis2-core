@@ -71,7 +71,7 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals( "\"ou\" in (:1)", render );
-        assertEquals( ous, queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -93,7 +93,7 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals( "\"ou\" = :1", render );
-        assertEquals( ous.get( 0 ), queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -128,10 +128,10 @@ class OrganisationUnitConditionTest
                 "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" = :3)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "1" ) );
+            queryContext.getParametersPlaceHolder().get( "1" ) );
         assertEquals( dimensionIdentifier.getProgramStage().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "2" ) );
-        assertEquals( ous.get( 0 ), queryContext.getParametersByPlaceHolder().get( "3" ) );
+            queryContext.getParametersPlaceHolder().get( "2" ) );
+        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "3" ) );
     }
 
     @Test
@@ -166,10 +166,10 @@ class OrganisationUnitConditionTest
                 "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" in (:3))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "1" ) );
+            queryContext.getParametersPlaceHolder().get( "1" ) );
         assertEquals( dimensionIdentifier.getProgramStage().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "2" ) );
-        assertEquals( ous, queryContext.getParametersByPlaceHolder().get( "3" ) );
+            queryContext.getParametersPlaceHolder().get( "2" ) );
+        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "3" ) );
     }
 
     @Test
@@ -201,8 +201,8 @@ class OrganisationUnitConditionTest
                 "enr where enr.\"ou\" = :2)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "1" ) );
-        assertEquals( ous.get( 0 ), queryContext.getParametersByPlaceHolder().get( "2" ) );
+            queryContext.getParametersPlaceHolder().get( "1" ) );
+        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "2" ) );
     }
 
     @Test
@@ -234,8 +234,8 @@ class OrganisationUnitConditionTest
                 "enr where enr.\"ou\" in (:2))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersByPlaceHolder().get( "1" ) );
-        assertEquals( ous, queryContext.getParametersByPlaceHolder().get( "2" ) );
+            queryContext.getParametersPlaceHolder().get( "1" ) );
+        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "2" ) );
     }
 
     private TrackedEntityType stubTrackedEntityType( String uid )

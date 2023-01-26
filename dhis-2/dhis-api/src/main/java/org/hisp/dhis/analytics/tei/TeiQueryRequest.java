@@ -39,5 +39,4 @@ import lombok.With;
 public class TeiQueryRequest
 {
     private String trackedEntityType;
-
 }

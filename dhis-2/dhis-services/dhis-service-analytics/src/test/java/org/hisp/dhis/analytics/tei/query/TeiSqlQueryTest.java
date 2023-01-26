@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Dusan Bernat
  */
-class TeiFullQueryTest extends DhisConvenienceTest
+class TeiSqlQueryTest extends DhisConvenienceTest
 {
     @Test
     void testSqlQueryRenderingWithOrgUnitNameObject()
@@ -65,7 +65,7 @@ class TeiFullQueryTest extends DhisConvenienceTest
             .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, "ouname" ) )
             .build();
 
-        TeiFullQuery query = TeiFullQuery.builder()
+        TeiSqlQuery query = TeiSqlQuery.builder()
             .teiQueryParams( teiQueryParams )
             .queryContext( QueryContext.of( teiQueryParams ) )
             .build();
@@ -89,7 +89,7 @@ class TeiFullQueryTest extends DhisConvenienceTest
             .commonParams( stubSortingCommonParams( createProgram( 'A' ), "0", dimensionalObject ) )
             .build();
 
-        TeiFullQuery query = TeiFullQuery.builder()
+        TeiSqlQuery query = TeiSqlQuery.builder()
             .teiQueryParams( teiQueryParams )
             .queryContext( QueryContext.of( teiQueryParams ) )
             .build();

@@ -74,37 +74,62 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
+/**
+ * Class that encapsulates all necessary objects to render a SQL statement. It's
+ * focused on the generation of SQL statements for TEIs.
+ */
 @Getter
 @Setter
 @AllArgsConstructor( access = PRIVATE )
 @Builder( toBuilder = true )
-public class TeiFullQuery extends BaseRenderable
+public class TeiSqlQuery extends BaseRenderable
 {
     private final QueryContext queryContext;
 
     private final TeiQueryParams teiQueryParams;
 
-    private final Map<String, Object> paramsPlaceHolders;
+    private final Map<String, Object> queryPlaceHolders;
+
+    /**
+     * Internal flag to allow returning "count" queries.
+     */
+    boolean countQuery = false;
 
     @Override
     public String render()
     {
-        return join( Stream.of( getSelect(), getFrom(), getWhere(), getOrder(), getLimit() )
+        Select select = getSelect();
+
+        if ( countQuery )
+        {
+            select = getCountSelect();
+        }
+
+        return join( Stream.of( select, getFrom(), getWhere(), getOrder(), getLimit() )
             .filter( Objects::nonNull )
             .collect( toList() ),
             SPACE );
     }
 
-    public TeiFullQuery( final QueryContext queryContext )
+    public TeiSqlQuery( QueryContext queryContext )
     {
         this.queryContext = queryContext;
         this.teiQueryParams = queryContext.getTeiQueryParams();
-        this.paramsPlaceHolders = queryContext.getParametersByPlaceHolder();
+        this.queryPlaceHolders = queryContext.getParametersPlaceHolder();
     }
 
-    public SqlQuery statement()
+    public SqlQuery get()
     {
-        return new SqlQuery( render(), paramsPlaceHolders );
+        countQuery = false;
+
+        return new SqlQuery( render(), queryPlaceHolders );
+    }
+
+    public SqlQuery count()
+    {
+        countQuery = true;
+
+        return new SqlQuery( render(), queryPlaceHolders );
     }
 
     private LimitOffset getLimit()
@@ -127,12 +152,7 @@ public class TeiFullQuery extends BaseRenderable
         Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
-
-        Stream<Field> fields = Stream.of(
-            teiFields,
-            dimensionsFields,
-            orderingFields )
-            .flatMap( identity() );
+        Stream<Field> fields = Stream.of( teiFields, dimensionsFields, orderingFields ).flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
         {
@@ -140,6 +160,11 @@ public class TeiFullQuery extends BaseRenderable
         }
 
         return Select.of( fields.collect( toList() ) );
+    }
+
+    private Select getCountSelect()
+    {
+        return Select.ofUnquoted( "count(1)" );
     }
 
     private From getFrom()
@@ -176,14 +201,13 @@ public class TeiFullQuery extends BaseRenderable
                 Collections.singletonList( periodDimension ) ) )
             .collect( toList() ) );
 
-        return Where.of(
-            AndCondition.of(
-                Stream.of(
-                    programConditions,
-                    dimensionConditions,
-                    Stream.of( periodConditions ) )
-                    .flatMap( Function.identity() )
-                    .collect( toList() ) ) );
+        return Where.of( AndCondition.of(
+            Stream.of(
+                programConditions,
+                dimensionConditions,
+                Stream.of( periodConditions ) )
+                .flatMap( Function.identity() )
+                .collect( toList() ) ) );
     }
 
     private boolean isNotPeriodDimension(

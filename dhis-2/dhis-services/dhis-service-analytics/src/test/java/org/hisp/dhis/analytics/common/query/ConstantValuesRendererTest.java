@@ -44,7 +44,7 @@ class ConstantValuesRendererTest
         QueryContext queryContext = QueryContext.of( null );
         String render = ConstantValuesRenderer.of( "test", ValueTypeMapping.STRING, queryContext ).render();
         assertEquals( ":1", render );
-        assertEquals( "test", queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( "test", queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -53,7 +53,7 @@ class ConstantValuesRendererTest
         QueryContext queryContext = QueryContext.of( null );
         String render = ConstantValuesRenderer.of( "NV", ValueTypeMapping.STRING, queryContext ).render();
         assertEquals( "", render );
-        assertNull( queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertNull( queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -63,7 +63,7 @@ class ConstantValuesRendererTest
         List<String> arguments = List.of( "test1", "test2" );
         String render = ConstantValuesRenderer.of( arguments, ValueTypeMapping.STRING, queryContext ).render();
         assertEquals( ":1", render );
-        assertEquals( arguments, queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( arguments, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -73,6 +73,6 @@ class ConstantValuesRendererTest
         List<String> arguments = List.of( "test1", "test2", "NV" );
         String render = ConstantValuesRenderer.of( arguments, ValueTypeMapping.STRING, queryContext ).render();
         assertEquals( ":1", render );
-        assertEquals( arguments.subList( 0, 2 ), queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( arguments.subList( 0, 2 ), queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 }

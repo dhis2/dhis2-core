@@ -72,7 +72,7 @@ public class Field extends BaseRenderable
      * @param fieldAlias the alias of the field
      * @return a new Field instance
      */
-    public static Field ofUnquotedField( String tableAlias, Renderable name, String fieldAlias )
+    public static Field ofUnquoted( String tableAlias, Renderable name, String fieldAlias )
     {
         return of( tableAlias, name, fieldAlias, false );
     }

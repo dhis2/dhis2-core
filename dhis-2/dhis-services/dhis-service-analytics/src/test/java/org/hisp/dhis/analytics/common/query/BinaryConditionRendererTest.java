@@ -137,7 +137,7 @@ class BinaryConditionRendererTest
             "(\"field\" is null or \"field\" in (:1))",
             List.of(
                 getQueryContextAssertEqualsConsumer( "v1" ),
-                queryContext -> assertEquals( 1, queryContext.getParametersByPlaceHolder().size() ) ) );
+                queryContext -> assertEquals( 1, queryContext.getParametersPlaceHolder().size() ) ) );
     }
 
     @Test
@@ -310,12 +310,12 @@ class BinaryConditionRendererTest
 
     private Consumer<QueryContext> getQueryContextAssertEqualsConsumer( Object expectedValue )
     {
-        return queryContext -> assertEquals( expectedValue, queryContext.getParametersByPlaceHolder().get( "1" ) );
+        return queryContext -> assertEquals( expectedValue, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     private Consumer<QueryContext> getQueryContextAssertEmptyConsumer()
     {
-        return queryContext -> assertTrue( queryContext.getParametersByPlaceHolder().isEmpty() );
+        return queryContext -> assertTrue( queryContext.getParametersPlaceHolder().isEmpty() );
     }
 
     @Test

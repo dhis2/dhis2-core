@@ -94,12 +94,12 @@ public class QueryContext
         private int parameterIndex = 0;
 
         @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
+        private final Map<String, Object> parametersPlaceHolder = new HashMap<>();
 
         public String bindParamAndGetIndex( Object param )
         {
             parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
+            parametersPlaceHolder.put( String.valueOf( parameterIndex ), param );
 
             return ":" + parameterIndex;
         }

@@ -38,12 +38,13 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
-import org.hisp.dhis.analytics.tei.query.TeiFullQuery;
+import org.hisp.dhis.analytics.tei.query.TeiSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -75,6 +76,7 @@ public class TeiAnalyticsQueryService
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
+    // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
     public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
@@ -82,10 +84,18 @@ public class TeiAnalyticsQueryService
 
         QueryContext queryContext = QueryContext.of( teiQueryParams );
         Optional<SqlQueryResult> result = Optional.empty();
+        long rowsCount = 0;
 
         try
         {
-            result = Optional.of( queryExecutor.execute( new TeiFullQuery( queryContext ).statement() ) );
+            result = Optional.of( queryExecutor.find( new TeiSqlQuery( queryContext ).get() ) );
+
+            AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
+
+            if ( pagingParams.showTotalPages() )
+            {
+                rowsCount = queryExecutor.count( new TeiSqlQuery( queryContext ).count() );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -97,6 +107,6 @@ public class TeiAnalyticsQueryService
             throw new QueryRuntimeException( E7131 );
         }
 
-        return gridAdaptor.createGrid( result, teiQueryParams, commonQueryRequest );
+        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams, commonQueryRequest );
     }
 }

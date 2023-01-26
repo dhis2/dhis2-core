@@ -169,7 +169,7 @@ public class SortingContext
             // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
 
-            return builder.order( () -> Field.ofUnquotedField( TEI_ALIAS,
+            return builder.order( () -> Field.ofUnquoted( TEI_ALIAS,
                 () -> column + SPACE + param.getSortDirection().name(), EMPTY ).render() );
         }
     }

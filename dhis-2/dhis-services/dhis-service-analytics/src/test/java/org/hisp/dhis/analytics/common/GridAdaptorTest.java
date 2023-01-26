@@ -112,9 +112,11 @@ class GridAdaptorTest extends DhisConvenienceTest
 
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
         SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
+        long anyCount = 0;
 
         // When
-        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), teiQueryParams, new CommonQueryRequest() );
+        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams,
+            new CommonQueryRequest() );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -131,9 +133,10 @@ class GridAdaptorTest extends DhisConvenienceTest
         Optional<SqlQueryResult> emptySqlResult = Optional.empty();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
+        long anyCount = 0;
 
         // When
-        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, teiQueryParams, new CommonQueryRequest() );
+        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams, new CommonQueryRequest() );
 
         // Then
         assertTrue( isNotEmpty( resultGrid.getHeaders() ) );
@@ -147,11 +150,12 @@ class GridAdaptorTest extends DhisConvenienceTest
         // Given
         Optional<SqlQueryResult> anySqlResult = Optional.empty();
         TeiQueryParams nullTeiQueryParams = null;
+        long anyCount = 0;
 
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, nullTeiQueryParams, new CommonQueryRequest() ),
+            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams, new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
@@ -164,11 +168,12 @@ class GridAdaptorTest extends DhisConvenienceTest
         // Given
         Optional<SqlQueryResult> anySqlResult = Optional.empty();
         CommonQueryRequest nullCommonQueryRequest = null;
+        long anyCount = 0;
 
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, TeiQueryParams.builder().build(),
+            () -> gridAdaptor.createGrid( anySqlResult, anyCount, TeiQueryParams.builder().build(),
                 nullCommonQueryRequest ),
             "Expected exception not thrown: createGrid()" );
 

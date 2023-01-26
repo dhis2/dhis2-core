@@ -27,23 +27,65 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria.DEFAULT_PAGE;
+
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * Class responsible for encapsulating all paging request params.
+ */
 @Getter
 @Builder( toBuilder = true )
 public class AnalyticsPagingParams
 {
-    private final Integer page;
+    private Integer page;
 
-    private final Integer pageSize;
+    private Integer pageSize;
 
-    private final Boolean requestPaged;
+    private Boolean paging;
 
-    private final Boolean countRequested;
+    private final Boolean totalPages;
 
     public boolean isEmpty()
     {
-        return page == null && pageSize == null && requestPaged == null && countRequested == null;
+        return page == null && pageSize == null && paging == null && totalPages == null;
+    }
+
+    public boolean showTotalPages()
+    {
+        return toBooleanDefaultIfNull( paging, true ) && toBooleanDefaultIfNull( totalPages, false );
+    }
+
+    public boolean isPaging()
+    {
+        return page != null || pageSize != null;
+    }
+
+    public int getPageWithDefault()
+    {
+        return page != null && page > 0 ? page : DEFAULT_PAGE;
+    }
+
+    public int getPageSizeWithDefault()
+    {
+        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    }
+
+    public int getOffset()
+    {
+        return (getPageWithDefault() - 1) * getPageSizeWithDefault();
+    }
+
+    /**
+     * Sets paging properties to default values.
+     */
+    public void setDefaultPaging()
+    {
+        this.page = DEFAULT_PAGE;
+        this.pageSize = DEFAULT_PAGE_SIZE;
+        this.paging = true;
     }
 }

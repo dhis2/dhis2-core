@@ -58,7 +58,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public SqlQueryResult execute( @Nonnull SqlQuery query )
+    public SqlQueryResult find( @Nonnull SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
@@ -66,5 +66,17 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
             new MapSqlParameterSource().addValues( query.getParams() ) );
 
         return new SqlQueryResult( rowSet );
+    }
+
+    /**
+     * @throws IllegalArgumentException if the query argument is null
+     */
+    @Override
+    public long count( @Nonnull SqlQuery query )
+    {
+        notNull( query, "The 'query' must not be null" );
+
+        return namedParameterJdbcTemplate.queryForObject( query.getStatement(),
+            new MapSqlParameterSource().addValues( query.getParams() ), Long.class );
     }
 }

@@ -49,6 +49,13 @@ public class Select extends BaseRenderable
             .collect( toList() ) );
     }
 
+    public static Select ofUnquoted( String... fields )
+    {
+        return of( stream( fields )
+            .map( s -> Field.ofUnquoted( "", () -> s, "" ) )
+            .collect( toList() ) );
+    }
+
     @Override
     public String render()
     {

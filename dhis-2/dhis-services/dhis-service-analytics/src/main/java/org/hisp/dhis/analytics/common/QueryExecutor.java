@@ -42,7 +42,16 @@ public interface QueryExecutor<T extends Query, E extends QueryResult>
      * Executes a read/retrieve operation based on the given query.
      *
      * @param query
-     * @return the result of the execution represented by a QueryResult object.
+     * @return the result of the execution represented by a {@link QueryResult}
+     *         object.
      */
-    E execute( T query );
+    E find( T query );
+
+    /**
+     * Executes a read/retrieve operation based on the given query.
+     *
+     * @param query
+     * @return the number of results found.
+     */
+    long count( T query );
 }

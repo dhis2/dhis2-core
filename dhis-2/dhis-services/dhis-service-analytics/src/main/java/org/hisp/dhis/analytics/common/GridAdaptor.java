@@ -100,8 +100,8 @@ public class GridAdaptor
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, @Nonnull TeiQueryParams teiQueryParams,
-        @Nonnull CommonQueryRequest commonQueryRequest )
+    public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
+        @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
@@ -119,12 +119,37 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
+        // TODO: Extract this into a method named "addMetaData".
         if ( !commonQueryRequest.isSkipMeta() )
         {
-            grid.setMetaData( getMetaData( teiQueryParams.getCommonParams(), commonQueryRequest ) );
+            grid.setMetaData( getMetaData( teiQueryParams.getCommonParams(), commonQueryRequest, grid, rowsCount ) );
         }
 
         return grid;
+    }
+
+    /**
+     * Applies paging to the given grid if the given query specifies paging.
+     *
+     * @param pagingParams the {@link AnalyticsPagingParams}.
+     * @param grid the {@link Grid}.
+     * @param rowsCount the total count.
+     */
+    private void addPaging( @Nonnull AnalyticsPagingParams pagingParams, @Nonnull Grid grid, long rowsCount )
+    {
+        Pager pager;
+
+        if ( pagingParams.showTotalPages() )
+        {
+            pager = new Pager( pagingParams.getPageWithDefault(), rowsCount, pagingParams.getPageSizeWithDefault() );
+        }
+        else
+        {
+            pager = new SlimPager( pagingParams.getPageWithDefault(), pagingParams.getPageSizeWithDefault(),
+                grid.hasLastDataRow() );
+        }
+
+        grid.getMetaData().put( PAGER.getKey(), pager );
     }
 
     /**
@@ -135,20 +160,20 @@ public class GridAdaptor
      *
      * @return the metadata {@link Map}
      */
-    private Map<String, Object> getMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest )
+    // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
+    private Map<String, Object> getMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest,
+        @Nonnull Grid grid, long rowsCount )
     {
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         Map<String, Object> metaData = new HashMap<>();
 
-        metaData.put( PAGER.getKey(), commonQueryRequest.isTotalPages()
-            ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
-            : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
-
         if ( commonParams == null )
         {
             return metaData;
         }
+
+        addPaging( commonParams.getPagingParams(), grid, rowsCount );
 
         if ( hasDimensionalObjects( commonParams ) )
         {

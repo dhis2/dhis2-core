@@ -65,7 +65,7 @@ class ProgramAttributeConditionTest
         String render = programAttributeCondition.render();
 
         assertEquals( "\"" + attr + "\" = :1", render );
-        assertEquals( "v1", queryContext.getParametersByPlaceHolder().get( "1" ) );
+        assertEquals( "v1", queryContext.getParametersPlaceHolder().get( "1" ) );
 
     }
 

@@ -159,7 +159,7 @@ public class TeiFields
     private static Stream<Field> getDynamicFields()
     {
         return Stream.of( Dynamic.values() )
-            .map( dynamic -> Field.ofUnquotedField( EMPTY, () -> dynamic.query, dynamic.alias ) );
+            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias ) );
     }
 
     public static Stream<Field> getTeiFields()
