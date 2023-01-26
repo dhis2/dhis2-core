@@ -559,7 +559,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( tea.getUid(), OrderParam.SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( tea.getUid(), SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -583,7 +583,7 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( tea.getUid(), OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( tea.getUid(), SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 

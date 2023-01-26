@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.ErrorWarningRuleAction;
 import org.hisp.dhis.tracker.programrule.implementers.event.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.programrule.implementers.event.SetMandatoryFieldExecutor;
@@ -104,7 +104,7 @@ class RuleActionEventMapper
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignValueExecutor( systemSettingManager, ruleId, data, action.field(), dataValues );
+            return new AssignDataValueExecutor( systemSettingManager, ruleId, data, action.field(), dataValues );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {

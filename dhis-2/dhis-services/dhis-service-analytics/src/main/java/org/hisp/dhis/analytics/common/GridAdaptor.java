@@ -94,6 +94,7 @@ public class GridAdaptor
      * @param sqlQueryResult the optional of {@link SqlQueryResult}
      * @param teiQueryParams the {@link TeiQueryParams}
      * @param commonQueryRequest the {@link CommonQueryRequest}
+     *
      * @return the {@link Grid} object
      *
      * @throws IllegalArgumentException if headers is null/empty or contain at
@@ -106,6 +107,7 @@ public class GridAdaptor
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         Grid grid = new ListGrid();
+
         Set<GridHeader> headers = paramsProcessor.applyHeaders( getGridHeaders( teiQueryParams ),
             teiQueryParams.getCommonParams().getHeaders() );
 
@@ -130,6 +132,7 @@ public class GridAdaptor
      *
      * @param commonParams the {@link CommonParams}
      * @param commonQueryRequest the {@link CommonQueryRequest}
+     *
      * @return the metadata {@link Map}
      */
     private Map<String, Object> getMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest )
@@ -138,10 +141,9 @@ public class GridAdaptor
 
         Map<String, Object> metaData = new HashMap<>();
 
-        metaData.put( PAGER.getKey(),
-            commonQueryRequest.isTotalPages()
-                ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
-                : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
+        metaData.put( PAGER.getKey(), commonQueryRequest.isTotalPages()
+            ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
+            : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
 
         if ( commonParams == null )
         {
@@ -163,9 +165,8 @@ public class GridAdaptor
                             ? new MetadataItem( dio.getDisplayName(), dio )
                             : new MetadataItem( dio.getDisplayName() ) ) );
 
-                metaDataDimensions.put( dimension.getUid(),
-                    dimension.getItems().stream()
-                        .map( PrimaryKeyObject::getUid ).collect( toList() ) );
+                metaDataDimensions.put( dimension.getUid(), dimension.getItems().stream()
+                    .map( PrimaryKeyObject::getUid ).collect( toList() ) );
             }
 
             metaData.put( ITEMS.getKey(), metaDataItems );
@@ -207,8 +208,7 @@ public class GridAdaptor
 
     private boolean hasDimensionalObjects( CommonParams commonParams )
     {
-        return streamOfDimensionParams( commonParams )
-            .anyMatch( DimensionParam::isDimensionalObject );
+        return streamOfDimensionParams( commonParams ).anyMatch( DimensionParam::isDimensionalObject );
     }
 
     private Stream<DimensionParam> streamOfDimensionParams( CommonParams commonParams )
@@ -237,9 +237,7 @@ public class GridAdaptor
                 .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
 
             metaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
-
-            metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                getParentNameGraphMap( organisationUnits, roots, true ) );
+            metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
         }
 
         return metaData;

@@ -109,6 +109,7 @@ public class SortingContext
                         "Unsupported dimension identifier type: " + param.getOrderBy().getDimensionIdentifierType() );
                 }
             }
+
             return builder.build();
         }
 
@@ -117,14 +118,14 @@ public class SortingContext
             second.fields.forEach( builder::field );
             second.leftJoins.forEach( builder::leftJoin );
             second.orders.forEach( builder::order );
+
             return builder;
         }
 
         private PrivateBuilder enrichWithEventDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
             DimensionParam dimension = param.getOrderBy().getDimension();
-            // we can assume here param is in the form asc=pUid.psUid.dimension
-            // (or desc=pUid.psUid.dimension)
+            // Here we can assume that param is in the form asc=pUid.psUid.dimension (or desc=pUid.psUid.dimension)
             if ( dimension.isStaticDimension() )
             {
                 return mergeContexts( builder,
@@ -153,34 +154,31 @@ public class SortingContext
 
         private PrivateBuilder enrichWithEnrollmentDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
-            // we can assume here param is either a ProgramAttribute or a
-            // static dimension in the form asc=pUid.dimension (or
-            // desc=pUid.dimension)
+            // Here, we can assume that param is either a ProgramAttribute or a
+            // static dimension in the form asc=pUid.dimension (or desc=pUid.dimension).
             if ( param.getOrderBy().getDimension().isStaticDimension() )
             {
                 return mergeContexts( builder, StaticEnrollmentSortingContext
                     .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                     .getSortingContextBuilder() );
-            } // it should be a ProgramAttribute then
+            } // It should be a ProgramAttribute then.
             AnalyticsSortingParams teiParam = AnalyticsSortingParams.builder()
                 .sortDirection( param.getSortDirection() )
                 .orderBy( DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(),
                     param.getOrderBy().getDimension() ) )
                 .build();
+
             return enrichWithTeiDimension( builder, teiParam );
         }
 
         private PrivateBuilder enrichWithTeiDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
-            // we can assume here param is either a static dimension or
-            // a TEI/Program attribute in the form asc=pUid.dimension (or
-            // desc=pUid.dimension)
+            // Here we can assume that param is either a static dimension or
+            // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
-            return builder
-                .order( () -> Field.ofUnquotedField( TEI_ALIAS,
-                    () -> column + SPACE + param.getSortDirection().name(),
-                    EMPTY )
-                    .render() );
+
+            return builder.order( () -> Field.ofUnquotedField( TEI_ALIAS,
+                () -> column + SPACE + param.getSortDirection().name(), EMPTY ).render() );
         }
     }
 }
