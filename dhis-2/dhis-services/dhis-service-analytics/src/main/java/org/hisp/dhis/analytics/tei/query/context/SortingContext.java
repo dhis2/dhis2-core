@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PACKAGE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
@@ -46,9 +49,8 @@ import lombok.Singular;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.JoinsWithConditions;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -57,21 +59,22 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Builder( access = PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
 public class SortingContext
 {
+    private final static PrivateBuilder EMPTY_CONTEXT_BUILDER = SortingContext.builder()
+        .fields( emptyList() )
+        .orders( emptyList() )
+        .leftJoins( emptyList() );
+
     @Getter
     @Singular
     private final List<Field> fields;
 
+    @Getter
     @Singular
     private final List<Pair<Renderable, Renderable>> leftJoins;
 
     @Getter
     @Singular
     private final List<Renderable> orders;
-
-    public JoinsWithConditions getLeftJoins()
-    {
-        return JoinsWithConditions.of( leftJoins );
-    }
 
     @RequiredArgsConstructor( staticName = "of" )
     public static class SortingContextBuilder
@@ -121,25 +124,30 @@ public class SortingContext
 
         private PrivateBuilder enrichWithEventDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
+            DimensionParam dimension = param.getOrderBy().getDimension();
             // Here we can assume that param is in the form asc=pUid.psUid.dimension (or desc=pUid.psUid.dimension)
-            if ( param.getOrderBy().getDimension().isStaticDimension() )
+            if ( dimension.isStaticDimension() )
             {
                 return mergeContexts( builder,
                     StaticEventSortingContext
                         .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                         .getSortingContextBuilder() );
-            } // It's either a data element or a program indicator (content of EventDataValues json object)
-            else if ( param.getOrderBy().getDimension()
-                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
+            } // it is either data element
+            else if ( dimension.isOfType( DATA_ELEMENT ) )
             {
                 return mergeContexts( builder,
                     EventDataValuesSortingContext
                         .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                         .getSortingContextBuilder() );
+            } // or Program Indicator
+            else if ( dimension.isOfType( PROGRAM_INDICATOR ) )
+            {
+                // support for order by Program Indicators is provided in ProgramIndicatorContext
+                return mergeContexts( builder, EMPTY_CONTEXT_BUILDER );
             }
             else
             {
-                throw new IllegalQueryException( new ErrorMessage( E2037, param.getOrderBy().getDimension()
+                throw new IllegalQueryException( new ErrorMessage( E2037, dimension
                     .getDimensionParamObjectType() ) );
             }
         }

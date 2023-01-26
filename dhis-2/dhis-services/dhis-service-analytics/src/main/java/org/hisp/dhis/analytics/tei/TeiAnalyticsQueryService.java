@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.tei.query.TeiFullQuery;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.QueryContextService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -66,6 +67,8 @@ public class TeiAnalyticsQueryService
 
     private final GridAdaptor gridAdaptor;
 
+    private final QueryContextService queryContextService;
+
     /**
      * This method will create a query, based on the teiParams, and execute it
      * against the underline data provider and return. The results found will be
@@ -80,7 +83,7 @@ public class TeiAnalyticsQueryService
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
+        QueryContext queryContext = queryContextService.of( teiQueryParams );
         Optional<SqlQueryResult> result = Optional.empty();
 
         try

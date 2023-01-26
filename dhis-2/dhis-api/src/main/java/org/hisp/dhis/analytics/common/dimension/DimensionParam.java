@@ -34,6 +34,7 @@ import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.STATIC_DIMENSION;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
@@ -160,6 +161,14 @@ public class DimensionParam implements UidObject
         return type == FILTERS;
     }
 
+    /**
+     * @return true if this DimensionParam is a dimension
+     */
+    public boolean isDimension()
+    {
+        return type == DIMENSIONS;
+    }
+
     public boolean isDimensionalObject()
     {
         return nonNull( dimensionalObject );
@@ -191,6 +200,11 @@ public class DimensionParam implements UidObject
         }
 
         return STATIC_DIMENSION;
+    }
+
+    public boolean isOfType( DimensionParamObjectType type )
+    {
+        return getDimensionParamObjectType() == type;
     }
 
     public ValueType getValueType()

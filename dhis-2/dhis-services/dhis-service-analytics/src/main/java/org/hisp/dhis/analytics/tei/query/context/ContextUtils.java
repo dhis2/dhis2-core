@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics.tei.query.context;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextService.SUBQUERY_TABLE_ALIAS;
 
 import lombok.NoArgsConstructor;
 
@@ -39,7 +42,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @NoArgsConstructor( access = PRIVATE )
-class SortingContextUtils
+class ContextUtils
 {
     // TODO: Think about implementing this using the query builders
     static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
@@ -52,6 +55,29 @@ class SortingContextUtils
             " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() )
             + ") innermost_enr" +
             " where innermost_enr.rn = 1";
+    }
+
+    static String enrollmentProgramIndicatorSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+        String expression, String filter, boolean needsExpressions )
+    {
+        return "select innermost_enr.*" +
+            " from (select tei as " + TEI_UID + ", pi as " + PI_UID + ", " +
+            (needsExpressions ? expression + " as value, " : "") +
+            " row_number() over (partition by tei order by enrollmentdate desc) as rn " +
+            " from analytics_enrollment_" + program.getElement().getUid() + " as " + SUBQUERY_TABLE_ALIAS +
+            (needsExpressions ? " where " + filter : "") + ") innermost_enr" +
+            " where innermost_enr.rn = 1";
+    }
+
+    static String eventProgramIndicatorSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+        String expression, String filter )
+    {
+        return "select innermost_evt.*" +
+            " from (select pi as " + PI_UID + ", " + expression + " as value, " +
+            " row_number() over (partition by pi order by executiondate desc) as rn " +
+            " from analytics_event_" + program.getElement().getUid() + " as " + SUBQUERY_TABLE_ALIAS +
+            " where " + filter + ") innermost_evt" +
+            " where innermost_evt.rn = 1";
     }
 
     // TODO: Think about implementing this using the query builders

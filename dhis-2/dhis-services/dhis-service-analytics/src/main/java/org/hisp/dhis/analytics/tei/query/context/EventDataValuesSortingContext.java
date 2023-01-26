@@ -35,8 +35,8 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
-import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.eventSelect;
+import static org.hisp.dhis.analytics.tei.query.context.ContextUtils.enrollmentSelect;
+import static org.hisp.dhis.analytics.tei.query.context.ContextUtils.eventSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
