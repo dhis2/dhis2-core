@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers.event;
+package org.hisp.dhis.tracker.programrule.implementers.enrollment;
 
+import static org.hisp.dhis.tracker.domain.EnrollmentStatus.*;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
@@ -35,35 +36,25 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ShowErrorWarningExecutorTest extends DhisConvenienceTest
+class ValidationExecutorTest extends DhisConvenienceTest
 {
     private final static String RULE_UID = "Rule uid";
 
@@ -71,162 +62,134 @@ class ShowErrorWarningExecutorTest extends DhisConvenienceTest
 
     private final static String EVALUATED_DATA = "4.0";
 
-    private final static String ACTIVE_EVENT_ID = "EventUid";
+    private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
-    private final static String COMPLETED_EVENT_ID = "CompletedEventUid";
-
-    private final static String PROGRAM_STAGE_ID = "ProgramStageId";
-
-    private final static String DATA_ELEMENT_ID = "DataElementId";
-
-    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
+    private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
     private ShowWarningOnCompleteExecutor warningOnCompleteExecutor = new ShowWarningOnCompleteExecutor(
-        getErrorActionRule( WARNING ) );
+        getValidationRuleAction( WARNING ) );
 
     private ShowErrorOnCompleteExecutor errorOnCompleteExecutor = new ShowErrorOnCompleteExecutor(
-        getErrorActionRule( ERROR ) );
+        getValidationRuleAction( ERROR ) );
 
-    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getErrorActionRule( ERROR ) );
+    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getValidationRuleAction( ERROR ) );
 
-    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getErrorActionRule( WARNING ) );
+    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getValidationRuleAction( WARNING ) );
 
     private TrackerBundle bundle;
 
     @Mock
     private TrackerPreheat preheat;
 
-    private ProgramStage programStage;
-
-    private ProgramStage anotherProgramStage;
-
     @BeforeEach
     void setUpTest()
     {
-        programStage = createProgramStage( 'A', 0 );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setUid( DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage, dataElementA,
-            0 );
-        programStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
-        anotherProgramStage = createProgramStage( 'B', 0 );
-        anotherProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( anotherProgramStage,
-            dataElementB, 0 );
-        anotherProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) ).thenReturn( programStage );
-
         bundle = TrackerBundle.builder().build();
-        bundle.setEvents( getEvents() );
+        bundle.setEnrollments( getEnrollments() );
         bundle.setPreheat( preheat );
     }
 
     @Test
-    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForActiveEvent()
+    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForActiveEnrollment()
     {
-        Optional<ProgramRuleIssue> error = showErrorExecutor.executeRuleAction( bundle, activeEvent() );
+        Optional<ProgramRuleIssue> error = showErrorExecutor.executeRuleAction( bundle, activeEnrollment() );
 
         assertTrue( error.isPresent() );
         assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
     }
 
     @Test
-    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForCompletedEvent()
+    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
     {
         Optional<ProgramRuleIssue> error = showErrorExecutor.executeRuleAction( bundle,
-            completedEvent() );
+            completedEnrollment() );
 
         assertTrue( error.isPresent() );
         assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
     }
 
     @Test
-    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForActiveEvent()
+    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> warning = showWarningExecutor.executeRuleAction( bundle,
-            activeEvent() );
+            activeEnrollment() );
 
         assertTrue( warning.isPresent() );
         assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
     }
 
     @Test
-    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForCompletedEvent()
+    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
     {
         Optional<ProgramRuleIssue> warning = showWarningExecutor.executeRuleAction( bundle,
-            completedEvent() );
+            completedEnrollment() );
 
         assertTrue( warning.isPresent() );
         assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
     }
 
     @Test
-    void shouldNotReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForActiveEvent()
+    void shouldNotReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeRuleAction( bundle,
-            activeEvent() );
+            activeEnrollment() );
 
         assertFalse( error.isPresent() );
     }
 
     @Test
-    void shouldReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEvent()
+    void shouldReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
     {
         Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeRuleAction( bundle,
-            completedEvent() );
+            completedEnrollment() );
 
         assertTrue( error.isPresent() );
         assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
     }
 
     @Test
-    void shouldNotReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForActiveEvent()
+    void shouldNotReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
     {
         Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeRuleAction( bundle,
-            activeEvent() );
+            activeEnrollment() );
 
         assertFalse( warning.isPresent() );
     }
 
     @Test
-    void shouldReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEvent()
+    void shouldReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
     {
         Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeRuleAction( bundle,
-            completedEvent() );
+            completedEnrollment() );
 
         assertTrue( warning.isPresent() );
         assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
     }
 
-    private ErrorWarningRuleAction getErrorActionRule( IssueType issueType )
+    private List<Enrollment> getEnrollments()
     {
-        return new ErrorWarningRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
+        return List.of( activeEnrollment(), completedEnrollment() );
     }
 
-    private List<Event> getEvents()
+    private Enrollment activeEnrollment()
     {
-        return List.of( activeEvent(), completedEvent() );
-    }
-
-    private Event activeEvent()
-    {
-        return Event.builder()
-            .event( ACTIVE_EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
+        return Enrollment.builder()
+            .enrollment( ACTIVE_ENROLLMENT_ID )
+            .status( ACTIVE )
             .build();
     }
 
-    private Event completedEvent()
+    private Enrollment completedEnrollment()
     {
-        return Event.builder()
-            .event( COMPLETED_EVENT_ID )
-            .status( EventStatus.COMPLETED )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
+        return Enrollment.builder()
+            .enrollment( COMPLETED_ENROLLMENT_ID )
+            .status( COMPLETED )
             .build();
+    }
+
+    private ValidationRuleAction getValidationRuleAction( IssueType issueType )
+    {
+        return new ValidationRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
     }
 
     private String validationMessage( IssueType issueType )

@@ -25,21 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule.implementers.enrollment;
+package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.programrule.ProgramRuleIssue.warning;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
@@ -48,23 +44,22 @@ import org.hisp.dhis.tracker.validation.ValidationCode;
  *
  * @Author Enrico Colasante
  */
-public interface ErrorWarningExecutor extends RuleActionExecutor<Enrollment>
+public interface ValidationExecutor<T> extends RuleActionExecutor<T>
 {
-    boolean isOnComplete();
-
     IssueType getIssueType();
 
-    default Optional<ProgramRuleIssue> validateEnrollment( ErrorWarningRuleAction ruleAction,
-        Enrollment enrollment )
+    boolean needsToRun( T t );
+
+    default Optional<ProgramRuleIssue> execute( ValidationRuleAction ruleAction, T t )
     {
-        if ( needsToRun( enrollment ) )
+        if ( needsToRun( t ) )
         {
             return mapToIssue( ruleAction );
         }
         return Optional.empty();
     }
 
-    private Optional<ProgramRuleIssue> mapToIssue( ErrorWarningRuleAction ruleAction )
+    private Optional<ProgramRuleIssue> mapToIssue( ValidationRuleAction ruleAction )
     {
         StringBuilder validationMessage = new StringBuilder( ruleAction.getContent() );
         String data = ruleAction.getData();
@@ -89,14 +84,5 @@ public interface ErrorWarningExecutor extends RuleActionExecutor<Enrollment>
         default:
             return Optional.empty();
         }
-    }
-
-    private boolean needsToRun( Enrollment enrollment )
-    {
-        if ( isOnComplete() )
-        {
-            return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
-        }
-        return true;
     }
 }
