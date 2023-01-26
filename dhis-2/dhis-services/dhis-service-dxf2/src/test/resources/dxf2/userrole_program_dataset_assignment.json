@@ -28,7 +28,6 @@
         "id": "M5zQapPyTZI"
       },
       "version": 1,
-      "userGroupAccesses": [ ],
       "organisationUnits": [
         {
           "id": "akbbc91qpUc"
@@ -50,7 +49,10 @@
       "dataElementDecoration": false,
       "openFuturePeriods": 0,
       "created": "2016-03-31T05:14:53.392+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "mobile": false,
       "noValueRequiresComment": false,
       "periodType": "Monthly",

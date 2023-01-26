@@ -302,7 +302,6 @@
       "lastUpdated": "2020-04-17T14:40:31.680",
       "name": "Tracked Entity Type B",
       "id": "QPi1HImFAmE",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -313,44 +312,39 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
         },
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ]
+      "translations": []
     },
     {
       "created": "2020-04-17T14:38:53.947",
       "lastUpdated": "2020-04-17T14:40:58.821",
       "name": "Tracked Entity Type C",
       "id": "RttzawN27Pi",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -361,25 +355,25 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwrw----"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwrw-----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "rwrw----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      "translations": []
     }
   ],
   "programs": [
@@ -390,7 +384,6 @@
       "created": "2020-04-17T14:41:59.629",
       "name": "Program A",
       "shortName": "PA",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -547,20 +540,7 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        },
-        {
-          "access": "rwrw----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
+
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -574,20 +554,30 @@
           "id": "caZoL1LKwG0"
         }
       ],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwrw----"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwr-----"
+          }
         },
-        {
-          "access": "rwrw----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwr-----"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwrw----"
+          }
         }
-      ]
+      }
     },
     {
       "code": "PB",
@@ -596,7 +586,6 @@
       "created": "2020-04-17T14:42:14.970",
       "name": "Program B",
       "shortName": "PB",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -681,37 +670,33 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
         },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      "programStages": []
     },
     {
       "code": "PC",
@@ -720,7 +705,6 @@
       "created": "2020-04-17T14:42:28.888",
       "name": "Program C",
       "shortName": "PC",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -877,25 +861,25 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwr-----"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwr-----"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ]
+      "programStages": []
     },
     {
       "code": "PDA",
@@ -904,7 +888,6 @@
       "created": "2020-04-24T12:03:05.076",
       "name": "Program Dummy A",
       "shortName": "PDA",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -993,7 +976,12 @@
       "programSections": [],
       "attributeValues": [],
       "programStages": [],
-      "userAccesses": []
+      "userAccesses": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
+
     },
     {
       "code": "PDB",
@@ -1002,7 +990,11 @@
       "created": "2020-04-24T12:03:25.612",
       "name": "Program Dummy B",
       "shortName": "PDB",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -1104,7 +1096,6 @@
       "shortName": "DEA",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -1117,23 +1108,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -1939,10 +1930,12 @@
       "created": "2020-04-17T14:25:28.922",
       "lastUpdated": "2020-04-17T14:25:28.922",
       "name": "Superuser",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "id": "yrB6vc5Ip3r",
-      "publicAccess": "--------",
       "description": "Superuser",
-      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -1979,8 +1972,7 @@
         "F_UNCOMPLETE_EVENT",
         "F_NONE"
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "trackedEntityAttributes": [
@@ -1993,7 +1985,6 @@
       "shortName": "TEAA",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2010,23 +2001,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2038,7 +2029,30 @@
       "shortName": "TEAB",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          },
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          }
+        }
+      },
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2055,35 +2069,7 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2095,7 +2081,6 @@
       "shortName": "TEAC",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2112,23 +2097,24 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
+      },
+
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2140,7 +2126,6 @@
       "shortName": "TEAD",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2157,23 +2142,22 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
+      },
       "legendSets": []
     },
     {
@@ -2317,7 +2301,6 @@
       "shortName": "TEAG",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2334,23 +2317,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "legendSets": []
     },
     {
@@ -2362,7 +2345,6 @@
       "shortName": "TEAH",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
