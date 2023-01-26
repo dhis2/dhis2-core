@@ -1,0 +1,72 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: IfsKI6Tdz1X
+name: orgunits_not_contained_by_parent
+description: Organisation units with point coordinates should be contained by their parent.
+section: Organisation units
+section_order: 5
+summary_sql: >-
+  WITH parent_contains_point AS (
+  SELECT a.uid,a.name from organisationunit a
+  INNER JOIN organisationunit b on a.parentid = b.organisationunitid
+  WHERE ST_GeometryType(a.geometry) = 'ST_Point'
+  AND ST_GeometryType(b.geometry) IN ('ST_Polygon','ST_MultiPolygon')
+  AND ST_Contains(b.geometry,a.geometry) = FALSE
+  ORDER BY a.name
+  )
+  SELECT 
+  COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) 
+  FROM organisationunit WHERE ST_GeometryType(geometry) = 'ST_Point'), 0) as percent
+  FROM parent_contains_point;
+details_uid: QC6yuqSTQXa
+details_sql: >-
+  SELECT a.uid,a.name from organisationunit a
+  INNER JOIN organisationunit b on a.parentid = b.organisationunitid
+  WHERE ST_GeometryType(a.geometry) = 'ST_Point'
+  AND ST_GeometryType(b.geometry) IN ('ST_Polygon','ST_MultiPolygon')
+  AND ST_Contains(b.geometry,a.geometry) = FALSE
+  ORDER BY a.name;
+details_id_type: organisationUnits
+severity: WARNING
+introduction: >
+  Facilities are often represented as points in the DHIS2 hierarchy. Their parent organisation units
+  geometry should contain all facilities which have been associated with them.
+
+recommendation: |
+  Often boundary files are simplified when they are uploaded into DHIS2. This process may result in
+  facilities which are located close to the border of a given district to fall outside of the district
+  when the boundary is simplified. This is considered to be more of a cosmetic problem for most DHIS2
+  installations, but could become an issue if any geospatial analysis is attempted using the
+  boundaries and point coordinates.
+  
+  In cases where the facility falls outside of its parent's boundary
+  you should confirm that the coordinates are correct. If the location is close to the boundary, you
+  may want to reconsider how the boundary files have been simplified. Otherwise, if the location of
+  the facility is completely incorrect, it should be rectified.
+

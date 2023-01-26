@@ -54,10 +54,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
 public class QueryItem implements GroupableItem
 {
-    @Getter
-    @Setter
     private UUID groupUUID;
 
     private DimensionalItemObject item; // TODO DimensionObject
@@ -94,7 +94,7 @@ public class QueryItem implements GroupableItem
     public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet )
     {
-        this.item = item;
+        this( item );
         this.legendSet = legendSet;
         this.valueType = valueType;
         this.aggregationType = aggregationType;
@@ -104,11 +104,7 @@ public class QueryItem implements GroupableItem
     public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet, Boolean unique )
     {
-        this.item = item;
-        this.legendSet = legendSet;
-        this.valueType = valueType;
-        this.aggregationType = aggregationType;
-        this.optionSet = optionSet;
+        this( item, legendSet, valueType, aggregationType, optionSet );
         this.unique = unique;
     }
 
@@ -123,7 +119,6 @@ public class QueryItem implements GroupableItem
         AggregationType aggregationType, OptionSet optionSet )
     {
         this( item, legendSet, valueType, aggregationType, optionSet );
-
         this.program = program;
     }
 
@@ -131,14 +126,13 @@ public class QueryItem implements GroupableItem
         AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
     {
         this( item, program, legendSet, valueType, aggregationType, optionSet );
-
         this.relationshipType = relationshipType;
     }
 
     public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType,
         AggregationType aggregationType, OptionSet optionSet )
     {
-        this.item = item;
+        this( item );
         this.valueType = valueType;
         this.aggregationType = aggregationType;
         this.optionSet = optionSet;
@@ -254,12 +248,17 @@ public class QueryItem implements GroupableItem
 
     public boolean isProgramIndicator()
     {
-        return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
+        return DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType();
+    }
+
+    public boolean isUnique()
+    {
+        return unique != null && unique;
     }
 
     public boolean hasRelationshipType()
     {
-        return this.getRelationshipType() != null;
+        return relationshipType != null;
     }
 
     /**
@@ -316,6 +315,16 @@ public class QueryItem implements GroupableItem
         List<String> filterItems = new ArrayList<>();
         filters.forEach( f -> filterItems.addAll( QueryFilter.getFilterItems( f.getFilter() ) ) );
         return filterItems;
+    }
+
+    /**
+     * Indicates whether a program stage and repeatable stage parameters which
+     * is not a default object exists for this query item.
+     */
+    public boolean hasNonDefaultRepeatableProgramStageOffset()
+    {
+        return programStage != null && repeatableStageParams != null
+            && !repeatableStageParams.isDefaultObject();
     }
 
     /**
@@ -410,122 +419,13 @@ public class QueryItem implements GroupableItem
             + (repeatableStageParams != null ? repeatableStageParams.toString() : null) + "]";
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public DimensionalItemObject getItem()
-    {
-        return item;
-    }
-
-    public void setItem( DimensionalItemObject item )
-    {
-        this.item = item;
-    }
-
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
-
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
-
-    public List<QueryFilter> getFilters()
-    {
-        return filters;
-    }
-
-    public void setFilters( List<QueryFilter> filters )
-    {
-        this.filters = filters;
-    }
-
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
-    }
-
-    public AggregationType getAggregationType()
-    {
-        return aggregationType;
-    }
-
-    public void setAggregationType( AggregationType aggregationType )
-    {
-        this.aggregationType = aggregationType;
-    }
-
-    public OptionSet getOptionSet()
-    {
-        return optionSet;
-    }
-
-    public void setOptionSet( OptionSet optionSet )
-    {
-        this.optionSet = optionSet;
-    }
-
-    public Program getProgram()
-    {
-        return program;
-    }
-
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
-
-    public ProgramStage getProgramStage()
-    {
-        return programStage;
-    }
-
-    public int getProgramStageOffset()
-    {
-        return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
-    }
-
-    public RepeatableStageParams getRepeatableStageParams()
-    {
-        return repeatableStageParams;
-    }
-
     public boolean hasRepeatableStageParams()
     {
         return repeatableStageParams != null;
     }
 
-    public void setProgramStage( ProgramStage programStage )
+    public int getProgramStageOffset()
     {
-        this.programStage = programStage;
-    }
-
-    public void setRepeatableStageParams( RepeatableStageParams repeatableStageParams )
-    {
-        this.repeatableStageParams = repeatableStageParams;
-    }
-
-    public Boolean isUnique()
-    {
-        return unique;
-    }
-
-    public void setUnique( Boolean unique )
-    {
-        this.unique = unique;
-    }
-
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
+        return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
     }
 }

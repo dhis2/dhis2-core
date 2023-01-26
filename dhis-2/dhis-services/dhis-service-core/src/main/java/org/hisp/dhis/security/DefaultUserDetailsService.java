@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.security;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,9 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Slf4j
 @Service( "userDetailsService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultUserDetailsService
     implements UserDetailsService
 {
@@ -62,6 +60,6 @@ public class DefaultUserDetailsService
             throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
         }
 
-        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+        return userService.createUserDetails( user );
     }
 }

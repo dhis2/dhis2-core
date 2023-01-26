@@ -115,4 +115,12 @@ public interface EventVisualizationStore extends
      * @return the total of Chart found.
      */
     int countChartsCreated( Date startingAt );
+
+    /**
+     * Counts the number of EventVisualization created since the given date.
+     *
+     * @param startingAt
+     * @return the total of EventVisualization found.
+     */
+    int countEventVisualizationsCreated( Date startingAt );
 }

@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,18 +43,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableMap;
-
 @ExtendWith( MockitoExtension.class )
 class TestDefaultTextPatternService
 {
-
     @InjectMocks
     private DefaultTextPatternService textPatternService;
 
     private TextPattern pattern;
 
-    private ImmutableMap<String, String> values;
+    private Map<String, String> values;
 
     @BeforeEach
     void init()
@@ -64,8 +62,9 @@ class TestDefaultTextPatternService
         segments.add( new TextPatternSegment( TextPatternMethod.SEQUENTIAL, "SEQUENTIAL(#)" ) );
         segments.add( new TextPatternSegment( TextPatternMethod.CURRENT_DATE, "CURRENT_DATE(YYYY)" ) );
         pattern = new TextPattern( segments );
-        values = ImmutableMap.<String, String> builder().put( "ORG_UNIT_CODE", "OSLO" ).put( "SEQUENTIAL", "1" )
-            .build();
+        values = Map.of(
+            "ORG_UNIT_CODE", "OSLO",
+            "SEQUENTIAL", "1" );
     }
 
     @Test

@@ -46,11 +46,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
@@ -92,6 +94,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = EnrollmentController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -182,7 +185,9 @@ public class EnrollmentController
             Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
-                .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )
+                .map(
+                    enrollmentId -> enrollmentService.getEnrollment( enrollmentId, EnrollmentParams.FALSE ) )
+                .collect( Collectors.toList() )
                 : null;
         }
 
@@ -408,7 +413,7 @@ public class EnrollmentController
     private Enrollment getEnrollment( String id )
         throws NotFoundException
     {
-        Enrollment enrollment = enrollmentService.getEnrollment( id );
+        Enrollment enrollment = enrollmentService.getEnrollment( id, EnrollmentParams.FALSE );
 
         if ( enrollment == null )
         {

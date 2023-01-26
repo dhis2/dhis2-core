@@ -30,6 +30,7 @@ package org.hisp.dhis.datastore;
 import static java.lang.Character.isLetterOrDigit;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -48,7 +49,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -328,20 +328,29 @@ public final class DatastoreQuery
         }
     }
 
-    public DatastoreQuery with( NamedParams params )
+    public DatastoreQuery with( DatastoreParams params )
     {
-        int pageNo = max( 1, params.getInt( "page", 1 ) );
-        int size = max( 1, min( 1000, params.getInt( "pageSize", 50 ) ) );
-        boolean isPaging = params.getBoolean( "paging", true );
+        int pageNo = max( 1, params.getPage() );
+        int size = max( 1, min( 1000, params.getPageSize() ) );
+        boolean isPaging = params.isPaging();
         return toBuilder()
-            .headless( params.getBoolean( "headless", false ) || !isPaging )
-            .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
-            .order( Order.parse( params.getString( "order", KEY_ASC.path ) ) )
+            .headless( params.isHeadless() || !isPaging )
+            .anyFilter( params.getRootJunction() == DatastoreParams.Junction.OR )
+            .order( Order.parse( params.getOrder() ) )
             .paging( isPaging )
             .page( pageNo )
             .pageSize( size )
-            .filters( parseFilters( params.getStrings( "filter", FILTER_SPLIT ) ) )
+            .filters( parseFilters( getFilters( params.getFilter() ) ) )
             .build();
+    }
+
+    private static List<String> getFilters( String value )
+    {
+        if ( value == null || value.isEmpty() )
+        {
+            return emptyList();
+        }
+        return asList( value.split( FILTER_SPLIT ) );
     }
 
     /**

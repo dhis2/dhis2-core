@@ -70,6 +70,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -120,6 +121,9 @@ class DataQueryServiceDimensionItemKeywordTest
     private AnalyticsSecurityManager securityManager;
 
     @Mock
+    private UserSettingService userSettingService;
+
+    @Mock
     private SystemSettingManager systemSettingManager;
 
     @Mock
@@ -139,7 +143,8 @@ class DataQueryServiceDimensionItemKeywordTest
     {
         dimensionalObjectProducer = new DimensionalObjectProducer( idObjectManager, organisationUnitService,
             systemSettingManager, i18nManager, dimensionService, aclService, currentUserService );
-        target = new DefaultDataQueryService( dimensionalObjectProducer, idObjectManager, securityManager );
+        target = new DefaultDataQueryService( dimensionalObjectProducer, idObjectManager,
+            securityManager, userSettingService );
 
         rb = new RequestBuilder();
 
@@ -204,7 +209,6 @@ class DataQueryServiceDimensionItemKeywordTest
             .thenReturn( 3 );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
             .thenReturn( 2 );
-
         when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 

@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -54,10 +55,11 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -80,6 +82,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -103,6 +106,7 @@ public class TrackerImportController
     public WebMessage asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response,
         @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
+        throws InvalidEnumValueException
     {
 
         String jobId = CodeGenerator.generateUid();
@@ -114,6 +118,9 @@ public class TrackerImportController
             .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
         trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -124,9 +131,10 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
+    public ResponseEntity<ImportReport> syncPostJsonTracker(
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
+        throws InvalidEnumValueException
     {
 
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
@@ -136,13 +144,16 @@ public class TrackerImportController
             .trackerBundleReportMode( TrackerBundleReportMode.getTrackerBundleReportMode( reportMode ) )
             .uid( CodeGenerator.generateUid() )
             .build();
-        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
 
-        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
+        ImportReport importReport = trackerImporter.importTracker( trackerImportRequest );
+
+        ResponseEntity.BodyBuilder builder = importReport.getStatus() == Status.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
             : ResponseEntity.ok();
 
-        return builder.body( trackerImportReport );
+        return builder.body( importReport );
     }
 
     @PostMapping( value = "", consumes = { "application/csv", "text/csv" }, produces = APPLICATION_JSON_VALUE )
@@ -151,7 +162,8 @@ public class TrackerImportController
         @CurrentUser User currentUser,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst )
         throws IOException,
-        ParseException
+        ParseException,
+        InvalidEnumValueException
     {
         String jobId = CodeGenerator.generateUid();
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -169,6 +181,9 @@ public class TrackerImportController
             .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
         trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -180,12 +195,13 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = { "application/csv",
         "text/csv" }, produces = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    public ResponseEntity<TrackerImportReport> syncPostCsvTracker(
+    public ResponseEntity<ImportReport> syncPostCsvTracker(
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser )
         throws IOException,
-        ParseException
+        ParseException,
+        InvalidEnumValueException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
@@ -201,13 +217,15 @@ public class TrackerImportController
             .uid( CodeGenerator.generateUid() )
             .build();
 
-        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
 
-        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
+        ImportReport importReport = trackerImporter.importTracker( trackerImportRequest );
+
+        ResponseEntity.BodyBuilder builder = importReport.getStatus() == Status.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
             : ResponseEntity.ok();
 
-        return builder.body( trackerImportReport );
+        return builder.body( importReport );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )
@@ -219,7 +237,7 @@ public class TrackerImportController
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
-    public TrackerImportReport getJobReport( @PathVariable String uid,
+    public ImportReport getJobReport( @PathVariable String uid,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode,
         HttpServletResponse response )
         throws HttpStatusCodeException,
@@ -232,7 +250,7 @@ public class TrackerImportController
 
         return Optional.ofNullable( notifier
             .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report,
+            .map( report -> trackerImportService.buildImportReport( (ImportReport) report,
                 trackerBundleReportMode ) )
             .orElseThrow( () -> NotFoundException.notFoundUid( uid ) );
     }

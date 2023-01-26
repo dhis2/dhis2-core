@@ -1,0 +1,91 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: hFeGvP851tv
+name: category_options_excess_groupset_membership
+description: Category options which belong to multiple groups in a category option group set.
+section: Categories
+section_order: 10
+summary_sql: >-
+  WITH cos_multiple_groups as (
+  SELECT x.uid,x.name, x.cogs_name || ' :{'||
+  string_agg(x.cog_name,',') || '}' as comment from (
+  SELECT co.uid,co.name,cogs.name as cogs_name,cog.name as cog_name
+  from (
+  SELECT d.categoryoptionid,d.categoryoptiongroupsetid,
+  unnest(d.groupids) as categoryoptiongroupid
+  FROM (
+  SELECT c.categoryoptionid,c.categoryoptiongroupsetid,
+  array_agg(c.categoryoptiongroupid) as groupids
+  FROM (
+  SELECT a.categoryoptionid,
+  a.categoryoptiongroupid,
+  b.categoryoptiongroupsetid from
+  categoryoptiongroupmembers a
+  INNER JOIN categoryoptiongroupsetmembers b on a.categoryoptiongroupid = b.categoryoptiongroupid ) c
+  GROUP BY c.categoryoptionid,c.categoryoptiongroupsetid
+  HAVING array_length(array_agg(c.categoryoptionid), 1) > 1 ) d ) e
+  INNER JOIN dataelementcategoryoption co on e.categoryoptionid = co.categoryoptionid
+  INNER JOIN categoryoptiongroupset cogs on e.categoryoptiongroupsetid = cogs.categoryoptiongroupsetid
+  INNER JOIN categoryoptiongroup cog on e.categoryoptiongroupid = cog.categoryoptiongroupid ) x
+  GROUP BY x.uid,x.name,x.cogs_name
+  )
+  SELECT COUNT(*),
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataelementcategoryoption), 0) as percent
+  FROM cos_multiple_groups;
+details_uid: ARXenW2aL62
+details_sql: >-
+  SELECT x.uid,x.name, x.cogs_name || ' :{'||
+  string_agg(x.cog_name,',') || '}' as comment from (
+  SELECT co.uid,co.name,cogs.name as cogs_name,cog.name as cog_name
+  from (
+  SELECT d.categoryoptionid,d.categoryoptiongroupsetid,
+  unnest(d.groupids) as categoryoptiongroupid
+  FROM (
+  SELECT c.categoryoptionid,c.categoryoptiongroupsetid,
+  array_agg(c.categoryoptiongroupid) as groupids
+  FROM (
+  SELECT a.categoryoptionid,
+  a.categoryoptiongroupid,
+  b.categoryoptiongroupsetid from
+  categoryoptiongroupmembers a
+  INNER JOIN categoryoptiongroupsetmembers b on a.categoryoptiongroupid = b.categoryoptiongroupid ) c
+  GROUP BY c.categoryoptionid,c.categoryoptiongroupsetid
+  HAVING array_length(array_agg(c.categoryoptionid), 1) > 1 ) d ) e
+  INNER JOIN dataelementcategoryoption co on e.categoryoptionid = co.categoryoptionid
+  INNER JOIN categoryoptiongroupset cogs on e.categoryoptiongroupsetid = cogs.categoryoptiongroupsetid
+  INNER JOIN categoryoptiongroup cog on e.categoryoptiongroupid = cog.categoryoptiongroupid ) x
+  GROUP BY x.uid,x.name,x.cogs_name
+details_id_type: categories
+severity: SEVERE
+introduction: >
+  Category options should belong to exactly one category option group
+  which are part of a category option group set. If the category option belongs to
+  multiple groups, this will lead to unpredictable results in analysis.
+recommendation: >
+  Using the maintenance app, assign the category option in the details list
+  to exactly one category option group within each group set.

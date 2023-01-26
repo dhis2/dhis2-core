@@ -35,7 +35,7 @@ import java.util.List;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultQueryPlanner implements QueryPlanner
 {
     private final SchemaService schemaService;

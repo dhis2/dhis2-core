@@ -1,0 +1,63 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: data_element_groups_scarce
+description: Data element groups should have at least two members.
+section: Group size
+section_order: 1
+summary_uid: sup7m0e5Ngc
+summary_sql: >-
+  WITH group_size as (
+  SELECT uid,name, 'dataElementGroups' as comment, COALESCE(x.count,0) as count from
+  dataelementgroup
+  LEFT OUTER JOIN (
+  SELECT dataelementgroupid, COUNT(dataelementid) as count from dataelementgroupmembers
+  GROUP BY dataelementgroupid) x
+  USING(dataelementgroupid)
+  ORDER BY name)
+  SELECT COUNT(*) as value,
+   100*COUNT(*) / NULLIF( ( select COUNT(*) from dataelementgroup), 0) as percent
+  from group_size WHERE count < 2;
+details_uid: b5e4mmhTjQA
+details_sql: >-
+  WITH group_size as (
+  SELECT uid,name, 'dataElementGroups' as comment, COALESCE(x.count,0) as count from
+  dataelementgroup
+  LEFT OUTER JOIN (
+  SELECT dataelementgroupid, COUNT(dataelementid) as count from dataelementgroupmembers
+  GROUP BY dataelementgroupid) x
+  USING(dataelementgroupid)
+  ORDER BY name)
+  SELECT uid,name, CAST(count as text) as comment from group_size
+  where count < 2;
+severity: WARNING
+introduction: >
+  All data element groups should be composed of at least two data elements.
+recommendation: >
+  Considering removing groups with a single member, or alternatively, add additional
+  members to the group to make it more useful.
+details_id_type: dataElementGroups

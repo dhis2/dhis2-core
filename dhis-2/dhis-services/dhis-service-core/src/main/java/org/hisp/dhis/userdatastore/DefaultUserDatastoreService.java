@@ -29,7 +29,7 @@ package org.hisp.dhis.userdatastore;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultUserDatastoreService implements UserDatastoreService
 {
     private final UserDatastoreStore userDatastoreStore;

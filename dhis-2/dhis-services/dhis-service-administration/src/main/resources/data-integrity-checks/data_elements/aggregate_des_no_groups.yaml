@@ -1,0 +1,55 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: data_elements_aggregate_no_groups
+  description: Aggregate data elements not in any data element groups.
+  section: Data elements (aggregate)
+  section_order: 4
+  summary_uid: f4YhSfEAbHN
+  summary_sql: >-
+   SELECT COUNT(*) as value,
+    100*COUNT(*)/ NULLIF( (SELECT COUNT(*) from dataelement where domaintype = 'AGGREGATE'), 0) as percent
+   from dataelement where domaintype = 'AGGREGATE'
+   and dataelementid not in (select dataelementid from dataelementgroupmembers);
+  details_uid: bOxvtqRYGXh
+  details_sql: >-
+    select uid,name from dataelement
+    where domaintype = 'AGGREGATE'
+    and dataelementid not in (select dataelementid from dataelementgroupmembers)
+    ORDER BY name;
+  severity: WARNING
+  introduction: >
+    All data elements should be in a data element group.
+    This allows users to find the data elements more easily in analysis
+     apps and also contributes to having more complete data element group sets.
+     Maintenance operations can also be made more efficient by applying
+     bulk settings (ex. sharing) to all data elements within a data element group.
+  details_id_type: dataElements
+  recommendation: >
+    Data elements that are not in a data element group should be added to a relevant
+    data element group. If the data elements are not needed, they should be deleted.
+

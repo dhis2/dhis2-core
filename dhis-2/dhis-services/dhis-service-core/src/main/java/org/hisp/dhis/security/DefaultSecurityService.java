@@ -28,7 +28,6 @@
 package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +47,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -59,9 +57,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -90,7 +86,7 @@ public class DefaultSecurityService
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
-    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 24;
+    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 16;
 
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
@@ -252,7 +248,7 @@ public class DefaultSecurityService
             user.setUsername( username );
         }
 
-        String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
+        String rawPassword = "Inv!t3#" + CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
@@ -651,53 +647,4 @@ public class DefaultSecurityService
             || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
     }
 
-    @Override
-    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
-    {
-        if ( before == after )
-        {
-            return;
-        }
-
-        if ( !before )
-        {
-            // TODO: 13332 When we have 2FA auto provisioning after login, we
-            // can change this.
-            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
-        }
-
-        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-        if ( currentUserDetails == null )
-        {
-            throw new UpdateAccessDeniedException( "No current user in session, can not update user." );
-        }
-
-        // Current user can not update their own 2FA settings, must use
-        // /2fa/enable or disable API, even if they are admin.
-        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
-        {
-            throw new UpdateAccessDeniedException(
-                "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
-        }
-
-        // As long current is not super, admin can disable any other users 2FA.
-        if ( currentUserDetails.isSuper() )
-        {
-            return;
-        }
-
-        // If current user has access to manage this user, they can disable 2FA.
-        User currentUser = userService.getUser( currentUserDetails.getUid() );
-        if ( !aclService.canUpdate( currentUser, userToModify ) )
-        {
-            throw new UpdateAccessDeniedException(
-                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
-                    userToModify ) );
-        }
-        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( userToModify ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
-        }
-    }
 }

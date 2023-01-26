@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.geotools.geojson.GeoJSON;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -54,6 +53,7 @@ public enum ValueType
 {
     TEXT( String.class, true ),
     LONG_TEXT( String.class, true ),
+    MULTI_TEXT( String.class, true ),
     LETTER( String.class, true ),
     PHONE_NUMBER( String.class, false ),
     EMAIL( String.class, false ),
@@ -78,8 +78,7 @@ public enum ValueType
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
-    GEOJSON( GeoJSON.class, false ),
-    MULTI_TEXT( String.class, true );
+    GEOJSON( String.class, false );
 
     /**
      * The character used to separate values in a multi-text value.
@@ -223,10 +222,14 @@ public enum ValueType
         {
             return false;
         }
+
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE;
+            return aggregationType == AggregationType.NONE ||
+                aggregationType == AggregationType.LAST_LAST_ORG_UNIT ||
+                aggregationType == AggregationType.FIRST_FIRST_ORG_UNIT;
         }
+
         return aggregationType != AggregationType.NONE;
     }
 

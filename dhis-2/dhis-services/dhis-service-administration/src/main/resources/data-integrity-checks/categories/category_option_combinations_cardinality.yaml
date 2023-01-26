@@ -1,0 +1,78 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#---
+summary_uid: VBIs20Adkyf
+name: cocs_wrong_cardinality
+description: Category option combinations with incorrect cardinality.
+section: Categories
+section_order: 5
+summary_sql: >-
+    WITH cocs_wrong_cardinality as (
+    SELECT foo.categorycomboid,foo.categoryoptioncomboid,foo.actual_cardnality,bar.theoretical_cardnality FROM (
+    SELECT b.categorycomboid,a.categoryoptioncomboid, COUNT(*) as actual_cardnality
+    FROM categoryoptioncombos_categoryoptions a
+    INNER JOIN categorycombos_optioncombos b on a.categoryoptioncomboid = b.categoryoptioncomboid
+    GROUP BY b.categorycomboid,a.categoryoptioncomboid ) as foo
+    INNER JOIN
+    (SELECT categorycomboid,COUNT(*) as theoretical_cardnality FROM categorycombos_categories
+     GROUP BY categorycomboid) bar on foo.categorycomboid = bar.categorycomboid
+    WHERE foo.actual_cardnality != bar.theoretical_cardnality )
+    SELECT COUNT(*) as value,
+    100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM categoryoptioncombo),0) as percent
+    FROM cocs_wrong_cardinality;
+details_uid: ZMsFbuKljqn
+details_sql: >-
+    WITH baz as (
+    SELECT foo.categorycomboid,foo.categoryoptioncomboid,foo.actual_cardnality,bar.theoretical_cardnality FROM (
+    SELECT b.categorycomboid,a.categoryoptioncomboid, COUNT(*) as actual_cardnality
+    FROM categoryoptioncombos_categoryoptions a
+    INNER JOIN categorycombos_optioncombos b on a.categoryoptioncomboid = b.categoryoptioncomboid
+    GROUP BY b.categorycomboid,a.categoryoptioncomboid ) as foo
+    INNER JOIN
+    (SELECT categorycomboid,COUNT(*) as theoretical_cardnality FROM categorycombos_categories
+     GROUP BY categorycomboid) bar on foo.categorycomboid = bar.categorycomboid
+    WHERE foo.actual_cardnality != bar.theoretical_cardnality )
+    SELECT x.uid as uid,x.name,y.name as comment
+    FROM baz
+    INNER JOIN categorycombo x on baz.categorycomboid = x.categorycomboid
+    INNER JOIN categoryoptioncombo y on baz.categoryoptioncomboid = y.categoryoptioncomboid;
+severity: SEVERE
+introduction: >
+    All category option combinations should have exactly the same number of category option associations
+    as the number of categories in the category combination. If there are two categories in a category
+    combination, then every category option combination should have exactly two category options.
+    
+    Category option combinations with the incorrect cardinality are usually the result of a category
+    combination having been created, and then modified later. Suppose that two categories are used 
+    to create a category combination. Each category option combination of this category combo will 
+    have two category options. If an additional category is added to the category combination later,
+    new category option combinations with three category options will be created and associated
+    with this category combo. The original category option combinations would be considered to be
+    invalid.
+details_id_type: categoryOptionCombos
+recommendation: >
+    Category option combinations which have an incorrect cardinality will be ignored by the DHIS2
+    analytics system and should be removed.

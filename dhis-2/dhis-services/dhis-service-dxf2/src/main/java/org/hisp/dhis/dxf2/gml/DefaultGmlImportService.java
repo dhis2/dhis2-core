@@ -41,15 +41,25 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.feedback.*;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
@@ -65,7 +75,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 import org.xml.sax.SAXParseException;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -95,6 +104,7 @@ import com.google.common.collect.Maps;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.gml.GmlImportService" )
 public class DefaultGmlImportService
     implements GmlImportService
@@ -105,35 +115,17 @@ public class DefaultGmlImportService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RenderService renderService;
+    private final RenderService renderService;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    private MetadataImportService importService;
+    private final MetadataImportService importService;
 
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    private MergeService mergeService;
-
-    public DefaultGmlImportService( RenderService renderService, IdentifiableObjectManager idObjectManager,
-        SchemaService schemaService, MetadataImportService importService, Notifier notifier, MergeService mergeService )
-    {
-        Preconditions.checkNotNull( renderService );
-        Preconditions.checkNotNull( idObjectManager );
-        Preconditions.checkNotNull( schemaService );
-        Preconditions.checkNotNull( importService );
-        Preconditions.checkNotNull( notifier );
-        Preconditions.checkNotNull( mergeService );
-
-        this.renderService = renderService;
-        this.idObjectManager = idObjectManager;
-        this.schemaService = schemaService;
-        this.importService = importService;
-        this.notifier = notifier;
-        this.mergeService = mergeService;
-    }
+    private final MergeService mergeService;
 
     // -------------------------------------------------------------------------
     // GmlImportService implementation
@@ -236,8 +228,8 @@ public class DefaultGmlImportService
             if ( imported == null || imported.getGeometry() == null )
             {
                 continue; // Failed to dereference a persisted entity for this
-                          // org unit or geo data incomplete/missing, therefore
-                          // ignore
+                         // org unit or geo data incomplete/missing, therefore
+                         // ignore
             }
 
             mergeNonGeoData( persisted, imported );
@@ -295,8 +287,8 @@ public class DefaultGmlImportService
         Map<String, OrganisationUnit> codeMap, Map<String, OrganisationUnit> nameMap )
     {
         for ( OrganisationUnit orgUnit : sourceList ) // Identifier Matching
-                                                      // priority: uid, code,
-                                                      // name
+                                                     // priority: uid, code,
+                                                     // name
         {
             // Only matches if UID is actually in DB as an empty UID on input
             // will be replaced by auto-generated value

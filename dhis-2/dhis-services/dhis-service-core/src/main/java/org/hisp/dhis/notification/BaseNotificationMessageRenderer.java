@@ -64,52 +64,45 @@ import org.joda.time.Days;
 public abstract class BaseNotificationMessageRenderer<T>
     implements NotificationMessageRenderer<T>
 {
-    protected static final int SMS_CHAR_LIMIT = 160 * 4; // Four concatenated
-                                                         // SMS messages
+    /**
+     * 4 concatenated SMS.
+     */
+    protected static final int SMS_CHAR_LIMIT = 160 * 4;
 
-    protected static final int EMAIL_CHAR_LIMIT = 10000; // Somewhat arbitrarily
-                                                         // chosen limits
+    protected static final int EMAIL_CHAR_LIMIT = 10000;
 
     protected static final int SUBJECT_CHAR_LIMIT = 100;
 
-    protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO
-                                                                                     // reconsider
-                                                                                     // this...
+    protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
 
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
 
     protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
-    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For
-                                                                                                    // Variable
+    /**
+     * For Variable.
+     */
+    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
 
-    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For
-                                                                                                            // TrackedEntityAttribute
-                                                                                                            // and
-                                                                                                            // DataElement
+    /**
+     * ForTrackedEntityAttribute and DataElement.
+     */
+    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
 
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches
-                                                                                         // the
-                                                                                         // variable
-                                                                                         // in
-                                                                                         // group
-                                                                                         // 1
+    /**
+     * Matches the variable in group 1.
+     */
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)}" );
 
-    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
-                                                                                                                         // the
-                                                                                                                         // uid
-                                                                                                                         // in
-                                                                                                                         // group
-                                                                                                                         // 1
+    /**
+     * Matches the UID in group 1 for ForTrackedEntityAttribute.
+     */
+    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" );
 
-    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
-                                                                                                             // the
-                                                                                                             // uid
-                                                                                                             // in
-                                                                                                             // group
-                                                                                                             // 1
-                                                                                                             // for
-                                                                                                             // DataElement
+    /**
+     * Matches the UID in group 1 for DataElement.
+     */
+    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" );
 
     private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> expressionToValueResolvers = Map
         .of(
@@ -149,6 +142,7 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Public methods
     // -------------------------------------------------------------------------
 
+    @Override
     public NotificationMessage render( T entity, NotificationTemplate template )
     {
         final String collatedTemplate = template.getSubjectTemplate() + " " + template.getMessageTemplate();
@@ -161,7 +155,7 @@ public abstract class BaseNotificationMessageRenderer<T>
     }
 
     // -------------------------------------------------------------------------
-    // Overrideable logic
+    // Override logic
     // -------------------------------------------------------------------------
 
     private boolean isValidExpressionContent( String content, ExpressionType type )

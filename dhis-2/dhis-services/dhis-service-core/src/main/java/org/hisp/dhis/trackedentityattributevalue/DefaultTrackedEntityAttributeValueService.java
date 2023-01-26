@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
@@ -52,14 +53,11 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" )
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final TrackedEntityAttributeValueStore attributeValueStore;
 
     private final FileResourceService fileResourceService;
@@ -71,27 +69,6 @@ public class DefaultTrackedEntityAttributeValueService
     private final CurrentUserService currentUserService;
 
     private final DhisConfigurationProvider config;
-
-    public DefaultTrackedEntityAttributeValueService( TrackedEntityAttributeValueStore attributeValueStore,
-        FileResourceService fileResourceService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
-        ReservedValueService reservedValueService, CurrentUserService currentUserService,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        checkNotNull( attributeValueStore );
-        checkNotNull( fileResourceService );
-        checkNotNull( trackedEntityAttributeValueAuditService );
-        checkNotNull( reservedValueService );
-        checkNotNull( currentUserService );
-        checkNotNull( dhisConfigurationProvider );
-
-        this.attributeValueStore = attributeValueStore;
-        this.fileResourceService = fileResourceService;
-        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
-        this.reservedValueService = reservedValueService;
-        this.currentUserService = currentUserService;
-        this.config = dhisConfigurationProvider;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -160,7 +137,7 @@ public class DefaultTrackedEntityAttributeValueService
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
 
-        String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
+        String result = valueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
         if ( result != null )
         {
@@ -214,7 +191,7 @@ public class DefaultTrackedEntityAttributeValueService
 
             attributeValue.setAutoFields();
 
-            String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
+            String result = valueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
             if ( result != null )
             {

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.util.Calendar;
@@ -37,12 +36,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -61,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.datastatistics.DataStatisticsService" )
 @Transactional
 public class DefaultDataStatisticsService
@@ -81,31 +82,6 @@ public class DefaultDataStatisticsService
     private final ProgramStageInstanceService programStageInstanceService;
 
     private final EventVisualizationStore eventVisualizationStore;
-
-    public DefaultDataStatisticsService( final DataStatisticsStore dataStatisticsStore,
-        final DataStatisticsEventStore dataStatisticsEventStore, final UserService userService,
-        final IdentifiableObjectManager idObjectManager, final DataValueService dataValueService,
-        final StatisticsProvider statisticsProvider, final ProgramStageInstanceService programStageInstanceService,
-        final EventVisualizationStore eventVisualizationStore )
-    {
-        checkNotNull( dataStatisticsStore );
-        checkNotNull( dataStatisticsEventStore );
-        checkNotNull( userService );
-        checkNotNull( idObjectManager );
-        checkNotNull( dataValueService );
-        checkNotNull( statisticsProvider );
-        checkNotNull( programStageInstanceService );
-        checkNotNull( eventVisualizationStore );
-
-        this.dataStatisticsStore = dataStatisticsStore;
-        this.dataStatisticsEventStore = dataStatisticsEventStore;
-        this.userService = userService;
-        this.idObjectManager = idObjectManager;
-        this.dataValueService = dataValueService;
-        this.statisticsProvider = statisticsProvider;
-        this.programStageInstanceService = programStageInstanceService;
-        this.eventVisualizationStore = eventVisualizationStore;
-    }
 
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
@@ -152,7 +128,7 @@ public class DefaultDataStatisticsService
             () -> eventVisualizationStore.countChartsCreated( startDate ) );
         progress.startingStage( "Counting event visualisations", SKIP_STAGE );
         Integer savedEventVisualizations = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( EventVisualization.class, startDate ) );
+            () -> eventVisualizationStore.countEventVisualizationsCreated( startDate ) );
         progress.startingStage( "Counting dashboards", SKIP_STAGE );
         Integer savedDashboards = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( Dashboard.class, startDate ) );

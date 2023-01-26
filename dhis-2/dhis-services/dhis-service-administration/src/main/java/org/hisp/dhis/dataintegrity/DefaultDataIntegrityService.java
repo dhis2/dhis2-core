@@ -30,11 +30,12 @@ package org.hisp.dhis.dataintegrity;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
@@ -57,13 +58,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -166,6 +168,10 @@ public class DefaultDataIntegrityService
 
     private Cache<DataIntegrityDetails> detailsCache;
 
+    private final Set<String> runningSummaryChecks = ConcurrentHashMap.newKeySet();
+
+    private final Set<String> runningDetailsChecks = ConcurrentHashMap.newKeySet();
+
     @PostConstruct
     public void init()
     {
@@ -191,6 +197,34 @@ public class DefaultDataIntegrityService
         return items.map( e -> DataIntegrityIssue.toIssue( e, toRefs.apply( e ) ) )
             .sorted( DefaultDataIntegrityService::alphabeticalOrder )
             .collect( toUnmodifiableList() );
+    }
+
+    @Nonnull
+    @Override
+    public Set<String> getRunningSummaryChecks()
+    {
+        return Set.copyOf( runningSummaryChecks );
+    }
+
+    @Nonnull
+    @Override
+    public Set<String> getRunningDetailsChecks()
+    {
+        return Set.copyOf( runningDetailsChecks );
+    }
+
+    @Nonnull
+    @Override
+    public Set<String> getCompletedSummaryChecks()
+    {
+        return stream( summaryCache.keys().spliterator(), false ).collect( toUnmodifiableSet() );
+    }
+
+    @Nonnull
+    @Override
+    public Set<String> getCompletedDetailsChecks()
+    {
+        return stream( detailsCache.keys().spliterator(), false ).collect( toUnmodifiableSet() );
     }
 
     // -------------------------------------------------------------------------
@@ -544,8 +578,16 @@ public class DefaultDataIntegrityService
                 .introduction( info.apply( "introduction", null ) )
                 .recommendation( info.apply( "recommendation", null ) )
                 .issuesIdType( issueIdTypeName )
-                .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
-                .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
+                .runDetailsCheck( c -> {
+                    Date startTime = new Date();
+                    List<DataIntegrityIssue> issues = check.get();
+                    return new DataIntegrityDetails( c, startTime, new Date(), null, issues );
+                } )
+                .runSummaryCheck( c -> {
+                    Date startTime = new Date();
+                    List<DataIntegrityIssue> issues = check.get();
+                    return new DataIntegritySummary( c, startTime, new Date(), null, issues.size(), null );
+                } )
                 .build() );
         }
         catch ( Exception ex )
@@ -611,9 +653,9 @@ public class DefaultDataIntegrityService
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
             ValidationRule.class, this::getInvalidValidationRuleRightSideExpressions );
-
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorExpressions );
+
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
             ProgramIndicator.class, this::getInvalidProgramIndicatorFilters );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
@@ -637,10 +679,11 @@ public class DefaultDataIntegrityService
             ProgramRule.class, this::getProgramRuleActionsWithNoNotificationTemplate );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
             ProgramRule.class, this::getProgramRuleActionsWithNoSectionId );
-        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE,
+        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
             ProgramRule.class, this::getProgramRuleActionsWithNoProgramStageId );
     }
 
+    @Nonnull
     @Override
     @Transactional( readOnly = true )
     public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
@@ -830,6 +873,7 @@ public class DefaultDataIntegrityService
 
     private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
 
+    @Nonnull
     @Override
     public Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks )
     {
@@ -839,8 +883,9 @@ public class DefaultDataIntegrityService
             : expandChecks( checks ).stream().map( checksByName::get ).collect( toList() );
     }
 
+    @Nonnull
     @Override
-    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout )
+    public Map<String, DataIntegritySummary> getSummaries( @Nonnull Set<String> checks, long timeout )
     {
         return getCached( checks, timeout, summaryCache );
     }
@@ -848,15 +893,18 @@ public class DefaultDataIntegrityService
     // OBS! We intentionally do not open the transaction here to have each check
     // be independent
     @Override
-    public void runSummaryChecks( Set<String> checks, JobProgress progress )
+    public void runSummaryChecks( @Nonnull Set<String> checks, JobProgress progress )
     {
-        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
+        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
+            summaryCache, runningSummaryChecks,
             check -> check.getRunSummaryCheck().apply( check ),
-            ( check, ex ) -> new DataIntegritySummary( check, new Date(), ex.getMessage(), -1, null ) );
+            ( check, startTime, ex ) -> new DataIntegritySummary( check, startTime, new Date(),
+                errorMessage( check, ex ), -1, null ) );
     }
 
+    @Nonnull
     @Override
-    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout )
+    public Map<String, DataIntegrityDetails> getDetails( @Nonnull Set<String> checks, long timeout )
     {
         return getCached( checks, timeout, detailsCache );
     }
@@ -864,11 +912,20 @@ public class DefaultDataIntegrityService
     // OBS! We intentionally do not open the transaction here to have each check
     // be independent
     @Override
-    public void runDetailsChecks( Set<String> checks, JobProgress progress )
+    public void runDetailsChecks( @Nonnull Set<String> checks, JobProgress progress )
     {
-        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
+        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
+            detailsCache, runningDetailsChecks,
             check -> check.getRunDetailsCheck().apply( check ),
-            ( check, ex ) -> new DataIntegrityDetails( check, new Date(), ex.getMessage(), List.of() ) );
+            ( check, startTime, ex ) -> new DataIntegrityDetails( check, startTime, new Date(),
+                errorMessage( check, ex ), List.of() ) );
+    }
+
+    private static String errorMessage( DataIntegrityCheck check, RuntimeException ex )
+    {
+        String message = "Check failed because an exception was thrown: " + ex.getMessage();
+        log.error( "Check " + check.getName() + " failed because an exception was thrown", ex );
+        return message;
     }
 
     private <T> Map<String, T> getCached( Set<String> checks, long timeout, Cache<T> cache )
@@ -904,61 +961,101 @@ public class DefaultDataIntegrityService
         return resByName;
     }
 
-    private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
-        Cache<T> cache, Function<DataIntegrityCheck, T> runCheck,
-        BiFunction<DataIntegrityCheck, RuntimeException, T> createErrorReport )
+    @FunctionalInterface
+    private interface DataIntegrityCheckErrorHandler<T>
     {
-        progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
-        progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
-            DataIntegrityCheck::getDescription,
-            check -> {
-                T res = null;
-                try
-                {
-                    res = runCheck.apply( check );
-                }
-                catch ( RuntimeException ex )
-                {
-                    cache.put( check.getName(), createErrorReport.apply( check, ex ) );
-                    throw ex;
-                }
-                if ( res != null )
-                {
-                    cache.put( check.getName(), res );
-                }
-            } );
-        progress.completedProcess( null );
+        T createErrorReport( DataIntegrityCheck check, Date startTime, RuntimeException ex );
+    }
+
+    private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
+        Cache<T> cache, Set<String> running, Function<DataIntegrityCheck, T> runCheck,
+        DataIntegrityCheckErrorHandler<T> createErrorReport )
+    {
+        try
+        {
+            running.addAll( checks );
+            progress.startingProcess( "Data Integrity check" );
+            progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
+            progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
+                DataIntegrityCheck::getDescription,
+                check -> {
+                    Date startTime = new Date();
+                    T res;
+                    try
+                    {
+                        res = runCheck.apply( check );
+                    }
+                    catch ( RuntimeException ex )
+                    {
+                        cache.put( check.getName(), createErrorReport.createErrorReport( check, startTime, ex ) );
+                        throw ex;
+                    }
+                    finally
+                    {
+                        running.remove( check.getName() );
+                    }
+                    if ( res != null )
+                    {
+                        cache.put( check.getName(), res );
+                    }
+                } );
+            progress.completedProcess( null );
+        }
+        finally
+        {
+            running.removeAll( checks );
+        }
     }
 
     private Set<String> expandChecks( Set<String> names )
     {
         ensureConfigurationsAreLoaded();
+
         if ( names == null || names.isEmpty() )
         {
-            return unmodifiableSet( checksByName.keySet() );
+            return getDefaultChecks();
         }
         Set<String> expanded = new LinkedHashSet<>();
+
         for ( String name : names )
         {
-            String uniformName = name.toLowerCase().replace( '-', '_' );
-            if ( uniformName.contains( "*" ) )
+            if ( name.toUpperCase().equals( name ) && name.indexOf( '_' ) < 0 )
             {
-                String pattern = uniformName.replace( "*", ".*" );
-                for ( String existingName : checksByName.keySet() )
+                // assume it is a code
+                checksByName.values().stream()
+                    .filter( check -> check.getCode().equals( name ) )
+                    .map( DataIntegrityCheck::getName )
+                    .forEach( expanded::add );
+            }
+            else if ( name.contains( "*" ) )
+            {
+                String pattern = name.toLowerCase().replace( '-', '_' ).replace( "*", ".*" );
+                for ( DataIntegrityCheck check : checksByName.values() )
                 {
-                    if ( existingName.matches( pattern ) )
+                    if ( !check.isSlow() && check.getName().matches( pattern ) )
                     {
-                        expanded.add( existingName );
+                        expanded.add( check.getName() );
                     }
                 }
             }
             else
             {
-                expanded.add( uniformName );
+                expanded.add( name.toLowerCase().replace( '-', '_' ) );
             }
         }
         return expanded;
+    }
+
+    private Set<String> getDefaultChecks()
+    {
+        ensureConfigurationsAreLoaded();
+
+        return checksByName.values()
+            .stream()
+            .filter( not( DataIntegrityCheck::isSlow ) )
+            .map( DataIntegrityCheck::getName )
+            .collect( Collectors.toUnmodifiableSet() );
+
     }
 
     private void ensureConfigurationsAreLoaded()

@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.net.URI;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,30 +58,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
-    private final PBEStringEncryptor pbeStringEncryptor;
-
     private final RestTemplate restTemplate;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate,
-        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
-    {
-        checkNotNull( restTemplate );
-        checkNotNull( pbeStringEncryptor );
-
-        this.restTemplate = restTemplate;
-        this.pbeStringEncryptor = pbeStringEncryptor;
-    }
+    @Qualifier( "tripleDesStringEncryptor" )
+    private final PBEStringEncryptor pbeStringEncryptor;
 
     // -------------------------------------------------------------------------
-    // Implementation
+    // SmsGateway implementation
     // -------------------------------------------------------------------------
 
     @Override
@@ -150,8 +142,8 @@ public class SimplisticHttpGetGateWay
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches
-                                                                                                                   // on
-                                                                                                                   // ${...}
+                                                                                                                  // on
+                                                                                                                  // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 

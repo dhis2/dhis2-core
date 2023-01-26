@@ -1,0 +1,71 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: dashboards_not_viewed_one_year
+  summary_uid: UmKSWH5Id3E
+  description: Dashboards which have not been actively viewed in the past 12 months
+  section: Visualizations
+  section_order: 3
+  summary_sql: >-
+      WITH unused_dashboards as (
+       SELECT c.uid,c.name, c.last_viewed from (
+       SELECT a.uid,a.name,b.last_viewed
+       from dashboard a
+       LEFT OUTER JOIN (SELECT favoriteuid,
+       MAX(timestamp) as last_viewed FROM datastatisticsevent
+       where eventtype = 'DASHBOARD_VIEW'
+       AND favoriteuid IS NOT NULL GROUP BY favoriteuid ) b on
+       a.uid = b.favoriteuid ) as c
+       where c.last_viewed IS NULL
+       OR AGE(now(),c.last_viewed) >= INTERVAL '12 months' )
+       SELECT COUNT(*) as value,
+       100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dashboard), 0) as percent
+       from unused_dashboards;
+  details_uid: eDb3aWioyRQ
+  details_sql: >-
+    SELECT c.uid,c.name, CAST(c.last_viewed as text) from (
+    SELECT a.uid,a.name,b.last_viewed
+    from dashboard a
+    LEFT OUTER JOIN (SELECT favoriteuid,
+    MAX(timestamp) as last_viewed FROM datastatisticsevent
+    where eventtype = 'DASHBOARD_VIEW'
+    AND favoriteuid IS NOT NULL GROUP BY favoriteuid ) b on
+    a.uid = b.favoriteuid ) as c
+    where c.last_viewed IS NULL
+    OR AGE(now(),c.last_viewed) >= INTERVAL '12 months'
+    ORDER BY c.name;
+  severity: WARNING
+  introduction: >
+    Dashboards should be regularly viewed in the system. In many cases, users may create dashboards for
+    temporary purposes and then never delete them. This can eventually lead to a lack of tidiness
+    in the system. This can lead to useful dashboards being difficult to find. This
+    check identifies any dashboards which have not been viewed in the past year.
+  details_id_type: dashboards
+  recommendation: >
+    Unused dashboards can be deleted in the entirety from the main dashboard app by clicking on the "Edit" 
+    button and choosing "Delete". Note that this process cannot be undone! Another option would be to alter
+    the sharing of the dashboard so that it is not visible to any user.

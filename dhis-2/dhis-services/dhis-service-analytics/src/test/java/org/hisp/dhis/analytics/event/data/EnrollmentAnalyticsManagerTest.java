@@ -50,6 +50,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.TimeField;
@@ -85,8 +86,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -121,13 +120,14 @@ class EnrollmentAnalyticsManagerTest extends
     @BeforeEach
     public void setUp()
     {
-        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+        when( jdbcTemplate.queryForRowSet( anyString() ) )
+            .thenReturn( this.rowSet );
 
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
 
-        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, programIndicatorService,
             programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
             executionPlanStore );
     }
@@ -136,24 +136,26 @@ class EnrollmentAnalyticsManagerTest extends
     void verifyWithProgramAndStartEndDate()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) ).build();
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 12, 31 ) )
+            .build();
 
         subject.getEnrollments( params, new ListGrid(), 10000 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01' and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
 
         assertSql( sql.getValue(), expected );
-
     }
 
     @Test
     void verifyWithLastUpdatedTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) )
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 12, 31 ) )
             .withTimeField( TimeField.LAST_UPDATED.name() )
             .build();
 
@@ -162,10 +164,9 @@ class EnrollmentAnalyticsManagerTest extends
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where lastupdated >= '2017-01-01' and lastupdated < '2018-01-01' and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (lastupdated >= '2017-01-01' and lastupdated < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
 
         assertSql( sql.getValue(), expected );
-
     }
 
     @Test
@@ -182,7 +183,6 @@ class EnrollmentAnalyticsManagerTest extends
 
     private void verifyWithProgramStageAndNumericDataElement( ValueType valueType )
     {
-
         EventQueryParams params = createRequestParams( this.programStage, valueType );
 
         subject.getEnrollments( params, new ListGrid(), 100 );
@@ -207,7 +207,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyWithProgramStageAndTextualDataElementAndFilter()
     {
-
         EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.TEXT );
 
         subject.getEnrollments( params, new ListGrid(), 10000 );
@@ -336,10 +335,9 @@ class EnrollmentAnalyticsManagerTest extends
 
         String expected = subSelect + " is null";
         String unexpected = "(" + subSelect + " in (";
-        testIt( IN, NV,
-            ImmutableList.of(
-                ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
-                ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
+        testIt( IN, NV, List.of(
+            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
+            ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
     }
 
     private void testIt( QueryOperator operator, String filter, Collection<Consumer<String>> assertions )
@@ -367,7 +365,8 @@ class EnrollmentAnalyticsManagerTest extends
         RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+            createRequestParams( programIndicatorA, relationshipTypeA ) )
+                .withStartDate( startDate )
                 .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
@@ -389,7 +388,7 @@ class EnrollmentAnalyticsManagerTest extends
             + " AND tei.uid = ax.tei )), double precision 'NaN') as \""
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
-            + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
@@ -408,7 +407,8 @@ class EnrollmentAnalyticsManagerTest extends
             RelationshipEntity.PROGRAM_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+            createRequestParams( programIndicatorA, relationshipTypeA ) )
+                .withStartDate( startDate )
                 .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
@@ -430,7 +430,7 @@ class EnrollmentAnalyticsManagerTest extends
             "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi )), double precision 'NaN')" + " as \""
             + programIndicatorA.getUid() + "\"  "
             + "from analytics_enrollment_" + programA.getUid()
-            + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
@@ -479,7 +479,8 @@ class EnrollmentAnalyticsManagerTest extends
         RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+            createRequestParams( programIndicatorA, relationshipTypeA ) )
+                .withStartDate( startDate )
                 .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
@@ -501,7 +502,7 @@ class EnrollmentAnalyticsManagerTest extends
             + " AND tei.uid = ax.tei )), double precision 'NaN') as \""
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
-            + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
@@ -509,23 +510,19 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
 
-        // When
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
 
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -533,10 +530,8 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
@@ -547,7 +542,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -561,10 +555,9 @@ class EnrollmentAnalyticsManagerTest extends
         repeatableStageParams.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
         repeatableStageParams.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
         item.setRepeatableStageParams( repeatableStageParams );
-        // When
+
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
                 + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
@@ -577,7 +570,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -589,10 +581,9 @@ class EnrollmentAnalyticsManagerTest extends
         repeatableStageParams.setStartIndex( 0 );
         repeatableStageParams.setCount( 1 );
         item.setRepeatableStageParams( repeatableStageParams );
-        // When
+
         String columnSql = subject.getColumn( item );
 
-        // Then
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
@@ -604,17 +595,14 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnAndNoProgramStage()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         String colName = quote( item.getItemName() );
         String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
@@ -631,7 +619,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnWithProgramStage()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
@@ -639,10 +626,8 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
         item.setProgram( programA );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         String colName = quote( item.getItemName() );
         String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
@@ -658,17 +643,14 @@ class EnrollmentAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumnWithNoProgram()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
         item.setProgramStage( programStage );
 
-        // When
         String columnSql = subject.getCoordinateColumn( item ).asSql();
 
-        // Then
         assertThat( columnSql, is( EMPTY ) );
     }
 }

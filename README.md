@@ -39,19 +39,23 @@ shared volume `db-dump` using
 docker compose down --volumes
 ```
 
-### Pre-built Image
+### Pre-built Images
 
 We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
-repositories
+repositories:
 
-* releases or release candidates [dhis2/core](https://hub.docker.com/r/dhis2/core/tags)
-* development (branches master and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
-* PRs labeled with `publish-docker-image` [dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags)
+* [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate DHIS2 versions. These images represent the **stable** DHIS2 versions, meaning they won't be rebuilt in the future.
 
-To run DHIS2 from latest master (as it is on GitHub) run
+* [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) - images of _the latest development_ DHIS2 versions - branches `master` (tagged as `latest`) and the previous 3 supported major versions. Image tags in this repository will be overwritten multiple times a day.
+
+* [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) - images of _the latest daily development_ DHIS2 versions. We tag the last `core-dev` images for the day and add an extra tag with a "yyyyMMdd"-formatted date, like `core-canary:latest-20230124`.
+
+* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs labeled with `publish-docker-image`.
+
+To run DHIS2 from latest `master` branch (as it is on GitHub) run:
 
 ```sh
-DHIS2_IMAGE=dhis2/core-dev:master docker compose up
+DHIS2_IMAGE=dhis2/core-dev:latest docker compose up
 ```
 
 ### Local Image
@@ -129,6 +133,23 @@ environment variable
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
 
+##### Overriding default values
+
+You can create a local file called `docker-compose.override.yml` and override values from the main `docker-compose.yml`
+file. As an example, you might want to use a different version of the Postgres database and run it on a different port.
+More extensive documentation of this feature is available [here](https://docs.docker.com/compose/extends/). Using the override
+file you can easily customize values for your local situation.
+
+```yaml
+version: "3.8"
+
+services:
+  db:
+    image: postgis/postgis:14-3.3-alpine
+    ports:
+      - 127.0.0.1:6432:5432
+```
+
 ##### DHIS2_HOME
 
 [Previously](https://github.com/dhis2/dhis2-core/blob/b4d4242fb30d974254de2a72b86cc5511f70c9c0/docker/tomcat-debian/Dockerfile#L9),
@@ -142,5 +163,4 @@ variable `DHIS2_HOME` like
       DHIS2_HOME: /DHIS2_home
 ```
 
-in a docker-compose file. Or passing the system property `-Ddhis2.home`. You need to ensure that
-this `DHIS2_HOME` is writeable yourself!
+in a `docker-compose.override.yml` file. Alternatively, you can pass the system property `-Ddhis2.home` directly from the command line. You need to ensure that this `DHIS2_HOME` is writeable yourself!

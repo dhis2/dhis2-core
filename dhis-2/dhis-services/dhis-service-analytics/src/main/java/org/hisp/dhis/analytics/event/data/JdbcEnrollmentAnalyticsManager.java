@@ -65,7 +65,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -76,16 +75,15 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Markus Bekken
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
@@ -100,18 +98,16 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String IS_NOT_NULL = " is not null ";
 
-    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
+    private static final List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
 
-    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
+    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, executionPlanStore );
+        super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -236,7 +232,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderTimeFieldSql( params );
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -306,7 +302,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getStatementForDimensionsAndFilters( params, hlp );
+        sql += getQueryItemsAndFiltersWhereClause( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
@@ -329,7 +325,7 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += "and enrollmentstatus in ("
-                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) )
+                + params.getProgramStatus().stream().map( p -> encode( p.name() ) )
                     .collect( joining( "," ) )
                 + ") ";
         }

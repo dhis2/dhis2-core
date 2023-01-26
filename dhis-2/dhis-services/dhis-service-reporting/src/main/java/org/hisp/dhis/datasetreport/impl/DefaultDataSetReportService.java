@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datasetreport.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.DATAELEMENT_TOTAL_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.IDENTIFIER_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.INDICATOR_PATTERN;
@@ -42,6 +41,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -77,6 +78,7 @@ import org.springframework.stereotype.Component;
  * @author Abyot Asalefew
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.datasetreport.DataSetReportService" )
 public class DefaultDataSetReportService
     implements DataSetReportService
@@ -100,19 +102,6 @@ public class DefaultDataSetReportService
     private final DataSetReportStore dataSetReportStore;
 
     private final I18nManager i18nManager;
-
-    public DefaultDataSetReportService( DataValueService dataValueService, DataSetReportStore dataSetReportStore,
-        I18nManager i18nManager )
-    {
-
-        checkNotNull( dataSetReportStore );
-        checkNotNull( dataValueService );
-        checkNotNull( i18nManager );
-
-        this.dataValueService = dataValueService;
-        this.dataSetReportStore = dataSetReportStore;
-        this.i18nManager = i18nManager;
-    }
 
     // -------------------------------------------------------------------------
     // DataSetReportService implementation
@@ -241,8 +230,8 @@ public class DefaultDataSetReportService
                 {
                     grid.addRow();
                     grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data
-                                                                                         // element
-                                                                                         // name
+                                                                                        // element
+                                                                                        // name
 
                     for ( CategoryOptionCombo optionCombo : optionCombos ) // Values
                     {

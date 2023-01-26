@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,9 +65,9 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -199,23 +200,23 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
-        final Enrollments enrollments = new Enrollments();
-        final List<ProgramInstance> programInstances = new ArrayList<>();
+        Enrollments enrollments = new Enrollments();
+        List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
 
-        if ( params.isPaging() )
+        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+
+        if ( !params.isSkipPaging() )
         {
-            final Pager pager;
+            Pager pager;
 
             if ( params.isTotalPages() )
             {
-                programInstances.addAll( programInstanceService.getProgramInstances( params ) );
-
-                final int count = programInstanceService.countProgramInstances( params );
+                int count = programInstanceService.countProgramInstances( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
@@ -245,14 +246,12 @@ public abstract class AbstractEnrollmentService
      * @param programInstances the reference to the list of ProgramInstance
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
-        final List<ProgramInstance> programInstances )
+    private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
+        List<ProgramInstance> programInstances )
     {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
-
-        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
 
         if ( isNotEmpty( programInstances ) )
         {
@@ -280,7 +279,7 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
             }
         }
 
@@ -288,27 +287,20 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id )
+    public Enrollment getEnrollment( String id, EnrollmentParams params )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-        return programInstance != null ? getEnrollment( programInstance ) : null;
+        return programInstance != null ? getEnrollment( programInstance, params ) : null;
     }
 
     @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance )
-    {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE,
-            false );
-    }
-
-    @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
         boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();
@@ -364,7 +356,7 @@ public abstract class AbstractEnrollmentService
                 {
                     enrollment.getEvents().add(
                         eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
-                            true ) );
+                            params.getEnrollmentEventsParams().getEventParams() ) );
                 }
             }
         }
@@ -377,13 +369,43 @@ public abstract class AbstractEnrollmentService
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
                     && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
-                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
+                        relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
-                    enrollment.getRelationships().add( relationship );
+                    relationship.ifPresent( r -> enrollment.getRelationships().add( r ) );
                 }
             }
         }
 
+        if ( params.isIncludeAttributes() )
+        {
+            Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+                .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+
+            for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+                .getTrackedEntityAttributeValues() )
+            {
+                if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.setCreated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getCreated() ) );
+                    attribute
+                        .setLastUpdated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getLastUpdated() ) );
+                    attribute.setDisplayName( trackedEntityAttributeValue.getAttribute()
+                        .getDisplayName() );
+                    attribute.setAttribute( trackedEntityAttributeValue.getAttribute()
+                        .getUid() );
+                    attribute.setValueType( trackedEntityAttributeValue.getAttribute()
+                        .getValueType() );
+                    attribute.setCode( trackedEntityAttributeValue.getAttribute()
+                        .getCode() );
+                    attribute.setValue( trackedEntityAttributeValue.getValue() );
+                    attribute.setStoredBy( trackedEntityAttributeValue.getStoredBy() );
+
+                    enrollment.getAttributes().add( attribute );
+                }
+            }
+        }
         return enrollment;
     }
 

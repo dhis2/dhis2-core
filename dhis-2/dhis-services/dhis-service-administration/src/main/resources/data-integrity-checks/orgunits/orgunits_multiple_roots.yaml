@@ -1,0 +1,63 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: ezQJxORagqI
+name: orgunits_multiple_roots
+description: The organisation unit hierarchy should have a single root.
+section: Organisation units
+section_order: 8
+summary_sql: >-
+  WITH orgunit_multiple_roots as (
+  SELECT uid,name,
+  (SELECT array_agg(name) from organisationunit where parentid IS NULL) as comment
+  FROM organisationunit
+  where parentid IS NULL )
+  SELECT 
+  COUNT(*) as count,
+  100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0)  as percent
+  FROM orgunit_multiple_roots
+  WHERE array_length(comment,1) > 1;
+details_uid: CVy8mwGN6Ec
+details_sql: >-
+  WITH duplicate_roots as (
+  SELECT uid,name,
+  (SELECT array_agg(name) from organisationunit where parentid IS NULL) as comment
+  FROM organisationunit
+  where parentid IS NULL
+  )
+  SELECT uid,name,
+  array_to_string(comment,  ' ; ') as comment from duplicate_roots
+  where array_length(comment, 1) > 1;
+details_id_type: organisationUnits
+severity: CRITICAL
+introduction: >
+  Every DHIS2 system should have a single root organisation unit. This means a single organisation
+  unit from which all other branches of the hierarchy are descendants.
+recommendation: >
+  Once you have decided which organisation unit should be the real root of the organisation
+  unit hierarchy, you should update the parent organisation unit. This can be done by using
+  the DHIS2 API or my updating the value directly in the `organisationunit` table.

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.pushanalysis;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
@@ -48,6 +47,7 @@ import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.velocity.VelocityContext;
@@ -95,7 +95,9 @@ import com.google.common.io.ByteSource;
 @Slf4j
 @Service
 @Transactional
-public class DefaultPushAnalysisService implements PushAnalysisService
+@RequiredArgsConstructor
+public class DefaultPushAnalysisService
+    implements PushAnalysisService
 {
     private static final Encoder encoder = new Encoder();
 
@@ -117,42 +119,11 @@ public class DefaultPushAnalysisService implements PushAnalysisService
 
     private final I18nManager i18nManager;
 
+    @Qualifier( "emailMessageSender" )
     private final MessageSender messageSender;
 
+    @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" )
     private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
-
-    public DefaultPushAnalysisService( SystemSettingManager systemSettingManager,
-        DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
-        FileResourceService fileResourceService, CurrentUserService currentUserService,
-        MapGenerationService mapGenerationService, VisualizationGridService visualizationGridService,
-        ChartService chartService, I18nManager i18nManager,
-        @Qualifier( "emailMessageSender" ) MessageSender messageSender,
-        @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( dhisConfigurationProvider );
-        checkNotNull( externalFileResourceService );
-        checkNotNull( fileResourceService );
-        checkNotNull( currentUserService );
-        checkNotNull( mapGenerationService );
-        checkNotNull( visualizationGridService );
-        checkNotNull( chartService );
-        checkNotNull( i18nManager );
-        checkNotNull( messageSender );
-        checkNotNull( pushAnalysisStore );
-
-        this.systemSettingManager = systemSettingManager;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
-        this.externalFileResourceService = externalFileResourceService;
-        this.fileResourceService = fileResourceService;
-        this.currentUserService = currentUserService;
-        this.mapGenerationService = mapGenerationService;
-        this.visualizationGridService = visualizationGridService;
-        this.chartService = chartService;
-        this.i18nManager = i18nManager;
-        this.messageSender = messageSender;
-        this.pushAnalysisStore = pushAnalysisStore;
-    }
 
     // ----------------------------------------------------------------------
     // PushAnalysisService implementation
@@ -435,7 +406,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         StringWriter stringWriter = new StringWriter();
 
         GridUtils
-            .toHtmlInlineCss( visualizationGridService.getVisualizationGridByUser( visualization.getUid(), new Date(),
+            .toHtmlInlineCss( visualizationGridService.getVisualizationGrid( visualization.getUid(), new Date(),
                 user.getOrganisationUnit().getUid(), user ), stringWriter );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
@@ -454,7 +425,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         FileResource fileResource = new FileResource(
             name,
             MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from
-                                                // PushAnalysis is PNG.
+            // PushAnalysis is PNG.
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
             FileResourceDomain.PUSH_ANALYSIS );

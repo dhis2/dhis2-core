@@ -82,7 +82,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemOptionValueWithIdSchemeNAME()
     {
-        // arrange
         Option opA = createOption( 'A' );
         Option opB = createOption( 'B' );
         opA.setUid( UID_A );
@@ -92,11 +91,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
             .withOutputIdScheme( IdScheme.NAME ).build();
 
-        // act
         String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
         String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
 
-        // assert
         assertEquals( OPTION_NAME_A, optionValueA );
         assertEquals( OPTION_NAME_B, optionValueB );
     }
@@ -104,7 +101,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemOptionValueWithIdSchemeUID()
     {
-        // arrange
         Option opA = createOption( 'A' );
         Option opB = createOption( 'B' );
         opA.setUid( UID_A );
@@ -114,11 +110,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).withOutputIdScheme( IdScheme.UID )
             .build();
 
-        // act
         String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
         String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
 
-        // assert
         assertEquals( UID_A, optionValueA );
         assertEquals( UID_B, optionValueB );
     }
@@ -126,7 +120,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemOptionValueWithIdSchemeCODE()
     {
-        // arrange
         Option opA = createOption( 'A' );
         Option opB = createOption( 'B' );
         opA.setUid( UID_A );
@@ -137,11 +130,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
             .withOutputIdScheme( IdScheme.CODE )
             .build();
 
-        // act
         String optionValueA = QueryItemHelper.getItemOptionValue( OPTION_NAME_A, params );
         String optionValueB = QueryItemHelper.getItemOptionValue( OPTION_NAME_B, params );
 
-        // assert
         assertEquals( "OptionCodeA", optionValueA );
         assertEquals( "OptionCodeB", optionValueB );
     }
@@ -149,7 +140,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemLegendValueWithIdSchemeNAME()
     {
-        // arrange
         Legend lpA = createLegend( 'A', 0.0, 1.0 );
         lpA.setCode( LEGEND_CODE_A );
         Legend lpB = createLegend( 'B', 0.0, 1.0 );
@@ -162,11 +152,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
             .withOutputIdScheme( IdScheme.NAME ).build();
 
-        // act
         String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
         String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
 
-        // assert
         assertEquals( LEGEND_NAME_A, legendValueA );
         assertEquals( LEGEND_NAME_B, legendValueB );
     }
@@ -174,7 +162,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemLegendValueWithIdSchemeUID()
     {
-        // arrange
         Legend lpA = createLegend( 'A', 0.0, 1.0 );
         lpA.setCode( LEGEND_CODE_A );
         Legend lpB = createLegend( 'B', 0.0, 1.0 );
@@ -186,11 +173,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).withOutputIdScheme( IdScheme.UID )
             .build();
 
-        // act
         String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
         String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
 
-        // assert
         assertEquals( UID_A, legendValueA );
         assertEquals( UID_B, legendValueB );
     }
@@ -198,7 +183,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGeItemLegendValueWithIdSchemeCODE()
     {
-        // arrange
         Legend lpA = createLegend( 'A', 0.0, 1.0 );
         lpA.setCode( LEGEND_CODE_A );
         Legend lpB = createLegend( 'B', 0.0, 1.0 );
@@ -211,11 +195,9 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem )
             .withOutputIdScheme( IdScheme.CODE ).build();
 
-        // act
         String legendValueA = QueryItemHelper.getItemLegendValue( LEGEND_NAME_A, params );
         String legendValueB = QueryItemHelper.getItemLegendValue( LEGEND_NAME_B, params );
 
-        // assert
         assertEquals( LEGEND_CODE_A, legendValueA );
         assertEquals( LEGEND_CODE_B, legendValueB );
     }
@@ -223,7 +205,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGetItemOptionsThatAreReferencedByQueryItems()
     {
-        // Given
         Option option1 = new Option( "Opt-A", "Code-A" );
         Option option2 = new Option( "Opt-B", "Code-B" );
         Option option3 = new Option( "Opt-C", "Code-C" );
@@ -236,17 +217,14 @@ class QueryItemHelperTest extends DhisConvenienceTest
         queryItem.addFilter( new QueryFilter( IN, "Code-A;Code-B" ) );
         queryItems.add( queryItem );
 
-        // When
         Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
 
-        // Then
         assertEquals( 2, actualOptions.size(), "Should have size of 2: actualOptions" );
     }
 
     @Test
     void testGetItemOptionsThatAreReferencedByQueryItemsDifferentCases()
     {
-        // Given
         Option option1 = new Option( "Opt-A", "Code-A" );
         Option option2 = new Option( "Opt-B", "Code-B" );
         Option option3 = new Option( "Opt-C", "Code-C" );
@@ -259,7 +237,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
         queryItem.addFilter( new QueryFilter( IN, "CODE-A;CODE-C" ) );
         queryItems.add( queryItem );
 
-        // When
         Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
 
         // Then
@@ -269,7 +246,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGetItemOptionsThatHaveNoFilters()
     {
-        // Given
         Option option1 = new Option( "Opt-A", "Code-A" );
         Option option2 = new Option( "Opt-B", "Code-B" );
         Option option3 = new Option( "Opt-C", "Code-C" );
@@ -280,17 +256,14 @@ class QueryItemHelperTest extends DhisConvenienceTest
         List<QueryItem> queryItems = new ArrayList<>();
         queryItems.add( queryItem );
 
-        // When
         Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
 
-        // Then
         assertEquals( 0, actualOptions.size(), "Should have size of 0: actualOptions" );
     }
 
     @Test
     void testGetItemOptionsWhenRowsArePresent()
     {
-        // Given
         Option option = new Option( "Opt-A", "Code-A" );
         OptionSet optionSet = createOptionSet( 'A', option );
 
@@ -301,10 +274,8 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
         params.getItems().add( queryItem );
 
-        // When
         Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
 
-        // Then
         assertTrue(
             options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
     }
@@ -312,7 +283,6 @@ class QueryItemHelperTest extends DhisConvenienceTest
     @Test
     void testGetItemOptionsWhenRowsAreEmpty()
     {
-        // Given
         Option option = new Option( "Opt-A", "Code-A" );
         OptionSet optionSet = createOptionSet( 'A', option );
 
@@ -323,67 +293,51 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
         params.getItems().add( queryItem );
 
-        // When
         Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
 
-        // Then
-        assertTrue(
-            options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
+        assertTrue( options.values().stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() )
+            .contains( option ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForText()
     {
-        // given
-        // when
-        // then
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "abc", "AbC" ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForDouble()
     {
-        // given
-        // when
-        // then
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1.0", Double.parseDouble( "1.0" ) ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForInteger()
     {
-        // given
-        // when
-        // then
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1", Integer.parseInt( "1" ) ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForBoolean()
     {
-        // given
-        // when
-        // then
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "TruE", Boolean.parseBoolean( "true" ) ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForLocalDate()
     {
-        // given
         LocalDate localDate = LocalDate.now();
-        // when
-        // then
+
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDate.toString(), localDate ) );
     }
 
     @Test
     void testisItemOptionEqualToRowContentForLocalDateTime()
     {
-        // given
         LocalDateTime localDateTime = LocalDateTime.now();
-        // when
-        // then
+
         assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDateTime.toString(), localDateTime ) );
     }
 

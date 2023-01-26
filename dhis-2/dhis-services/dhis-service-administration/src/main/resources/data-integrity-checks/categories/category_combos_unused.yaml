@@ -1,0 +1,83 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  summary_uid: yJ73aZmXuz1
+  name: category_combos_unused
+  description:  Category combinations not used by other metadata objects
+  section: Categories
+  section_order: 6
+  summary_sql: >-
+    WITH unused_category_combo as (
+    SELECT a.uid, a.name, a.created, b.type FROM categorycombo a
+    LEFT JOIN (
+    SELECT categorycomboid, 'ds' as type FROM dataset
+    UNION
+    SELECT categorycomboid, 'dse' as type FROM datasetelement
+    UNION
+    SELECT categorycomboid, 'de' as type FROM dataelement
+    UNION
+    SELECT categorycomboid, 'pr' as type FROM program
+    UNION
+    SELECT categorycomboid, 'daw' as type from dataapprovalworkflow
+    ) b
+    ON a.categorycomboid = b.categorycomboid
+    )
+    SELECT COUNT(*) as value,
+    100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categorycombo), 0) as percent
+    FROM unused_category_combo where type IS NULL;
+  details_uid: mG05UTfKZVz
+  details_sql: >-
+    WITH unused_category_combo as (
+    SELECT a.uid, a.name, a.created, b.type FROM categorycombo a
+    LEFT JOIN (
+    SELECT categorycomboid, 'ds' as type FROM dataset
+    UNION
+    SELECT categorycomboid, 'dse' as type FROM datasetelement
+    UNION
+    SELECT categorycomboid, 'de' as type FROM dataelement
+    UNION
+    SELECT categorycomboid, 'pr' as type FROM program
+    UNION
+    SELECT categorycomboid, 'daw' as type from dataapprovalworkflow
+    ) b
+    ON a.categorycomboid = b.categorycomboid
+    )
+    SELECT uid, name, CAST(created AS text) as comment
+    from unused_category_combo
+    where type IS NULL;
+  severity: WARNING
+  introduction: >
+     Category combinations which are unused in any datasets, data elements, programs or data approval workflows may be safe
+     to delete. In some cases, category combinations may be created, but never actually used for anything. This may lead
+     to situations where users and implementers are confused about which category combination should actually be used.
+     In general, it should be safe to delete unused category combinations, except in situations where existing data
+     has been associated with them.
+  details_id_type: categoryCombos
+  recommendation: >
+     Check to see if any data is associated with the category combination before attempting to delete it. Category combinations
+     which are not currently used in any metadata objects may still be valid for legacy reasons, but they should be reviewed
+     to be sure they are still needed. Otherwise, it should be safe to remove them from the system.

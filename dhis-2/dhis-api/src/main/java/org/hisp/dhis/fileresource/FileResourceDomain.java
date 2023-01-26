@@ -29,8 +29,6 @@ package org.hisp.dhis.fileresource;
 
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -48,10 +46,8 @@ public enum FileResourceDomain
      */
     private String containerName;
 
-    private static final ImmutableSet<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = ImmutableSet.of(
-        DATA_VALUE,
-        USER_AVATAR,
-        ORG_UNIT );
+    public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = Set.of(
+        DATA_VALUE, USER_AVATAR, ORG_UNIT );
 
     FileResourceDomain( String containerName )
     {
@@ -63,8 +59,8 @@ public enum FileResourceDomain
         return containerName;
     }
 
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    public static boolean isDomainForMultipleImages( FileResourceDomain domain )
     {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains( domain );
     }
 }

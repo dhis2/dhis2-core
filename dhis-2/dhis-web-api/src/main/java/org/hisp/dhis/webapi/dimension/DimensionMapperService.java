@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,17 +44,14 @@ public class DimensionMapperService
 {
     private final Collection<DimensionMapper> mappers;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
+    public List<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
     {
         return toDimensionResponse( dimensions, null );
     }
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String prefix )
+    public List<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions, String prefix )
     {
-        return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, prefix ) )
-            .collect( Collectors.toList() );
+        return mapToList( dimensions, bio -> toDimensionResponse( bio, prefix ) );
     }
 
     private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )

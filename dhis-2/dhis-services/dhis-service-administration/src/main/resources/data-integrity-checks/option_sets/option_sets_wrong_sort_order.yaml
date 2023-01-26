@@ -1,0 +1,74 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: xPFtcXBvQfk
+name:  option_sets_wrong_sort_order
+description: Option sets with possibly wrong sort order.
+section: Option sets
+section_order: 3
+summary_sql: >-
+    WITH option_sets_wrong_sort_order as (
+    SELECT DISTINCT optionsetid, sort_order, row_number FROM (
+    SELECT optionsetid,sort_order, row_number()
+    over ( PARTITION BY optionsetid ORDER BY sort_order) as row_number
+    from optionvalue
+    ) as foo where sort_order != row_number
+    ORDER BY optionsetid, sort_order
+    )
+    SELECT COUNT(*) as value,
+    100 * (SELECT COUNT(*) from (SELECT DISTINCT optionsetid
+    from option_sets_wrong_sort_order ) as bar) /
+    NULLIF( (SELECT COUNT(*) from optionset), 0)  as percent
+    FROM option_sets_wrong_sort_order;
+details_uid: NxtEkZcmLl0
+details_sql: >-
+    SELECT a.uid, a.name, b.sort_order || ' != ' || b.row_number as comment from
+    optionset a
+    INNER JOIN (
+    SELECT DISTINCT optionsetid, sort_order, row_number FROM (
+    SELECT optionsetid,sort_order, row_number()
+    over ( PARTITION BY optionsetid ORDER BY sort_order) as row_number
+    from optionvalue
+    ) as foo where sort_order != row_number
+    ORDER BY optionsetid, sort_order
+    ) b  on a.optionsetid = b.optionsetid;
+details_id_type: optionSets
+severity: SEVERE
+introduction: >
+    Option sets contain options which should be ordered sequentially. The sort_order property should always start 
+    with 1 and have a sequential sequence. If there are three options in the option set, then the sort order
+    should be 1,2,3. 
+    
+    In certain circumstances, options may be deleted from an option set, and the sort
+    order may become corrupted. This may lead to a situation where it becomes impossible to update the
+    option set from the maintenance app, and may lead to problems when attempting to using the option
+    set in the data entry app.
+recommendation: >
+    If it is possible to open the option set in the maintenance app, you can resort the option set,
+    which should correct the problem. Another possible solution is to directly update the sort_order
+    property of in the `optionset` table in the database, ensuring that a valid sequence is present
+    for all options in the option set.

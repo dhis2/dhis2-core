@@ -36,6 +36,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -278,6 +279,30 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/firstName', 'value': 'Fancy Mike'}]" ) );
         assertEquals( "Fancy Mike", GET( "/users/{id}", id ).content().as( JsonUser.class ).getFirstName() );
+    }
+
+    @Test
+    void testPatchSharingUserGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', Set.of() );
+        userGroupA.setUid( "th4S6ovwcr8" );
+        UserGroup userGroupB = createUserGroup( 'B', Set.of() );
+        userGroupB.setUid( "ZoHNWQajIoe" );
+        manager.save( userGroupA );
+        manager.save( userGroupB );
+
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+
+        assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
+            "[{'op': 'add', 'path': '/sharing/userGroups/th4S6ovwcr8', 'value': { 'access': 'rw------', 'id': 'th4S6ovwcr8' } }]" ) );
+
+        assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
+            "[{'op': 'add', 'path': '/sharing/userGroups/ZoHNWQajIoe', 'value': { 'access': 'rw------', 'id': 'ZoHNWQajIoe' } }]" ) );
+
+        JsonResponse dataSet = GET( "/dataSets/{id}", dsId ).content();
+        assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "th4S6ovwcr8" ) );
+        assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "ZoHNWQajIoe" ) );
     }
 
     @Test

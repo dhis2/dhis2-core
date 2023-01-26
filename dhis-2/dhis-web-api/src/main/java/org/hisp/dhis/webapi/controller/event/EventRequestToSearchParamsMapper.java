@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -230,13 +232,6 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
-            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-
         if ( assignedUsers != null )
         {
             assignedUsers = assignedUsers.stream()
@@ -253,7 +248,7 @@ class EventRequestToSearchParamsMapper
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
-            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUsers )
+            .setUserWithAssignedUsers( assignedUserSelectionMode, user, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
             .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
             .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )
@@ -332,7 +327,7 @@ class EventRequestToSearchParamsMapper
             eventCriteria.getPage(),
             eventCriteria.getPageSize(),
             eventCriteria.isTotalPages(),
-            eventCriteria.isSkipPaging(),
+            toBooleanDefaultIfNull( eventCriteria.isSkipPaging(), false ),
             getOrderParams( eventCriteria.getOrder() ),
             getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
             false,

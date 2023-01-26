@@ -345,7 +345,7 @@
       "remindCompleted": false,
       "displayGenerateEventBox": true,
       "generatedByEnrollmentDate": false,
-      "validationStrategy": "ON_COMPLETE",
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
       "autoGenerateEvent": true,
       "sortOrder": 1,
       "hideDueDate": false,
@@ -571,6 +571,48 @@
           "userAccesses": []
         }
       ]
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "id": "NpsdDv6kKS2",
+      "created": "2020-05-31T09:02:52.687",
+      "name": "test-program-stage2",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rwrw----",
+      "description": "test-program-stage2",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "BFcipDERJnf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": [],
+      "programStageDataElements": []
     },
     {
       "lastUpdated": "2020-05-31T11:41:22.426",
@@ -809,6 +851,9 @@
       "programStages": [
         {
           "id": "NpsdDv6kKSO"
+        },
+        {
+          "id": "NpsdDv6kKS2"
         }
       ],
       "userAccesses": []

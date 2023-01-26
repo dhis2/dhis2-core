@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
@@ -60,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
 public class DefaultProgramStageInstanceService
     implements ProgramStageInstanceService
@@ -259,7 +259,7 @@ public class DefaultProgramStageInstanceService
                 + eventDataValue.getDataElement() );
         }
 
-        String result = ValidationUtils.dataValueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
+        String result = ValidationUtils.valueIsValid( eventDataValue.getValue(), dataElement.getValueType() );
 
         return result == null ? null : "Value is not valid:  " + result;
     }

@@ -41,7 +41,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -87,7 +87,7 @@ import com.csvreader.CsvReader;
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
@@ -116,7 +116,7 @@ public class DefaultCsvImportService
     {
         CsvReader reader = CsvUtils.getReader( input );
         reader.setSafetySwitch( false ); // Disabled due to large geometry
-                                         // values for org units
+                                        // values for org units
 
         if ( options.isFirstRowIsHeader() )
         {

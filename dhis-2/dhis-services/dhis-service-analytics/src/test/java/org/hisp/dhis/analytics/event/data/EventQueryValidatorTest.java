@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +42,9 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -61,9 +64,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
+ * Unit tests for {@link DefaultEventQueryValidator}.
+ *
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
@@ -78,10 +81,6 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     private DataElement deB;
 
     private DataElement deC;
-
-    private DataElement deD;
-
-    private DataElement deE;
 
     private OrganisationUnit ouA;
 
@@ -107,12 +106,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest
         prB = createProgram( 'B' );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
+        deB = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
+        deC = createDataElement( 'G', ValueType.DATETIME, AggregationType.NONE, DataElementDomain.TRACKER );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
@@ -123,13 +118,13 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void validateSuccesA()
+    void validateSuccessA()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
+            .withOrganisationUnits( List.of( ouA ) ).build();
 
         eventQueryValidator.validate( params );
     }
@@ -141,7 +136,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
         eventQueryValidator.validate( params );
@@ -154,10 +149,28 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .addItem( new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
+
+        eventQueryValidator.validate( params );
+    }
+
+    @Test
+    void validateValidFilterForValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "68" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
 
         eventQueryValidator.validate( params );
     }
@@ -169,7 +182,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
@@ -184,9 +197,9 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+            .withOrganisationUnits( List.of( ouB ) ).build();
 
-        assertValidatonError( ErrorCode.E7205, params );
+        assertValidationError( ErrorCode.E7205, params );
     }
 
     @Test
@@ -194,7 +207,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+            .withOrganisationUnits( List.of( ouB ) ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
@@ -208,10 +221,84 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
-        assertValidatonError( ErrorCode.E7215, params );
+        assertValidationError( ErrorCode.E7215, params );
+    }
+
+    @Test
+    void validateInvalidFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "male" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    void validateInvalidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "male;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    void validateValidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "2;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
+
+        assertNull( error );
+    }
+
+    @Test
+    void validateInvalidFilterForDateTimeValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "2023-12-01" );
+        QueryItem item = new QueryItem( deC, deC.getLegendSet(),
+            deC.getValueType(), deC.getAggregationType(), deC.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
     }
 
     @Test
@@ -221,10 +308,10 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
-        assertValidatonError( ErrorCode.E7210, params );
+        assertValidationError( ErrorCode.E7210, params );
     }
 
     @Test
@@ -234,10 +321,10 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withOrgUnitField( new OrgUnitField( "notAUid" ) ).build();
 
-        assertValidatonError( ErrorCode.E7211, params );
+        assertValidationError( ErrorCode.E7211, params );
     }
 
     @Test
@@ -247,7 +334,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withPage( -2 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -262,7 +349,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withPageSize( -1 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -280,7 +367,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withLimit( 200 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -295,8 +382,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .withCoordinateFields( List.of( deE.getUid() ) )
+            .withOrganisationUnits( List.of( ouB ) )
+            .withCoordinateFields( List.of( deB.getUid() ) )
             .withClusterSize( -3L ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -311,7 +398,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.
      */
-    private void assertValidatonError( ErrorCode errorCode, EventQueryParams params )
+    private void assertValidationError( ErrorCode errorCode, EventQueryParams params )
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> eventQueryValidator.validate( params ) );

@@ -35,6 +35,7 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -52,7 +53,8 @@ public enum QueryableDataItem
     DATA_SET( DataSet.class ),
     PROGRAM_INDICATOR( ProgramIndicator.class ),
     PROGRAM_DATA_ELEMENT( ProgramDataElementDimensionItem.class ),
-    PROGRAM_ATTRIBUTE( ProgramTrackedEntityAttributeDimensionItem.class );
+    PROGRAM_ATTRIBUTE( ProgramTrackedEntityAttributeDimensionItem.class ),
+    EXPRESSION_DIMENSION_ITEM( ExpressionDimensionItem.class );
 
     private Class<? extends BaseIdentifiableObject> entity;
 

@@ -1,0 +1,70 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: s9rs1qOwn0C
+name: category_options_shared_within_category_combo
+description:  Category combinations with categories which share the same category options.
+section: Categories
+section_order: 7
+summary_sql: >-
+    WITH category_option_multiple_member_category as (
+    select cc.name as cc_name, co.categoryoptionid, co.name as co_name from categorycombo cc
+    inner join categorycombos_categories ccc on cc.categorycomboid=ccc.categorycomboid
+    inner join categories_categoryoptions cco on ccc.categoryid=cco.categoryid
+    inner join dataelementcategoryoption co on cco.categoryoptionid=co.categoryoptionid
+    group by cc_name, co.categoryoptionid, co_name having count(*) > 1 )
+    SELECT 
+    COUNT(*)as value,
+    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categoryoptioncombo),0) as percent
+    FROM category_option_multiple_member_category;
+details_uid: SqWFiRS39cz
+details_sql: >-
+    WITH category_option_multiple_member_category as (
+    select cc.uid, cc.name as cc_name, co.categoryoptionid, co.name as co_name from categorycombo cc
+    inner join categorycombos_categories ccc on cc.categorycomboid=ccc.categorycomboid
+    inner join categories_categoryoptions cco on ccc.categoryid=cco.categoryid
+    inner join dataelementcategoryoption co on cco.categoryoptionid=co.categoryoptionid
+    group by cc.uid, cc_name, co.categoryoptionid, co_name having count(*) > 1 )
+    SELECT uid,
+    cc_name as name,
+    co_name as comment from category_option_multiple_member_category;
+severity: SEVERE
+introduction: >
+    As a general rule, category options should be reused where possible between categories. The exception
+    to this rule however, is when you have a category combo with multiple categories, and within those
+    categories, a category option is shared. As a simple example, lets say you have a category called "Sex" with
+    options "Male"", "Female" and "Unknown". There is also a second category called "Age" with options "<15", "15+",
+    and "Unknown". A category combination called "Age/Sex" is then created with these two categories, which share
+    the option "Unknown". This situation should be avoided, as it creates issues when analyzing data.
+details_id_type: categoryCombos
+recommendation: >
+    The recommended approach to dealing with this situation is to create a new category combination, using two new categories.
+    Using the example from the introduction, you should create two new category options called "Unknown age" and "Unknown sex".
+    A new category combination can then be created with these new categories, which do not share category options.
+    All data which is potentially associated with the old category combinations, would need to be reassigned
+    to the new category option combinations. Any analytical objects which use the categories to be removed
+    would also need to be updated. 

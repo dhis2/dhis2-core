@@ -172,10 +172,6 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultExpressionService
     implements ExpressionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final HibernateGenericStore<Expression> expressionStore;
 
     private final ConstantService constantService;
@@ -306,6 +302,7 @@ public class DefaultExpressionService
         this.constantMapCache = cacheProvider.createAllConstantsCache();
 
         FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
+
         if ( fn != null )
         {
             fn.init( cacheProvider );

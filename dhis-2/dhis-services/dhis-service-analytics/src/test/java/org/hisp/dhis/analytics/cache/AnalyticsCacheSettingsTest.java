@@ -108,54 +108,43 @@ class AnalyticsCacheSettingsTest
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
     {
-        // Given
         int aTtlFactor = 20;
         int oneDayDiff = 1;
-        long theExpectedTtl = aTtlFactor * oneDayDiff; // See
-                                                       // TimeToLive.compute()
+        long theExpectedTtl = aTtlFactor * oneDayDiff;
         Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( aTtlFactor );
         long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
 
-        // Then
         assertThat( expirationTime, is( theExpectedTtl ) );
     }
 
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
     {
-        // Given
         int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
         int oneDayDiff = 1;
-        long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
-                                                                // TimeToLive.compute()
+        long theExpectedTtl = theDefaultTtlFactor * oneDayDiff;
         Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( theDefaultTtlFactor );
         long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
 
-        // Then
         assertThat( expirationTime, is( theExpectedTtl ) );
     }
 
     @Test
     void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
     {
-        // Given
         int aTtlFactor = -20;
         int oneDayDiff = 1;
         Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
-        // When
         when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
             .thenReturn( aTtlFactor );
 
-        // Then
         assertEquals( 1, analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday ) );
     }
 

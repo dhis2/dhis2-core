@@ -100,9 +100,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.CODE, dataElementA.getCode() ) );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.UID, dataElementA.getUid() ) );
     }
 
@@ -201,7 +201,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( unitB );
         Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>> builder()
             .add( DataElement.class ).add( OrganisationUnit.class ).build();
-        Set<String> uids = ImmutableSet.of( dataElementA.getUid(), unitB.getUid() );
+        Set<String> uids = Set.of( dataElementA.getUid(), unitB.getUid() );
         assertEquals( 2, idObjectManager.getByUid( classes, uids ).size() );
         assertTrue( idObjectManager.getByUid( classes, uids ).contains( dataElementA ) );
         assertTrue( idObjectManager.getByUid( classes, uids ).contains( unitB ) );

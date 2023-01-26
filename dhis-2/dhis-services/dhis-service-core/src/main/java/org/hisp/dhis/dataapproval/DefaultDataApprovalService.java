@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -71,8 +71,8 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
-@AllArgsConstructor
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
@@ -184,7 +184,7 @@ public class DefaultDataApprovalService
                     da.getDataApprovalLevel().getLevel() >= status.getActionLevel().getLevel() )
                 {
                     continue; // Already approved at or above the level
-                              // requested
+                             // requested
                 }
 
                 DataApprovalLevel nextLevel = nextHigherLevel( status.getActionLevel(), da.getWorkflow() );
@@ -393,7 +393,7 @@ public class DefaultDataApprovalService
                 da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel() )
             {
                 continue; // Already unaccepted at or not approved up to this
-                          // level
+                         // level
             }
 
             if ( !status.getPermissions().isMayUnaccept() )

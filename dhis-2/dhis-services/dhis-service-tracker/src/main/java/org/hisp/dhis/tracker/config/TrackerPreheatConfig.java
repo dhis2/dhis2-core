@@ -31,16 +31,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
+import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.DefaultsSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.DuplicateRelationshipSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.EventCategoryOptionComboSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.OrgUnitValueTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatStrategyScanner;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramOrgUnitsSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramOwnerSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.TrackedEntityProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.UsernameValueTypeSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.ImmutableList;
 
 @Configuration( "trackerPreheatConfig" )
 public class TrackerPreheatConfig
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
+    private final List<Class<? extends PreheatSupplier>> preheatOrder = List.of(
         ClassBasedSupplier.class,
         DefaultsSupplier.class,
         TrackedEntityProgramInstanceSupplier.class,

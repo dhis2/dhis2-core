@@ -56,10 +56,10 @@ class QueryPlannerUtilsTest
     @Test
     void testGetAggregationType()
     {
-        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE,
-            DataType.NUMERIC, true );
-        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE,
-            DataType.NUMERIC, true );
+        AnalyticsAggregationType typeA = new AnalyticsAggregationType(
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        AnalyticsAggregationType typeB = new AnalyticsAggregationType(
+            AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true );
         assertEquals( typeA,
             QueryPlannerUtils.getAggregationType(
                 new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER,
@@ -73,21 +73,28 @@ class QueryPlannerUtilsTest
     @Test
     void testIsDisaggregation()
     {
-        assertTrue( QueryPlannerUtils.isDisaggregation( SUM_AVG, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-        assertTrue( QueryPlannerUtils.isDisaggregation( SUM_AVG, new MonthlyPeriodType(), new YearlyPeriodType() ) );
-        assertTrue(
-            QueryPlannerUtils.isDisaggregation( SUM_AVG, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
-        assertTrue(
-            QueryPlannerUtils.isDisaggregation( SUM_AVG, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new MonthlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse(
-            QueryPlannerUtils.isDisaggregation( SUM_SUM, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
-        assertFalse(
-            QueryPlannerUtils.isDisaggregation( SUM_SUM, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation( SUM_AVG, new YearlyPeriodType(), new QuarterlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation( SUM_AVG, new YearlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new YearlyPeriodType(), new YearlyPeriodType() ) );
+        assertTrue( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
+        assertTrue( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new MonthlyPeriodType(), new YearlyPeriodType() ) );
+        assertTrue( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
+        assertTrue( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new MonthlyPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new YearlyPeriodType(), new QuarterlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new YearlyPeriodType(), new YearlyPeriodType() ) );
+        assertFalse( QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new YearlyPeriodType(), new YearlyPeriodType() ) );
     }
 
     @Test

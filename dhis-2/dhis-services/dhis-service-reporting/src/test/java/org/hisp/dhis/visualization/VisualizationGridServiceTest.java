@@ -105,7 +105,7 @@ class VisualizationGridServiceTest
         // When
         when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = visualizationGridService.getVisualizationGridByUser( anyVisualizationUid,
+        final Grid expectedGrid = visualizationGridService.getVisualizationGrid( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then
@@ -140,7 +140,7 @@ class VisualizationGridServiceTest
         // When
         when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = visualizationGridService.getVisualizationGridByUser( anyVisualizationUid,
+        final Grid expectedGrid = visualizationGridService.getVisualizationGrid( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then

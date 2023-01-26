@@ -120,20 +120,20 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
         }
 
-        boolean is2FAEnabled = !user.isTwoFA();
+        boolean isTwoFactorDisabled = !user.isTwoFactorEnabled();
         boolean enabled = !user.isDisabled();
         boolean credentialsNonExpired = userService.userNonExpired( user );
         boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
         boolean accountNonExpired = !userService.isAccountExpired( user );
 
-        if ( ObjectUtils.anyIsFalse( enabled, is2FAEnabled, credentialsNonExpired, accountNonLocked,
+        if ( ObjectUtils.anyIsFalse( enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked,
             accountNonExpired ) )
         {
             throw new ApiTokenAuthenticationException(
                 ApiTokenErrors.invalidToken( "The API token is disabled, locked or 2FA is enabled." ) );
         }
 
-        return userService.createUserDetails( user, user.getPassword(), accountNonLocked, credentialsNonExpired );
+        return userService.createUserDetails( user, accountNonLocked, credentialsNonExpired );
     }
 
     private void validateTokenExpiry( Long expiry )

@@ -1,0 +1,58 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: X1oWESZRTzY
+name: options_sets_unused
+description:  Option sets which are not used
+section: Option sets
+section_order: 2
+summary_sql: >-
+    WITH options_sets_unused as (
+    SELECT DISTINCT uid,name FROM optionset where optionsetid NOT IN (
+    SELECT DISTINCT optionsetid from attribute where optionsetid IS NOT NULL UNION
+    SELECT DISTINCT optionsetid from dataelement where optionsetid IS NOT NULL UNION
+    SELECT DISTINCT commentoptionsetid from dataelement where commentoptionsetid IS NOT NULL UNION
+    SELECT DISTINCT optionsetid FROM trackedentityattribute WHERE optionsetid IS NOT NULL
+    ))
+    SELECT COUNT(*) as value,
+    100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optionset), 0)  as percent
+    from options_sets_unused;
+details_uid: i4OtFbZmqkp
+details_sql: >-
+    SELECT DISTINCT uid,name FROM optionset where optionsetid NOT IN (
+    SELECT DISTINCT optionsetid from attribute where optionsetid IS NOT NULL UNION
+    SELECT DISTINCT optionsetid from dataelement where optionsetid IS NOT NULL UNION
+    SELECT DISTINCT commentoptionsetid from dataelement where commentoptionsetid IS NOT NULL UNION
+    SELECT DISTINCT optionsetid FROM trackedentityattribute WHERE optionsetid IS NOT NULL)
+    ORDER BY name;
+details_id_type: optionSets
+severity: WARNING
+introduction: >
+    Option sets should be used for some purpose. The may be used by data elements, comments,  attributes, or tracked entity
+    attributes.
+recommendation: >
+    Consider deleting unused option sets, or alternatively, ensure that they have been properly assigned.

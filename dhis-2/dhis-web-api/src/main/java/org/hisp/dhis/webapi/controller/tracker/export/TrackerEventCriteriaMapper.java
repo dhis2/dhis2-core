@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
@@ -48,7 +49,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
@@ -162,7 +162,6 @@ class TrackerEventCriteriaMapper
         validateFilter( criteria.getFilter(), eventIds, criteria.getProgramStage(), programStage );
 
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
-        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( criteria.getOrder() );
         List<QueryItem> dataElements = dataElementOrders.keySet()
@@ -193,8 +192,7 @@ class TrackerEventCriteriaMapper
             .setTrackedEntityInstance( trackedEntityInstance )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
-            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( assignedUserIds )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
             .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
             .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
             .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
@@ -208,7 +206,7 @@ class TrackerEventCriteriaMapper
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( criteria.getIdSchemes() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() ).setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
             .setSkipEventId( criteria.getSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).addDataElements( dataElements )
             .addFilters( filters ).addFilterAttributes( filterAttributes )
@@ -285,20 +283,6 @@ class TrackerEventCriteriaMapper
         if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
         {
             throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
-        }
-    }
-
-    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
-    {
-        if ( mode == null )
-        {
-            return;
-        }
-
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
     }
 

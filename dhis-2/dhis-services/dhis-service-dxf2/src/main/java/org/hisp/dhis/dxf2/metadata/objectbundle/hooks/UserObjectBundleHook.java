@@ -120,7 +120,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                     .setErrorProperty( USERNAME ) );
         }
 
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp( user.getWhatsApp() ) )
         {
             addReports.accept(
                 new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp" )
@@ -188,7 +188,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             }
         }
 
-        securityService.validate2FAUpdate( persisted.getTwoFA(), user.getTwoFA(), persisted );
+        //        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(),
+        //            persisted );
     }
 
     @Override

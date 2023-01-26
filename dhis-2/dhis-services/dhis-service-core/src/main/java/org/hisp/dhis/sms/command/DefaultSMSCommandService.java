@@ -30,7 +30,7 @@ package org.hisp.dhis.sms.command;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -39,7 +39,7 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
     implements SMSCommandService

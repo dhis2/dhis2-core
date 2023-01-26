@@ -40,7 +40,6 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +94,7 @@ import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstance
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DashboardCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
@@ -135,7 +135,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -209,7 +208,7 @@ public class ServiceConfig
     @Bean
     public Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy()
     {
-        return ImmutableMap.of(
+        return Map.of(
             CREATE_AND_UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -253,20 +252,21 @@ public class ServiceConfig
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
                 getValidationCheckByClass( GeoJsonAttributesCheck.class ),
-                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ),
+                getValidationCheckByClass( DashboardCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
     }
 
-    /*
-     * TRACKER EVENT IMPORT VALIDATION
-     */
+    // -------------------------------------------------------------------------
+    // Tracker event import validation
+    // -------------------------------------------------------------------------
 
     @Bean
     public List<Checker> checkersRunOnInsert()
     {
-        return ImmutableList.of(
+        return List.of(
             getCheckerByClass( EventDateCheck.class ),
             getCheckerByClass( OrgUnitCheck.class ),
             getCheckerByClass( SharedProgramCheck.class ),
@@ -290,7 +290,7 @@ public class ServiceConfig
     @Bean
     public List<Checker> checkersRunOnUpdate()
     {
-        return ImmutableList.of(
+        return List.of(
             getCheckerByClass( EventSimpleCheck.class ),
             getCheckerByClass( EventBaseCheck.class ),
             getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
@@ -309,9 +309,7 @@ public class ServiceConfig
     @Bean
     public List<Checker> checkersRunOnDelete()
     {
-        return ImmutableList.of(
-            getCheckerByClass(
-                DeleteProgramStageInstanceAclCheck.class ) );
+        return List.of( getCheckerByClass( DeleteProgramStageInstanceAclCheck.class ) );
     }
 
     private Checker getCheckerByClass( Class<? extends Checker> checkerClass )
@@ -341,9 +339,9 @@ public class ServiceConfig
             .orElseThrow( () -> new IllegalArgumentException( "Unable to find validator by class: " + clazz ) );
     }
 
-    /*
-     * TRACKER EVENT PRE/POST PROCESSING
-     */
+    // -------------------------------------------------------------------------
+    // Tracker event pre/post processing
+    // -------------------------------------------------------------------------
 
     @Bean
     Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase()
@@ -366,8 +364,8 @@ public class ServiceConfig
 
     private Map<EventProcessorPhase, List<Processor>> getProcessorsByPhase()
     {
-        return ImmutableMap.<EventProcessorPhase, List<Processor>> builder()
-            .put( INSERT_PRE, newArrayList(
+        return Map.of(
+            INSERT_PRE, newArrayList(
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
@@ -375,29 +373,28 @@ public class ServiceConfig
                 getProcessorByClass( ProgramStagePreProcessor.class ),
                 getProcessorByClass( EventGeometryPreProcessor.class ),
                 getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
-                getProcessorByClass( UserInfoInsertPreProcessor.class ) ) )
-            .put( INSERT_POST, newArrayList(
+                getProcessorByClass( UserInfoInsertPreProcessor.class ) ),
+            INSERT_POST, newArrayList(
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( EventInsertAuditPostProcessor.class ),
                 getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
-                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
-            .put( UPDATE_PRE, newArrayList(
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ),
+            UPDATE_PRE, newArrayList(
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
                 getProcessorByClass( ProgramStageInstanceUpdatePreProcessor.class ),
                 getProcessorByClass( ProgramInstanceGeometryPreProcessor.class ),
-                getProcessorByClass( UserInfoUpdatePreProcessor.class ) ) )
-            .put( UPDATE_POST, newArrayList(
+                getProcessorByClass( UserInfoUpdatePreProcessor.class ) ),
+            UPDATE_POST, newArrayList(
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
                 getProcessorByClass( EventUpdateAuditPostProcessor.class ),
-                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
-            .put( DELETE_PRE, Collections.emptyList() )
-            .put( DELETE_POST, newArrayList(
-                getProcessorByClass( EventDeleteAuditPostProcessor.class ) ) )
-            .build();
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ),
+            DELETE_PRE, List.of(),
+            DELETE_POST, newArrayList(
+                getProcessorByClass( EventDeleteAuditPostProcessor.class ) ) );
     }
 
     @Bean

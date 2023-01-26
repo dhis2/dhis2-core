@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
-import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -56,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -79,6 +79,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
@@ -196,9 +197,9 @@ public class AnalyticsUtils
 
         for ( DimensionalItemObject object : dataDimensionOptions )
         {
-            Class<?> clazz = HibernateProxyUtils.getRealClass( object );
+            Class<?> type = HibernateProxyUtils.getRealClass( object );
 
-            if ( clazz.equals( DATA_DIMENSION_TYPE_CLASS_MAP.get( itemType ) ) )
+            if ( type.equals( DATA_DIM_TYPE_CLASS_MAP.get( itemType ) ) )
             {
                 list.add( object );
             }
@@ -759,6 +760,19 @@ public class AnalyticsUtils
      */
     public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
     {
+        return getDimensionMetadataItemMap( params, null );
+    }
+
+    /**
+     * Returns a mapping between identifiers and meta data items for the given
+     * query.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the {@link Grid}.
+     * @return
+     */
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params, Grid grid )
+    {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
         Map<String, MetadataItem> map = new HashMap<>();
@@ -766,6 +780,8 @@ public class AnalyticsUtils
         Calendar calendar = PeriodType.getCalendar();
 
         boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+
+        List<OrganisationUnit> organisationUnitList = new ArrayList<>();
 
         for ( DimensionalObject dimension : dimensions )
         {
@@ -781,21 +797,15 @@ public class AnalyticsUtils
                 }
                 else
                 {
+                    if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
+                    {
+                        organisationUnitList = OrgUnitHelper.getActiveOrganisationUnits( grid,
+                            organisationUnitList );
+                    }
+
                     map.put( item.getDimensionItem(),
                         new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
                             includeMetadataDetails ? item : null ) );
-                }
-
-                if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
-                {
-                    OrganisationUnit unit = (OrganisationUnit) item;
-
-                    for ( OrganisationUnit ancestor : unit.getAncestors() )
-                    {
-                        map.put( ancestor.getUid(),
-                            new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ),
-                                includeMetadataDetails ? ancestor : null ) );
-                    }
                 }
 
                 if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
@@ -807,6 +817,16 @@ public class AnalyticsUtils
                         map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ),
                             includeMetadataDetails ? coc : null ) );
                     }
+                }
+            }
+
+            for ( OrganisationUnit unit : organisationUnitList )
+            {
+                for ( OrganisationUnit ancestor : unit.getAncestors() )
+                {
+                    map.put( ancestor.getUid(),
+                        new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ),
+                            includeMetadataDetails ? ancestor : null ) );
                 }
             }
 

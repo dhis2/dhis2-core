@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.category.Category;
@@ -54,14 +54,11 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataapproval.DataApprovalAuditService" )
 public class DefaultDataApprovalAuditService
     implements DataApprovalAuditService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataApprovalAuditStore dataApprovalAuditStore;
 
     private final DataApprovalLevelService dataApprovalLevelService;
@@ -69,21 +66,6 @@ public class DefaultDataApprovalAuditService
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
-
-    public DefaultDataApprovalAuditService( DataApprovalAuditStore dataApprovalAuditStore,
-        DataApprovalLevelService dataApprovalLevelService, CurrentUserService currentUserService,
-        AclService aclService )
-    {
-        checkNotNull( dataApprovalAuditStore );
-        checkNotNull( dataApprovalLevelService );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-
-        this.dataApprovalAuditStore = dataApprovalAuditStore;
-        this.dataApprovalLevelService = dataApprovalLevelService;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-    }
 
     // -------------------------------------------------------------------------
     // DataValueAuditService implementation
@@ -146,8 +128,8 @@ public class DefaultDataApprovalAuditService
         }
 
         Map<CategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local
-                                                                                  // cached
-                                                                                  // results
+                                                                                 // cached
+                                                                                 // results
 
         for ( Iterator<DataApprovalAudit> i = audits.iterator(); i.hasNext(); )
         {

@@ -52,7 +52,6 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 @Data
 @Builder( builderClassName = "ProgramMessageBuilder" )
 @NoArgsConstructor

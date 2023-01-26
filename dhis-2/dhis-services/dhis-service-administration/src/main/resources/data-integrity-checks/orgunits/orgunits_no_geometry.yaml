@@ -1,0 +1,71 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: KVICQmNL1pc
+name: orgunits_no_coordinates
+description: Organisation units with no coordinates.
+section: Organisation units
+section_order: 9
+summary_sql: >-
+  WITH orgunits_no_coordinates as (
+  SELECT uid,name,path,hierarchylevel from organisationunit
+  where geometry IS NULL)
+  SELECT 
+  COUNT(*)as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
+  FROM orgunits_no_coordinates;
+details_uid: O8Hxk6GsUXu
+details_sql: >-
+  SELECT uid,name, CAST(hierarchylevel as text) as comment from organisationunit
+  where geometry IS NULL
+  ORDER BY name;
+details_id_type: organisationUnits
+severity: WARNING
+introduction: |
+  Ideally, all organisation units contained in the DHIS2 hierarchy should have a valid
+  set of coordinates. Usually for all organisation units above the facility level,
+  these coordinates should be a polygon which provides the boundary of the organisation
+  unit. For facilities, these are usually represented as  point coordinates.
+  
+  There can obviously be exceptions to this rule. Mobile health facilities may not have
+  a fixed location. Community health workers or wards below the facility level
+  may also not have a defined or definable coordinate.
+  
+  This check is intended to allow you to review all organisation units which do
+  not have any coordinates and make a determination as to whether they should be updated.
+
+recommendation: |
+  Where appropriate, update the geometry of each organisation unit with a valid geometry.
+  You may need to contact the appropriate local government office to obtain a copy
+  of district boundaries, commonly referred to as "shape files". Another possibility
+  is to use freely available boundary files from GADM (https://gadm.org)
+  
+  If facilities are missing coordinates, it may be possible to obtain these from
+  the facility staff using their smart phone to get the coordinates. Images
+  from Google Maps can also often be used to estimate the position of a facility,
+  assuming that you have good enough resolution and local knowledge of where
+  it is located.

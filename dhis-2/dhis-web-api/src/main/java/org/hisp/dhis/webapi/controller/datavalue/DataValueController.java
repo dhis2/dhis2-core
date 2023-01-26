@@ -43,9 +43,12 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,6 +59,8 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -70,7 +75,9 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
@@ -80,7 +87,6 @@ import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -95,6 +101,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequestMapping( value = DataValueController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -121,6 +128,8 @@ public class DataValueController
 
     private final FileResourceUtils fileResourceUtils;
 
+    private final DhisConfigurationProvider dhisConfig;
+
     // ---------------------------------------------------------------------
     // POST
     // ---------------------------------------------------------------------
@@ -129,18 +138,18 @@ public class DataValueController
     @PostMapping( params = { "de", "pe", "ou" } )
     @ResponseStatus( HttpStatus.CREATED )
     public void saveDataValue(
-        @RequestParam String de,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataElement.class } ) @RequestParam String de,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String co,
+        @OpenApi.Param( { UID.class, CategoryCombo.class } ) @RequestParam( required = false ) String cc,
+        @OpenApi.Param( { UID.class, CategoryOption.class } ) @RequestParam( required = false ) String cp,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
-        @CurrentUser User currentUser, HttpServletResponse response )
+        @CurrentUser User currentUser )
         throws WebMessageException
     {
         DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto( cc, cp );
@@ -164,7 +173,7 @@ public class DataValueController
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.CREATED )
     public void saveDataValueWithBody( @RequestBody DataValueDto dataValue,
-        @CurrentUser User currentUser, HttpServletResponse response )
+        @CurrentUser User currentUser )
         throws WebMessageException
     {
         saveDataValueInternal( dataValue, currentUser );
@@ -173,13 +182,13 @@ public class DataValueController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @PostMapping( FILE_PATH )
     public WebMessage saveFileDataValue(
-        @RequestParam String de,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataElement.class } ) @RequestParam String de,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String co,
+        @OpenApi.Param( { UID.class, CategoryCombo.class } ) @RequestParam( required = false ) String cc,
+        @OpenApi.Param( { UID.class, CategoryOption.class } ) @RequestParam( required = false ) String cp,
+        @OpenApi.Param( { UID.class, Period.class } ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
@@ -437,7 +446,7 @@ public class DataValueController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataValue(
         DataValueQueryParams params,
-        @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) boolean force,
         @CurrentUser User currentUser,
         HttpServletResponse response )
@@ -509,7 +518,7 @@ public class DataValueController
     public List<String> getDataValue(
         DataValueQueryParams params,
         @CurrentUser User currentUser,
-        Model model, HttpServletResponse response )
+        HttpServletResponse response )
         throws WebMessageException
     {
         // ---------------------------------------------------------------------
@@ -596,6 +605,7 @@ public class DataValueController
     // GET file
     // ---------------------------------------------------------------------
 
+    @OpenApi.Response( byte[].class )
     @GetMapping( "/files" )
     public void getDataValueFile(
         DataValueQueryParams params,
@@ -673,7 +683,10 @@ public class DataValueController
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
         response.setHeader( HttpHeaders.CONTENT_LENGTH,
             String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
+
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
         setNoStore( response );
+
         try
         {
             fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );

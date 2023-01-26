@@ -32,7 +32,7 @@
 #   checks if a and b are the same set by checking that a is included in b and vice-versa
 ---
 name: categories_unique_category_combo
-description: Lists category combos that share a combination of categories with at least one other category combo
+description: Different category combinations should not have the exact same combination of categories.
 section: Categories
 summary_sql: >-
   with combo_sets as (
@@ -62,6 +62,11 @@ details_sql: >-
 details_id_type: categoryCombos
 severity: SEVERE
 introduction: >
-  A category combo should be a unique combination of categories
+  Category combinations should be a unique combination of categories. If two or more category combinations
+  contain the exact same set of categories, this would be considered to be duplicative and potentially
+  confusing to users.
+section_order: 8
+summary_uid: fAsLcyf2Ea2
+details_uid: EFCJQ8uLFgM
 recommendation: >
   One category combo is kept, all references are updated to use this combo and other combos are removed.
