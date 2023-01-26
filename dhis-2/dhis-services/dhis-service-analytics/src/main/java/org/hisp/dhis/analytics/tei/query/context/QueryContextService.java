@@ -122,5 +122,4 @@ public class QueryContextService
                 SUBQUERY_TABLE_ALIAS ),
             sortDirection );
     }
-
 }

@@ -385,10 +385,16 @@ public class DefaultProgramIndicatorService
             + "|" + (tableAlias == null ? "" : tableAlias);
     }
 
-    private String dateIfPresent( Date startDate )
+    /**
+     * Returns the time in milliseconds if the date is present, otherwise an empty string.
+     * @param date the date
+     * @return the time in milliseconds if the date is present, otherwise an empty string.
+     */
+    private String dateIfPresent( Date date )
     {
-        return Optional.ofNullable( startDate )
-            .map( date -> "|" + startDate.getTime() )
+        return Optional.ofNullable( date )
+            .map(Date::getTime)
+            .map(millis -> "|" + millis )
             .orElse( StringUtils.EMPTY );
     }
 
