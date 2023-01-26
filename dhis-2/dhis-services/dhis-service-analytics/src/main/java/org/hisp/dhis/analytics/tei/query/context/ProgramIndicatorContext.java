@@ -85,7 +85,6 @@ public class ProgramIndicatorContext
     @RequiredArgsConstructor( staticName = "of" )
     public static class ProgramIndicatorContextBuilder
     {
-
         private final List<ProgramIndicatorDimensionParam> programIndicatorDimensionParams;
 
         private final QueryContext queryContext;
@@ -101,7 +100,7 @@ public class ProgramIndicatorContext
                 String assignedAlias = doubleQuote(
                     param.getDimensionIdentifier().toString() + "_" + counter.getAndIncrement() );
 
-                builder.field( Field.ofUnquotedField(
+                builder.field( Field.ofUnquoted(
                     StringUtils.EMPTY,
                     () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')",
                     assignedAlias ) );
@@ -154,6 +153,7 @@ public class ProgramIndicatorContext
                     builder.order( () -> assignedAlias );
                 }
             }
+
             return builder.build();
         }
     }
@@ -181,7 +181,5 @@ public class ProgramIndicatorContext
         {
             return sortDirection != null;
         }
-
     }
-
 }
