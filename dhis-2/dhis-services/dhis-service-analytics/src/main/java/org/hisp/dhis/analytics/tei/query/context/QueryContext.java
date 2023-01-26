@@ -28,16 +28,18 @@
 package org.hisp.dhis.analytics.tei.query.context;
 
 import static java.util.Collections.emptyList;
-import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.ProgramIndicatorContext.EMPTY_PROGRAM_INDICATOR_CONTEXT;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.experimental.Delegate;
 
 import org.hisp.dhis.analytics.common.CommonParams;
@@ -45,14 +47,16 @@ import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
-@RequiredArgsConstructor( access = PRIVATE )
+@With
+@Getter
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public class QueryContext
 {
-    @Getter
     private final TeiQueryParams teiQueryParams;
 
-    @Getter
     private final SortingContext sortingContext;
+
+    private final ProgramIndicatorContext programIndicatorContext;
 
     @Delegate
     private final ParameterManager parameterManager;
@@ -71,6 +75,7 @@ public class QueryContext
                     .map( TeiQueryParams::getTrackedEntityType )
                     .orElse( null ),
                 parameterManager ).build(),
+            EMPTY_PROGRAM_INDICATOR_CONTEXT,
             parameterManager );
     }
 

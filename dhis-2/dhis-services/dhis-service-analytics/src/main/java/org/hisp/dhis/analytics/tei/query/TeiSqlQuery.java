@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static java.util.Collections.singletonList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
@@ -40,7 +41,6 @@ import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.
 import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.From;
+import org.hisp.dhis.analytics.common.query.JoinsWithConditions;
 import org.hisp.dhis.analytics.common.query.LimitOffset;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Order;
@@ -136,14 +137,16 @@ public class TeiSqlQuery extends BaseRenderable
     {
         AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
-        return LimitOffset.of( pagingParams.getPageSize(),
-            pagingParams.getPageSize() * (pagingParams.getPage() - 1) );
+        return LimitOffset.of( pagingParams.getPageSize(), pagingParams.getOffset() );
     }
 
     private Order getOrder()
     {
         return Order.builder()
-            .orders( queryContext.getSortingContext().getOrders() )
+            .orders( Stream.concat(
+                queryContext.getSortingContext().getOrders().stream(),
+                queryContext.getProgramIndicatorContext().getOrders().stream() )
+                .collect( toList() ) )
             .build();
     }
 
@@ -152,7 +155,9 @@ public class TeiSqlQuery extends BaseRenderable
         Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
-        Stream<Field> fields = Stream.of( teiFields, dimensionsFields, orderingFields ).flatMap( identity() );
+        Stream<Field> programIndicatorFields = queryContext.getProgramIndicatorContext().getFields().stream();
+        Stream<Field> fields = Stream.of( teiFields, dimensionsFields, orderingFields, programIndicatorFields )
+            .flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
         {
@@ -169,7 +174,13 @@ public class TeiSqlQuery extends BaseRenderable
 
     private From getFrom()
     {
-        return From.of( queryContext.getMainTable(), queryContext.getSortingContext().getLeftJoins() );
+        JoinsWithConditions joinsWithConditions = JoinsWithConditions.of(
+            Stream.concat(
+                queryContext.getSortingContext().getLeftJoins().stream(),
+                queryContext.getProgramIndicatorContext().getLeftJoins().stream() )
+                .collect( toList() ) );
+
+        return From.of( queryContext.getMainTable(), joinsWithConditions );
     }
 
     private Where getWhere()
@@ -182,29 +193,24 @@ public class TeiSqlQuery extends BaseRenderable
             .filter( d -> d.getDimension().isPeriodDimension() );
 
         // Conditions on programs (is enrolled in program)
-        Stream<Renderable> programConditions = teiQueryParams
-            .getCommonParams()
-            .getPrograms()
-            .stream()
+        Stream<Renderable> programConditions = teiQueryParams.getCommonParams().getPrograms().stream()
             .map( BaseIdentifiableObject::getUid )
             .map( EnrolledInProgramCondition::of );
 
         // Conditions on filters/dimensions
-        Stream<Renderable> dimensionConditions = teiQueryParams.getCommonParams().getDimensionIdentifiers()
-            .stream()
+        Stream<Renderable> dimensionConditions = teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
             .filter( this::isNotPeriodDimension )
             .map( this::toConditions )
             .map( OrCondition::of );
 
         Renderable periodConditions = OrCondition.of( periodDimensions
-            .map( periodDimension -> toCondition( DimensionParamObjectType.PERIOD,
-                Collections.singletonList( periodDimension ) ) )
+            .map( periodDimension -> toCondition( DimensionParamObjectType.PERIOD, singletonList( periodDimension ) ) )
             .collect( toList() ) );
 
-        return Where.of( AndCondition.of(
-            Stream.of(
-                programConditions,
-                dimensionConditions,
+        return Where.of(
+            AndCondition.of( Stream.of(
+                programConditions, dimensionConditions,
+                queryContext.getProgramIndicatorContext().getConditions().stream(),
                 Stream.of( periodConditions ) )
                 .flatMap( Function.identity() )
                 .collect( toList() ) ) );
@@ -233,34 +239,30 @@ public class TeiSqlQuery extends BaseRenderable
     {
         if ( type == DATA_ELEMENT )
         {
-            return AndCondition.of(
-                dimensionIdentifiers.stream()
-                    .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, queryContext ) )
-                    .collect( toList() ) );
+            return AndCondition.of( dimensionIdentifiers.stream()
+                .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, queryContext ) )
+                .collect( toList() ) );
         }
 
         if ( type == PROGRAM_ATTRIBUTE )
         {
-            return AndCondition.of(
-                dimensionIdentifiers.stream()
-                    .map( dimensionIdentifier -> ProgramAttributeCondition.of( dimensionIdentifier, queryContext ) )
-                    .collect( toList() ) );
+            return AndCondition.of( dimensionIdentifiers.stream()
+                .map( dimensionIdentifier -> ProgramAttributeCondition.of( dimensionIdentifier, queryContext ) )
+                .collect( toList() ) );
         }
 
         if ( type == ORGANISATION_UNIT )
         {
-            return AndCondition.of(
-                dimensionIdentifiers.stream()
-                    .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
-                    .collect( toList() ) );
+            return AndCondition.of( dimensionIdentifiers.stream()
+                .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
+                .collect( toList() ) );
         }
 
         if ( type == PERIOD )
         {
-            return AndCondition.of(
-                dimensionIdentifiers.stream()
-                    .map( dimensionIdentifier -> PeriodCondition.of( dimensionIdentifier, queryContext ) )
-                    .collect( toList() ) );
+            return AndCondition.of( dimensionIdentifiers.stream()
+                .map( dimensionIdentifier -> PeriodCondition.of( dimensionIdentifier, queryContext ) )
+                .collect( toList() ) );
         }
 
         return () -> EMPTY;

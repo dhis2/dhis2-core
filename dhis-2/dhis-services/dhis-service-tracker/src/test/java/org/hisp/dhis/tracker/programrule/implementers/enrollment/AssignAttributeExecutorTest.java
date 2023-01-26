@@ -63,7 +63,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class AssignValueExecutorTest extends DhisConvenienceTest
+class AssignAttributeExecutorTest extends DhisConvenienceTest
 {
 
     private final static String TRACKED_ENTITY_ID = "TrackedEntityUid";
@@ -115,7 +115,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
         bundle.setEnrollments( enrollments );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
@@ -133,7 +133,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = List.of( enrollmentWithAttributeSet );
         bundle.setEnrollments( enrollments );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
@@ -154,7 +154,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = List.of( enrollmentWithAttributeSet );
         bundle.setEnrollments( enrollments );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
@@ -173,7 +173,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, getTrackedEntitiesWithAttributeSet().getAttributes() );
 
         Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
@@ -197,7 +197,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeNOTSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
@@ -217,7 +217,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         List<Enrollment> enrollments = List.of( enrollmentWithAttributeSetSameValue );
         bundle.setEnrollments( enrollments );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSetSameValue.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
@@ -237,7 +237,7 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
 
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager,
+        AssignAttributeExecutor executor = new AssignAttributeExecutor( systemSettingManager,
             "", TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, enrollmentWithAttributeSet.getAttributes() );
 
         Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, enrollmentWithAttributeSet );
@@ -269,39 +269,6 @@ class AssignValueExecutorTest extends DhisConvenienceTest
         return enrollment.getAttributes().stream()
             .filter( at -> at.getAttribute().equals( MetadataIdentifier.ofCode( attributeCode ) ) )
             .findAny();
-    }
-
-    @Test
-    void shouldTestIsEqualIsComparingCorrectlySameTypeValues()
-    {
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
-
-        assertTrue( executor.isEqual( "first_dose", "first_dose", ValueType.TEXT ) );
-        assertTrue( executor.isEqual( "2020-01-01", "2020-01-01", ValueType.DATE ) );
-        assertTrue( executor.isEqual( "true", "true", ValueType.BOOLEAN ) );
-        assertTrue( executor.isEqual( "26.4", "26.4", ValueType.TEXT ) );
-        assertTrue( executor.isEqual( "24.8", "24.8", ValueType.NUMBER ) );
-        assertTrue( executor.isEqual( "32", "32", ValueType.INTEGER ) );
-
-        assertFalse( executor.isEqual( "first_dose", "second_dose", ValueType.TEXT ) );
-        assertFalse( executor.isEqual( "2020-01-01", "2020-01-02", ValueType.DATE ) );
-        assertFalse( executor.isEqual( "true", "false", ValueType.BOOLEAN ) );
-        assertFalse( executor.isEqual( "26.4", "26.5", ValueType.TEXT ) );
-        assertFalse( executor.isEqual( "24.8", "24.9", ValueType.NUMBER ) );
-        assertFalse( executor.isEqual( "32", "33", ValueType.INTEGER ) );
-    }
-
-    @Test
-    void shouldTestIsEqualIsComparingCorrectlyDifferentTypeValues()
-    {
-        AssignValueExecutor executor = new AssignValueExecutor( systemSettingManager, null, null, null, null );
-
-        assertFalse( executor.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
-        assertFalse( executor.isEqual( "24", "second_dose", ValueType.NUMBER ) );
-        assertFalse( executor.isEqual( null, "46.2", ValueType.NUMBER ) );
-        assertFalse( executor.isEqual( "26.4", null, ValueType.NUMBER ) );
-        assertFalse( executor.isEqual( "first_dose", null, ValueType.TEXT ) );
-        assertFalse( executor.isEqual( null, "second_dose", ValueType.TEXT ) );
     }
 
     private void assertAttributeWasAssignedAndWarningIsPresent( String attributeValue, Optional<Attribute> attribute,
