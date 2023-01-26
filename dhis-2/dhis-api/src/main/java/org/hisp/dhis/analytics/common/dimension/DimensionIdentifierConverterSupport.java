@@ -31,13 +31,14 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.List;
 
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
+import org.hisp.dhis.common.UidObject;
 
 @NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierConverterSupport
@@ -53,7 +54,7 @@ public class DimensionIdentifierConverterSupport
      *         not supported
      * @return the {@link DimensionIdentifier} object
      */
-    public static DimensionIdentifier<StringUid, StringUid, StringUid> fromFullDimensionId( String fullDimensionId )
+    public static StringDimensionIdentifier fromFullDimensionId( String fullDimensionId )
     {
         List<ElementWithOffset<StringUid>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
         boolean nonSupportedFormat = uidWithOffsets.size() > 3 || uidWithOffsets.isEmpty();
@@ -63,7 +64,7 @@ public class DimensionIdentifierConverterSupport
             throw new IllegalArgumentException( "Invalid dimension identifier: " + fullDimensionId );
         }
 
-        return DimensionIdentifier.of(
+        return StringDimensionIdentifier.of(
             getProgram( uidWithOffsets ),
             getProgramStage( uidWithOffsets ),
             getDimension( uidWithOffsets ) );
@@ -137,5 +138,20 @@ public class DimensionIdentifierConverterSupport
         {
             return ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
         }
+    }
+
+    public static String asText( ElementWithOffset<? extends UidObject> program,
+        ElementWithOffset<? extends UidObject> programStage, UidObject dimension )
+    {
+        String string = "";
+        if ( program.isPresent() )
+        {
+            string += program + DIMENSION_IDENTIFIER_SEP;
+        }
+        if ( programStage.isPresent() )
+        {
+            string += programStage + DIMENSION_IDENTIFIER_SEP;
+        }
+        return string + dimension.getUid();
     }
 }

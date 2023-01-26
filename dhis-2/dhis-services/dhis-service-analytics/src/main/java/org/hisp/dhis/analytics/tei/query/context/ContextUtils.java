@@ -36,7 +36,7 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextService.SUBQ
 
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -45,7 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 class ContextUtils
 {
     // TODO: Think about implementing this using the query builders
-    static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+    static String enrollmentSelect( ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
     {
         return "select innermost_enr.*" +
@@ -57,7 +57,7 @@ class ContextUtils
             " where innermost_enr.rn = 1";
     }
 
-    static String enrollmentProgramIndicatorSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+    static String enrollmentProgramIndicatorSelect( ElementWithOffset<Program> program,
         String expression, String filter, boolean needsExpressions )
     {
         return "select innermost_enr.*" +
@@ -69,7 +69,7 @@ class ContextUtils
             " where innermost_enr.rn = 1";
     }
 
-    static String eventProgramIndicatorSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+    static String eventProgramIndicatorSelect( ElementWithOffset<Program> program,
         String expression, String filter )
     {
         return "select innermost_evt.*" +
@@ -81,8 +81,8 @@ class ContextUtils
     }
 
     // TODO: Think about implementing this using the query builders
-    static String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
-        DimensionIdentifier.ElementWithOffset<ProgramStage> programStage,
+    static String eventSelect( ElementWithOffset<Program> program,
+        ElementWithOffset<ProgramStage> programStage,
         TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
     {
         return "select innermost_evt.*" +

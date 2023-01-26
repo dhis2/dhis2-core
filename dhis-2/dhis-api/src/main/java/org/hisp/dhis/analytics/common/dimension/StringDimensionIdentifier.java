@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.common.dimension;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.apache.commons.lang3.tuple.Triple;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class RenderableDimensionIdentifier extends BaseRenderable
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+public class StringDimensionIdentifier
 {
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    @Override
-    public String render()
+    private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid> triple;
+
+    public static StringDimensionIdentifier of(
+        ElementWithOffset<StringUid> program,
+        ElementWithOffset<StringUid> programStage,
+        StringUid dimension )
     {
-        return dimensionIdentifier.toString();
+        return new StringDimensionIdentifier( Triple.of( program, programStage, dimension ) );
+    }
+
+    public ElementWithOffset<StringUid> getProgram()
+    {
+        return triple.getLeft();
+    }
+
+    public ElementWithOffset<StringUid> getProgramStage()
+    {
+        return triple.getMiddle();
+    }
+
+    public StringUid getDimension()
+    {
+        return triple.getRight();
+    }
+
+    public String toString()
+    {
+        return DimensionIdentifierConverterSupport.asText( getProgram(), getProgramStage(), getDimension() );
     }
 }

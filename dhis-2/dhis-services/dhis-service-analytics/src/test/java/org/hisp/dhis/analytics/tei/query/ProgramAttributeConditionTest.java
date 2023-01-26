@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -40,8 +40,6 @@ import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 class ProgramAttributeConditionTest
@@ -53,7 +51,7 @@ class ProgramAttributeConditionTest
         // SETUP
         String attr = "attr";
         List<String> values = List.of( "eq:v1" );
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = getProgramAttributeDimensionIdentifier(
             "attr", values );
 
         // CALL
@@ -69,7 +67,7 @@ class ProgramAttributeConditionTest
 
     }
 
-    private DimensionIdentifier<Program, ProgramStage, DimensionParam> getProgramAttributeDimensionIdentifier(
+    private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
         String attr, List<String> items )
     {
         DimensionParam dimensionParam = DimensionParam.ofObject(

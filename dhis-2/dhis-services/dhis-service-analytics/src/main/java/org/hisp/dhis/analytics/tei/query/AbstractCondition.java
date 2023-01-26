@@ -40,13 +40,11 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 @RequiredArgsConstructor
 public abstract class AbstractCondition extends BaseRenderable
 {
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
 

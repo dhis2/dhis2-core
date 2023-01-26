@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -46,7 +46,7 @@ class DimensionIdentifierConverterSupportTest
         String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n";
 
         // When
-        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
+        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
             fullDimensionId );
 
         // Then
@@ -69,7 +69,7 @@ class DimensionIdentifierConverterSupportTest
         String singleDimensionId = "bh1Edk21e2n";
 
         // When
-        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
+        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
             singleDimensionId );
 
         // Then
@@ -86,7 +86,7 @@ class DimensionIdentifierConverterSupportTest
         String singleDimensionId = "lxAQ7Zs9VYR.bh1Edk21e2n";
 
         // When
-        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
+        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
             singleDimensionId );
 
         // Then

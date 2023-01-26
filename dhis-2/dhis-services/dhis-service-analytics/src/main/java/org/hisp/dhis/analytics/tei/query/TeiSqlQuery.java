@@ -72,8 +72,6 @@ import org.hisp.dhis.analytics.common.query.Where;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Class that encapsulates all necessary objects to render a SQL statement. It's
@@ -186,7 +184,7 @@ public class TeiSqlQuery extends BaseRenderable
     private Where getWhere()
     {
         // We want all PERIOD dimension to be in the same group
-        Stream<DimensionIdentifier<Program, ProgramStage, DimensionParam>> periodDimensions = teiQueryParams
+        Stream<DimensionIdentifier<DimensionParam>> periodDimensions = teiQueryParams
             .getCommonParams().getDimensionIdentifiers()
             .stream()
             .flatMap( Collection::stream )
@@ -217,14 +215,14 @@ public class TeiSqlQuery extends BaseRenderable
     }
 
     private boolean isNotPeriodDimension(
-        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
+        List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
             .noneMatch( dimId -> dimId.getDimension().isPeriodDimension() );
     }
 
     private List<Renderable> toConditions(
-        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
+        List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
             .filter( di -> di.getDimension().hasRestrictions() )
@@ -235,7 +233,7 @@ public class TeiSqlQuery extends BaseRenderable
     }
 
     private Renderable toCondition( DimensionParamObjectType type,
-        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
+        List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         if ( type == DATA_ELEMENT )
         {

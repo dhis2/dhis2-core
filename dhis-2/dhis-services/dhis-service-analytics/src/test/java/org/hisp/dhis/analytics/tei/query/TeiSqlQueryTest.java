@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -103,15 +104,15 @@ class TeiSqlQueryTest extends DhisConvenienceTest
 
     private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
     {
-        DimensionIdentifier.ElementWithOffset<Program> prg = program == null
-            ? DimensionIdentifier.ElementWithOffset.emptyElementWithOffset()
-            : DimensionIdentifier.ElementWithOffset.of( program, offset );
+        ElementWithOffset<Program> prg = program == null
+            ? ElementWithOffset.emptyElementWithOffset()
+            : ElementWithOffset.of( program, offset );
 
-        DimensionIdentifier.ElementWithOffset<ProgramStage> programStage = program == null
-            ? DimensionIdentifier.ElementWithOffset.emptyElementWithOffset()
-            : DimensionIdentifier.ElementWithOffset.of( createProgramStage( 'S', program ), offset );
+        ElementWithOffset<ProgramStage> programStage = program == null
+            ? ElementWithOffset.emptyElementWithOffset()
+            : ElementWithOffset.of( createProgramStage( 'S', program ), offset );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = DimensionIdentifier.of( prg,
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = DimensionIdentifier.of( prg,
             programStage,
             DimensionParam.ofObject( dimensionalObject, DimensionParamType.SORTING, List.of( StringUtils.EMPTY ) ) );
 

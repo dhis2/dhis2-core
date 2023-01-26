@@ -41,10 +41,8 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Service;
 
@@ -83,7 +81,7 @@ public class QueryContextService
     }
 
     private ProgramIndicatorContext.ProgramIndicatorDimensionParam asDimensionParamProgramIndicatorQuery(
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+        DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
         return asDimensionParamProgramIndicatorQuery( dimensionIdentifier, null );
     }
@@ -96,7 +94,7 @@ public class QueryContextService
     }
 
     private ProgramIndicatorContext.ProgramIndicatorDimensionParam asDimensionParamProgramIndicatorQuery(
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier, SortDirection sortDirection )
+        DimensionIdentifier<DimensionParam> dimensionIdentifier, SortDirection sortDirection )
     {
         ProgramIndicator programIndicator = (ProgramIndicator) dimensionIdentifier.getDimension().getQueryItem()
             .getItem();

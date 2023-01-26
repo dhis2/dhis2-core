@@ -32,15 +32,13 @@ import lombok.Data;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Data
 @Builder
 public class AnalyticsSortingParams
 {
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> orderBy;
+    private final DimensionIdentifier<DimensionParam> orderBy;
 
     private final SortDirection sortDirection;
 }

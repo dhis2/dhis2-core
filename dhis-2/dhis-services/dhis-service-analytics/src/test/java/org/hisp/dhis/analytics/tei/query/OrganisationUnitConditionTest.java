@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -58,7 +58,7 @@ class OrganisationUnitConditionTest
     {
         // Given
         List<String> ous = List.of( "ou1", "ou2" );
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, null, null );
 
         QueryContext queryContext = QueryContext.of( null );
@@ -80,7 +80,7 @@ class OrganisationUnitConditionTest
         // Given
         List<String> ous = List.of( "ou1" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, null, null );
 
         QueryContext queryContext = QueryContext.of( null );
@@ -102,7 +102,7 @@ class OrganisationUnitConditionTest
         // Given
         List<String> ous = List.of( "ou1" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", "tO8L1aBitDm" );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
@@ -140,7 +140,7 @@ class OrganisationUnitConditionTest
         // Given
         List<String> ous = List.of( "ou1", "ou2" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", "tO8L1aBitDm" );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
@@ -178,7 +178,7 @@ class OrganisationUnitConditionTest
         // Given
         List<String> ous = List.of( "ou1" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", null );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
@@ -211,7 +211,7 @@ class OrganisationUnitConditionTest
         // Given
         List<String> ous = List.of( "ou1", "ou2" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", null );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
@@ -246,7 +246,7 @@ class OrganisationUnitConditionTest
         return tet;
     }
 
-    private DimensionIdentifier<Program, ProgramStage, DimensionParam> stubDimensionIdentifier( List<String> ous,
+    private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
         String programUid, String programStageUid )
     {
         DimensionParam dimensionParam = DimensionParam.ofObject(

@@ -43,8 +43,6 @@ import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Provides methods responsible for generating SQL statements on top of
@@ -54,11 +52,11 @@ public class OrganisationUnitCondition extends AbstractCondition
 {
     private static final String OU_FIELD = "ou";
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
 
-    private OrganisationUnitCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+    private OrganisationUnitCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
         QueryContext queryContext )
     {
         super( dimensionIdentifier, queryContext );
@@ -67,7 +65,7 @@ public class OrganisationUnitCondition extends AbstractCondition
     }
 
     public static OrganisationUnitCondition of(
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier, QueryContext queryContext )
+        DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext )
     {
         return new OrganisationUnitCondition( dimensionIdentifier, queryContext );
     }

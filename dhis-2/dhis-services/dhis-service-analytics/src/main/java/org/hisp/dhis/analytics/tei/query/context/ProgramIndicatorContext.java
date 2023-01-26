@@ -56,9 +56,7 @@ import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Builder( access = PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
@@ -162,7 +160,7 @@ public class ProgramIndicatorContext
     @RequiredArgsConstructor( staticName = "of" )
     static class ProgramIndicatorDimensionParam
     {
-        private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+        private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
         private final ProgramIndicator programIndicator;
 

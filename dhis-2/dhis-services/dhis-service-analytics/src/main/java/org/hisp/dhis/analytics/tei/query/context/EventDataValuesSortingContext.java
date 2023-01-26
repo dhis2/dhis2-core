@@ -47,8 +47,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @RequiredArgsConstructor( staticName = "of" )
@@ -64,7 +62,7 @@ public class EventDataValuesSortingContext
 
     public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> di = param.getOrderBy();
+        DimensionIdentifier<DimensionParam> di = param.getOrderBy();
         DimensionParam sortingDimension = di.getDimension();
         String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
         String enrollmentAlias = ENR_ALIAS + "_" + sequence;

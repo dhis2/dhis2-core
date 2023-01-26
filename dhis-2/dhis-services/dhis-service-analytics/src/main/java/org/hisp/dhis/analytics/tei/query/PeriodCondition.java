@@ -50,8 +50,6 @@ import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.util.DateUtils;
 
 public class PeriodCondition extends AbstractCondition
@@ -62,7 +60,7 @@ public class PeriodCondition extends AbstractCondition
 
     private final TimeField timeField;
 
-    private PeriodCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+    private PeriodCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
         QueryContext queryContext )
     {
         super( dimensionIdentifier, queryContext );
@@ -94,7 +92,7 @@ public class PeriodCondition extends AbstractCondition
         return Date.from( date.toInstant().plus( 1, DAYS ) );
     }
 
-    public static PeriodCondition of( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+    public static PeriodCondition of( DimensionIdentifier<DimensionParam> dimensionIdentifier,
         QueryContext queryContext )
     {
         return new PeriodCondition( dimensionIdentifier, queryContext );

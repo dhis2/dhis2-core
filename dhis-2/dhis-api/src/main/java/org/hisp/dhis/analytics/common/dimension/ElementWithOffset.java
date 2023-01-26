@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.common.dimension;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.util.Objects;
+
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.common.UidObject;
 
+/**
+ * Encapsulates and element T with its offset.
+ *
+ * @param <T> the dimension type
+ */
+@Data
 @RequiredArgsConstructor( staticName = "of" )
-public class RenderableDimensionIdentifier extends BaseRenderable
+public class ElementWithOffset<T extends UidObject>
 {
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+    @SuppressWarnings( "rawtypes" )
+    private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET = ElementWithOffset.of( null, null );
+
+    private final T element;
+
+    private final String offset;
+
+    public boolean hasOffset()
+    {
+        return Objects.nonNull( offset );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset()
+    {
+        return EMPTY_ELEMENT_WITH_OFFSET;
+    }
+
+    public boolean isPresent()
+    {
+        return Objects.nonNull( element );
+    }
 
     @Override
-    public String render()
+    public String toString()
     {
-        return dimensionIdentifier.toString();
+        if ( isPresent() )
+        {
+            if ( hasOffset() )
+            {
+                return element.getUid() + "[" + offset + "]";
+            }
+            return element.getUid();
+        }
+        return EMPTY;
     }
 }

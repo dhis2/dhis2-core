@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -62,7 +62,7 @@ class DimensionIdentifierConverterTest
         String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].jklm";
 
         // When
-        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -94,7 +94,7 @@ class DimensionIdentifierConverterTest
         String fullDimensionId = "lxAQ7Zs9VYR.RaMbOrTys0n.jklm";
 
         // When
-        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -123,7 +123,7 @@ class DimensionIdentifierConverterTest
         String fullDimensionId = "lxAQ7Zs9VYR.jklm";
 
         // When
-        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -149,7 +149,7 @@ class DimensionIdentifierConverterTest
         String fullDimensionId = "jklm";
 
         // When
-        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then

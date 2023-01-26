@@ -54,7 +54,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -105,7 +105,7 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = asList( program1, program2 );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
             StringUid.of( "yLIPuJHRgey" ) );
@@ -166,10 +166,10 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = List.of( program1, program2 );
 
-        DimensionIdentifier<Program, StringUid, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ), null, StringUid.of( null ) );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItem ) );
 
@@ -229,11 +229,11 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = asList( program1, program2 );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItemDimension ) );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ), StringUid.of( orgUnitDimension ) );
 
@@ -342,7 +342,7 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = asList( program1, program2 );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
             StringUid.of( "yLIPuJHRgey" ) );
@@ -395,7 +395,7 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> noPrograms = emptyList();
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             null, // The null program
             null, // The null stage
             StringUid.of( nonFullyQualifiedDimension ) );
@@ -441,7 +441,7 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = List.of( program1, program2 );
 
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+        DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
             StringUid.of( "yLIPuJHRgey" ) );

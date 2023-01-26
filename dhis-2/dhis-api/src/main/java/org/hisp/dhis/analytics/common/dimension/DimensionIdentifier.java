@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-
-import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Class to identify a dimension in analytics TEI cross program. A dimension can
@@ -48,11 +45,11 @@ import org.hisp.dhis.common.UidObject;
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
-public class DimensionIdentifier<P extends UidObject, S extends UidObject, D extends UidObject>
+public class DimensionIdentifier<D extends UidObject>
 {
-    private final ElementWithOffset<P> program;
+    private final ElementWithOffset<Program> program;
 
-    private final ElementWithOffset<S> programStage;
+    private final ElementWithOffset<ProgramStage> programStage;
 
     private final D dimension;
 
@@ -92,63 +89,7 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
     @Override
     public String toString()
     {
-        String string = "";
-        if ( program.isPresent() )
-        {
-            string += program + DIMENSION_IDENTIFIER_SEP;
-        }
-        if ( programStage.isPresent() )
-        {
-            string += programStage + DIMENSION_IDENTIFIER_SEP;
-        }
-        return string + dimension.getUid();
-    }
-
-    /**
-     * Encapsulates and element T with its offset.
-     *
-     * @param <T> the dimension type
-     */
-    @Data
-    @RequiredArgsConstructor( staticName = "of" )
-    public static class ElementWithOffset<T extends UidObject>
-    {
-        @SuppressWarnings( "rawtypes" )
-        private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET = ElementWithOffset.of( null, null );
-
-        private final T element;
-
-        private final String offset;
-
-        public boolean hasOffset()
-        {
-            return Objects.nonNull( offset );
-        }
-
-        @SuppressWarnings( "unchecked" )
-        public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset()
-        {
-            return EMPTY_ELEMENT_WITH_OFFSET;
-        }
-
-        public boolean isPresent()
-        {
-            return Objects.nonNull( element );
-        }
-
-        @Override
-        public String toString()
-        {
-            if ( isPresent() )
-            {
-                if ( hasOffset() )
-                {
-                    return element.getUid() + "[" + offset + "]";
-                }
-                return element.getUid();
-            }
-            return EMPTY;
-        }
+        return DimensionIdentifierConverterSupport.asText( program, programStage, dimension );
     }
 
     public enum DimensionIdentifierType

@@ -74,7 +74,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Component;
 
@@ -227,10 +226,10 @@ public class CommonQueryRequestMapper
      * @return a {@link List} containing a {@link List} of
      *         {@link DimensionIdentifier}
      */
-    private List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> retrieveDimensionParams(
+    private List<List<DimensionIdentifier<DimensionParam>>> retrieveDimensionParams(
         CommonQueryRequest queryRequest, List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionParams = new ArrayList<>();
+        List<List<DimensionIdentifier<DimensionParam>>> dimensionParams = new ArrayList<>();
 
         Stream.of( DIMENSIONS, FILTERS, DATE_FILTERS )
             .forEach( dimensionParamType -> {
@@ -260,7 +259,7 @@ public class CommonQueryRequestMapper
      * @throws IllegalArgumentException if "dimensionOrFilter" is not
      *         well-formed
      */
-    private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> toDimensionIdentifier(
+    private List<DimensionIdentifier<DimensionParam>> toDimensionIdentifier(
         List<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest queryRequest,
         List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
@@ -295,7 +294,7 @@ public class CommonQueryRequestMapper
      * @throws IllegalArgumentException if "dimensionOrFilter" is not
      *         well-formed
      */
-    private DimensionIdentifier<Program, ProgramStage, DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
+    private DimensionIdentifier<DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
         DimensionParamType dimensionParamType, CommonQueryRequest queryRequest, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
@@ -303,7 +302,7 @@ public class CommonQueryRequestMapper
 
         // We first parse the dimensionId into <Program, ProgramStage, String>
         // to be able to operate on the string version (uid) of the dimension.
-        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = dimensionIdentifierConverter
+        DimensionIdentifier<StringUid> dimensionIdentifier = dimensionIdentifierConverter
             .fromString( programs, dimensionId );
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 

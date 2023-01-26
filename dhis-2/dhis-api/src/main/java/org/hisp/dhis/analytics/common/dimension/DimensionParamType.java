@@ -99,11 +99,11 @@ public enum DimensionParamType
         // Here, dateItem filter is in the form of
         // programUid.programStageUid.period we need to return
         // programUid.programStageUid.pe:period:analyticsDateFilter.
-        DimensionIdentifier<StringUid, StringUid, StringUid> parsedItem = fromFullDimensionId( dateFilterItem );
+        StringDimensionIdentifier parsedItem = fromFullDimensionId( dateFilterItem );
 
         String period = parsedItem.getDimension().getUid();
 
-        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = DimensionIdentifier.of(
+        StringDimensionIdentifier dimensionIdentifier = StringDimensionIdentifier.of(
             parsedItem.getProgram(),
             parsedItem.getProgramStage(),
             StringUid.of( PERIOD_DIM_ID ) );

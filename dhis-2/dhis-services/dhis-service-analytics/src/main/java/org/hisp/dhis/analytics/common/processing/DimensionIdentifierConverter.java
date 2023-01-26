@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.dimension.StringDimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -60,14 +61,14 @@ public class DimensionIdentifierConverter
      * @throws IllegalArgumentException if the programUid in the
      *         "fullDimensionId" does not belong the list of "programsAllowed"
      */
-    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> allowedPrograms,
+    public DimensionIdentifier<StringUid> fromString( List<Program> allowedPrograms,
         String fullDimensionId )
     {
-        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
+        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
             fullDimensionId );
 
         Optional<Program> programOptional = Optional.of( dimensionIdentifier )
-            .map( DimensionIdentifier::getProgram )
+            .map( StringDimensionIdentifier::getProgram )
             .map( ElementWithOffset::getElement )
             .flatMap( programUid -> allowedPrograms.stream()
                 .filter( program -> program.getUid().equals( programUid.getUid() ) )
@@ -77,7 +78,7 @@ public class DimensionIdentifierConverter
         ElementWithOffset<StringUid> programStageWithOffset = dimensionIdentifier.getProgramStage();
         StringUid dimensionId = dimensionIdentifier.getDimension();
 
-        if ( dimensionIdentifier.hasProgramStage() )
+        if ( dimensionIdentifier.getProgramStage().isPresent() )
         { // Contains a fully qualified dimension. ie.:
          // {programUid}.{programStageUid}.DataElementUid.
             if ( programOptional.isPresent() )
@@ -98,7 +99,7 @@ public class DimensionIdentifierConverter
                 throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
             }
         }
-        else if ( dimensionIdentifier.hasProgram() )
+        else if ( dimensionIdentifier.getProgram().isPresent() )
         { // Contains only program + dimension. ie.: {programUid}.dimensionUid.
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(

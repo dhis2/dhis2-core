@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.common;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +55,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.ParamsEvaluator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -204,13 +205,13 @@ class GridAdaptorTest extends DhisConvenienceTest
     {
         List<String> ous = List.of( "ou1-uid", "ou2-uid" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaA-uid" );
 
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifierB = stubDimensionIdentifier(
+        DimensionIdentifier<DimensionParam> dimensionIdentifierB = stubDimensionIdentifier(
             ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaB-uid" );
 
-        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimIdentifiers = new ArrayList<>();
+        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = new ArrayList<>();
         dimIdentifiers.add( dimensionIdentifierA );
         dimIdentifiers.add( dimensionIdentifierB );
 
@@ -219,7 +220,7 @@ class GridAdaptorTest extends DhisConvenienceTest
             .build();
     }
 
-    private DimensionIdentifier<Program, ProgramStage, DimensionParam> stubDimensionIdentifier( List<String> ous,
+    private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
         String programUid, String programStageUid, String dimensionUid )
     {
         BaseDimensionalObject tea = new BaseDimensionalObject( dimensionUid, DATA_X,
@@ -230,21 +231,21 @@ class GridAdaptorTest extends DhisConvenienceTest
 
         DimensionParam dimensionParam = DimensionParam.ofObject( tea, DIMENSIONS, ous );
 
-        DimensionIdentifier.ElementWithOffset program = emptyElementWithOffset();
-        DimensionIdentifier.ElementWithOffset programStage = emptyElementWithOffset();
+        ElementWithOffset program = emptyElementWithOffset();
+        ElementWithOffset programStage = emptyElementWithOffset();
 
         if ( isNotBlank( programUid ) )
         {
             Program p = new Program();
             p.setUid( programUid );
-            program = DimensionIdentifier.ElementWithOffset.of( p, null );
+            program = ElementWithOffset.of( p, null );
         }
 
         if ( isNotBlank( programStageUid ) )
         {
             ProgramStage ps = new ProgramStage();
             ps.setUid( programStageUid );
-            programStage = DimensionIdentifier.ElementWithOffset.of( ps, null );
+            programStage = ElementWithOffset.of( ps, null );
         }
 
         return DimensionIdentifier.of( program, programStage, dimensionParam );
