@@ -39,19 +39,23 @@ shared volume `db-dump` using
 docker compose down --volumes
 ```
 
-### Pre-built Image
+### Pre-built Images
 
 We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
-repositories
+repositories:
 
-* releases or release candidates [dhis2/core](https://hub.docker.com/r/dhis2/core/tags)
-* development (branches master and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
-* PRs labeled with `publish-docker-image` [dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags)
+* [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate DHIS2 versions. These images represent the **stable** DHIS2 versions, meaning they won't be rebuilt in the future.
 
-To run DHIS2 from latest master (as it is on GitHub) run
+* [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) - images of _the latest development_ DHIS2 versions - branches `master` (tagged as `latest`) and the previous 3 supported major versions. Image tags in this repository will be overwritten multiple times a day.
+
+* [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) - images of _the latest daily development_ DHIS2 versions. We tag the last `core-dev` images for the day and add an extra tag with a "yyyyMMdd"-formatted date, like `core-canary:latest-20230124`.
+
+* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs labeled with `publish-docker-image`.
+
+To run DHIS2 from latest `master` branch (as it is on GitHub) run:
 
 ```sh
-DHIS2_IMAGE=dhis2/core-dev:master docker compose up
+DHIS2_IMAGE=dhis2/core-dev:latest docker compose up
 ```
 
 ### Local Image

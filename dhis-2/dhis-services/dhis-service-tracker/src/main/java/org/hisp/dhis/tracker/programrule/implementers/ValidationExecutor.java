@@ -50,9 +50,9 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T>
 
     boolean needsToRun( T t );
 
-    default Optional<ProgramRuleIssue> execute( ValidationRuleAction ruleAction, T dto )
+    default Optional<ProgramRuleIssue> execute( ValidationRuleAction ruleAction, T t )
     {
-        if ( needsToRun( dto ) )
+        if ( needsToRun( t ) )
         {
             return mapToIssue( ruleAction );
         }

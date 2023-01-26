@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignAttributeExecutor;
+import org.hisp.dhis.tracker.programrule.implementers.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.tracker.report.Warning;
 
@@ -42,13 +47,33 @@ import org.hisp.dhis.tracker.report.Warning;
  * converted into an {@link org.hisp.dhis.tracker.report.Error} or a
  * {@link Warning} and presented to the client in the {@link ValidationReport}.
  *
- * {@link AssignValueExecutor} can also mutate the Bundle, as it can add or
- * change the value of an attribute.
- * {@link org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor}
- * can do the same for a data element.
+ * {@link AssignAttributeExecutor} can also mutate the Bundle, as it can add or
+ * change the value of an attribute. {@link AssignDataValueExecutor} can do the
+ * same for a data element.
  */
 public interface RuleActionExecutor<T>
 {
+
+    /**
+     * Tests whether the given values are equal. If the given value type is
+     * numeric, the values are converted to doubles before being checked for
+     * equality.
+     *
+     * @param value1 the first value.
+     * @param value2 the second value.
+     * @param valueType the value type.
+     * @return true if the values are equal, false if not.
+     */
+    static boolean isEqual( String value1, String value2, ValueType valueType )
+    {
+        if ( valueType.isNumeric() )
+        {
+            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
+                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
+        }
+        return Objects.equals( value1, value2 );
+    }
+
     /**
      * A rule action can be associated with an attribute or a data element. When
      * it is associated with a data element we need to make sure the data

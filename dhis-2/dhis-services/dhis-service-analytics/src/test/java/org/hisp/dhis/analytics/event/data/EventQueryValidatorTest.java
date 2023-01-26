@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +65,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
+ * Unit tests for {@link DefaultEventQueryValidator}.
+ *
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
@@ -76,6 +79,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     private DataElement deA;
 
     private DataElement deB;
+
+    private DataElement deC;
 
     private OrganisationUnit ouA;
 
@@ -102,6 +107,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
+        deC = createDataElement( 'G', ValueType.DATETIME, AggregationType.NONE, DataElementDomain.TRACKER );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
@@ -112,7 +118,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void validateSuccesA()
+    void validateSuccessA()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -193,7 +199,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withOrganisationUnits( List.of( ouB ) ).build();
 
-        assertValidatonError( ErrorCode.E7205, params );
+        assertValidationError( ErrorCode.E7205, params );
     }
 
     @Test
@@ -218,11 +224,11 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withOrganisationUnits( List.of( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
-        assertValidatonError( ErrorCode.E7215, params );
+        assertValidationError( ErrorCode.E7215, params );
     }
 
     @Test
-    void validateInvalidFilterForValueType()
+    void validateInvalidFilterForIntegerValueType()
     {
         QueryFilter filter = new QueryFilter( QueryOperator.EQ, "male" );
         QueryItem item = new QueryItem( deA, deA.getLegendSet(),
@@ -236,7 +242,63 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withOrganisationUnits( List.of( ouB ) )
             .addItem( item ).build();
 
-        assertValidatonError( ErrorCode.E7234, params );
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    void validateInvalidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "male;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
+    }
+
+    @Test
+    void validateValidInFilterForIntegerValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.IN, "2;1" );
+        QueryItem item = new QueryItem( deA, deA.getLegendSet(),
+            deA.getValueType(), deA.getAggregationType(), deA.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
+
+        assertNull( error );
+    }
+
+    @Test
+    void validateInvalidFilterForDateTimeValueType()
+    {
+        QueryFilter filter = new QueryFilter( QueryOperator.EQ, "2023-12-01" );
+        QueryItem item = new QueryItem( deC, deC.getLegendSet(),
+            deC.getValueType(), deC.getAggregationType(), deC.getOptionSet() );
+        item.addFilter( filter );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( List.of( ouB ) )
+            .addItem( item ).build();
+
+        assertValidationError( ErrorCode.E7234, params );
     }
 
     @Test
@@ -249,7 +311,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withOrganisationUnits( List.of( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
-        assertValidatonError( ErrorCode.E7210, params );
+        assertValidationError( ErrorCode.E7210, params );
     }
 
     @Test
@@ -262,7 +324,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withOrganisationUnits( List.of( ouA ) )
             .withOrgUnitField( new OrgUnitField( "notAUid" ) ).build();
 
-        assertValidatonError( ErrorCode.E7211, params );
+        assertValidationError( ErrorCode.E7211, params );
     }
 
     @Test
@@ -336,7 +398,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.
      */
-    private void assertValidatonError( ErrorCode errorCode, EventQueryParams params )
+    private void assertValidationError( ErrorCode errorCode, EventQueryParams params )
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> eventQueryValidator.validate( params ) );
