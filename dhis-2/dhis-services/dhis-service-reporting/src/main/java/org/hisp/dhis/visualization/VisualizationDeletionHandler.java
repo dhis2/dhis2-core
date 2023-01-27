@@ -75,11 +75,6 @@ public class VisualizationDeletionHandler
         whenDeleting( ExpressionDimensionItem.class, this::deleteExpressionDimensionItem );
     }
 
-    private void deleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
-    {
-        service.removeExpressionDimensionItem( expressionDimensionItem );
-    }
-
     private void deleteLegendSet( final LegendSet legendSet )
     {
         final List<Visualization> visualizations = service.getAnalyticalObjects( legendSet );

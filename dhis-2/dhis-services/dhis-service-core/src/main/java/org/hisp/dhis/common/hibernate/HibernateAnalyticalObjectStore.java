@@ -36,6 +36,7 @@ import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,6 +64,14 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
         boolean cacheable )
     {
         super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable );
+    }
+
+    @Override
+    public List<T> getAnalyticalObjects( ExpressionDimensionItem expressionDimensionItem )
+    {
+        String hql = "select distinct c from " + clazz.getName()
+            + " c join c.dataDimensionItems d where d.expressionDimensionItem = :expressionDimensionItem";
+        return getQuery( hql ).setParameter( "expressionDimensionItem", expressionDimensionItem ).list();
     }
 
     // TODO program indicator, tracked entity attribute
