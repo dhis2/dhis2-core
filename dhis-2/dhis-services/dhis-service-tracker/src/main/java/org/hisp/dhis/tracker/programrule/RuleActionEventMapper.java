@@ -53,15 +53,15 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.AssignValueExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ErrorWarningRuleAction;
-import org.hisp.dhis.tracker.programrule.implementers.event.RuleEngineErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.SetMandatoryFieldExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ShowErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ShowErrorOnCompleteExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ShowWarningExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.event.ShowWarningOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.executor.ValidationRuleAction;
+import org.hisp.dhis.tracker.programrule.executor.event.AssignDataValueExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.SetMandatoryFieldExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.ShowErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.ShowErrorOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.ShowWarningExecutor;
+import org.hisp.dhis.tracker.programrule.executor.event.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
 @Service( "org.hisp.dhis.tracker.programrule.RuleActionEventMapper" )
@@ -104,7 +104,7 @@ class RuleActionEventMapper
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignValueExecutor( systemSettingManager, ruleId, data, action.field(), dataValues );
+            return new AssignDataValueExecutor( systemSettingManager, ruleId, data, action.field(), dataValues );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {
@@ -115,25 +115,25 @@ class RuleActionEventMapper
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
             return new ShowErrorExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
             return new ShowWarningExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
             return new ShowErrorOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
             return new ShowWarningOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {
