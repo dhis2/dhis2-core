@@ -30,6 +30,7 @@ package org.hisp.dhis.visualization;
 import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 
 /**
  * Interface responsible for providing CRUD and business methods related to a
@@ -79,5 +80,7 @@ public interface VisualizationService
      * @return the Visualization.
      */
     Visualization getVisualizationNoAcl( String uid );
+
+    void removeExpressionDimensionItem( ExpressionDimensionItem item );
 
 }
