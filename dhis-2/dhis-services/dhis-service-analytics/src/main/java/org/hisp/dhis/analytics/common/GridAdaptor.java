@@ -169,8 +169,7 @@ public class GridAdaptor
      */
     private boolean handleLastPageFlag( AnalyticsPagingParams pagingParams, Grid grid )
     {
-        boolean isLastPage = grid.getHeight() > 0
-            && (grid.getHeight() < pagingParams.getPageSizePlusOne() || grid.getHeight() == pagingParams.getPageSize());
+        boolean isLastPage = grid.getHeight() > 0 && grid.getHeight() < pagingParams.getPageSizePlusOne();
         boolean hasNextPageRow = grid.getHeight() == pagingParams.getPageSizePlusOne();
 
         // As grid should have page size + 1 results,
