@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class AndCondition extends BaseRenderable
@@ -42,22 +39,25 @@ public class AndCondition extends BaseRenderable
     private final List<Renderable> conditions;
 
     @Override
+    /**
+     * Renders a list of conditions joined by "and". If the list is empty,
+     * returns an empty string. If the list has only one element, returns the
+     * rendered element. Otherwise, returns the rendered elements joined by
+     * "and".
+     */
     public String render()
     {
-        if ( conditions.isEmpty() )
+        List<String> renderedConditions = RenderableUtils.renderCollection( conditions );
+        if ( renderedConditions.isEmpty() )
         {
             return EMPTY;
         }
 
-        if ( conditions.size() == 1 )
+        if ( renderedConditions.size() == 1 )
         {
-            return conditions.get( 0 ).render();
+            return renderedConditions.get( 0 );
         }
 
-        return conditions.stream()
-            .map( Renderable::render )
-            .map( String::trim )
-            .filter( StringUtils::isNotBlank )
-            .collect( joining( " and " ) );
+        return String.join( " and ", renderedConditions );
     }
 }

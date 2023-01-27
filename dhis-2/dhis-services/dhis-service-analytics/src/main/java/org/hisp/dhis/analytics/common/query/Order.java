@@ -43,11 +43,4 @@ public class Order extends BaseRenderable
     {
         return RenderableUtils.join( orders, ", ", "order by " );
     }
-
-    public static Order ofOrder( String order )
-    {
-        return Order.builder()
-            .order( () -> order )
-            .build();
-    }
 }
