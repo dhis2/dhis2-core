@@ -47,7 +47,7 @@ public class SlimPager extends Pager
 
     private Boolean lastPage;
 
-    public SlimPager( final int page, final int pageSize, final Boolean lastPage )
+    public SlimPager( int page, int pageSize, Boolean lastPage )
     {
         // Total is always ZERO, as the main goal of this object it to never
         // count the total of pages.

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -42,7 +44,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,14 +92,14 @@ public class GridAdaptor
      * "sqlQueryResult" is not present, the resulting {@link Grid} will have
      * empty rows.
      *
-     * @param sqlQueryResult the optional of {@link SqlQueryResult}
-     * @param teiQueryParams the {@link TeiQueryParams}
-     * @param commonQueryRequest the {@link CommonQueryRequest}
+     * @param sqlQueryResult the optional of {@link SqlQueryResult}.
+     * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param commonQueryRequest the {@link CommonQueryRequest}.
      *
-     * @return the {@link Grid} object
+     * @return the {@link Grid} object.
      *
      * @throws IllegalArgumentException if headers is null/empty or contain at
-     *         least one null element, or if the queryResult is null
+     *         least one null element, or if the queryResult is null.
      */
     public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
         @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
@@ -119,71 +120,107 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
-        // TODO: Extract this into a method named "addMetaData".
-        if ( !commonQueryRequest.isSkipMeta() )
-        {
-            grid.setMetaData( getMetaData( teiQueryParams.getCommonParams(), commonQueryRequest, grid, rowsCount ) );
-        }
+        addMetaData( teiQueryParams.getCommonParams(), commonQueryRequest, grid, rowsCount );
 
         return grid;
     }
 
     /**
-     * Applies paging to the given grid if the given query specifies paging.
+     * Applies paging to the given "metaData" if the given query specifies
+     * paging=true.
      *
      * @param pagingParams the {@link AnalyticsPagingParams}.
      * @param grid the {@link Grid}.
      * @param rowsCount the total count.
      */
-    private void addPaging( @Nonnull AnalyticsPagingParams pagingParams, @Nonnull Grid grid, long rowsCount )
+    private void addPaging( @Nonnull Map<String, Object> metaData, @Nonnull AnalyticsPagingParams pagingParams,
+        @Nonnull Grid grid, long rowsCount )
     {
-        Pager pager;
-
-        if ( pagingParams.showTotalPages() )
+        if ( pagingParams.isPaging() )
         {
-            pager = new Pager( pagingParams.getPageWithDefault(), rowsCount, pagingParams.getPageSizeWithDefault() );
+            Pager pager;
+
+            if ( pagingParams.showTotalPages() )
+            {
+                pager = new Pager( pagingParams.getPageWithDefault(), rowsCount,
+                    pagingParams.getPageSizeWithDefault() );
+            }
+            else
+            {
+                boolean isLastPage = handleLastPageFlag( pagingParams, grid );
+
+                pager = new SlimPager( pagingParams.getPageWithDefault(), pagingParams.getPageSizeWithDefault(),
+                    isLastPage );
+            }
+
+            metaData.put( PAGER.getKey(), pager );
         }
-        else
+    }
+
+    /**
+     * This method will handle the "lastPage" flag. Here, we assume that the
+     * given {@Grid} might have page results + 1. We use this assumption to
+     * return the correct boolean value.
+     *
+     * @param pagingParams the {@link AnalyticsPagingParams}.
+     * @param grid the {@link Grid}.
+     *
+     * @return return true if this is the last page, false otherwise.
+     */
+    private boolean handleLastPageFlag( AnalyticsPagingParams pagingParams, Grid grid )
+    {
+        boolean isLastPage = grid.getHeight() > 0
+            && (grid.getHeight() < pagingParams.getPageSizePlusOne() || grid.getHeight() == pagingParams.getPageSize());
+        boolean hasNextPageRow = grid.getHeight() == pagingParams.getPageSizePlusOne();
+
+        // As grid should have page size + 1 results,
+        // we need to remove the last one if this flag is true.
+        if ( hasNextPageRow )
         {
-            pager = new SlimPager( pagingParams.getPageWithDefault(), pagingParams.getPageSizeWithDefault(),
-                grid.hasLastDataRow() );
+            grid.removeCurrentWriteRow();
         }
 
-        grid.getMetaData().put( PAGER.getKey(), pager );
+        return isLastPage;
     }
 
     /**
      * Returns a metadata {@link Map} based on the given arguments.
      *
-     * @param commonParams the {@link CommonParams}
-     * @param commonQueryRequest the {@link CommonQueryRequest}
-     *
-     * @return the metadata {@link Map}
+     * @param commonParams the {@link CommonParams}.
+     * @param commonQueryRequest the {@link CommonQueryRequest}.
      */
     // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
-    private Map<String, Object> getMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest,
+    private void addMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest,
         @Nonnull Grid grid, long rowsCount )
     {
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
-        Map<String, Object> metaData = new HashMap<>();
-
-        if ( commonParams == null )
+        if ( !commonQueryRequest.isSkipMeta() )
         {
-            return metaData;
+            if ( commonParams != null )
+            {
+                Map<String, Object> metaData = new HashMap<>();
+
+                addPaging( metaData, commonParams.getPagingParams(), grid, rowsCount );
+                addDimensions( metaData, commonParams, commonQueryRequest );
+                addOrgUnitsHierarchy( metaData, commonParams, commonQueryRequest );
+
+                grid.setMetaData( metaData );
+            }
         }
+    }
 
-        addPaging( commonParams.getPagingParams(), grid, rowsCount );
+    private void addDimensions( Map<String, Object> metaData, CommonParams commonParams,
+        CommonQueryRequest commonQueryRequest )
+    {
+        List<DimensionalObject> dimensionalObjects = getDimensionalObjects( commonParams );
 
-        if ( hasDimensionalObjects( commonParams ) )
+        if ( isNotEmpty( dimensionalObjects ) )
         {
             Map<String, MetadataItem> metaDataItems = new HashMap<>();
             Map<String, List<String>> metaDataDimensions = new HashMap<>();
 
-            List<DimensionalObject> dimensionalObjects = getDimensionalObjects( commonParams );
-
-            for ( DimensionalObject dimension : dimensionalObjects )
-            {
+            dimensionalObjects.forEach( dimension -> {
                 dimension.getItems()
                     .forEach( dio -> metaDataItems.put( dio.getUid(),
                         commonQueryRequest.isIncludeMetadataDetails()
@@ -192,11 +229,18 @@ public class GridAdaptor
 
                 metaDataDimensions.put( dimension.getUid(), dimension.getItems().stream()
                     .map( PrimaryKeyObject::getUid ).collect( toList() ) );
-            }
+            } );
 
             metaData.put( ITEMS.getKey(), metaDataItems );
             metaData.put( DIMENSIONS.getKey(), metaDataDimensions );
+        }
+    }
 
+    private void addOrgUnitsHierarchy( Map<String, Object> metaData, CommonParams commonParams,
+        CommonQueryRequest commonQueryRequest )
+    {
+        if ( hasDimensionalObjects( commonParams ) )
+        {
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
             {
                 List<OrganisationUnit> roots = currentUserService.getCurrentUser()
@@ -213,11 +257,31 @@ public class GridAdaptor
                     .map( OrganisationUnit.class::cast )
                     .collect( toList() );
 
-                Map<String, Object> orgUnitsMetadata = addOrganisationUnitsHierarchyIntoMetaData( roots,
+                Map<String, Object> orgUnitsMetadata = getOrganisationUnitsHierarchyIntoMetaData( roots,
                     organisationUnits, commonQueryRequest.isHierarchyMeta(), commonQueryRequest.isShowHierarchy() );
 
                 metaData.putAll( orgUnitsMetadata );
             }
+        }
+    }
+
+    private Map<String, Object> getOrganisationUnitsHierarchyIntoMetaData( List<OrganisationUnit> roots,
+        List<OrganisationUnit> organisationUnits, boolean hierarchyMeta, boolean showHierarchy )
+    {
+        Map<String, Object> metaData = new HashMap<>();
+
+        if ( hierarchyMeta )
+        {
+            metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+        }
+
+        if ( showHierarchy )
+        {
+            Map<Object, List<?>> ancestorMap = organisationUnits.stream()
+                .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
+
+            metaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
+            metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
         }
 
         return metaData;
@@ -240,31 +304,9 @@ public class GridAdaptor
     {
         return Optional.ofNullable( commonParams )
             .map( CommonParams::getDimensionIdentifiers )
-            .orElse( Collections.emptyList() )
+            .orElse( emptyList() )
             .stream()
             .flatMap( Collection::stream )
             .map( DimensionIdentifier::getDimension );
-    }
-
-    private static Map<String, Object> addOrganisationUnitsHierarchyIntoMetaData( List<OrganisationUnit> roots,
-        List<OrganisationUnit> organisationUnits, boolean hierarchyMeta, boolean showHierarchy )
-    {
-        Map<String, Object> metaData = new HashMap<>();
-
-        if ( hierarchyMeta )
-        {
-            metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-        }
-
-        if ( showHierarchy )
-        {
-            Map<Object, List<?>> ancestorMap = organisationUnits.stream()
-                .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
-
-            metaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
-            metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
-        }
-
-        return metaData;
     }
 }

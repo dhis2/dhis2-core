@@ -97,17 +97,14 @@ public class TeiSqlQuery extends BaseRenderable
     @Override
     public String render()
     {
-        Select select = getSelect();
-
         if ( countQuery )
         {
-            select = getCountSelect();
+            return join( Stream.of( getCountSelect(), getFrom(), getWhere(), getOrder() )
+                .filter( Objects::nonNull ).collect( toList() ), SPACE );
         }
 
-        return join( Stream.of( select, getFrom(), getWhere(), getOrder(), getLimit() )
-            .filter( Objects::nonNull )
-            .collect( toList() ),
-            SPACE );
+        return join( Stream.of( getSelect(), getFrom(), getWhere(), getOrder(), getLimitOffset() )
+            .filter( Objects::nonNull ).collect( toList() ), SPACE );
     }
 
     public TeiSqlQuery( QueryContext queryContext )
@@ -131,11 +128,18 @@ public class TeiSqlQuery extends BaseRenderable
         return new SqlQuery( render(), queryPlaceHolders );
     }
 
-    private LimitOffset getLimit()
+    /**
+     * Builds the limit and offset clauses for this query. NOTE that we always
+     * limit it to page size + 1. This is necessary so we can know if there are
+     * more rows in the next page.
+     *
+     * @return the {@link LimitOffset}
+     */
+    private LimitOffset getLimitOffset()
     {
         AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
-        return LimitOffset.of( pagingParams.getPageSize(), pagingParams.getOffset() );
+        return LimitOffset.of( pagingParams.getPageSizePlusOne(), pagingParams.getOffset() );
     }
 
     private Order getOrder()
@@ -202,7 +206,7 @@ public class TeiSqlQuery extends BaseRenderable
             .map( OrCondition::of );
 
         Renderable periodConditions = OrCondition.of( periodDimensions
-            .map( periodDimension -> toCondition( DimensionParamObjectType.PERIOD, singletonList( periodDimension ) ) )
+            .map( periodDimension -> toCondition( PERIOD, singletonList( periodDimension ) ) )
             .collect( toList() ) );
 
         return Where.of(

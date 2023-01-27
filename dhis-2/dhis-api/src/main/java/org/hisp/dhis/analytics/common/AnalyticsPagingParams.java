@@ -61,7 +61,7 @@ public class AnalyticsPagingParams
 
     public boolean isPaging()
     {
-        return page != null || pageSize != null;
+        return toBooleanDefaultIfNull( paging, true );
     }
 
     public int getPageWithDefault()
@@ -80,12 +80,13 @@ public class AnalyticsPagingParams
     }
 
     /**
-     * Sets paging properties to default values.
+     * Simply returns the current page size + 1. This is used in cases where
+     * need to know if there are more results in the next page.
+     *
+     * @return the current page size incremented by 1.
      */
-    public void setDefaultPaging()
+    public int getPageSizePlusOne()
     {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.paging = true;
+        return getPageSizeWithDefault() + 1;
     }
 }
