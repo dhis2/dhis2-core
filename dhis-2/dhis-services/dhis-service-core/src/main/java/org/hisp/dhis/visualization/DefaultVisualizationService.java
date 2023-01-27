@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.visualization;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
@@ -57,6 +59,13 @@ public class DefaultVisualizationService
         visualizationStore.save( visualization );
 
         return visualization.getId();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<Visualization> getAll()
+    {
+        return visualizationStore.getAll();
     }
 
     @Override

@@ -27,30 +27,76 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
-import java.util.Map;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Component;
 
 /**
  * @author maikel arabori
  */
+@AllArgsConstructor
 @Component
-public class ExpressionDimensionItemDeletionHandler extends JdbcDeletionHandler
+public class ExpressionDimensionItemDeletionHandler extends DeletionHandler
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Visualization.class ); // Not a typo!
+    private final VisualizationService visualizationService;
 
     @Override
     protected void register()
     {
-        whenVetoing( ExpressionDimensionItem.class, this::allowDeleteExpressionDimensionItem );
+        whenDeleting( ExpressionDimensionItem.class, this::deleteFromVisualization );
     }
 
-    private DeletionVeto allowDeleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
+    private void deleteFromVisualization( ExpressionDimensionItem expressionDimensionItem )
     {
-        String sql = "select 1 from datadimensionitem where expressiondimensionitemid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", expressionDimensionItem.getId() ) );
+        List<Visualization> visualizations = visualizationService.getAll()
+            .stream().filter( v -> v.getDataDimensionItems()
+                .stream().anyMatch( it -> {
+                    if ( it.getExpressionDimensionItem() == null )
+                    {
+                        return false;
+                    }
+
+                    return it.getExpressionDimensionItem().getUid().equals( expressionDimensionItem.getUid() );
+                } ) )
+            .collect( Collectors.toList() );
+
+        for ( Visualization visualization : visualizations )
+        {
+            List<String> columns = visualization.getColumnDimensions();
+            columns.remove( expressionDimensionItem.getUid() );
+
+            List<String> rows = visualization.getRowDimensions();
+            rows.remove( expressionDimensionItem.getUid() );
+
+            List<String> filters = visualization.getFilterDimensions();
+            filters.remove( expressionDimensionItem.getUid() );
+
+            List<DataDimensionItem> dataDimensionItems = visualization.getDataDimensionItems();
+
+            ListIterator<DataDimensionItem> it = dataDimensionItems.listIterator();
+
+            while ( it.hasNext() )
+            {
+                DataDimensionItem dataDimensionItem = it.next();
+
+                if ( dataDimensionItem != null && dataDimensionItem.getExpressionDimensionItem() != null )
+                {
+                    String dimensionUid = dataDimensionItem.getExpressionDimensionItem().getDimensionItem();
+
+                    if ( expressionDimensionItem.getUid().equals( dimensionUid ) )
+                    {
+                        it.remove();
+                    }
+                }
+            }
+        }
     }
 }

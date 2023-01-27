@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.visualization;
 
+import java.util.List;
+
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
@@ -53,6 +55,8 @@ public interface VisualizationService
      */
     Visualization getVisualization( long id );
 
+    List<Visualization> getAll();
+
     /**
      * Retrieves the Visualization with the given uid.
      *
@@ -75,4 +79,5 @@ public interface VisualizationService
      * @return the Visualization.
      */
     Visualization getVisualizationNoAcl( String uid );
+
 }
