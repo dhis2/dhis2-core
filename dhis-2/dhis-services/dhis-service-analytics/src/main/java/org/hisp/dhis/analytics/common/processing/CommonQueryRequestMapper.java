@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -217,19 +218,17 @@ public class CommonQueryRequestMapper
 
     /**
      * Returns a {@link List} of {@link DimensionIdentifier} built from given
-     * arguments, params and filter. This list is encapsulated into another
-     * {@link List}.
+     * arguments, params and filter.
      *
      * @param queryRequest the {@link CommonQueryRequest}
      * @param programs the list of {@link Program}
      * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return a {@link List} containing a {@link List} of
-     *         {@link DimensionIdentifier}
+     * @return a {@link List} of {@link DimensionIdentifier}
      */
-    private List<List<DimensionIdentifier<DimensionParam>>> retrieveDimensionParams(
+    private List<DimensionIdentifier<DimensionParam>> retrieveDimensionParams(
         CommonQueryRequest queryRequest, List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        List<List<DimensionIdentifier<DimensionParam>>> dimensionParams = new ArrayList<>();
+        List<DimensionIdentifier<DimensionParam>> dimensionParams = new ArrayList<>();
 
         Stream.of( DIMENSIONS, FILTERS, DATE_FILTERS )
             .forEach( dimensionParamType -> {
@@ -240,6 +239,7 @@ public class CommonQueryRequestMapper
                         .map( this::splitOnOrIfNecessary )
                         .map( dof -> toDimensionIdentifier( dof, dimensionParamType, queryRequest, programs,
                             userOrgUnits ) )
+                        .flatMap( Collection::stream )
                         .collect( toList() ) ) );
             } );
 
@@ -248,7 +248,8 @@ public class CommonQueryRequestMapper
 
     /**
      * Returns a {@link List} of {@link DimensionIdentifier} built from given
-     * arguments, params and filter.
+     * arguments, params and filter, assigning the same (random) groupId to all
+     * dimensionIdentifier.
      *
      * @param dimensions the {@link List} of dimensions
      * @param dimensionParamType the {@link DimensionParamType}
@@ -263,9 +264,11 @@ public class CommonQueryRequestMapper
         List<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest queryRequest,
         List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
+        String groupId = UUID.randomUUID().toString();
         return dimensions.stream()
             .map( dimensionAsString -> toDimensionIdentifier( dimensionAsString, dimensionParamType, queryRequest,
                 programs, userOrgUnits ) )
+            .map( dimensionIdentifier -> dimensionIdentifier.withGroupId( groupId ) )
             .collect( toList() );
     }
 

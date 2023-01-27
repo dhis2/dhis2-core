@@ -39,21 +39,25 @@ public class OrCondition extends BaseRenderable
 {
     private final List<? extends Renderable> conditions;
 
+    /**
+     * Renders this conditions as a single condition joined by "or".
+     */
     @Override
     public String render()
     {
-        if ( conditions.isEmpty() )
+        List<String> renderedConditions = RenderableUtils.renderCollection( conditions );
+
+        if ( renderedConditions.isEmpty() )
         {
             return EMPTY;
         }
 
-        if ( conditions.size() == 1 )
+        if ( renderedConditions.size() == 1 )
         {
-            return conditions.get( 0 ).render();
+            return renderedConditions.get( 0 );
         }
 
-        return conditions.stream()
-            .map( Renderable::render )
+        return renderedConditions.stream()
             .collect( joining( " or ", "(", ")" ) );
     }
 }

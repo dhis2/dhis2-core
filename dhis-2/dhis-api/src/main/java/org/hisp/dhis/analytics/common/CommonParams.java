@@ -62,8 +62,9 @@ public class CommonParams
      * Data structure containing dimensionParams, which can represent
      * dimensions, filters, queryItems or queryItemFilters.
      */
+
     @Builder.Default
-    private final List<List<DimensionIdentifier<DimensionParam>>> dimensionIdentifiers = new ArrayList<>();
+    private final List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers = new ArrayList<>();
 
     /**
      * Data structure containing headers. If present, they will represent the

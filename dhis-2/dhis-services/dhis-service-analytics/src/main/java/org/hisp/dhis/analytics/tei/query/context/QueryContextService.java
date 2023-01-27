@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,7 +69,6 @@ public class QueryContextService
     {
         return Stream.concat(
             teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
-                .flatMap( Collection::stream )
                 .filter( dim -> dim.getDimension().isOfType( PROGRAM_INDICATOR ) )
                 .map( this::asDimensionParamProgramIndicatorQuery ),
             teiQueryParams.getCommonParams().getOrderParams().stream()

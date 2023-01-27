@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -38,12 +37,7 @@ import lombok.Singular;
 public class Where extends BaseRenderable
 {
     @Singular
-    private final AndCondition condition;
-
-    public static Where ofConditions( Renderable... renderables )
-    {
-        return of( AndCondition.of( asList( renderables ) ) );
-    }
+    private final Renderable condition;
 
     @Override
     public String render()

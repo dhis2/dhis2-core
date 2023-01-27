@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,38 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static java.util.stream.Collectors.mapping;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Singular;
+import lombok.RequiredArgsConstructor;
 
-@Builder( toBuilder = true )
-public class Order extends BaseRenderable
+/**
+ * Class to render the root condition of the main query. It will group the
+ * renderables by groupId and create an OR condition for each group. Then it
+ * will create an AND condition joining all the OR conditions.
+ */
+@RequiredArgsConstructor( staticName = "of" )
+public class RootConditionRenderer implements Renderable
 {
-    @Singular
-    private final List<Renderable> orders;
+    private final List<GroupRenderable> groupRenderables;
 
     @Override
     public String render()
     {
-        return RenderableUtils.join( orders, ", ", "order by " );
+        return AndCondition.of( getOrCondition() ).render();
+    }
+
+    private List<Renderable> getOrCondition()
+    {
+        return groupRenderables.stream()
+            .collect( Collectors.groupingBy(
+                GroupRenderable::getGroupId,
+                mapping( GroupRenderable::getRenderable,
+                    Collectors.toList() ) ) )
+            .values().stream()
+            .map( OrCondition::of )
+            .collect( Collectors.toList() );
     }
 }

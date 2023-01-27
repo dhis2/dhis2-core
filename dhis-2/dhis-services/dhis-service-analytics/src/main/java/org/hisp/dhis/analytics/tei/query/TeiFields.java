@@ -196,7 +196,6 @@ public class TeiFields
         TeiQueryParams teiQueryParams, Field field )
     {
         return teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
-            .flatMap( Collection::stream )
             .filter( di -> di.getDimension().getUid().equals( field.getFieldAlias() ) )
             .map( DimensionIdentifier::getDimension )
             .findFirst()

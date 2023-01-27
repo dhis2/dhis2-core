@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,17 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import java.util.List;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Builder;
-import lombok.Singular;
-
-@Builder( toBuilder = true )
-public class Order extends BaseRenderable
+/**
+ * Class to represent a renderables with it's groupId.
+ */
+@Data
+@RequiredArgsConstructor( staticName = "of" )
+public class GroupRenderable
 {
-    @Singular
-    private final List<Renderable> orders;
+    private final String groupId;
 
-    @Override
-    public String render()
-    {
-        return RenderableUtils.join( orders, ", ", "order by " );
-    }
+    private final Renderable renderable;
 }

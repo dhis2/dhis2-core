@@ -216,7 +216,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         dimIdentifiers.add( dimensionIdentifierB );
 
         return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) )
-            .dimensionIdentifiers( List.of( dimIdentifiers ) )
+            .dimensionIdentifiers( dimIdentifiers )
             .build();
     }
 

@@ -30,13 +30,9 @@ package org.hisp.dhis.analytics.common.dimension;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
-import static org.hisp.dhis.common.AnalyticsDateFilter.ENROLLMENT_DATE;
-import static org.hisp.dhis.common.AnalyticsDateFilter.EVENT_DATE;
-import static org.hisp.dhis.common.AnalyticsDateFilter.INCIDENT_DATE;
-import static org.hisp.dhis.common.AnalyticsDateFilter.LAST_UPDATED;
-import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,12 +55,7 @@ public enum DimensionParamType
     DIMENSIONS( CommonQueryRequest::getDimension ),
     FILTERS( CommonQueryRequest::getFilter ),
     HEADERS( CommonQueryRequest::getHeaders ),
-    DATE_FILTERS( commonQueryRequest -> Stream.of(
-        EVENT_DATE,
-        ENROLLMENT_DATE,
-        INCIDENT_DATE,
-        SCHEDULED_DATE,
-        LAST_UPDATED )
+    DATE_FILTERS( commonQueryRequest -> Arrays.stream( AnalyticsDateFilter.values() )
         .map( analyticsDateFilter -> parseDate( commonQueryRequest, analyticsDateFilter ) )
         .filter( Objects::nonNull )
         .flatMap( Collection::stream )
