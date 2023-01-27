@@ -54,6 +54,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.GroupRenderable;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -78,7 +79,7 @@ public class ProgramIndicatorContext
 
     @Getter
     @Singular
-    private final List<Renderable> conditions;
+    private final List<GroupRenderable> conditions;
 
     @RequiredArgsConstructor( staticName = "of" )
     public static class ProgramIndicatorContextBuilder
@@ -135,15 +136,17 @@ public class ProgramIndicatorContext
                 if ( param.isFilter() )
                 {
                     builder.condition(
-                        AndCondition.of(
-                            param.getDimensionIdentifier().getDimension().getItems().stream()
-                                .map( item -> BinaryConditionRenderer.of(
-                                    () -> assignedAlias + ".value",
-                                    item.getOperator(),
-                                    item.getValues(),
-                                    NUMERIC,
-                                    queryContext ) )
-                                .collect( Collectors.toList() ) ) );
+                        GroupRenderable.of(
+                            param.getDimensionIdentifier().getGroupId(),
+                            AndCondition.of(
+                                param.getDimensionIdentifier().getDimension().getItems().stream()
+                                    .map( item -> BinaryConditionRenderer.of(
+                                        () -> assignedAlias + ".value",
+                                        item.getOperator(),
+                                        item.getValues(),
+                                        NUMERIC,
+                                        queryContext ) )
+                                    .collect( Collectors.toList() ) ) ) );
                 }
 
                 if ( param.isOrder() )

@@ -204,7 +204,6 @@ public class GridAdaptor
 
                 List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
                     .stream()
-                    .flatMap( Collection::stream )
                     .map( DimensionIdentifier::getDimension )
                     .map( DimensionParam::getDimensionalObject )
                     .map( DimensionalObject::getItems )
@@ -242,7 +241,6 @@ public class GridAdaptor
             .map( CommonParams::getDimensionIdentifiers )
             .orElse( Collections.emptyList() )
             .stream()
-            .flatMap( Collection::stream )
             .map( DimensionIdentifier::getDimension );
     }
 

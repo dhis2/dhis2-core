@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.DataQueryService;
@@ -136,15 +137,15 @@ class CommonQueryRequestMapperTest
         assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
         assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
         assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgramStage(),
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
             "Should contain 1 program stage." );
         assertEquals( "yLIPuJHRgey",
-            params.getDimensionIdentifiers().get( 0 ).get( 0 ).getDimension().getDimensionalObject().getDimension(),
+            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgram().getOffset(),
+        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
+        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -199,14 +200,14 @@ class CommonQueryRequestMapperTest
         assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
         assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
         assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgramStage(),
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
             "Should contain 1 program stage." );
         assertNull(
-            params.getDimensionIdentifiers().get( 0 ).get( 0 ).getDimension().getDimensionalObject().getDimension(),
+            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgram().getOffset(),
+        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
+        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -274,15 +275,15 @@ class CommonQueryRequestMapperTest
         assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
         assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
         assertEquals( 2, params.getDimensionIdentifiers().size(), "Should contain 2 identifiers." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgramStage(),
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
             "Should contain 1 program stage." );
         assertEquals( "EQ:john",
-            params.getDimensionIdentifiers().get( 0 ).get( 0 ).getDimension().getDimensionalObject().getDimension(),
+            params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgram().getOffset(),
+        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
+        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -372,14 +373,14 @@ class CommonQueryRequestMapperTest
         assertEquals( "lxAQ7Zs9VYR", params.getPrograms().get( 0 ).getUid(), "First program should be lxAQ7Zs9VYR." );
         assertEquals( "ur1Edk5Oe2n", params.getPrograms().get( 1 ).getUid(), "Second program should be ur1Edk5Oe2n." );
         assertEquals( 1, params.getDimensionIdentifiers().size(), "Should contain 1 identifier." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgram(), "Should contain 1 program." );
-        assertTrue( params.getDimensionIdentifiers().get( 0 ).get( 0 ).hasProgramStage(),
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgram(), "Should contain 1 program." );
+        assertTrue( params.getDimensionIdentifiers().get( 0 ).hasProgramStage(),
             "Should contain 1 program stage." );
-        assertNull( params.getDimensionIdentifiers().get( 0 ).get( 0 ).getDimension().getDimensionalObject(),
+        assertNull( params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject(),
             "Dimensional object should be null." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgram().getOffset(),
+        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).get( 0 ).getProgramStage().getOffset(),
+        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -471,8 +472,11 @@ class CommonQueryRequestMapperTest
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
             dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
+        Set<String> groups = params.getDimensionIdentifiers().stream()
+            .map( DimensionIdentifier::getGroupId )
+            .collect( Collectors.toSet() );
         // Then
-        assertThat( params.getDimensionIdentifiers(), hasSize( 1 ) );
-        assertThat( params.getDimensionIdentifiers().get( 0 ), hasSize( 2 ) );
+        assertThat( groups, hasSize( 1 ) );
+        assertThat( params.getDimensionIdentifiers(), hasSize( 2 ) );
     }
 }

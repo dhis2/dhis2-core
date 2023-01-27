@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,17 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Singular;
 
+/**
+ * Class to represent a renderables with it's groupId.
+ */
+@Data
 @RequiredArgsConstructor( staticName = "of" )
-public class Where extends BaseRenderable
+public class GroupRenderable
 {
-    @Singular
-    private final Renderable condition;
+    private final String groupId;
 
-    @Override
-    public String render()
-    {
-        String renderedCondition = condition.render();
-        if ( isNotBlank( renderedCondition ) )
-        {
-            return "where " + renderedCondition;
-        }
-
-        return EMPTY;
-    }
+    private final Renderable renderable;
 }

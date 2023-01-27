@@ -56,6 +56,7 @@ public class AndCondition extends BaseRenderable
 
         return conditions.stream()
             .map( Renderable::render )
+            .map( String::trim )
             .filter( StringUtils::isNotBlank )
             .collect( joining( " and " ) );
     }
