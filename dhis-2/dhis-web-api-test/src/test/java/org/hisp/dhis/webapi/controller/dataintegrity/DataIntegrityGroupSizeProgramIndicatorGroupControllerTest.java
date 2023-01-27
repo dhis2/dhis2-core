@@ -42,7 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "group_size_program_indicator_groups";
+    private static final String check = "program_indicator_groups_scarce";
+
+    private static final String detailsIdType = "programIndicatorGroups";
 
     @Autowired
     private ProgramIndicatorService programIndicatorService;
@@ -73,7 +75,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         Set<String> expected_uids = Set.of( programIndicatorGroupC.getUid(), programIndicatorGroupB.getUid() );
         Set<String> expected_names = Set.of( programIndicatorGroupC.getName(), programIndicatorGroupB.getName() );
 
-        assertHasDataIntegrityIssues( "group_size", check, 66, expected_uids, expected_names,
+        assertHasDataIntegrityIssues( detailsIdType, check, 66, expected_uids, expected_names,
             Set.of( "0", "1" ), true );
     }
 
@@ -85,7 +87,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
 
         dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "group_size", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
@@ -93,7 +95,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     void testProgramIndicatorGroupSizeRuns()
     {
 
-        assertHasNoDataIntegrityIssues( "group_size", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

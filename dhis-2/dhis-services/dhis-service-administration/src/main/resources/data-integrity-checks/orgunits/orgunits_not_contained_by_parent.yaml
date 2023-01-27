@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: IfsKI6Tdz1X
-name: organisation_units_not_contained_by_parent
+name: orgunits_not_contained_by_parent
 description: Organisation units with point coordinates should be contained by their parent.
 section: Organisation units
 section_order: 5
@@ -52,7 +52,7 @@ details_sql: >-
   AND ST_GeometryType(b.geometry) IN ('ST_Polygon','ST_MultiPolygon')
   AND ST_Contains(b.geometry,a.geometry) = FALSE
   ORDER BY a.name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: >
   Facilities are often represented as points in the DHIS2 hierarchy. Their parent organisation units

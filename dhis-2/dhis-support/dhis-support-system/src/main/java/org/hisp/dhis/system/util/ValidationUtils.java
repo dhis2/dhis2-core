@@ -27,37 +27,52 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.trim;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
+import static org.hisp.dhis.datavalue.DataValue.FALSE;
+import static org.hisp.dhis.datavalue.DataValue.TRUE;
+import static org.hisp.dhis.system.util.MathUtils.isBool;
+import static org.hisp.dhis.system.util.MathUtils.isCoordinate;
+import static org.hisp.dhis.system.util.MathUtils.isInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNegativeInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNumeric;
+import static org.hisp.dhis.system.util.MathUtils.isPercentage;
+import static org.hisp.dhis.system.util.MathUtils.isPositiveInteger;
+import static org.hisp.dhis.system.util.MathUtils.isUnitInterval;
+import static org.hisp.dhis.system.util.MathUtils.isValidDouble;
+import static org.hisp.dhis.system.util.MathUtils.isZeroOrPositiveInteger;
 import static org.hisp.dhis.system.util.MathUtils.parseDouble;
+import static org.hisp.dhis.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import java.awt.geom.Point2D;
 import java.util.Date;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
-import org.hisp.dhis.util.DateUtils;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -105,14 +120,20 @@ public class ValidationUtils
 
     private static final int LAT_MIN = -90;
 
-    private static final ImmutableSet<Character> SQL_VALID_CHARS = ImmutableSet.of(
+    private static final Set<Character> SQL_VALID_CHARS = Set.of(
         '&', '|', '=', '!', '<', '>', '/', '%', '"', '\'', '*', '+', '-', '^', ',', '.' );
 
-    public static final ImmutableSet<String> ILLEGAL_SQL_KEYWORDS = ImmutableSet.of( "alter", "before", "case",
+    public static final Set<String> ILLEGAL_SQL_KEYWORDS = Set.of( "alter", "before", "case",
         "commit", "copy", "create", "createdb", "createrole", "createuser", "close", "delete", "destroy", "drop",
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 
     private static final Pattern GENERIC_PHONE_NUMBER = Pattern.compile( "^[0-9+\\(\\)#\\.\\s\\/ext-]{6,50}$" );
+
+    private static final Map<String, String> BOOLEAN_VALUES = Map.of(
+        "true", TRUE,
+        "false", FALSE,
+        "0", FALSE,
+        "1", TRUE );
 
     /**
      * Validates whether a filter expression contains malicious code such as SQL
@@ -157,31 +178,6 @@ public class ValidationUtils
     public static boolean emailIsValid( String email )
     {
         return EmailValidator.getInstance().isValid( email );
-    }
-
-    /**
-     * Validates whether a date string is valid for the given Locale.
-     *
-     * @param date the date string.
-     * @param locale the Locale
-     *
-     * @return true if the date string is valid, false otherwise.
-     */
-    public static boolean dateIsValid( String date, Locale locale )
-    {
-        return DateValidator.getInstance().isValid( date, locale );
-    }
-
-    /**
-     * Validates whether a date string is valid for the default Locale.
-     *
-     * @param date the date string.
-     *
-     * @return true if the date string is valid, false otherwise.
-     */
-    public static boolean dateIsValid( String date )
-    {
-        return dateIsValid( date, null );
     }
 
     /**
@@ -431,7 +427,7 @@ public class ValidationUtils
         return "[" + longitude + "," + latitude + "]";
     }
 
-    public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
+    public static String valueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
     {
         Objects.requireNonNull( value );
         Objects.requireNonNull( valueType );
@@ -474,14 +470,14 @@ public class ValidationUtils
         return options.getClass().equals( valueType.getValueTypeOptionsClass() );
     }
 
-    public static String dataValueIsValid( String value, DataElement dataElement )
+    public static String valueIsValid( String value, DataElement dataElement )
     {
-        return dataValueIsValid( value, dataElement, true );
+        return valueIsValid( value, dataElement, true );
     }
 
     /**
-     * Checks if the given data value is valid according to the value type of
-     * the given data element. Considers the value to be valid if null or empty.
+     * Checks if the given value is valid according to the value type of the
+     * given data element. Considers the value to be valid if null or empty.
      * Returns a string if the valid is invalid, possible values are:
      * <p/>
      * <ul>
@@ -501,52 +497,62 @@ public class ValidationUtils
      * <li>value_not_valid_letter</li>
      * </ul>
      *
-     * @param value the data value.
+     * @param value the value.
      * @param dataElement the data element.
+     * @param validateOptions indicates whether to validate against the options
+     *        of the option set of the given data element.
      *
-     * @return null if the value is valid, a string if not.
+     * @return null if the value is valid, a non-empty string if not.
      */
-    public static String dataValueIsValid( String value, DataElement dataElement, boolean validateOptions )
+    public static String valueIsValid( String value, DataElement dataElement, boolean validateOptions )
     {
         if ( dataElement == null )
         {
             return "data_element_or_type_null_or_empty";
         }
+
         ValueType valueType = dataElement.getValueType();
+
         if ( valueType == null )
         {
             return "data_element_or_type_null_or_empty";
         }
+
         OptionSet options = dataElement.getOptionSet();
-        boolean isMultiText = valueType == ValueType.MULTI_TEXT;
+
+        boolean isMultiText = valueType == MULTI_TEXT;
+
         if ( isMultiText && options == null )
         {
             return "data_element_lacks_option_set";
         }
+
         if ( validateOptions && options != null )
         {
             if ( !isMultiText && options.getOptionByCode( value ) == null )
             {
                 return "value_not_valid_option";
             }
+
             if ( isMultiText && !options.hasAllOptions( ValueType.splitMultiText( value ) ) )
             {
                 return "value_not_valid_option";
             }
         }
-        return dataValueIsValid( value, valueType );
+
+        return valueIsValid( value, valueType );
     }
 
     /**
-     * Indicates whether the given data value is valid according to the given
-     * value type.
+     * Indicates whether the given value is valid according to the given value
+     * type.
      *
-     * @param value the data value.
+     * @param value the value.
      * @param valueType the {@link ValueType}.
      *
      * @return null if the value is valid, a string if not.
      */
-    public static String dataValueIsValid( String value, ValueType valueType )
+    public static String valueIsValid( String value, ValueType valueType )
     {
         if ( value == null || value.trim().isEmpty() )
         {
@@ -569,36 +575,91 @@ public class ValidationUtils
         case LETTER:
             return !isValidLetter( value ) ? "value_not_valid_letter" : null;
         case NUMBER:
-            return !MathUtils.isNumeric( value ) ? "value_not_numeric" : null;
+            return !isNumeric( value ) ? "value_not_numeric" : null;
         case UNIT_INTERVAL:
-            return !MathUtils.isUnitInterval( value ) ? "value_not_unit_interval" : null;
+            return !isUnitInterval( value ) ? "value_not_unit_interval" : null;
         case PERCENTAGE:
-            return !MathUtils.isPercentage( value ) ? "value_not_percentage" : null;
+            return !isPercentage( value ) ? "value_not_percentage" : null;
         case INTEGER:
-            return !MathUtils.isInteger( value ) ? "value_not_integer" : null;
+            return !isInteger( value ) ? "value_not_integer" : null;
         case INTEGER_POSITIVE:
-            return !MathUtils.isPositiveInteger( value ) ? "value_not_positive_integer" : null;
+            return !isPositiveInteger( value ) ? "value_not_positive_integer" : null;
         case INTEGER_NEGATIVE:
-            return !MathUtils.isNegativeInteger( value ) ? "value_not_negative_integer" : null;
+            return !isNegativeInteger( value ) ? "value_not_negative_integer" : null;
         case INTEGER_ZERO_OR_POSITIVE:
-            return !MathUtils.isZeroOrPositiveInteger( value ) ? "value_not_zero_or_positive_integer" : null;
+            return !isZeroOrPositiveInteger( value ) ? "value_not_zero_or_positive_integer" : null;
         case BOOLEAN:
-            return !MathUtils.isBool( trimToEmpty( value ).toLowerCase() ) ? "value_not_bool" : null;
+            return !isBool( value.toLowerCase() ) ? "value_not_bool" : null;
         case TRUE_ONLY:
-            return !DataValue.TRUE.equalsIgnoreCase( trimToEmpty( value ) ) ? "value_not_true_only" : null;
+            return !TRUE.equalsIgnoreCase( value ) ? "value_not_true_only" : null;
         case DATE:
-            return !DateUtils.dateIsValid( value ) ? "value_not_valid_date" : null;
+            return !dateIsValid( value ) ? "value_not_valid_date" : null;
         case DATETIME:
-            return !DateUtils.dateTimeIsValid( value ) ? "value_not_valid_datetime" : null;
+            return !dateTimeIsValid( value ) ? "value_not_valid_datetime" : null;
         case COORDINATE:
-            return !MathUtils.isCoordinate( value ) ? "value_not_coordinate" : null;
+            return !isCoordinate( value ) ? "value_not_coordinate" : null;
         case URL:
             return !urlIsValid( value ) ? "value_not_url" : null;
         case FILE_RESOURCE:
         case IMAGE:
-            return !CodeGenerator.isValidUid( value ) ? "value_not_valid_file_resource_uid" : null;
+            return !isValidUid( value ) ? "value_not_valid_file_resource_uid" : null;
         default:
             return null;
+        }
+    }
+
+    /**
+     * Indicates whether the given "value" is comparable in relation to the
+     * given {@link ValueType}. Empty/null values are always considered NOT
+     * comparable.
+     *
+     * @param value the value.
+     * @param valueType the {@link ValueType}.
+     *
+     * @return true if the value is comparable, false otherwise.
+     */
+    public static boolean valueIsComparable( String value, ValueType valueType )
+    {
+        if ( isEmpty( value ) || value.length() > VALUE_MAX_LENGTH || valueType == null )
+        {
+            return false;
+        }
+
+        // Value type grouped checks.
+        switch ( valueType )
+        {
+        case INTEGER:
+        case INTEGER_POSITIVE:
+        case INTEGER_NEGATIVE:
+        case INTEGER_ZERO_OR_POSITIVE:
+            return isInteger( trim( value ) );
+        case NUMBER:
+        case UNIT_INTERVAL:
+        case PERCENTAGE:
+            return isValidDouble( parseDouble( trim( value ) ) );
+        case BOOLEAN:
+        case TRUE_ONLY:
+            return isBool( defaultIfBlank( BOOLEAN_VALUES.get( lowerCase( trim( value ) ) ), EMPTY ) );
+        case DATE:
+            return dateIsValid( trim( value ) );
+        case TIME:
+            return timeIsValid( trim( value ) );
+        case DATETIME:
+            return dateTimeIsValid( trim( value ) );
+        case LONG_TEXT:
+        case MULTI_TEXT:
+        case PHONE_NUMBER:
+        case EMAIL:
+        case TEXT:
+        case LETTER:
+        case COORDINATE:
+        case URL:
+        case FILE_RESOURCE:
+        case IMAGE:
+        case USERNAME:
+        case GEOJSON:
+        default:
+            return true;
         }
     }
 
@@ -611,7 +672,7 @@ public class ValidationUtils
      * Indicates whether the given value is zero and not zero significant
      * according to its data element.
      *
-     * @param value the data value.
+     * @param value the value.
      * @param dataElement the data element.
      */
     public static boolean dataValueIsZeroAndInsignificant( String value, DataElement dataElement )
@@ -732,11 +793,11 @@ public class ValidationUtils
         {
             if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY )
             {
-                return DataValue.FALSE;
+                return FALSE;
             }
             else if ( BOOL_TRUE_VARIANTS.contains( bool ) )
             {
-                return DataValue.TRUE;
+                return TRUE;
             }
         }
 
@@ -807,24 +868,21 @@ public class ValidationUtils
     }
 
     /**
-     * Validates a whatsapp handle
+     * Validates a WhatsApp handle.
      *
-     * @param whatsapp
-     *
-     * @return
+     * @param whatsApp the WhatsApp handle.
+     * @return true if valid.
      */
-    public static boolean validateWhatsapp( String whatsapp )
+    public static boolean validateWhatsApp( String whatsApp )
     {
-        // Whatsapp uses international phonenumbers to identify users
-        return validateInternationalPhoneNumber( whatsapp );
+        return validateInternationalPhoneNumber( whatsApp );
     }
 
     /**
-     * Validate an international phone number
+     * Validate an international phone number.
      *
-     * @param phoneNumber
-     *
-     * @return
+     * @param phoneNumber the phone number.
+     * @return true if valid.
      */
     public static boolean validateInternationalPhoneNumber( String phoneNumber )
     {
@@ -835,8 +893,8 @@ public class ValidationUtils
      * Validate a phone number using a generic rule which should be applicable
      * for any countries.
      *
-     * @param string phone number for checking.
-     * @return TRUE if given string is a phone number otherwise FALSE
+     * @param string a phone number string.
+     * @return true if given string is a valid phone number.
      */
     public static boolean isPhoneNumber( String string )
     {

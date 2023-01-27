@@ -46,38 +46,32 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
     @Autowired
     private OrganisationUnitService orgUnitService;
 
-    private OrganisationUnit unitA;
+    private static final String check = "orgunits_openingdate_gt_closeddate";
 
-    private OrganisationUnit unitB;
-
-    private OrganisationUnit unitC;
-
-    final String check = "orgunit_openingdate_gt_closeddate";
+    private static final String detailsIdType = "organisationUnits";
 
     @Test
     void testOrgUnitOpeningDateAfterClosedDate()
     {
-        doInTransaction( () -> {
 
-            unitA = createOrganisationUnit( 'A' );
-            unitA.setOpeningDate( getDate( "2022-01-01" ) );
-            unitA.setClosedDate( getDate( "2020-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitA );
+        OrganisationUnit unitA = createOrganisationUnit( 'A' );
+        unitA.setOpeningDate( getDate( "2022-01-01" ) );
+        unitA.setClosedDate( getDate( "2020-01-01" ) );
+        orgUnitService.addOrganisationUnit( unitA );
 
-            unitB = createOrganisationUnit( 'B' );
-            unitB.setOpeningDate( getDate( "2022-01-01" ) );
-            unitB.setClosedDate( getDate( "2023-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitB );
+        OrganisationUnit unitB = createOrganisationUnit( 'B' );
+        unitB.setOpeningDate( getDate( "2022-01-01" ) );
+        unitB.setClosedDate( getDate( "2023-01-01" ) );
+        orgUnitService.addOrganisationUnit( unitB );
 
-            unitC = createOrganisationUnit( 'C' );
-            unitC.setOpeningDate( getDate( "2022-01-01" ) );
-            unitC.setClosedDate( null );
-            orgUnitService.addOrganisationUnit( unitC );
+        OrganisationUnit unitC = createOrganisationUnit( 'C' );
+        unitC.setOpeningDate( getDate( "2022-01-01" ) );
+        unitC.setClosedDate( null );
+        orgUnitService.addOrganisationUnit( unitC );
 
-            dbmsManager.clearSession();
-        } );
+        dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( "orgunits", check, 33, unitA.getUid(), unitA.getName(), null, true );
+        assertHasDataIntegrityIssues( detailsIdType, check, 33, unitA.getUid(), unitA.getName(), null, true );
     }
 
     @Test
@@ -94,14 +88,14 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        assertHasNoDataIntegrityIssues( "orgunits", check, true );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
 
     }
 
     @Test
-    void testOrgunitsNoGeometryDivideByZero()
+    void testOrgunitsOpenClosedDateRuns()
     {
-        assertHasNoDataIntegrityIssues( "orgunits", check, false );
+        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
 
     }
 

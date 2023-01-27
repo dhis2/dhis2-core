@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: visualizations_notviewed_1y
+  name: visualizations_not_viewed_one_year
   summary_uid: c3ZBCRuYpEO
   description: Visualizations which have not been viewed in the past 12 months
   section: Visualizations

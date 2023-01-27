@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_indicator_group_sets
+name: indicator_group_sets_scarce
 description: Indicator groups sets should have at least two members.
 section: Group size
 section_order: 2
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing indicator group sets with less than two indicator groups, or alternatively, add additional
   indicator groups to the indicator group set to make it more useful.
-details_id_type: group_size
+details_id_type: indicatorGroupSets

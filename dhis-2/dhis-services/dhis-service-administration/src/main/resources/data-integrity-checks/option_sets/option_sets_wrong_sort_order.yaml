@@ -56,7 +56,7 @@ details_sql: >-
     ) as foo where sort_order != row_number
     ORDER BY optionsetid, sort_order
     ) b  on a.optionsetid = b.optionsetid;
-details_id_type: option_sets
+details_id_type: optionSets
 severity: SEVERE
 introduction: >
     Option sets contain options which should be ordered sequentially. The sort_order property should always start 

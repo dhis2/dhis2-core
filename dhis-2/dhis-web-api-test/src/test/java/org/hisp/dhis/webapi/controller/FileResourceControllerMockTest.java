@@ -72,6 +72,7 @@ class FileResourceControllerMockTest
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
         FileResource fileResource = new FileResource();
+        fileResource.setContentType( "image/png" );
         fileResource.setDomain( FileResourceDomain.ORG_UNIT );
         fileResource.setUid( "id" );
 
@@ -88,6 +89,7 @@ class FileResourceControllerMockTest
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
         FileResource fileResource = new FileResource();
+        fileResource.setContentType( "image/png" );
         fileResource.setDomain( FileResourceDomain.DATA_VALUE );
         fileResource.setUid( "id" );
 

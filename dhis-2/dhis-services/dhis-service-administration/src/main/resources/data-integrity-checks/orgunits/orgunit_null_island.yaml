@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: fMoHpxuPT18
-name: orgunit_null_island
+name: orgunits_null_island
 description: Organisation units located within 100 km of Null Island (0,0).
 section: Organisation units
 section_order: 6
@@ -60,7 +60,7 @@ details_sql: >-
   ) b ON a.uid = b.uid
   WHERE  distance_km < 100
   ORDER BY name;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: SEVERE
 introduction: >
   A common problem when importing coordinates is the inclusion of coordinates situated around

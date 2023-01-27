@@ -130,8 +130,8 @@ public class FileResourceEventListener
             return;
         }
 
-        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() )
-            && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
+        if ( FileResource.isImage( deleteFileEvent.getContentType() ) &&
+            FileResourceDomain.isDomainForMultipleImages( deleteFileEvent.getDomain() ) )
         {
             String storageKey = deleteFileEvent.getStorageKey();
 

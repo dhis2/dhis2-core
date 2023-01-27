@@ -121,8 +121,8 @@ public class DefaultFileResourceService
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
 
-        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() )
-            && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        if ( FileResource.isImage( fileResource.getContentType() ) &&
+            FileResourceDomain.isDomainForMultipleImages( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 

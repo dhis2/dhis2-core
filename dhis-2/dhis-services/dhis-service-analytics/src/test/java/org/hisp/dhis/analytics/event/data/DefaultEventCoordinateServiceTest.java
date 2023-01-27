@@ -75,7 +75,7 @@ class DefaultEventCoordinateServiceTest
         EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
             attributeService );
 
-        assertEquals( geometry, service.getCoordinateFieldOrFail( "A", geometry, ErrorCode.E7232 ) );
+        assertEquals( geometry, service.getCoordinateField( "A", geometry, ErrorCode.E7232 ) );
     }
 
     @Test

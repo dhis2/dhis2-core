@@ -64,7 +64,7 @@ details_sql: >-
   HAVING array_length(array_agg(organisationunitid),1) > 1 ) b ) c
   INNER JOIN organisationunit d on c.organisationunitid = d.organisationunitid 
   INNER JOIN organisationunit e on c.parentid = e.organisationunitid;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: WARNING
 introduction: >
   Organisation units may have exactly the same name. This may become confusing to users,

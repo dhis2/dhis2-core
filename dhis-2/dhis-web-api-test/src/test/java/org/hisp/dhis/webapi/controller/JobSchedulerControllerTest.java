@@ -125,6 +125,16 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testCreateQueue_IllegalCronExpression()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Cron expression is invalid: `Cron expression must consist of 6 fields (found 5 in \"0 1 ? * *\")`",
+            POST( "/scheduler/queues/testQueue",
+                format( "{'cronExpression':'0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdB ) )
+                    .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     void testGetQueue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/scheduler/queues/testQueue",
@@ -181,6 +191,19 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             "Job queue does not exist: `foo`",
             PUT( "/scheduler/queues/foo", "{}" ).content( HttpStatus.NOT_FOUND ) );
         assertEquals( ErrorCode.E7020, message.getErrorCode() );
+    }
+
+    @Test
+    void testUpdateQueue_IllegalCronExpression()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/scheduler/queues/testQueue",
+            format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdC ) ) );
+
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Cron expression is invalid: `Cron expression must consist of 6 fields (found 5 in \"0 1 ? * *\")`",
+            PUT( "/scheduler/queues/testQueue",
+                format( "{'cronExpression':'0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdB ) )
+                    .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -262,5 +285,19 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             .asList( JsonObject.class ).viewAsList(
                 entry -> entry.getString( "name" ) )
             .toList( JsonString::string ) );
+    }
+
+    @Test
+    void testCreateQueueWithTestJobs()
+    {
+        jobIdA = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
+            "{'name':'t1','jobType':'TEST','cronExpression':'0 0 1 ? * *','jobParameters':{}}" ) );
+        jobIdB = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
+            "{'name':'t2','jobType':'TEST','cronExpression':'0 0 2 ? * *','jobParameters':{'items':12, 'failAtItem':7}}" ) );
+        jobIdC = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
+            "{'name':'t3','jobType':'TEST','cronExpression':'0 0 3 ? * *','jobParameters':{'itemDuration':200}}" ) );
+
+        assertStatus( HttpStatus.CREATED, POST( "/scheduler/queues/testQueue",
+            format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}", jobIdA, jobIdB, jobIdC ) ) );
     }
 }

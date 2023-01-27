@@ -26,7 +26,7 @@
 #
 ---
 summary_uid: zKs07PBTuXM
-name: orgunitgroupset_excess_groups
+name: orgunit_group_sets_excess_groups
 description: Organisation units which belong to multiple groups in a group set.
 section: Organisation units
 section_order: 10
@@ -76,7 +76,7 @@ details_sql: >-
   ougs_name || ' :(' ||   array_to_string(ougs_groups, '; ') || ')' as comment
   from ougs_multiple_groups
   WHERE array_length(ougs_groups, 1) > 1;
-details_id_type: orgunits
+details_id_type: organisationUnits
 severity: SEVERE
 introduction: >
   Organisation units should belong to exactly one group within each organisation

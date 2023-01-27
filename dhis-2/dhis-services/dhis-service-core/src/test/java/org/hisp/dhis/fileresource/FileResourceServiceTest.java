@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,8 +55,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.MimeTypeUtils;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -153,7 +151,7 @@ class FileResourceServiceTest
 
         File file = new File( "" );
 
-        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+        Map<ImageFileDimension, File> imageFiles = Map.of( ImageFileDimension.LARGE, file );
 
         when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
 
@@ -206,7 +204,7 @@ class FileResourceServiceTest
 
         File file = new File( "" );
 
-        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+        Map<ImageFileDimension, File> imageFiles = Map.of( ImageFileDimension.LARGE, file );
 
         when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
 

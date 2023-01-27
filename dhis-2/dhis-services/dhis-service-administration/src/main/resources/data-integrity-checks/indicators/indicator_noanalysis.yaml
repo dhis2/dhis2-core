@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: indicator_noanalysis
+name: indicator_no_analysis
 description: Indicators not used in analytical objects.
 section: Indicators
 section_order: 4

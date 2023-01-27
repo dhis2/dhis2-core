@@ -39,16 +39,18 @@ import org.hisp.dhis.feedback.ErrorCode;
 public interface EventCoordinateService
 {
     /**
-     * verifies the validity of fallback coordinate field
+     * Verifies the validity of fallback coordinate field.
      *
      * @param isRegistration true when underlying program is registration
      * @param coordinateField the name of coordinate field (uid or name)
-     * @return if valid returns true
+     * @return returns true if valid.
+     * @throws IllegalQueryException
      */
-    boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField );
+    boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
+        throws IllegalQueryException;
 
     /**
-     * provide list of coordinate fields
+     * Provides list of coordinate fields.
      *
      * @param program underlying program
      * @param fallbackCoordinateField fallback
@@ -61,22 +63,26 @@ public interface EventCoordinateService
         boolean defaultCoordinateFallback );
 
     /**
-     * provide verified geometry
+     * Provides verified geometry.
      *
      * @param valueType value type
      * @param field geometry
      * @param errorCode code for standard error message
-     * @return verified geometry or
+     * @return the coordinate field.
+     * @throws IllegalQueryException
      */
-    String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode );
+    String getCoordinateField( ValueType valueType, String field, ErrorCode errorCode )
+        throws IllegalQueryException;
 
     /**
-     * provide verified geometry
+     * Provides verified geometry.
      *
      * @param program underlying program
      * @param coordinateField geometry
      * @param errorCode code for standard error message
-     * @return
+     * @return the coordinate field.
+     * @throws IllegalQueryException
      */
-    public String getCoordinateFieldOrFail( String program, String coordinateField, ErrorCode errorCode );
+    public String getCoordinateField( String program, String coordinateField, ErrorCode errorCode )
+        throws IllegalQueryException;
 }

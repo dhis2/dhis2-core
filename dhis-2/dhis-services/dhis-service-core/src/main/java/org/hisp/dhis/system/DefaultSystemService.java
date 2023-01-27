@@ -60,8 +60,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Lars Helge Overland
  */
@@ -93,7 +91,7 @@ public class DefaultSystemService
     {
         systemInfo = getFixedSystemInfo();
 
-        List<String> info = ImmutableList.of(
+        List<String> info = List.of(
             "DHIS 2 Version: " + systemInfo.getVersion(),
             "Revision: " + systemInfo.getRevision(),
             "Build date: " + systemInfo.getBuildTime(),

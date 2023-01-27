@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: group_size_data_element_groups
+name: data_element_groups_scarce
 description: Data element groups should have at least two members.
 section: Group size
 section_order: 1
@@ -60,4 +60,4 @@ introduction: >
 recommendation: >
   Considering removing groups with a single member, or alternatively, add additional
   members to the group to make it more useful.
-details_id_type: group_size
+details_id_type: dataElementGroups

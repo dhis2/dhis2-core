@@ -34,7 +34,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
@@ -55,7 +54,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -283,13 +281,6 @@ public class CrudControllerAdvice
     public WebMessage persistenceExceptionHandler( PersistenceException ex )
     {
         return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( MaintenanceModeException.class )
-    @ResponseBody
-    public WebMessage maintenanceModeExceptionHandler( MaintenanceModeException ex )
-    {
-        return serviceUnavailable( ex.getMessage() );
     }
 
     @ExceptionHandler( AccessDeniedException.class )

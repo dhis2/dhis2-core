@@ -30,16 +30,14 @@ package org.hisp.dhis.tracker.validation.validator.event;
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,28 +47,19 @@ import org.springframework.stereotype.Component;
 class RuleEngineValidator
     implements Validator<Event>
 {
-    private List<RuleActionImplementer> validators;
-
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
-    {
-        this.validators = validators;
-    }
-
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
-
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        if ( !bundle.getEventRuleActionExecutors().containsKey( event ) )
         {
             return;
         }
 
-        List<ProgramRuleIssue> programRuleIssues = validators
+        List<ProgramRuleIssue> programRuleIssues = bundle.getEventRuleActionExecutors().get( event )
             .stream()
-            .flatMap(
-                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
+            .map( e -> e.executeRuleAction( bundle, event ) )
+            .filter( Optional::isPresent )
+            .map( Optional::get )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, event, programRuleIssues );

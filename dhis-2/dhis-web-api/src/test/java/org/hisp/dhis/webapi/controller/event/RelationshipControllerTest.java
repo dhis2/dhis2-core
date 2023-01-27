@@ -35,6 +35,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.program.ProgramInstance;
@@ -169,7 +171,7 @@ class RelationshipControllerTest
     void testGetRelationship()
         throws Exception
     {
-        when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
+        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 
@@ -177,7 +179,7 @@ class RelationshipControllerTest
     void testDeleteRelationship()
         throws Exception
     {
-        when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
+        when( relationshipService.findRelationshipByUid( REL_ID ) ).thenReturn( Optional.of( relationship ) );
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 }

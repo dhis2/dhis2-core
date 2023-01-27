@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.dimension.mappers;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,11 +40,8 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.mappers.ProgramStageDataElementMapper;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
-
 class ProgramStageDataElementMapperTest
 {
-
     private static final ValueType VALUE_TYPE = ValueType.TEXT;
 
     private static final String DATA_ELEMENT_UID = "DEUID";
@@ -54,8 +53,8 @@ class ProgramStageDataElementMapperTest
     {
         asserter( new ProgramStageDataElementMapper(),
             ProgramStageDataElement::new,
-            ImmutableList.of( this::setDataElement, this::setProgramStage ),
-            ImmutableList.of(
+            List.of( this::setDataElement, this::setProgramStage ),
+            List.of(
                 Pair.of( DimensionResponse::getValueType, VALUE_TYPE ),
                 Pair.of( DimensionResponse::getId, PROGRAM_STAGE_UID + "." + DATA_ELEMENT_UID ) ) );
     }
