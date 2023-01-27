@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common.dimension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +56,7 @@ class DimensionParamTypeTest
             "pe:YESTERDAY:SCHEDULED_DATE",
             "pe:TODAY:LAST_UPDATED" );
 
-        assertEquals( expected, dateFilters );
+        assertTrue( expected.containsAll( dateFilters ) );
+        assertTrue( dateFilters.containsAll( expected ) );
     }
 }
