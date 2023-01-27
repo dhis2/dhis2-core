@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -302,7 +303,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        final T patchedObject = doPatch( request, persistedObject );
+        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+
+        final T patchedObject = doPatch( patch, persistedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
@@ -334,7 +337,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( getEntityClass(), pvUid );
-            postPatchEntity( entity );
+            postJsonPatch( patch, entity );
         }
         else
         {
@@ -344,11 +347,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    private T doPatch( HttpServletRequest request, T persistedObject )
-        throws IOException,
-        JsonPatchException
+    private T doPatch( JsonPatch patch, T persistedObject )
+        throws JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
 
         // TODO: To remove when we remove old UserCredentials compatibility
         if ( persistedObject instanceof User )
@@ -370,6 +371,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             User patchingUser = (User) patchedObject;
             patchingUser.removeLegacyUserCredentials();
+            patchingUser.setGroups( Set.of() );
         }
 
         return patchedObject;
@@ -1000,6 +1002,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void postPatchEntity( T entity )
+    {
+    }
+
+    protected void postJsonPatch( JsonPatch patch, T entity )
     {
     }
 
