@@ -38,22 +38,27 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 /**
- * Unit tests for {@link ParamsEvaluator}.
+ * Unit tests for {@link ParamsHandler}.
  *
  * @author maikel arabori
  */
-class ParamsEvaluatorTest
+class ParamsHandlerTest
 {
-    private static ParamsEvaluator paramsEvaluator;
+    private static ParamsHandler paramsEvaluator;
+
+    @Mock
+    private static CurrentUserService currentUserService;
 
     @BeforeAll
     static void setUp()
     {
-        paramsEvaluator = new ParamsEvaluator();
+        paramsEvaluator = new ParamsHandler( currentUserService );
     }
 
     @Test

@@ -169,7 +169,7 @@ public class TeiFields
 
     public static Set<GridHeader> getGridHeaders( TeiQueryParams teiQueryParams )
     {
-        final Set<GridHeader> headers = new LinkedHashSet<>();
+        Set<GridHeader> headers = new LinkedHashSet<>();
 
         // Adding static and dynamic headers.
         Stream.concat( stream( Static.values() ), stream( Dynamic.values() ) )

@@ -105,7 +105,7 @@ public class TeiSqlQuery extends BaseRenderable
     {
         if ( countQuery )
         {
-            return join( Stream.of( getCountSelect(), getFrom(), getWhere(), getOrder() )
+            return join( Stream.of( getCountSelect(), getFrom(), getWhere() )
                 .filter( Objects::nonNull ).collect( toList() ), SPACE );
         }
 

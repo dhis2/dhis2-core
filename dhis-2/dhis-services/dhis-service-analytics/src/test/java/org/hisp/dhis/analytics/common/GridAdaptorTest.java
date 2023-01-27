@@ -56,7 +56,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
-import org.hisp.dhis.analytics.common.processing.ParamsEvaluator;
+import org.hisp.dhis.analytics.common.processing.ParamsHandler;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -83,7 +83,7 @@ class GridAdaptorTest extends DhisConvenienceTest
 {
     private static GridAdaptor gridAdaptor;
 
-    private static ParamsEvaluator paramsEvaluator;
+    private static ParamsHandler paramsHandler;
 
     @Mock
     private static CurrentUserService currentUserService;
@@ -91,8 +91,8 @@ class GridAdaptorTest extends DhisConvenienceTest
     @BeforeAll
     static void setUp()
     {
-        paramsEvaluator = new ParamsEvaluator();
-        gridAdaptor = new GridAdaptor( currentUserService, paramsEvaluator );
+        paramsHandler = new ParamsHandler( currentUserService );
+        gridAdaptor = new GridAdaptor( paramsHandler );
     }
 
     @Test
