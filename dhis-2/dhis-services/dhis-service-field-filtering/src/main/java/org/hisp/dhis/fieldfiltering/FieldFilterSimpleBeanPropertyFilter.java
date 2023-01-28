@@ -34,6 +34,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.eventhook.targets.JmsTarget;
+import org.hisp.dhis.eventhook.targets.KafkaTarget;
+import org.hisp.dhis.eventhook.targets.auth.ApiTokenAuth;
+import org.hisp.dhis.eventhook.targets.auth.HttpBasicAuth;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
@@ -60,6 +64,19 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     private final boolean skipSharing;
 
+    /**
+     * Field filtering ignore list. This is mainly because we don't want to
+     * inject custom serializers into the ObjectMapper, and we don't want to
+     * expose sensitive information. This is useful for when you are using JSONB
+     * to store the data but still want secrets hidden when doing field
+     * filtering.
+     */
+    private final Map<Class<?>, List<String>> IGNORE_LIST = Map.of(
+        ApiTokenAuth.class, List.of( "targets.auth.token" ),
+        HttpBasicAuth.class, List.of( "targets.auth.password" ),
+        JmsTarget.class, List.of( "targets.password" ),
+        KafkaTarget.class, List.of( "targets.password" ) );
+
     @Override
     protected boolean include( final BeanPropertyWriter writer )
     {
@@ -77,6 +94,13 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         PathContext ctx = getPath( writer, jgen );
 
         if ( ctx.getCurrentValue() == null )
+        {
+            return false;
+        }
+
+        if ( IGNORE_LIST.containsKey( ctx.getCurrentValue().getClass() ) &&
+            StringUtils.equalsAny( ctx.getFullPath(),
+                IGNORE_LIST.get( ctx.getCurrentValue().getClass() ).toArray( new String[] {} ) ) )
         {
             return false;
         }
@@ -120,17 +144,17 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         while ( sc != null )
         {
+            if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
+            {
+                nestedPath.insert( 0, "." );
+                nestedPath.insert( 0, sc.getCurrentName() );
+            }
+
             if ( isAlwaysExpandType( sc.getCurrentValue() ) )
             {
                 sc = sc.getParent();
                 alwaysExpand = true;
                 continue;
-            }
-
-            if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
-            {
-                nestedPath.insert( 0, "." );
-                nestedPath.insert( 0, sc.getCurrentName() );
             }
 
             sc = sc.getParent();

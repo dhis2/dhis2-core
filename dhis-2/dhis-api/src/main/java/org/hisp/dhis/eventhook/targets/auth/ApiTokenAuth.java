@@ -32,6 +32,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
@@ -50,6 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class ApiTokenAuth extends Auth
 {
+    @Property( PropertyType.PASSWORD )
     @JsonProperty( required = true )
     private String token;
 
