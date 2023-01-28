@@ -78,9 +78,8 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         assertEquals( "webhook", target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
-        assertTrue( auth.has( "type", "token" ) ); // remove token when encryption implemented
+        assertFalse( auth.has( "token" ) );
         assertEquals( "api-token", auth.getString( "type" ).string() );
-        assertEquals( "EB3F6799-AA5A-47E8-B6B7-97EA54EB3873", auth.getString( "token" ).string() );
     }
 
     @Test
@@ -105,10 +104,10 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         assertEquals( "webhook", target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
-        assertTrue( auth.has( "type", "username", "password" ) ); // remove password when encryption implemented
+        assertTrue( auth.has( "type", "username" ) );
+        assertFalse( auth.has( "password" ) );
         assertEquals( "http-basic", auth.getString( "type" ).string() );
         assertEquals( "admin", auth.getString( "username" ).string() );
-        assertEquals( "district", auth.getString( "password" ).string() );
     }
 
     @Test
@@ -134,10 +133,10 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         assertEquals( "webhook", target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
-        assertTrue( auth.has( "type", "username", "password" ) ); // remove password when encryption implemented
+        assertTrue( auth.has( "type", "username" ) );
+        assertFalse( auth.has( "password" ) );
         assertEquals( "http-basic", auth.getString( "type" ).string() );
         assertEquals( "admin", auth.getString( "username" ).string() );
-        assertEquals( "district", auth.getString( "password" ).string() );
     }
 
     @Test

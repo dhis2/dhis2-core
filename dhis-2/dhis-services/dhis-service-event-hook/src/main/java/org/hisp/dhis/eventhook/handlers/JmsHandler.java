@@ -99,7 +99,8 @@ public class JmsHandler implements Handler
     {
         if ( jmsTemplate == null )
         {
-            log.debug( "JmsTemplate is null, skipping JMS target: " + target.getBrokerUrl() );
+            log.error( "Jms is not properly configured. Please check Event Hook '" + eventHook.getName()
+                + "' with ID '" + eventHook.getUid() + "'" );
             return;
         }
 

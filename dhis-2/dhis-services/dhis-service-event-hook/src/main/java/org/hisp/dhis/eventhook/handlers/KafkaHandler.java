@@ -81,6 +81,13 @@ public class KafkaHandler implements Handler
     @Override
     public void run( EventHook eventHook, Event event, String payload )
     {
+        if ( producer == null )
+        {
+            log.error( "Kafka is not properly configured. Please check Event Hook '" + eventHook.getName()
+                + "' with ID '" + eventHook.getUid() + "'" );
+            return;
+        }
+
         producer.send( new ProducerRecord<>( target.getTopic(), null, payload ) );
     }
 
