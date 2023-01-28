@@ -1,174 +1,180 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
 
-  <!-- AES-128 encrypted string type -->
+    <!-- AES-128 encrypted string type -->
 
-  <typedef class="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType" name="Aes128EncryptedString">
-    <!-- Must be registered in the org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry bean -->
-    <param name="encryptor">aes128StringEncryptor</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType" name="Aes128EncryptedString">
+        <!-- Must be registered in the org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry bean -->
+        <param name="encryptor">aes128StringEncryptor</param>
+    </typedef>
 
-  <!-- Jsonb type -->
+    <!-- Jsonb type -->
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObject">
-    <param name="clazz">java.lang.Object</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObject">
+        <param name="clazz">java.lang.Object</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonNodeBinaryType" name="jbJsonNode">
-    <param name="clazz">com.fasterxml.jackson.databind.JsonNode</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonNodeBinaryType" name="jbJsonNode">
+        <param name="clazz">com.fasterxml.jackson.databind.JsonNode</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType" name="jbPlainString">
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType" name="jbPlainString">
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObjectStyle">
-    <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObjectStyle">
+        <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbVisualizationFontStyle">
-    <param name="clazz">org.hisp.dhis.visualization.VisualizationFontStyle</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbVisualizationFontStyle">
+        <param name="clazz">org.hisp.dhis.visualization.VisualizationFontStyle</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbAxes">
-    <param name="clazz">org.hisp.dhis.visualization.AxisV2</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbAxes">
+        <param name="clazz">org.hisp.dhis.visualization.AxisV2</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSeriesKey">
-    <param name="clazz">org.hisp.dhis.visualization.SeriesKey</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSeriesKey">
+        <param name="clazz">org.hisp.dhis.visualization.SeriesKey</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLine">
-    <param name="clazz">org.hisp.dhis.visualization.Line</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLine">
+        <param name="clazz">org.hisp.dhis.visualization.Line</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbStyledObject">
-    <param name="clazz">org.hisp.dhis.visualization.StyledObject</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbStyledObject">
+        <param name="clazz">org.hisp.dhis.visualization.StyledObject</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbOutlierAnalysis">
-    <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbOutlierAnalysis">
+        <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblSimpleEventDimensions">
-    <param name="clazz">org.hisp.dhis.eventvisualization.SimpleDimension</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblSimpleEventDimensions">
+        <param name="clazz">org.hisp.dhis.eventvisualization.SimpleDimension</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventRepetition">
-    <param name="clazz">org.hisp.dhis.eventvisualization.EventRepetition</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventRepetition">
+        <param name="clazz">org.hisp.dhis.eventvisualization.EventRepetition</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
-    <param name="clazz">org.hisp.dhis.dashboard.design.Layout</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
+        <param name="clazz">org.hisp.dhis.dashboard.design.Layout</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbDashboardItemConfig">
-    <param name="clazz">org.hisp.dhis.dashboard.design.ItemConfig</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbDashboardItemConfig">
+        <param name="clazz">org.hisp.dhis.dashboard.design.ItemConfig</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
-    <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
+        <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbSectionRenderType">
-    <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="renderType">org.hisp.dhis.render.type.SectionRenderingObject</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbSectionRenderType">
+        <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
+        <param name="renderType">org.hisp.dhis.render.type.SectionRenderingObject</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbValueRenderType">
-    <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
-    <param name="renderType">org.hisp.dhis.render.type.ValueTypeRenderingObject</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap" name="jbValueRenderType">
+        <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
+        <param name="renderType">org.hisp.dhis.render.type.ValueTypeRenderingObject</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
-    <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
+        <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
-    <param name="clazz">java.util.HashSet</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
+        <param name="clazz">java.util.HashSet</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbList">
-    <param name="clazz">java.util.ArrayList</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbList">
+        <param name="clazz">java.util.ArrayList</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType" name="jbJobParameters">
-    <param name="clazz">org.hisp.dhis.scheduling.JobParameters</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType" name="jbJobParameters">
+        <param name="clazz">org.hisp.dhis.scheduling.JobParameters</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
-    <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
+        <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
-    <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
+        <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEntityQueryCriteria">
-    <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEntityQueryCriteria">
+        <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
-    <param name="clazz">org.hisp.dhis.visualization.Series</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
+        <param name="clazz">org.hisp.dhis.visualization.Series</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
-    <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
+        <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jblTranslations">
-    <param name="clazz">org.hisp.dhis.translation.Translation</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jblTranslations">
+        <param name="clazz">org.hisp.dhis.translation.Translation</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType" name="jsbEventDataValues">
-    <param name="clazz">org.hisp.dhis.eventdatavalue.EventDataValue</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType" name="jsbEventDataValues">
+        <param name="clazz">org.hisp.dhis.eventdatavalue.EventDataValue</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonProgramRuleEvaluationEnvironmentSetBinaryType" name="jsbProgramRuleEvaluationEnvironments">
-    <param name="clazz">org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonProgramRuleEvaluationEnvironmentSetBinaryType"
+             name="jsbProgramRuleEvaluationEnvironments">
+        <param name="clazz">org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
-    <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
+        <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramNotificationTemplateSnapshot">
-    <param name="clazz">org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramNotificationTemplateSnapshot">
+        <param name="clazz">org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot
+        </param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbUserInfoSnapshot">
-    <param name="clazz">org.hisp.dhis.program.UserInfoSnapshot</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbUserInfoSnapshot">
+        <param name="clazz">org.hisp.dhis.program.UserInfoSnapshot</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramStageInstanceUserInfo">
-    <param name="clazz">org.hisp.dhis.program.ProgramStageInstanceUserInfo</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramStageInstanceUserInfo">
+        <param name="clazz">org.hisp.dhis.program.ProgramStageInstanceUserInfo</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jsbObjectSharing">
-    <param name="clazz">org.hisp.dhis.user.sharing.Sharing</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jsbObjectSharing">
+        <param name="clazz">org.hisp.dhis.user.sharing.Sharing</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbValueTypeOptions">
-    <param name="clazz">org.hisp.dhis.common.ValueTypeOptions</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbValueTypeOptions">
+        <param name="clazz">org.hisp.dhis.common.ValueTypeOptions</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttributeJsonBinaryType" name="jbApiKeyAttributesList">
-    <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
-  </typedef>
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttributeJsonBinaryType" name="jbApiKeyAttributesList">
+        <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbTrackerDataView">
-    <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
-  </typedef>
-  
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeSource">
-    <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Source</param>
-  </typedef>  
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbTrackerDataView">
+        <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
+    </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
-    <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
-  </typedef>  
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeSource">
+        <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Source</param>
+    </typedef>
+
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
+        <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
+    </typedef>
+
+    <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAuth">
+        <param name="clazz">org.hisp.dhis.proxy.auth.Auth</param>
+    </typedef>
 
 </hibernate-mapping>
