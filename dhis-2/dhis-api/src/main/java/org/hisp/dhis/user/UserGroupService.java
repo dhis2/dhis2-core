@@ -66,7 +66,17 @@ public interface UserGroupService
 
     void updateUserGroups( User user, Collection<String> uids );
 
-    void updateUserGroups( User user, Collection<String> uids, User currentUser );
+    /**
+     * This method will check and perform add/remove given {@link User} from
+     * given {@link UserGroup} member list. The final result is that given
+     * {@link User} will only belong to given {@link UserGroup} list.
+     *
+     * @param user the {@link User} which will be added or removed from given
+     *        list of {@link UserGroup}
+     * @param userGroupIds List uid of {@link UserGroup}
+     * @param currentUser Current User.
+     */
+    void updateUserGroups( User user, Collection<String> userGroupIds, User currentUser );
 
     List<UserGroup> getAllUserGroups();
 
