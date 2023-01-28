@@ -333,6 +333,7 @@ public class HibernateDbmsManager
         emptyTable( "fileresource" );
         emptyTable( "trackedentitycomment" );
         emptyTable( "userinfo" );
+        emptyTable( "proxy" );
 
         dropTable( "_orgunitstructure" );
         dropTable( "_datasetorganisationunitcategory" );
