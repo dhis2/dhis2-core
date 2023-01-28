@@ -71,7 +71,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
      * to store the data but still want secrets hidden when doing field
      * filtering.
      */
-    private final Map<Class<?>, List<String>> IGNORE_LIST = Map.of(
+    private static final Map<Class<?>, List<String>> IGNORE_LIST = Map.of(
         ApiTokenAuth.class, List.of( "targets.auth.token" ),
         HttpBasicAuth.class, List.of( "targets.auth.password" ),
         JmsTarget.class, List.of( "targets.password" ),

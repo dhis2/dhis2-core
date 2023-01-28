@@ -29,7 +29,7 @@ package org.hisp.dhis.eventhook;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -64,26 +64,26 @@ public class EventHookSecretManager
         handleSecrets( eventHook, encryptor::decrypt );
     }
 
-    private void handleSecrets( EventHook eventHook, Function<String, String> callback )
+    private void handleSecrets( EventHook eventHook, UnaryOperator<String> callback )
     {
         for ( Target target : eventHook.getTargets() )
         {
-            switch ( target.getType() )
+            if ( target.getType().equals( "webhook" ) )
             {
-            case "webhook":
                 handleWebhook( (WebhookTarget) target, callback );
-                break;
-            case "jms":
+            }
+            else if ( target.getType().equals( "jms" ) )
+            {
                 handleJms( (JmsTarget) target, callback );
-                break;
-            case "kafka":
+            }
+            else if ( target.getType().equals( "kafka" ) )
+            {
                 handleKafka( (KafkaTarget) target, callback );
-                break;
             }
         }
     }
 
-    private void handleWebhook( WebhookTarget target, Function<String, String> callback )
+    private void handleWebhook( WebhookTarget target, UnaryOperator<String> callback )
     {
         Auth auth = target.getAuth();
 
@@ -110,10 +110,12 @@ public class EventHookSecretManager
                 apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
             }
             break;
+        default:
+            break;
         }
     }
 
-    private void handleJms( JmsTarget target, Function<String, String> callback )
+    private void handleJms( JmsTarget target, UnaryOperator<String> callback )
     {
         if ( StringUtils.hasText( target.getPassword() ) )
         {
@@ -121,7 +123,7 @@ public class EventHookSecretManager
         }
     }
 
-    private void handleKafka( KafkaTarget target, Function<String, String> callback )
+    private void handleKafka( KafkaTarget target, UnaryOperator<String> callback )
     {
         if ( StringUtils.hasText( target.getPassword() ) )
         {

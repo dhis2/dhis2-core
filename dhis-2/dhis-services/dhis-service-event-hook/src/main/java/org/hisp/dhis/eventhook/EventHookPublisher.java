@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventHookPublisher
 {
-    static private final List<?> BLACKLIST = List.of(
+    private static final List<?> BLACKLIST = List.of(
         User.class,
         EventHook.class );
 
@@ -54,7 +54,6 @@ public class EventHookPublisher
 
     public void publishEvent( Event event )
     {
-        // TODO: Should there always be an object?
         if ( event == null || event.getObject() == null )
         {
             return;
