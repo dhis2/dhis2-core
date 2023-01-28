@@ -87,8 +87,8 @@ public class WebhookHandler implements Handler
         {
             ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
                 String.class );
-            log.info( response.getStatusCode().name() );
-            log.info( response.getBody() );
+            log.info( "EventHook '" + eventHook.getUid() + "' returned status ('" + response.getStatusCode().name()
+                + "')" + ", body: " + response.getBody() );
         }
         catch ( RestClientException ex )
         {
