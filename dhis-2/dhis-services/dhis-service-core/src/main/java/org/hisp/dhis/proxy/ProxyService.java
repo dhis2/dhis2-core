@@ -25,29 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.proxy;
+
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.proxy.Proxy;
-import org.hisp.dhis.proxy.ProxyService;
-import org.hisp.dhis.schema.descriptors.ProxySchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
  */
-@RestController
-@OpenApi.Tags( "integration" )
+@Service
 @RequiredArgsConstructor
-@RequestMapping( value = ProxySchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProxyController
-    extends AbstractCrudController<Proxy>
+public class ProxyService
 {
-    private final ProxyService proxyService;
+    private final ProxyStore proxyStore;
+
+    private final ObjectMapper objectMapper;
+
+    @Qualifier( AES_128_STRING_ENCRYPTOR )
+    private final PBEStringCleanablePasswordEncryptor encryptor;
+
 }
