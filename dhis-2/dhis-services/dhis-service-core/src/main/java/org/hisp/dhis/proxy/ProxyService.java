@@ -29,12 +29,23 @@ package org.hisp.dhis.proxy;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import java.util.Arrays;
+
+import javax.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.proxy.auth.ApiTokenAuth;
+import org.hisp.dhis.proxy.auth.Auth;
+import org.hisp.dhis.proxy.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -51,4 +62,64 @@ public class ProxyService
     @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
+    public Proxy getDecryptedById( String id )
+    {
+        Proxy proxy = proxyStore.getByUid( id );
+
+        if ( proxy == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            proxy = objectMapper.readValue( objectMapper.writeValueAsString( proxy ), Proxy.class );
+            decrypt( proxy );
+        }
+        catch ( JsonProcessingException ignored )
+        {
+        }
+
+        return proxy;
+    }
+
+    public ResponseEntity<String> getProxy( Proxy proxy, HttpServletRequest request )
+    {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        proxy.getHeaders().forEach( headers::add );
+
+        HttpHeaders queryParameters = new HttpHeaders();
+        request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, Arrays.asList( value ) ) );
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( proxy.getUrl() )
+            .queryParams( queryParameters );
+
+        HttpEntity<String> entity = new HttpEntity<>( null, headers );
+
+        return restTemplate.exchange( uriComponentsBuilder.toUriString(), HttpMethod.GET, entity, String.class,
+            request.getParameterMap() );
+    }
+
+    private void decrypt( Proxy proxy )
+    {
+        Auth auth = proxy.getAuth();
+
+        if ( auth == null )
+        {
+            return;
+        }
+
+        if ( auth.getType().equals( "api-token" ) )
+        {
+            ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
+            apiTokenAuth.setToken( encryptor.decrypt( apiTokenAuth.getToken() ) );
+        }
+        else if ( auth.getType().equals( "http-basic" ) )
+        {
+            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
+            httpBasicAuth.setPassword( encryptor.decrypt( httpBasicAuth.getPassword() ) );
+        }
+    }
 }

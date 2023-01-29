@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -35,8 +37,13 @@ import org.hisp.dhis.proxy.Proxy;
 import org.hisp.dhis.proxy.ProxyService;
 import org.hisp.dhis.schema.descriptors.ProxySchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author Morten Olav Hansen
@@ -50,4 +57,19 @@ public class ProxyController
     extends AbstractCrudController<Proxy>
 {
     private final ProxyService proxyService;
+
+    @GetMapping( "/run/{id}" )
+    public ResponseEntity<String> runProxy( @PathVariable( "id" ) String id, HttpServletRequest request )
+    {
+        Proxy proxy = proxyService.getDecryptedById( id );
+
+        if ( proxy == null )
+        {
+            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Proxy not found" );
+        }
+
+        ResponseEntity<String> entity = proxyService.getProxy( proxy, request );
+
+        return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
+    }
 }
