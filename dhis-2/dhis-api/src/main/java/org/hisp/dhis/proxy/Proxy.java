@@ -36,6 +36,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.proxy.auth.Auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,18 +50,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class Proxy
     extends BaseIdentifiableObject
+    implements MetadataObject
 {
-
     @JsonProperty
     private String description;
+
+    @JsonProperty( required = true )
+    private boolean enabled = true;
 
     @JsonProperty( required = true )
     private String url;
 
     @JsonProperty( required = true )
-    private String contentType = "application/json";
-
-    @JsonProperty
     private Map<String, String> headers = new HashMap<>();
 
     @JsonProperty

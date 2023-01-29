@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.proxy;
+package org.hisp.dhis.webapi.controller;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.proxy.Proxy;
 import org.hisp.dhis.schema.descriptors.ProxySchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Olav Hansen
  */
 @RestController
+@OpenApi.Tags( "integration" )
 @RequiredArgsConstructor
 @RequestMapping( value = ProxySchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
