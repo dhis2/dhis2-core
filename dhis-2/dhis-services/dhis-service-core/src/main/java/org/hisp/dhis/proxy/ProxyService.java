@@ -90,6 +90,11 @@ public class ProxyService
         HttpHeaders headers = new HttpHeaders();
         proxy.getHeaders().forEach( headers::add );
 
+        if ( proxy.getAuth() != null )
+        {
+            proxy.getAuth().apply( headers );
+        }
+
         HttpHeaders queryParameters = new HttpHeaders();
         request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, Arrays.asList( value ) ) );
 
