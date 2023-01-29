@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -39,9 +41,9 @@ import org.hisp.dhis.schema.descriptors.ProxySchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -58,8 +60,9 @@ public class ProxyController
 {
     private final ProxyService proxyService;
 
-    @GetMapping( "/run/{id}" )
+    @RequestMapping( value = "/run/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
     public ResponseEntity<String> runProxy( @PathVariable( "id" ) String id, HttpServletRequest request )
+        throws IOException
     {
         Proxy proxy = proxyService.getDecryptedById( id );
 
@@ -68,7 +71,7 @@ public class ProxyController
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Proxy not found" );
         }
 
-        ResponseEntity<String> entity = proxyService.getProxy( proxy, request );
+        ResponseEntity<String> entity = proxyService.runProxy( proxy, request );
 
         return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
     }

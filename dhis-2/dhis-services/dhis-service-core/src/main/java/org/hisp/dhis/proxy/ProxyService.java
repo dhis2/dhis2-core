@@ -29,6 +29,8 @@ package org.hisp.dhis.proxy;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +44,7 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -83,7 +86,8 @@ public class ProxyService
         return proxy;
     }
 
-    public ResponseEntity<String> getProxy( Proxy proxy, HttpServletRequest request )
+    public ResponseEntity<String> runProxy( Proxy proxy, HttpServletRequest request )
+        throws IOException
     {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -101,10 +105,19 @@ public class ProxyService
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( proxy.getUrl() )
             .queryParams( queryParameters );
 
-        HttpEntity<String> entity = new HttpEntity<>( null, headers );
+        String body = StreamUtils.copyToString( request.getInputStream(), StandardCharsets.UTF_8 );
 
-        return restTemplate.exchange( uriComponentsBuilder.toUriString(), HttpMethod.GET, entity, String.class,
-            request.getParameterMap() );
+        HttpEntity<String> entity = new HttpEntity<>( body, headers );
+
+        HttpMethod httpMethod = HttpMethod.resolve( request.getMethod() );
+
+        if ( httpMethod == null )
+        {
+            httpMethod = HttpMethod.GET;
+        }
+
+        return restTemplate.exchange( uriComponentsBuilder.toUriString(), httpMethod,
+            entity, String.class );
     }
 
     private void decrypt( Proxy proxy )
