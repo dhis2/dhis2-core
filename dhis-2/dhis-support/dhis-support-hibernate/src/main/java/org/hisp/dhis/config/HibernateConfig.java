@@ -27,15 +27,23 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hibernate.cfg.AvailableSettings.DIALECT;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.Map;
+
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.SharedCacheMode;
+import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -45,8 +53,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -56,73 +66,116 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
-public class HibernateConfig {
-  @Bean("hibernateConfigurationProvider")
-  public HibernateConfigurationProvider hibernateConfigurationProvider(
-      DhisConfigurationProvider dhisConfig) {
-    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
-        new DefaultHibernateConfigurationProvider();
-    hibernateConfigurationProvider.setConfigProvider(dhisConfig);
-    return hibernateConfigurationProvider;
-  }
+public class HibernateConfig
+{
+    @Bean( "hibernateConfigurationProvider" )
+    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
+    {
+        DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
+        hibernateConfigurationProvider.setConfigProvider( dhisConfig );
+        return hibernateConfigurationProvider;
+    }
 
-  @Bean
-  @DependsOn("flyway")
-  public LocalSessionFactoryBean sessionFactory(
-      DataSource dataSource,
-      @Qualifier("hibernateConfigurationProvider")
-          HibernateConfigurationProvider hibernateConfigurationProvider) {
-    Objects.requireNonNull(dataSource);
-    Objects.requireNonNull(hibernateConfigurationProvider);
+    //    @Bean
+    //    @DependsOn( "flyway" )
+    //    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
+    //        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
+    //    {
+    //        Objects.requireNonNull( dataSource );
+    //        Objects.requireNonNull( hibernateConfigurationProvider );
+    //
+    //        Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
+    //        Objects.requireNonNull( hibernateProperties );
+    //
+    //        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
+    //        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
+    //
+    //        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+    //        sessionFactory.setDataSource( dataSource );
+    //        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[0] ) );
+    //        sessionFactory.setMappingDirectoryLocations( directoryResources.toArray( new Resource[0] ) );
+    //        sessionFactory.setAnnotatedClasses( DeletedObject.class );
+    //        sessionFactory.setHibernateProperties( hibernateProperties );
+    //
+    //        return sessionFactory;
+    //    }
 
-    Properties hibernateProperties =
-        hibernateConfigurationProvider.getConfiguration().getProperties();
-    Objects.requireNonNull(hibernateProperties);
+    //    @Bean
+    //    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
+    //        SessionFactory sessionFactory )
+    //    {
+    //        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+    //        transactionManager.setSessionFactory( sessionFactory );
+    //        transactionManager.setDataSource( dataSource );
+    //
+    //        return transactionManager;
+    //    }
 
-    List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
-    List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
+    @Bean
+    public PlatformTransactionManager jpaTransactionManager( LocalContainerEntityManagerFactoryBean sessionFactory )
+    {
+        JpaTransactionManager txManager = new JpaTransactionManager();
+        txManager.setEntityManagerFactory( sessionFactory.getObject() );
+        return txManager;
+    }
 
-    LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-    sessionFactory.setDataSource(dataSource);
-    sessionFactory.setMappingJarLocations(jarResources.toArray(new Resource[0]));
-    sessionFactory.setMappingDirectoryLocations(directoryResources.toArray(new Resource[0]));
-    sessionFactory.setAnnotatedClasses(DeletedObject.class);
-    sessionFactory.setHibernateProperties(hibernateProperties);
+    @Bean
+    public TransactionTemplate transactionTemplate( PlatformTransactionManager transactionManager )
+    {
+        return new TransactionTemplate( transactionManager );
+    }
 
-    return sessionFactory;
-  }
+    @Bean
+    public DefaultHibernateCacheManager cacheManager( LocalContainerEntityManagerFactoryBean sessionFactory )
+    {
+        DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
+        cacheManager.setSessionFactory( sessionFactory.getNativeEntityManagerFactory().unwrap( SessionFactory.class ) );
 
-  @Bean
-  public HibernateTransactionManager hibernateTransactionManager(
-      DataSource dataSource, SessionFactory sessionFactory) {
-    HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-    transactionManager.setSessionFactory(sessionFactory);
-    transactionManager.setDataSource(dataSource);
+        return cacheManager;
+    }
 
-    return transactionManager;
-  }
+    @Bean
+    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, EntityManagerFactory sessionFactory,
+        DefaultHibernateCacheManager cacheManager )
+    {
+        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
+        hibernateDbmsManager.setCacheManager( cacheManager );
+        hibernateDbmsManager.setSessionFactory( sessionFactory.unwrap( SessionFactory.class ) );
+        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
+        return hibernateDbmsManager;
+    }
 
-  @Bean
-  public TransactionTemplate transactionTemplate(HibernateTransactionManager transactionManager) {
-    return new TransactionTemplate(transactionManager);
-  }
+    @Bean( "org.hibernate.SessionFactory" )
+    @DependsOn( "flyway" )
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean( DataSource dataSource,
+        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
+        throws IOException
+    {
+        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
 
-  @Bean
-  public DefaultHibernateCacheManager cacheManager(SessionFactory sessionFactory) {
-    DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-    cacheManager.setSessionFactory(sessionFactory);
-    return cacheManager;
-  }
+        Map<String, Object> properties = new Hashtable<>();
+        properties.put( "javax.persistence.schema-generation.database.action", "none" );
+        HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+        adapter.setDatabasePlatform( hibernateConfigurationProvider.getConfiguration().getProperty( DIALECT ) );
+        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setJpaVendorAdapter( adapter );
+        factory.setDataSource( dataSource );
+        factory.setPackagesToScan( "org.hisp.dhis" );
+        factory.setSharedCacheMode( SharedCacheMode.ENABLE_SELECTIVE );
+        factory.setValidationMode( ValidationMode.NONE );
+        factory.setJpaPropertyMap( properties );
+        factory.setMappingResources( getMappingResources( jarResources ) );
+        return factory;
+    }
 
-  @Bean
-  public DbmsManager dbmsManager(
-      JdbcTemplate jdbcTemplate,
-      SessionFactory sessionFactory,
-      DefaultHibernateCacheManager cacheManager) {
-    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-    hibernateDbmsManager.setCacheManager(cacheManager);
-    hibernateDbmsManager.setSessionFactory(sessionFactory);
-    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
-    return hibernateDbmsManager;
-  }
+    private String[] getMappingResources( List<Resource> jarResources )
+        throws IOException
+    {
+        List<String> files = new ArrayList<>();
+        for ( Resource resource : jarResources )
+        {
+            files.add( resource.getFile().getAbsolutePath() );
+        }
+        return files.toArray( new String[files.size()] );
+    }
 }
