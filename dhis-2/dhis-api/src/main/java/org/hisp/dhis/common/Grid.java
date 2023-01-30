@@ -550,7 +550,8 @@ public interface Grid
 
     /**
      * This method will take a Grid and retain only the columns and headers with
-     * the corresponding the list of headers.
+     * the corresponding the list of headers. If the give headers is null or
+     * empty, this method will do nothing.
      *
      * @param headers the set of headers for which to retain columns.
      */

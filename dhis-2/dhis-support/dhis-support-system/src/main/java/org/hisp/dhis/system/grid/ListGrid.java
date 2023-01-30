@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
@@ -1190,17 +1191,20 @@ public class ListGrid
     @Override
     public void retainColumns( Set<String> headers )
     {
-        List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
-        exclusions.removeAll( headers );
-
-        for ( String headerToExclude : exclusions )
+        if ( isNotEmpty( headers ) )
         {
-            int headerIndex = getIndexOfHeader( headerToExclude );
-            boolean hasHeader = headerIndex != -1;
+            List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
+            exclusions.removeAll( headers );
 
-            if ( hasHeader )
+            for ( String headerToExclude : exclusions )
             {
-                removeColumn( getHeaders().get( headerIndex ) );
+                int headerIndex = getIndexOfHeader( headerToExclude );
+                boolean hasHeader = headerIndex != -1;
+
+                if ( hasHeader )
+                {
+                    removeColumn( getHeaders().get( headerIndex ) );
+                }
             }
         }
     }

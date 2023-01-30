@@ -87,6 +87,9 @@ public class GridAdaptor
 
         paramsHandler.addMetaData( teiQueryParams.getCommonParams(), commonQueryRequest, grid, rowsCount );
 
+        // Retain only selected headers, if any.
+        grid.retainColumns( teiQueryParams.getCommonParams().getHeaders() );
+
         return grid;
     }
 }

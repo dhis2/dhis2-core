@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.common.processing;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -42,12 +41,10 @@ import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
 import static org.hisp.dhis.common.DimensionItemType.ORGANISATION_UNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,47 +96,9 @@ public class ParamsHandler
      */
     public void addHeaders( Grid grid, TeiQueryParams teiQueryParams )
     {
-        Set<GridHeader> headers = applyHeaders( getGridHeaders( teiQueryParams ),
-            teiQueryParams.getCommonParams().getHeaders() );
+        Set<GridHeader> headers = getGridHeaders( teiQueryParams );
 
         headers.forEach( grid::addHeader );
-    }
-
-    /**
-     * Applies the logic to retain only the headers name present in the URL
-     * param, if any. If no "paramHeaders" are present it returns the given
-     * "headers". It does not change the state of the original arguments.
-     *
-     * @param headers all headers represent by a set of {@link GridHeader}.
-     * @param paramHeaders the set of headers name from the param.
-     * @return a new set of {@link GridHeader} containing elements that only
-     *         match the param headers name.
-     */
-    Set<GridHeader> applyHeaders( Set<GridHeader> headers, Set<String> paramHeaders )
-    {
-        notEmpty( headers, "The 'headers' must not be null/empty" );
-
-        Set<String> validHeaders = headers.stream().map( GridHeader::getName ).collect( toSet() );
-
-        boolean hasHeadersParam = isNotEmpty( paramHeaders );
-
-        if ( hasHeadersParam )
-        {
-            Set<GridHeader> expectedHeaders = new LinkedHashSet<>();
-
-            // Retains only the headers defined in the URL (in the defined order).
-            paramHeaders.forEach( paramHeaderName -> headers.forEach( header -> {
-                // We ignore header names that are not in the list of valid ones.
-                if ( header.getName().equals( paramHeaderName ) && validHeaders.contains( paramHeaderName ) )
-                {
-                    expectedHeaders.add( header );
-                }
-            } ) );
-
-            return expectedHeaders;
-        }
-
-        return headers;
     }
 
     /**
@@ -264,6 +223,9 @@ public class ParamsHandler
             {
                 pager = new Pager( pagingParams.getPageWithDefault(), rowsCount,
                     pagingParams.getPageSizeWithDefault() );
+
+                // Always try to remove last row.
+                removeLastRow( pagingParams, grid );
             }
             else
             {
@@ -290,16 +252,27 @@ public class ParamsHandler
     private boolean handleLastPageFlag( AnalyticsPagingParams pagingParams, Grid grid )
     {
         boolean isLastPage = grid.getHeight() > 0 && grid.getHeight() < pagingParams.getPageSizePlusOne();
+
+        removeLastRow( pagingParams, grid );
+
+        return isLastPage;
+    }
+
+    /**
+     * As grid should have page size + 1 results, we need to remove the last row
+     * if there are more pages left.
+     *
+     * @param pagingParams the {@link AnalyticsPagingParams}.
+     * @param grid the {@link Grid}.
+     */
+    private void removeLastRow( AnalyticsPagingParams pagingParams, Grid grid )
+    {
         boolean hasNextPageRow = grid.getHeight() == pagingParams.getPageSizePlusOne();
 
-        // As grid should have page size + 1 results,
-        // we need to remove the last one if this flag is true.
         if ( hasNextPageRow )
         {
             grid.removeCurrentWriteRow();
         }
-
-        return isLastPage;
     }
 
     private List<DimensionalObject> getDimensionalObjects( CommonParams commonParams )

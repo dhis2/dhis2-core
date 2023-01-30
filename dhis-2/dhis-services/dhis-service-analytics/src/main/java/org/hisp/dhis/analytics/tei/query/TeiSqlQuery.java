@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.tei.query;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
@@ -166,11 +165,6 @@ public class TeiSqlQuery extends BaseRenderable
         Stream<Field> programIndicatorFields = queryContext.getProgramIndicatorContext().getFields().stream();
         Stream<Field> fields = Stream.of( teiFields, dimensionsFields, orderingFields, programIndicatorFields )
             .flatMap( identity() );
-
-        if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
-        {
-            fields = fields.filter( f -> teiQueryParams.getCommonParams().getHeaders().contains( f.getFieldAlias() ) );
-        }
 
         return Select.of( fields.collect( toList() ) );
     }
