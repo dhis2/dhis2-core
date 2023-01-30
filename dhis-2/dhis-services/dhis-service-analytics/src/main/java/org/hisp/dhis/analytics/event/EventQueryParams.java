@@ -56,6 +56,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -99,8 +101,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-
-import lombok.Getter;
 
 /**
  * Class representing query parameters for retrieving event data from the event

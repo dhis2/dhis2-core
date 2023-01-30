@@ -46,6 +46,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
@@ -57,9 +60,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

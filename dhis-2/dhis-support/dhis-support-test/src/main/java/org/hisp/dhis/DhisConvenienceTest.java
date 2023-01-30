@@ -62,6 +62,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -217,8 +219,6 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -361,7 +361,7 @@ public abstract class DhisConvenienceTest
      * @return the {@link LocalDate} object
      * @throws NullPointerException if the given date is null
      */
-    public LocalDate toLocalDate(Date date )
+    public LocalDate toLocalDate( Date date )
     {
         return date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
     }

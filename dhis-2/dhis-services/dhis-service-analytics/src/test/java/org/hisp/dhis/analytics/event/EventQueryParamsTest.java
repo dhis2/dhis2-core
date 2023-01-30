@@ -165,9 +165,9 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testHasDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .withValue( deA )
-                .build();
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
 
         assertTrue( paramsA.hasValueDimension() );
     }
@@ -176,14 +176,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testHasNumericDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .withValue( deA )
-                .build();
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
 
         EventQueryParams paramsB = new EventQueryParams.Builder()
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .withValue( deC )
-                .build();
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deC )
+            .build();
 
         assertTrue( paramsA.hasNumericValueDimension() );
         assertFalse( paramsB.hasNumericValueDimension() );
@@ -193,14 +193,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testHasTextDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .withValue( deE )
-                .build();
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deE )
+            .build();
 
         EventQueryParams paramsB = new EventQueryParams.Builder()
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .withValue( deA )
-                .build();
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
 
         assertTrue( paramsA.hasTextValueDimension() );
         assertFalse( paramsB.hasTextValueDimension() );
@@ -212,16 +212,16 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams paramsA = new EventQueryParams.Builder()
-                .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
-                .withOrganisationUnits( List.of( ouA, ouB ) )
-                .addItem( qiA ).addItem( qiB )
-                .withLocale( Locale.FRENCH )
-                .build();
+            .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .addItem( qiA ).addItem( qiB )
+            .withLocale( Locale.FRENCH )
+            .build();
         EventQueryParams paramsB = new EventQueryParams.Builder()
-                .withPeriods( List.of( peA, peB ), MONTHLY.getName() )
-                .withOrganisationUnits( List.of( ouA ) )
-                .addItem( qiA ).addItem( qiB ).withGeometryOnly( true )
-                .build();
+            .withPeriods( List.of( peA, peB ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA ) )
+            .addItem( qiA ).addItem( qiB ).withGeometryOnly( true )
+            .build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
         assertNotNull( paramsB.getKey() );
@@ -244,9 +244,9 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
         // When
         EventQueryParams params = new EventQueryParams.Builder()
-                .withPeriods( List.of( periodMay, periodMarch, periodFebruary ), MONTHLY.getName() )
-                .withStartEndDatesForPeriods()
-                .build();
+            .withPeriods( List.of( periodMay, periodMarch, periodFebruary ), MONTHLY.getName() )
+            .withStartEndDatesForPeriods()
+            .build();
 
         // Then
         assertNull( params.getStartDate() );
@@ -289,8 +289,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
 
         EventQueryParams params = new EventQueryParams.Builder()
-                .withStartEndDatesForPeriods()
-                .build();
+            .withStartEndDatesForPeriods()
+            .build();
         params.getDimensions().add( new BaseDimensionalObject( "pe", PERIOD, periods ) );
 
         // When
@@ -315,8 +315,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
 
         EventQueryParams params = new EventQueryParams.Builder()
-                .withStartEndDatesForPeriods()
-                .build();
+            .withStartEndDatesForPeriods()
+            .build();
         params.getDimensions().add( new BaseDimensionalObject( "pe", PERIOD, periods ) );
 
         // When
@@ -467,8 +467,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         LegendSet lsA = createLegendSet( 'A', leA, leB );
         QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
         EventQueryParams params = new EventQueryParams.Builder()
-                .addItem( qiA )
-                .build();
+            .addItem( qiA )
+            .build();
         Set<Legend> expected = Set.of( leA, leB );
         assertEquals( expected, params.getItemLegends() );
     }
@@ -479,9 +479,9 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams params = new EventQueryParams.Builder()
-                .addItem( qiA )
-                .addItem( qiB )
-                .build();
+            .addItem( qiA )
+            .addItem( qiB )
+            .build();
         Set<Option> expected = Set.of( opA, opB, opC, opD );
         assertEquals( expected, params.getItemOptions() );
     }
@@ -494,11 +494,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem iC = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
         QueryItem iD = new QueryItem( createDataElement( 'D', new CategoryCombo() ) );
         EventQueryParams params = new EventQueryParams.Builder()
-                .addItem( iA )
-                .addItem( iB )
-                .addItem( iC )
-                .addItem( iD )
-                .build();
+            .addItem( iA )
+            .addItem( iB )
+            .addItem( iC )
+            .addItem( iD )
+            .build();
         List<QueryItem> duplicates = params.getDuplicateQueryItems();
         assertEquals( 1, duplicates.size() );
         assertTrue( duplicates.contains( iC ) );
@@ -509,20 +509,20 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( prA )
-                .withTimeField( deC.getUid() )
-                .addItem( iA ).build();
+            .withProgram( prA )
+            .withTimeField( deC.getUid() )
+            .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
         params = new EventQueryParams.Builder()
-                .withProgram( prA )
-                .withTimeField( SCHEDULED_DATE.name() )
-                .addItem( iA ).build();
+            .withProgram( prA )
+            .withTimeField( SCHEDULED_DATE.name() )
+            .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
         params = new EventQueryParams.Builder()
-                .withProgram( prA )
-                .withTimeField( "someInvalidTimeField" )
-                .addItem( iA )
-                .build();
+            .withProgram( prA )
+            .withTimeField( "someInvalidTimeField" )
+            .addItem( iA )
+            .build();
         assertFalse( params.timeFieldIsValid() );
     }
 
@@ -531,13 +531,13 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( prA )
-                .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-                .addItem( iA )
-                .build();
+            .withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
+            .addItem( iA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
         params = new EventQueryParams.Builder().withProgram( prA )
-                .withOrgUnitField( new OrgUnitField( "someInvalidOrgUnitField" ) ).addItem( iA ).build();
+            .withOrgUnitField( new OrgUnitField( "someInvalidOrgUnitField" ) ).addItem( iA ).build();
         assertFalse( params.orgUnitFieldIsValid() );
     }
 
@@ -547,11 +547,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
 
@@ -563,12 +563,12 @@ class EventQueryParamsTest extends DhisConvenienceTest
         // This PI has 0 Data Element of type OrgUnit -> test should fail.
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .addItemProgramIndicator( programIndicatorB )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .addItemProgramIndicator( programIndicatorB )
+            .build();
         assertFalse( params.orgUnitFieldIsValid() );
     }
 
@@ -576,14 +576,15 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValidWithMultipleProgramIndicator2()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        // This PI has a Program that has a Tracked Entity Attribute of type Org Unit.
+        // This PI has a Program that has a Tracked Entity Attribute of type Org
+        // Unit.
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
 }

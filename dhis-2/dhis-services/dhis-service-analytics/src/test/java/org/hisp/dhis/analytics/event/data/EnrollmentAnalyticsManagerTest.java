@@ -143,7 +143,7 @@ class EnrollmentAnalyticsManagerTest extends
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-                + " as ax where (enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
         assertSql( sql.getValue(), expected );
 
     }
@@ -161,7 +161,7 @@ class EnrollmentAnalyticsManagerTest extends
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-                + " as ax where (lastupdated >= '2017-01-01' and lastupdated < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (lastupdated >= '2017-01-01' and lastupdated < '2018-01-01')and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
 
         assertSql( sql.getValue(), expected );
 

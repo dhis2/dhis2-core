@@ -68,9 +68,9 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEventTimeFieldSqlWhenNonContinuousDateRange()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer( new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
@@ -83,9 +83,9 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEventTimeFieldSqlWhenContinuousDateRange()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer( new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
@@ -98,11 +98,11 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEnrollmentTimeFieldSqlWhenNonContinuousDateRange()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-                new PostgreSQLStatementBuilder() );
+            new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
@@ -114,11 +114,11 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEnrollmentTimeFieldSqlWhenContinuousDateRange()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-                new PostgreSQLStatementBuilder() );
+            new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
@@ -130,12 +130,12 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEnrollmentTimeFieldSqlWhenContinuousDateRangeWithTimeFieldAllowed()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
-                .withTimeField( LAST_UPDATED.name() )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .withTimeField( LAST_UPDATED.name() )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-                new PostgreSQLStatementBuilder() );
+            new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 
@@ -147,12 +147,12 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     void testRenderEnrollmentTimeFieldSqlWhenContinuousDateRangeWithTimeFieldNotAllowed()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension(
-                        new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
-                .withTimeField( INCIDENT_DATE.getField() )
-                .build();
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
+            .withTimeField( INCIDENT_DATE.getField() )
+            .build();
         TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-                new PostgreSQLStatementBuilder() );
+            new PostgreSQLStatementBuilder() );
 
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
 

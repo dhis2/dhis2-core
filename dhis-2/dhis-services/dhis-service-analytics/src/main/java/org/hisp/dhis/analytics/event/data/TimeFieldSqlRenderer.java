@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.Data;
+
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
-
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * Provides methods targeting the generation of SQL statements for periods and
@@ -107,19 +107,20 @@ public abstract class TimeFieldSqlRenderer
         params.getTimeDateRanges().forEach( ( timeField, dateRanges ) -> {
             if ( params.hasContinuousRange( dateRanges ) )
             {
-                // Picks the start date of the first range and end date of the last range.
+                // Picks the start date of the first range and end date of the
+                // last range.
                 DateRange dateRange = new DateRange( dateRanges.get( 0 ).getStartDate(),
-                        dateRanges.get( dateRanges.size() - 1 ).getEndDate() );
+                    dateRanges.get( dateRanges.size() - 1 ).getEndDate() );
 
                 ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.of(
-                        getColumnName( Optional.of( timeField ), params.getOutputType() ), dateRange );
+                    getColumnName( Optional.of( timeField ), params.getOutputType() ), dateRange );
                 orConditions.add( getDateRangeCondition( columnWithDateRange ) );
             }
             else
             {
                 dateRanges.forEach( dateRange -> {
                     ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.of(
-                            getColumnName( Optional.of( timeField ), params.getOutputType() ), dateRange );
+                        getColumnName( Optional.of( timeField ), params.getOutputType() ), dateRange );
                     orConditions.add( getDateRangeCondition( columnWithDateRange ) );
                 } );
             }
@@ -138,14 +139,14 @@ public abstract class TimeFieldSqlRenderer
     private String getDateRangeCondition( ColumnWithDateRange dateRangeColumn )
     {
         return "(" +
-                dateRangeColumn.getColumn() +
-                " >= '" +
-                getMediumDateString( dateRangeColumn.getDateRange().getStartDate() ) +
-                "' and " +
-                dateRangeColumn.getColumn() +
-                " < '" +
-                getMediumDateString( dateRangeColumn.getDateRange().getEndDatePlusOneDay() ) +
-                "')";
+            dateRangeColumn.getColumn() +
+            " >= '" +
+            getMediumDateString( dateRangeColumn.getDateRange().getStartDate() ) +
+            "' and " +
+            dateRangeColumn.getColumn() +
+            " < '" +
+            getMediumDateString( dateRangeColumn.getDateRange().getEndDatePlusOneDay() ) +
+            "')";
     }
 
     /**
@@ -157,9 +158,9 @@ public abstract class TimeFieldSqlRenderer
     private void addStartEndDateToCondition( EventQueryParams params, List<String> conditions )
     {
         ColumnWithDateRange defaultDateRangeColumn = ColumnWithDateRange.builder()
-                .column( getColumnName( getTimeField( params ), params.getOutputType() ) )
-                .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
-                .build();
+            .column( getColumnName( getTimeField( params ), params.getOutputType() ) )
+            .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
+            .build();
 
         conditions.add( getDateRangeCondition( defaultDateRangeColumn ) );
     }
@@ -188,9 +189,9 @@ public abstract class TimeFieldSqlRenderer
         static ColumnWithDateRange of( String column, DateRange dateRange )
         {
             return ColumnWithDateRange.builder()
-                    .column( column )
-                    .dateRange( dateRange )
-                    .build();
+                .column( column )
+                .dateRange( dateRange )
+                .build();
         }
     }
 

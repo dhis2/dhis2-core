@@ -1511,7 +1511,7 @@ public class DataQueryParams
         for ( int i = datesRange.size() - 1; i > 0; i-- )
         {
             boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
-                    datesRange.get( i ).getStartDate() ) > 1;
+                datesRange.get( i ).getStartDate() ) > 1;
 
             if ( diffAboveOneDay )
             {
@@ -1999,8 +1999,7 @@ public class DataQueryParams
      * @param itemType the data dimension type, or all types if null.
      * @param options the data dimension options.
      */
-    private void setDataDimensionOptions( @Nullable
-    DataDimensionItemType itemType,
+    private void setDataDimensionOptions( @Nullable DataDimensionItemType itemType,
         List<? extends DimensionalItemObject> options )
     {
         List<DimensionalItemObject> existing = getDimensionOptions( DATA_X_DIM_ID );
@@ -2373,7 +2372,6 @@ public class DataQueryParams
     {
         return endDate;
     }
-
 
     public SortOrder getOrder()
     {
