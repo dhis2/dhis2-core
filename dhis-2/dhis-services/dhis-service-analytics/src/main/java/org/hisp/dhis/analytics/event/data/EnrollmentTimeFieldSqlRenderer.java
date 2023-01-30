@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Collections.singleton;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -38,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +46,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -61,6 +58,9 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 @Component
 @RequiredArgsConstructor
 class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
@@ -68,10 +68,10 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final StatementBuilder statementBuilder;
 
     @Getter
-    private final Collection<TimeField> allowedTimeFields = singleton( TimeField.LAST_UPDATED );
+    private final Set<TimeField> allowedTimeFields = Set.of( TimeField.LAST_UPDATED );
 
     @Override
-    protected String getSqlConditionForPeriods( EventQueryParams params )
+    protected String getAggregatedConditionForPeriods( EventQueryParams params )
     {
         final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
@@ -99,15 +99,14 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getColumnName( EventQueryParams params )
+    protected String getColumnName( Optional<TimeField> timeField, EventOutputType outputType )
     {
-        return getTimeField( params ).orElse( TimeField.ENROLLMENT_DATE ).getField();
+        return timeField.orElse( TimeField.ENROLLMENT_DATE ).getField();
     }
 
     @Override
-    protected String getSqlConditionForNonDefaultBoundaries( EventQueryParams params )
+    protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
     {
-
         String sql = params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
             .filter(
                 boundary -> boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
@@ -119,7 +118,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         String sqlEventCohortBoundary = params.getProgramIndicator().hasEventDateCohortBoundary()
             ? getProgramIndicatorEventInProgramStageSql( params.getProgramIndicator(), params.getEarliestStartDate(),
                 params.getLatestEndDate() )
-            : "";
+            : EMPTY;
 
         return Stream.of( sql, sqlEventCohortBoundary )
             .filter( StringUtils::isNotBlank )
@@ -137,7 +136,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
 
-        String sql = "";
+        String sql = EMPTY;
         for ( String programStage : map.keySet() )
         {
             Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );

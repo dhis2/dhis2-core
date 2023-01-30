@@ -44,8 +44,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import java.util.Date;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -79,6 +77,8 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Markus Bekken
@@ -233,7 +233,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderTimeFieldSql( params );
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units
