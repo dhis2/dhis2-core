@@ -46,6 +46,15 @@ class AnalyticsSqlUtilsTest
     }
 
     @Test
+    void testQuotedListOf()
+    {
+        assertEquals( List.of( "\"a\"\"b\"\"c\"", "\"d\"\"e\"\"f\"" ),
+            AnalyticsSqlUtils.quotedListOf( "a\"b\"c", "d\"e\"f" ) );
+
+        assertEquals( List.of( "\"ab\"", "\"cd\"", "\"ef\"" ), AnalyticsSqlUtils.quotedListOf( "ab", "cd", "ef" ) );
+    }
+
+    @Test
     void testQuoteWithAlias()
     {
         assertEquals( "ougs.\"Short name\"", AnalyticsSqlUtils.quote( "ougs", "Short name" ) );
@@ -59,6 +68,16 @@ class AnalyticsSqlUtilsTest
             AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "de", "pe", "ou" ) ) );
         assertEquals( "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
             AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "gender", "date of \"birth\"" ) ) );
+    }
+
+    @Test
+    void testQuoteWithFunction()
+    {
+        assertEquals( "min(\"value\") as \"value\",min(\"textvalue\") as \"textvalue\"",
+            AnalyticsSqlUtils.quoteWithFunction( "min", "value", "textvalue" ) );
+
+        assertEquals( "max(\"daysxvalue\") as \"daysxvalue\",max(\"daysno\") as \"daysno\"",
+            AnalyticsSqlUtils.quoteWithFunction( "max", "daysxvalue", "daysno" ) );
     }
 
     @Test
