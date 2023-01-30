@@ -55,11 +55,11 @@ public class GridHeaders
      * @param grid
      * @param headersToRetain
      */
-    public static void retainHeadersOnGrid( final Grid grid, final Set<String> headersToRetain )
+    public static void retainHeadersOnGrid( Grid grid, Set<String> headersToRetain )
     {
         notNull( grid, "The 'grid' cannot be null" );
 
-        final boolean hasHeadersToRetain = isNotEmpty( headersToRetain );
+        boolean hasHeadersToRetain = isNotEmpty( headersToRetain );
 
         if ( hasHeadersToRetain )
         {
