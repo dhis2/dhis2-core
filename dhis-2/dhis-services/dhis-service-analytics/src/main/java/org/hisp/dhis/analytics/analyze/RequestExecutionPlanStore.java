@@ -73,7 +73,6 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
     @Override
     public void addExecutionPlan( String key, String sql )
     {
-
         ExecutionPlan executionPlan = new ExecutionPlan();
 
         executionPlan.setQuery( sql );

@@ -29,23 +29,26 @@ package org.hisp.dhis.analytics.common.processing;
 
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link ParamsHandler}.
  *
  * @author maikel arabori
  */
+@ExtendWith( MockitoExtension.class )
 class ParamsHandlerTest
 {
-    private static ParamsHandler paramsHandler;
+    private ParamsHandler paramsHandler;
 
     @Mock
-    private static CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
-    @BeforeAll
-    static void setUp()
+    @BeforeEach
+    void setUp()
     {
         paramsHandler = new ParamsHandler( currentUserService );
     }

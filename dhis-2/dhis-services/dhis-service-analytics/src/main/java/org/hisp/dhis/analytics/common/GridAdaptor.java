@@ -86,7 +86,7 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
-        paramsHandler.addMetaData( teiQueryParams.getCommonParams(), commonQueryRequest, grid, rowsCount );
+        paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), commonQueryRequest, rowsCount );
 
         // Retain only selected headers, if any.
         retainHeadersOnGrid( grid, teiQueryParams.getCommonParams().getHeaders() );

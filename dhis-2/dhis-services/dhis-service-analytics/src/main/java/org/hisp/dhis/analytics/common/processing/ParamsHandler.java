@@ -70,6 +70,7 @@ import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,6 +84,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ParamsHandler
 {
+    @Nonnull
     private final CurrentUserService currentUserService;
 
     /**
@@ -104,12 +106,14 @@ public class ParamsHandler
     /**
      * Returns a metadata {@link Map} based on the given arguments.
      *
+     * @param grid the current {@link Grid}.
      * @param commonParams the {@link CommonParams}.
      * @param commonQueryRequest the {@link CommonQueryRequest}.
+     * @param rowsCount the total of rows found for the current query.
      */
     // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
-    public void addMetaData( CommonParams commonParams, @Nonnull CommonQueryRequest commonQueryRequest,
-        @Nonnull Grid grid, long rowsCount )
+    public void addMetaData( @Nonnull Grid grid, CommonParams commonParams,
+        @Nonnull CommonQueryRequest commonQueryRequest, long rowsCount )
     {
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
@@ -121,7 +125,7 @@ public class ParamsHandler
 
                 addPaging( metaData, commonParams.getPagingParams(), grid, rowsCount );
                 addDimensions( metaData, commonParams, commonQueryRequest );
-                addOrgUnitsHierarchy( metaData, commonParams, commonQueryRequest );
+                addOrgUnitsHierarchy( metaData, commonParams, commonQueryRequest, currentUserService.getCurrentUser() );
 
                 grid.setMetaData( metaData );
             }
@@ -155,14 +159,14 @@ public class ParamsHandler
     }
 
     private void addOrgUnitsHierarchy( Map<String, Object> metaData, CommonParams commonParams,
-        CommonQueryRequest commonQueryRequest )
+        CommonQueryRequest commonQueryRequest, User currentUser )
     {
         if ( hasDimensionalObjects( commonParams ) )
         {
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
             {
-                List<OrganisationUnit> roots = currentUserService.getCurrentUser()
-                    .getOrganisationUnits().stream().sorted().collect( toList() );
+                List<OrganisationUnit> roots = currentUser.getOrganisationUnits().stream()
+                    .sorted().collect( toList() );
 
                 List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
                     .stream()

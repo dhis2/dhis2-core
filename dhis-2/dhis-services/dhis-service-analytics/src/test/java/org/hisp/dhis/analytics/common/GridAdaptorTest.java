@@ -66,9 +66,13 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.jupiter.api.BeforeAll;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -79,20 +83,24 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  *
  * @author maikel arabori
  */
+@ExtendWith( MockitoExtension.class )
 class GridAdaptorTest extends DhisConvenienceTest
 {
-    private static GridAdaptor gridAdaptor;
+    private GridAdaptor gridAdaptor;
 
-    private static ParamsHandler paramsHandler;
+    private ParamsHandler paramsHandler;
+
+    private User user;
 
     @Mock
-    private static CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
-    @BeforeAll
-    static void setUp()
+    @BeforeEach
+    void setUp()
     {
         paramsHandler = new ParamsHandler( currentUserService );
         gridAdaptor = new GridAdaptor( paramsHandler );
+        user = makeUser( ADMIN_USER_UID );
     }
 
     @Test
@@ -115,6 +123,8 @@ class GridAdaptorTest extends DhisConvenienceTest
         SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
         long anyCount = 0;
 
+        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
+
         // When
         Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams,
             new CommonQueryRequest() );
@@ -135,6 +145,8 @@ class GridAdaptorTest extends DhisConvenienceTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
         long anyCount = 0;
+
+        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         // When
         Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams, new CommonQueryRequest() );
