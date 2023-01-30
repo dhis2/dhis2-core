@@ -30,7 +30,6 @@ package org.hisp.dhis.user.hibernate;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -42,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Repository( "org.hisp.dhis.user.UserSettingStore" )
-public class HibernateUserSettingStore
+public class HibernateUserSettingStore extends Jpa
     implements UserSettingStore
 {
     private static final boolean CACHEABLE = true;
@@ -50,13 +49,6 @@ public class HibernateUserSettingStore
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    public HibernateUserSettingStore( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
 
     // -------------------------------------------------------------------------
     // UserSettingStore implementation
