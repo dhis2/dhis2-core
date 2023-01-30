@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 /**
  * @author Morten Olav Hansen
@@ -72,6 +73,15 @@ public class ProxyController
         }
 
         ResponseEntity<String> entity = proxyService.runProxy( proxy, request );
+
+        if ( entity.getStatusCode().is4xxClientError() )
+        {
+            throw new HttpClientErrorException( entity.getStatusCode() );
+        }
+        else if ( entity.getStatusCode().is5xxServerError() )
+        {
+            throw new HttpServerErrorException( entity.getStatusCode() );
+        }
 
         return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
     }
