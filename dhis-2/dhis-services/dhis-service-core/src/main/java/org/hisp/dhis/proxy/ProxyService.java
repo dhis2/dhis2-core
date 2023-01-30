@@ -43,6 +43,7 @@ import org.hisp.dhis.proxy.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
@@ -64,6 +65,19 @@ public class ProxyService
 
     @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
+
+    private final static RestTemplate restTemplate = new RestTemplate();
+
+    static
+    {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectionRequestTimeout( 1_000 );
+        requestFactory.setConnectTimeout( 5_000 );
+        requestFactory.setReadTimeout( 10_000 );
+        requestFactory.setBufferRequestBody( true );
+
+        restTemplate.setRequestFactory( requestFactory );
+    }
 
     public Proxy getDecryptedById( String id )
     {
@@ -89,8 +103,6 @@ public class ProxyService
     public ResponseEntity<String> runProxy( Proxy proxy, HttpServletRequest request )
         throws IOException
     {
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         proxy.getHeaders().forEach( headers::add );
 
