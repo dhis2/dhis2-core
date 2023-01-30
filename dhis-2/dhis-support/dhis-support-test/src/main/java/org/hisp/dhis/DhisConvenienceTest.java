@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -350,6 +352,18 @@ public abstract class DhisConvenienceTest
         dataTime = dataTime.withDayOfYear( day );
 
         return dataTime.toDate();
+    }
+
+    /**
+     * Converts a {@link Date} into a {@link LocalDate}.
+     *
+     * @param date the {@link Date}
+     * @return the {@link LocalDate} object
+     * @throws NullPointerException if the given date is null
+     */
+    public LocalDate toLocalDate( Date date )
+    {
+        return date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
     }
 
     /**
