@@ -36,6 +36,7 @@ import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.proxy.auth.ApiTokenAuth;
 import org.hisp.dhis.proxy.auth.Auth;
@@ -56,6 +57,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Morten Olav Hansen
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ProxyService
 {
@@ -93,8 +95,10 @@ public class ProxyService
             proxy = objectMapper.readValue( objectMapper.writeValueAsString( proxy ), Proxy.class );
             decrypt( proxy );
         }
-        catch ( JsonProcessingException ignored )
+        catch ( JsonProcessingException ex )
         {
+            log.error( "Unable to create clone of Proxy with ID " + proxy.getUid() + ". Please check it's data." );
+            return null;
         }
 
         return proxy;
