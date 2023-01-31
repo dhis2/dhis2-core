@@ -52,6 +52,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
 {
@@ -102,7 +103,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         reservedValueStore.save( reservedValue.value( prog001 ).build() );
         int count = reservedValueStore.getCount();
         ReservedValue rv = reservedValue.value( prog002 ).build();
-        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, List.of( rv.getValue() ) );
+        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
         assertEquals( 1, res.size() );
         assertEquals( reservedValueStore.getCount(), count + 1 );
     }
@@ -146,7 +147,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         ReservedValue rv = reservedValue.value( prog001 ).build();
         reservedValueStore.save( rv );
         int count = reservedValueStore.getCount();
-        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, List.of( "002", "003", "004" ) );
+        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( "002", "003", "004" ) );
         assertEquals( 1, count );
         assertEquals( 3, res.size() );
         assertEquals( (count + 3), reservedValueStore.getCount() );
@@ -157,7 +158,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
     {
         ReservedValue rv = reservedValue.value( prog001 ).build();
         reservedValueStore.save( rv );
-        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, List.of( rv.getValue() ),
+        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, Lists.newArrayList( rv.getValue() ),
             rv.getOwnerObject() );
         assertEquals( rv, res.get( 0 ) );
         assertEquals( 1, res.size() );
@@ -169,7 +170,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         ReservedValue rv = reservedValue.value( prog001 ).build();
         reservedValueStore.save( rv );
         assertEquals( 1, reservedValueStore.getAll().size() );
-        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, List.of( prog001, prog002 ),
+        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, Lists.newArrayList( prog001, prog002 ),
             rv.getOwnerObject() );
         assertEquals( 1, res.size() );
         assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
@@ -198,7 +199,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         rv.setTrackedEntityAttributeId( teav.getAttribute().getId() );
         assertEquals( 1, trackedEntityAttributeValueStore.getAll().size() );
         assertEquals( 0, reservedValueStore.getAll().size() );
-        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, List.of( prog001, prog002 ),
+        List<ReservedValue> res = reservedValueStore.getAvailableValues( rv, Lists.newArrayList( prog001, prog002 ),
             rv.getOwnerObject() );
         assertFalse( res.stream().anyMatch( r -> r.getValue().equals( prog001 ) ) );
         assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
@@ -212,7 +213,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         pastDate.add( Calendar.DATE, -1 );
         reservedValue.expiryDate( pastDate.getTime() );
         ReservedValue rv = reservedValue.value( prog001 ).build();
-        reservedValueStore.reserveValuesJpa( rv, List.of( rv.getValue() ) );
+        reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
         assertTrue( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001 ) );
         reservedValueStore.removeUsedOrExpiredReservations();
         assertFalse( reservedValueStore.getAll().contains( rv ) );
@@ -273,7 +274,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
         reservedValueStore.reserveValuesJpa( reservedValue.expiryDate( pastDate.getTime() ).value( prog002 ).build(),
-            List.of( prog002 ) );
+            Lists.newArrayList( prog002 ) );
         // used value
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
