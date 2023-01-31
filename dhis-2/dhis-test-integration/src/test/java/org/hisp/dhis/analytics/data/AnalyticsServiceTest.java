@@ -621,6 +621,38 @@ class AnalyticsServiceTest
     }
 
     @Test
+    void testMaxAndMinSumOrgUnit()
+    {
+        withIndicator( inA, "#{" + deA.getUid() + "}.aggregationType(MAX_SUM_ORG_UNIT)" );
+        withIndicator( inB, "#{" + deA.getUid() + "}.aggregationType(MIN_SUM_ORG_UNIT)" );
+
+        // Find max and min values inside periods within each orgUnit:
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghD-2017Q1", 233.0,
+                "indicatorBB-ouabcdefghD-2017Q1", 66.0,
+                "indicatorAA-ouabcdefghE-2017Q1", 1.0,
+                "indicatorBB-ouabcdefghE-2017Q1", 1.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouD, ouE ) )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+
+        // Sum the max/min values across different orgUnits:
+        // (Note: orgUnit B is parent of D and E and also has value 1.)
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghB-2017Q1", 235.0,
+                "indicatorBB-ouabcdefghB-2017Q1", 68.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouB )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
     void test_de_avg_2017_03()
     {
         List<DataElement> dataElements = List.of( deA, deB, deC, deD, deE );
