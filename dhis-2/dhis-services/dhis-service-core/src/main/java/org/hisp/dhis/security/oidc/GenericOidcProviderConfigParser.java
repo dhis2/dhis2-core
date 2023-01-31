@@ -69,7 +69,6 @@ import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -88,7 +87,7 @@ public final class GenericOidcProviderConfigParser
      * will be ignored by this parser, these clients/providers have their own
      * respective provider classes and config parsers.
      */
-    private static final Set<String> RESERVED_PROVIDER_IDS = ImmutableSet.of(
+    private static final Set<String> RESERVED_PROVIDER_IDS = Set.of(
         "azure",
         "google",
         "wso2" );

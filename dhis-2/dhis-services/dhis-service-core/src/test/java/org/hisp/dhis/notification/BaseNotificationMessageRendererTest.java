@@ -55,10 +55,10 @@ import com.google.common.collect.Sets;
  */
 class BaseNotificationMessageRendererTest
 {
-
     // -------------------------------------------------------------------------
     // Setup
     // -------------------------------------------------------------------------
+
     private BaseNotificationMessageRenderer<Entity> renderer;
 
     private static final Pair<String, String> ATTR_A = ImmutablePair.of( "a1234567890", "Attribute A value" );
@@ -189,6 +189,7 @@ class BaseNotificationMessageRendererTest
     // -------------------------------------------------------------------------
     // Factory methods
     // -------------------------------------------------------------------------
+
     private static Entity entity( String a, String b )
     {
         return new Entity( a, b );
@@ -212,12 +213,9 @@ class BaseNotificationMessageRendererTest
     // -------------------------------------------------------------------------
     // Mock classes
     // -------------------------------------------------------------------------
-    /**
-     * Thin mock implementation on top of BaseNotificationMessageRenderer
-     */
+
     static class MockNotificationMessageRenderer extends BaseNotificationMessageRenderer<Entity>
     {
-
         static final ImmutableMap<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = ImmutableMap
             .<TemplateVariable, Function<Entity, String>> builder().put( EntityTemplateVariable.a, e -> e.propertyA )
             .put( EntityTemplateVariable.b, e -> e.propertyB ).build();
