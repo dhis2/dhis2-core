@@ -81,7 +81,4 @@ public class CommonParams
 
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
-
-    @Builder.Default
-    private final boolean explainOnly = false;
 }
