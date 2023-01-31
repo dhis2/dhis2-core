@@ -1,23 +1,6 @@
 #!/usr/bin/env bash
 # Builds DHIS2 war and Docker image for development use
 
-#
-## bash environment
-#
-
-if test "$BASH" = "" || "$BASH" -uc "a=();true \"\${a[@]}\"" 2>/dev/null; then
-    # Bash 4.4, Zsh
-    set -euo pipefail
-else
-    # Bash 4.3 and older chokes on empty arrays with set -u.
-    set -eo pipefail
-fi
-shopt -s nullglob globstar
-
-#
-## script environment
-#
-
 D2CLUSTER="${1:-}"
 IMAGE=dhis2/core-dev
 TAG=local
@@ -34,9 +17,7 @@ if [[ "$ARCH" == *arm64* || "$ARCH" == *aarch64* ]]; then
   JIB_PROFILE="-P jibBuildArmOnly"
 fi
 
-print() {
-    echo -e "\033[1m$1\033[0m" 1>&2
-}
+echo "Building dhis2-core and Docker image..."
 
 print "Building dhis2-core and Docker image..."
 
@@ -46,9 +27,9 @@ mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhi
 mvn -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web/dhis-web-portal/pom.xml" jib:dockerBuild $JIB_PROFILE
 
 if test -z "$D2CLUSTER"; then
-    print "No cluster name specified, skipping deploy"
+    echo "No cluster name specified, skipping deploy"
 else
-    print "Deploying to d2 cluster $D2CLUSTER..."
+    echo "Deploying to d2 cluster $D2CLUSTER..."
 
     d2 cluster up "$D2CLUSTER" --image $IMAGE:$TAG
     d2 cluster logs "$D2CLUSTER"
