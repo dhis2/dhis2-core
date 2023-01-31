@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,40 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import com.google.common.base.CaseFormat;
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen
  */
-public final class EventUtils
+@Data
+@Builder
+public class EventHookContext
 {
-    public static Event metadataCreate( BaseIdentifiableObject object )
+    @Builder.Default
+    Map<String, List<Handler>> targets = new HashMap<>();
+
+    @Builder.Default
+    List<EventHook> eventHooks = new ArrayList<>();
+
+    public boolean hasTarget( String uid )
     {
-        return metadata( object, "create" );
+        return targets.containsKey( uid ) || targets.get( uid ).isEmpty();
     }
 
-    public static Event metadataUpdate( BaseIdentifiableObject object )
+    public List<Handler> getTarget( String uid )
     {
-        return metadata( object, "update" );
+        return targets.get( uid );
     }
 
-    public static Event metadataDelete( Class<?> type, String uid )
+    public void closeTargets()
     {
-        String name = camelCase( type.getSimpleName() );
-
-        return Event.builder()
-            .path( "metadata." + name + "." + uid )
-            .meta( Map.of( "op", "delete" ) )
-            .object( Map.of( "id", uid ) )
-            .build();
-    }
-
-    private static Event metadata( BaseIdentifiableObject object, String op )
-    {
-        String name = camelCase( object.getClass().getSimpleName() );
-
-        return Event.builder()
-            .path( "metadata." + name + "." + object.getUid() )
-            .meta( Map.of( "op", op ) )
-            .object( object )
-            .build();
-    }
-
-    public static String camelCase( String name )
-    {
-        return CaseFormat.UPPER_CAMEL.to( CaseFormat.LOWER_CAMEL, name );
-    }
-
-    private EventUtils()
-    {
+        targets.values()
+            .forEach( handlers -> handlers.forEach( Handler::close ) );
     }
 }

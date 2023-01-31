@@ -45,8 +45,7 @@ import org.springframework.stereotype.Component;
 public class EventHookPublisher
 {
     private static final List<?> BLACKLIST = List.of(
-        User.class,
-        EventHook.class );
+        User.class );
 
     private final DhisConfigurationProvider dhisConfig;
 

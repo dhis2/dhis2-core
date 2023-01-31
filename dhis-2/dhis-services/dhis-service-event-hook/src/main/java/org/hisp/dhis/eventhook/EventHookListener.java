@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 
@@ -69,23 +65,20 @@ public class EventHookListener
 
     private final FieldFilterService fieldFilterService;
 
-    private final Map<String, List<Handler>> targets = new ConcurrentHashMap<>();
-
-    private final List<EventHook> eventHooks = new ArrayList<>();
+    private EventHookContext eventHookContext = EventHookContext.builder().build();
 
     private final EventHookService eventHookService;
 
     @Async( "eventHookTaskExecutor" )
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
-        throws EventHookException,
-        JsonProcessingException
+        throws JsonProcessingException
     {
-        for ( EventHook eventHook : eventHooks )
+        for ( EventHook eventHook : eventHookContext.getEventHooks() )
         {
             if ( event.getPath().startsWith( eventHook.getSource().getPath() ) )
             {
-                if ( !targets.containsKey( eventHook.getUid() ) || targets.get( eventHook.getUid() ).isEmpty() )
+                if ( !eventHookContext.hasTarget( eventHook.getUid() ) )
                 {
                     continue;
                 }
@@ -111,7 +104,7 @@ public class EventHookListener
 
                 String payload = objectMapper.writeValueAsString( event );
 
-                List<Handler> handlers = targets.get( eventHook.getUid() );
+                List<Handler> handlers = eventHookContext.getTarget( eventHook.getUid() );
 
                 for ( Handler handler : handlers )
                 {
@@ -125,16 +118,10 @@ public class EventHookListener
     @EventListener( ReloadEventHookListener.class )
     public void reload()
     {
-        synchronized ( this )
-        {
-            targets.values()
-                .forEach( handlers -> handlers.forEach( Handler::close ) );
+        eventHookContext.closeTargets();
 
-            eventHooks.clear();
-            targets.clear();
-
-            eventHooks.addAll( eventHookService.getAll() );
-        }
+        List<EventHook> eventHooks = eventHookService.getAll();
+        Map<String, List<Handler>> targets = new HashMap<>();
 
         for ( EventHook eh : eventHooks )
         {
@@ -165,5 +152,10 @@ public class EventHookListener
                 }
             }
         }
+
+        eventHookContext = EventHookContext.builder()
+            .eventHooks( eventHooks )
+            .targets( targets )
+            .build();
     }
 }
