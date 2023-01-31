@@ -48,7 +48,7 @@ public class RemoveOperation extends JsonPatchOperation
     @JsonCreator
     public RemoveOperation( @JsonProperty( "path" ) JsonPointer path )
     {
-        super( "remove", path );
+        super( REMOVE_OPERATION, path );
     }
 
     @Override

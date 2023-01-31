@@ -46,7 +46,7 @@ public class ReplaceOperation extends JsonPatchValueOperation
     @JsonCreator
     public ReplaceOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        super( "replace", path, value );
+        super( REPLACE_OPERATION, path, value );
     }
 
     @Override

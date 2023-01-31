@@ -46,7 +46,7 @@ public class RemoveByIdOperation extends JsonPatchOperation
     @JsonCreator
     public RemoveByIdOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "id" ) String id )
     {
-        super( "remove-by-id", path );
+        super( REMOVE_BY_ID_OPERATION, path );
         this.id = id;
     }
 

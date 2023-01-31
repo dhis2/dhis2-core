@@ -840,7 +840,7 @@ public class UserController
             }
 
             String opName = op.getOp();
-            if ( opName.equals( "add" ) )
+            if ( opName.equals( JsonPatchOperation.ADD_OPERATION ) )
             {
                 List<String> groupIds = new ArrayList<>();
                 ((AddOperation) op).getValue().elements()
