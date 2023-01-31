@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.period;
 
-import static org.hisp.dhis.util.DateUtils.atEndOfDay;
-import static org.hisp.dhis.util.DateUtils.atStartOfDay;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -108,8 +105,8 @@ public class Period
         this.isoPeriod = isoRelativePeriod.toString();
         this.name = isoRelativePeriod.toString();
         this.code = isoRelativePeriod.toString();
-        this.setStartDate( atStartOfDay( new Date() ) );
-        this.setEndDate( atEndOfDay( new Date() ) );
+        this.setStartDate( new Date() );
+        this.setEndDate( new Date() );
     }
 
     public Period( Period period )
@@ -427,5 +424,11 @@ public class Period
     public boolean isDefault()
     {
         return Objects.isNull( dateField );
+    }
+
+    private Date atEndOfDay( Date date )
+    {
+        long offset = 999L + 59 * 1000 + 59 * 60 * 1000 + 23 * 60 * 60 * 1000;
+        return new Date( date.getTime() + offset );
     }
 }
