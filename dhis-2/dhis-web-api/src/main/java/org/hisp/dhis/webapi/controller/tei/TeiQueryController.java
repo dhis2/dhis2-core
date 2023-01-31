@@ -60,7 +60,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -76,8 +75,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 class TeiQueryController
 {
     static final String TRACKED_ENTITIES = "analytics/trackedEntities";
-
-    private static final String EXPLAIN_PATH = "/explain";
 
     @Nonnull
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
@@ -111,32 +108,17 @@ class TeiQueryController
 
     @GetMapping( value = "query/{trackedEntityType}", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    @ResponseBody
     Grid getGrid(
         @PathVariable String trackedEntityType,
         TeiQueryRequest teiQueryRequest,
         CommonQueryRequest commonQueryRequest,
         HttpServletResponse response )
     {
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( teiQueryRequestProcessor.process(
-                teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
-            .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
-            .build();
-
-        commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
-        teiQueryRequestValidator.validate( queryRequest );
-
-        contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
-
-        TeiQueryParams params = mapper.map( queryRequest );
-
-        return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
+        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest, response, false );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
-    @ResponseBody
-    @GetMapping( value = "query/{trackedEntityType}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
+    @GetMapping( value = "query/{trackedEntityType}/explain", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     Grid getGridExplain(
         @PathVariable String trackedEntityType,
@@ -144,6 +126,13 @@ class TeiQueryController
         CommonQueryRequest commonQueryRequest,
         HttpServletResponse response )
     {
+        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest, response, true );
+    }
+
+    private Grid getGrid( String trackedEntityType, TeiQueryRequest teiQueryRequest,
+        CommonQueryRequest commonQueryRequest,
+        HttpServletResponse response, boolean explain )
+    {
         QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
                 teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
@@ -153,11 +142,18 @@ class TeiQueryController
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
         teiQueryRequestValidator.validate( queryRequest );
 
-        contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
-
         TeiQueryParams params = mapper.map( queryRequest );
 
-        return teiAnalyticsQueryService.getGridExplain( params );
+        if ( explain )
+        {
+            return teiAnalyticsQueryService.getGridExplain( params );
+        }
+        else
+        {
+            contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
+
+            return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
+        }
     }
 
     /**
