@@ -126,8 +126,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         // When
-        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams,
-            new CommonQueryRequest() );
+        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -149,7 +148,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         // When
-        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams, new CommonQueryRequest() );
+        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams );
 
         // Then
         assertTrue( isNotEmpty( resultGrid.getHeaders() ) );
@@ -168,30 +167,11 @@ class GridAdaptorTest extends DhisConvenienceTest
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams, new CommonQueryRequest() ),
+            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
         assertTrue( ex.getMessage().contains( "The 'teiQueryParams' must not be null" ) );
-    }
-
-    @Test
-    void testCreateGridWithNullCommonQueryRequest()
-    {
-        // Given
-        Optional<SqlQueryResult> anySqlResult = Optional.empty();
-        CommonQueryRequest nullCommonQueryRequest = null;
-        long anyCount = 0;
-
-        // When
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, anyCount, TeiQueryParams.builder().build(),
-                nullCommonQueryRequest ),
-            "Expected exception not thrown: createGrid()" );
-
-        // Then
-        assertTrue( ex.getMessage().contains( "The 'commonQueryRequest' must not be null" ) );
     }
 
     private TrackedEntityType stubTrackedEntityType()

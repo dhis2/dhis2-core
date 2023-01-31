@@ -131,6 +131,10 @@ public class CommonQueryRequestMapper
             .orderParams( getSortingParams( request, programs, userOrgUnits ) )
             .headers( getHeaders( request ) )
             .dimensionIdentifiers( retrieveDimensionParams( request, programs, userOrgUnits ) )
+            .skipMeta( request.isSkipMeta() )
+            .includeMetadataDetails( request.isIncludeMetadataDetails() )
+            .hierarchyMeta( request.isHierarchyMeta() )
+            .showHierarchy( request.isShowHierarchy() )
             .build();
     }
 

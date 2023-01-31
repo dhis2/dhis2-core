@@ -41,7 +41,6 @@ import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
 import static org.hisp.dhis.common.DimensionItemType.ORGANISATION_UNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -108,32 +106,28 @@ public class ParamsHandler
      *
      * @param grid the current {@link Grid}.
      * @param commonParams the {@link CommonParams}.
-     * @param commonQueryRequest the {@link CommonQueryRequest}.
      * @param rowsCount the total of rows found for the current query.
      */
     // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
-    public void addMetaData( @Nonnull Grid grid, CommonParams commonParams,
-        @Nonnull CommonQueryRequest commonQueryRequest, long rowsCount )
+    public void addMetaData( @Nonnull Grid grid, CommonParams commonParams, long rowsCount )
     {
-        notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
-        if ( !commonQueryRequest.isSkipMeta() )
+        if ( !commonParams.isSkipMeta() )
         {
             if ( commonParams != null )
             {
                 Map<String, Object> metaData = new HashMap<>();
 
                 addPaging( metaData, commonParams.getPagingParams(), grid, rowsCount );
-                addDimensions( metaData, commonParams, commonQueryRequest );
-                addOrgUnitsHierarchy( metaData, commonParams, commonQueryRequest, currentUserService.getCurrentUser() );
+                addDimensions( metaData, commonParams );
+                addOrgUnitsHierarchy( metaData, commonParams, currentUserService.getCurrentUser() );
 
                 grid.setMetaData( metaData );
             }
         }
     }
 
-    private void addDimensions( Map<String, Object> metaData, CommonParams commonParams,
-        CommonQueryRequest commonQueryRequest )
+    private void addDimensions( Map<String, Object> metaData, CommonParams commonParams )
     {
         List<DimensionalObject> dimensionalObjects = getDimensionalObjects( commonParams );
 
@@ -145,7 +139,7 @@ public class ParamsHandler
             dimensionalObjects.forEach( dimension -> {
                 dimension.getItems()
                     .forEach( dio -> metaDataItems.put( dio.getUid(),
-                        commonQueryRequest.isIncludeMetadataDetails()
+                        commonParams.isIncludeMetadataDetails()
                             ? new MetadataItem( dio.getDisplayName(), dio )
                             : new MetadataItem( dio.getDisplayName() ) ) );
 
@@ -158,12 +152,11 @@ public class ParamsHandler
         }
     }
 
-    private void addOrgUnitsHierarchy( Map<String, Object> metaData, CommonParams commonParams,
-        CommonQueryRequest commonQueryRequest, User currentUser )
+    private void addOrgUnitsHierarchy( Map<String, Object> metaData, CommonParams commonParams, User currentUser )
     {
         if ( hasDimensionalObjects( commonParams ) )
         {
-            if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
+            if ( commonParams.isHierarchyMeta() || commonParams.isShowHierarchy() )
             {
                 List<OrganisationUnit> roots = currentUser.getOrganisationUnits().stream()
                     .sorted().collect( toList() );
@@ -179,7 +172,7 @@ public class ParamsHandler
                     .collect( toList() );
 
                 Map<String, Object> orgUnitsMetadata = getOrganisationUnitsHierarchyIntoMetaData( roots,
-                    organisationUnits, commonQueryRequest.isHierarchyMeta(), commonQueryRequest.isShowHierarchy() );
+                    organisationUnits, commonParams.isHierarchyMeta(), commonParams.isShowHierarchy() );
 
                 metaData.putAll( orgUnitsMetadata );
             }

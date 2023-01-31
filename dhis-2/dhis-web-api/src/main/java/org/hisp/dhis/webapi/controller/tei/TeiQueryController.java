@@ -33,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
@@ -111,10 +112,9 @@ class TeiQueryController
     Grid getGrid(
         @PathVariable String trackedEntityType,
         TeiQueryRequest teiQueryRequest,
-        CommonQueryRequest commonQueryRequest,
-        HttpServletResponse response )
+        CommonQueryRequest commonQueryRequest )
     {
-        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest, response, false );
+        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest, teiAnalyticsQueryService::getGrid );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
@@ -123,15 +123,15 @@ class TeiQueryController
     Grid getGridExplain(
         @PathVariable String trackedEntityType,
         TeiQueryRequest teiQueryRequest,
-        CommonQueryRequest commonQueryRequest,
-        HttpServletResponse response )
+        CommonQueryRequest commonQueryRequest )
     {
-        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest, response, true );
+        return getGrid( trackedEntityType, teiQueryRequest, commonQueryRequest,
+            teiAnalyticsQueryService::getGridExplain );
     }
 
     private Grid getGrid( String trackedEntityType, TeiQueryRequest teiQueryRequest,
         CommonQueryRequest commonQueryRequest,
-        HttpServletResponse response, boolean explain )
+        Function<TeiQueryParams, Grid> executor )
     {
         QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
@@ -144,16 +144,7 @@ class TeiQueryController
 
         TeiQueryParams params = mapper.map( queryRequest );
 
-        if ( explain )
-        {
-            return teiAnalyticsQueryService.getGridExplain( params );
-        }
-        else
-        {
-            contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
-
-            return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
-        }
+        return executor.apply( params );
     }
 
     /**

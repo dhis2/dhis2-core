@@ -80,4 +80,12 @@ public class CommonParams
 
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
+
+    private final boolean skipMeta;
+
+    private final boolean includeMetadataDetails;
+
+    private final boolean hierarchyMeta;
+
+    private final boolean showHierarchy;
 }

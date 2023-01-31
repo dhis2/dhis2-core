@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
@@ -81,18 +80,13 @@ public class TeiAnalyticsQueryService
      * added to the {@link Grid} object returned.
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
-     * @param commonQueryRequest the {@link CommonQueryRequest}.
-     *
      * @return the populated {@link Grid} object.
-     *
      * @throws IllegalArgumentException if the given
      *         teiQueryParams/commonQueryRequest is null.
      */
-    // TODO: Remove CommonQueryRequest from here. The service and components should only see CommonParams.
-    public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
+    public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
-        notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         QueryContext queryContext = queryContextService.of( teiQueryParams );
         Optional<SqlQueryResult> result = Optional.empty();
@@ -119,7 +113,7 @@ public class TeiAnalyticsQueryService
             throw new QueryRuntimeException( E7131 );
         }
 
-        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams, commonQueryRequest );
+        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams );
     }
 
     /**

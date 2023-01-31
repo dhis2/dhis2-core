@@ -62,7 +62,6 @@ public class GridAdaptor
      *
      * @param sqlQueryResult the optional of {@link SqlQueryResult}.
      * @param teiQueryParams the {@link TeiQueryParams}.
-     * @param commonQueryRequest the {@link CommonQueryRequest}.
      *
      * @return the {@link Grid} object.
      *
@@ -70,10 +69,9 @@ public class GridAdaptor
      *         least one null element, or if the queryResult is null.
      */
     public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
-        @Nonnull TeiQueryParams teiQueryParams, @Nonnull CommonQueryRequest commonQueryRequest )
+        @Nonnull TeiQueryParams teiQueryParams )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
-        notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         Grid grid = new ListGrid();
 
@@ -85,7 +83,7 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
-        paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), commonQueryRequest, rowsCount );
+        paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), rowsCount );
 
         // Retain only selected headers, if any.
         grid.retainColumns( teiQueryParams.getCommonParams().getHeaders() );
