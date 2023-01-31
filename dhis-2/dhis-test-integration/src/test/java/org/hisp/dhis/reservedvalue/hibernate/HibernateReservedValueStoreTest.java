@@ -52,7 +52,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
+
+import com.google.common.collect.Lists;
 
 class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
 {
