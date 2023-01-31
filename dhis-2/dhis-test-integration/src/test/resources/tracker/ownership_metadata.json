@@ -223,7 +223,6 @@
       "name": "test-program-stage",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "--------",
       "description": "test-program-stage",
       "openAfterEnrollment": false,
       "repeatable": true,
@@ -254,16 +253,16 @@
       "translations": [],
       "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rwrw----",
-          "uid": "Tu9fv8ezgHl",
-          "user": {
-            "id": "Tu9fv8ezgHl"
-          },
-          "displayName": "UserLevel2"
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "users": {
+          "Tu9fv8ezgHl": {
+            "id": "Tu9fv8ezgHl",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "programStageSections": [],
       "programStageDataElements": [
         {

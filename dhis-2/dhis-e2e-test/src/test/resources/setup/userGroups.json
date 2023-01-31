@@ -6,9 +6,10 @@
       "name": "TA user group",
       "code": "TA_USER_GROUP",
       "id": "OPVIvvXzNTw",
-      "userGroupAccesses": [
-      ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "attributeValues": [],
       "managedGroups": [],
       "translations": [],

@@ -31,7 +31,6 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
       "description" : "update data set",
@@ -54,14 +53,16 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "userAccesses": [
-        {
-          "user": {
-            "id": "T12jeH7KPzk"
-          },
-          "access":"rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "users": {
+          "T12jeH7KPzk": {
+            "id": "T12jeH7KPzk",
+            "access": "rwrw----"
+          }
         }
-      ]
+      }
     }
   ]
 }

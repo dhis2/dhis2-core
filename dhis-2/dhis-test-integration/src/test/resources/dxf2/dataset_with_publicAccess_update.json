@@ -54,14 +54,15 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "userAccesses": [
-        {
-          "user": {
-            "id": "T12jeH7KPzk"
-          },
-          "access":"rwrw----"
+      "sharing": {
+        "public": "r-------",
+        "external": false,
+        "users": {
+          "T12jeH7KPzk": {
+            "id": "T12jeH7KPzk",
+            "access": "rwrw----"
+          }
         }
-      ]
-    }
+      }
   ]
 }

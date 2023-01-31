@@ -625,7 +625,6 @@
       "name": "TA Tracker_another_program",
       "code": "TA TRACKER_ANOTHER_PROGRAM",
       "shortName": "TA Tracker_another_program",
-      "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -669,13 +668,14 @@
       ],
       "notificationTemplates": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rwrw----",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -1648,7 +1648,6 @@
       "code": "TA_EVENT_PROGRAM_STAGE",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -1713,13 +1712,14 @@
         }
       ],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -1729,7 +1729,6 @@
       "name": "Program Stage - Another Program",
       "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE",
       "allowGenerateNextVisit": false,
-      "publicAccess": "rwrw----",
       "formType": "DEFAULT",
       "generatedByEnrollmentDate": false,
       "displayFormName": "Program Stage - Another Program",
@@ -1754,14 +1753,14 @@
       },
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rwrw----",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -3081,7 +3080,6 @@
       "code": "TA_SIBLING",
       "id": "xLmPUYJX8Ks",
       "bidirectional": true,
-      "publicAccess": "rw------",
       "toFromName": "Sibling of",
       "fromToName": "Sibling of",
       "fromConstraint": {
@@ -3098,13 +3096,14 @@
           "code": "TA_PERSON_TET"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "translations": [],
       "userAccesses": []
     },
@@ -3116,7 +3115,6 @@
       "code": "TA_PARENT_TO_CHILD_RELATIONSHIP",
       "bidirectional": false,
       "displayName": "TA Parent to Child",
-      "publicAccess": "rw------",
       "fromToName": "Parent Of",
       "externalAccess": false,
       "displayFromToName": "Parent Of",
@@ -3135,13 +3133,14 @@
           "code": "TA_PERSON_TET"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ]
+      }
     },
     {
       "lastUpdated": "2020-11-20T09:06:23.348",
@@ -3151,7 +3150,6 @@
       "code": "Person to Case",
       "bidirectional": false,
       "displayName": "Person to Case",
-      "publicAccess": "rw------",
       "fromToName": "Person to Case",
       "externalAccess": false,
       "displayFromToName": "Person to Case",
@@ -3169,13 +3167,14 @@
           "id": "f1AyMswryyQ"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ]
+      }
     }
   ]
 }
