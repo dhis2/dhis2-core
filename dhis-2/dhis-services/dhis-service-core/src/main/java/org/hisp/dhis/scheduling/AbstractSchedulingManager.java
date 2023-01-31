@@ -321,8 +321,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 : "TYPE:" + configuration.getJobType().name();
             MDC.put( "sessionId", identifier );
             // run the actual job
-            jobService.getJob( type ).execute( configuration, progress );
             eventHookPublisher.publishEvent( EventUtils.schedulerStart( configuration ) );
+            jobService.getJob( type ).execute( configuration, progress );
             Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
             {
