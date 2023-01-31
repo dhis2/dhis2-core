@@ -67,13 +67,6 @@ public class DefaultVisualizationService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Visualization> getAll()
-    {
-        return visualizationStore.getAll();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public Visualization getVisualization( long id )
     {
         return visualizationStore.get( id );

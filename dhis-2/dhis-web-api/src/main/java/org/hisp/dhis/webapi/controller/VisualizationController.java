@@ -70,8 +70,6 @@ public class VisualizationController
 
     private final DimensionService dimensionService;
 
-    private final IdentifiableObjectManager manager;
-
     private final I18nManager i18nManager;
 
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
@@ -79,7 +77,6 @@ public class VisualizationController
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
-        this.manager = manager;
         this.i18nManager = i18nManager;
     }
 

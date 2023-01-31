@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.visualization;
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 
@@ -55,8 +53,6 @@ public interface VisualizationService
      * @return the Visualization.
      */
     Visualization getVisualization( long id );
-
-    List<Visualization> getAll();
 
     /**
      * Retrieves the Visualization with the given uid.

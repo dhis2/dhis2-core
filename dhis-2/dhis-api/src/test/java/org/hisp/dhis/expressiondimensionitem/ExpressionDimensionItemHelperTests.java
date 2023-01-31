@@ -37,13 +37,13 @@ import org.mockito.Mock;
 /**
  * Test for {@link ExpressionDimensionItemHelper}
  */
-public class ExpressionDimensionItemHelperTests
+class ExpressionDimensionItemHelperTests
 {
     @Mock
     private IdentifiableObjectManager manager;
 
     @Test
-    public void getExpressionItems_returns_empty_collection_when_called_with_null_ExpressionDimensionItem()
+    void getExpressionItems_returns_empty_collection_when_called_with_null_ExpressionDimensionItem()
     {
         // When
         // Then

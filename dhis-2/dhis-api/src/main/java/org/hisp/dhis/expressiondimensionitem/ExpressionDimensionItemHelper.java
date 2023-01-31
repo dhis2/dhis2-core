@@ -46,6 +46,12 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
  */
 public class ExpressionDimensionItemHelper
 {
+
+    private ExpressionDimensionItemHelper()
+    {
+        throw new UnsupportedOperationException( "helper" );
+    }
+
     /**
      * Provides collection of selected item types inside the expression
      *
