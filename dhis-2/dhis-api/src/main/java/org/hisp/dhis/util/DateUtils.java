@@ -31,7 +31,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -45,6 +47,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.CheckForNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -236,6 +240,38 @@ public class DateUtils
     public static Date minusOneDay( Date date )
     {
         return new Date( date.getTime() - MS_PER_DAY );
+    }
+
+    /**
+     * The provided date at the start of the day {@code 00:00:00}.
+     *
+     * @param date maybe null
+     * @return same date but with time component at the start of the day
+     */
+    public static @CheckForNull Date atStartOfDay( @CheckForNull Date date )
+    {
+        return date == null ? null : localDateTimeToDate( dateToLocalDateTime( date ).with( LocalTime.MIN ) );
+    }
+
+    /**
+     * The provided date at the end of the day {@code 23:59:59}.
+     *
+     * @param date maybe null
+     * @return same date but with time component at the end of the day
+     */
+    public static @CheckForNull Date atEndOfDay( @CheckForNull Date date )
+    {
+        return date == null ? null : localDateTimeToDate( dateToLocalDateTime( date ).with( LocalTime.MAX ) );
+    }
+
+    private static LocalDateTime dateToLocalDateTime( Date date )
+    {
+        return LocalDateTime.ofInstant( date.toInstant(), ZoneId.systemDefault() );
+    }
+
+    private static Date localDateTimeToDate( LocalDateTime localDateTime )
+    {
+        return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
 
     /**

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.period;
 
+import static org.hisp.dhis.util.DateUtils.atEndOfDay;
+import static org.hisp.dhis.util.DateUtils.atStartOfDay;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -105,8 +108,8 @@ public class Period
         this.isoPeriod = isoRelativePeriod.toString();
         this.name = isoRelativePeriod.toString();
         this.code = isoRelativePeriod.toString();
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
+        this.setStartDate( atStartOfDay( new Date() ) );
+        this.setEndDate( atEndOfDay( new Date() ) );
     }
 
     public Period( Period period )
@@ -114,7 +117,7 @@ public class Period
         this.id = period.getId();
         this.periodType = period.getPeriodType();
         this.startDate = period.getStartDate();
-        this.endDate = period.getEndDate();
+        this.endDate = atEndOfDay( period.getEndDate() );
         this.name = period.getName();
         this.isoPeriod = period.getIsoDate();
         this.dateField = period.getDateField();
@@ -124,14 +127,14 @@ public class Period
     {
         this.periodType = periodType;
         this.startDate = startDate;
-        this.endDate = endDate;
+        this.endDate = atEndOfDay( endDate );
     }
 
     protected Period( PeriodType periodType, Date startDate, Date endDate, String isoPeriod )
     {
         this.periodType = periodType;
         this.startDate = startDate;
-        this.endDate = endDate;
+        this.endDate = atEndOfDay( endDate );
         this.isoPeriod = isoPeriod;
     }
 
@@ -328,7 +331,7 @@ public class Period
      */
     public String getCacheKey()
     {
-        return periodType.getName() + "-" + startDate.toString() + "-" + endDate.toString();
+        return periodType.getName() + "-" + getStartDateString() + "-" + getEndDateString();
     }
 
     // -------------------------------------------------------------------------
@@ -403,7 +406,7 @@ public class Period
 
     public void setEndDate( Date endDate )
     {
-        this.endDate = endDate;
+        this.endDate = atEndOfDay( endDate );
     }
 
     @JsonProperty
