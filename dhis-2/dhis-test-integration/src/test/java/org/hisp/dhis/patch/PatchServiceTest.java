@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -52,7 +53,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -99,7 +99,7 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         manager.save( deB );
         assertTrue( dataElementGroup.getMembers().isEmpty() );
         Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid(), deB.getUid() ) ) );
+            .addMutation( new Mutation( "dataElements", List.of( deA.getUid(), deB.getUid() ) ) );
         patchService.apply( patch, dataElementGroup );
         assertEquals( "Updated Name", dataElementGroup.getName() );
         assertEquals( 2, dataElementGroup.getMembers().size() );
@@ -117,12 +117,12 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         dataElementGroup.addDataElement( deB );
         assertEquals( 2, dataElementGroup.getMembers().size() );
         Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) ).addMutation(
-            new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
+            new Mutation( "dataElements", List.of( deA.getUid() ), Mutation.Operation.DELETION ) );
         patchService.apply( patch, dataElementGroup );
         assertEquals( "Updated Name", dataElementGroup.getName() );
         assertEquals( 1, dataElementGroup.getMembers().size() );
         patch = new Patch().addMutation(
-            new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
+            new Mutation( "dataElements", List.of( deB.getUid() ), Mutation.Operation.DELETION ) );
         patchService.apply( patch, dataElementGroup );
         assertTrue( dataElementGroup.getMembers().isEmpty() );
     }

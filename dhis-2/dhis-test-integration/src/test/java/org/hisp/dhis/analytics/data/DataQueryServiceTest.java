@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +49,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -104,6 +108,8 @@ import com.google.common.collect.Sets;
  */
 class DataQueryServiceTest extends SingleSetupIntegrationTestBase
 {
+    private Attribute atA;
+
     private Program prA;
 
     private DataElement deA;
@@ -132,9 +138,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
 
     private Indicator inB;
 
-    private TrackedEntityAttribute atA;
+    private TrackedEntityAttribute teaA;
 
-    private TrackedEntityAttribute atB;
+    private TrackedEntityAttribute teaB;
 
     private ProgramTrackedEntityAttributeDimensionItem patA;
 
@@ -174,6 +180,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
     private DataQueryService dataQueryService;
 
     @Autowired
+    private AttributeService attributeService;
+
+    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
@@ -201,6 +210,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
     public void setUpTest()
     {
         super.userService = internalUserService;
+        atA = createAttribute( 'A' );
+        atA.setUnique( true );
+        atA.setDataElementAttribute( true );
+        attributeService.addAttribute( atA );
         prA = createProgram( 'A' );
         programService.addProgram( prA );
         deA = createDataElement( 'A' );
@@ -237,12 +250,12 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         inGroupA.getMembers().add( inA );
         inGroupA.getMembers().add( inB );
         idObjectManager.save( inGroupA );
-        atA = createTrackedEntityAttribute( 'A' );
-        atB = createTrackedEntityAttribute( 'B' );
-        idObjectManager.save( atA );
-        idObjectManager.save( atB );
-        patA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
-        patB = new ProgramTrackedEntityAttributeDimensionItem( prA, atB );
+        teaA = createTrackedEntityAttribute( 'A' );
+        teaB = createTrackedEntityAttribute( 'B' );
+        idObjectManager.save( teaA );
+        idObjectManager.save( teaB );
+        patA = new ProgramTrackedEntityAttributeDimensionItem( prA, teaA );
+        patB = new ProgramTrackedEntityAttributeDimensionItem( prA, teaB );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -294,6 +307,12 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         deGroupSetA.addDataElementGroup( deGroupB );
         deGroupSetA.addDataElementGroup( deGroupC );
         dataElementService.updateDataElementGroupSet( deGroupSetA );
+        attributeService.addAttributeValue( deA, new AttributeValue( atA, "AVA" ) );
+        attributeService.addAttributeValue( deB, new AttributeValue( atA, "AVB" ) );
+        attributeService.addAttributeValue( deC, new AttributeValue( atA, "AVC" ) );
+        attributeService.addAttributeValue( deD, new AttributeValue( atA, "AVD" ) );
+        attributeService.addAttributeValue( deE, new AttributeValue( atA, "AVE" ) );
+        attributeService.addAttributeValue( deF, new AttributeValue( atA, "AVF" ) );
 
         // ---------------------------------------------------------------------
         // Inject user
@@ -385,6 +404,19 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
         assertEquals( items, actual.getItems() );
+    }
+
+    @Test
+    void testGetDimensionDataByAttribute()
+    {
+        List<DimensionalItemObject> items = List.of( deA, deB, deC );
+        List<String> itemAttributeValues = List.of( deA.getCode(), deB.getCode(), deC.getCode() );
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemAttributeValues,
+            (Date) null, null, false, IdScheme.CODE );
+        assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
+        assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
+        assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
