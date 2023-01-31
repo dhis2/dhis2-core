@@ -377,12 +377,16 @@ public class DataApprovalController
         @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam( required = false ) Set<String> ds,
         @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) Set<String> wf,
         @OpenApi.Param( Period.class ) @RequestParam String pe,
-        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou )
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ouFilter,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( ou );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
@@ -403,7 +407,7 @@ public class DataApprovalController
             for ( CategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    attributeCombo ) );
+                    orgUnitFilter, attributeCombo, attributeOptionCombo ) );
             }
         }
 
