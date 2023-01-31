@@ -50,7 +50,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ForbiddenException;
@@ -58,6 +57,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -103,6 +103,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
+        throws BadRequestException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -175,6 +176,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private void validateDuplicatedAttributeFilters( List<QueryItem> attributeItems )
+        throws BadRequestException
     {
         Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes( attributeItems );
 
@@ -215,6 +217,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+        throws BadRequestException
     {
 
         Set<OrganisationUnit> orgUnits = new HashSet<>();
@@ -245,6 +248,7 @@ public class TrackerTrackedEntityCriteriaMapper
      * QueryOperator is used as operator if not specified.
      */
     private QueryFilter getQueryFilter( String query )
+        throws BadRequestException
     {
         if ( query == null || query.isEmpty() )
         {
@@ -271,6 +275,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private static void validateProgram( String id, Program program )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && program == null )
         {
@@ -279,6 +284,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
+        throws BadRequestException
     {
 
         final String programStage = criteria.getProgramStage();
@@ -304,6 +310,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
@@ -312,6 +319,7 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {

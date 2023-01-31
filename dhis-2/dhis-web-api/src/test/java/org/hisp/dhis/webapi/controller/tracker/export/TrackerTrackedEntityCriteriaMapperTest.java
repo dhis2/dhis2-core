@@ -53,13 +53,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -185,6 +185,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMapping()
+        throws BadRequestException
     {
         criteria.setQuery( "query-test" );
         criteria.setOuMode( OrganisationUnitSelectionMode.DESCENDANTS );
@@ -236,6 +237,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+        throws BadRequestException
     {
         mapper.map( criteria );
 
@@ -245,6 +247,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingProgramEnrollmentStartDate()
+        throws BadRequestException
     {
         Date date = parseDate( "2022-12-13" );
         criteria.setEnrollmentEnrolledAfter( date );
@@ -256,6 +259,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingProgramEnrollmentEndDate()
+        throws BadRequestException
     {
         Date date = parseDate( "2022-12-13" );
         criteria.setEnrollmentEnrolledBefore( date );
@@ -267,6 +271,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testFilter()
+        throws BadRequestException
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
@@ -298,6 +303,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testFilterWhenTEAHasMultipleFilters()
+        throws BadRequestException
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
 
@@ -364,6 +370,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testAttributes()
+        throws BadRequestException
     {
         criteria.setAttribute( Set.of( TEA_1_UID, TEA_2_UID ) );
 
@@ -399,6 +406,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingProgram()
+        throws BadRequestException
     {
         criteria.setProgram( PROGRAM_UID );
 
@@ -419,6 +427,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingProgramStage()
+        throws BadRequestException
     {
         criteria.setProgram( PROGRAM_UID );
         criteria.setProgramStage( PROGRAM_STAGE_UID );
@@ -450,6 +459,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingTrackedEntityType()
+        throws BadRequestException
     {
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
 
@@ -470,6 +480,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingOrgUnit()
+        throws BadRequestException
     {
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
 
@@ -503,6 +514,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingAssignedUsers()
+        throws BadRequestException
     {
         criteria.setAssignedUser( "IsdLBTOBzMi;invalid;l5ab8q5skbB" );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
@@ -516,6 +528,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingOrderParams()
+        throws BadRequestException
     {
         OrderCriteria order1 = OrderCriteria.of( "trackedEntity", OrderParam.SortDirection.ASC );
         OrderCriteria order2 = OrderCriteria.of( "createdAt", OrderParam.SortDirection.DESC );
@@ -530,6 +543,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Test
     void testMappingOrderParamsNoOrder()
+        throws BadRequestException
     {
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 

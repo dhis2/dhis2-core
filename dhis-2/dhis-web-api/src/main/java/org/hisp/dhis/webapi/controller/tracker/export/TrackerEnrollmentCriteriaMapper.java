@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -84,6 +84,7 @@ public class TrackerEnrollmentCriteriaMapper
 
     @Transactional( readOnly = true )
     public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria criteria )
+        throws BadRequestException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -125,6 +126,7 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private static void validateProgram( String id, Program program )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && program == null )
         {
@@ -133,6 +135,7 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
@@ -141,6 +144,7 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private void validateTrackedEntityInstance( String id, TrackedEntityInstance trackedEntityInstance )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityInstance == null )
         {
@@ -149,6 +153,7 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+        throws BadRequestException
     {
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();

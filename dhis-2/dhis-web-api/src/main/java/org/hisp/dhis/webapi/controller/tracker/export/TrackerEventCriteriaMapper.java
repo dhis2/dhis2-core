@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +50,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BadRequestException;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryItem;
@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -134,6 +135,7 @@ class TrackerEventCriteriaMapper
     }
 
     public EventSearchParams map( TrackerEventCriteria criteria )
+        throws BadRequestException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -165,10 +167,12 @@ class TrackerEventCriteriaMapper
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( criteria.getOrder() );
-        List<QueryItem> dataElements = dataElementOrders.keySet()
-            .stream()
-            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
-            .collect( Collectors.toList() );
+
+        List<QueryItem> dataElements = new ArrayList<>();
+        for ( String order : dataElementOrders.keySet() )
+        {
+            dataElements.add( parseQueryItem( order, this::dataElementToQueryItem ) );
+        }
 
         Map<String, SortDirection> attributeOrders = getAttributesFromOrder( criteria.getOrder() );
         List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
@@ -178,10 +182,11 @@ class TrackerEventCriteriaMapper
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
 
-        List<QueryItem> filters = criteria.getFilter()
-            .stream()
-            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
-            .collect( Collectors.toList() );
+        List<QueryItem> filters = new ArrayList<>();
+        for ( String eventCriteria : criteria.getFilter() )
+        {
+            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
+        }
 
         Set<String> programInstances = criteria.getEnrollments().stream()
             .filter( CodeGenerator::isValidUid )
@@ -219,6 +224,7 @@ class TrackerEventCriteriaMapper
     }
 
     private static void validateProgram( String program, Program pr )
+        throws BadRequestException
     {
         if ( !StringUtils.isEmpty( program ) && pr == null )
         {
@@ -227,6 +233,7 @@ class TrackerEventCriteriaMapper
     }
 
     private static void validateProgramStage( String programStage, ProgramStage ps )
+        throws BadRequestException
     {
         if ( !StringUtils.isEmpty( programStage ) && ps == null )
         {
@@ -235,6 +242,7 @@ class TrackerEventCriteriaMapper
     }
 
     private static void validateOrgUnit( String orgUnit, OrganisationUnit ou )
+        throws BadRequestException
     {
         if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
         {
@@ -256,6 +264,7 @@ class TrackerEventCriteriaMapper
     }
 
     private void validateTrackedEntity( String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+        throws BadRequestException
     {
         if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )
         {
@@ -276,6 +285,7 @@ class TrackerEventCriteriaMapper
 
     private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
         ProgramStage ps )
+        throws BadRequestException
     {
         if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
         {
@@ -288,6 +298,7 @@ class TrackerEventCriteriaMapper
     }
 
     private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
+        throws BadRequestException
     {
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream()
@@ -323,6 +334,7 @@ class TrackerEventCriteriaMapper
     }
 
     private void validateFilterAttributes( List<QueryItem> queryItems )
+        throws BadRequestException
     {
         Set<String> attributes = new HashSet<>();
         Set<String> duplicates = new HashSet<>();
@@ -382,6 +394,7 @@ class TrackerEventCriteriaMapper
     }
 
     private QueryItem dataElementToQueryItem( String item )
+        throws BadRequestException
     {
         DataElement de = dataElementService.getDataElement( item );
 
@@ -394,6 +407,7 @@ class TrackerEventCriteriaMapper
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
+        throws BadRequestException
     {
         if ( order == null || order.isEmpty() )
         {
@@ -405,6 +419,7 @@ class TrackerEventCriteriaMapper
     }
 
     private void validateOrderParams( List<OrderCriteria> order )
+        throws BadRequestException
     {
         Set<String> requestProperties = order.stream()
             .map( OrderCriteria::getField )

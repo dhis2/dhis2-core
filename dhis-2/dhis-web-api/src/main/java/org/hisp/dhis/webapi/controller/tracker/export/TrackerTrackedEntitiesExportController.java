@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -93,6 +94,7 @@ public class TrackerTrackedEntitiesExportController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        throws BadRequestException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
@@ -127,7 +129,8 @@ public class TrackerTrackedEntitiesExportController
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
-        throws IOException
+        throws IOException,
+        BadRequestException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
