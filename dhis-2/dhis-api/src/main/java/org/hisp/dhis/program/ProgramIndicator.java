@@ -159,6 +159,8 @@ public class ProgramIndicator
         case FIRST:
         case LAST:
         case LAST_IN_PERIOD:
+        case MAX_SUM_ORG_UNIT:
+        case MIN_SUM_ORG_UNIT:
             return AggregationType.SUM;
         case FIRST_AVERAGE_ORG_UNIT:
         case LAST_AVERAGE_ORG_UNIT:

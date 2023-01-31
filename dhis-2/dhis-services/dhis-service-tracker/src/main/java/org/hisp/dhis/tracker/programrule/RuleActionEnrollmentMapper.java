@@ -50,15 +50,15 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignValueExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ErrorWarningRuleAction;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorOnCompleteExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.executor.ValidationRuleAction;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.AssignAttributeExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.SetMandatoryFieldExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowErrorOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowWarningExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
 @Service( "org.hisp.dhis.tracker.programrule.RuleActionEnrollmentMapper" )
@@ -103,7 +103,7 @@ class RuleActionEnrollmentMapper
         if ( ruleAction instanceof RuleActionAssign )
         {
             RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignValueExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
+            return new AssignAttributeExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
         }
         if ( ruleAction instanceof RuleActionSetMandatoryField )
         {
@@ -114,25 +114,25 @@ class RuleActionEnrollmentMapper
         {
             RuleActionShowError action = (RuleActionShowError) ruleAction;
             return new ShowErrorExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionShowWarning )
         {
             RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
             return new ShowWarningExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionErrorOnCompletion )
         {
             RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
             return new ShowErrorOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionWarningOnCompletion )
         {
             RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
             return new ShowWarningOnCompleteExecutor(
-                new ErrorWarningRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {

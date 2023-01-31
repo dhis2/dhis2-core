@@ -329,6 +329,45 @@ class ProgramRuleTest extends TrackerTest
         assertNoErrorsAndNoWarnings( importReport );
     }
 
+    @Test
+    void shouldNotImportWithWhenDataElementHasValue()
+        throws IOException
+    {
+        showErrorWhenVariableHasValueRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_completed_enrollment_event.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertHasOnlyErrors( importReport, E1300 );
+    }
+
+    @Test
+    void shouldImportWithNoWarningsWhenDataElementHasNoValue()
+        throws IOException
+    {
+        showErrorWhenVariableHasValueRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_event_with_no_data_value.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertNoErrorsAndNoWarnings( importReport );
+    }
+
+    @Test
+    void shouldImportWithNoWarningsWhenDataElementHasNullValue()
+        throws IOException
+    {
+        showErrorWhenVariableHasValueRule();
+        TrackerImportParams params = fromJson(
+            "tracker/programrule/tei_enrollment_event_with_null_data_value.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( params );
+
+        assertNoErrorsAndNoWarnings( importReport );
+    }
+
     private void alwaysTrueErrorProgramRule()
     {
         storeProgramRule( 'A', program, ProgramRuleActionType.SHOWERROR );
@@ -379,6 +418,17 @@ class ProgramRuleTest extends TrackerTest
         ProgramRule programRule = createProgramRule( 'J', program, programStageOnComplete, "true" );
         programRuleService.addProgramRule( programRule );
         ProgramRuleAction programRuleAction = createProgramRuleAction( programRule, SHOWWARNING, dataElement1, null );
+        programRuleActionService.addProgramRuleAction( programRuleAction );
+        programRule.getProgramRuleActions().add( programRuleAction );
+        programRuleService.updateProgramRule( programRule );
+    }
+
+    private void showErrorWhenVariableHasValueRule()
+    {
+        ProgramRule programRule = createProgramRule( 'K', program, programStageOnInsert,
+            "d2:hasValue(#{ProgramRuleVariableA})" );
+        programRuleService.addProgramRule( programRule );
+        ProgramRuleAction programRuleAction = createProgramRuleAction( programRule, SHOWERROR, null, null );
         programRuleActionService.addProgramRuleAction( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         programRuleService.updateProgramRule( programRule );
