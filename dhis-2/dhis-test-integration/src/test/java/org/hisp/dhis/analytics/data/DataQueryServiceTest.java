@@ -295,9 +295,11 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         deGroupSetA.addDataElementGroup( deGroupB );
         deGroupSetA.addDataElementGroup( deGroupC );
         dataElementService.updateDataElementGroupSet( deGroupSetA );
+
         // ---------------------------------------------------------------------
         // Inject user
         // ---------------------------------------------------------------------
+
         UserRole role = createUserRole( 'A', "ALL" );
         userService.addUserRole( role );
         User user = makeUser( "A" );
@@ -312,6 +314,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
+
     @Test
     void testGetDimensionalObjects()
     {
@@ -526,8 +529,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> filterParams = new HashSet<>();
         filterParams.add(
             "ou:" + ouA.getUid() + ";" + ouB.getUid() + ";" + ouC.getUid() + ";" + ouD.getUid() + ";" + ouE.getUid() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 3, params.getPeriods().size() );
@@ -543,8 +548,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             + deC.getDimensionItem() + ";" + deD.getUid() );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getUid() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 1, params.getFilterOrganisationUnits().size() );
@@ -558,8 +565,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             + pdA.getDimensionItem() + ";" + pdB.getDimensionItem() );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramDataElements().size() );
@@ -574,8 +583,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             + patA.getDimensionItem() + ";" + patB.getDimensionItem() );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -591,8 +602,11 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             + ";" + patB.getDimensionItem( IdScheme.CODE ) );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getCode() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).inputIdScheme( IdScheme.CODE ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .inputIdScheme( IdScheme.CODE )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -606,8 +620,11 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "dx:" + deA.getCode() + ";" + deB.getCode() + ";" + inA.getCode() );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getCode() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).inputIdScheme( IdScheme.CODE ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .inputIdScheme( IdScheme.CODE )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 1, params.getIndicators().size() );
@@ -625,7 +642,8 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> filterParams = new HashSet<>();
         filterParams
             .add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() + ";" + ouC.getDimensionItem() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
             .filter( filterParams ).build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 3, params.getDataElements().size() );
@@ -643,8 +661,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "pe:LAST_12_MONTHS" );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getDimensionItem() + ";" + ouB.getDimensionItem() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 12, params.getPeriods().size() );
@@ -658,7 +678,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "ou:" + OrganisationUnit.KEY_USER_ORGUNIT );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 2, params.getDataElements().size() );
@@ -672,7 +694,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "ou:OU_GROUP-" + ouGroupA.getUid() );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 3, params.getOrganisationUnits().size() );
         assertEquals( 2, params.getDataElements().size() );
@@ -686,7 +710,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "ou:LEVEL-2" );
         dimensionParams.add( "dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem() );
         dimensionParams.add( "pe:2011;2012" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         assertEquals( 2, params.getOrganisationUnits().size() );
         assertEquals( 2, params.getDataElements().size() );
@@ -699,7 +725,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx" );
         dimensionParams.add( "pe:2012,2012S1,2012S2" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
             () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
@@ -710,7 +738,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "pe" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
             () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
@@ -721,7 +751,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
             () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
@@ -732,7 +764,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "yebo:2012,2012S1,2012S2" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7125,
             () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
@@ -743,7 +777,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou:aTr6yTgX7t5;gBgf2G2j4GR" );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .build();
         assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
             () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
@@ -756,8 +792,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( "pe:2013;2012Q4;2012S2" );
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "ou:" + ouA.getUid() );
-        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams )
-            .filter( filterParams ).build();
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .filter( filterParams )
+            .build();
         DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         List<DimensionalItemObject> periods = params.getPeriods();
         assertEquals( 3, periods.size() );
