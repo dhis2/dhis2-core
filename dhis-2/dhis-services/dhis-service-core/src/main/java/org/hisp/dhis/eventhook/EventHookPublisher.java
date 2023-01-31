@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventHookPublisher
 {
-    private static final List<?> BLACKLIST = List.of(
+    private static final List<?> BLOCKLIST = List.of(
         User.class );
 
     private final DhisConfigurationProvider dhisConfig;
@@ -59,7 +59,7 @@ public class EventHookPublisher
         }
 
         if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED )
-            && !BLACKLIST.contains( event.getObject().getClass() ) )
+            && !BLOCKLIST.contains( event.getObject().getClass() ) )
         {
             publisher.publishEvent( event );
         }

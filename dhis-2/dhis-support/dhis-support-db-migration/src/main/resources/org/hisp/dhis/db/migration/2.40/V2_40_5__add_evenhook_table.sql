@@ -1,9 +1,7 @@
 
 -- Add eventhook table
 
-drop table if exists eventhook;
-
-create table eventhook (
+create table if not exists eventhook (
     eventhookid int8 not null,
     uid varchar(11) null,
     code varchar(100) null,
