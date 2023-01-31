@@ -386,7 +386,7 @@ public class DataApprovalController
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
         OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
-        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( ou );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
