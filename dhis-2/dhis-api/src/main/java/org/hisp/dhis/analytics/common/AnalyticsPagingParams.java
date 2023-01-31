@@ -39,7 +39,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder( toBuilder = true )
-public class AnalyticsPagingParams
+public class AnalyticsPagingParams implements IdentifiableKey
 {
     private Integer page;
 
@@ -88,5 +88,16 @@ public class AnalyticsPagingParams
     public int getPageSizePlusOne()
     {
         return getPageSizeWithDefault() + 1;
+    }
+
+    public String getKey()
+    {
+        StringBuilder key = new StringBuilder();
+        key.append( isPaging() )
+            .append( showTotalPages() )
+            .append( getPageWithDefault() )
+            .append( getPageSizeWithDefault() );
+
+        return key.toString();
     }
 }

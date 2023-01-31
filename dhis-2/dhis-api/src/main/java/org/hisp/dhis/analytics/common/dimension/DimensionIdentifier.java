@@ -35,6 +35,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 
+import org.hisp.dhis.analytics.common.IdentifiableKey;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -46,7 +47,7 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
-public class DimensionIdentifier<D extends UidObject>
+public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 {
     private final ElementWithOffset<Program> program;
 
@@ -115,5 +116,27 @@ public class DimensionIdentifier<D extends UidObject>
         TEI,
         ENROLLMENT,
         EVENT
+    }
+
+    public String getKey()
+    {
+        StringBuilder key = new StringBuilder();
+
+        if ( program != null && program.isPresent() )
+        {
+            key.append( program.getElement().getUid() );
+        }
+
+        if ( programStage != null && programStage.isPresent() )
+        {
+            key.append( programStage.getElement().getUid() );
+        }
+
+        if ( dimension != null )
+        {
+            key.append( dimension.getUid() );
+        }
+
+        return key.toString();
     }
 }

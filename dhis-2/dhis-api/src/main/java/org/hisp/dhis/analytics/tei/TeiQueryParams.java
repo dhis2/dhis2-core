@@ -31,7 +31,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.common.CommonParams;
+import org.hisp.dhis.analytics.common.IdentifiableKey;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
@@ -44,9 +46,44 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Getter
 @Setter
 @Builder( toBuilder = true )
-public class TeiQueryParams
+public class TeiQueryParams implements IdentifiableKey
 {
     private final TrackedEntityType trackedEntityType;
 
     private final CommonParams commonParams;
+
+    /**
+     * Returns a unique key representing this query. This key is suitable for
+     * caching.
+     */
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        key.addIgnoreNull( "teiType", trackedEntityType );
+        key.addIgnoreNull( "paging", commonParams.getPagingParams().wrappedKey() );
+
+        commonParams.getOrderParams().forEach( param -> key.add( "ordering", param.wrappedKey() ) );
+        commonParams.getDimensionIdentifiers().forEach( dim -> key.add( "dimensionIdentifiers", dim.wrappedKey() ) );
+        commonParams.getPrograms().forEach( program -> key.add( "programs", program.getUid() ) );
+        commonParams.getHeaders().forEach( header -> key.addIgnoreNull( "headers", header ) );
+
+        // TODO: Review all missing keys. Some might need to be supported.
+        //            .addIgnoreNull( "organisationUnitMode", organisationUnitMode )
+        //            .addIgnoreNull( "outputType", outputType )
+        //            .addIgnoreNull( "outputIdScheme", outputIdScheme )
+        //            .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
+        //            .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
+        //            .addIgnoreNull( "geometryOnly", geometryOnly )
+        //            .addIgnoreNull( "clusterSize", clusterSize )
+        //            .addIgnoreNull( "coordinateFields", coordinateFields )
+        //            .addIgnoreNull( "bbox", bbox )
+        //            .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
+        //            .addIgnoreNull( "programStatus", programStatus )
+        //            .addIgnoreNull( "includeMetadataDetails", includeMetadataDetails )
+        //            .addIgnoreNull( "dataIdScheme", dataIdScheme )
+        //            eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
+
+        return key.build();
+    }
 }

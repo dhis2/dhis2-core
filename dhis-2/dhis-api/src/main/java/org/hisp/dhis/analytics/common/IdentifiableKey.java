@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,12 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-
-@Data
-@Builder
-public class AnalyticsSortingParams implements IdentifiableKey
+public interface IdentifiableKey
 {
-    private final DimensionIdentifier<DimensionParam> orderBy;
+    String getKey();
 
-    private final SortDirection sortDirection;
-
-    public String getKey()
+    default String wrappedKey()
     {
-        StringBuilder key = new StringBuilder();
-
-        if ( orderBy != null && orderBy.getDimension() != null )
-        {
-            key.append( orderBy.getDimension().getUid() );
-        }
-
-        if ( sortDirection != null )
-        {
-            key.append( sortDirection.getValue() );
-        }
-
-        return key.toString();
+        return "[" + getKey() + "]";
     }
 }
