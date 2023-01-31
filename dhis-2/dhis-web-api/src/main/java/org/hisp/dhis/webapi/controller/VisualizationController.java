@@ -43,7 +43,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
@@ -73,7 +72,7 @@ public class VisualizationController
     private final I18nManager i18nManager;
 
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
-        IdentifiableObjectManager manager, I18nManager i18nManager )
+        I18nManager i18nManager )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
