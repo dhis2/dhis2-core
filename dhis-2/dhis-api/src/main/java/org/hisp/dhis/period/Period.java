@@ -28,8 +28,12 @@
 package org.hisp.dhis.period;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.Function;
 
 import javax.annotation.CheckForNull;
 
@@ -77,9 +81,12 @@ public class Period
         {
             return false;
         }
-        DateTime from = start == null ? null : new DateTime( start ).withTimeAtStartOfDay();
-        DateTime to = end == null ? null : new DateTime( end ).withTimeAtStartOfDay();
-        DateTime sample = new DateTime( checked ).withTimeAtStartOfDay();
+        ZoneId zoneId = ZoneId.systemDefault();
+        Function<Date, ZonedDateTime> toZonedDate = date -> ZonedDateTime.ofInstant( date.toInstant(), zoneId )
+            .with( LocalTime.MIN );
+        ZonedDateTime from = start == null ? null : toZonedDate.apply( start );
+        ZonedDateTime to = end == null ? null : toZonedDate.apply( end );
+        ZonedDateTime sample = toZonedDate.apply( checked );
         return (from == null || !sample.isBefore( from )) && (to == null || !sample.isAfter( to ));
     }
 
