@@ -32,18 +32,28 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -60,13 +70,16 @@ public class VisualizationController
 
     private final DimensionService dimensionService;
 
+    private final IdentifiableObjectManager manager;
+
     private final I18nManager i18nManager;
 
-    public VisualizationController( final LegendSetService legendSetService, final DimensionService dimensionService,
-        final I18nManager i18nManager )
+    public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
+        IdentifiableObjectManager manager, I18nManager i18nManager )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
+        this.manager = manager;
         this.i18nManager = i18nManager;
     }
 
@@ -141,6 +154,30 @@ public class VisualizationController
                     period.setName( i18nFormat.formatPeriod( period ) );
                 }
             }
+
+            List<BaseDimensionalItemObject> dimensionalItemObjectList = visualization.getDataDimensionItems()
+                .stream()
+                .filter( ddi -> ddi.getExpressionDimensionItem() != null )
+                .flatMap( ddi -> ExpressionDimensionItemHelper.getExpressionItems( manager, ddi ).stream() )
+                .collect( Collectors.toList() );
+
+            visualization.getDataDimensionItems().addAll( dimensionalItemObjectList.stream().map( d -> {
+                DataDimensionItem ddi = new DataDimensionItem();
+                if ( d.getDimensionItemType() == DimensionItemType.DATA_ELEMENT )
+                {
+                    ddi.setDataElement( (DataElement) d );
+                }
+                else if ( d.getDimensionItemType() == DimensionItemType.INDICATOR )
+                {
+                    ddi.setIndicator( (Indicator) d );
+                }
+                else if ( d.getDimensionItemType() == DimensionItemType.PROGRAM_DATA_ELEMENT )
+                {
+                    ddi.setProgramDataElement( (ProgramDataElementDimensionItem) d );
+                }
+
+                return ddi;
+            } ).collect( Collectors.toList() ) );
         }
     }
 }
