@@ -111,15 +111,6 @@ public class DefaultVisualizationService
 
         for ( Visualization visualization : visualizations )
         {
-            //            List<String> columns = visualization.getColumnDimensions();
-            //            columns.remove( expressionDimensionItem.getUid() );
-            //
-            //            List<String> rows = visualization.getRowDimensions();
-            //            rows.remove( expressionDimensionItem.getUid() );
-            //
-            //            List<String> filters = visualization.getFilterDimensions();
-            //            filters.remove( expressionDimensionItem.getUid() );
-
             List<DataDimensionItem> dataDimensionItems = visualization.getDataDimensionItems();
 
             ListIterator<DataDimensionItem> it = dataDimensionItems.listIterator();
