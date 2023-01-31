@@ -55,7 +55,7 @@ public final class EventUtils
         String name = camelCase( type.getSimpleName() );
 
         return Event.builder()
-            .path( "metadata." + name + "." + uid )
+            .path( String.format( "metadata.%s.%s", name, uid ) )
             .meta( Map.of( "op", "delete" ) )
             .object( Map.of( "id", uid ) )
             .build();
@@ -66,7 +66,7 @@ public final class EventUtils
         String name = camelCase( object.getClass().getSimpleName() );
 
         return Event.builder()
-            .path( "metadata." + name + "." + object.getUid() )
+            .path( String.format( "metadata.%s.%s", name, object.getUid() ) )
             .meta( Map.of( "op", op ) )
             .object( object )
             .build();
@@ -75,7 +75,7 @@ public final class EventUtils
     public static Event schedulerStart( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
+            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
             .meta( Map.of( "op", JobStatus.RUNNING ) )
             .object( object )
             .build();
@@ -84,7 +84,7 @@ public final class EventUtils
     public static Event schedulerCompleted( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
+            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
             .meta( Map.of( "op", JobStatus.COMPLETED ) )
             .object( object )
             .build();
@@ -93,7 +93,7 @@ public final class EventUtils
     public static Event schedulerFailed( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
+            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
             .meta( Map.of( "op", JobStatus.FAILED ) )
             .object( object )
             .build();
