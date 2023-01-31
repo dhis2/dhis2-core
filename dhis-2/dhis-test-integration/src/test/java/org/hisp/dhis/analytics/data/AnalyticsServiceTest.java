@@ -259,6 +259,7 @@ class AnalyticsServiceTest
     // 32, deD, peJan
     //
     // --------------------------------------------------------------------
+
     @Override
     public void setUpTest()
         throws IOException,
