@@ -46,11 +46,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class ConsoleTarget extends Target
 {
+    public static final String TYPE = "console";
+
     @JsonProperty( required = true )
     private String clientId = "dhis2-console-" + CodeGenerator.generateUid();
 
     public ConsoleTarget()
     {
-        super( "console" );
+        super( TYPE );
     }
 }

@@ -134,19 +134,19 @@ public class EventHookListener
 
             for ( Target target : eh.getTargets() )
             {
-                if ( "webhook".equals( target.getType() ) )
+                if ( WebhookTarget.TYPE.equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new WebhookHandler( (WebhookTarget) target ) );
                 }
-                else if ( "console".equals( target.getType() ) )
+                else if ( ConsoleTarget.TYPE.equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
                 }
-                else if ( "jms".equals( target.getType() ) )
+                else if ( JmsTarget.TYPE.equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new JmsHandler( (JmsTarget) target ) );
                 }
-                else if ( "kafka".equals( target.getType() ) )
+                else if ( KafkaTarget.TYPE.equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new KafkaHandler( (KafkaTarget) target ) );
                 }

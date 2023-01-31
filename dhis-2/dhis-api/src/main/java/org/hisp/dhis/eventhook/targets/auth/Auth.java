@@ -50,8 +50,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Accessors( chain = true )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
-    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
+    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = HttpBasicAuth.TYPE ),
+    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = ApiTokenAuth.TYPE ),
 } )
 public abstract class Auth
     implements Serializable

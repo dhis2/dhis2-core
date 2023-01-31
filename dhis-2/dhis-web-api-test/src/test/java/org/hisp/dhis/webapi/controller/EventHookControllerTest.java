@@ -33,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.eventhook.targets.auth.ApiTokenAuth;
+import org.hisp.dhis.eventhook.targets.auth.HttpBasicAuth;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -75,11 +78,11 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
 
         JsonObject target = targets.get( 0 ).asObject();
         assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( "webhook", target.getString( "type" ).string() );
+        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
         assertFalse( auth.has( "token" ) );
-        assertEquals( "api-token", auth.getString( "type" ).string() );
+        assertEquals( ApiTokenAuth.TYPE, auth.getString( "type" ).string() );
     }
 
     @Test
@@ -101,12 +104,12 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
 
         JsonObject target = targets.get( 0 ).asObject();
         assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( "webhook", target.getString( "type" ).string() );
+        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
         assertTrue( auth.has( "type", "username" ) );
         assertFalse( auth.has( "password" ) );
-        assertEquals( "http-basic", auth.getString( "type" ).string() );
+        assertEquals( HttpBasicAuth.TYPE, auth.getString( "type" ).string() );
         assertEquals( "admin", auth.getString( "username" ).string() );
     }
 
@@ -130,12 +133,12 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
 
         JsonObject target = targets.get( 0 ).asObject();
         assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( "webhook", target.getString( "type" ).string() );
+        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
 
         JsonObject auth = target.getObject( "auth" );
         assertTrue( auth.has( "type", "username" ) );
         assertFalse( auth.has( "password" ) );
-        assertEquals( "http-basic", auth.getString( "type" ).string() );
+        assertEquals( HttpBasicAuth.TYPE, auth.getString( "type" ).string() );
         assertEquals( "admin", auth.getString( "username" ).string() );
     }
 

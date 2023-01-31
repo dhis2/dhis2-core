@@ -46,6 +46,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class JmsTarget extends Target
 {
+    public static final String TYPE = "jms";
+
     @JsonProperty( required = true )
     private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
 
@@ -69,6 +71,6 @@ public class JmsTarget extends Target
 
     public JmsTarget()
     {
-        super( "jms" );
+        super( TYPE );
     }
 }

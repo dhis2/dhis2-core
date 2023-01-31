@@ -50,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class WebhookTarget extends Target
 {
+    public static final String TYPE = "webhook";
+
     @JsonProperty( required = true )
     private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
 
@@ -67,6 +69,6 @@ public class WebhookTarget extends Target
 
     public WebhookTarget()
     {
-        super( "webhook" );
+        super( TYPE );
     }
 }

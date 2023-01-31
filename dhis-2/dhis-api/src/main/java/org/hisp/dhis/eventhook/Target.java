@@ -55,10 +55,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @EqualsAndHashCode
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ),
-    @JsonSubTypes.Type( value = ConsoleTarget.class, name = "console" ),
-    @JsonSubTypes.Type( value = JmsTarget.class, name = "jms" ),
-    @JsonSubTypes.Type( value = KafkaTarget.class, name = "kafka" )
+    @JsonSubTypes.Type( value = WebhookTarget.class, name = WebhookTarget.TYPE ),
+    @JsonSubTypes.Type( value = ConsoleTarget.class, name = ConsoleTarget.TYPE ),
+    @JsonSubTypes.Type( value = JmsTarget.class, name = JmsTarget.TYPE ),
+    @JsonSubTypes.Type( value = KafkaTarget.class, name = KafkaTarget.TYPE )
 } )
 public abstract class Target
     implements Serializable

@@ -68,15 +68,15 @@ public class EventHookSecretManager
     {
         for ( Target target : eventHook.getTargets() )
         {
-            if ( target.getType().equals( "webhook" ) )
+            if ( target.getType().equals( WebhookTarget.TYPE ) )
             {
                 handleWebhook( (WebhookTarget) target, callback );
             }
-            else if ( target.getType().equals( "jms" ) )
+            else if ( target.getType().equals( JmsTarget.TYPE ) )
             {
                 handleJms( (JmsTarget) target, callback );
             }
-            else if ( target.getType().equals( "kafka" ) )
+            else if ( target.getType().equals( KafkaTarget.TYPE ) )
             {
                 handleKafka( (KafkaTarget) target, callback );
             }
@@ -94,7 +94,7 @@ public class EventHookSecretManager
 
         switch ( auth.getType() )
         {
-        case "http-basic":
+        case HttpBasicAuth.TYPE:
             HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
 
             if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
@@ -102,7 +102,7 @@ public class EventHookSecretManager
                 httpBasicAuth.setPassword( callback.apply( httpBasicAuth.getPassword() ) );
             }
             break;
-        case "api-token":
+        case ApiTokenAuth.TYPE:
             ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
 
             if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
