@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.annotation.CheckForNull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -58,6 +60,28 @@ public class Period
     extends BaseDimensionalItemObject
 {
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+
+    /**
+     * Check if a date is within the date range as provided by a period.
+     *
+     * @param start inclusive, null is open to any time before end
+     * @param end inclusive, null is open to any time after start
+     * @param checked the date checked, maybe null
+     * @return true, if the checked date is non-null and is between start and
+     *         end date (ignoring time both ends inclusive)
+     */
+    public static boolean isDateInTimeFrame( @CheckForNull Date start, @CheckForNull Date end,
+        @CheckForNull Date checked )
+    {
+        if ( checked == null )
+        {
+            return false;
+        }
+        DateTime from = start == null ? null : new DateTime( start ).withTimeAtStartOfDay();
+        DateTime to = end == null ? null : new DateTime( end ).withTimeAtStartOfDay();
+        DateTime sample = new DateTime( checked ).withTimeAtStartOfDay();
+        return (from == null || !sample.isBefore( from )) && (to == null || !sample.isAfter( to ));
+    }
 
     /**
      * Required.
@@ -114,7 +138,7 @@ public class Period
         this.id = period.getId();
         this.periodType = period.getPeriodType();
         this.startDate = period.getStartDate();
-        this.endDate = atEndOfDay( period.getEndDate() );
+        this.endDate = period.getEndDate();
         this.name = period.getName();
         this.isoPeriod = period.getIsoDate();
         this.dateField = period.getDateField();
@@ -124,14 +148,14 @@ public class Period
     {
         this.periodType = periodType;
         this.startDate = startDate;
-        this.endDate = atEndOfDay( endDate );
+        this.endDate = endDate;
     }
 
     protected Period( PeriodType periodType, Date startDate, Date endDate, String isoPeriod )
     {
         this.periodType = periodType;
         this.startDate = startDate;
-        this.endDate = atEndOfDay( endDate );
+        this.endDate = endDate;
         this.isoPeriod = isoPeriod;
     }
 
@@ -328,7 +352,7 @@ public class Period
      */
     public String getCacheKey()
     {
-        return periodType.getName() + "-" + getStartDateString() + "-" + getEndDateString();
+        return periodType.getName() + "-" + startDate.toString() + "-" + endDate.toString();
     }
 
     // -------------------------------------------------------------------------
@@ -403,7 +427,7 @@ public class Period
 
     public void setEndDate( Date endDate )
     {
-        this.endDate = atEndOfDay( endDate );
+        this.endDate = endDate;
     }
 
     @JsonProperty
@@ -424,11 +448,5 @@ public class Period
     public boolean isDefault()
     {
         return Objects.isNull( dateField );
-    }
-
-    private Date atEndOfDay( Date date )
-    {
-        long offset = 999L + 59 * 1000 + 59 * 60 * 1000 + 23 * 60 * 60 * 1000;
-        return new Date( date.getTime() + offset );
     }
 }
