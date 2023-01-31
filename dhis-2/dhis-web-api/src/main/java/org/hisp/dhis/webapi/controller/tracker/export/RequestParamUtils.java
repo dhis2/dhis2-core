@@ -46,6 +46,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.CheckedFunction;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request
@@ -203,12 +204,5 @@ class RequestParamUtils
         }
 
         return queryItem;
-    }
-
-    @FunctionalInterface
-    public interface CheckedFunction<T, R>
-    {
-        R apply( T t )
-            throws BadRequestException;
     }
 }
