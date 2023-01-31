@@ -1,0 +1,1 @@
+alter table orgunitgroup add column if not exists "description" text;
