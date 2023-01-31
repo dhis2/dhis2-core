@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.jsontree.JsonList;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.junit.jupiter.api.Test;
 
 /**
+ * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} using
+ * (mocked) REST requests.
  *
- * @author Jason Pickering
+ * @author Jan Bernitt
  */
-public interface JsonOption extends JsonIdentifiableObject
+class OrganisationUnitGroupControllerTest extends DhisControllerConvenienceTest
 {
-    default JsonList<JsonOptionSet> getOptionSet()
+    @Test
+    void testCreateWithDescription()
     {
-        return getList( "optionSet", JsonOptionSet.class );
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test', 'description': 'desc' }" ) );
+
+        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
+            .as( JsonIdentifiableObject.class ).getDescription() );
     }
 
-    default Number getSortOrder()
+    @Test
+    void testUpdateWithDescription()
     {
-        return getNumber( "sortOrder" ).number();
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test'}" ) );
+
+        assertStatus( HttpStatus.OK, PATCH( "/organisationUnitGroups/" + id + "?importReportMode=ERRORS", "["
+            + "{'op': 'add', 'path': '/description', 'value': 'desc' }"
+            + "]" ) );
+
+        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
+            .as( JsonIdentifiableObject.class ).getDescription() );
+
     }
 }
