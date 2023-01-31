@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -266,12 +265,12 @@ public class DateUtils
 
     private static LocalDateTime dateToLocalDateTime( Date date )
     {
-        return LocalDateTime.ofInstant( date.toInstant(), ZoneId.systemDefault() );
+        return LocalDateTime.ofInstant( date.toInstant(), ZoneOffset.UTC );
     }
 
-    private static Date localDateTimeToDate( LocalDateTime localDateTime )
+    private static Date localDateTimeToDate( LocalDateTime dateTime )
     {
-        return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
+        return Date.from( dateTime.atZone( ZoneOffset.UTC ).toInstant() );
     }
 
     /**
