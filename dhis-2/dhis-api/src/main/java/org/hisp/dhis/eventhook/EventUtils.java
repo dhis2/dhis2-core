@@ -30,6 +30,7 @@ package org.hisp.dhis.eventhook;
 import java.util.Map;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 
 import com.google.common.base.CaseFormat;
@@ -71,28 +72,28 @@ public final class EventUtils
             .build();
     }
 
-    public static Event schedulerStart( BaseIdentifiableObject object )
+    public static Event schedulerStart( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getUid() )
+            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
             .meta( Map.of( "op", JobStatus.RUNNING ) )
             .object( object )
             .build();
     }
 
-    public static Event schedulerCompleted( BaseIdentifiableObject object )
+    public static Event schedulerCompleted( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getUid() )
+            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
             .meta( Map.of( "op", JobStatus.COMPLETED ) )
             .object( object )
             .build();
     }
 
-    public static Event schedulerFailed( BaseIdentifiableObject object )
+    public static Event schedulerFailed( JobConfiguration object )
     {
         return Event.builder()
-            .path( "scheduler." + object.getUid() )
+            .path( "scheduler." + object.getJobType() + "." + object.getUid() )
             .meta( Map.of( "op", JobStatus.FAILED ) )
             .object( object )
             .build();
