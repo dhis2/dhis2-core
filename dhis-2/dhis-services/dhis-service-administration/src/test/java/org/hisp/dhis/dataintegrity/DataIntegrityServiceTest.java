@@ -541,6 +541,12 @@ class DataIntegrityServiceTest
         programIndicator.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
         assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
 
+        programIndicator.setAggregationType( AggregationType.MAX_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MIN_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
         programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD );
         assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
 
