@@ -119,7 +119,7 @@ public class TeiSqlQuery extends BaseRenderable
         this.queryPlaceHolders = queryContext.getParametersPlaceHolder();
     }
 
-    public SqlQuery get()
+    public SqlQuery find()
     {
         countQuery = false;
 

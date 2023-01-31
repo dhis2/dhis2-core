@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.analytics.common.GridHeaders.retainHeadersOnGrid;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
@@ -89,7 +88,7 @@ public class GridAdaptor
         paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), commonQueryRequest, rowsCount );
 
         // Retain only selected headers, if any.
-        retainHeadersOnGrid( grid, teiQueryParams.getCommonParams().getHeaders() );
+        grid.retainColumns( teiQueryParams.getCommonParams().getHeaders() );
 
         return grid;
     }

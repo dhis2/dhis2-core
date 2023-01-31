@@ -1205,6 +1205,8 @@ public class ListGrid
                     removeColumn( getHeaders().get( headerIndex ) );
                 }
             }
+
+            repositionColumns( repositionHeaders( new ArrayList<>( headers ) ) );
         }
     }
 

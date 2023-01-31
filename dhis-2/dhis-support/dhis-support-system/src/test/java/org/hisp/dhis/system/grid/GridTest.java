@@ -63,6 +63,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
+ * Unit tests for {@link ListGrid}.
+ *
  * @author Lars Helge Overland
  */
 class GridTest
@@ -294,7 +296,7 @@ class GridTest
     }
 
     @Test
-    void tetsGetVisibleHeaders()
+    void testGetVisibleHeaders()
     {
         assertEquals( 2, gridA.getVisibleHeaders().size() );
         assertTrue( gridA.getVisibleHeaders().contains( headerA ) );
@@ -949,5 +951,58 @@ class GridTest
         assertEquals( 0, gridA.getHeaders().get( 0 ).getStageOffset() );
 
         assertNull( gridA.getHeaders().get( 1 ).getStageOffset() );
+    }
+
+    @Test
+    void testRetainHeadersOnGrid()
+    {
+        // Given
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+
+        // When
+        grid.retainColumns( headers );
+
+        // Then
+        assertEquals( 2, grid.getHeaderWidth(), "Should have size of 2: getHeaderWidth()" );
+        assertEquals( "headerA", grid.getHeaders().get( 0 ).getName(), "Should be named 'headerA': getName()" );
+        assertEquals( "headerB", grid.getHeaders().get( 1 ).getName(), "Should be named 'headerB': getName()" );
+    }
+
+    @Test
+    void testRetainHeadersOnGridWhenColumnDoesNotExist()
+    {
+        // Given
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        Set<String> nonExistingHeaders = new LinkedHashSet<>( List.of( "headerDoesNotExist" ) );
+
+        // When
+        IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
+            () -> grid.retainColumns( nonExistingHeaders ) );
+
+        // Then
+        assertEquals( "Header param `headerDoesNotExist` does not exist", thrown.getMessage() );
     }
 }

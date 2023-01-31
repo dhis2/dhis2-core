@@ -100,7 +100,7 @@ public class TeiAnalyticsQueryService
 
         try
         {
-            result = Optional.of( queryExecutor.find( new TeiSqlQuery( queryContext ).get() ) );
+            result = Optional.of( queryExecutor.find( new TeiSqlQuery( queryContext ).find() ) );
 
             AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
@@ -146,7 +146,7 @@ public class TeiAnalyticsQueryService
         try
         {
             executionPlanStore.addExecutionPlan( explainId,
-                new TeiSqlQuery( queryContext ).get().getStatement() );
+                new TeiSqlQuery( queryContext ).find().getStatement() );
 
             AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
