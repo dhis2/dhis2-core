@@ -51,7 +51,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,6 +59,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -135,7 +135,8 @@ class TrackerEventCriteriaMapper
     }
 
     public EventSearchParams map( TrackerEventCriteria criteria )
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -251,6 +252,7 @@ class TrackerEventCriteriaMapper
     }
 
     private void validateUser( User user, Program pr, ProgramStage ps )
+        throws ForbiddenException
     {
         if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
         {
@@ -274,6 +276,7 @@ class TrackerEventCriteriaMapper
     }
 
     private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
+        throws ForbiddenException
     {
         if ( attributeOptionCombo != null && !user.isSuper()
             && !aclService.canDataRead( user, attributeOptionCombo ) )

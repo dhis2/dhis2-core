@@ -47,7 +47,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.ForbiddenException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -57,6 +56,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -198,7 +198,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -212,7 +213,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingProgram()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setProgram( PROGRAM_UID );
@@ -235,7 +237,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingProgramStage()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setProgramStage( "programstageuid" );
@@ -258,7 +261,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void shouldReturnOrgUnitWhenCorrectOrgUnitMapped()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setOrgUnit( ou.getUid() );
@@ -283,7 +287,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingTrackedEntity()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setTrackedEntity( "teiuid" );
@@ -309,7 +314,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingOccurredAfterBefore()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -326,7 +332,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingScheduledAfterBefore()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -343,7 +350,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingUpdatedDates()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -363,7 +371,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEnrollmentEnrolledAtDates()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -380,7 +389,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEnrollmentOcurredAtDates()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -397,7 +407,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingAttributeOrdering()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -415,7 +426,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEnrollments()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -429,7 +441,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEvents()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
@@ -441,7 +454,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEventsStripsInvalidUid()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setEvent( "invalidUid;M4pNmLabtXl" );
@@ -453,7 +467,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEventIsNull()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
@@ -464,7 +479,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingEventIsEmpty()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setEvent( " " );
@@ -476,7 +492,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingAssignedUserStripsInvalidUid()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
@@ -488,7 +505,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testMappingAssignedUserIsEmpty()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setAssignedUser( " " );
@@ -512,7 +530,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testOrderByEventSchemaProperties()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
@@ -525,7 +544,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testOrderBySupportedPropertyNotInEventSchema()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setOrder( OrderCriteria.fromOrderString( "enrolledAt:asc" ) );
@@ -566,7 +586,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testFilter()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
@@ -599,7 +620,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testFilterAttributes()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
 
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -633,7 +655,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testFilterWhenDEHasMultipleFilters()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
@@ -657,7 +680,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testFilterAttributesWhenTEAHasMultipleFilters()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
@@ -713,7 +737,8 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void testFilterAttributesUsingOnlyUID()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
