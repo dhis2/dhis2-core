@@ -545,9 +545,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> List<T> getAllByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return List.of();
         }
@@ -568,9 +566,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return List.of();
         }
@@ -589,9 +585,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> long countAllValuesByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return 0;
         }
@@ -974,11 +968,18 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         }
         if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
         {
+            if ( !hasAttributeValues( type ) )
+            {
+                return null;
+            }
+
             Attribute attribute = get( Attribute.class, idScheme.getAttribute() );
+
             if ( attribute == null )
             {
                 throw new InvalidIdentifierReferenceException( "Attribute does not exist: " + idScheme.getAttribute() );
             }
+
             return store.getByUniqueAttributeValue( attribute, value );
         }
         if ( idScheme.is( IdentifiableProperty.ID ) && Integer.parseInt( value ) > 0 )
@@ -1266,11 +1267,27 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @Transactional
     public void removeUserGroupFromSharing( @Nonnull String userGroupUid )
     {
-        List<Schema> schemas = schemaService.getSchemas().stream().filter( Schema::isShareable ).collect(
-            toList() );
+        List<Schema> schemas = schemaService.getSchemas().stream()
+            .filter( Schema::isShareable )
+            .collect( toList() );
 
         IdentifiableObjectStore<?> store = getIdentifiableObjectStore( UserGroup.class );
         schemas.forEach( schema -> store.removeUserGroupFromSharing( userGroupUid, schema.getTableName() ) );
+    }
+
+    /**
+     * Indicates whether the given class type is attribute enabled, i.e. has an
+     * attribute value collection as part of the data model.
+     *
+     * @param <T>
+     * @param type the class type.
+     * @return true if type is attribute enabled.
+     */
+    private <T extends IdentifiableObject> boolean hasAttributeValues( @Nonnull Class<T> type )
+    {
+        Schema schema = schemaService.getDynamicSchema( type );
+
+        return schema != null && schema.hasAttributeValues();
     }
 
     @SuppressWarnings( "unchecked" )
