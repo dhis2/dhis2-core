@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.report.PersistenceReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -110,7 +111,9 @@ class TrackerImportControllerTest
         final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
             csvEventService, new DefaultContextService(), notifier );
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+        mockMvc = MockMvcBuilders.standaloneSetup( controller )
+            .setControllerAdvice( new CrudControllerAdvice() )
+            .build();
     }
 
     @Test
@@ -370,7 +373,8 @@ class TrackerImportControllerTest
         mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) ).andExpect( status().isNotFound() )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isNotFound() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }
