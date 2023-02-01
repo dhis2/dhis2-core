@@ -47,7 +47,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -162,16 +161,13 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Mock
     private I18n i18n;
 
-    @Mock
-    private DataElementService dataElementService;
-
     private DefaultProgramRuleEntityMapperService subject;
 
     @BeforeEach
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
-            dataElementService, constantService, i18nManager );
+            constantService, i18nManager );
 
         setUpProgramRules();
     }
@@ -250,20 +246,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testExceptionIfDataElementIsNull()
-    {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
-
-        assertThrows( RuntimeException.class, () -> subject.toMappedRuleEvent( programStageInstanceA ),
-            "Required DataElement(" + dataElement.getUid() + ") was not found." );
-
-    }
-
-    @Test
     void testMappedRuleEvent()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-
         RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA );
 
         assertEquals( ruleEvent.event(), programStageInstanceA.getUid() );
@@ -284,8 +268,6 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testMappedRuleEventsWithFilter()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
             Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
 
@@ -310,8 +292,6 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testMappedRuleEvents()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-
         List<RuleEvent> ruleEvents = subject
             .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), null );
 

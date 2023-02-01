@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
 
 class OptionControllerTest extends DhisControllerConvenienceTest
@@ -67,5 +72,24 @@ class OptionControllerTest extends DhisControllerConvenienceTest
         // sortOrder 20 should be saved as 2.
         assertEquals( "Uh4HvjK6zg3", response.getString( "options[1].id" ).string() );
         assertEquals( 2, response.getNumber( "options[1].sortOrder" ).intValue() );
+    }
+
+    @Test
+    void testOptionSetsWithDescription()
+    {
+        String id = assertStatus( HttpStatus.CREATED, POST( "/optionSets/",
+            "{'name': 'test', 'version': 2, 'valueType': 'TEXT', 'description':'desc' }" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/options/",
+            "{'optionSet': { 'id':'" + id
+                + "'}, 'code': 'A', 'name': 'Anna', 'description': 'this-is-a', 'sortOrder': 1}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/options/",
+            "{'optionSet': { 'id':'" + id
+                + "'},'code': 'B', 'name': 'Betta', 'description': 'this-is-b', 'sortOrder': 2}" ) );
+
+        JsonOptionSet set = GET( "/optionSets/{id}?fields=id,name,description,options[id,name,description]", id )
+            .content().as( JsonOptionSet.class );
+        assertEquals( "desc", set.getDescription() );
+        assertEquals( List.of( "this-is-a", "this-is-b" ),
+            set.getOptions().toList( JsonIdentifiableObject::getDescription ) );
     }
 }

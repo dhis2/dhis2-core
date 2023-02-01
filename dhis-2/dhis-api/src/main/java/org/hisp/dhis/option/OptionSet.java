@@ -65,9 +65,7 @@ public class OptionSet
 
     private int version;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    private String description;
 
     public OptionSet()
     {
@@ -241,4 +239,15 @@ public class OptionSet
         this.version = version;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 }
