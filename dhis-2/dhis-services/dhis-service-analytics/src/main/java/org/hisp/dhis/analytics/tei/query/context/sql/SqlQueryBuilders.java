@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Singular;
-
-import org.apache.commons.lang3.tuple.Pair;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class JoinsWithConditions extends BaseRenderable
+/**
+ * Utility class of common methods used in the sql query builders.
+ */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class SqlQueryBuilders
 {
-    @Singular
-    private final List<Pair<Renderable, Renderable>> tablesWithJoinConditions;
-
-    @Override
-    public String render()
+    public static boolean isNotPeriodDimension( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
-        return tablesWithJoinConditions.stream()
-            .map( this::renderPair )
-            .collect( joining( EMPTY ) );
+        return !dimensionIdentifier.getDimension().isPeriodDimension();
     }
 
-    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
+    public static boolean hasRestrictions( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
-        return " left join " + tableWithJoinCondition.getKey().render() + " on "
-            + tableWithJoinCondition.getValue().render();
+        return dimensionIdentifier.getDimension().hasRestrictions();
+    }
+
+    public static boolean isOfType( DimensionIdentifier<DimensionParam> dimensionParamDimensionIdentifier,
+        DimensionParamObjectType type )
+    {
+        return dimensionParamDimensionIdentifier.getDimension().getDimensionParamObjectType() == type;
     }
 }

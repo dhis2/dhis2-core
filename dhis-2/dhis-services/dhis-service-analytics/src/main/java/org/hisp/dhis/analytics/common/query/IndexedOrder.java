@@ -31,13 +31,13 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Class to represent a renderables with it's groupId.
+ * Class to represent a renderable with it's index.
  */
 @Data
 @RequiredArgsConstructor( staticName = "of" )
-public class GroupRenderable
+public class IndexedOrder
 {
-    private final String groupId;
+    private final long index;
 
-    private final Renderable renderable;
+    private final Order renderable;
 }

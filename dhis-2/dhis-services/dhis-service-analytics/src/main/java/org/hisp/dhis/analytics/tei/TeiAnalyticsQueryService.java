@@ -45,9 +45,8 @@ import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
-import org.hisp.dhis.analytics.tei.query.TeiSqlQuery;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.QueryContextService;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -70,7 +69,7 @@ public class TeiAnalyticsQueryService
 
     private final GridAdaptor gridAdaptor;
 
-    private final QueryContextService queryContextService;
+    private final SqlQueryCreatorService sqlQueryCreatorService;
 
     private final ExecutionPlanStore executionPlanStore;
 
@@ -88,19 +87,20 @@ public class TeiAnalyticsQueryService
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
 
-        QueryContext queryContext = queryContextService.of( teiQueryParams );
+        SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
+
         Optional<SqlQueryResult> result = Optional.empty();
         long rowsCount = 0;
 
         try
         {
-            result = Optional.of( queryExecutor.find( new TeiSqlQuery( queryContext ).find() ) );
+            result = Optional.of( queryExecutor.find( queryCreator.createForSelect() ) );
 
             AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
             if ( pagingParams.showTotalPages() )
             {
-                rowsCount = queryExecutor.count( new TeiSqlQuery( queryContext ).count() );
+                rowsCount = queryExecutor.count( queryCreator.createForCount() );
             }
         }
         catch ( BadSqlGrammarException ex )
@@ -121,7 +121,7 @@ public class TeiAnalyticsQueryService
      * Postgres tool. The result of the analysis will be returned inside a
      * {@link Grid} object.
      *
-     * @param teiQueryParams
+     * @param teiQueryParams the {@link TeiQueryParams}.
      *
      * @return the populated {@link Grid} object.
      *
@@ -135,19 +135,19 @@ public class TeiAnalyticsQueryService
 
         Grid grid = new ListGrid();
 
-        QueryContext queryContext = queryContextService.of( teiQueryParams );
+        SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
 
         try
         {
             executionPlanStore.addExecutionPlan( explainId,
-                new TeiSqlQuery( queryContext ).find().getStatement() );
+                sqlQueryCreator.createForSelect().getStatement() );
 
             AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
 
             if ( pagingParams.showTotalPages() )
             {
                 executionPlanStore.addExecutionPlan( explainId,
-                    new TeiSqlQuery( queryContext ).count().getStatement() );
+                    sqlQueryCreator.createForCount().getStatement() );
             }
 
             grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( explainId ) );

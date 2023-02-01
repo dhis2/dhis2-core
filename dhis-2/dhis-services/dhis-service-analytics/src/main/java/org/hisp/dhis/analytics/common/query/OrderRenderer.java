@@ -27,49 +27,32 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static java.util.stream.Collectors.mapping;
+import static java.util.Comparator.comparing;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.commons.collection.CollectionUtils;
+
 /**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
- * joined with an AND condition.
+ * renders the root order by clause, respecting the order of the indexed orders.
  */
 @RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
+public class OrderRenderer implements Renderable
 {
-    private final List<GroupableCondition> groupableConditions;
+    private final List<IndexedOrder> indexedOrders;
 
     @Override
     public String render()
     {
-        return AndCondition.of(
-            Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
-    }
+        return RenderableUtils.join(
+            CollectionUtils.emptyIfNull( indexedOrders ).stream()
+                .sorted( comparing( IndexedOrder::getIndex ) )
+                .map( IndexedOrder::getRenderable )
+                .collect( Collectors.toList() ),
+            ", ", "order by " );
 
-    private List<Renderable> getOrCondition()
-    {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
-                GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
     }
 }

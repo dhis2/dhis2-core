@@ -25,51 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
-
-import static java.util.stream.Collectors.mapping;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 
 /**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
- * joined with an AND condition.
+ * A query builder for SQL queries.
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
+public interface SqlQueryBuilder
 {
-    private final List<GroupableCondition> groupableConditions;
+    RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        List<AnalyticsSortingParams> acceptedSortingParams );
 
-    @Override
-    public String render()
-    {
-        return AndCondition.of(
-            Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
-    }
+    List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters();
 
-    private List<Renderable> getOrCondition()
-    {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
-                GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
-    }
+    List<Predicate<AnalyticsSortingParams>> getSortingFilters();
 }

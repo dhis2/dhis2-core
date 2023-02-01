@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.OrCondition;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.common.SqlQuery;
 
+/**
+ * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses
+ * the {@link QueryContext} to get the parameter placeholders. Supports both
+ * select and count queries. A select query can be converted to a count query by
+ * calling {@link #createForCount()}.
+ */
 @RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+public class SqlQueryCreator
 {
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
-
     private final QueryContext queryContext;
 
-    @Override
-    public String render()
+    private final RenderableSqlQuery renderableSqlQuery;
+
+    public SqlQuery createForSelect()
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
+        return new SqlQuery( renderableSqlQuery.render(),
+            queryContext.getParametersPlaceHolder() );
+    }
 
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofFieldName( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+    public SqlQuery createForCount()
+    {
+        return new SqlQuery( renderableSqlQuery.forCount().render(),
+            queryContext.getParametersPlaceHolder() );
     }
 }

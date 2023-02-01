@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,60 +25,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.ContextUtils.enrollmentSelect;
-import static org.hisp.dhis.analytics.tei.query.context.ContextUtils.eventSelect;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
 
-import lombok.RequiredArgsConstructor;
+import java.util.function.BiFunction;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.RenderableDimensionIdentifier;
+import org.hisp.dhis.analytics.common.query.IndexedOrder;
+import org.hisp.dhis.analytics.common.query.LeftJoin;
+import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-@RequiredArgsConstructor( staticName = "of" )
-class StaticEventSortingContext
+public class EnrollmentSortingQueryBuilders
 {
-    private final AnalyticsSortingParams param;
-
-    private final int sequence;
-
-    private final TrackedEntityType trackedEntityType;
-
-    private final QueryContext.ParameterManager parameterManager;
-
-    public SortingContext.PrivateBuilder getSortingContextBuilder()
+    /**
+     * this method will add to the builder the "order" and "left joins" needed
+     * for the given param
+     *
+     * @param param the order param
+     * @param queryContext the context
+     * @param builder the builder
+     */
+    public static void handleEnrollmentOrder(
+        AnalyticsSortingParams param,
+        QueryContext queryContext,
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder,
+        BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> renderableSupplier )
     {
-        // For example asc=pUid.psUid.ouname
+        int sequence = queryContext.getSequence().getAndIncrement();
+
         DimensionIdentifier<DimensionParam> di = param.getOrderBy();
+
         DimensionParam sortingDimension = di.getDimension();
         String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
         String enrollmentAlias = ENR_ALIAS + "_" + sequence;
-        String render = doubleQuote( RenderableDimensionIdentifier.of( di ).render() );
+        TrackedEntityType trackedEntityType = queryContext.getTeiQueryParams().getTrackedEntityType();
+        SqlParameterManager sqlParameterManager = queryContext.getSqlParameterManager();
 
-        return SortingContext.builder()
-            .field( Field.of( uniqueAlias, sortingDimension::getUid, render ) )
-            .order( () -> render + SPACE + param.getSortDirection().name() )
-            .leftJoin( Pair.of(
-                () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
-                    + enrollmentAlias,
-                fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
-            .leftJoin( Pair.of(
-                () -> "("
-                    + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
-                    + ") "
-                    + uniqueAlias,
-                fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
+        builder.leftJoin(
+            LeftJoin.of(
+                () -> "(" + enrollmentSelect(
+                    param.getOrderBy().getProgram(),
+                    trackedEntityType,
+                    sqlParameterManager ) + ") " + enrollmentAlias,
+                fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) );
+
+        builder.orderClause( IndexedOrder.of(
+            param.getIndex(),
+            Order.of(
+                renderableSupplier.apply( uniqueAlias, di ),
+                param.getSortDirection() ) ) );
     }
 }

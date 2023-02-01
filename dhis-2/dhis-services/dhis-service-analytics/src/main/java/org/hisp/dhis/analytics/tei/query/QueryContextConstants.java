@@ -49,11 +49,7 @@ public class QueryContextConstants
 
     public static final String EVT_ALIAS = "evt";
 
-    public static final String EVT_1_ALIAS = "evt_1";
-
     public static final String ENR_ALIAS = "enr";
-
-    public static final String PSI_UID = "programstageinstanceuid";
 
     public static final String PI_UID = "programinstanceuid";
 

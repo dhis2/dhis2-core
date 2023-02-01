@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.common.query;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.Collections;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,18 +39,18 @@ public class From implements Renderable
 {
     private final Renderable mainTable;
 
-    private final JoinsWithConditions joinsWithConditions;
+    private final LeftJoins joinsWithConditions;
 
     @Override
     public String render()
     {
-        return "from " + mainTable.render() + SPACE + joinsWithConditions.render();
+        return RenderableUtils.join( List.of( mainTable, joinsWithConditions ), SPACE, "from " );
     }
 
     public static From ofSingleTableAndAlias( String table, String alias )
     {
         return From.of(
             Table.ofStrings( table, alias ),
-            JoinsWithConditions.of( Collections.emptyList() ) );
+            LeftJoins.of( Collections.emptyList() ) );
     }
 }

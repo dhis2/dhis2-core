@@ -34,6 +34,9 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
+/**
+ * This class represents the sorting parameters for analytics.
+ */
 @Data
 @Builder
 public class AnalyticsSortingParams implements IdentifiableKey
@@ -41,6 +44,8 @@ public class AnalyticsSortingParams implements IdentifiableKey
     private final DimensionIdentifier<DimensionParam> orderBy;
 
     private final SortDirection sortDirection;
+
+    private final long index;
 
     public String getKey()
     {

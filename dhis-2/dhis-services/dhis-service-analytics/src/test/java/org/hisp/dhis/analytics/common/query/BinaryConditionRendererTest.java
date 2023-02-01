@@ -39,7 +39,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 import org.junit.jupiter.api.Test;
@@ -137,7 +138,8 @@ class BinaryConditionRendererTest
             "(\"field\" is null or \"field\" in (:1))",
             List.of(
                 getQueryContextAssertEqualsConsumer( "v1" ),
-                queryContext -> assertEquals( 1, queryContext.getParametersPlaceHolder().size() ) ) );
+                queryContext -> assertEquals( 1,
+                    queryContext.getParametersPlaceHolder().size() ) ) );
     }
 
     @Test
@@ -299,7 +301,8 @@ class BinaryConditionRendererTest
         String expectedSql,
         List<Consumer<QueryContext>> queryContextConsumers )
     {
-        QueryContext queryContext = QueryContext.of( null );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
         String render = BinaryConditionRenderer
             .of( ofFieldName( "field" ), operator, values, valueTypeMapping, queryContext )
             .render();
@@ -310,7 +313,8 @@ class BinaryConditionRendererTest
 
     private Consumer<QueryContext> getQueryContextAssertEqualsConsumer( Object expectedValue )
     {
-        return queryContext -> assertEquals( expectedValue, queryContext.getParametersPlaceHolder().get( "1" ) );
+        return queryContext -> assertEquals( expectedValue,
+            queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     private Consumer<QueryContext> getQueryContextAssertEmptyConsumer()
@@ -321,7 +325,8 @@ class BinaryConditionRendererTest
     @Test
     void testUnrecognizedOpThrowsIllegalArgumentException()
     {
-        QueryContext queryContext = QueryContext.of( null );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
         List<String> values = List.of( "v1", "v2" );
         BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( ofFieldName( "field" ),
             QueryOperator.EW,

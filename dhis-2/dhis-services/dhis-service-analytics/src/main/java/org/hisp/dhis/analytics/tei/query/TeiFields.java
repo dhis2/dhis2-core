@@ -79,6 +79,11 @@ public class TeiFields
         ValueType getType();
     }
 
+    public static boolean isStaticField( String field )
+    {
+        return stream( Static.values() ).anyMatch( f -> f.getAlias().equals( field ) );
+    }
+
     @Getter
     @RequiredArgsConstructor
     private enum Dynamic implements HeaderProvider
@@ -199,7 +204,7 @@ public class TeiFields
      *
      * @return the {@link Stream} of {@link Field}.
      */
-    private static Stream<Field> getStaticFields()
+    public static Stream<Field> getStaticFields()
     {
         return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
@@ -317,7 +322,7 @@ public class TeiFields
     private static GridHeader getCustomGridHeaderForItem( @Nonnull QueryItem queryItem,
         @Nonnull CommonParams commonParams )
     {
-        /**
+        /*
          * If the request contains a query item of value type ORGANISATION_UNIT
          * and the item UID is linked to coordinates (coordinateField), then
          * create a header of ValueType COORDINATE.

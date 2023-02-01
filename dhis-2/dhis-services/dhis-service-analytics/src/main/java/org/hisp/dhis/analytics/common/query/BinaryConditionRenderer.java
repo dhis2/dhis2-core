@@ -48,10 +48,13 @@ import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 
+/**
+ * This class is responsible for rendering a binary condition.
+ */
 @RequiredArgsConstructor( staticName = "of" )
 public class BinaryConditionRenderer extends BaseRenderable
 {
@@ -137,6 +140,9 @@ public class BinaryConditionRenderer extends BaseRenderable
         throw new IllegalQueryException( E2035, queryOperator );
     }
 
+    /**
+     * This class is responsible for mapping a "like" {@link QueryOperator}
+     */
     @RequiredArgsConstructor
     private enum LikeOperatorMapper
     {

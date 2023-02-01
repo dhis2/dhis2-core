@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,48 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.OrCondition;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
-public class EventDataValueCondition extends AbstractCondition
+@RequiredArgsConstructor( staticName = "of" )
+public class TeiAttributeCondition extends BaseRenderable
 {
-    private final QueryContext queryContext;
-
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    private EventDataValueCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        super( dimensionIdentifier, queryContext );
-        this.queryContext = queryContext;
-        this.dimensionIdentifier = dimensionIdentifier;
-    }
-
-    public static EventDataValueCondition of(
-        DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        return new EventDataValueCondition( dimensionIdentifier, queryContext );
-    }
+    private final QueryContext queryContext;
 
     @Override
-    protected Renderable getEventCondition()
+    public String render()
     {
+        List<BinaryConditionRenderer> renderers = new ArrayList<>();
+
         ValueTypeMapping valueTypeMapping = ValueTypeMapping
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
 
-        DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
-        String doUid = dimensionIdentifier.getDimension().getUid();
+        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
+        {
+            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
+                Field.ofFieldName( dimensionIdentifier.getDimension().getUid() ),
+                item.getOperator(),
+                item.getValues(),
+                valueTypeMapping,
+                queryContext );
 
-        return BinaryConditionRenderer.of(
-            RenderableDataValue.of( EVT_ALIAS, doUid, valueTypeMapping ),
-            item.getOperator(),
-            item.getValues(),
-            valueTypeMapping,
-            queryContext );
+            renderers.add( binaryConditionRenderer );
+        }
+
+        return OrCondition.of( renderers ).render();
     }
 }

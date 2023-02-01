@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static java.util.stream.Collectors.toList;
-import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.Objects;
-import java.util.stream.Stream;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor( access = PRIVATE )
-@Builder( toBuilder = true )
-public class Query extends BaseRenderable
+/**
+ * This class is used to hold the parameters that are used to build the query
+ * along with the placeholder that will be used in the query.
+ */
+public class SqlParameterManager
 {
-    private final Select select;
+    private int parameterIndex = 0;
 
-    private final From from;
+    @Getter
+    private final Map<String, Object> parametersPlaceHolder = new HashMap<>();
 
-    private final Where where;
-
-    private final Order order;
-
-    private final LimitOffset limit;
-
-    @Override
-    public String render()
+    public String bindParamAndGetIndex( Object param )
     {
-        return join( Stream.of( select, from, where, order, limit )
-            .filter( Objects::nonNull )
-            .collect( toList() ),
-            SPACE );
+        parameterIndex++;
+        parametersPlaceHolder.put( String.valueOf( parameterIndex ), param );
+
+        return ":" + parameterIndex;
     }
 }

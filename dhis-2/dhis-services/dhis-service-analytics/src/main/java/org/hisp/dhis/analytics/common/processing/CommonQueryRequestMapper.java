@@ -79,6 +79,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 
 /**
  * Component responsible for mapping the input request parameters into the
@@ -98,6 +99,12 @@ public class CommonQueryRequestMapper
 
     private final DimensionIdentifierConverter dimensionIdentifierConverter;
 
+    /**
+     * Maps the input request into the respective queryable objects.
+     *
+     * @param request the input request
+     * @return the {@link CommonParams}
+     */
     public CommonParams map( CommonQueryRequest request )
     {
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
@@ -163,7 +170,9 @@ public class CommonQueryRequestMapper
 
     /**
      * Based on the given arguments, it will extract a list of sorting objects
-     * params, if any.
+     * params, if any. It will return a list of {@link AnalyticsSortingParams},
+     * where index of each element is the index of the sorting param in the
+     * request.
      *
      * @param request the {@link CommonQueryRequest}
      * @param programs the list of {@link Program}
@@ -173,10 +182,9 @@ public class CommonQueryRequestMapper
     private List<AnalyticsSortingParams> getSortingParams( CommonQueryRequest request, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
-        // For example: uid1.uid2.uid3OrAttribute:ASC
-        return SORTING.getUidsGetter().apply( request )
-            .stream()
-            .map( sortParam -> toSortParam( sortParam, request, programs, userOrgUnits ) )
+        return Streams.mapWithIndex(
+            SORTING.getUidsGetter().apply( request ).stream(),
+            ( sortRequest, index ) -> toSortParam( index, sortRequest, request, programs, userOrgUnits ) )
             .collect( toList() );
     }
 
@@ -184,6 +192,7 @@ public class CommonQueryRequestMapper
      * Based on the given arguments, it extracts the sort param object
      * {@link AnalyticsSortingParams}.
      *
+     * @param index the index of the sorting param in the request
      * @param sortParam the representation in the format
      *        uid1.uid2.uid3OrAttribute:ASC
      * @param request the {@link CommonQueryRequest}
@@ -191,11 +200,13 @@ public class CommonQueryRequestMapper
      * @param userOrgUnits the list of {@link OrganisationUnit}
      * @return the built {@link AnalyticsSortingParams}
      */
-    private AnalyticsSortingParams toSortParam( String sortParam, CommonQueryRequest request, List<Program> programs,
+    private AnalyticsSortingParams toSortParam( long index, String sortParam, CommonQueryRequest request,
+        List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
         String[] parts = sortParam.split( ":" );
         return AnalyticsSortingParams.builder()
+            .index( index )
             .sortDirection( SortDirection.of( parts[1] ) )
             .orderBy( toDimensionIdentifier( parts[0], SORTING, request, programs, userOrgUnits ) )
             .build();

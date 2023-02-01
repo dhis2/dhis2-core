@@ -35,6 +35,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class LimitOffset extends BaseRenderable
@@ -42,6 +43,11 @@ public class LimitOffset extends BaseRenderable
     private final Integer limit;
 
     private final Integer offset;
+
+    public static LimitOffset of( AnalyticsPagingParams pagingParams )
+    {
+        return LimitOffset.of( pagingParams.getPageSizePlusOne(), pagingParams.getOffset() );
+    }
 
     @Override
     public String render()

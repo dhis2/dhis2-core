@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
@@ -42,12 +43,23 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.DataElementQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.LimitOffsetQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.MainTableQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.PeriodQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramEnrolledQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramIndicatorQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.TeiQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,6 +69,24 @@ import org.junit.jupiter.api.Test;
  */
 class TeiSqlQueryTest extends DhisConvenienceTest
 {
+    private SqlQueryCreatorService sqlQueryCreatorService;
+
+    @BeforeEach
+    void setUp()
+    {
+        ProgramIndicatorService programIndicatorService = mock( ProgramIndicatorService.class );
+        List<SqlQueryBuilder> queryBuilders = List.of(
+            new DataElementQueryBuilder(),
+            new LimitOffsetQueryBuilder(),
+            new MainTableQueryBuilder(),
+            new OrgUnitQueryBuilder(),
+            new PeriodQueryBuilder(),
+            new ProgramEnrolledQueryBuilder(),
+            new TeiQueryBuilder(),
+            new ProgramIndicatorQueryBuilder( programIndicatorService ) );
+        sqlQueryCreatorService = new SqlQueryCreatorService( queryBuilders );
+    }
+
     @Test
     void testSqlQueryRenderingWithOrgUnitNameObject()
     {
@@ -66,17 +96,14 @@ class TeiSqlQueryTest extends DhisConvenienceTest
             .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, "ouname" ) )
             .build();
 
-        TeiSqlQuery query = TeiSqlQuery.builder()
-            .teiQueryParams( teiQueryParams )
-            .queryContext( QueryContext.of( teiQueryParams ) )
-            .build();
-
         // when
-        String sql = query.render();
+        String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams )
+            .createForSelect()
+            .getStatement();
 
         // then
         assertTrue( sql.contains( "ouname" ) );
-        assertContains( "order by t_1.\"ouname\" ASC", sql );
+        assertContains( "order by t_1.\"ouname\" desc", sql );
     }
 
     @Test
@@ -90,16 +117,11 @@ class TeiSqlQueryTest extends DhisConvenienceTest
             .commonParams( stubSortingCommonParams( createProgram( 'A' ), "0", dimensionalObject ) )
             .build();
 
-        TeiSqlQuery query = TeiSqlQuery.builder()
-            .teiQueryParams( teiQueryParams )
-            .queryContext( QueryContext.of( teiQueryParams ) )
-            .build();
-
         // when
-        String sql = query.render();
+        String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams ).createForSelect().getStatement();
 
         // then
-        assertTrue( sql.contains( "(\"abc_0\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT ASC" ) );
+        assertTrue( sql.contains( "(\"abc_0\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT desc" ) );
     }
 
     private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
@@ -117,7 +139,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest
             DimensionParam.ofObject( dimensionalObject, DimensionParamType.SORTING, List.of( StringUtils.EMPTY ) ) );
 
         AnalyticsSortingParams analyticsSortingParams = AnalyticsSortingParams.builder()
-            .sortDirection( SortDirection.ASC )
+            .sortDirection( SortDirection.DESC )
             .orderBy( dimensionIdentifier )
             .build();
 
