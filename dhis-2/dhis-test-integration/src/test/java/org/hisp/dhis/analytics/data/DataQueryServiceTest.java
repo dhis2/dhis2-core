@@ -101,8 +101,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -350,11 +348,11 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension() );
         assertEquals( DimensionType.DATA_X, dxObject.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName() );
-        assertEquals( dxItems, dxObject.getItems() );
+        assertContainsOnly( dxItems, dxObject.getItems() );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName() );
-        assertEquals( ouItems, ouObject.getItems() );
+        assertContainsOnly( ouItems, ouObject.getItems() );
     }
 
     @Test
@@ -373,11 +371,11 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension() );
         assertEquals( DimensionType.DATA_X, dxObject.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName() );
-        assertEquals( dxItems, dxObject.getItems() );
+        assertContainsOnly( dxItems, dxObject.getItems() );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName() );
-        assertEquals( ouItems, ouObject.getItems() );
+        assertContainsOnly( ouItems, ouObject.getItems() );
     }
 
     @Test
@@ -390,7 +388,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
@@ -403,14 +401,15 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
     void testGetDimensionDataByAttribute()
     {
         List<DimensionalItemObject> items = List.of( deA, deB, deC );
-        List<String> itemAttributeValues = List.of( deA.getCode(), deB.getCode(), deC.getCode() );
+        List<String> itemAttributeValues = List.of( deA.getAttributeValueString( atA ),
+            deB.getAttributeValueString( atA ), deC.getAttributeValueString( atA ) );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemAttributeValues,
             (Date) null, null, false, null, IdScheme.CODE );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
@@ -428,7 +427,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             false, null, IdScheme.CODE );
         assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
@@ -444,7 +443,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
@@ -457,7 +456,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
@@ -470,7 +469,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
-        assertEquals( ouGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
+        assertEquals( ouGroupA.getMembers(), Set.copyOf( actual.getItems() ) );
     }
 
     @Test
@@ -483,7 +482,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
-        assertEquals( deGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
+        assertEquals( deGroupA.getMembers(), Set.copyOf( actual.getItems() ) );
     }
 
     @Test
@@ -496,7 +495,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
-        assertEquals( inGroupA.getMembers(), Sets.newHashSet( actual.getItems() ) );
+        assertEquals( inGroupA.getMembers(), Set.copyOf( actual.getItems() ) );
     }
 
     @Test
@@ -533,7 +532,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( ouGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
         assertEquals( ouGroupSetA.getName(), actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
@@ -546,7 +545,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( deGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.DATA_ELEMENT_GROUP_SET, actual.getDimensionType() );
         assertEquals( deGroupSetA.getName(), actual.getDimensionDisplayName() );
-        assertEquals( items, actual.getItems() );
+        assertContainsOnly( items, actual.getItems() );
     }
 
     @Test
