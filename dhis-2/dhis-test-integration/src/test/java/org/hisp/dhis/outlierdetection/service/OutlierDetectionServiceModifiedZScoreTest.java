@@ -63,7 +63,6 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
 import com.google.common.math.StatsAccumulator;
 
 class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
@@ -128,10 +127,10 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
     void testGetFromQuery()
     {
         OutlierDetectionQuery query = new OutlierDetectionQuery();
-        query.setDe( Lists.newArrayList( "deabcdefghA", "deabcdefghB" ) );
+        query.setDe( List.of( "deabcdefghA", "deabcdefghB" ) );
         query.setStartDate( getDate( 2020, 1, 1 ) );
         query.setEndDate( getDate( 2020, 6, 1 ) );
-        query.setOu( Lists.newArrayList( "ouabcdefghA", "ouabcdefghB" ) );
+        query.setOu( List.of( "ouabcdefghA", "ouabcdefghB" ) );
         query.setAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE );
         query.setThreshold( 2.5 );
         query.setMaxResults( 100 );
@@ -162,9 +161,12 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
             new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
             new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) ).withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE ).withThreshold( 2.0 ).build();
+            .withDataElements( List.of( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( List.of( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE )
+            .withThreshold( 2.0 )
+            .build();
         OutlierDetectionResponse response = subject.getOutlierValues( request );
         assertEquals( 4, response.getOutlierValues().size() );
         assertContainsOutlierValue( response, 12d );
@@ -184,10 +186,14 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
             new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
             new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ) );
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) ).withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE ).withThreshold( 2.1d )
-            .withDataStartDate( getDate( 2019, 1, 1 ) ).withDataEndDate( getDate( 2020, 6, 1 ) ).build();
+            .withDataElements( List.of( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( List.of( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE )
+            .withThreshold( 2.1d )
+            .withDataStartDate( getDate( 2019, 1, 1 ) )
+            .withDataEndDate( getDate( 2020, 6, 1 ) )
+            .build();
         OutlierDetectionResponse response = subject.getOutlierValues( request );
         assertEquals( 2, response.getOutlierValues().size() );
         assertContainsOutlierValue( response, 12d );
@@ -212,9 +218,12 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
             new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
             new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) ).withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE ).withThreshold( 2.0 ).build();
+            .withDataElements( List.of( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( List.of( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE )
+            .withThreshold( 2.0 )
+            .build();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         subject.getOutlierValuesAsCsv( request, out );
         List<String> csvLines = TextUtils.toLines( new String( out.toByteArray(), StandardCharsets.UTF_8 ) );
@@ -257,9 +266,12 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase
             new DataValue( deA, m03, ouA, coc, coc, "38" ), new DataValue( deA, m04, ouA, coc, coc, "81" ),
             new DataValue( deA, m05, ouA, coc, coc, "39" ), new DataValue( deA, m06, ouA, coc, coc, "33" ) );
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) ).withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE ).withThreshold( threshold ).build();
+            .withDataElements( List.of( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( List.of( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.MOD_Z_SCORE )
+            .withThreshold( threshold )
+            .build();
         OutlierDetectionResponse response = subject.getOutlierValues( request );
         assertEquals( 1, response.getOutlierValues().size() );
         OutlierValue outlier = response.getOutlierValues().get( 0 );
