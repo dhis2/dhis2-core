@@ -126,7 +126,7 @@ public class DefaultDataQueryService
         if ( isNotEmpty( request.getFilter() ) )
         {
             params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), inputIdScheme ) );
+                request.getUserOrgUnit(), request.getDisplayProperty(), inputIdScheme ) );
         }
 
         if ( isNotEmpty( request.getMeasureCriteria() ) )
@@ -199,19 +199,19 @@ public class DefaultDataQueryService
         for ( DimensionalObject column : object.getColumns() )
         {
             params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         for ( DimensionalObject row : object.getRows() )
         {
             params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         for ( DimensionalObject filter : object.getFilters() )
         {
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         return params
@@ -234,9 +234,11 @@ public class DefaultDataQueryService
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
+        IdScheme inputIdScheme )
     {
-        return getDimension( dimension, items, relativePeriodDate, NAME, userOrgUnits, allowNull, inputIdScheme );
+        return getDimension( dimension, items, relativePeriodDate, displayProperty == null ? NAME : displayProperty,
+            userOrgUnits, allowNull, inputIdScheme );
     }
 
     @Override
