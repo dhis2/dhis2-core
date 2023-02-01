@@ -374,12 +374,16 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
-        @RequestParam( required = false ) String ou )
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) String ouFilter,
+        @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
@@ -400,7 +404,7 @@ public class DataApprovalController
             for ( CategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    attributeCombo ) );
+                    orgUnitFilter, attributeCombo, attributeOptionCombo ) );
             }
         }
 
