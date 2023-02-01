@@ -49,7 +49,7 @@ public class UserDeletionHandler extends JdbcDeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    private final UserService userService;
+    private final UserStore userStore;
 
     private static final DeletionVeto VETO = new DeletionVeto( User.class );
 
@@ -74,17 +74,17 @@ public class UserDeletionHandler extends JdbcDeletionHandler
 
     private void deleteOrganisationUnit( OrganisationUnit unit )
     {
-        for ( User user : unit.getUsers() )
+        for ( User user : userStore.getUsers( new UserQueryParams().addOrganisationUnit( unit ) ) )
         {
             user.getOrganisationUnits().remove( unit );
             idObjectManager.updateNoAcl( user );
         }
-        for ( User user : userService.getUsers( new UserQueryParams().addDataViewOrganisationUnit( unit ) ) )
+        for ( User user : userStore.getUsers( new UserQueryParams().addDataViewOrganisationUnit( unit ) ) )
         {
             user.getDataViewOrganisationUnits().remove( unit );
             idObjectManager.updateNoAcl( user );
         }
-        for ( User user : userService.getUsers( new UserQueryParams().addTeiSearchOrganisationUnit( unit ) ) )
+        for ( User user : userStore.getUsers( new UserQueryParams().addTeiSearchOrganisationUnit( unit ) ) )
         {
             user.getTeiSearchOrganisationUnits().remove( unit );
             idObjectManager.updateNoAcl( user );
