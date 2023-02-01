@@ -192,6 +192,11 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
     {
+        if ( ex.getRequiredType() == null )
+        {
+            return defaultExceptionHandler( ex );
+        }
+
         if ( ex.getRequiredType().isEnum() )
         {
             String validValues = StringUtils
