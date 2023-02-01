@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.springframework.util.Assert.notNull;
 
@@ -111,29 +111,33 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
-        paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), rowsCount );
+        //paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), rowsCount );
 
         CommonParams commonParams = teiQueryParams.getCommonParams();
 
         List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers = commonParams.getDimensionIdentifiers();
 
         Set<Option> itemOptions = dimensionIdentifiers.stream()
+            .filter( dimParam -> dimParam.getDimension() != null )
             .map( dimParam -> dimParam.getDimension().getQueryItem() )
-            .filter( QueryItem::hasOptionSet )
+            .filter( queryItem -> queryItem != null && queryItem.hasOptionSet() )
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( List::stream )
             .collect( toSet() );
 
         List<QueryItem> items = dimensionIdentifiers.stream()
+            .filter( dimParam -> dimParam.getDimension() != null && dimParam.getDimension().getQueryItem() != null )
             .map( dimParam -> dimParam.getDimension().getQueryItem() ).collect( toList() );
 
         List<QueryItem> itemsWithoutFilters = dimensionIdentifiers.stream()
-            .filter( dimParam -> !dimParam.getDimension().isFilter() )
+            .filter( dimParam -> dimParam.getDimension() != null && !dimParam.getDimension().isFilter()
+                && dimParam.getDimension().getQueryItem() != null )
             .map( dimParam -> dimParam.getDimension().getQueryItem() )
             .collect( toList() );
 
         List<QueryItem> itemsAsFilters = dimensionIdentifiers.stream()
-            .filter( dimParam -> dimParam.getDimension().isFilter() )
+            .filter( dimParam -> dimParam.getDimension() != null && dimParam.getDimension().isFilter()
+                && dimParam.getDimension().getQueryItem() != null )
             .map( dimParam -> dimParam.getDimension().getQueryItem() )
             .collect( toList() );
 
@@ -142,7 +146,10 @@ public class GridAdaptor
                 && dimensionIdentifier.getDimension().getDimensionalObject() != null )
             .map( dimParam -> dimParam.getDimension().getDimensionalObject() ).collect( toList() );
 
-        List<DimensionalItemObject> dimensionOrFilterItems = getDimensionOrFilterItems( PERIOD_DIM_ID, dimensions );
+        List<DimensionalItemObject> periodDimensionOrFilterItems = getDimensionOrFilterItems( PERIOD_DIM_ID,
+            dimensions );
+        List<DimensionalItemObject> orgUnitDimensionOrFilterItems = getDimensionOrFilterItems( ORGUNIT_DIM_ID,
+            dimensions );
 
         User user = currentUserService.getCurrentUser();
 
@@ -155,7 +162,7 @@ public class GridAdaptor
         DimensionalItemObject value = commonParams.getValue();
 
         Set<Legend> itemLegends = items.stream()
-            .filter( QueryItem::hasLegendSet )
+            .filter( queryItem -> queryItem != null && queryItem.hasLegendSet() )
             .map( i -> i.getLegendSet().getLegends() )
             .flatMap( Set::stream )
             .collect( toSet() );
@@ -166,7 +173,8 @@ public class GridAdaptor
             .map( dimParam -> dimParam.getProgramStage().getElement() )
             .collect( toList() ).get( 0 );
 
-        metadataDetailsHandler.addMetadata( grid, itemOptions, items, dimensionOrFilterItems, user, true, true, true,
+        metadataDetailsHandler.addMetadata( grid, itemOptions, items, periodDimensionOrFilterItems,
+            orgUnitDimensionOrFilterItems, user, true, true, true,
             periodKeywords, value, commonParams.getDisplayProperty(), itemLegends, items, itemsWithoutFilters,
             itemsAsFilters, dimensions, program, programStage );
 
@@ -198,7 +206,7 @@ public class GridAdaptor
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimensionKey ) );
 
-        return index != -1 ? dimensions.get( index ).getItems() : emptyList();
+        return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<>();
     }
 
     /**

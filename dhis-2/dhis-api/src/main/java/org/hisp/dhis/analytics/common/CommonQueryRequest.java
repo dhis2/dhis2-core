@@ -135,12 +135,12 @@ public class CommonQueryRequest
     private boolean includeMetadataDetails;
 
     /**
-     * Indicates if organization unit hierarchy should be provided
+     * Indicates if organization unit hierarchy should be provided.
      */
     private boolean hierarchyMeta;
 
     /**
-     * Indicates if additional ou hierarchy data should be provided
+     * Indicates if additional ou hierarchy data should be provided.
      */
     private boolean showHierarchy;
 

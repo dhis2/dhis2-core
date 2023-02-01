@@ -98,7 +98,8 @@ public class MetadataDetailsHandler
      * parameters.
      */
     public void addMetadata( Grid grid, Set<Option> itemOptions, List<QueryItem> items,
-        List<DimensionalItemObject> dimensionOrFilterItems,
+        List<DimensionalItemObject> periodDimensionOrFilterItems,
+        List<DimensionalItemObject> orgUnitDimensionOrFilterItems,
         User userParam, boolean hierarchyMeta, boolean showHierarchy, boolean includeMetadataDetails,
         List<DimensionItemKeywords.Keyword> periodKeywords, DimensionalItemObject value,
         DisplayProperty displayProperty, Set<Legend> itemLegends, List<QueryItem> itemsAndItemFilters,
@@ -122,9 +123,10 @@ public class MetadataDetailsHandler
 
         metadata.put( ITEMS.getKey(), getMetadataItems( grid, periodKeywords, optionItems, includeMetadataDetails,
             value, displayProperty, itemLegends, itemsAndItemFilters, dimensionsAndFilters, program, programStage ) );
-        metadata.put( DIMENSIONS.getKey(), getDimensionItems( dimensionOrFilterItems, dimensionsAndFilters, items,
+        metadata.put( DIMENSIONS.getKey(), getDimensionItems( periodDimensionOrFilterItems, dimensionsAndFilters, items,
             itemFilters, optionsPresentInGrid ) );
-        addOrgUnitHierarchyInfo( grid, metadata, dimensionOrFilterItems, userParam, hierarchyMeta, showHierarchy );
+        addOrgUnitHierarchyInfo( grid, metadata, orgUnitDimensionOrFilterItems, userParam, hierarchyMeta,
+            showHierarchy );
 
         grid.setMetaData( metadata );
     }
@@ -135,20 +137,20 @@ public class MetadataDetailsHandler
      *
      * @param grid
      * @param metadata
-     * @param dimensionalItemObjects
+     * @param orgUnitDimensionOrFilterItems
      * @param userParam
      * @param hierarchyMeta
      * @param showHierarchy
      */
     private void addOrgUnitHierarchyInfo( Grid grid, Map<String, Object> metadata,
-        List<DimensionalItemObject> dimensionalItemObjects, User userParam, boolean hierarchyMeta,
+        List<DimensionalItemObject> orgUnitDimensionOrFilterItems, User userParam, boolean hierarchyMeta,
         boolean showHierarchy )
     {
         if ( hierarchyMeta || showHierarchy )
         {
             User user = userParam != null ? userParam : currentUserService.getCurrentUser();
 
-            List<OrganisationUnit> organisationUnits = asTypedList( dimensionalItemObjects );
+            List<OrganisationUnit> organisationUnits = asTypedList( orgUnitDimensionOrFilterItems );
 
             Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
 
@@ -171,15 +173,15 @@ public class MetadataDetailsHandler
      * Returns a map between dimension identifiers and lists of dimension item
      * identifiers.
      */
-    private Map<String, List<String>> getDimensionItems( List<DimensionalItemObject> dimensionOrFilterItems,
+    private Map<String, List<String>> getDimensionItems( List<DimensionalItemObject> periodDimensionOrFilterItems,
         List<DimensionalObject> dimensionsAndFilters, List<QueryItem> items, List<QueryItem> itemFilters,
         Map<String, List<Option>> itemOptions )
     {
         Calendar calendar = PeriodType.getCalendar();
 
         List<String> periodUids = calendar.isIso8601()
-            ? getUids( dimensionOrFilterItems )
-            : getLocalPeriodIdentifiers( dimensionOrFilterItems, calendar );
+            ? getUids( periodDimensionOrFilterItems )
+            : getLocalPeriodIdentifiers( periodDimensionOrFilterItems, calendar );
 
         Map<String, List<String>> dimensionItems = new HashMap<>();
 
