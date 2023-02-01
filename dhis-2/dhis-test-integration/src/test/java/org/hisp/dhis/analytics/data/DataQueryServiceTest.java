@@ -410,9 +410,10 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
     void testGetDimensionDataByAttribute()
     {
         List<DimensionalItemObject> items = List.of( deA, deB, deC );
-        List<String> itemAttributeValues = List.of( deA.getCode(), deB.getCode(), deC.getCode() );
+        List<String> itemAttributeValues = List.of( deA.getAttributeValueString( atA ),
+            deB.getAttributeValueString( atA ), deC.getAttributeValueString( atA ) );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemAttributeValues,
-            (Date) null, null, false, IdScheme.CODE );
+            (Date) null, null, false, IdScheme.from( atA ) );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
