@@ -35,14 +35,12 @@ public interface DeduplicationService
 
     PotentialDuplicate getPotentialDuplicateByUid( String uid );
 
-    List<PotentialDuplicate> getAllPotentialDuplicates();
-
-    int countPotentialDuplicates( PotentialDuplicateQuery query );
+    int countPotentialDuplicates( PotentialDuplicateCriteria criteria );
 
     boolean exists( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException;
 
-    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getPotentialDuplicates( PotentialDuplicateCriteria criteria );
 
     void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException;

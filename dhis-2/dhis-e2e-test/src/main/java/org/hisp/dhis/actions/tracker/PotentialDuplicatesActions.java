@@ -67,6 +67,19 @@ public class PotentialDuplicatesActions
         return uid;
     }
 
+    public String createAndValidatePotentialDuplicate( String teiA, String teiB )
+    {
+        String openStatus = "OPEN";
+
+        JsonObject object = new JsonObjectBuilder()
+            .addProperty( "original", teiA )
+            .addProperty( "duplicate", teiB )
+            .addProperty( "status", "OPEN" )
+            .build();
+
+        return createAndValidatePotentialDuplicate( teiA, teiB, openStatus );
+    }
+
     public ApiResponse postPotentialDuplicate( String teiA, String teiB, String status )
     {
         JsonObject object = new JsonObjectBuilder()

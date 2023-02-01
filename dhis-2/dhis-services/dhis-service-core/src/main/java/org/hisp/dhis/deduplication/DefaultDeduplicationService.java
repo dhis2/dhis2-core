@@ -69,13 +69,6 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicates()
-    {
-        return potentialDuplicateStore.getAll();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public boolean exists( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException
     {
@@ -84,17 +77,16 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query )
+    public List<PotentialDuplicate> getPotentialDuplicates( PotentialDuplicateCriteria criteria )
     {
-        return potentialDuplicateStore.getAllByQuery( query );
+        return potentialDuplicateStore.getPotentialDuplicates( criteria );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public int countPotentialDuplicates( PotentialDuplicateQuery query )
+    public int countPotentialDuplicates( PotentialDuplicateCriteria criteria )
     {
-
-        return potentialDuplicateStore.getCountByQuery( query );
+        return potentialDuplicateStore.getCountPotentialDuplicates( criteria );
     }
 
     @Override

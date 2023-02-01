@@ -35,9 +35,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 public interface PotentialDuplicateStore
     extends IdentifiableObjectStore<PotentialDuplicate>
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    int getCountPotentialDuplicates( PotentialDuplicateCriteria query );
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getPotentialDuplicates( PotentialDuplicateCriteria query );
 
     boolean exists( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException;

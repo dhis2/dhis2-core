@@ -27,61 +27,17 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-
-import com.google.common.base.MoreObjects;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @Data
-public class PotentialDuplicateQuery
+public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter
 {
-    public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
-
-    private Boolean skipPaging;
-
-    private Boolean paging;
-
-    private int page = 1;
-
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-
-    private int total;
-
-    private List<String> teis;
+    private List<String> teis = new ArrayList<>();
 
     private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-    public PotentialDuplicateQuery()
-    {
-    }
-
-    public boolean isSkipPaging()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
-
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
-
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .toString();
-    }
 }
