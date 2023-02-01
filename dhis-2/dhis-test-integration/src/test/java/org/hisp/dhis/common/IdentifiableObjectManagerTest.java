@@ -170,6 +170,13 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testGetNonAttributeObjectByIdSchemeAttribute()
+    {
+        assertNull( idObjectManager.getObject(
+            DataElementOperand.class, IdScheme.from( atA ), "nOka5EbgNao.XNTq0nSrSlU" ) );
+    }
+
+    @Test
     void testLoad()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -684,7 +691,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetIdMapIdSchemeCode()
+    void testGetIdMapByIdSchemeCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
