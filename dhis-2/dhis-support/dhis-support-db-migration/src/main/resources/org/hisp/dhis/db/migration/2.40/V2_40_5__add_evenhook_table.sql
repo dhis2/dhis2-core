@@ -9,7 +9,7 @@ create table if not exists eventhook (
     userid int8 null,
     lastupdated timestamp null,
     lastupdatedby int8 null,
-    description varchar(100) null,
+    description text null,
     translations jsonb default '[]'::jsonb,
     attributevalues jsonb default '{}'::jsonb,
     sharing jsonb default '{}'::jsonb,
