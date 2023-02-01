@@ -42,6 +42,9 @@ import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -74,6 +77,10 @@ import com.google.common.collect.Sets;
  */
 class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
 {
+    private Attribute atA;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -91,6 +98,11 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     protected void setUpTest()
         throws Exception
     {
+        atA = createAttribute( 'A' );
+        atA.setUnique( true );
+        atA.setDataElementAttribute( true );
+        attributeService.addAttribute( atA );
+
         this.userService = _userService;
     }
 
@@ -131,6 +143,51 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testGetObjectByIdSchemeCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        assertEquals( dataElementA, idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeA" ) );
+        assertEquals( dataElementB, idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeB" ) );
+        assertNull( idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeC" ) );
+    }
+
+    @Test
+    void testGetObjectByIdSchemeAttribute()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        attributeService.addAttributeValue( dataElementA, new AttributeValue( atA, "DEA" ) );
+        attributeService.addAttributeValue( dataElementB, new AttributeValue( atA, "DEB" ) );
+        assertEquals( dataElementA, idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEA" ) );
+        assertEquals( dataElementB, idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEB" ) );
+        assertNull( idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEC" ) );
+    }
+
+    @Test
+    void testGetNonAttributeObjectByIdSchemeAttribute()
+    {
+        assertNull( idObjectManager.getObject(
+            DataElementOperand.class, IdScheme.from( atA ), "nOka5EbgNao.XNTq0nSrSlU" ) );
+    }
+
+    @Test
+    void testLoad()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElementA );
+
+        assertEquals( dataElementA, idObjectManager.load( DataElement.class, dataElementA.getUid() ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.load( DataElement.class, "nonExisting" ) );
+        assertEquals( ErrorCode.E1113, ex.getErrorCode() );
+    }
+
     void testGetWithClasses()
     {
         DataElement dataElementA = createDataElement( 'A' );
