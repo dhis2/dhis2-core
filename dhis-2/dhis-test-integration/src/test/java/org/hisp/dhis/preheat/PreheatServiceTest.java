@@ -60,8 +60,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -149,7 +147,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         deg1.addDataElement( de2 );
         deg2.addDataElement( de3 );
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService
-            .collectReferences( Lists.newArrayList( deg1, deg2 ) ).get( PreheatIdentifier.UID );
+            .collectReferences( List.of( deg1, deg2 ) ).get( PreheatIdentifier.UID );
         assertTrue( references.containsKey( DataElement.class ) );
         assertEquals( 3, references.get( DataElement.class ).size() );
         assertTrue( references.get( DataElement.class ).contains( de1.getUid() ) );
@@ -193,7 +191,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         deg1.addDataElement( de2 );
         deg2.addDataElement( de3 );
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService
-            .collectReferences( Lists.newArrayList( deg1, deg2 ) ).get( PreheatIdentifier.CODE );
+            .collectReferences( List.of( deg1, deg2 ) ).get( PreheatIdentifier.CODE );
         assertTrue( references.containsKey( DataElement.class ) );
         assertEquals( 3, references.get( DataElement.class ).size() );
         assertTrue( references.get( DataElement.class ).contains( de1.getCode() ) );
@@ -221,8 +219,8 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( dataElementGroup );
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElement.class, Lists.newArrayList( de1, de2 ) );
-        params.getObjects().put( User.class, Lists.newArrayList( user ) );
+        params.getObjects().put( DataElement.class, List.of( de1, de2 ) );
+        params.getObjects().put( User.class, List.of( user ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -258,8 +256,8 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElement.class, Lists.newArrayList( de1, de2 ) );
-        params.getObjects().put( User.class, Lists.newArrayList( user ) );
+        params.getObjects().put( DataElement.class, List.of( de1, de2 ) );
+        params.getObjects().put( User.class, List.of( user ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -280,7 +278,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         defaultSetup();
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -302,7 +300,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -324,7 +322,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
 
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         preheatService.connectReferences( dataElementGroup, preheat, PreheatIdentifier.UID );
@@ -347,7 +345,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         preheatService.connectReferences( dataElementGroup, preheat, PreheatIdentifier.CODE );
