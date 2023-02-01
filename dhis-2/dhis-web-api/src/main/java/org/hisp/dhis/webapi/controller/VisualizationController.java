@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
@@ -151,29 +150,34 @@ public class VisualizationController
                 }
             }
 
-            List<BaseDimensionalItemObject> dimensionalItemObjectList = visualization.getDataDimensionItems()
-                .stream()
-                .filter( ddi -> ddi.getExpressionDimensionItem() != null )
-                .flatMap( ddi -> ExpressionDimensionItemHelper.getExpressionItems( manager, ddi ).stream() )
-                .collect( Collectors.toList() );
-
-            visualization.getDataDimensionItems().addAll( dimensionalItemObjectList.stream().map( d -> {
-                DataDimensionItem ddi = new DataDimensionItem();
-                if ( d.getDimensionItemType() == DimensionItemType.DATA_ELEMENT )
-                {
-                    ddi.setDataElement( (DataElement) d );
-                }
-                else if ( d.getDimensionItemType() == DimensionItemType.INDICATOR )
-                {
-                    ddi.setIndicator( (Indicator) d );
-                }
-                else if ( d.getDimensionItemType() == DimensionItemType.PROGRAM_DATA_ELEMENT )
-                {
-                    ddi.setProgramDataElement( (ProgramDataElementDimensionItem) d );
-                }
-
-                return ddi;
-            } ).collect( Collectors.toList() ) );
+            setDataDimensionItems( visualization );
         }
+    }
+
+    private void setDataDimensionItems( Visualization visualization )
+    {
+        List<BaseDimensionalItemObject> dimensionalItemObjectList = visualization.getDataDimensionItems()
+            .stream()
+            .filter( ddi -> ddi.getExpressionDimensionItem() != null )
+            .flatMap( ddi -> ExpressionDimensionItemHelper.getExpressionItems( manager, ddi ).stream() )
+            .collect( Collectors.toList() );
+
+        visualization.getDataDimensionItems().addAll( dimensionalItemObjectList.stream().map( d -> {
+            DataDimensionItem ddi = new DataDimensionItem();
+
+            switch ( d.getDimensionItemType() )
+            {
+            case DATA_ELEMENT:
+                ddi.setDataElement( (DataElement) d );
+                break;
+            case INDICATOR:
+                ddi.setIndicator( (Indicator) d );
+                break;
+            case PROGRAM_DATA_ELEMENT:
+                ddi.setProgramDataElement( (ProgramDataElementDimensionItem) d );
+                break;
+            }
+            return ddi;
+        } ).collect( Collectors.toList() ) );
     }
 }

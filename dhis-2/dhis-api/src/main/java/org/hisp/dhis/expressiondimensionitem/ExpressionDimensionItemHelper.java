@@ -42,10 +42,10 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 /**
  * Parsing the expression of ExpressionDimensionItem, provides collection of
  * BaseDimensionalItemObjects.
- *
  */
 public class ExpressionDimensionItemHelper
 {
+    private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     private ExpressionDimensionItemHelper()
     {
@@ -72,7 +72,7 @@ public class ExpressionDimensionItemHelper
         String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
 
         List<String> expressionTokens = new ArrayList<>();
-        Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
+
         pattern.matcher( expression )
             .results()
             .map( mr -> mr.group( 0 ) )

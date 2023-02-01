@@ -43,10 +43,11 @@ class ExpressionDimensionItemHelperTests
     private IdentifiableObjectManager manager;
 
     @Test
-    void getExpressionItems_returns_empty_collection_when_called_with_null_ExpressionDimensionItem()
+    void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
     {
         // When
         // Then
-        assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size() );
+        assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size(),
+            "NPE assertion failed" );
     }
 }
