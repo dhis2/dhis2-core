@@ -47,24 +47,19 @@ import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
@@ -95,39 +90,36 @@ public class DeduplicationController
 
     private final FieldFilterService fieldFilterService;
 
-    private final ContextService contextService;
+    private static final String DEFAULT_FIELDS_PARAM = "created, lastUpdated, original, duplicate, status";
 
     @GetMapping
-    public Node getAllByQuery(
-        PotentialDuplicateQuery query,
-        HttpServletResponse response )
+    public PagingWrapper<ObjectNode> getPotentialDuplicates(
+        PotentialDuplicateCriteria potentialDuplicateCriteria,
+        HttpServletResponse response,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws BadRequestException
     {
-        checkDeduplicationStatusRequestParam(
-            Optional.ofNullable( query.getStatus() ).map( Enum::name ).orElse( null ) );
+        checkDeduplicationStatusRequestParam( potentialDuplicateCriteria.getStatus() );
 
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
 
-        if ( fields.isEmpty() )
+        if ( potentialDuplicateCriteria.isPagingRequest() )
         {
-            fields.addAll( Preset.ALL.getFields() );
+            pagingWrapper = pagingWrapper.withPager(
+                PagingWrapper.Pager.builder()
+                    .page( potentialDuplicateCriteria.getPage() )
+                    .pageSize( potentialDuplicateCriteria.getPageSize() )
+                    .build() );
         }
 
-        List<PotentialDuplicate> potentialDuplicates = deduplicationService.getAllPotentialDuplicatesBy( query );
+        List<PotentialDuplicate> potentialDuplicates = deduplicationService
+            .getPotentialDuplicates( potentialDuplicateCriteria );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( !query.isSkipPaging() )
-        {
-            query.setTotal( deduplicationService.countPotentialDuplicates( query ) );
-            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
-        }
-
-        rootNode.addChild( fieldFilterService
-            .toCollectionNode( PotentialDuplicate.class, new FieldFilterParams( potentialDuplicates, fields ) ) );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( potentialDuplicates, fields );
 
         setNoStore( response );
-        return rootNode;
+
+        return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( value = "/{id}" )
@@ -156,18 +148,18 @@ public class DeduplicationController
 
     @PutMapping( value = "/{id}" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void updatePotentialDuplicate( @PathVariable String id, @RequestParam( value = "status" ) String status )
+    public void updatePotentialDuplicate( @PathVariable String id,
+        @RequestParam( value = "status" ) DeduplicationStatus status )
         throws NotFoundException,
         BadRequestException
     {
         checkDeduplicationStatusRequestParam( status );
 
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-        DeduplicationStatus deduplicationStatus = DeduplicationStatus.valueOf( status );
 
-        checkDbAndRequestStatus( potentialDuplicate, deduplicationStatus );
+        checkDbAndRequestStatus( potentialDuplicate, status );
 
-        potentialDuplicate.setStatus( deduplicationStatus );
+        potentialDuplicate.setStatus( status );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
     }
 
@@ -226,11 +218,11 @@ public class DeduplicationController
                 + DeduplicationStatus.MERGED.name() );
     }
 
-    private void checkDeduplicationStatusRequestParam( String status )
+    private void checkDeduplicationStatusRequestParam( DeduplicationStatus status )
         throws BadRequestException
     {
         if ( null == status || Arrays.stream( DeduplicationStatus.values() )
-            .noneMatch( ds -> ds.name().equals( status.toUpperCase() ) ) )
+            .noneMatch( ds -> ds == status ) )
         {
             throw new BadRequestException(
                 "Valid deduplication status are : " + Arrays.stream( DeduplicationStatus.values() )
