@@ -125,12 +125,12 @@ public class ReferencesCheck implements ValidationCheck
                 }
             } );
 
-        if ( schema.havePersistedProperty( "attributeValues" ) )
+        if ( schema.hasPersistedProperty( "attributeValues" ) )
         {
             checkAttributeValues( object, preheat, identifier, preheatErrorReports );
         }
 
-        if ( schema.havePersistedProperty( "sharing" ) && !skipSharing && object.getSharing() != null )
+        if ( schema.hasPersistedProperty( "sharing" ) && !skipSharing && object.getSharing() != null )
         {
             checkSharing( object, preheat, preheatErrorReports );
         }

@@ -92,6 +92,7 @@ public class HibernateReservedValueStore
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values, String ownerObject )
     {
+        // FIX manipulating a collection argument is not ideal, make copy
         Optional.of( values ).filter(
             v -> !v.isEmpty() && reservedValue.getOwnerObject().equals( ownerObject ) )
             .ifPresent(

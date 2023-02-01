@@ -50,7 +50,7 @@ repositories:
 
 * [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) - images of _the latest daily development_ DHIS2 versions. We tag the last `core-dev` images for the day and add an extra tag with a "yyyyMMdd"-formatted date, like `core-canary:latest-20230124`.
 
-* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs labeled with `publish-docker-image`.
+* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs.
 
 To run DHIS2 from latest `master` branch (as it is on GitHub) run:
 
@@ -93,14 +93,7 @@ The DHIS2 Docker image is built using
 to build DHIS2 and the web project first
 
 ```sh
-mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
-mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
-```
-
-Then build the Docker image
-
-```sh
-mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild
+./dhis-2/build-dev.sh
 ```
 
 Run the image using
