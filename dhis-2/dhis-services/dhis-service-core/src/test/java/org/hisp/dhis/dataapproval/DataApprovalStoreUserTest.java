@@ -167,8 +167,9 @@ class DataApprovalStoreUserTest extends DhisTest
         categoryService.addCategoryCombo( catComboA );
         CategoryOptionCombo catOptionComboA = createCategoryOptionCombo( catComboA, catOptionA );
         categoryService.addCategoryOptionCombo( catOptionComboA );
-        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA,
-            Lists.newArrayList( orgUnitA ), orgUnitA.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+        List<DataApprovalStatus> statuses;
+        statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitA ),
+            orgUnitA.getHierarchyLevel(), null, catComboA, null, dataApprovalLevelService
                 .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
@@ -178,7 +179,7 @@ class DataApprovalStoreUserTest extends DhisTest
         assertEquals( orgUnitA.getName(), status.getOrganisationUnitName() );
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitB ),
-            orgUnitB.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+            orgUnitB.getHierarchyLevel(), null, catComboA, null, dataApprovalLevelService
                 .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
@@ -188,7 +189,7 @@ class DataApprovalStoreUserTest extends DhisTest
         assertEquals( orgUnitB.getName(), status.getOrganisationUnitName() );
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitC ),
-            orgUnitC.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+            orgUnitC.getHierarchyLevel(), null, catComboA, null, dataApprovalLevelService
                 .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
@@ -198,7 +199,7 @@ class DataApprovalStoreUserTest extends DhisTest
         assertEquals( orgUnitC.getName(), status.getOrganisationUnitName() );
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitD ),
-            orgUnitD.getHierarchyLevel(), catComboA, null, null, null );
+            orgUnitD.getHierarchyLevel(), null, catComboA, null, null, null );
         assertEquals( 0, statuses.size() );
     }
 }
