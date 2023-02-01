@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.codesystem.CodeSystem;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -164,7 +165,9 @@ public class Attribute
 
         EVENT_CHART( EventChart.class ),
 
-        RELATIONSHIP_TYPE( RelationshipType.class );
+        RELATIONSHIP_TYPE( RelationshipType.class ),
+
+        CODE_SYSTEM( CodeSystem.class );
 
         final Class<? extends IdentifiableObject> type;
 
@@ -729,6 +732,18 @@ public class Attribute
     public void setRelationshipTypeAttribute( boolean relationshipTypeAttribute )
     {
         setAttribute( ObjectType.RELATIONSHIP_TYPE, relationshipTypeAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCodeSystemAttribute()
+    {
+        return isAttribute( ObjectType.CODE_SYSTEM );
+    }
+
+    public void setCodeSystemAttribute( boolean codeSystemAttribute )
+    {
+        setAttribute( ObjectType.CODE_SYSTEM, codeSystemAttribute );
     }
 
     @JsonProperty

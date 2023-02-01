@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.codesystem.CodeSystem" table="codesystem">
+        <cache usage="read-write"/>
+
+        <id name="id" column="codesystemid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" unique="true" length="230"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                     foreign-key="fk_codesystem_userid_userinfoid"/>
+
+        <property name="concepts" column="concepts" type="jbCodeSystemConcept"/>
+
+        <!-- Translations -->
+        <property name="translations" column="translations" type="jblTranslations"/>
+
+        <!-- Sharing -->
+        <property name="sharing" column="sharing" type="jsbObjectSharing"/>
+
+        <!-- Dynamic attribute values -->
+        <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
+
+    </class>
+</hibernate-mapping>

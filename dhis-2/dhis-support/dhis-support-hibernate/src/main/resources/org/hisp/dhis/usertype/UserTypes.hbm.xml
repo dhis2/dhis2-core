@@ -169,6 +169,10 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
     <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
-  </typedef>  
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbCodeSystemConcept">
+    <param name="clazz">org.hisp.dhis.codesystem.Concept</param>
+  </typedef>
 
 </hibernate-mapping>

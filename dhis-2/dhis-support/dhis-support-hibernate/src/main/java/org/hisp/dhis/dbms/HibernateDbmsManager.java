@@ -351,6 +351,7 @@ public class HibernateDbmsManager
         emptyTable( "sequentialnumbercounter" );
 
         emptyTable( "audit" );
+        emptyTable( "codesystem" );
 
         log.debug( "Cleared database contents" );
 
