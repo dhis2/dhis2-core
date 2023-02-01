@@ -53,7 +53,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
-import static org.hisp.dhis.common.DisplayProperty.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -237,7 +236,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
         IdScheme inputIdScheme )
     {
-        return getDimension( dimension, items, relativePeriodDate, displayProperty == null ? NAME : displayProperty,
+        return getDimension( dimension, items, relativePeriodDate, displayProperty,
             userOrgUnits, allowNull, inputIdScheme );
     }
 
