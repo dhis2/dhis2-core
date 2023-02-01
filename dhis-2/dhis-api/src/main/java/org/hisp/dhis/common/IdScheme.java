@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
@@ -94,6 +95,11 @@ public class IdScheme
 
         return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ? IDPROPERTY_IDSCHEME_MAP.get( property )
             : new IdScheme( property );
+    }
+
+    public static IdScheme from( Attribute attribute )
+    {
+        return new IdScheme( IdentifiableProperty.ATTRIBUTE, attribute.getUid() );
     }
 
     private IdScheme( IdentifiableProperty identifiableProperty )
