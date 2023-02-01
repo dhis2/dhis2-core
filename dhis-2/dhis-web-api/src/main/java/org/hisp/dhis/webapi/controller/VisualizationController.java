@@ -176,6 +176,9 @@ public class VisualizationController
             case PROGRAM_DATA_ELEMENT:
                 ddi.setProgramDataElement( (ProgramDataElementDimensionItem) d );
                 break;
+            default:
+                //ignored
+                break;
             }
             return ddi;
         } ).collect( Collectors.toList() ) );
