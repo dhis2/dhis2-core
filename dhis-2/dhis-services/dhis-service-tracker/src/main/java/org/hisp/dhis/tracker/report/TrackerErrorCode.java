@@ -155,7 +155,6 @@ public enum TrackerErrorCode
     E4008( "Missing required relationship property: 'to'." ),
     E4009( "Relationship Type `{0}` is not valid." ),
     E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
-    E4011( "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
     E4012( "Could not find `{0}`: `{1}`, linked to Relationship." ),
     E4013( "Relationship Type `{0}` constraint is missing {1}." ),
     E4014( "Relationship Type `{0}` constraint requires a Tracked Entity having type `{1}` but `{2}` was found." ),
@@ -163,6 +162,8 @@ public enum TrackerErrorCode
     E4016( "Relationship: `{0}`, do not exist." ),
     E4017( "Relationship: `{0}`, is already deleted and cannot be modified." ),
     E4018( "Relationship: `{0}`, linking {1}: `{2}` to {3}: `{4}` already exists." ),
+    E5000( "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted." ),
+    E5001( "\"{0}\" `{1}` cannot be deleted because \"{2}\" `{3}` referenced by it cannot be deleted." ),
     E9999( "N/A" );
 
     private final String message;

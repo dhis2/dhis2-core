@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -106,7 +107,7 @@ public class TrackerBundle
     private boolean skipRuleEngine;
 
     /**
-     * Should import be treated as a atomic import (all or nothing).
+     * Should import be treated as an atomic import (all or nothing).
      */
     @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
@@ -124,8 +125,7 @@ public class TrackerBundle
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
-     * Preheat bundle for all attached objects (or null if preheater not run
-     * yet).
+     * Preheat bundle for all attached objects (or null if preheat not run yet).
      */
     private TrackerPreheat preheat;
 
@@ -196,19 +196,29 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
-    public Optional<TrackedEntity> getTrackedEntity( String id )
+    public Optional<TrackedEntity> getTrackedEntity( String uid )
     {
-        return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
+        return findById( this.trackedEntities, uid );
     }
 
-    public Optional<Event> getEvent( String id )
+    public Optional<Event> getEvent( String uid )
     {
-        return this.events.stream().filter( t -> t.getEvent().equals( id ) ).findFirst();
+        return findById( this.events, uid );
     }
 
-    public Optional<Enrollment> getEnrollment( String id )
+    public Optional<Enrollment> getEnrollment( String uid )
     {
-        return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
+        return findById( this.enrollments, uid );
+    }
+
+    public Optional<Relationship> getRelationship( String uid )
+    {
+        return findById( this.relationships, uid );
+    }
+
+    private static <T extends TrackerDto> Optional<T> findById( List<T> entities, String uid )
+    {
+        return entities.stream().filter( e -> Objects.equals( e.getUid(), uid ) ).findFirst();
     }
 
     public Map<String, List<RuleEffect>> getEnrollmentRuleEffects()
@@ -252,8 +262,62 @@ public class TrackerBundle
         return getPreheat().getEvent( event );
     }
 
-    public org.hisp.dhis.relationship.Relationship getRelationship( String relationship )
+    @SuppressWarnings( "unchecked" )
+    public <T extends TrackerDto> List<T> get( Class<T> type )
     {
-        return getPreheat().getRelationship( relationship );
+        Objects.requireNonNull( type );
+        if ( type == TrackedEntity.class )
+        {
+            return (List<T>) trackedEntities;
+        }
+        else if ( type == Enrollment.class )
+        {
+            return (List<T>) enrollments;
+        }
+        else if ( type == Event.class )
+        {
+            return (List<T>) events;
+        }
+        else if ( type == Relationship.class )
+        {
+            return (List<T>) relationships;
+        }
+        // only reached if a new TrackerDto implementation is added
+        throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
+    }
+
+    /**
+     * Checks if an entity exists in the payload.
+     */
+    public <T extends TrackerDto> boolean exists( T entity )
+    {
+        return exists( entity.getTrackerType(), entity.getUid() );
+    }
+
+    /**
+     * Checks if an entity of given type and UID exists in the payload.
+     *
+     * @param type tracker type
+     * @param uid uid of entity to check
+     * @return true if an entity of given type and UID exists in the payload
+     */
+    public boolean exists( TrackerType type, String uid )
+    {
+        Objects.requireNonNull( type );
+
+        switch ( type )
+        {
+        case TRACKED_ENTITY:
+            return getTrackedEntity( uid ).isPresent();
+        case ENROLLMENT:
+            return getEnrollment( uid ).isPresent();
+        case EVENT:
+            return getEvent( uid ).isPresent();
+        case RELATIONSHIP:
+            return getRelationship( uid ).isPresent();
+        default:
+            // only reached if a new TrackerDto implementation is added
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
+        }
     }
 }
