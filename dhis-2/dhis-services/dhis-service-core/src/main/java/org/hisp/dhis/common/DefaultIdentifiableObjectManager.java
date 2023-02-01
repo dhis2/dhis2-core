@@ -1162,7 +1162,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     {
         Schema schema = schemaService.getDynamicSchema( type );
 
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        if ( schema == null || !schema.hasPersistedProperty( "attributeValues" ) )
         {
             return List.of();
         }
