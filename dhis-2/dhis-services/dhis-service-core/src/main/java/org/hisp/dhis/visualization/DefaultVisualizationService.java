@@ -126,7 +126,6 @@ public class DefaultVisualizationService
                     if ( expressionDimensionItem.getUid().equals( dimensionUid ) )
                     {
                         it.remove();
-                        update( visualization );
                     }
                 }
             }
