@@ -73,7 +73,7 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
         Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
         List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
-        if ( objects.isEmpty() || !schema.havePersistedProperty( BaseIdentifiableObject_.ATTRIBUTE_VALUES ) )
+        if ( objects.isEmpty() || !schema.hasPersistedProperty( BaseIdentifiableObject_.ATTRIBUTE_VALUES ) )
         {
             return;
         }
