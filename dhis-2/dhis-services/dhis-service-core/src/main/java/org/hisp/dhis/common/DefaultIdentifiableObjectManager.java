@@ -41,6 +41,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -559,9 +561,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> type, List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return new ArrayList<>();
         }
@@ -581,9 +581,7 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> type,
         List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return new ArrayList<>();
         }
@@ -601,9 +599,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> type, List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return 0;
         }
@@ -1009,6 +1005,11 @@ public class DefaultIdentifiableObjectManager
             }
             else if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
             {
+                if ( !hasAttributeValues( type ) )
+                {
+                    return null;
+                }
+
                 Attribute attribute = get( Attribute.class, idScheme.getAttribute() );
                 return store.getByUniqueAttributeValue( attribute, value );
             }
@@ -1318,6 +1319,21 @@ public class DefaultIdentifiableObjectManager
 
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( UserGroup.class );
         schemas.forEach( schema -> store.removeUserGroupFromSharing( userGroupUid, schema.getTableName() ) );
+    }
+
+    /**
+     * Indicates whether the given class type is attribute enabled, i.e. has an
+     * attribute value collection as part of the data model.
+     *
+     * @param <T>
+     * @param type the class type.
+     * @return true if type is attribute enabled.
+     */
+    private <T extends IdentifiableObject> boolean hasAttributeValues( @Nonnull Class<T> type )
+    {
+        Schema schema = schemaService.getDynamicSchema( type );
+
+        return schema != null && schema.hasAttributeValues();
     }
 
     @SuppressWarnings( "unchecked" )
