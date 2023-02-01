@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static java.util.Collections.singletonList;
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.feedback.ErrorCode.E2035;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,19 +39,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.feedback.ErrorCode;
 
 @Getter
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor( access = PRIVATE )
 public class DimensionParamItem
 {
-
     private final QueryOperator operator;
 
     private final List<String> values;
@@ -65,7 +65,7 @@ public class DimensionParamItem
         { // has operator
             String[] parts = firstElement.split( DIMENSION_NAME_SEP );
             QueryOperator queryOperator = getOperator( parts[0] );
-            return Collections.singletonList(
+            return singletonList(
                 new DimensionParamItem(
                     queryOperator,
                     Stream.concat( Stream.of( parts[1] ),
@@ -75,8 +75,7 @@ public class DimensionParamItem
         }
         else
         {
-            return Collections.singletonList(
-                new DimensionParamItem( null, items ) );
+            return singletonList( new DimensionParamItem( null, items ) );
         }
     }
 
@@ -85,7 +84,6 @@ public class DimensionParamItem
         return Arrays.stream( QueryOperator.values() )
             .filter( queryOperator -> equalsIgnoreCase( queryOperator.name(), operator ) )
             .findFirst()
-            .orElseThrow( () -> new IllegalQueryException( ErrorCode.E2035, operator ) );
+            .orElseThrow( () -> new IllegalQueryException( E2035, operator ) );
     }
-
 }

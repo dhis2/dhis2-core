@@ -43,6 +43,8 @@ import lombok.Setter;
 import lombok.With;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
@@ -175,6 +177,16 @@ public class CommonQueryRequest
      * org unit name and code and any item identifiers.
      */
     private Set<String> desc = new LinkedHashSet<>();
+
+    /**
+     * The dimensional object for which to produce aggregated data.
+     */
+    private DimensionalItemObject value;
+
+    /**
+     * Indicates which property to display.
+     */
+    private DisplayProperty displayProperty;
 
     /**
      * Custom date filters

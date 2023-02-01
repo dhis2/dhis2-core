@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +42,10 @@ import lombok.Setter;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -80,4 +88,87 @@ public class CommonParams
 
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
+
+    /**
+     * The dimensional object for which to produce aggregated data.
+     */
+    @Builder.Default
+    private final DimensionalItemObject value;
+
+    /**
+     * Indicates which property to display.
+     */
+    @Builder.Default
+    private final DisplayProperty displayProperty;
+
+    /**
+     * The user's organization unit.
+     */
+    @Builder.Default
+    private String userOrgUnit;
+
+    /**
+     * The mode of selecting organisation units. Default is DESCENDANTS, meaning
+     * all subunits in the hierarchy. CHILDREN refers to immediate children in
+     * the hierarchy; SELECTED refers to the selected organisation units only.
+     */
+    @Builder.Default
+    private OrganisationUnitSelectionMode ouMode = DESCENDANTS;
+
+    /**
+     * Id scheme to be used for data, more specifically data elements and
+     * attributes which have an option set or legend set, e.g. return the name
+     * of the option instead of the code, or the name of the legend instead of
+     * the legend ID, in the data response.
+     */
+    @Builder.Default
+    private IdScheme dataIdScheme = UID;
+
+    /**
+     * Overrides the start date of the relative period. e.g: "2016-01-01".
+     */
+    @Builder.Default
+    private Date relativePeriodDate;
+
+    /**
+     * Indicates if the metadata element should be omitted from the response.
+     */
+    @Builder.Default
+    private boolean skipMeta;
+
+    /**
+     * Indicates if the data should be omitted from the response.
+     */
+    @Builder.Default
+    private boolean skipData;
+
+    /**
+     * Indicates if the headers should be omitted from the response.
+     */
+    @Builder.Default
+    private boolean skipHeaders;
+
+    /**
+     * Indicates if full precision should be provided for numeric values.
+     */
+    @Builder.Default
+    private boolean skipRounding;
+
+    /**
+     * Indicates if full metadata details should be provided.
+     */
+    @Builder.Default
+    private boolean includeMetadataDetails;
+
+    /**
+     * Indicates if organization unit hierarchy should be provided.
+     */
+    @Builder.Default
+    private boolean hierarchyMeta;
+
+    /**
+     * Indicates if additional ou hierarchy data should be provided.
+     */
+    @Builder.Default
+    private boolean showHierarchy;
 }
