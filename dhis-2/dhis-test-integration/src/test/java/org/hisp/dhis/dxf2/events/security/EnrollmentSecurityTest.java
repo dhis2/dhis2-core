@@ -415,8 +415,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.updateNoAcl( organisationUnitB );
         en.setOrgUnit( av.getValue() );
         ImportOptions importOptions = new ImportOptions();
-        importOptions.getIdSchemes().setOrgUnitIdScheme( "ATTRIBUTE" );
-        importOptions.getIdSchemes().getOrgUnitIdScheme().setAttribute( "D1DDOl5hTsL" );
+        importOptions.getIdSchemes().setOrgUnitIdScheme( "ATTRIBUTE:D1DDOl5hTsL" );
         ImportSummary importSummary = enrollmentService.addEnrollment( en, importOptions );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( "Program is not assigned to this Organisation Unit: " + av.getValue(),

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import lombok.Getter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 
@@ -36,6 +38,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
 public class IdScheme
 {
     public static final IdScheme NULL = new IdScheme( null );
@@ -57,7 +60,7 @@ public class IdScheme
 
     public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
 
-    private IdentifiableProperty identifiableProperty;
+    private final IdentifiableProperty identifiableProperty;
 
     private String attribute;
 
@@ -113,24 +116,9 @@ public class IdScheme
         this.attribute = attribute;
     }
 
-    public IdentifiableProperty getIdentifiableProperty()
-    {
-        return identifiableProperty;
-    }
-
     public String getIdentifiableString()
     {
         return identifiableProperty != null ? identifiableProperty.toString() : null;
-    }
-
-    public void setIdentifiableProperty( IdentifiableProperty identifiableProperty )
-    {
-        this.identifiableProperty = identifiableProperty;
-    }
-
-    public String getAttribute()
-    {
-        return attribute;
     }
 
     public void setAttribute( String attribute )
