@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.codesystem;
 
+import java.io.Serializable;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @EqualsAndHashCode
 @Accessors( chain = true )
 public class Concept
+    implements Serializable
 {
     @JsonProperty
     private String code;
