@@ -61,8 +61,8 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void testSyncPostJsonTrackerInvalidImportMode()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-                "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATE]",
-                POST( "/tracker?async=false&importMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+            "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATE]",
+            POST( "/tracker?async=false&importMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
@@ -76,15 +76,15 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnInternalServerErrorWhenInvalidBooleanIsPassed()
     {
         assertWebMessage( "Internal Server Error", 500, "ERROR",
-                "Invalid boolean value [INVALID]",
-                POST( "/tracker?async=false&skipRuleEngine=INVALID", "{}" ).content( HttpStatus.INTERNAL_SERVER_ERROR ) );
+            "Invalid boolean value [INVALID]",
+            POST( "/tracker?async=false&skipRuleEngine=INVALID", "{}" ).content( HttpStatus.INTERNAL_SERVER_ERROR ) );
     }
 
     @Test
     void shouldReturnBadRequestWhenInvalidReportModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-                "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-                GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
+            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 }
