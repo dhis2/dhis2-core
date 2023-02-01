@@ -205,12 +205,12 @@ public class Query extends Criteria
             return this;
         }
 
-        if ( schema.havePersistedProperty( "name" ) )
+        if ( schema.hasPersistedProperty( "name" ) )
         {
             addOrder( Order.iasc( schema.getPersistedProperty( "name" ) ) );
         }
 
-        if ( schema.havePersistedProperty( "id" ) )
+        if ( schema.hasPersistedProperty( "id" ) )
         {
             addOrder( Order.asc( schema.getPersistedProperty( "id" ) ) );
         }
