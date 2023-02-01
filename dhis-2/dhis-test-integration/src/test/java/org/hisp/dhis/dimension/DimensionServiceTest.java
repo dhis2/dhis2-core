@@ -50,6 +50,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -59,6 +62,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ReportingRate;
@@ -101,6 +105,7 @@ import com.google.common.collect.Sets;
  */
 class DimensionServiceTest extends TransactionalIntegrationTest
 {
+    private Attribute atA;
 
     private DataElement deA;
 
@@ -116,7 +121,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
 
     private ProgramStage psA;
 
-    private TrackedEntityAttribute atA;
+    private TrackedEntityAttribute teaA;
 
     private ProgramIndicator piA;
 
@@ -199,6 +204,9 @@ class DimensionServiceTest extends TransactionalIntegrationTest
     private Map<DimensionalItemId, DimensionalItemObject> itemMap;
 
     @Autowired
+    private AttributeService attributeService;
+
+    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
@@ -222,6 +230,11 @@ class DimensionServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
+        atA = createAttribute( 'A' );
+        atA.setUnique( true );
+        atA.setDataElementAttribute( true );
+        atA.setDataSetAttribute( true );
+        attributeService.addAttribute( atA );
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
@@ -236,8 +249,8 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         idObjectManager.save( prA );
         psA = createProgramStage( 'A', 1 );
         idObjectManager.save( psA );
-        atA = createTrackedEntityAttribute( 'A' );
-        idObjectManager.save( atA );
+        teaA = createTrackedEntityAttribute( 'A' );
+        idObjectManager.save( teaA );
         piA = createProgramIndicator( 'A', prA, null, null );
         idObjectManager.save( piA );
         peA = createPeriod( "201201" );
@@ -292,6 +305,10 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         ouGroupSetA.getOrganisationUnitGroups().add( ouGroupB );
         ouGroupSetA.getOrganisationUnitGroups().add( ouGroupC );
         organisationUnitGroupService.updateOrganisationUnitGroupSet( ouGroupSetA );
+        attributeService.addAttributeValue( deA, new AttributeValue( atA, "DEA" ) );
+        attributeService.addAttributeValue( deB, new AttributeValue( atA, "DEB" ) );
+        attributeService.addAttributeValue( deC, new AttributeValue( atA, "DEC" ) );
+        attributeService.addAttributeValue( dsA, new AttributeValue( atA, "DSA" ) );
         queryModsA = QueryModifiers.builder().periodOffset( 10 ).build();
         queryModsB = QueryModifiers.builder().minDate( new Date() ).build();
         queryModsC = QueryModifiers.builder().maxDate( new Date() ).build();
@@ -301,7 +318,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         itemObjectD = new DataElementOperand( deA, cocA, cocA );
         itemObjectE = new ReportingRate( dsA );
         itemObjectF = new ProgramDataElementDimensionItem( prA, deA );
-        itemObjectG = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        itemObjectG = new ProgramTrackedEntityAttributeDimensionItem( prA, teaA );
         itemObjectH = piA;
         itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid() );
         itemIdB = new DimensionalItemId( DATA_ELEMENT_OPERAND, deA.getUid(), cocA.getUid() );
@@ -309,7 +326,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         itemIdD = new DimensionalItemId( DATA_ELEMENT_OPERAND, deA.getUid(), cocA.getUid(), cocA.getUid() );
         itemIdE = new DimensionalItemId( REPORTING_RATE, dsA.getUid(), ReportingRateMetric.REPORTING_RATE.name() );
         itemIdF = new DimensionalItemId( PROGRAM_DATA_ELEMENT, prA.getUid(), deA.getUid() );
-        itemIdG = new DimensionalItemId( PROGRAM_ATTRIBUTE, prA.getUid(), atA.getUid() );
+        itemIdG = new DimensionalItemId( PROGRAM_ATTRIBUTE, prA.getUid(), teaA.getUid() );
         itemIdH = new DimensionalItemId( PROGRAM_INDICATOR, piA.getUid() );
         itemIds = new HashSet<>();
         itemIds.add( itemIdA );
@@ -603,7 +620,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
     {
         String idA = deA.getUid();
         String idB = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + deA.getUid();
-        String idC = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + atA.getUid();
+        String idC = prA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + teaA.getUid();
         String idD = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + ReportingRateMetric.REPORTING_RATE.name();
         String idE = dsA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_METRIC";
         String idF = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
@@ -616,7 +633,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         String idK = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD + COMPOSITE_DIM_OBJECT_PLAIN_SEP
             + cocA.getUid();
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
-        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, teaA );
         ReportingRate rrA = new ReportingRate( dsA, ReportingRateMetric.REPORTING_RATE );
         DataElementOperand deoA = new DataElementOperand( deA, cocA );
         DataElementOperand deoB = new DataElementOperand( deA, null );
@@ -646,6 +663,15 @@ class DimensionServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testGetDataDimensionalItemObjectWithAttributeIdScheme()
+    {
+        assertEquals( deA, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEA" ) );
+        assertEquals( deB, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEB" ) );
+        assertEquals( deC, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEC" ) );
+        assertNull( dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DSX" ) );
+    }
+
+    @Test
     void testGetDataDimensionalItemObjectMap()
     {
         Map<DimensionalItemId, DimensionalItemObject> result;
@@ -671,7 +697,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         dimensionalItemIds.add( itemIdA );
         dimensionalItemIds.add( itemIdB );
         dimensionalItemIds.add( itemIdC );
-        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap.of( itemIdA, deA, itemIdB, deB,
+        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = Map.of( itemIdA, deA, itemIdB, deB,
             itemIdC, deC );
         // When
         result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );
