@@ -83,6 +83,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Autowired
     private AttributeService attributeService;
 
     @Autowired
