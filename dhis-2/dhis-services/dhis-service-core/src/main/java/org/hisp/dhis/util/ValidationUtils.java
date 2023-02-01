@@ -28,6 +28,7 @@
 package org.hisp.dhis.util;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
@@ -37,10 +38,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 import org.springframework.util.CollectionUtils;
 
-public class ValidationUtil
+public class ValidationUtils
 {
 
-    private ValidationUtil()
+    private ValidationUtils()
     {
     }
 
@@ -57,6 +58,30 @@ public class ValidationUtil
                 else
                 {
                     TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
+                    if ( tea == null )
+                    {
+                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
+                    }
+                }
+
+                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
+            } );
+        }
+    }
+
+    public static void validateAttributeValueFilters( List<String> errors, List<AttributeValueFilter> attributes,
+        Function<String, TrackedEntityAttribute> attributeFetcher )
+    {
+        if ( !CollectionUtils.isEmpty( attributes ) )
+        {
+            attributes.forEach( avf -> {
+                if ( StringUtils.isEmpty( avf.getAttribute() ) )
+                {
+                    errors.add( "Attribute Uid is missing in filter" );
+                }
+                else
+                {
+                    TrackedEntityAttribute tea = attributeFetcher.apply( avf.getAttribute() );
                     if ( tea == null )
                     {
                         errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );

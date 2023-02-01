@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
-import static org.hisp.dhis.util.ValidationUtil.validateAttributeValueFilters;
-import static org.hisp.dhis.util.ValidationUtil.validateDateFilterPeriod;
+import static org.hisp.dhis.util.ValidationUtils.validateAttributeValueFilters;
+import static org.hisp.dhis.util.ValidationUtils.validateDateFilterPeriod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +126,7 @@ public class DefaultTrackedEntityInstanceFilterService
             return errors;
         }
 
-        validateAttributeValueFilters( errors, eqc.getAttributeValueFilters(), teaService );
+        validateAttributeValueFilters( errors, eqc.getAttributeValueFilters(), teaService::getTrackedEntityAttribute );
 
         validateDateFilterPeriods( errors, eqc );
 

@@ -31,8 +31,6 @@ import java.util.List;
 
 public interface ProgramStageWorkingListDefinitionService
 {
-    String ID = ProgramStageWorkingListDefinition.class.getName();
-
     /**
      * Adds the program stage working list definition
      *

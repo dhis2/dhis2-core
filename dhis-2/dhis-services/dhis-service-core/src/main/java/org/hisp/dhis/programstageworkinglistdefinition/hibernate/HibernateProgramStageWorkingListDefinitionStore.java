@@ -37,7 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListDefinitionStore" )
+@Repository( "org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinitionStore" )
 public class HibernateProgramStageWorkingListDefinitionStore
     extends HibernateIdentifiableObjectStore<ProgramStageWorkingListDefinition>
     implements ProgramStageWorkingListDefinitionStore

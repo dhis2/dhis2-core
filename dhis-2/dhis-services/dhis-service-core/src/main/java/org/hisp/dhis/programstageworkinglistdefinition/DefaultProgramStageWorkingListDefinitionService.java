@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.programstageworkinglistdefinition;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.util.ValidationUtil.validateAttributeValueFilters;
-import static org.hisp.dhis.util.ValidationUtil.validateDateFilterPeriod;
+import static org.hisp.dhis.util.ValidationUtils.validateAttributeValueFilters;
+import static org.hisp.dhis.util.ValidationUtils.validateDateFilterPeriod;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -51,7 +52,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-@Service( "org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListDefinitionService" )
+@RequiredArgsConstructor
+@Service( "org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinitionService" )
 public class DefaultProgramStageWorkingListDefinitionService
     implements ProgramStageWorkingListDefinitionService
 {
@@ -67,26 +69,6 @@ public class DefaultProgramStageWorkingListDefinitionService
     private final TrackedEntityAttributeService teaService;
 
     private final DataElementService dataElementService;
-
-    public DefaultProgramStageWorkingListDefinitionService(
-        ProgramStageWorkingListDefinitionStore programStageWorkingListDefinitionStore, ProgramService programService,
-        ProgramStageService programStageService, OrganisationUnitService organisationUnitService,
-        TrackedEntityAttributeService teaService, DataElementService dataElementService )
-    {
-        checkNotNull( programStageWorkingListDefinitionStore );
-        checkNotNull( programService );
-        checkNotNull( programStageService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( teaService );
-        checkNotNull( dataElementService );
-
-        this.programStageWorkingListDefinitionStore = programStageWorkingListDefinitionStore;
-        this.programService = programService;
-        this.programStageService = programStageService;
-        this.organisationUnitService = organisationUnitService;
-        this.teaService = teaService;
-        this.dataElementService = dataElementService;
-    }
 
     @Override
     public long add( ProgramStageWorkingListDefinition programStageWorkingListDefinition )
@@ -138,7 +120,8 @@ public class DefaultProgramStageWorkingListDefinitionService
         validateDateFilterPeriods( errors, queryCriteria );
         validateAssignedUsers( errors, queryCriteria.getAssignedUsers(), queryCriteria.getAssignedUserMode() );
         validateOrganisationUnit( errors, queryCriteria.getOrgUnit(), queryCriteria.getOuMode() );
-        validateAttributeValueFilters( errors, queryCriteria.getAttributeValueFilters(), teaService );
+        validateAttributeValueFilters( errors, queryCriteria.getAttributeValueFilters(),
+            teaService::getTrackedEntityAttribute );
         validateDataFilters( errors, queryCriteria.getDataFilters() );
 
         return errors;

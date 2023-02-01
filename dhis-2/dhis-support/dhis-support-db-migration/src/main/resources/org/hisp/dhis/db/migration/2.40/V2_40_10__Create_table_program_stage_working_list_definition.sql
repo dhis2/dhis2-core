@@ -3,6 +3,7 @@ CREATE TABLE if not exists programstageworkinglistdefinition (
     uid character varying(11) NOT NULL,
     code character varying(50),
     created timestamp without time zone NOT NULL,
+    createdby integer,
     lastupdated timestamp without time zone NOT NULL,
     lastupdatedby integer,
     name character varying(230) NOT NULL,
