@@ -94,7 +94,7 @@ public class IndexController
 
         for ( Schema schema : schemaService.getSchemas() )
         {
-            if ( schema.haveApiEndpoint() )
+            if ( schema.hasApiEndpoint() )
             {
                 indexResources.getResources()
                     .add( new IndexResource( beautify( schema.getPlural() ), schema.getSingular(),

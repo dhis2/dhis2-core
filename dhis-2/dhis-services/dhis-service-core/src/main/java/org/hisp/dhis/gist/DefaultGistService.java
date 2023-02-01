@@ -134,7 +134,7 @@ public class DefaultGistService
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
         }
-        if ( schema.haveApiEndpoint() )
+        if ( schema.hasApiEndpoint() )
         {
             URI baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
             if ( page > 1 )
