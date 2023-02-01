@@ -668,7 +668,7 @@ class DimensionServiceTest extends TransactionalIntegrationTest
         assertEquals( deA, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEA" ) );
         assertEquals( deB, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEB" ) );
         assertEquals( deC, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DEC" ) );
-        assertEquals( dsA, dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DSA" ) );
+        assertNull( dimensionService.getDataDimensionalItemObject( IdScheme.from( atA ), "DSX" ) );
     }
 
     @Test
