@@ -290,7 +290,7 @@ public class HibernateOrganisationUnitStore
 
         sql += "group by ou_uid";
 
-        log.info( "Org unit data set association map SQL: " + sql );
+        log.debug( "Org unit data set association map SQL: " + sql );
 
         Map<String, Set<String>> map = new HashMap<>();
 
