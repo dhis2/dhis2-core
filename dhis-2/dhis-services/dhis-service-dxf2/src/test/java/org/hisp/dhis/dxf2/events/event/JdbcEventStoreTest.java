@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -111,7 +110,7 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }
@@ -122,7 +121,7 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }
