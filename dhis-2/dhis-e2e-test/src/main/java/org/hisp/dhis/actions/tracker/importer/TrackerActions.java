@@ -134,6 +134,16 @@ public class TrackerActions
         return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId ) );
     }
 
+    public TrackerApiResponse getEnrollment( String enrollmentId, QueryParamsBuilder queryParamsBuilder )
+    {
+        return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId, queryParamsBuilder ) );
+    }
+
+    public TrackerApiResponse getEnrollments( QueryParamsBuilder queryParamsBuilder )
+    {
+        return new TrackerApiResponse( this.get( "/enrollments/", queryParamsBuilder ) );
+    }
+
     public TrackerApiResponse getEvent( String eventId )
     {
         return new TrackerApiResponse( this.get( "/events/" + eventId ) );

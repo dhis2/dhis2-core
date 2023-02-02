@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper.map;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,11 +77,10 @@ class TrackedEntitiesSupportService
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @SneakyThrows
-    public TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
+    public TrackedEntityInstance getTrackedEntityInstance( String id, String pr,
+        TrackedEntityInstanceParams trackedEntityInstanceParams )
     {
         User user = currentUserService.getCurrentUser();
-
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
             trackedEntityInstanceParams );

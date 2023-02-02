@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
@@ -57,6 +58,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -64,6 +66,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -143,6 +147,130 @@ public class TrackerExportTests
                 response.validate()
                     .body( p, allOf( not( nullValue() ), not( contains( nullValue() ) ), not( emptyIterable() ) ) );
             } );
+    }
+
+    @Test
+    public void shouldGetSingleTeiWithNotEventsWhenEventsAreSofDeleted()
+        throws Exception
+    {
+        JsonObject payload = payload();
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            payload,
+            new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
+
+        assertEquals( 1, response.extractImportedEvents().size() );
+        deleteEvent( response.extractImportedEvents().get( 0 ) );
+
+        trackerActions.getTrackedEntity( "Kj7vYde4LHh",
+            new QueryParamsBuilder()
+                .add( "fields", "enrollments, events" ) )
+            .validate().statusCode( 200 )
+            .body( "enrollments.events.flatten()", empty() );
+    }
+
+    @Test
+    public void shouldGetSingleEnrollmentWithNotEventsWhenEventsAreSofDeleted()
+        throws Exception
+    {
+        JsonObject payload = payload();
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            payload,
+            new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
+
+        assertEquals( 1, response.extractImportedEvents().size() );
+        deleteEvent( response.extractImportedEvents().get( 0 ) ).validateSuccessfulImport();
+
+        trackerActions.getEnrollment( response.extractImportedEnrollments().get( 0 ),
+            new QueryParamsBuilder()
+                .add( "fields", "events" ) )
+            .validate().statusCode( 200 )
+            .body( "events.flatten()", empty() );
+    }
+
+    @Test
+    public void shouldGetTeisWithSofDeletedEventsOnlyWhenIncludeDeletedInRequest()
+        throws Exception
+    {
+        JsonObject payload = payload();
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            payload,
+            new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
+
+        assertEquals( 1, response.extractImportedEvents().size() );
+        deleteEvent( response.extractImportedEvents().get( 0 ) ).validateSuccessfulImport();
+
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder()
+                .add( "fields", "enrollments, events" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "trackedEntity", response.extractImportedTeis().get( 0 ) ) )
+            .validate().statusCode( 200 )
+            .body( "instances.enrollments.flatten().findAll { it.trackedEntity == '"
+                + response.extractImportedTeis().get( 0 ) + "' }.events.flatten()", empty() );
+
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder()
+                .add( "fields", "enrollments, events" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "trackedEntity", response.extractImportedTeis().get( 0 ) )
+                .add( "includeDeleted", "true" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].enrollments.events", hasSize( 1 ) );
+    }
+
+    @Test
+    public void shouldGetEnrollmentsWithNotEventsWhenIncludeDeletedInRequest()
+        throws Exception
+    {
+        JsonObject payload = payload();
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            payload,
+            new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
+
+        assertEquals( 1, response.extractImportedEvents().size() );
+        deleteEvent( response.extractImportedEvents().get( 0 ) ).validateSuccessfulImport();
+
+        trackerActions.getEnrollments(
+            new QueryParamsBuilder()
+                .add( "fields", "events" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "enrollment", response.extractImportedEnrollments().get( 0 ) ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].events.flatten()", empty() );
+
+        trackerActions.getEnrollments(
+            new QueryParamsBuilder()
+                .add( "fields", "events" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "enrollment", response.extractImportedEnrollments().get( 0 ) )
+                .add( "includeDeleted", "true" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].events", hasSize( 1 ) );
+    }
+
+    private static JsonObject payload()
+        throws Exception
+    {
+        return new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
+            .get( JsonObject.class );
+    }
+
+    private TrackerApiResponse deleteEvent( String eventToDelete )
+    {
+        return trackerActions
+            .postAndGetJobReport( new JsonObjectBuilder()
+                .addArray( "events",
+                    new JsonObjectBuilder().addProperty( "event", eventToDelete ).build() )
+                .build(), new QueryParamsBuilder().add( "importStrategy=DELETE" ).add( "async=false" ) );
     }
 
     @Test
@@ -261,10 +389,10 @@ public class TrackerExportTests
     @Test
     public void shouldReturnFilteredEvent()
     {
-        trackerActions.get( "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20" )
+        trackerActions
+            .get( "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20&event=ZwwuwNp6gVd" )
             .validate()
             .statusCode( 200 )
-            .body( "instances", hasSize( equalTo( 1 ) ) )
             .rootPath( "instances[0]" )
             .body( "event", equalTo( "ZwwuwNp6gVd" ) );
     }
