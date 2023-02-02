@@ -93,7 +93,8 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = map( fields );
+        EnrollmentParams enrollmentParams = map( fields )
+            .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
