@@ -182,11 +182,14 @@ public interface DataApprovalService
      * @param workflow workflow to check for approval.
      * @param period Period we are getting the status for
      * @param orgUnit Organisation unit we are getting the status for
+     * @param orgUnitFilter Organisation unit filter for attribute option combos
      * @param attributeCombo attribute category combo to search within
+     * @param attributeOptionCombo Single attribute option combo to get for
      * @return list of statuses and permissions
      */
     List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo );
+        Period period, OrganisationUnit orgUnit, OrganisationUnit orgUnitFilter, CategoryCombo attributeCombo,
+        CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Deletes DataApprovals for the given organisation unit.
