@@ -65,10 +65,10 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void shouldReturnInternalServerErrorWhenInvalidBooleanIsPassed()
+    void shouldReturnBadRequestWhenInvalidReportModeIsPassed()
     {
-        assertWebMessage( "Internal Server Error", 500, "ERROR",
-            "Invalid boolean value [INVALID]",
-            POST( "/tracker?async=false&skipRuleEngine=INVALID", "{}" ).content( HttpStatus.INTERNAL_SERVER_ERROR ) );
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
+            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 }
