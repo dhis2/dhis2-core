@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -89,7 +90,8 @@ public class TrackerEnrollmentsExportController
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 

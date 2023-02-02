@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -137,7 +138,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
 
@@ -151,7 +153,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingOrgUnit()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
@@ -180,14 +183,15 @@ class TrackerEnrollmentCriteriaMapperTest
         when( organisationUnitService.isInUserHierarchy( ORG_UNIT_1_UID,
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
 
-        Exception exception = assertThrows( BadRequestException.class,
+        Exception exception = assertThrows( ForbiddenException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, exception.getMessage() );
     }
 
     @Test
     void testMappingProgram()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setProgram( PROGRAM_UID );
@@ -210,7 +214,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingTrackedEntityType()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
@@ -233,7 +238,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingTrackedEntity()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntity( TRACKED_ENTITY_UID );
@@ -256,7 +262,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingOrderParams()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         OrderCriteria order1 = OrderCriteria.of( "field1", OrderParam.SortDirection.ASC );
@@ -272,7 +279,8 @@ class TrackerEnrollmentCriteriaMapperTest
 
     @Test
     void testMappingOrderParamsNoOrder()
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
 

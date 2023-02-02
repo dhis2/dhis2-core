@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -84,7 +85,8 @@ public class TrackerEnrollmentCriteriaMapper
 
     @Transactional( readOnly = true )
     public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria criteria )
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -153,7 +155,8 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
-        throws BadRequestException
+        throws BadRequestException,
+        ForbiddenException
     {
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
@@ -175,7 +178,7 @@ public class TrackerEnrollmentCriteriaMapper
 
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
-                    throw new BadRequestException(
+                    throw new ForbiddenException(
                         "Organisation unit is not part of the search scope: " + orgUnitId );
                 }
                 orgUnits.add( organisationUnit );
