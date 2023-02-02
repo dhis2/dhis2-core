@@ -160,6 +160,21 @@ public class AggregateDataExchangeService
     }
 
     /**
+     * Returns the source data value sets for the analytics data exchange with
+     * the given identifier.
+     *
+     * @param uid the {@link AggregateDataExchange} identifier.
+     * @return the source data value sets for the analytics data exchange.
+     */
+    public List<DataValueSet> getSourceDataValueSets( String uid )
+    {
+        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
+
+        return mapToList( exchange.getSource().getRequests(),
+            request -> analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) ) );
+    }
+
+    /**
      * Exchanges data from the source as defined by the given
      * {@link SourceRequest} to the target as defined by the given
      * {@link AggregateDataExchange}.

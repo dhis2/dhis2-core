@@ -122,7 +122,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     private void handleDataDimensionItems( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
         ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "dataDimensionItems" ) )
+        if ( !schema.hasPersistedProperty( "dataDimensionItems" ) )
             return;
 
         for ( DataDimensionItem dataDimensionItem : analyticalObject.getDataDimensionItems() )
@@ -179,7 +179,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     private void handleCategoryDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
         ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "categoryDimensions" ) )
+        if ( !schema.hasPersistedProperty( "categoryDimensions" ) )
             return;
 
         for ( CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
@@ -208,7 +208,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     private void handleDataElementDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
         ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "dataElementDimensions" ) )
+        if ( !schema.hasPersistedProperty( "dataElementDimensions" ) )
             return;
 
         for ( TrackedEntityDataElementDimension dataElementDimension : analyticalObject.getDataElementDimensions() )
@@ -234,7 +234,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     private void handleAttributeDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
         ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "attributeDimensions" ) )
+        if ( !schema.hasPersistedProperty( "attributeDimensions" ) )
             return;
 
         for ( TrackedEntityAttributeDimension attributeDimension : analyticalObject.getAttributeDimensions() )
@@ -258,7 +258,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     private void handleProgramIndicatorDimensions( Session session, Schema schema,
         BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "programIndicatorDimensions" ) )
+        if ( !schema.hasPersistedProperty( "programIndicatorDimensions" ) )
             return;
 
         for ( TrackedEntityProgramIndicatorDimension programIndicatorDimension : analyticalObject

@@ -243,7 +243,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new NotFoundException( getEntityClass(), pvUid );
         }
 
-        if ( !getSchema().haveProperty( pvProperty ) )
+        if ( !getSchema().hasProperty( pvProperty ) )
         {
             throw new NotFoundException( "Property " + pvProperty + " does not exist on " + getEntityName() );
         }
