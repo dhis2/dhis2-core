@@ -50,7 +50,7 @@ public class AddOperation extends JsonPatchValueOperation
     @JsonCreator
     public AddOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        super( "add", path, value );
+        super( ADD_OPERATION, path, value );
     }
 
     @Override

@@ -48,6 +48,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -363,6 +364,30 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
                     .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    void testPatchUserGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', Set.of() );
+        userGroupA.setUid( "GZSvMCVowAx" );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', Set.of() );
+        userGroupB.setUid( "B6JNeAQ6akX" );
+        manager.save( userGroupB );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body(
+                "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]" ) ) );
+
+        JsonResponse response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 2, response.getArray( "userGroups" ).size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' } ] } ]" ) ) );
+        response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 1, response.getArray( "userGroups" ).size() );
     }
 
     private String extractTokenFromEmailText( String message )
