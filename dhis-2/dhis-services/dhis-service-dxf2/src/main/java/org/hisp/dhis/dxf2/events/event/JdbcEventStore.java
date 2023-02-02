@@ -389,8 +389,6 @@ public class JdbcEventStore implements EventStore
 
             log.debug( "Event query SQL: " + sql );
 
-            System.out.println( "Event query SQL: " + sql );
-
             Set<String> notes = new HashSet<>();
 
             while ( resultSet.next() )
