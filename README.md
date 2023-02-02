@@ -48,7 +48,9 @@ repositories
 
 * [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) - images of _the latest daily development_ DHIS2 versions. We tag the last `core-dev` images for the day and add an extra tag with a "yyyyMMdd"-formatted date, like `core-canary:latest-20230124`.
 
-* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs.
+* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs made from
+  https://github.com/dhis2/dhis2-core/ and not from forks. As forks do not have access to our
+  organizations/repos secrets.
 
 To run DHIS2 from latest `master` branch (as it is on GitHub) run:
 
