@@ -29,7 +29,6 @@ package org.hisp.dhis.visualization;
 
 import java.util.List;
 import java.util.ListIterator;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -47,8 +46,8 @@ public class DefaultVisualizationService
     extends GenericAnalyticalObjectService<Visualization>
     implements VisualizationService
 {
-    @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
-    private final AnalyticalObjectStore<Visualization> visualizationStore;
+    @Qualifier( "org.hisp.dhis.visualization.VisualizationStore" )
+    private final HibernateVisualizationStore visualizationStore;
 
     @Override
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
@@ -97,17 +96,8 @@ public class DefaultVisualizationService
     @Transactional
     public void removeExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
     {
-        List<Visualization> visualizations = visualizationStore.getAll()
-            .stream().filter( v -> v.getDataDimensionItems()
-                .stream().anyMatch( it -> {
-                    if ( it.getExpressionDimensionItem() == null )
-                    {
-                        return false;
-                    }
-
-                    return it.getExpressionDimensionItem().getUid().equals( expressionDimensionItem.getUid() );
-                } ) )
-            .collect( Collectors.toList() );
+        List<Visualization> visualizations = visualizationStore
+            .getAllVisualizationsByExpressionDimensionItem( expressionDimensionItem.getUid() );
 
         for ( Visualization visualization : visualizations )
         {
