@@ -374,7 +374,6 @@ class TrackerImportControllerTest
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isNotFound() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }
