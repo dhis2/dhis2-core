@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -182,6 +183,11 @@ public class ReferencesCheck implements ValidationCheck
             {
                 objects.add( refObject );
             }
+
+            CollectionUtils.findDuplicates( refObjects )
+                .forEach( refObject -> preheatErrorReports.add( new PreheatErrorReport( identifier,
+                    ErrorCode.E5007, object, property, identifier.getIdentifiersWithName( refObject ),
+                    identifier.getIdentifiersWithName( object ), property.getName() ) ) );
         }
 
         ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );

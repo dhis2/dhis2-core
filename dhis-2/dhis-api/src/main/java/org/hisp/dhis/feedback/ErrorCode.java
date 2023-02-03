@@ -233,6 +233,7 @@ public enum ErrorCode
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006(
         "Non owner reference {0} on object {1} for association `{2}` is not allowed within payload for ERRORS_NOT_OWNER" ),
+    E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
