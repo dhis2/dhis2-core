@@ -28,8 +28,10 @@ jobs:
           distribution: temurin
           cache: maven
 
+      # we only want to publish to Dockerhub on PRs
+      # PRs from forks cannot access secrets so such PRs cannot publish Docker images
       - name: Login to Docker Hub
-        if: github.event_name == 'pull_request' # only login to Dockerhub on PRs where we want to publish
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
@@ -39,10 +41,11 @@ jobs:
         run: |
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
+
       - name: Build container image
         run: |
-          if [ "${{github.event_name}}" = "pull_request" ]; then 
-            # on PRs: build and publish multi-arch images using Jib. Image is used for api tests in
+          if [ "${{github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork}}" = "true" ]; then
+            # on PRs (of non-forks): build and publish multi-arch images using Jib. Image is used for api tests in
             # this workflow and can be pulled from Dockerhub by devs to run locally, ...
             mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                 -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
