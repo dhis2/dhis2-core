@@ -48,13 +48,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -126,7 +126,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
@@ -768,23 +767,7 @@ public class UserController
             userService.expireActiveSessions( entityAfter );
         }
 
-        if ( entityAfter != null && patch != null )
-        {
-            for ( JsonPatchOperation op : patch.getOperations() )
-            {
-                JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
-                String opName = op.getOp();
-                if ( userGroups != null && (opName.equals( "add" ) || opName.equals( "replace" )) )
-                {
-                    AddOperation addOp = (AddOperation) op;
-                    Stream<JsonNode> targetStream = CollectionUtils.iterableToStream( addOp.getValue().elements() );
-                    List<String> uids = targetStream.map( node -> node.get( "id" ).asText() )
-                        .collect( Collectors.toList() );
-
-                    userGroupService.updateUserGroups( entityAfter, uids, currentUserService.getCurrentUser() );
-                }
-            }
-        }
+        updateUserGroups( patch, entityAfter );
     }
 
     // -------------------------------------------------------------------------
@@ -1032,6 +1015,36 @@ public class UserController
         if ( userService.isAccountExpired( user ) )
         {
             userService.expireActiveSessions( user );
+        }
+    }
+
+    /**
+     * Support patching user.userGroups relation which User is not the owner
+     */
+    private void updateUserGroups( JsonPatch patch, User user )
+    {
+        if ( ObjectUtils.anyNull( patch, user ) )
+        {
+            return;
+        }
+
+        for ( JsonPatchOperation op : patch.getOperations() )
+        {
+            JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
+            if ( userGroups == null )
+            {
+                continue;
+            }
+
+            String opName = op.getOp();
+            if ( StringUtils.equalsAny( opName, JsonPatchOperation.ADD_OPERATION,
+                JsonPatchOperation.REPLACE_OPERATION ) )
+            {
+                List<String> groupIds = new ArrayList<>();
+                ((AddOperation) op).getValue().elements()
+                    .forEachRemaining( node -> groupIds.add( node.get( "id" ).asText() ) );
+                userGroupService.updateUserGroups( user, groupIds, currentUserService.getCurrentUser() );
+            }
         }
     }
 }

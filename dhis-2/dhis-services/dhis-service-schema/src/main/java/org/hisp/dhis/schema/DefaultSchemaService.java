@@ -434,7 +434,7 @@ public class DefaultSchemaService
 
     private void updateSelf( Schema schema )
     {
-        if ( schema.haveProperty( PROPERTY_SCHEMA ) )
+        if ( schema.hasProperty( PROPERTY_SCHEMA ) )
         {
             Property property = schema.getProperty( PROPERTY_SCHEMA );
             schema.setName( property.getName() );

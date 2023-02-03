@@ -65,6 +65,16 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testAddLockException_UnauthorizedUser()
+    {
+        switchToNewUser( "guest", "F_DATASET_PUBLIC_ADD" );
+
+        assertWebMessage( "Forbidden", 403, "ERROR",
+            "You can only add a lock exceptions to your data capture organisation units.",
+            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId ).content( HttpStatus.FORBIDDEN ) );
+    }
+
+    @Test
     void testAddLockException_DataSetNotLinked()
     {
         String dsId2 = assertStatus( HttpStatus.CREATED,

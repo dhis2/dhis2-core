@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,44 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} using
+ * (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+class OrganisationUnitGroupControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
-    void testSyncPostJsonTrackerInvalidReportMode()
+    void testCreateWithDescription()
     {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test', 'description': 'desc' }" ) );
+
+        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
+            .as( JsonIdentifiableObject.class ).getDescription() );
     }
 
     @Test
-    void testSyncPostJsonTrackerInvalidIdScheme()
+    void testUpdateWithDescription()
     {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE]",
-            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test'}" ) );
 
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+        assertStatus( HttpStatus.OK, PATCH( "/organisationUnitGroups/" + id + "?importReportMode=ERRORS", "["
+            + "{'op': 'add', 'path': '/description', 'value': 'desc' }"
+            + "]" ) );
 
-    @Test
-    void shouldReturnBadRequestWhenInvalidReportModeIsPassed()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
+            .as( JsonIdentifiableObject.class ).getDescription() );
+
     }
 }

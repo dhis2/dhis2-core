@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.util;
 
-/**
- * @author Stian Sandvold
- */
-public enum CsvImportClass
+import org.hisp.dhis.feedback.BadRequestException;
+
+@FunctionalInterface
+public interface CheckedFunction<T, R>
 {
-    ORGANISATION_UNIT_GROUP_MEMBERSHIP,
-    DATA_ELEMENT_GROUP_MEMBERSHIP,
-    INDICATOR_GROUP_MEMBERSHIP,
-    DATA_ELEMENT,
-    DATA_ELEMENT_GROUP,
-    CATEGORY_OPTION,
-    CATEGORY,
-    CATEGORY_COMBO,
-    CATEGORY_OPTION_GROUP,
-    ORGANISATION_UNIT,
-    ORGANISATION_UNIT_GROUP,
-    VALIDATION_RULE,
-    OPTION_SET,
-    OPTION_GROUP,
-    OPTION_GROUP_SET,
-    OPTION_GROUP_SET_MEMBERSHIP,
-    INDICATOR;
-
-    public static boolean classExists( String classKey )
-    {
-        try
-        {
-            valueOf( classKey );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            return false;
-        }
-
-        return true;
-    }
+    R apply( T t )
+        throws BadRequestException;
 }
