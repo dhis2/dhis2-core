@@ -122,7 +122,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
 
         JsonObject eventHook = GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
         assertTrue( eventHook.has( "id", "name", "enabled", "source", "targets" ) );
-        assertEquals( true, eventHook.getBoolean( "enabled" ).bool() );
+        assertTrue( eventHook.getBoolean( "enabled" ).bool() );
         assertEquals( "bRNvL6NMQXb", eventHook.getString( "id" ).string() );
         assertEquals( "WebhookHttpBasic", eventHook.getString( "name" ).string() );
         assertEquals( "metadata", eventHook.get( "source" ).asObject().getString( "path" ).string() );
