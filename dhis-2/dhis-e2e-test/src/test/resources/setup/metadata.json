@@ -8,7 +8,6 @@
       "dataDimensionType": "ATTRIBUTE",
       "dimensionType": "CATEGORY_OPTION_GROUP_SET",
       "displayName": "TA category option group set",
-      "publicAccess": "rw------",
       "displayShortName": "TA cat opt group set",
       "externalAccess": false,
       "dimension": "a3DyYqCZrJ5",
