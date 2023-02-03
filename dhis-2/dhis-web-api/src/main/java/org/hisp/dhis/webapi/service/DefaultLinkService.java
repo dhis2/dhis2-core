@@ -83,7 +83,7 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() )
+        if ( !schema.hasApiEndpoint() )
         {
             return;
         }
@@ -196,7 +196,7 @@ public class DefaultLinkService implements LinkService
     {
         schema.setHref( hrefBase + "/schemas/" + schema.getSingular() );
 
-        if ( schema.haveApiEndpoint() )
+        if ( schema.hasApiEndpoint() )
         {
             schema.setApiEndpoint( hrefBase + schema.getRelativeApiEndpoint() );
         }
@@ -208,7 +208,7 @@ public class DefaultLinkService implements LinkService
                 Schema klassSchema = schemaService.getDynamicSchema( property.getKlass() );
                 property.setHref( hrefBase + "/schemas/" + klassSchema.getSingular() );
 
-                if ( klassSchema.haveApiEndpoint() )
+                if ( klassSchema.hasApiEndpoint() )
                 {
                     property.setRelativeApiEndpoint( klassSchema.getRelativeApiEndpoint() );
                     property.setApiEndpoint( hrefBase + klassSchema.getRelativeApiEndpoint() );
@@ -219,7 +219,7 @@ public class DefaultLinkService implements LinkService
                 Schema klassSchema = schemaService.getDynamicSchema( property.getItemKlass() );
                 property.setHref( hrefBase + "/schemas/" + klassSchema.getSingular() );
 
-                if ( klassSchema.haveApiEndpoint() )
+                if ( klassSchema.hasApiEndpoint() )
                 {
                     property.setRelativeApiEndpoint( klassSchema.getRelativeApiEndpoint() );
                     property.setApiEndpoint( hrefBase + klassSchema.getRelativeApiEndpoint() );
@@ -361,7 +361,7 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null
+        if ( !schema.hasApiEndpoint() || schema.getProperty( "id" ) == null
             || schema.getProperty( "id" ).getGetterMethod() == null )
         {
             return;

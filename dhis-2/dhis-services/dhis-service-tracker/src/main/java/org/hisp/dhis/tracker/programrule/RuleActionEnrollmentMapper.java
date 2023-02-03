@@ -50,15 +50,15 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.programrule.implementers.RuleActionExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.ValidationRuleAction;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.AssignAttributeExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.RuleEngineErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.SetMandatoryFieldExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowErrorOnCompleteExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningExecutor;
-import org.hisp.dhis.tracker.programrule.implementers.enrollment.ShowWarningOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.tracker.programrule.executor.ValidationRuleAction;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.AssignAttributeExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.SetMandatoryFieldExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowErrorExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowErrorOnCompleteExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowWarningExecutor;
+import org.hisp.dhis.tracker.programrule.executor.enrollment.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
 @Service( "org.hisp.dhis.tracker.programrule.RuleActionEnrollmentMapper" )

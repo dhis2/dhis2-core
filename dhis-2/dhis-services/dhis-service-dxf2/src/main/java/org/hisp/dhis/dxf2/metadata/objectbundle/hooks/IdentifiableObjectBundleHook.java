@@ -96,7 +96,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        if ( !schema.havePersistedProperty( "attributeValues" ) )
+        if ( !schema.hasPersistedProperty( "attributeValues" ) )
             return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();

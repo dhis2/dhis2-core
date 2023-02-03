@@ -47,7 +47,8 @@ public enum CsvImportClass
     OPTION_SET,
     OPTION_GROUP,
     OPTION_GROUP_SET,
-    OPTION_GROUP_SET_MEMBERSHIP;
+    OPTION_GROUP_SET_MEMBERSHIP,
+    INDICATOR;
 
     public static boolean classExists( String classKey )
     {

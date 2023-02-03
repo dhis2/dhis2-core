@@ -286,7 +286,7 @@ public class DefaultCollectionService implements CollectionService
             throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !schema.haveProperty( propertyName ) )
+        if ( !schema.hasProperty( propertyName ) )
         {
             throw new NotFoundException(
                 "Property " + propertyName + " does not exist on " + object.getClass().getName() );
