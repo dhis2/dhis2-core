@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -43,10 +47,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.security.interfaces.RSAPublicKey;
-import java.util.Map;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

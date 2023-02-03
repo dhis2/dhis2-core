@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
-import com.google.common.collect.ImmutableList;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.RSAKey;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
-import org.hisp.dhis.security.oidc.KeyStoreUtil;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.core.AuthenticationMethod;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -53,6 +38,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.KeyStoreUtil;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.AuthenticationMethod;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+
+import com.google.common.collect.ImmutableList;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
