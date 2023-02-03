@@ -104,6 +104,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import io.github.classgraph.ClassGraph;
@@ -185,6 +186,27 @@ public class CrudControllerAdvice
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( MethodArgumentTypeMismatchException.class )
+    @ResponseBody
+    public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
+    {
+        if ( ex.getRequiredType() == null )
+        {
+            return handleBadRequest( ex );
+        }
+
+        if ( ex.getRequiredType().isEnum() )
+        {
+            String validValues = StringUtils
+                .join( Arrays.stream( ex.getRequiredType().getEnumConstants() ).map( Objects::toString )
+                    .collect( Collectors.toList() ), ", " );
+            String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
+                ex.getValue(), ex.getName(), validValues );
+            return badRequest( errorMessage );
+        }
+        return handleBadRequest( ex );
     }
 
     @ExceptionHandler( InvalidEnumValueException.class )
