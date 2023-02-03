@@ -329,13 +329,13 @@ class DataApprovalServiceTest extends IntegrationTestBase
         //
         // Organisation unit hierarchy:
         //
-        // Level 1 A
+        // A - Level 1
         // |
-        // Level 2 B
-        // / \
-        // Level 3 C E
+        // B - Level 2
+        // |\
+        // C E - Level 3
         // | |
-        // Level 4 D F
+        // D F - Level 4
         //
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B', organisationUnitA );
