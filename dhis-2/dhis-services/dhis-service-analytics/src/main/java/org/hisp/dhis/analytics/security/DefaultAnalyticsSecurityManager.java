@@ -31,10 +31,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,6 +47,8 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -55,6 +62,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -346,12 +354,24 @@ public class DefaultAnalyticsSecurityManager
         // Check if current user has dimension constraints
         // ---------------------------------------------------------------------
 
-        if ( params == null || user == null || !user.hasDimensionConstraints() )
+        if ( params == null || user == null )
         {
             return;
         }
 
-        Set<DimensionalObject> dimensionConstraints = user.getDimensionConstraints();
+        // Categories the user is constrained to
+        Collection<Category> categories = getCategoryOptionConstraints( params );
+
+        // union of user and category constraints
+        Set<DimensionalObject> dimensionConstraints = Stream.concat(
+            user.getDimensionConstraints().stream(),
+            categories.stream() )
+            .collect( Collectors.toSet() );
+
+        if ( dimensionConstraints.isEmpty() ) // if no constraints
+        {
+            return; // nothing to do - no filters added to query
+        }
 
         for ( DimensionalObject dimension : dimensionConstraints )
         {
@@ -390,5 +410,26 @@ public class DefaultAnalyticsSecurityManager
             log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(),
                 constraint.getDimension() ) );
         }
+    }
+
+    /**
+     * Returns the categories the user is constrained to. If the user is super
+     * user, an empty set is returned. If the user is not super user, the
+     * categories of the program category combo are returned if present.
+     *
+     * @param params the data query parameters.
+     * @return the categories the user is constrained to.
+     */
+    private Collection<Category> getCategoryOptionConstraints( DataQueryParams params )
+    {
+        if ( currentUserService.currentUserIsSuper() )
+        {
+            return Collections.emptySet();
+        }
+        return Optional.of( params )
+            .map( DataQueryParams::getProgram )
+            .map( Program::getCategoryCombo )
+            .map( CategoryCombo::getCategories )
+            .orElse( Collections.emptyList() );
     }
 }
