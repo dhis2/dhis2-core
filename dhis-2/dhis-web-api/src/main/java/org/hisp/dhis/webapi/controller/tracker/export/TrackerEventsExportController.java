@@ -55,7 +55,8 @@ import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -112,7 +113,8 @@ public class TrackerEventsExportController
     public PagingWrapper<ObjectNode> getEvents(
         TrackerEventCriteria eventCriteria, HttpServletRequest request,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
-        throws WebMessageException
+        throws BadRequestException,
+        ForbiddenException
     {
 
         EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
@@ -149,7 +151,9 @@ public class TrackerEventsExportController
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         HttpServletRequest request )
-        throws IOException
+        throws IOException,
+        BadRequestException,
+        ForbiddenException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
