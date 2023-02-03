@@ -200,4 +200,31 @@ public class CollectionUtils
     {
         return collection == null || collection.isEmpty();
     }
+
+    /**
+     * Find duplicate item in given collection.
+     *
+     * @param collection the collection to be checked.
+     * @param <T> The object type of the collection item.
+     * @return Set of duplicate items.
+     */
+    public static <T> Set<T> findDuplicates( Collection<T> collection )
+    {
+        if ( CollectionUtils.isEmpty( collection ) )
+        {
+            return Set.of();
+        }
+        Set<T> duplicates = new HashSet<>();
+        Set<T> uniques = new HashSet<>();
+
+        for ( T t : collection )
+        {
+            if ( !uniques.add( t ) )
+            {
+                duplicates.add( t );
+            }
+        }
+
+        return duplicates;
+    }
 }
