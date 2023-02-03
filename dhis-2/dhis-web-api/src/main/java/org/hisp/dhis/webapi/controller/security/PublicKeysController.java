@@ -67,8 +67,7 @@ public class PublicKeysController
     private final DhisOidcProviderRepository clientRegistrationRepository;
 
     @GetMapping( value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" )
-    String clientId )
+    public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" ) String clientId )
     {
         DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientId );
