@@ -55,7 +55,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping( "/publicKeys" )
 @RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class WellKnownController
+public class PublicKeysController
 {
 
     private final DhisOidcProviderRepository clientRegistrationRepository;
