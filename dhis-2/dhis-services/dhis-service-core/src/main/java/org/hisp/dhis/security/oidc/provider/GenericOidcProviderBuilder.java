@@ -117,7 +117,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         }
         catch ( KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | JOSEException e )
         {
-            throw new RuntimeException( "Could not load public key from keystore", e );
+            throw new IllegalStateException( "Could not load public key from keystore", e );
         }
     }
 
@@ -140,7 +140,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
             catch ( KeyStoreException | JOSEException | CertificateException | IOException
                 | NoSuchAlgorithmException e )
             {
-                throw new RuntimeException( "Could not load key from keystore", e );
+                throw new IllegalStateException( "Could not load key from keystore", e );
             }
         }
 

@@ -44,6 +44,11 @@ import com.nimbusds.jose.jwk.RSAKey;
  */
 public class KeyStoreUtil
 {
+    private KeyStoreUtil()
+    {
+        throw new IllegalArgumentException( "This class should not be instantiated" );
+    }
+
     public static KeyStore readKeyStore( String keystorePath, String keystorePassword )
         throws KeyStoreException,
         IOException,

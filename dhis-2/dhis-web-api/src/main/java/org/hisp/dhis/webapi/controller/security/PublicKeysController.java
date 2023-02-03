@@ -48,7 +48,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.*;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -63,13 +67,18 @@ public class PublicKeysController
     private final DhisOidcProviderRepository clientRegistrationRepository;
 
     @GetMapping( value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" ) String clientId )
+    public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" )
+    String clientId )
     {
         DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientId );
 
         JWK jwk = dhisOidcClientRegistration.getJwk();
         JwsAlgorithm jwsAlgorithm = resolveAlgorithm( jwk );
+        if ( jwsAlgorithm == null )
+        {
+            throw new IllegalArgumentException( "Unsupported algorithm: " + jwk.getAlgorithm() );
+        }
 
         RSAPublicKey publicKey = dhisOidcClientRegistration.getRsaPublicKey();
         String keyId = dhisOidcClientRegistration.getKeyId();

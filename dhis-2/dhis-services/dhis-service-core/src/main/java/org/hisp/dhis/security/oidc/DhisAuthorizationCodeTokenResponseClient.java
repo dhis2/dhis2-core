@@ -28,8 +28,6 @@
 package org.hisp.dhis.security.oidc;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -87,7 +85,7 @@ public class DhisAuthorizationCodeTokenResponseClient
     public void init()
     {
 
-        Function<ClientRegistration, JWK> jwkResolver = ( clientRegistration ) -> {
+        Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> {
             if ( clientRegistration.getClientAuthenticationMethod()
                 .equals( ClientAuthenticationMethod.PRIVATE_KEY_JWT ) )
             {
@@ -100,8 +98,7 @@ public class DhisAuthorizationCodeTokenResponseClient
                     + clientRegistration.getClientAuthenticationMethod() );
         };
 
-        Consumer<NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<OAuth2AuthorizationCodeGrantRequest>> jwtClientAssertionCustomizer = (
-            context ) -> {
+        Consumer<NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<OAuth2AuthorizationCodeGrantRequest>> jwtClientAssertionCustomizer = context -> {
             ClientRegistration clientRegistration = context.getAuthorizationGrantRequest().getClientRegistration();
             DhisOidcClientRegistration clientReg = clientRegistrations.getDhisOidcClientRegistration(
                 clientRegistration.getRegistrationId() );
@@ -138,21 +135,9 @@ public class DhisAuthorizationCodeTokenResponseClient
         else
         {
             request = this.jwtRequestEntityConverter.convert( authorizationCodeGrantRequest );
-            logToken( request );
         }
 
         return getResponse( request ).getBody();
-    }
-
-    private static void logToken( RequestEntity<?> request )
-    {
-        if ( request == null || request.getBody() == null )
-        {
-            return;
-        }
-        List tokens = (List) ((Map) request.getBody()).get( "client_assertion" );
-        String token = (String) tokens.get( 0 );
-        log.info( "AuthorizationCodeGrantRequest JWT token: " + token );
     }
 
     private ResponseEntity<OAuth2AccessTokenResponse> getResponse( RequestEntity<?> request )
