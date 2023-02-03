@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
-import static org.hisp.dhis.util.ValidationUtils.validateAttributeValueFilters;
-import static org.hisp.dhis.util.ValidationUtils.validateDateFilterPeriod;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +39,8 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programstagefilter.DateFilterPeriod;
+import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
@@ -126,7 +125,7 @@ public class DefaultTrackedEntityInstanceFilterService
             return errors;
         }
 
-        validateAttributeValueFilters( errors, eqc.getAttributeValueFilters(), teaService::getTrackedEntityAttribute );
+        validateAttributeValueFilters( errors, eqc );
 
         validateDateFilterPeriods( errors, eqc );
 
@@ -177,6 +176,44 @@ public class DefaultTrackedEntityInstanceFilterService
             && eqc.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
         {
             errors.add( "Assigned Users cannot be empty with PROVIDED assigned user mode" );
+        }
+    }
+
+    private void validateAttributeValueFilters( List<String> errors, EntityQueryCriteria eqc )
+    {
+        List<AttributeValueFilter> attributeValueFilters = eqc.getAttributeValueFilters();
+        if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
+        {
+            attributeValueFilters.forEach( avf -> {
+                if ( StringUtils.isEmpty( avf.getAttribute() ) )
+                {
+                    errors.add( "Attribute Uid is missing in filter" );
+                }
+                else
+                {
+                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
+                    if ( tea == null )
+                    {
+                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
+                    }
+                }
+
+                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
+            } );
+        }
+    }
+
+    private void validateDateFilterPeriod( List<String> errors, String item, DateFilterPeriod dateFilterPeriod )
+    {
+        if ( dateFilterPeriod == null || dateFilterPeriod.getType() == null )
+        {
+            return;
+        }
+
+        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
+            && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
+        {
+            errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
         }
     }
 
