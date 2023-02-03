@@ -92,7 +92,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[No name specified for the working list definition.]", response.error().getMessage() );
+        assertEquals( "Missing required property `name`",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -102,7 +103,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[No program specified for the working list definition.]", response.error().getMessage() );
+        assertEquals( "Missing required property `program`",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -112,7 +114,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program is specified but does not exist", response.error().getMessage() );
+        assertContains( "Invalid reference [madeUpProgramId]",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -122,7 +125,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'program': {'id': '" + programId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[No program stage specified for the working list definition.]", response.error().getMessage() );
+        assertEquals( "Missing required property `programStage`",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -132,7 +136,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program stage is specified but does not exist", response.error().getMessage() );
+        assertContains( "Invalid reference [madeUpProgramStageId]",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @ParameterizedTest
@@ -170,13 +175,13 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         HttpResponse response = POST( "/programStageWorkingListDefinitions", createPostRequestBody( queryCriteria ) );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( errorMessage, response.error().getMessage() );
+        assertContains( errorMessage, response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     private static Stream<Arguments> provideIncorrectQueryCriteriaParams()
     {
         return Stream.of(
-            Arguments.of( "{'orgUnit':'madeUpOrgUnit'}}", "Org unit is specified but does not exist" ),
+            Arguments.of( "{'orgUnit':'madeUpOrgUnit'}}", "Organisation unit does not exist: `madeUpOrgUnit`" ),
             Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','startDate':''}}}",
                 "Start date or end date not specified with ABSOLUTE date period" ),
             Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','endDate':''}}}",
@@ -252,7 +257,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'" + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[No program specified for the working list definition.]", response.error().getMessage() );
+        assertEquals( "Missing required property `program`",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -266,7 +272,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
                 + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program is specified but does not exist", response.error().getMessage() );
+        assertContains( "Invalid reference [madeUpProgramId]",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -279,7 +286,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             "{'program': {'id': '" + programId + "'}, 'name':'" + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[No program stage specified for the working list definition.]", response.error().getMessage() );
+        assertEquals( "Missing required property `programStage`",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test
@@ -293,7 +301,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
                 + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program stage is specified but does not exist", response.error().getMessage() );
+        assertContains( "Invalid reference [madeUpProgramStageId]",
+            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test

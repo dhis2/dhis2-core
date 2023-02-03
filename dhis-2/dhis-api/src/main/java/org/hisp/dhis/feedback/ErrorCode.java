@@ -252,6 +252,13 @@ public enum ErrorCode
     E4060( "Object could not be deleted: {0}" ),
     E4061(
         "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
+    E4062( "Start date or end date not specified with ABSOLUTE date period type for item `{0}`" ),
+    E4063( "Assigned Users cannot be empty with PROVIDED assigned user mode" ),
+    E4064( "Organisation Unit cannot be empty with `{0}` org unit mode" ),
+    E4065( "Data item Uid is missing in filter" ),
+    E4066( "No data element found for item: `{0}`" ),
+    E4067( "Attribute Uid is missing in filter`" ),
+    E4068( "No tracked entity attribute found for attribute: `{0}`" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

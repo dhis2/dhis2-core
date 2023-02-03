@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 import org.springframework.util.CollectionUtils;
 
@@ -43,30 +42,6 @@ public class ValidationUtils
 
     private ValidationUtils()
     {
-    }
-
-    public static void validateAttributeValueFilters( List<String> errors, List<AttributeValueFilter> attributes,
-        TrackedEntityAttributeService teaService )
-    {
-        if ( !CollectionUtils.isEmpty( attributes ) )
-        {
-            attributes.forEach( avf -> {
-                if ( StringUtils.isEmpty( avf.getAttribute() ) )
-                {
-                    errors.add( "Attribute Uid is missing in filter" );
-                }
-                else
-                {
-                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
-                    if ( tea == null )
-                    {
-                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
-                    }
-                }
-
-                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
-            } );
-        }
     }
 
     public static void validateAttributeValueFilters( List<String> errors, List<AttributeValueFilter> attributes,
@@ -106,5 +81,4 @@ public class ValidationUtils
             errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
         }
     }
-
 }

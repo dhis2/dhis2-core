@@ -27,13 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinitionService;
 import org.hisp.dhis.schema.descriptors.ProgramStageWorkingListDefinitionSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
@@ -46,31 +42,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ProgramStageWorkingListController
     extends AbstractCrudController<ProgramStageWorkingListDefinition>
 {
-    private final ProgramStageWorkingListDefinitionService workingListDefinitionService;
-
-    public ProgramStageWorkingListController( ProgramStageWorkingListDefinitionService workingListDefinitionService )
-    {
-        this.workingListDefinitionService = workingListDefinitionService;
-    }
-
-    @Override
-    public void preCreateEntity( ProgramStageWorkingListDefinition workingListDefinition )
-    {
-        List<String> errors = workingListDefinitionService.validate( workingListDefinition );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
-    }
-
-    @Override
-    public void preUpdateEntity( ProgramStageWorkingListDefinition oldWorkingListDefinition,
-        ProgramStageWorkingListDefinition newWorkingListDefinition )
-    {
-        List<String> errors = workingListDefinitionService.validate( newWorkingListDefinition );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
-    }
 }
