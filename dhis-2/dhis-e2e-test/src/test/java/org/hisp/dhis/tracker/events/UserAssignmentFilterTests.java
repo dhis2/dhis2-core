@@ -108,7 +108,7 @@ public class UserAssignmentFilterTests
     {
         loginActions.loginAsSuperUser();
         ApiResponse response = eventActions
-            .get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE" );
+            .get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ALL" );
 
         response.validate().statusCode( 200 )
             .body( "events", hasSize( 4 ) )
