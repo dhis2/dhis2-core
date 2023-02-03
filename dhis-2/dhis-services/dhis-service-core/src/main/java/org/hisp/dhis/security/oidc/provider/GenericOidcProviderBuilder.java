@@ -27,18 +27,10 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableList;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -50,10 +42,17 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
-import com.google.common.collect.ImmutableList;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.RSAKey;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -100,9 +99,15 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
 
     private static RSAPublicKey getPublicKey( Map<String, String> config )
     {
+        String keystorePath = config.get( JWT_PRIVATE_KEY_KEYSTORE_PATH );
+        if ( keystorePath == null || keystorePath.isEmpty() )
+        {
+            return null;
+        }
+
         try
         {
-            KeyStore keyStore = KeyStoreUtil.readKeyStore( config.get( JWT_PRIVATE_KEY_KEYSTORE_PATH ),
+            KeyStore keyStore = KeyStoreUtil.readKeyStore( keystorePath,
                 config.get( JWT_PRIVATE_KEY_KEYSTORE_PASSWORD ) );
             RSAKey rsaKey = KeyStoreUtil.loadRSAPublicKey( keyStore, config.get( JWT_PRIVATE_KEY_ALIAS ),
                 config.get( JWT_PRIVATE_KEY_PASSWORD ).toCharArray() );
