@@ -28,7 +28,15 @@
 package org.hisp.dhis.security.oidc;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
+
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.RequestEntity;
@@ -55,40 +63,58 @@ import org.springframework.web.client.RestTemplate;
 
 import com.nimbusds.jose.jwk.JWK;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Service
-public class JwtPrivateAuthorizationCodeTokenResponseClient
+@RequiredArgsConstructor
+@Slf4j
+public class DhisAuthorizationCodeTokenResponseClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
 {
+
+    private final DhisOidcProviderRepository clientRegistrations;
+
     private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
 
     private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
 
+    private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> jwtRequestEntityConverter;
+
     private RestOperations restOperations;
 
-    public JwtPrivateAuthorizationCodeTokenResponseClient()
+    @PostConstruct
+    public void init()
     {
 
         Function<ClientRegistration, JWK> jwkResolver = ( clientRegistration ) -> {
             if ( clientRegistration.getClientAuthenticationMethod()
                 .equals( ClientAuthenticationMethod.PRIVATE_KEY_JWT ) )
             {
-                // Assuming RSA key type
-                //                RSAPublicKey publicKey = ...
-                //                RSAPrivateKey privateKey = ...
-                //                return new RSAKey.Builder(publicKey)
-                //                        .privateKey(privateKey)
-                //                        .keyID(UUID.randomUUID().toString())
-                //                        .build();
-                return null;
-
+                DhisOidcClientRegistration clientReg = clientRegistrations.getDhisOidcClientRegistration(
+                    clientRegistration.getRegistrationId() );
+                return clientReg.getJwk();
             }
-            return null;
+            throw new IllegalArgumentException(
+                "The Client Registration does not support the Client Authentication Method: "
+                    + clientRegistration.getClientAuthenticationMethod() );
         };
 
-        NimbusJwtClientAuthenticationParametersConverter con = new NimbusJwtClientAuthenticationParametersConverter(
-            jwkResolver );
+        Consumer<NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<OAuth2AuthorizationCodeGrantRequest>> jwtClientAssertionCustomizer = (
+            context ) -> {
+            ClientRegistration clientRegistration = context.getAuthorizationGrantRequest().getClientRegistration();
+            DhisOidcClientRegistration clientReg = clientRegistrations.getDhisOidcClientRegistration(
+                clientRegistration.getRegistrationId() );
+            context.getHeaders().jwkSetUrl( clientReg.getJwkSetUrl() );
+        };
 
-        setRequestEntityConverter( con );
+        NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest> parametersConverter = new NimbusJwtClientAuthenticationParametersConverter<>(
+            jwkResolver );
+        parametersConverter.setJwtClientAssertionCustomizer( jwtClientAssertionCustomizer );
+
+        OAuth2AuthorizationCodeGrantRequestEntityConverter jwtReqConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        jwtReqConverter.addParametersConverter( parametersConverter );
+        this.jwtRequestEntityConverter = jwtReqConverter;
 
         RestTemplate restTemplate = new RestTemplate(
             Arrays.asList( new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter() ) );
@@ -101,15 +127,32 @@ public class JwtPrivateAuthorizationCodeTokenResponseClient
         OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest )
     {
         Assert.notNull( authorizationCodeGrantRequest, "authorizationCodeGrantRequest cannot be null" );
-        RequestEntity<?> request = this.requestEntityConverter.convert( authorizationCodeGrantRequest );
-        ResponseEntity<OAuth2AccessTokenResponse> response = getResponse( request );
-        // As per spec, in Section 5.1 Successful Access Token Response
-        // https://tools.ietf.org/html/rfc6749#section-5.1
-        // If AccessTokenResponse.scope is empty, then we assume all requested scopes were
-        // granted.
-        // However, we use the explicit scopes returned in the response (if any).
 
-        return response.getBody();
+        ClientRegistration clientRegistration = authorizationCodeGrantRequest.getClientRegistration();
+
+        RequestEntity<?> request;
+        if ( !ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals( clientRegistration.getClientAuthenticationMethod() ) )
+        {
+            request = this.requestEntityConverter.convert( authorizationCodeGrantRequest );
+        }
+        else
+        {
+            request = this.jwtRequestEntityConverter.convert( authorizationCodeGrantRequest );
+            logToken( request );
+        }
+
+        return getResponse( request ).getBody();
+    }
+
+    private static void logToken( RequestEntity<?> request )
+    {
+        if ( request == null || request.getBody() == null )
+        {
+            return;
+        }
+        List tokens = (List) ((Map) request.getBody()).get( "client_assertion" );
+        String token = (String) tokens.get( 0 );
+        log.info( "AuthorizationCodeGrantRequest JWT token: " + token );
     }
 
     private ResponseEntity<OAuth2AccessTokenResponse> getResponse( RequestEntity<?> request )
