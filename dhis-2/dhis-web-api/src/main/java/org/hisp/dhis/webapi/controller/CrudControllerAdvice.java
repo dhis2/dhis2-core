@@ -194,7 +194,7 @@ public class CrudControllerAdvice
     {
         if ( ex.getRequiredType() == null )
         {
-            return defaultExceptionHandler( ex );
+            return handleBadRequest( ex );
         }
 
         if ( ex.getRequiredType().isEnum() )
@@ -206,7 +206,7 @@ public class CrudControllerAdvice
                 ex.getValue(), ex.getName(), validValues );
             return badRequest( errorMessage );
         }
-        return defaultExceptionHandler( ex );
+        return handleBadRequest( ex );
     }
 
     @ExceptionHandler( InvalidEnumValueException.class )
