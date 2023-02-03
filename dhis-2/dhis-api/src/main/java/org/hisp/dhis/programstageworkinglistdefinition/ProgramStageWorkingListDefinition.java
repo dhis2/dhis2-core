@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.programstageworkinglistdefinition;
 
-import java.util.Objects;
-
+import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Setter
+@EqualsAndHashCode( callSuper = true )
 @JacksonXmlRootElement( localName = "programStageWorkingListDefinition", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
     implements MetadataObject
@@ -106,37 +106,5 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
     public ProgramStageQueryCriteria getProgramStageQueryCriteria()
     {
         return programStageQueryCriteria;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
-
-        ProgramStageWorkingListDefinition that = (ProgramStageWorkingListDefinition) o;
-
-        if ( !Objects.equals( program, that.program ) )
-            return false;
-        if ( !Objects.equals( programStage, that.programStage ) )
-            return false;
-        if ( !Objects.equals( description, that.description ) )
-            return false;
-        return Objects.equals( programStageQueryCriteria, that.programStageQueryCriteria );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = super.hashCode();
-        result = 31 * result + (program != null ? program.hashCode() : 0);
-        result = 31 * result + (programStage != null ? programStage.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (programStageQueryCriteria != null ? programStageQueryCriteria.hashCode() : 0);
-        return result;
     }
 }

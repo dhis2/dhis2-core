@@ -71,37 +71,6 @@ public class DefaultProgramStageWorkingListDefinitionService
     private final DataElementService dataElementService;
 
     @Override
-    public long add( ProgramStageWorkingListDefinition programStageWorkingListDefinition )
-    {
-        programStageWorkingListDefinitionStore.save( programStageWorkingListDefinition );
-        return programStageWorkingListDefinition.getId();
-    }
-
-    @Override
-    public void delete( ProgramStageWorkingListDefinition programStageWorkingListDefinition )
-    {
-        programStageWorkingListDefinitionStore.delete( programStageWorkingListDefinition );
-    }
-
-    @Override
-    public void update( ProgramStageWorkingListDefinition programStageWorkingListDefinition )
-    {
-        programStageWorkingListDefinitionStore.update( programStageWorkingListDefinition );
-    }
-
-    @Override
-    public ProgramStageWorkingListDefinition get( long id )
-    {
-        return programStageWorkingListDefinitionStore.get( id );
-    }
-
-    @Override
-    public List<ProgramStageWorkingListDefinition> getAll()
-    {
-        return programStageWorkingListDefinitionStore.getAll();
-    }
-
-    @Override
     public List<String> validate( ProgramStageWorkingListDefinition programStageWorkingListDefinition )
     {
         List<String> errors = new ArrayList<>();

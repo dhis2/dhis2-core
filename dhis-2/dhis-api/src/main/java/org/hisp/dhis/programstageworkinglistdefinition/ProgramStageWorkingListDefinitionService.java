@@ -32,43 +32,6 @@ import java.util.List;
 public interface ProgramStageWorkingListDefinitionService
 {
     /**
-     * Adds the program stage working list definition
-     *
-     * @param programStageWorkingListDefinition
-     * @return id of added programStageWorkingListDefinition
-     */
-    long add( ProgramStageWorkingListDefinition programStageWorkingListDefinition );
-
-    /**
-     * Deletes the program stage working list definition
-     *
-     * @param programStageWorkingListDefinition
-     */
-    void delete( ProgramStageWorkingListDefinition programStageWorkingListDefinition );
-
-    /**
-     * Updates the program stage working list definition
-     *
-     * @param programStageWorkingListDefinition
-     */
-    void update( ProgramStageWorkingListDefinition programStageWorkingListDefinition );
-
-    /**
-     * Gets a program stage working list definition
-     *
-     * @param id of the program stage working list definition to be fetched
-     * @return the working list definition found
-     */
-    ProgramStageWorkingListDefinition get( long id );
-
-    /**
-     * Gets all program stage working list definitions
-     *
-     * @return list of all the program stage working list definitions
-     */
-    List<ProgramStageWorkingListDefinition> getAll();
-
-    /**
      * Validate the program stage working list definition
      *
      * @param programStageWorkingListDefinition
