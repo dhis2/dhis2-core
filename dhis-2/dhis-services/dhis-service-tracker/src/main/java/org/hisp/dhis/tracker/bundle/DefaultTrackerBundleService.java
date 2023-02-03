@@ -104,7 +104,7 @@ public class DefaultTrackerBundleService
     @Transactional
     public PersistenceReport commit( TrackerBundle bundle )
     {
-        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        if ( TrackerBundleMode.VALIDATION == bundle.getImportMode() )
         {
             return PersistenceReport.emptyReport();
         }
@@ -145,7 +145,7 @@ public class DefaultTrackerBundleService
     @Transactional
     public PersistenceReport delete( TrackerBundle bundle )
     {
-        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
+        if ( TrackerBundleMode.VALIDATION == bundle.getImportMode() )
         {
             return PersistenceReport.emptyReport();
         }
