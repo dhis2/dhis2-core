@@ -102,7 +102,7 @@ public class TranslationsCheck implements ObjectValidationCheck
             {
                 objectReport.addErrorReport(
                     new ErrorReport( Translation.class, ErrorCode.E1106, translation.getProperty(),
-                        translation.getLocale() )
+                        translation.getLocale(), klass.getSimpleName(), object.getUid() )
                             .setErrorKlass( klass ) );
             }
             else
