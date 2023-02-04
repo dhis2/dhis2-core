@@ -452,8 +452,8 @@ public class HibernateDataApprovalStore
         String coEndDateExtension = workflow.getSqlCoEndDateExtension();
 
         String approvedAboveSubquery = "false"; // Not approved above if this is
-                                                // the highest (lowest number)
-                                                // approval orgUnit level.
+                                               // the highest (lowest number)
+                                               // approval orgUnit level.
 
         if ( approvedAboveLevel != null )
         {
@@ -600,7 +600,7 @@ public class HibernateDataApprovalStore
                     StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") ")
             + // Filter AOCs if specified.
             "and exists ( " + // Include orgUnits, and their ancestors, that are
-                              // mapped to a dataset of the workflow.
+                             // mapped to a dataset of the workflow.
             "select 1 from organisationunit o3 " +
             "where o3.path like o.path || '%' and o3.organisationunitid in ( " +
             "select distinct sourceid " +
