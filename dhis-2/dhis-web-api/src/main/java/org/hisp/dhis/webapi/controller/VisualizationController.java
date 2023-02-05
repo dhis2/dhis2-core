@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionItemType;
@@ -70,15 +69,12 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
-    private final CategoryService categoryService;
-
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
-        I18nManager i18nManager, CategoryService categoryService )
+        I18nManager i18nManager )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
         this.i18nManager = i18nManager;
-        this.categoryService = categoryService;
     }
 
     @Override
