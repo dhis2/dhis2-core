@@ -44,7 +44,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
  */
 public class ExpressionDimensionItemHelper
 {
-    private static final Pattern pattern = Pattern
+    public static final Pattern pattern = Pattern
         .compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
 
     private ExpressionDimensionItemHelper()

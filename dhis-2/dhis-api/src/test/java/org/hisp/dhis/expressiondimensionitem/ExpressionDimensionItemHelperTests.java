@@ -30,7 +30,6 @@ package org.hisp.dhis.expressiondimensionitem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,8 +45,6 @@ class ExpressionDimensionItemHelperTests
 {
     @Mock
     private IdentifiableObjectManager manager;
-
-    private final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
 
     @Test
     void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
@@ -67,7 +64,7 @@ class ExpressionDimensionItemHelperTests
     {
         // Given
         // When
-        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( pattern,
+        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( ExpressionDimensionItemHelper.pattern,
             "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
