@@ -46,7 +46,6 @@ public class ExpressionDimensionItemHelper
 {
     private static final Pattern pattern = Pattern
         .compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
-    //private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     private ExpressionDimensionItemHelper()
     {
@@ -77,7 +76,7 @@ public class ExpressionDimensionItemHelper
         List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
 
         expressionTokens.forEach( et -> {
-            String[] uids = et.split( "[.]" );
+            String[] uids = et.split( Pattern.quote( "." ) );
             if ( uids.length > 1 )
             {
                 DataElementOperand deo = new DataElementOperand( manager.get( DataElement.class, uids[0] ),
