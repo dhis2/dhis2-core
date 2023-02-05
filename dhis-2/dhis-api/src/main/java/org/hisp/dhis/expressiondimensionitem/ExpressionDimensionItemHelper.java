@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 
 /**
  * Parsing the expression of ExpressionDimensionItem, provides collection of
@@ -45,6 +44,7 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
  */
 public class ExpressionDimensionItemHelper
 {
+    //private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}[.a-zA-Z0-9]{0,12}" );
     private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     private ExpressionDimensionItemHelper()
@@ -78,7 +78,7 @@ public class ExpressionDimensionItemHelper
             .map( mr -> mr.group( 0 ) )
             .forEach( expressionTokens::add );
 
-        return manager.getByUid( List.of( DataElement.class, Indicator.class, ProgramDataElementDimensionItem.class ),
+        return manager.getByUid( List.of( DataElement.class, Indicator.class ),
             expressionTokens.stream().distinct().collect( Collectors.toList() ) );
     }
 }

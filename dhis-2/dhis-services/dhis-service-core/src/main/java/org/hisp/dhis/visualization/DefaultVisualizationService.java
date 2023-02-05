@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.visualization;
 
-import java.util.List;
-import java.util.ListIterator;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
-import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +41,8 @@ public class DefaultVisualizationService
     extends GenericAnalyticalObjectService<Visualization>
     implements VisualizationService
 {
-    @Qualifier( "org.hisp.dhis.visualization.VisualizationStore" )
-    private final HibernateVisualizationStore visualizationStore;
+    @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
+    private final AnalyticalObjectStore<Visualization> visualizationStore;
 
     @Override
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
@@ -90,35 +85,5 @@ public class DefaultVisualizationService
     public Visualization getVisualizationNoAcl( String uid )
     {
         return visualizationStore.getByUidNoAcl( uid );
-    }
-
-    @Override
-    @Transactional
-    public void removeExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
-    {
-        List<Visualization> visualizations = visualizationStore
-            .getAllVisualizationsByExpressionDimensionItem( expressionDimensionItem.getUid() );
-
-        for ( Visualization visualization : visualizations )
-        {
-            List<DataDimensionItem> dataDimensionItems = visualization.getDataDimensionItems();
-
-            ListIterator<DataDimensionItem> it = dataDimensionItems.listIterator();
-
-            while ( it.hasNext() )
-            {
-                DataDimensionItem dataDimensionItem = it.next();
-
-                if ( dataDimensionItem != null && dataDimensionItem.getExpressionDimensionItem() != null )
-                {
-                    String dimensionUid = dataDimensionItem.getExpressionDimensionItem().getDimensionItem();
-
-                    if ( expressionDimensionItem.getUid().equals( dimensionUid ) )
-                    {
-                        it.remove();
-                    }
-                }
-            }
-        }
     }
 }

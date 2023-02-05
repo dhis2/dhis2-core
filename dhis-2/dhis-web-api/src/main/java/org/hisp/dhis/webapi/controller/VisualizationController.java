@@ -39,19 +39,19 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -70,12 +70,15 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
+    private final CategoryService categoryService;
+
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
-        I18nManager i18nManager )
+        I18nManager i18nManager, CategoryService categoryService )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
         this.i18nManager = i18nManager;
+        this.categoryService = categoryService;
     }
 
     @Override
@@ -150,37 +153,28 @@ public class VisualizationController
                 }
             }
 
-            setDataDimensionItems( visualization );
+            addExpressionDimensionItemElementsToDataDimensionItems( visualization );
         }
     }
 
-    private void setDataDimensionItems( Visualization visualization )
+    private void addExpressionDimensionItemElementsToDataDimensionItems( Visualization visualization )
     {
-        List<BaseDimensionalItemObject> dimensionalItemObjectList = visualization.getDataDimensionItems()
+        List<DataDimensionItem> dataDimensionItems = visualization.getDataDimensionItems()
             .stream()
             .filter( ddi -> ddi.getExpressionDimensionItem() != null )
-            .flatMap( ddi -> ExpressionDimensionItemHelper.getExpressionItems( manager, ddi ).stream() )
-            .collect( Collectors.toList() );
+            .flatMap( ddi -> {
+                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemHelper
+                    .getExpressionItems( manager, ddi );
 
-        visualization.getDataDimensionItems().addAll( dimensionalItemObjectList.stream().map( d -> {
-            DataDimensionItem ddi = new DataDimensionItem();
+                return expressionItems.stream()
+                    .filter( d -> d.getDimensionItemType() == DimensionItemType.DATA_ELEMENT )
+                    .map( d -> {
+                        DataDimensionItem dataDimensionItem = new DataDimensionItem();
+                        dataDimensionItem.setDataElement( (DataElement) d );
+                        return dataDimensionItem;
+                    } ).collect( Collectors.toList() ).stream();
+            } ).collect( Collectors.toList() );
 
-            switch ( d.getDimensionItemType() )
-            {
-            case DATA_ELEMENT:
-                ddi.setDataElement( (DataElement) d );
-                break;
-            case INDICATOR:
-                ddi.setIndicator( (Indicator) d );
-                break;
-            case PROGRAM_DATA_ELEMENT:
-                ddi.setProgramDataElement( (ProgramDataElementDimensionItem) d );
-                break;
-            default:
-                //ignored
-                break;
-            }
-            return ddi;
-        } ).collect( Collectors.toList() ) );
+        visualization.getDataDimensionItems().addAll( dataDimensionItems );
     }
 }
