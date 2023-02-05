@@ -32,19 +32,19 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -155,22 +155,38 @@ public class VisualizationController
 
     private void addExpressionDimensionItemElementsToDataDimensionItems( Visualization visualization )
     {
-        List<DataDimensionItem> dataDimensionItems = visualization.getDataDimensionItems()
+        List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
+
+        visualization.getDataDimensionItems()
             .stream()
             .filter( ddi -> ddi.getExpressionDimensionItem() != null )
-            .flatMap( ddi -> {
+            .forEach( ddi -> {
                 List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemHelper
                     .getExpressionItems( manager, ddi );
 
-                return expressionItems.stream()
-                    .filter( d -> d.getDimensionItemType() == DimensionItemType.DATA_ELEMENT )
-                    .map( d -> {
-                        DataDimensionItem dataDimensionItem = new DataDimensionItem();
-                        dataDimensionItem.setDataElement( (DataElement) d );
-                        return dataDimensionItem;
-                    } ).collect( Collectors.toList() ).stream();
-            } ).collect( Collectors.toList() );
+                expressionItems.forEach( ei -> {
+                    DataDimensionItem dataDimensionItem = new DataDimensionItem();
 
-        visualization.getDataDimensionItems().addAll( dataDimensionItems );
+                    switch ( ei.getDimensionItemType() )
+                    {
+                    case DATA_ELEMENT:
+                        dataDimensionItem.setDataElement( (DataElement) ei );
+                        dataDimensionItems.add( dataDimensionItem );
+                        break;
+                    case DATA_ELEMENT_OPERAND:
+                        dataDimensionItem.setDataElementOperand( (DataElementOperand) ei );
+                        dataDimensionItems.add( dataDimensionItem );
+                        break;
+                    default:
+                        //ignore
+                        break;
+                    }
+                } );
+            } );
+
+        if ( !dataDimensionItems.isEmpty() )
+        {
+            visualization.getDataDimensionItems().addAll( dataDimensionItems );
+        }
     }
 }

@@ -30,13 +30,13 @@ package org.hisp.dhis.expressiondimensionitem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**
  * Parsing the expression of ExpressionDimensionItem, provides collection of
@@ -44,8 +44,9 @@ import org.hisp.dhis.indicator.Indicator;
  */
 public class ExpressionDimensionItemHelper
 {
-    //private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}[.a-zA-Z0-9]{0,12}" );
-    private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
+    private static final Pattern pattern = Pattern
+        .compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
+    //private static final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     private ExpressionDimensionItemHelper()
     {
@@ -78,7 +79,22 @@ public class ExpressionDimensionItemHelper
             .map( mr -> mr.group( 0 ) )
             .forEach( expressionTokens::add );
 
-        return manager.getByUid( List.of( DataElement.class, Indicator.class ),
-            expressionTokens.stream().distinct().collect( Collectors.toList() ) );
+        List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
+
+        expressionTokens.forEach( et -> {
+            String[] uids = et.split( "[.]" );
+            if ( uids.length > 1 )
+            {
+                DataElementOperand deo = new DataElementOperand( manager.get( DataElement.class, uids[0] ),
+                    manager.get( CategoryOptionCombo.class, uids[1] ) );
+                baseDimensionalItemObjects.add( deo );
+            }
+            else if ( uids.length > 0 )
+            {
+                baseDimensionalItemObjects.add( manager.get( DataElement.class, uids[0] ) );
+            }
+        } );
+
+        return baseDimensionalItemObjects;
     }
 }
