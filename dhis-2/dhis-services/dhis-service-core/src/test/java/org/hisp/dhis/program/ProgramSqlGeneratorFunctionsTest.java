@@ -54,12 +54,14 @@ import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
+import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.expression.ExpressionParams;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -672,7 +674,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18nCache( null )
+            .i18nCache( new SingleValueCache<>( () -> new I18n( null, null ) ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
             .params( params )
