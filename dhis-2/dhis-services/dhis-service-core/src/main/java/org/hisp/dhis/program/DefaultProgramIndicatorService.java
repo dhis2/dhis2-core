@@ -78,6 +78,7 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -504,7 +505,7 @@ public class DefaultProgramIndicatorService
             .programIndicatorService( this )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( i18nManager.getI18n() )
+            .i18nCache( new SingleValueCache<>( i18nManager::getI18n ) )
             .constantMap( expressionService.getConstantMap() )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )

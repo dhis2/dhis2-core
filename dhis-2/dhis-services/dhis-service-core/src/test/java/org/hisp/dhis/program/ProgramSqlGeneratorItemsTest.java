@@ -54,7 +54,6 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.expression.ExpressionParams;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -248,7 +247,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( new I18n( null, null ) )
+            .i18nCache( null )
             .constantMap( constantMap )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )

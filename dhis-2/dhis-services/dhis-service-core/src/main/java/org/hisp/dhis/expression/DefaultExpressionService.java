@@ -97,6 +97,7 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -749,11 +750,13 @@ public class DefaultExpressionService
      */
     private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ExpressionParams params )
     {
+        i18nManager.getI18n();
+
         return CommonExpressionVisitor.builder()
             .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
             .statementBuilder( statementBuilder )
-            .i18n( i18nManager.getI18n() )
+            .i18nCache( new SingleValueCache<>( i18nManager::getI18n ) )
             .constantMap( getConstantMap() )
             .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( params.getParseType() ) )
             .itemMethod( itemMethod )
