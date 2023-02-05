@@ -29,9 +29,14 @@ package org.hisp.dhis.expressiondimensionitem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 
 /**
@@ -42,12 +47,32 @@ class ExpressionDimensionItemHelperTests
     @Mock
     private IdentifiableObjectManager manager;
 
+    private final Pattern pattern = Pattern.compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
+
     @Test
     void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
     {
+        // Given
         // When
         // Then
         assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size(),
             "NPE assertion failed" );
+    }
+
+    @ParameterizedTest
+    @CsvSource( { "'fbfJHSPpUQD.pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'PT59n8BQbqM'" } )
+    void testGetExpressionTokensReturnsCollectionOfTokens( String token1, String token2 )
+    {
+        // Given
+        // When
+        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( pattern,
+            "#{" + token1 + "/#{" + token2 + "}" );
+
+        // Then
+        assertEquals( 2, tokens.size() );
+        assertEquals( token1, tokens.get( 0 ) );
+        assertEquals( token2, tokens.get( 1 ) );
     }
 }

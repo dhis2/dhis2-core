@@ -72,12 +72,7 @@ public class ExpressionDimensionItemHelper
 
         String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
 
-        List<String> expressionTokens = new ArrayList<>();
-
-        pattern.matcher( expression )
-            .results()
-            .map( mr -> mr.group( 0 ) )
-            .forEach( expressionTokens::add );
+        List<String> expressionTokens = getExpressionTokens( pattern, expression );
 
         List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
 
@@ -96,5 +91,23 @@ public class ExpressionDimensionItemHelper
         } );
 
         return baseDimensionalItemObjects;
+    }
+
+    /**
+     * Expression parser
+     *
+     * @param expression
+     * @return collection of tokens
+     */
+    public static List<String> getExpressionTokens( Pattern pattern, String expression )
+    {
+        List<String> expressionTokens = new ArrayList<>();
+
+        pattern.matcher( expression )
+            .results()
+            .map( mr -> mr.group( 0 ) )
+            .forEach( expressionTokens::add );
+
+        return expressionTokens;
     }
 }
