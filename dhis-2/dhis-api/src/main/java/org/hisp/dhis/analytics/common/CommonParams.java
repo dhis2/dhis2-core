@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static lombok.AccessLevel.NONE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -188,9 +187,6 @@ public class CommonParams
      */
     @Builder.Default
     private final boolean showHierarchy;
-
-    @Getter( NONE )
-    private final CommonParamsDelegator commonParamsDelegator = new CommonParamsDelegator( this );
 
     public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
     {
