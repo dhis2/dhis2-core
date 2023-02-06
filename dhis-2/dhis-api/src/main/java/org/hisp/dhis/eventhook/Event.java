@@ -31,14 +31,16 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
+import lombok.With;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
+@With
+@Value
 @Builder
 public class Event
 {

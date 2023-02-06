@@ -87,19 +87,19 @@ public class EventHookListener
                 {
                     List<ObjectNode> objects = new ArrayList<>();
 
-                    ((Collection<?>) event.getObject()).forEach( object -> {
-                        ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
-                            List.of( eventHook.getSource().getFields() ) );
-                        objects.add( objectNode );
-                    } );
+                    for ( Object object : ((Collection<?>) event.getObject()) )
+                    {
+                        objects.add( fieldFilterService.toObjectNode( object,
+                            List.of( eventHook.getSource().getFields() ) ) );
+                    }
 
-                    event.setObject( objects );
+                    event = event.withObject( objects );
                 }
                 else
                 {
                     ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
                         List.of( eventHook.getSource().getFields() ) );
-                    event.setObject( objectNode );
+                    event = event.withObject( objectNode );
                 }
 
                 String payload = objectMapper.writeValueAsString( event );
