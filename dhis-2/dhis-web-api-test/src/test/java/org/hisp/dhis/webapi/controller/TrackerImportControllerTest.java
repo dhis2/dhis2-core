@@ -40,28 +40,26 @@ import org.springframework.http.HttpStatus;
  */
 class TrackerImportControllerTest extends DhisControllerConvenienceTest
 {
+    @Test
+    void shouldReturnBadRequestWhenAllValidParametersArePassed()
+    {
+        assertWebMessage( "OK", 200, "OK", "Tracker job added",
+            POST( "/tracker?async=true&reportMode=FULL" +
+                "&importMode=VALIDATE" +
+                "&idScheme=UID" +
+                "&importStrategy=CREATE_AND_UPDATE" +
+                "&atomicMode=OBJECT" +
+                "&flushMode=AUTO" +
+                "&validationMode=FULL",
+                "{}" ).content( HttpStatus.OK ) );
+    }
 
     @Test
-    void testSyncPostJsonTrackerInvalidReportMode()
+    void shouldReturnBadRequestWhenInvalidReportModeIsPassedGettingJobReport()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
             "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
-
-    @Test
-    void testSyncPostJsonTrackerInvalidIdScheme()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE]",
-            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
@@ -69,6 +67,54 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
             "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidIdSchemeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE]",
+            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidImportModeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATE]",
+            POST( "/tracker?async=false&importMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidImportStrategyIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid importStrategy. Valid values are: [CREATE, UPDATE, PATCH, CREATE_AND_UPDATE, DELETE]",
+            POST( "/tracker?async=false&importStrategy=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidAtomicModeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid atomicMode. Valid values are: [ALL, OBJECT]",
+            POST( "/tracker?async=false&atomicMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidFlushModeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid flushMode. Valid values are: [OBJECT, AUTO]",
+            POST( "/tracker?async=false&flushMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidValidationModeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid validationMode. Valid values are: [FULL, FAIL_FAST, SKIP]",
+            POST( "/tracker?async=false&validationMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 }
