@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
@@ -133,7 +134,8 @@ public class OpenApiTool implements ToolProvider
         ApiAnalyse.Scope scope = new ApiAnalyse.Scope( classes, paths, tags );
         if ( !group )
         {
-            return generateDocument( filename, out, err, scope );
+            return generateDocument( filename, out, err, scope,
+                ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config ) );
         }
         AtomicInteger errorCode = generateGroupedDocuments( filename, out, err, scope );
         return errorCode.get() < 0 ? -1 : 0;
@@ -151,13 +153,19 @@ public class OpenApiTool implements ToolProvider
             .filter( cls -> !cls.isAnnotationPresent( OpenApi.Ignore.class ) )
             .forEach( cls -> byTag.computeIfAbsent( getMainTag( cls ), key -> new HashSet<>() )
                 .add( cls ) );
-        byTag.forEach( ( tag, classes ) -> errorCode.addAndGet(
-            generateDocument( dir + "/openapi-" + tag + ".json", out, err,
-                new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ) ) ) );
+        byTag.forEach( ( tag, classes ) -> {
+            String filename = dir + "/openapi-" + tag + ".json";
+            errorCode.addAndGet(
+                generateDocument( filename, out, err,
+                    new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ),
+                    ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT,
+                        config ) ) );
+        } );
         return errorCode;
     }
 
-    private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope )
+    private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope,
+        BiFunction<Api, OpenApiGenerator.Configuration, String> generator )
     {
         try
         {
@@ -171,7 +179,7 @@ public class OpenApiTool implements ToolProvider
             OpenApiGenerator.Configuration config = OpenApiGenerator.Configuration.DEFAULT.toBuilder()
                 .title( "DHIS2 API - " + title )
                 .build();
-            String doc = OpenApiGenerator.generate( api, JsonGenerator.Format.PRETTY_PRINT, config );
+            String doc = generator.apply( api, config );
             Path output = Files.writeString( file, doc );
             out.printf( "  %-30s [%3d controllers, %3d schemas]%n",
                 output.getFileName(), api.getControllers().size(), api.getSchemas().size() );
