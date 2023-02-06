@@ -79,8 +79,8 @@ public class DataSourceConfig
     }
 
     @Bean( "jdbcTemplate" )
-    @DependsOn( "dataSource" )
     @Primary
+    @DependsOn( "dataSource" )
     public JdbcTemplate jdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
     {
         JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );

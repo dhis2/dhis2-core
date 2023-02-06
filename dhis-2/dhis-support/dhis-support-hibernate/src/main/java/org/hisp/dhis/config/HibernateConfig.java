@@ -27,35 +27,34 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hibernate.cfg.AvailableSettings.DIALECT;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.persistence.EntityManager;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -71,11 +70,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
+@RequiredArgsConstructor
 public class HibernateConfig
 {
-    @Autowired
-    private ApplicationContext applicationContext;
-
     @Bean( "hibernateConfigurationProvider" )
     public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
     {
@@ -83,41 +80,6 @@ public class HibernateConfig
         hibernateConfigurationProvider.setConfigProvider( dhisConfig );
         return hibernateConfigurationProvider;
     }
-
-    //    @Bean
-    //    @DependsOn( "flyway" )
-    //    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
-    //        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
-    //    {
-    //        Objects.requireNonNull( dataSource );
-    //        Objects.requireNonNull( hibernateConfigurationProvider );
-    //
-    //        Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
-    //        Objects.requireNonNull( hibernateProperties );
-    //
-    //        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
-    //        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
-    //
-    //        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-    //        sessionFactory.setDataSource( dataSource );
-    //        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[0] ) );
-    //        sessionFactory.setMappingDirectoryLocations( directoryResources.toArray( new Resource[0] ) );
-    //        sessionFactory.setAnnotatedClasses( DeletedObject.class );
-    //        sessionFactory.setHibernateProperties( hibernateProperties );
-    //
-    //        return sessionFactory;
-    //    }
-    //
-    //    @Bean
-    //    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
-    //        SessionFactory sessionFactory )
-    //    {
-    //        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-    //        transactionManager.setSessionFactory( sessionFactory );
-    //        transactionManager.setDataSource( dataSource );
-    //
-    //        return transactionManager;
-    //    }
 
     @Bean
     public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
@@ -198,18 +160,15 @@ public class HibernateConfig
     }
 
     @Bean( "entityManagerFactoryBean" )
-    @DependsOn( { "flyway", "dataSource" } )
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean( DataSource dataSource,
-        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
+    @DependsOn( { "flyway" } )
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean( DhisConfigurationProvider config,
+        DataSource dataSource )
         throws IOException
     {
-        Objects.requireNonNull( dataSource );
-        Objects.requireNonNull( hibernateConfigurationProvider );
-
         Map<String, Object> properties = new Hashtable<>();
         properties.put( "javax.persistence.schema-generation.database.action", "none" );
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setDatabasePlatform( hibernateConfigurationProvider.getConfiguration().getProperty( DIALECT ) );
+        adapter.setDatabasePlatform( config.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter( adapter );
         factory.setDataSource( dataSource );
@@ -226,8 +185,9 @@ public class HibernateConfig
     {
         try
         {
-
-            Resource[] resources = applicationContext.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
+            //            Resource[] resources =  classLoader.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
 
             List<String> list = new ArrayList<>();
             for ( Resource resource : resources )
