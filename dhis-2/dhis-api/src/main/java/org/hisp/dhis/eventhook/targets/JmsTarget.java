@@ -58,7 +58,7 @@ public class JmsTarget extends Target
     private String address = "dhis2.hooks";
 
     @JsonProperty( required = true )
-    private String brokerUrl;
+    private String brokerUrl = "tcp://localhost:61616";
 
     @JsonProperty
     private String username;
