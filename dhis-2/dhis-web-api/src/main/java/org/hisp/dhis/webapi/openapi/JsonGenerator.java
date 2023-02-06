@@ -82,15 +82,15 @@ public class JsonGenerator
     {
 
         public static final Language JSON = new Language(
-            "[", "", "]",
-            "{", ":", "}", ",",
+            "[", "", "]", "",
+            "{", ":", "}", "", ",",
             "\"", "\"", JsonGenerator::escapeJsonString,
             "\"", "\"", false, JsonGenerator::escapeJsonText,
             UnaryOperator.identity() );
 
         public static final Language YAML = new Language(
-            "", "- ", "",
-            "", ": ", "", "",
+            "", "- ", "", "[]",
+            "", ": ", "", "{}", "",
             "", "", JsonGenerator::escapeYamlString,
             "|-", "", true, JsonGenerator::escapeYamlText,
             format -> format.toBuilder()
@@ -108,11 +108,15 @@ public class JsonGenerator
 
         String arrayEnd;
 
+        String arrayEmpty;
+
         String objectStart;
 
         String objectItemStart;
 
         String objectEnd;
+
+        String objectEmpty;
 
         String itemSeparator;
 
@@ -154,7 +158,7 @@ public class JsonGenerator
     final void addRootObject( Runnable addMembers )
     {
         addObjectMember( null, addMembers );
-        discardLastMemberSeparator( 0 );
+        discardLastMemberSeparator( 0, language.objectEmpty );
     }
 
     final void addObjectMember( String name, boolean condition, Runnable addMembers )
@@ -185,7 +189,7 @@ public class JsonGenerator
         appendItems( addMembers );
         if ( format.isNewLineBeforeItem() )
             indent = indent.substring( 0, indent.length() - format.getItemIndent().length() );
-        discardLastMemberSeparator( length );
+        discardLastMemberSeparator( length, language.objectEmpty );
         if ( format.isNewLineBeforeObjectEnd() )
         {
             out.append( '\n' );
@@ -216,7 +220,7 @@ public class JsonGenerator
             out.append( '\n' );
         int length = out.length();
         appendItems( addElements );
-        discardLastMemberSeparator( length );
+        discardLastMemberSeparator( length, language.arrayEmpty );
         if ( format.isNewLineBeforeArrayEnd() )
         {
             out.append( '\n' );
@@ -338,11 +342,15 @@ public class JsonGenerator
         out.append( language.itemSeparator );
     }
 
-    private void discardLastMemberSeparator( int length )
+    private void discardLastMemberSeparator( int length, String empty )
     {
         if ( out.length() > length )
         {
             out.setLength( out.length() - language.itemSeparator.length() ); // discard last ,
+        }
+        else
+        {
+            out.append( empty );
         }
     }
 
@@ -358,6 +366,13 @@ public class JsonGenerator
 
     private static String escapeYamlString( String unescaped )
     {
+        if ( unescaped.isEmpty() )
+            return unescaped;
+        if ( Character.isDigit( unescaped.charAt( 0 ) )
+            || "true".equals( unescaped )
+            || "false".equals( unescaped )
+            || unescaped.contains( "#" ) )
+            return "\"" + unescaped + "\"";
         return unescaped;
     }
 

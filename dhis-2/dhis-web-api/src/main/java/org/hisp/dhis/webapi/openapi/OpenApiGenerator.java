@@ -431,7 +431,8 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateRequestBody( Api.RequestBody requestBody )
     {
-        addStringMember( "description", requestBody.getDescription().orElse( configuration.missingDescription ) );
+        addStringMultilineMember( "description",
+            requestBody.getDescription().orElse( configuration.missingDescription ) );
         addBooleanMember( "required", requestBody.isRequired() );
         addObjectMember( "content",
             () -> requestBody.getConsumes().forEach( ( key, value ) -> addObjectMember( key.toString(),

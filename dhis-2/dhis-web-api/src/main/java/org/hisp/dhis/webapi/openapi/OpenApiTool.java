@@ -134,8 +134,10 @@ public class OpenApiTool implements ToolProvider
         ApiAnalyse.Scope scope = new ApiAnalyse.Scope( classes, paths, tags );
         if ( !group )
         {
-            return generateDocument( filename, out, err, scope,
-                ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config ) );
+            BiFunction<Api, OpenApiGenerator.Configuration, String> generator = filename.endsWith( ".json" )
+                ? ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config )
+                : ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config );
+            return generateDocument( filename, out, err, scope, generator );
         }
         AtomicInteger errorCode = generateGroupedDocuments( filename, out, err, scope );
         return errorCode.get() < 0 ? -1 : 0;
@@ -146,20 +148,22 @@ public class OpenApiTool implements ToolProvider
     {
         String dir = to.endsWith( "/" )
             ? to.substring( 0, to.length() - 1 )
-            : to.replace( ".json", "" );
+            : to.replace( ".json", "" ).replace( ".yaml", "" );
+        String fileExtension = to.endsWith( ".yaml" ) ? ".yaml" : ".json";
         AtomicInteger errorCode = new AtomicInteger( 0 );
         Map<String, Set<Class<?>>> byTag = new TreeMap<>();
         scope.getControllers().stream()
             .filter( cls -> !cls.isAnnotationPresent( OpenApi.Ignore.class ) )
             .forEach( cls -> byTag.computeIfAbsent( getMainTag( cls ), key -> new HashSet<>() )
                 .add( cls ) );
+        BiFunction<Api, OpenApiGenerator.Configuration, String> generator = to.endsWith( ".yaml" )
+            ? ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config )
+            : ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config );
         byTag.forEach( ( tag, classes ) -> {
-            String filename = dir + "/openapi-" + tag + ".json";
+            String filename = dir + "/openapi-" + tag + fileExtension;
             errorCode.addAndGet(
                 generateDocument( filename, out, err,
-                    new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ),
-                    ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT,
-                        config ) ) );
+                    new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ), generator ) );
         } );
         return errorCode;
     }
