@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,49 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.stereotype.Component;
+import java.util.List;
+
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
 
 /**
- * @author maikel arabori
+ * Test for {@link ExpressionDimensionItemHelper}
  */
-@Component
-public class ExpressionDimensionItemDeletionHandler extends JdbcDeletionHandler
+class ExpressionDimensionItemHelperTests
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Visualization.class ); // Not a typo!
+    @Mock
+    private IdentifiableObjectManager manager;
 
-    @Override
-    protected void register()
+    @Test
+    void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
     {
-        whenVetoing( ExpressionDimensionItem.class, this::allowDeleteExpressionDimensionItem );
+        // Given
+        // When
+        // Then
+        assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size(),
+            "NPE assertion failed" );
     }
 
-    private DeletionVeto allowDeleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
+    @ParameterizedTest
+    @CsvSource( { "'fbfJHSPpUQD.pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'PT59n8BQbqM'" } )
+    void testGetExpressionTokensReturnsCollectionOfTokens( String token1, String token2 )
     {
-        String sql = "select 1 from datadimensionitem where expressiondimensionitemid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", expressionDimensionItem.getId() ) );
+        // Given
+        // When
+        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( ExpressionDimensionItemHelper.pattern,
+            "#{" + token1 + "/#{" + token2 + "}" );
+
+        // Then
+        assertEquals( 2, tokens.size() );
+        assertEquals( token1, tokens.get( 0 ) );
+        assertEquals( token2, tokens.get( 1 ) );
     }
 }
