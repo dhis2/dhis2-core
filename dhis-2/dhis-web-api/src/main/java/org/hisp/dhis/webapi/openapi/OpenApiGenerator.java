@@ -39,6 +39,7 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -332,9 +333,13 @@ public class OpenApiGenerator extends JsonGenerator
                 () -> addObjectMember( null, () -> addStringMember( "url", configuration.serverUrl ) ) );
             addObjectMember( "paths", this::generatePaths );
             addObjectMember( "components", () -> {
+                addObjectMember( "securitySchemes", this::generateSecuritySchemes );
                 addObjectMember( "schemas", this::generateSchemas );
                 addObjectMember( "parameters", this::generateParameters );
             } );
+            addArrayMember( "security",
+                () -> addObjectMember( null, () -> addArrayMember( "basicAuth",
+                    () -> addArrayMember( null, Collections.emptyList() ) ) ) );
         } );
         log.info( format( "OpenAPI document generated for %d controllers with %d named schemas",
             api.getControllers().size(), api.getSchemas().size() ) );
@@ -425,6 +430,14 @@ public class OpenApiGenerator extends JsonGenerator
             addObjectMember( "content", hasContent,
                 () -> response.getContent().forEach( ( produces, body ) -> addObjectMember( produces.toString(),
                     () -> addObjectMember( "schema", () -> generateSchemaOrRef( body ) ) ) ) );
+        } );
+    }
+
+    private void generateSecuritySchemes()
+    {
+        addObjectMember( "basicAuth", () -> {
+            addStringMember( "type", "http" );
+            addStringMember( "scheme", "basic" );
         } );
     }
 
