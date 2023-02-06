@@ -422,7 +422,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         sql += hlp.whereAnd() + " "
-            + timeFieldSqlRenderer.renderTimeFieldSql( params );
+            + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units

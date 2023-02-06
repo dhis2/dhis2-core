@@ -720,6 +720,11 @@ public class Schema implements Ordered, Klass
         references = null;
     }
 
+    public boolean hasAttributeValues()
+    {
+        return havePersistedProperty( "attributeValues" );
+    }
+
     @JsonIgnore
     public Property getProperty( String name )
     {

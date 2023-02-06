@@ -96,6 +96,16 @@ class EventImportValidationTest extends TrackerTest
     }
 
     @Test
+    void testInvalidEnrollmentPreventsValidEventFromBeingCreated()
+        throws IOException
+    {
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/validations/invalid_enrollment_with_valid_event.json" ) );
+
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1070, TrackerErrorCode.E5000 );
+    }
+
+    @Test
     void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
         throws IOException
     {
@@ -141,13 +151,10 @@ class EventImportValidationTest extends TrackerTest
     {
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/program_and_tracker_events.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( trackerImportService.importTracker( trackerBundleParams ) );
 
         trackerBundleParams.setImportStrategy( UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertNoErrors( trackerImportReport );
     }

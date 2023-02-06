@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 
 public class AssertValidationErrorReporter
 {
@@ -44,6 +44,6 @@ public class AssertValidationErrorReporter
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
             String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getReportList().size() ) );
+                uid, reporter.getErrors().size() ) );
     }
 }

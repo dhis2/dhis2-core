@@ -65,6 +65,9 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -123,6 +126,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
@@ -817,13 +821,32 @@ public class UserController
     }
 
     @Override
-    protected void postPatchEntity( User user )
+    protected void postJsonPatch( JsonPatch patch, User user )
     {
         // Make sure we always expire all the user's active sessions if we
         // have disabled the user.
         if ( user != null && user.isDisabled() )
         {
             userService.expireActiveSessions( user );
+        }
+
+        // Support patching user.userGroups relation which User is not the owner
+        for ( JsonPatchOperation op : patch.getOperations() )
+        {
+            JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
+            if ( userGroups == null )
+            {
+                continue;
+            }
+
+            String opName = op.getOp();
+            if ( opName.equals( "add" ) )
+            {
+                List<String> groupIds = new ArrayList<>();
+                ((AddOperation) op).getValue().elements()
+                    .forEachRemaining( node -> groupIds.add( node.get( "id" ).asText() ) );
+                userGroupService.updateUserGroups( user, groupIds, currentUserService.getCurrentUser() );
+            }
         }
     }
 

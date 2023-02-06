@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -368,11 +370,6 @@ public class DataQueryParams
     protected Date endDate;
 
     /**
-     * The date range for the period dimension, can be empty.
-     */
-    protected List<DateRange> dateRangeList = new ArrayList<>();
-
-    /**
      * The order in which the data values has to be sorted, can be null.
      */
     protected SortOrder order;
@@ -601,7 +598,6 @@ public class DataQueryParams
         params.duplicatesOnly = this.duplicatesOnly;
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
-        params.dateRangeList = this.dateRangeList;
         params.endDate = this.endDate;
         params.order = this.order;
         params.timeField = this.timeField;
@@ -691,8 +687,6 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
-            .add( "dateRangeList", dateRangeList.stream()
-                .map( DateRange::toString ).collect( Collectors.joining( ":" ) ) )
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
@@ -709,7 +703,7 @@ public class DataQueryParams
                 .collect( Collectors.joining( ":" ) );
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     // -------------------------------------------------------------------------
@@ -778,7 +772,7 @@ public class DataQueryParams
     public Period getLatestPeriod()
     {
         return getAllPeriods().stream()
-            .map( obj -> (Period) obj )
+            .map( Period.class::cast )
             .min( DescendingPeriodComparator.INSTANCE )
             .orElse( null );
     }
@@ -869,7 +863,7 @@ public class DataQueryParams
     public List<Period> getTypedFilterPeriods()
     {
         return getFilterPeriods().stream()
-            .map( p -> (Period) p )
+            .map( Period.class::cast )
             .collect( Collectors.toList() );
     }
 
@@ -1499,34 +1493,25 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a nonempty dateRangeList.
+     * Indicates whether this query has a continuous list of dates range or is
+     * empty. It assumes that the datesRange IS SORTED.
      */
-    public boolean hasDateRangeList()
+    public boolean hasContinuousRange( List<DateRange> datesRange )
     {
-        return isNotEmpty( dateRangeList );
-    }
-
-    /**
-     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
-     * assumes that the dateRangeList is sorted. It should happen in the
-     * EventQueryParam::replacePeriodsWithDates method.
-     */
-    public boolean hasContinuousDateRangeList()
-    {
-        if ( !hasDateRangeList() )
+        if ( isEmpty( datesRange ) )
         {
             return true;
         }
 
-        if ( dateRangeList.size() == 1 )
+        if ( datesRange.size() == 1 )
         {
             return true;
         }
 
-        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
+        for ( int i = datesRange.size() - 1; i > 0; i-- )
         {
-            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
-                dateRangeList.get( i ).getStartDate() ) > 1;
+            boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
+                datesRange.get( i ).getStartDate() ) > 1;
 
             if ( diffAboveOneDay )
             {
@@ -1535,15 +1520,6 @@ public class DataQueryParams
         }
 
         return true;
-    }
-
-    /**
-     * Indicates whether any start date is after the end date, which is invalid.
-     */
-    public boolean startDatesAfterEndDates()
-    {
-        return hasDateRangeList() && dateRangeList.stream()
-            .anyMatch( drl -> drl.getStartDate().after( drl.getEndDate() ) );
     }
 
     /**
@@ -1675,7 +1651,7 @@ public class DataQueryParams
         List<DimensionalItemObject> items = AnalyticsUtils
             .getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
 
-        return items.size() > 0;
+        return isNotEmpty( items );
     }
 
     /**
@@ -2129,7 +2105,7 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
 
             // Org unit group always at last index, org unit potentially at
-            // first
+            // first.
 
             int ougInx = keys.size() - 1;
 
@@ -2159,7 +2135,7 @@ public class DataQueryParams
             return null;
         }
 
-        Map<MeasureFilter, Double> map = new HashMap<>();
+        Map<MeasureFilter, Double> map = new java.util.EnumMap<>( MeasureFilter.class );
 
         String[] criteria = param.split( DimensionalObject.OPTION_SEP );
 
@@ -2395,11 +2371,6 @@ public class DataQueryParams
     public Date getEndDate()
     {
         return endDate;
-    }
-
-    public List<DateRange> getDateRangeList()
-    {
-        return dateRangeList;
     }
 
     public SortOrder getOrder()
@@ -2686,12 +2657,12 @@ public class DataQueryParams
         final Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
-            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
+            .map( ProgramTrackedEntityAttributeDimensionItem.class::cast )
             .filter( a -> a.getProgram() != null )
             .forEach( a -> programs.add( a.getProgram() ) );
 
         getAllProgramDataElements().stream()
-            .map( d -> (ProgramDataElementDimensionItem) d )
+            .map( ProgramDataElementDimensionItem.class::cast )
             .filter( d -> d.getProgram() != null )
             .forEach( d -> programs.add( d.getProgram() ) );
 
