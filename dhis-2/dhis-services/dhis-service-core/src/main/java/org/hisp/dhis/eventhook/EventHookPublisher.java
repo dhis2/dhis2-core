@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventHookPublisher
 {
-    private static final List<?> BLOCKLIST = List.of(
+    private static final List<? extends Class<?>> BLOCKLIST = List.of(
         User.class );
 
     private final DhisConfigurationProvider dhisConfig;

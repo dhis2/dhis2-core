@@ -115,7 +115,7 @@ public class EventHookListener
     }
 
     @PostConstruct
-    @EventListener( ReloadEventHookListener.class )
+    @EventListener( ReloadEventHookListeners.class )
     public void reload()
     {
         eventHookContext.closeTargets();

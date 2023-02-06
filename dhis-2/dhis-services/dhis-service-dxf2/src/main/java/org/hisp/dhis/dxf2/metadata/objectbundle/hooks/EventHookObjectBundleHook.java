@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookSecretManager;
-import org.hisp.dhis.eventhook.ReloadEventHookListener;
+import org.hisp.dhis.eventhook.ReloadEventHookListeners;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -65,6 +65,6 @@ public class EventHookObjectBundleHook
     @Override
     public <E extends EventHook> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
     {
-        publisher.publishEvent( new ReloadEventHookListener() );
+        publisher.publishEvent( new ReloadEventHookListeners() );
     }
 }

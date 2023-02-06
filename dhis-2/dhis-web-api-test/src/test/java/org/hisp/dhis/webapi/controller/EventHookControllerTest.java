@@ -56,7 +56,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         assertTrue( eventHooks.isObject() );
         assertTrue( eventHooks.has( "eventHooks" ) );
         assertTrue( eventHooks.get( "eventHooks" ).isArray() );
-        assertTrue( eventHooks.get( "eventHooks" ).asList( JsonObject.class ).isEmpty() );
+        assertTrue( eventHooks.getArray( "eventHooks" ).isEmpty() );
     }
 
     @Test
@@ -76,7 +76,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         JsonList<JsonObject> targets = eventHook.get( "targets" ).asList( JsonObject.class );
         assertFalse( targets.isEmpty() );
 
-        JsonObject target = targets.get( 0 ).asObject();
+        JsonObject target = targets.get( 0 );
         assertTrue( target.has( "type", "url", "auth" ) );
         assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
 

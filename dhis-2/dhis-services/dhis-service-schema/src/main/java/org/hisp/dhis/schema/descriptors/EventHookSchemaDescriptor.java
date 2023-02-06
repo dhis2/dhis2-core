@@ -35,8 +35,6 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen
  */
@@ -56,10 +54,8 @@ public class EventHookSchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1900 );
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
-            Lists.newArrayList( "F_EVENT_HOOK_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
-            Lists.newArrayList( "F_EVENT_HOOK_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_EVENT_HOOK_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_EVENT_HOOK_PRIVATE_ADD" ) ) );
         schema.add( new Authority( AuthorityType.DELETE, List.of( "F_EVENT_HOOK_DELETE" ) ) );
 
         return schema;
