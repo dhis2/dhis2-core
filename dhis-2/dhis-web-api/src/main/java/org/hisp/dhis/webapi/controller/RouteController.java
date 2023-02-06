@@ -72,7 +72,7 @@ public class RouteController
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Proxy not found" );
         }
 
-        ResponseEntity<String> entity = routeService.runProxy( route, request );
+        ResponseEntity<String> entity = routeService.exec( route, request );
 
         if ( entity.getStatusCode().is4xxClientError() )
         {

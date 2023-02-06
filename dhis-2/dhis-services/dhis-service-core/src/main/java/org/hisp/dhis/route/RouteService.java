@@ -97,14 +97,14 @@ public class RouteService
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Unable to create clone of Proxy with ID " + route.getUid() + ". Please check it's data." );
+            log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check it's data." );
             return null;
         }
 
         return route;
     }
 
-    public ResponseEntity<String> runProxy( Route route, HttpServletRequest request )
+    public ResponseEntity<String> exec( Route route, HttpServletRequest request )
         throws IOException
     {
         HttpHeaders headers = new HttpHeaders();
