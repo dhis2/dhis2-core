@@ -28,14 +28,18 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -44,18 +48,26 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+/**
+ * This class provides methods responsible for extracting collections from
+ * different objects types, like {@link TrackedEntityAttribute},
+ * {@link ProgramTrackedEntityAttribute}, {@link GridHeader} and {@link Field}.
+ */
 public class TeiFields
 {
     private interface HeaderProvider
@@ -114,13 +126,29 @@ public class TeiFields
         private final ValueType type;
     }
 
-    public static Stream<Field> getDimensionFields( TeiQueryParams teiQueryParams )
+    /**
+     * Retrieves all object attributes from the given param encapsulating them
+     * into a stream of {@link Field}.
+     *
+     * @param teiQueryParams the {@link TeiQueryParams}.
+     *
+     * @return a {@link Stream} of {@link Field}.
+     */
+    public static Stream<Field> getDimensionFields( @Nonnull TeiQueryParams teiQueryParams )
     {
-        return getAllAttributes( teiQueryParams )
+        return getAllAttributesUids( teiQueryParams )
             .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
     }
 
-    public static Stream<String> getAllAttributes( TeiQueryParams teiQueryParams )
+    /**
+     * Retrieves all uids from all attributes found in the given
+     * {@link TeiQueryParams}.
+     *
+     * @param teiQueryParams the {@link TeiQueryParams}.
+     *
+     * @return a {@link Stream} of uids.
+     */
+    private static Stream<String> getAllAttributesUids( @Nonnull TeiQueryParams teiQueryParams )
     {
         Stream<TrackedEntityAttribute> trackedEntityAttributesFromType = getTrackedEntityAttributes(
             teiQueryParams.getTrackedEntityType() );
@@ -128,46 +156,88 @@ public class TeiFields
         Stream<TrackedEntityAttribute> programAttributes = getProgramAttributes(
             teiQueryParams.getCommonParams().getPrograms() );
 
-        // TET and program attribute fields
+        // TET and program attribute uids.
         return Stream.concat( trackedEntityAttributesFromType, programAttributes )
             .map( BaseIdentifiableObject::getUid )
-            // distinct to remove overlapping attributes
-            .distinct();
+            .distinct(); // Removes overlapping uids.
     }
 
-    public static Stream<TrackedEntityAttribute> getProgramAttributes( Collection<Program> programs )
+    /**
+     * Extracts a stream of {@link TrackedEntityAttribute} found in the given
+     * list of {@link Program}.
+     *
+     * @param programs the list of {@link Program}.
+     *
+     * @return a {@link Stream} of {@link TrackedEntityAttribute}.
+     */
+    public static Stream<TrackedEntityAttribute> getProgramAttributes( @Nonnull List<Program> programs )
     {
-        // Attributes from Programs
+        // Attributes from Programs.
         return programs.stream()
             .map( Program::getProgramAttributes )
-            .flatMap( Collection::stream )
+            .flatMap( List::stream )
             .map( ProgramTrackedEntityAttribute::getAttribute );
     }
 
+    /**
+     * Extracts a stream of {@link TrackedEntityAttribute} from the given
+     * {@link TrackedEntityType}.
+     *
+     * @param trackedEntityType the {@link TrackedEntityType}.
+     *
+     * @return a {@link Stream} of {@link TrackedEntityAttribute}.
+     */
     public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes(
         @Nonnull TrackedEntityType trackedEntityType )
     {
-        // Attributes from Tracked entity Type
+        // Attributes from this TrackedEntityType.
         return trackedEntityType.getTrackedEntityAttributes().stream();
     }
 
+    /**
+     * Retrieves only static fields.
+     *
+     * @return the {@link Stream} of {@link Field}.
+     */
     private static Stream<Field> getStaticFields()
     {
         return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
+    /**
+     * Retrieves only dynamic fields.
+     *
+     * @return the {@link Stream} of {@link Field}.
+     */
     private static Stream<Field> getDynamicFields()
     {
         return Stream.of( Dynamic.values() )
             .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias ) );
     }
 
-    public static Stream<Field> getTeiFields()
+    /**
+     * Retrieves all static plus dynamic fields.
+     *
+     * @return the {@link Stream} of {@link Field}.
+     */
+    public static Stream<Field> getStaticAndDynamicFields()
     {
         return Stream.concat( getStaticFields(), getDynamicFields() );
     }
 
-    public static Set<GridHeader> getGridHeaders( TeiQueryParams teiQueryParams )
+    /**
+     * Returns a collection of all possible headers for the given
+     * {@link TeiQueryParams}. It includes headers extracted for static and
+     * dynamic dimensions.
+     *
+     * The static headers are also delivered on the top of the collection. The
+     * dynamic comes after the static ones.
+     *
+     * @param teiQueryParams the {@link TeiQueryParams}.
+     *
+     * @return a {@link Set} of {@link GridHeader}.
+     */
+    public static Set<GridHeader> getGridHeaders( @Nonnull TeiQueryParams teiQueryParams )
     {
         Set<GridHeader> headers = new LinkedHashSet<>();
 
@@ -176,26 +246,127 @@ public class TeiFields
             .forEach( f -> headers.add( new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
         getDimensionFields( teiQueryParams )
-            .map( field -> findDimensionIdentifier( teiQueryParams, field ) )
-            .map( TeiFields::getHeaderForField )
+            .map( field -> findDimensionParamForField( field,
+                teiQueryParams.getCommonParams().getDimensionIdentifiers() ) )
+            .map( dimensionParam -> getHeaderForDimensionParam( dimensionParam, teiQueryParams.getCommonParams() ) )
             .forEach( headers::add );
 
         return headers;
     }
 
-    private static GridHeader getHeaderForField( DimensionParam dimensionParam )
+    /**
+     * Based on the given item this method returns the correct UID based on
+     * internal rules.
+     *
+     * @param item the current QueryItem.
+     *
+     * @return the respective item's uid.
+     */
+    private static String getItemUid( @Nonnull QueryItem item )
     {
-        String uid = dimensionParam.getUid();
-        String name = dimensionParam.getName();
-        ValueType valueType = dimensionParam.getValueType();
+        String uid = item.getItemId();
 
-        return new GridHeader( uid, name, valueType, false, true );
+        if ( item.hasProgramStage() )
+        {
+            uid = joinWith( ".", item.getProgramStage().getUid(), uid );
+        }
+
+        return uid;
     }
 
-    private static DimensionParam findDimensionIdentifier(
-        TeiQueryParams teiQueryParams, Field field )
+    /**
+     * Creates a {@link GridHeader} for the given {@link DimensionParam} based
+     * on the given {@link CommonParams}. The last is needed because of
+     * particular cases where we need a custom version of the header.
+     *
+     * @param dimensionParam the {@link DimensionParam}.
+     * @param commonParams the {@link CommonParams}.
+     *
+     * @return the respective {@link GridHeader}.
+     */
+    private static GridHeader getHeaderForDimensionParam( @Nonnull DimensionParam dimensionParam,
+        @Nonnull CommonParams commonParams )
     {
-        return teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
+        QueryItem item = dimensionParam.getQueryItem();
+
+        if ( item != null )
+        {
+            return getCustomGridHeaderForItem( item, commonParams );
+        }
+        else
+        {
+            String uid = dimensionParam.getUid();
+            String name = dimensionParam.getName();
+            ValueType valueType = dimensionParam.getValueType();
+
+            return new GridHeader( uid, name, valueType, false, true );
+        }
+    }
+
+    /**
+     * Depending on the {@link QueryItem} we need to return specific headers.
+     * This method will evaluate the given query item and take care of the
+     * particulars cases where we need a custom {@link GridHeader} for the
+     * respective {@link QueryItem}.
+     *
+     * @param queryItem the {@link QueryItem}.
+     * @param commonParams the {@link CommonParams}.
+     *
+     * @return the correct {@link GridHeader} version.
+     */
+    private static GridHeader getCustomGridHeaderForItem( @Nonnull QueryItem queryItem,
+        @Nonnull CommonParams commonParams )
+    {
+        /**
+         * If the request contains a query item of value type ORGANISATION_UNIT
+         * and the item UID is linked to coordinates (coordinateField), then
+         * create a header of ValueType COORDINATE.
+         */
+        if ( queryItem.getValueType() == ORGANISATION_UNIT
+            && commonParams.getCoordinateFields().stream().anyMatch( f -> f.equals( queryItem.getItem().getUid() ) ) )
+        {
+            return new GridHeader( queryItem.getItem().getUid(),
+                queryItem.getItem().getDisplayProperty( commonParams.getDisplayProperty() ), COORDINATE, false, true,
+                queryItem.getOptionSet(), queryItem.getLegendSet() );
+        }
+        else if ( queryItem.hasNonDefaultRepeatableProgramStageOffset() )
+        {
+            String column = queryItem.getItem().getDisplayProperty( commonParams.getDisplayProperty() );
+            RepeatableStageParams repeatableStageParams = queryItem.getRepeatableStageParams();
+            String dimName = repeatableStageParams.getDimension();
+            ValueType valueType = repeatableStageParams.simpleStageValueExpected()
+                ? queryItem.getValueType()
+                : REFERENCE;
+
+            return new GridHeader( dimName, column, valueType, false, true, queryItem.getOptionSet(),
+                queryItem.getLegendSet(), queryItem.getProgramStage().getUid(), repeatableStageParams );
+        }
+        else
+        {
+            String itemUid = getItemUid( queryItem );
+            String column = queryItem.getItem().getDisplayProperty( commonParams.getDisplayProperty() );
+
+            return new GridHeader( itemUid, column, queryItem.getValueType(), false, true, queryItem.getOptionSet(),
+                queryItem.getLegendSet() );
+        }
+    }
+
+    /**
+     * Finds the respective {@link DimensionParam}, from the given list of
+     * {@link DimensionIdentifier}, that is associated with the given
+     * {@link Field}.
+     *
+     * @param field the {@link Field}.
+     * @param dimensionIdentifiers the list of {@link DimensionIdentifier}.
+     *
+     * @return the correct {@link DimensionParam}
+     *
+     * @throws IllegalStateException if nothing is found.
+     */
+    private static DimensionParam findDimensionParamForField( @Nonnull Field field,
+        @Nonnull List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
+    {
+        return dimensionIdentifiers.stream()
             .filter( di -> di.getDimension().getUid().equals( field.getFieldAlias() ) )
             .map( DimensionIdentifier::getDimension )
             .findFirst()

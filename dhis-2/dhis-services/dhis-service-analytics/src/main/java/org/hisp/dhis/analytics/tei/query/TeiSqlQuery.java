@@ -159,7 +159,7 @@ public class TeiSqlQuery extends BaseRenderable
 
     private Select getSelect()
     {
-        Stream<Field> teiFields = TeiFields.getTeiFields();
+        Stream<Field> teiFields = TeiFields.getStaticAndDynamicFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
         Stream<Field> programIndicatorFields = queryContext.getProgramIndicatorContext().getFields().stream();

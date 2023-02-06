@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.NONE;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
@@ -34,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.Builder;
@@ -75,7 +80,8 @@ public class CommonParams
 
     /**
      * Data structure containing headers. If present, they will represent the
-     * columns to be retrieved.
+     * columns to be retrieved. Cannot be repeated and should keep ordering,
+     * hence a {@link LinkedHashSet}.
      */
     @Builder.Default
     private final Set<String> headers = new LinkedHashSet<>();
@@ -86,8 +92,19 @@ public class CommonParams
     @Builder.Default
     private final AnalyticsPagingParams pagingParams = AnalyticsPagingParams.builder().build();
 
+    /**
+     * List of sorting params.
+     */
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
+
+    /**
+     * The coordinate fields to use as basis for spatial event analytics. The
+     * list is built as collection of coordinate field and fallback fields. The
+     * order defines priority of geometry fields.
+     */
+    @Builder.Default
+    private final List<String> coordinateFields;
 
     /**
      * The dimensional object for which to produce aggregated data.
@@ -105,7 +122,7 @@ public class CommonParams
      * The user's organization unit.
      */
     @Builder.Default
-    private String userOrgUnit;
+    private final String userOrgUnit;
 
     /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning
@@ -113,7 +130,7 @@ public class CommonParams
      * the hierarchy; SELECTED refers to the selected organisation units only.
      */
     @Builder.Default
-    private OrganisationUnitSelectionMode ouMode = DESCENDANTS;
+    private final OrganisationUnitSelectionMode ouMode = DESCENDANTS;
 
     /**
      * Id scheme to be used for data, more specifically data elements and
@@ -122,53 +139,76 @@ public class CommonParams
      * the legend ID, in the data response.
      */
     @Builder.Default
-    private IdScheme dataIdScheme = UID;
+    private final IdScheme dataIdScheme = UID;
 
     /**
      * Overrides the start date of the relative period. e.g: "2016-01-01".
      */
     @Builder.Default
-    private Date relativePeriodDate;
+    private final Date relativePeriodDate;
 
     /**
      * Indicates if the metadata element should be omitted from the response.
      */
     @Builder.Default
-    private boolean skipMeta;
+    private final boolean skipMeta;
 
     /**
      * Indicates if the data should be omitted from the response.
      */
     @Builder.Default
-    private boolean skipData;
+    private final boolean skipData;
 
     /**
      * Indicates if the headers should be omitted from the response.
      */
     @Builder.Default
-    private boolean skipHeaders;
+    private final boolean skipHeaders;
 
     /**
      * Indicates if full precision should be provided for numeric values.
      */
     @Builder.Default
-    private boolean skipRounding;
+    private final boolean skipRounding;
 
     /**
      * Indicates if full metadata details should be provided.
      */
     @Builder.Default
-    private boolean includeMetadataDetails;
+    private final boolean includeMetadataDetails;
 
     /**
      * Indicates if organization unit hierarchy should be provided.
      */
     @Builder.Default
-    private boolean hierarchyMeta;
+    private final boolean hierarchyMeta;
 
     /**
      * Indicates if additional ou hierarchy data should be provided.
      */
     @Builder.Default
-    private boolean showHierarchy;
+    private final boolean showHierarchy;
+
+    @Getter( NONE )
+    private final CommonParamsDelegator commonParamsDelegator = new CommonParamsDelegator( this );
+
+    public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
+    {
+        if ( isNotEmpty( dimensionIdentifiers ) )
+        {
+            return dimensionIdentifiers.stream().filter( Objects::nonNull ).collect( toList() );
+        }
+
+        return emptyList();
+    }
+
+    /**
+     * Gets a new instance of the internal delegator object.
+     *
+     * @return an instance of {@link CommonParamsDelegator}.
+     */
+    public CommonParamsDelegator delegate()
+    {
+        return new CommonParamsDelegator( this );
+    }
 }

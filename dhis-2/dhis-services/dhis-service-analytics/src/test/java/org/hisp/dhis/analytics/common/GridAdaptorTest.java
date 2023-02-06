@@ -57,8 +57,8 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
-import org.hisp.dhis.analytics.common.processing.MetadataDetailsHandler;
-import org.hisp.dhis.analytics.common.processing.ParamsHandler;
+import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
+import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -91,10 +91,10 @@ class GridAdaptorTest extends DhisConvenienceTest
 {
     private GridAdaptor gridAdaptor;
 
-    private ParamsHandler paramsHandler;
+    private HeaderParamsHandler headerParamsHandler;
 
     @Mock
-    private MetadataDetailsHandler metadataDetailsHandler;
+    private MetadataParamsHandler metadataDetailsHandler;
 
     private User user;
 
@@ -107,8 +107,8 @@ class GridAdaptorTest extends DhisConvenienceTest
     @BeforeEach
     void setUp()
     {
-        paramsHandler = new ParamsHandler( currentUserService );
-        gridAdaptor = new GridAdaptor( paramsHandler, metadataDetailsHandler, analyticsSecurityManager,
+        headerParamsHandler = new HeaderParamsHandler();
+        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, analyticsSecurityManager,
             currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
