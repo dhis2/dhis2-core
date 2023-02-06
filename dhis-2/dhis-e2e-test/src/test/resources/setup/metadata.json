@@ -72,13 +72,14 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "userGroups": {
+          "OPVIvvXzNTw" : {
+            "id" : "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
       "userAccesses": [],
       "categories": [
@@ -2785,7 +2786,6 @@
       "name": "TA org unit group",
       "code": "TA_OU_GROUP",
       "displayName": "TA org unit group",
-      "publicAccess": "rw------",
       "organisationUnits": [
         {
           "id": "g8upMTyEZGZ",
@@ -2808,13 +2808,14 @@
           "code": "OU_539"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rw------"
         }
-      ]
+      }
     }
   ],
   "organisationUnitLevels": [
@@ -2929,13 +2930,14 @@
       "lastUpdated": "2021-03-08T13:15:58.740",
       "name": "TA Yes/No ",
       "id": "ZGkmoWb77MW",
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rw------"
         }
-      ],
+      },
       "version": 3,
       "valueType": "TEXT",
       "attributeValues": [],

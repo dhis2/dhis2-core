@@ -63,4 +63,12 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "OK", 200, "OK", "Tracker job added",
             POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
     }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidReportModeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
+            GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+    }
 }
