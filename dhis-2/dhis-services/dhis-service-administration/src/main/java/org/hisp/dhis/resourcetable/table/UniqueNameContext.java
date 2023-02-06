@@ -39,11 +39,11 @@ public final class UniqueNameContext
     private final Set<String> uniqueNames = new HashSet<>();
 
     /**
-     * Returns the name that is unique within the name context.
+     * Returns the name that is unique within the name context. The returned
+     * name is potentially appended with a number to ensure uniqueness.
      *
      * @param name the name.
-     * @return a unique name based on the given name, potentially appended by a
-     *         counter number.
+     * @return a unique name based on the given name.
      */
     public String uniqueName( String name )
     {
