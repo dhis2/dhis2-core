@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable;
 import static java.time.LocalDate.now;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.resourcetable.ResourceTable.BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
@@ -273,7 +274,7 @@ public class DefaultResourceTableService
         int firstYear = availableDataYears.get( 0 );
         int lastYear = availableDataYears.get( availableDataYears.size() - 1 );
 
-        for ( int i = 0; i < 5; i++ )
+        for ( int i = 0; i < BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED; i++ )
         {
             availableDataYears.add( --firstYear );
             availableDataYears.add( ++lastYear );
