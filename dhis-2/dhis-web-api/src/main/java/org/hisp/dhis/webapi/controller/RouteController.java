@@ -61,7 +61,7 @@ public class RouteController
 {
     private final RouteService routeService;
 
-    @RequestMapping( value = "/run/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
+    @RequestMapping( value = "/exec/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
     public ResponseEntity<String> runProxy( @PathVariable( "id" ) String id, HttpServletRequest request )
         throws IOException
     {
@@ -69,7 +69,7 @@ public class RouteController
 
         if ( route == null )
         {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Proxy not found" );
+            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Route not found" );
         }
 
         ResponseEntity<String> entity = routeService.exec( route, request );
