@@ -146,6 +146,15 @@ public class TwoFactorController
         outputStream.write( qrCode );
     }
 
+    @GetMapping( value = "/enabled", consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public boolean isEnabled( @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        return currentUser.isTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser );
+    }
+
     /**
      * Enable 2FA authentication for the current user.
      *
