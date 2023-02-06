@@ -91,6 +91,8 @@ public class TrackerExportTests
 
     private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
 
+    private static JsonObject teiWithEnrollmentAndEventsTemplate;
+
     @BeforeAll
     public void beforeAll()
         throws Exception
@@ -111,6 +113,10 @@ public class TrackerExportTests
             .extractImportedRelationships().get( 0 );
 
         event = response.extractImportedEvents().get( 0 );
+
+        teiWithEnrollmentAndEventsTemplate = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
+            .get( JsonObject.class );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
@@ -150,33 +156,27 @@ public class TrackerExportTests
     }
 
     @Test
-    public void shouldGetSingleTeiWithNotEventsWhenEventsAreSofDeleted()
-        throws Exception
+    public void shouldGetSingleTeiWithNoEventsWhenEventsAreSofDeleted()
     {
-        JsonObject payload = payload();
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-            payload,
+            teiWithEnrollmentAndEventsTemplate,
             new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
 
         assertEquals( 1, response.extractImportedEvents().size() );
         deleteEvent( response.extractImportedEvents().get( 0 ) );
 
-        trackerActions.getTrackedEntity( "Kj7vYde4LHh",
+        trackerActions.getTrackedEntity( response.extractImportedTeis().get( 0 ),
             new QueryParamsBuilder()
-                .add( "fields", "enrollments, events" ) )
+                .add( "fields", "enrollments" ) )
             .validate().statusCode( 200 )
             .body( "enrollments.events.flatten()", empty() );
     }
 
     @Test
-    public void shouldGetSingleEnrollmentWithNotEventsWhenEventsAreSofDeleted()
-        throws Exception
+    public void shouldGetSingleEnrollmentWithNoEventsWhenEventsAreSofDeleted()
     {
-        JsonObject payload = payload();
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-            payload,
+            teiWithEnrollmentAndEventsTemplate,
             new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
 
         assertEquals( 1, response.extractImportedEvents().size() );
@@ -190,13 +190,10 @@ public class TrackerExportTests
     }
 
     @Test
-    public void shouldGetTeisWithSofDeletedEventsOnlyWhenIncludeDeletedInRequest()
-        throws Exception
+    public void shouldGetTeisWithSofDeletedEventsWhenIncludeDeletedInRequest()
     {
-        JsonObject payload = payload();
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-            payload,
+            teiWithEnrollmentAndEventsTemplate,
             new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
 
         assertEquals( 1, response.extractImportedEvents().size() );
@@ -204,7 +201,7 @@ public class TrackerExportTests
 
         trackerActions.getTrackedEntities(
             new QueryParamsBuilder()
-                .add( "fields", "enrollments, events" )
+                .add( "fields", "enrollments" )
                 .add( "program", "f1AyMswryyQ" )
                 .add( "orgUnit", "O6uvpzGd5pu" )
                 .add( "trackedEntity", response.extractImportedTeis().get( 0 ) ) )
@@ -214,7 +211,7 @@ public class TrackerExportTests
 
         trackerActions.getTrackedEntities(
             new QueryParamsBuilder()
-                .add( "fields", "enrollments, events" )
+                .add( "fields", "enrollments" )
                 .add( "program", "f1AyMswryyQ" )
                 .add( "orgUnit", "O6uvpzGd5pu" )
                 .add( "trackedEntity", response.extractImportedTeis().get( 0 ) )
@@ -224,13 +221,10 @@ public class TrackerExportTests
     }
 
     @Test
-    public void shouldGetEnrollmentsWithNotEventsWhenIncludeDeletedInRequest()
-        throws Exception
+    public void shouldGetEnrollmentsWithEventsWhenIncludeDeletedInRequest()
     {
-        JsonObject payload = payload();
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-            payload,
+            teiWithEnrollmentAndEventsTemplate,
             new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
 
         assertEquals( 1, response.extractImportedEvents().size() );
@@ -254,14 +248,6 @@ public class TrackerExportTests
                 .add( "includeDeleted", "true" ) )
             .validate().statusCode( 200 )
             .body( "instances[0].events", hasSize( 1 ) );
-    }
-
-    private static JsonObject payload()
-        throws Exception
-    {
-        return new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-            .get( JsonObject.class );
     }
 
     private TrackerApiResponse deleteEvent( String eventToDelete )
