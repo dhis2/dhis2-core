@@ -42,7 +42,7 @@ public final class UniqueNameContext
      * Returns the name that is unique within the name context.
      *
      * @param name the name.
-     * @return a unique name based on the given name, potentially extended by a
+     * @return a unique name based on the given name, potentially appended by a
      *         counter number.
      */
     public String uniqueName( String name )
