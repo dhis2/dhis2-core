@@ -95,6 +95,7 @@ public class ExpressionDimensionItemHelper
     /**
      * Expression parser
      *
+     * @param pattern compiled Patter object of regular expression
      * @param expression
      * @return collection of tokens
      */
