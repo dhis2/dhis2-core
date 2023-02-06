@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.proxy;
+package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
@@ -38,9 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.proxy.auth.ApiTokenAuth;
-import org.hisp.dhis.proxy.auth.Auth;
-import org.hisp.dhis.proxy.auth.HttpBasicAuth;
+import org.hisp.dhis.route.auth.ApiTokenAuth;
+import org.hisp.dhis.route.auth.Auth;
+import org.hisp.dhis.route.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
@@ -59,9 +59,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ProxyService
+public class RouteService
 {
-    private final ProxyStore proxyStore;
+    private final RouteStore routeStore;
 
     private final ObjectMapper objectMapper;
 
@@ -81,44 +81,44 @@ public class ProxyService
         restTemplate.setRequestFactory( requestFactory );
     }
 
-    public Proxy getDecryptedById( String id )
+    public Route getDecryptedById( String id )
     {
-        Proxy proxy = proxyStore.getByUid( id );
+        Route route = routeStore.getByUid( id );
 
-        if ( proxy == null )
+        if ( route == null )
         {
             return null;
         }
 
         try
         {
-            proxy = objectMapper.readValue( objectMapper.writeValueAsString( proxy ), Proxy.class );
-            decrypt( proxy );
+            route = objectMapper.readValue( objectMapper.writeValueAsString( route ), Route.class );
+            decrypt( route );
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Unable to create clone of Proxy with ID " + proxy.getUid() + ". Please check it's data." );
+            log.error( "Unable to create clone of Proxy with ID " + route.getUid() + ". Please check it's data." );
             return null;
         }
 
-        return proxy;
+        return route;
     }
 
-    public ResponseEntity<String> runProxy( Proxy proxy, HttpServletRequest request )
+    public ResponseEntity<String> runProxy( Route route, HttpServletRequest request )
         throws IOException
     {
         HttpHeaders headers = new HttpHeaders();
-        proxy.getHeaders().forEach( headers::add );
+        route.getHeaders().forEach( headers::add );
 
-        if ( proxy.getAuth() != null )
+        if ( route.getAuth() != null )
         {
-            proxy.getAuth().apply( headers );
+            route.getAuth().apply( headers );
         }
 
         HttpHeaders queryParameters = new HttpHeaders();
         request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, Arrays.asList( value ) ) );
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( proxy.getUrl() )
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( route.getUrl() )
             .queryParams( queryParameters );
 
         String body = StreamUtils.copyToString( request.getInputStream(), StandardCharsets.UTF_8 );
@@ -136,9 +136,9 @@ public class ProxyService
             entity, String.class );
     }
 
-    private void decrypt( Proxy proxy )
+    private void decrypt( Route route )
     {
-        Auth auth = proxy.getAuth();
+        Auth auth = route.getAuth();
 
         if ( auth == null )
         {

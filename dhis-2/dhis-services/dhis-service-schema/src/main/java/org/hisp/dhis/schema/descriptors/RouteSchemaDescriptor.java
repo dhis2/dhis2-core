@@ -25,49 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.proxy.auth;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.Base64;
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class HttpBasicAuth extends Auth
+public class RouteSchemaDescriptor implements SchemaDescriptor
 {
-    @JsonProperty( required = true )
-    private String username;
+    public static final String SINGULAR = "route";
 
-    @JsonProperty( required = true )
-    private String password;
+    public static final String PLURAL = "routes";
 
-    public HttpBasicAuth()
-    {
-        super( "http-basic" );
-    }
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public void apply( MultiValueMap<String, String> headers )
+    public Schema getSchema()
     {
-        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
-        {
-            return;
-        }
+        Schema schema = new Schema( Route.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1200 );
 
-        headers.add( "Authorization",
-            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_ROUTE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_ROUTE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ROUTE_DELETE" ) ) );
+
+        return schema;
     }
 }

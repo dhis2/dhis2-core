@@ -176,7 +176,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAuth">
-    <param name="clazz">org.hisp.dhis.proxy.auth.Auth</param>
+    <param name="clazz">org.hisp.dhis.route.auth.Auth</param>
   </typedef>
 
 </hibernate-mapping>

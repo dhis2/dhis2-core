@@ -87,7 +87,7 @@
 
     <dependency>
       <groupId>net.ttddyy</groupId>
-      <artifactId>datasource-proxy</artifactId>
+      <artifactId>datasource-route</artifactId>
     </dependency>
 
     <!-- Other -->

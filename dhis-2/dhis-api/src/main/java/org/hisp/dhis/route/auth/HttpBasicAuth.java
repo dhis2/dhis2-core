@@ -25,38 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.route.auth;
 
-import org.hisp.dhis.proxy.Proxy;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import java.util.Base64;
 
-import com.google.common.collect.Lists;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen
  */
-public class ProxySchemaDescriptor implements SchemaDescriptor
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class HttpBasicAuth extends Auth
 {
-    public static final String SINGULAR = "proxy";
+    @JsonProperty( required = true )
+    private String username;
 
-    public static final String PLURAL = "proxies";
+    @JsonProperty( required = true )
+    private String password;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    public HttpBasicAuth()
+    {
+        super( "http-basic" );
+    }
 
     @Override
-    public Schema getSchema()
+    public void apply( MultiValueMap<String, String> headers )
     {
-        Schema schema = new Schema( Proxy.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1200 );
+        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
+        {
+            return;
+        }
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROXY_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROXY_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROXY_DELETE" ) ) );
-
-        return schema;
+        headers.add( "Authorization",
+            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
     }
 }

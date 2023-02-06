@@ -35,9 +35,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.proxy.Proxy;
-import org.hisp.dhis.proxy.ProxyService;
-import org.hisp.dhis.schema.descriptors.ProxySchemaDescriptor;
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.route.RouteService;
+import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,25 +54,25 @@ import org.springframework.web.client.HttpServerErrorException;
 @RestController
 @OpenApi.Tags( "integration" )
 @RequiredArgsConstructor
-@RequestMapping( value = ProxySchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = RouteSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProxyController
-    extends AbstractCrudController<Proxy>
+public class RouteController
+    extends AbstractCrudController<Route>
 {
-    private final ProxyService proxyService;
+    private final RouteService routeService;
 
     @RequestMapping( value = "/run/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
     public ResponseEntity<String> runProxy( @PathVariable( "id" ) String id, HttpServletRequest request )
         throws IOException
     {
-        Proxy proxy = proxyService.getDecryptedById( id );
+        Route route = routeService.getDecryptedById( id );
 
-        if ( proxy == null )
+        if ( route == null )
         {
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Proxy not found" );
         }
 
-        ResponseEntity<String> entity = proxyService.runProxy( proxy, request );
+        ResponseEntity<String> entity = routeService.runProxy( route, request );
 
         if ( entity.getStatusCode().is4xxClientError() )
         {

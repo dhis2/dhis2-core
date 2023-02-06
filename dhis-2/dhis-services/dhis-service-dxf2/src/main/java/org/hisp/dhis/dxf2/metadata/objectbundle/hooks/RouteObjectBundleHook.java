@@ -32,10 +32,10 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.proxy.Proxy;
-import org.hisp.dhis.proxy.auth.ApiTokenAuth;
-import org.hisp.dhis.proxy.auth.Auth;
-import org.hisp.dhis.proxy.auth.HttpBasicAuth;
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.route.auth.ApiTokenAuth;
+import org.hisp.dhis.route.auth.Auth;
+import org.hisp.dhis.route.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,27 +46,27 @@ import org.springframework.util.StringUtils;
  */
 @Component
 @AllArgsConstructor
-public class ProxyObjectBundleHook
-    extends AbstractObjectBundleHook<Proxy>
+public class RouteObjectBundleHook
+    extends AbstractObjectBundleHook<Route>
 {
     @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
     @Override
-    public void preCreate( Proxy proxy, ObjectBundle bundle )
+    public void preCreate( Route route, ObjectBundle bundle )
     {
-        encrypt( proxy );
+        encrypt( route );
     }
 
     @Override
-    public void preUpdate( Proxy proxy, Proxy persistedObject, ObjectBundle bundle )
+    public void preUpdate( Route route, Route persistedObject, ObjectBundle bundle )
     {
-        encrypt( proxy );
+        encrypt( route );
     }
 
-    private void encrypt( Proxy proxy )
+    private void encrypt( Route route )
     {
-        Auth auth = proxy.getAuth();
+        Auth auth = route.getAuth();
 
         if ( auth == null )
         {

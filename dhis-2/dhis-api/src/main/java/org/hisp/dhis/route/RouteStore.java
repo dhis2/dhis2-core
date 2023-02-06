@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.proxy;
+package org.hisp.dhis.route;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen
  */
-public interface ProxyStore extends IdentifiableObjectStore<Proxy>
+public interface RouteStore extends IdentifiableObjectStore<Route>
 {
 }

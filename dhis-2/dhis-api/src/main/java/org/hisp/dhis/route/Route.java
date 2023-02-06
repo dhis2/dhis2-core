@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.proxy.auth;
+package org.hisp.dhis.route;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.route.auth.Auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
- * for dhis2 personal access token, but can be used anywhere the format is
- * accepted.
- *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
 @EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
-public class ApiTokenAuth extends Auth
+public class Route
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
+    @JsonProperty
+    private String description;
+
     @JsonProperty( required = true )
-    private String token;
+    private boolean enabled = true;
 
-    public ApiTokenAuth()
-    {
-        super( "api-token" );
-    }
+    @JsonProperty( required = true )
+    private String url;
 
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !StringUtils.hasText( token ) )
-        {
-            return;
-        }
+    @JsonProperty( required = true )
+    private Map<String, String> headers = new HashMap<>();
 
-        headers.set( "Authorization", "ApiToken " + token );
-    }
+    @JsonProperty
+    private Auth auth;
 }

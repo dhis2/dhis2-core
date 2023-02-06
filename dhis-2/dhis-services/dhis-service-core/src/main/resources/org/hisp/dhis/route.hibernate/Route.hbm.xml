@@ -5,10 +5,10 @@
         [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.proxy.Proxy" table="proxy">
+    <class name="org.hisp.dhis.route.Route" table="route">
         <cache usage="read-write"/>
 
-        <id name="id" column="proxyid">
+        <id name="id" column="routeid">
             <generator class="native"/>
         </id>
         &identifiableProperties;
@@ -22,7 +22,7 @@
         <property name="enabled" type="boolean"/>
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
-                     foreign-key="fk_proxy_userid_userinfoid"/>
+                     foreign-key="fk_route_userid_userinfoid"/>
 
         <property name="auth" column="auth" type="jbAuth" not-null="false"/>
 

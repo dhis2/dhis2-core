@@ -101,7 +101,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.5.1</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.8.1</datasource-proxy.version>
+    <datasource-route.version>1.8.1</datasource-route.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -1672,8 +1672,8 @@
       </dependency>
       <dependency>
         <groupId>net.ttddyy</groupId>
-        <artifactId>datasource-proxy</artifactId>
-        <version>${datasource-proxy.version}</version>
+        <artifactId>datasource-route</artifactId>
+        <version>${datasource-route.version}</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
