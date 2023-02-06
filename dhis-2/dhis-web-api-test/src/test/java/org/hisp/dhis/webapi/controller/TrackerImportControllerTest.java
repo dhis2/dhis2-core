@@ -45,7 +45,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "OK", 200, "OK", "Tracker job added",
             POST( "/tracker?async=true&reportMode=FULL" +
-                "&importMode=VALIDATION" +
+                "&importMode=VALIDATE" +
                 "&idScheme=UID" +
                 "&importStrategy=CREATE_AND_UPDATE" +
                 "&atomicMode=OBJECT" +
@@ -82,7 +82,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidImportModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATION]",
+            "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATE]",
             POST( "/tracker?async=false&importMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
