@@ -430,6 +430,49 @@ public class DefaultAnalyticsSecurityManager
             .map( DataQueryParams::getProgram )
             .map( Program::getCategoryCombo )
             .map( CategoryCombo::getCategories )
-            .orElse( Collections.emptyList() );
+            .orElse( Collections.emptyList() )
+            .stream()
+            /*
+             * If the user has selected a category option, we do not want to
+             * apply any constraints
+             */
+            .filter( category -> !hasUserSelectedCategoryOption( category, params ) )
+            .collect( Collectors.toList() );
     }
+
+    /**
+     * Returns true if the user has selected a category option for the given
+     * category.
+     *
+     * @param category the category
+     * @param params the data query parameters.
+     * @return true if the user has selected a category option for the given
+     *         category.
+     */
+    private boolean hasUserSelectedCategoryOption( Category category, DataQueryParams params )
+    {
+        Stream<DimensionalObject> dimensionalObjects = Stream.concat(
+            params.getDimensions().stream(),
+            params.getFilters().stream() );
+
+        return dimensionalObjects
+            .anyMatch( dimensionalObject -> hasUserConstraints( dimensionalObject, category ) );
+    }
+
+    /**
+     * Returns true if the given dimensionalObject contains any constraint on
+     * the given Category
+     *
+     * @param dimensionalObject the dimensional object
+     * @param category the category
+     * @return true if the given dimensionalObject contains any constraint on
+     *         the given Category
+     */
+    private boolean hasUserConstraints( DimensionalObject dimensionalObject, Category category )
+    {
+        return dimensionalObject.getDimensionType() == DimensionType.CATEGORY &&
+            dimensionalObject.getUid().equals( category.getUid() ) &&
+            !dimensionalObject.getItems().isEmpty();
+    }
+
 }
