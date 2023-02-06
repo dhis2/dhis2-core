@@ -63,7 +63,7 @@ public class UniqueAttributesCheck implements ObjectValidationCheck
         List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty()
-            || !ctx.getSchemaService().getDynamicSchema( klass ).havePersistedProperty( "attributeValues" ) )
+            || !ctx.getSchemaService().getDynamicSchema( klass ).hasPersistedProperty( "attributeValues" ) )
         {
             return;
         }
