@@ -37,6 +37,7 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -177,6 +178,13 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
 
         relTypeA = new RelationshipType();
         relTypeA.setUid( "RelatnTypeA" );
+    }
+
+    @Test
+    void testIsIn()
+    {
+        assertEquals( "'A' in ('A','B','C')", test( "is('A' in 'A','B','C')" ) );
+        assertEquals( "1 in (1,2,3)", test( "is( 1 in 1, 2, 3 )" ) );
     }
 
     @Test

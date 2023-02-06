@@ -325,7 +325,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateDocument()
     {
         addRootObject( () -> {
-            addStringMember( "openapi", "3.1.0" );
+            addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
                 addStringMember( "title", configuration.title );
                 addStringMember( "version", configuration.version );

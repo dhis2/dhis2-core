@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expressiondimensionitem;
+package org.hisp.dhis.util;
 
-import java.util.Map;
+import org.hisp.dhis.feedback.BadRequestException;
 
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.stereotype.Component;
-
-/**
- * @author maikel arabori
- */
-@Component
-public class ExpressionDimensionItemDeletionHandler extends JdbcDeletionHandler
+@FunctionalInterface
+public interface CheckedFunction<T, R>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Visualization.class ); // Not a typo!
-
-    @Override
-    protected void register()
-    {
-        whenVetoing( ExpressionDimensionItem.class, this::allowDeleteExpressionDimensionItem );
-    }
-
-    private DeletionVeto allowDeleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
-    {
-        String sql = "select 1 from datadimensionitem where expressiondimensionitemid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", expressionDimensionItem.getId() ) );
-    }
+    R apply( T t )
+        throws BadRequestException;
 }
