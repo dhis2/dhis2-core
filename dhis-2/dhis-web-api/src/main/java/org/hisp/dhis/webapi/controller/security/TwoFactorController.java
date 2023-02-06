@@ -150,7 +150,6 @@ public class TwoFactorController
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public boolean isEnabled( @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
     {
         return currentUser.isTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser );
     }
