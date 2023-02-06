@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Stian Sandvold
  */
@@ -72,18 +70,17 @@ public class DefaultTextPatternService
     @Override
     public Map<String, List<String>> getRequiredValues( TextPattern pattern )
     {
-        return ImmutableMap.<String, List<String>> builder()
-            .put( "REQUIRED", pattern.getSegments()
+        return Map.of(
+            "REQUIRED", pattern.getSegments()
                 .stream()
                 .filter( this::isRequired )
                 .map( segment -> segment.getMethod().name() )
-                .collect( Collectors.toList() ) )
-            .put( "OPTIONAL", pattern.getSegments()
+                .collect( Collectors.toList() ),
+            "OPTIONAL", pattern.getSegments()
                 .stream()
                 .filter( this::isOptional )
-                .map( (segment -> segment.getMethod().name()) )
-                .collect( Collectors.toList() ) )
-            .build();
+                .map( segment -> segment.getMethod().name() )
+                .collect( Collectors.toList() ) );
     }
 
     @Override

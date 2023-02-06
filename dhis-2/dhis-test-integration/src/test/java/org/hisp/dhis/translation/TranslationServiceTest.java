@@ -62,14 +62,11 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -82,15 +79,13 @@ class TranslationServiceTest extends SingleSetupIntegrationTestBase
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private User user;
-
     private Locale locale;
 
     @Override
     public void setUpTest()
     {
         this.userService = injectUserService;
-        user = createUserAndInjectSecurityContext( true );
+        createUserAndInjectSecurityContext( true );
         locale = Locale.FRENCH;
         CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, locale );
     }
@@ -297,16 +292,16 @@ class TranslationServiceTest extends SingleSetupIntegrationTestBase
         Expression expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionA.setTranslations(
-            Sets.newHashSet( new Translation( locale.getLanguage(), "DESCRIPTION", "translated descriptionA" ) ) );
+            Set.of( new Translation( locale.getLanguage(), "DESCRIPTION", "translated descriptionA" ) ) );
         Expression expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})",
             "descriptionB" );
         expressionB.setTranslations(
-            Sets.newHashSet( new Translation( locale.getLanguage(), "DESCRIPTION", "translated descriptionB" ) ) );
+            Set.of( new Translation( locale.getLanguage(), "DESCRIPTION", "translated descriptionB" ) ) );
         Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
         manager.save( predictor );
         manager.updateTranslations( predictor,
-            Sets.newHashSet( new Translation( locale.getLanguage(), "NAME", "translated Predictor Name" ) ) );
+            Set.of( new Translation( locale.getLanguage(), "NAME", "translated Predictor Name" ) ) );
         predictor = manager.get( Predictor.class, predictor.getUid() );
         assertEquals( "translated Predictor Name", predictor.getDisplayName() );
         assertEquals( "translated descriptionA", predictor.getGenerator().getDisplayDescription() );

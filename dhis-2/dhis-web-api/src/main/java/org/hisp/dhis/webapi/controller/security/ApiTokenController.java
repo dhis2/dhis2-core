@@ -65,8 +65,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -78,6 +76,8 @@ import com.google.common.collect.ImmutableList;
 public class ApiTokenController extends AbstractCrudController<ApiToken>
 {
     public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN = "Operation not supported on ApiToken";
+
+    private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     private final ApiTokenService apiTokenService;
 
@@ -219,8 +219,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     private void validateHttpMethod( String httpMethodName )
     {
-        final ImmutableList<String> validMethods = ImmutableList.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
-        if ( !validMethods.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
+        if ( !VALID_METHODS.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
         {
             throw new IllegalArgumentException( "Not a valid http method, value=" + httpMethodName );
         }

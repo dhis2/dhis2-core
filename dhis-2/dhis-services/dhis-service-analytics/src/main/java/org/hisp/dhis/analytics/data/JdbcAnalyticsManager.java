@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.lang.String.join;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -43,9 +45,12 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteWithFunction;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quotedListOf;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -58,7 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +77,6 @@ import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -98,7 +101,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -114,19 +116,43 @@ import com.google.common.collect.Maps;
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    private static final String COL_APPROVALLEVEL = "approvallevel";
+    private static final String DX = "dx";
+
+    private static final String OU = "ou";
+
+    private static final String CO = "co";
+
+    private static final String AO = "ao";
+
+    private static final String PESTARTDATE = "pestartdate";
+
+    private static final String PEENDDATE = "peenddate";
+
+    private static final String OULEVEL = "oulevel";
+
+    private static final String DAYSXVALUE = "daysxvalue";
+
+    private static final String DAYSNO = "daysno";
+
+    private static final String YEAR = "year";
+
+    private static final String VALUE = "value";
+
+    private static final String TEXTVALUE = "textvalue";
+
+    private static final String APPROVALLEVEL = "approvallevel";
 
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES = Set.of( COUNT, STDDEV, VARIANCE, MIN, MAX );
+    private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES = Set.of(
+        COUNT, STDDEV, VARIANCE, MIN, MAX );
 
-    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String> builder()
-        .put( MeasureFilter.EQ, "=" )
-        .put( MeasureFilter.GT, ">" )
-        .put( MeasureFilter.GE, ">=" )
-        .put( MeasureFilter.LT, "<" )
-        .put( MeasureFilter.LE, "<=" )
-        .build();
+    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = Map.of(
+        MeasureFilter.EQ, "=",
+        MeasureFilter.GT, ">",
+        MeasureFilter.GE, ">=",
+        MeasureFilter.LT, "<",
+        MeasureFilter.LE, "<=" );
 
     private final QueryPlanner queryPlanner;
 
@@ -367,6 +393,10 @@ public class JdbcAnalyticsManager
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
         }
+        else if ( params.getAggregationType().isMinOrMaxInPeriodAggregationType() )
+        {
+            sql += getMinOrMaxValueSubquerySql( params );
+        }
         else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
             sql += getPreMeasureCriteriaSubquerySql( params );
@@ -482,7 +512,7 @@ public class JdbcAnalyticsManager
                 Integer level = params.getDataApprovalLevels().get( unit );
 
                 sql += "(" + ouCol + " = '" + unit.getUid() + "' and " +
-                    quoteAlias( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
+                    quoteAlias( APPROVALLEVEL ) + " <= " + level + ") or ";
             }
 
             sql = removeLastOr( sql ) + ") ";
@@ -513,13 +543,13 @@ public class JdbcAnalyticsManager
         if ( tableType.hasPeriodDimension() && params.hasStartDate() )
         {
             sql += sqlHelper.whereAnd() + " " +
-                quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                quoteAlias( PESTARTDATE ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
         }
 
         if ( tableType.hasPeriodDimension() && params.hasEndDate() )
         {
             sql += sqlHelper.whereAnd() + " " +
-                quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+                quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 
         if ( params.isTimely() )
@@ -568,6 +598,63 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates a sub query which finds the minimum or maximum value of data
+     * over periods within each organisation unit. This is useful when the main
+     * query uses a different aggregation type across organisation units.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL minimum or maximum value sub query.
+     */
+    private String getMinOrMaxValueSubquerySql( DataQueryParams params )
+    {
+        String dimensionColumns = getMinOrMaxValueSubqueryDimensionColumns( params );
+        String valueColumns = getMinOrMaxValueSubqueryValueColumns( params );
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
+        Date earliestDate = params.getEarliestStartDate();
+        Date latestDate = params.getLatestEndDate();
+
+        return "(select " + dimensionColumns + "," + valueColumns + " " +
+            "from " + fromSourceClause + " " +
+            "where " + quoteAlias( PESTARTDATE ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            "and " + quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( latestDate ) + "' " +
+            "and (" + quoteAlias( VALUE ) + " is not null or " + quoteAlias( TEXTVALUE ) + " is not null) " +
+            "group by " + dimensionColumns + ") ";
+    }
+
+    /**
+     * Gets a string with the dimension columns for a min or max value subquery,
+     * quoted and separated with commas.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the dimension columns string.
+     */
+    private String getMinOrMaxValueSubqueryDimensionColumns( DataQueryParams params )
+    {
+        // Note that the non-fixed subquery dimension columns may or may not
+        // duplicate the DX column that is specified, so a Set union is used.
+        return join( ",", union( quotedListOf( DX, OU, CO, AO, OULEVEL, YEAR ),
+            getParamsDependentSubqueryDimensionColumns( params, false ) ) );
+    }
+
+    /**
+     * Gets a string with the value columns for a min or max value subquery,
+     * quoted and separated with commas. Each of the value columns will be
+     * aggregated by either min() or max().
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the value columns string.
+     */
+    private String getMinOrMaxValueSubqueryValueColumns( DataQueryParams params )
+    {
+        AggregationType periodAggregationType = params.getAggregationType().getPeriodAggregationType();
+        Assert.isTrue( MIN == periodAggregationType || MAX == periodAggregationType,
+            "periodAggregationType must be MIN or MAX, not " + periodAggregationType );
+
+        String function = periodAggregationType.name().toLowerCase();
+        return quoteWithFunction( function, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE );
+    }
+
+    /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the start date, then end date of the data value period, latest
      * first. The data is partitioned by data element, org unit, category option
@@ -581,28 +668,19 @@ public class JdbcAnalyticsManager
      */
     private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliestDate )
     {
-        Date latest = params.getLatestEndDate();
-        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        Date latestDate = params.getLatestEndDate();
+        String columns = getFirstOrLastValueSubqueryColumns( params );
         String partitionColumns = getFirstOrLastValuePartitionColumns( params );
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
-        String sql = "(select ";
-
-        for ( String col : columns )
-        {
-            sql += col + ",";
-        }
-
-        sql += "row_number() over (" +
+        return "(select " + columns + ",row_number() over (" +
             "partition by " + partitionColumns + " " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
-            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
-            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
-
-        return sql;
+            "where " + quoteAlias( PESTARTDATE ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            "and " + quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( latestDate ) + "' " +
+            "and (" + quoteAlias( VALUE ) + " is not null or " + quoteAlias( TEXTVALUE ) + " is not null))";
     }
 
     /**
@@ -630,31 +708,45 @@ public class JdbcAnalyticsManager
         }
         else
         {
-            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
+            return quoteAliasCommaSeparate( List.of( DX, OU, CO, AO ) );
         }
     }
 
     /**
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub
      * query. It is assumed that {@link AggregationType#LAST} type only applies
-     * to aggregate data analytics. The period dimension is replaced by the name
-     * of the single period in the given query.
+     * to aggregate data analytics.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a SQL clause with quoted columns for a first or last value query.
+     * @return comma separated list of columns
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns( DataQueryParams params )
+    private String getFirstOrLastValueSubqueryColumns( DataQueryParams params )
+    {
+        return join( ",", concat(
+            quotedListOf( YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE ),
+            getParamsDependentSubqueryDimensionColumns( params, true ) ) );
+    }
+
+    /**
+     * Returns quoted names of all dimension columns for a period subquery (e.g.
+     * first, last, min, max) that depend on the parameters.
+     * <p>
+     * If requested, the period dimension is replaced by the name of the latest
+     * period in the given query.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param replacePeriod if the query is for first or last value.
+     * @return a {@link List} of columns
+     */
+    private List<String> getParamsDependentSubqueryDimensionColumns( DataQueryParams params, boolean replacePeriod )
     {
         Period period = params.getLatestPeriod();
 
-        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "oulevel", "daysxvalue", "daysno",
-            "value", "textvalue" );
-
-        cols = cols.stream().map( AnalyticsSqlUtils::quote ).collect( Collectors.toList() );
+        List<String> cols = Lists.newArrayList();
 
         if ( params.isDataApproval() )
         {
-            cols.add( quote( COL_APPROVALLEVEL ) );
+            cols.add( quote( APPROVALLEVEL ) );
 
             for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
             {
@@ -664,7 +756,7 @@ public class JdbcAnalyticsManager
 
         for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {
-            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null && replacePeriod )
             {
                 String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
@@ -794,7 +886,7 @@ public class JdbcAnalyticsManager
      * dimensions where each dimension name is quoted. Dimensions which are
      * considered fixed will be excluded.
      *
-     * @param dimensions the collection of {@link Dimension}.
+     * @param dimensions the collection of {@link DimensionalObject}.
      * @return a comma-delimited string of quoted dimension names.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )

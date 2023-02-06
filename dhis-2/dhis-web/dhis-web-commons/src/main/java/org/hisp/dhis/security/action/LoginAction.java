@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
-import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -166,7 +165,7 @@ public class LoginAction
         {
             DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
 
-            providers.add( ImmutableMap.of(
+            providers.add( Map.of(
                 "id", registrationId,
                 "icon", clientRegistration.getLoginIcon(),
                 "iconPadding", clientRegistration.getLoginIconPadding(),

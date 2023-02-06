@@ -37,7 +37,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 public class DataValueFilteringTestSupport
@@ -55,7 +54,7 @@ public class DataValueFilteringTestSupport
 
     public static Map<String, Program> getProgramMap()
     {
-        return ImmutableMap.of( PROGRAM, getProgram() );
+        return Map.of( PROGRAM, getProgram() );
     }
 
     public static Program getProgram()

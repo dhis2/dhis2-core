@@ -83,7 +83,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -108,7 +107,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
 
-    protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
+    protected static final Set<ValueType> NO_INDEX_VAL_TYPES = Set.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
     protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
