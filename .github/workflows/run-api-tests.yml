@@ -12,9 +12,7 @@ concurrency:
 jobs:
   api-test:
     env:
-      CORE_IMAGE_NAME: "dhis2/core-dev:local"
-      PR_NUMBER: ${{ github.event.number }}
-      DOCKER_CHANNEL: "dhis2/core-pr"
+      CORE_IMAGE_NAME: "dhis2/core-pr:${{ github.event_name == 'pull_request' && github.event.number || 'local' }}"
     
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
@@ -26,24 +24,33 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-      - name: Build core image
-        run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
-          mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
+      # we only want to publish to Dockerhub on PRs
+      # PRs from forks cannot access secrets so such PRs cannot publish Docker images
       - name: Login to Docker Hub
-        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
 
-      - name: Publish docker image
-        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+      - name: Build war
         run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
-          docker push $DOCKER_CHANNEL:$PR_NUMBER
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
+
+      - name: Build container image
+        run: |
+          if [ "${{github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork}}" = "true" ]; then
+            # on PRs (of non-forks): build and publish multi-arch images using Jib. Image is used for api tests in
+            # this workflow and can be pulled from Dockerhub by devs to run locally, ...
+            mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
+          else
+            # only build image for running api tests in this workflow i.e. master, 2.39, ...
+            mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild \
+                -Djib.to.image=$CORE_IMAGE_NAME
+          fi
 
       - name: Run tests
         run: |

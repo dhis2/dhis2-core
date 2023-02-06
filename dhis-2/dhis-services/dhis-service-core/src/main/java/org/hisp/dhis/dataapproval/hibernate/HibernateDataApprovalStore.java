@@ -261,7 +261,7 @@ public class HibernateDataApprovalStore
 
     @Override
     public List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
-        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
+        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel, OrganisationUnit orgUnitFilter,
         CategoryCombo attributeCombo, Set<CategoryOptionCombo> attributeOptionCombos,
         List<DataApprovalLevel> userApprovalLevels, Map<Integer, DataApprovalLevel> levelMap )
     {
@@ -418,7 +418,7 @@ public class HibernateDataApprovalStore
 
         String highestApprovedOrgUnitJoin = "";
         String highestApprovedOrgUnitCompare;
-        String orgUnitIds = "";
+        String orgUnitIds = null;
 
         if ( orgUnits != null )
         {
@@ -431,6 +431,11 @@ public class HibernateDataApprovalStore
             highestApprovedOrgUnitJoin = "join organisationunit dao on dao.organisationunitid = da.organisationunitid ";
 
             highestApprovedOrgUnitCompare = statementBuilder.position( "dao.uid", "o.path" ) + " <> 0 ";
+        }
+
+        if ( orgUnitFilter != null )
+        {
+            orgUnitIds = String.valueOf( orgUnitFilter.getId() );
         }
 
         String userApprovalLevelRestrictions = "";
@@ -550,7 +555,7 @@ public class HibernateDataApprovalStore
             approvedAboveSubquery + " as approved_above " +
             "from categoryoptioncombo coc " +
             "join organisationunit o on "
-            + (orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ") "
+            + (orgUnitIds != null ? "o.organisationunitid in (" + orgUnitIds + ") "
                 : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions + " ")
             +
             "where not exists ( " + // Exclude any attribute option combo (COC)

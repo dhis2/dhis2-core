@@ -49,6 +49,7 @@ import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
@@ -334,7 +335,8 @@ public class JobConfiguration
         @JsonSubTypes.Type( value = DataSynchronizationJobParameters.class, name = "DATA_SYNC" ),
         @JsonSubTypes.Type( value = DisableInactiveUsersJobParameters.class, name = "DISABLE_INACTIVE_USERS" ),
         @JsonSubTypes.Type( value = TrackerTrigramIndexJobParameters.class, name = "TRACKER_SEARCH_OPTIMIZATION" ),
-        @JsonSubTypes.Type( value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY" )
+        @JsonSubTypes.Type( value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY" ),
+        @JsonSubTypes.Type( value = TestJobParameters.class, name = "TEST" )
     } )
     public JobParameters getJobParameters()
     {
@@ -466,4 +468,5 @@ public class JobConfiguration
     {
         this.userUid = userUid;
     }
+
 }

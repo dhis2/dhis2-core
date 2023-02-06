@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 
-/**
- * @author Luca Cambi
- */
-@Data
-@NoArgsConstructor
-public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+public class TestJobParametersDeserializer extends AbstractJobParametersDeserializer<TestJobParameters>
 {
-    private String tei;
-
-    private String enrollment;
-
-    private String event;
-
-    /**
-     * TODO Add Pager
-     */
-    @Override
-    public Boolean isSkipPaging()
+    public TestJobParametersDeserializer()
     {
-        return true;
+        super( TestJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends TestJobParameters
+    {
     }
 }
