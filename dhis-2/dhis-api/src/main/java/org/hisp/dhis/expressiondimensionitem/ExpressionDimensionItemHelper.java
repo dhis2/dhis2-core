@@ -93,10 +93,11 @@ public class ExpressionDimensionItemHelper
     }
 
     /**
-     * Expression parser
+     * Expression parser for expression tokens of indicator (
+     * data_element.category_option_combo or data_element only )
      *
      * @param pattern compiled Patter object of regular expression
-     * @param expression
+     * @param expression expression of indicator
      * @return collection of tokens
      */
     public static List<String> getExpressionTokens( Pattern pattern, String expression )
