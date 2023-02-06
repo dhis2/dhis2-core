@@ -60,6 +60,7 @@ public class KeyStoreUtil
         {
             keyStore.load( is, keystorePassword.toCharArray() );
         }
+
         return keyStore;
     }
 
@@ -67,17 +68,13 @@ public class KeyStoreUtil
         throws KeyStoreException,
         JOSEException
     {
-
         java.security.cert.Certificate cert = keyStore.getCertificate( alias );
 
         if ( cert.getPublicKey() instanceof RSAPublicKey )
         {
             return RSAKey.load( keyStore, alias, pin );
         }
-        else
-        {
-            throw new JOSEException( "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm() );
-        }
-    }
 
+        throw new JOSEException( "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm() );
+    }
 }

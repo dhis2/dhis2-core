@@ -197,8 +197,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
     }
 
     /**
-     * Extra req. params has to be in this form: acr_value 4, test_param five
-     * (trailing (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
+     * Extra request parameters has to be in this form: acr_value 4, test_param
+     * five (trailing (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
      *
      * @param config
      * @return
@@ -207,12 +207,14 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
     {
         String params = StringUtils.defaultIfEmpty( config.get( EXTRA_REQUEST_PARAMETERS ), "" );
 
+        final String whitespace = "\\s+";
+
         return Arrays
             .stream( params.split( "," ) )
-            .filter( s -> s.trim().split( "\\s+" ).length == 2 )
+            .filter( s -> s.trim().split( whitespace ).length == 2 )
             .map( s -> Pair.of(
-                s.trim().split( "\\s+" )[0],
-                s.trim().split( "\\s+" )[1] ) )
+                s.trim().split( whitespace )[0],
+                s.trim().split( whitespace )[1] ) )
             .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
     }
 }

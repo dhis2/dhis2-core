@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.security.interfaces.RSAPublicKey;
@@ -35,6 +36,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -68,6 +70,7 @@ public class PublicKeysController
 
     @GetMapping( value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" ) String clientId )
+        throws WebMessageException
     {
         DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientId );
@@ -76,7 +79,7 @@ public class PublicKeysController
         JwsAlgorithm jwsAlgorithm = resolveAlgorithm( jwk );
         if ( jwsAlgorithm == null )
         {
-            throw new IllegalArgumentException( "Unsupported algorithm: " + jwk.getAlgorithm() );
+            throw new WebMessageException( error( "Could not resolve the Jws algorithm" ) );
         }
 
         RSAPublicKey publicKey = dhisOidcClientRegistration.getRsaPublicKey();

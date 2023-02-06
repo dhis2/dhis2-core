@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
@@ -84,7 +84,6 @@ public class DhisAuthorizationCodeTokenResponseClient
     @PostConstruct
     public void init()
     {
-
         Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> {
             if ( clientRegistration.getClientAuthenticationMethod()
                 .equals( ClientAuthenticationMethod.PRIVATE_KEY_JWT ) )
@@ -93,16 +92,15 @@ public class DhisAuthorizationCodeTokenResponseClient
                     clientRegistration.getRegistrationId() );
                 return clientReg.getJwk();
             }
-            throw new IllegalArgumentException(
-                "The Client Registration does not support the Client Authentication Method: "
-                    + clientRegistration.getClientAuthenticationMethod() );
+
+            return null;
         };
 
         Consumer<NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<OAuth2AuthorizationCodeGrantRequest>> jwtClientAssertionCustomizer = context -> {
             ClientRegistration clientRegistration = context.getAuthorizationGrantRequest().getClientRegistration();
-            DhisOidcClientRegistration clientReg = clientRegistrations.getDhisOidcClientRegistration(
-                clientRegistration.getRegistrationId() );
-            context.getHeaders().jwkSetUrl( clientReg.getJwkSetUrl() );
+            DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrations
+                .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
+            context.getHeaders().jwkSetUrl( dhisOidcClientRegistration.getJwkSetUrl() );
         };
 
         NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest> parametersConverter = new NimbusJwtClientAuthenticationParametersConverter<>(
@@ -121,23 +119,14 @@ public class DhisAuthorizationCodeTokenResponseClient
 
     @Override
     public OAuth2AccessTokenResponse getTokenResponse(
-        OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest )
+        @Nonnull OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest )
     {
-        Assert.notNull( authorizationCodeGrantRequest, "authorizationCodeGrantRequest cannot be null" );
+        Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> converter = ClientAuthenticationMethod.PRIVATE_KEY_JWT
+            .equals( authorizationCodeGrantRequest.getClientRegistration().getClientAuthenticationMethod() )
+                ? this.jwtRequestEntityConverter
+                : this.requestEntityConverter;
 
-        ClientRegistration clientRegistration = authorizationCodeGrantRequest.getClientRegistration();
-
-        RequestEntity<?> request;
-        if ( !ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals( clientRegistration.getClientAuthenticationMethod() ) )
-        {
-            request = this.requestEntityConverter.convert( authorizationCodeGrantRequest );
-        }
-        else
-        {
-            request = this.jwtRequestEntityConverter.convert( authorizationCodeGrantRequest );
-        }
-
-        return getResponse( request ).getBody();
+        return getResponse( converter.convert( authorizationCodeGrantRequest ) ).getBody();
     }
 
     private ResponseEntity<OAuth2AccessTokenResponse> getResponse( RequestEntity<?> request )
@@ -152,6 +141,7 @@ public class DhisAuthorizationCodeTokenResponseClient
                 "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: "
                     + ex.getMessage(),
                 null );
+
             throw new OAuth2AuthorizationException( oauth2Error, ex );
         }
     }
@@ -166,9 +156,8 @@ public class DhisAuthorizationCodeTokenResponseClient
      *        Request
      */
     public void setRequestEntityConverter(
-        Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter )
+        @Nonnull Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter )
     {
-        Assert.notNull( requestEntityConverter, "requestEntityConverter cannot be null" );
         this.requestEntityConverter = requestEntityConverter;
     }
 
@@ -189,9 +178,8 @@ public class DhisAuthorizationCodeTokenResponseClient
      * @param restOperations the {@link RestOperations} used when requesting the
      *        Access Token Response
      */
-    public void setRestOperations( RestOperations restOperations )
+    public void setRestOperations( @Nonnull RestOperations restOperations )
     {
-        Assert.notNull( restOperations, "restOperations cannot be null" );
         this.restOperations = restOperations;
     }
 }
