@@ -56,11 +56,11 @@ import org.junit.jupiter.api.Test;
  * {@link CategorySecurityUtils#getCategoriesWithoutRestrictions(DataQueryParams)}
  * which is used to get the categories that are not restricted by the user.
  */
-public class CategorySecurityUtilsTest
+class CategorySecurityUtilsTest
 {
 
     @Test
-    public void testCategoryOptionsConstraints()
+    void testCategoryOptionsConstraints()
     {
         runTest(
             // categories in Program -> categoryCombo -> categories
@@ -77,7 +77,7 @@ public class CategorySecurityUtilsTest
     }
 
     @Test
-    public void testCategoryOptionsNoConstraints()
+    void testCategoryOptionsNoConstraints()
     {
         List<String> allCategories = List.of( "cat1", "cat2", "cat3" );
         runTest(
