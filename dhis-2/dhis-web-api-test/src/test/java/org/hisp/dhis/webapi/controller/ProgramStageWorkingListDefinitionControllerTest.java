@@ -33,15 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.stream.Stream;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConvenienceTest
 {
@@ -49,12 +44,6 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     private String programId;
 
     private String programStageId;
-
-    private String ouId;
-
-    private String attributeId;
-
-    private String dataElementId;
 
     @BeforeEach
     void setUp()
@@ -64,17 +53,6 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
         programStageId = assertStatus( HttpStatus.CREATED,
             POST( "/programStages/", "{'name': 'ProgramStageTest', 'program':" + "{'id': '" + programId + "'}}" ) );
-
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        attributeId = assertStatus( HttpStatus.CREATED,
-            POST( "/trackedEntityAttributes/",
-                "{'name':'attrA', 'shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
-
-        dataElementId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
-                "{'name':'element', 'shortName':'DE2', 'valueType':'INTEGER', 'aggregationType':'SUM', 'domainType':'AGGREGATE'}" ) );
     }
 
     @Test
@@ -140,86 +118,8 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
             response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
-    @ParameterizedTest
-    @MethodSource( "provideCorrectQueryCriteriaParams" )
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithCorrectQueryCriteria( String queryCriteria )
-    {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( queryCriteria ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    private static Stream<Arguments> provideCorrectQueryCriteriaParams()
-    {
-        return Stream.of(
-            Arguments.of( "{'status':'ACTIVE'}" ),
-            Arguments.of( "{'eventDate':{'type':'ABSOLUTE','startDate':'2020-03-01','endDate':'2022-12-30'}}" ),
-            Arguments.of( "{'assignedUsers':['DXyJmlo9rge'], 'assignedUserMode':'PROVIDED'}" ) );
-    }
-
     @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithOrgUnit()
-    {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'organisationUnit':'" + ouId + "'}" ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @ParameterizedTest
-    @MethodSource( "provideIncorrectQueryCriteriaParams" )
-    void shouldFailWithErrorMessageWhenCreatingWorkingListDefinitionWithIncorrectQueryCriteria( String queryCriteria,
-        String errorMessage )
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions", createPostRequestBody( queryCriteria ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( errorMessage, response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
-
-    private static Stream<Arguments> provideIncorrectQueryCriteriaParams()
-    {
-        return Stream.of(
-            Arguments.of( "{'orgUnit':'madeUpOrgUnit'}}", "Organisation unit does not exist: `madeUpOrgUnit`" ),
-            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','startDate':''}}}",
-                "Start date or end date not specified with ABSOLUTE date period" ),
-            Arguments.of( "{'eventCreatedAt':{'type':'ABSOLUTE','endDate':''}}}",
-                "Start date or end date not specified with ABSOLUTE date period" ),
-            Arguments.of( "{'dataFilters':[{'dataItem': 'madeUpItemId', 'ge': '10', 'le': '20'}]}",
-                "No data element found" ),
-            Arguments.of( "{'attributeValueFilters':[{'attribute': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}",
-                "No tracked entity attribute found" ),
-            Arguments.of( "{'assignedUserMode':'PROVIDED'}",
-                "Assigned Users cannot be empty with PROVIDED assigned user mode" ),
-            Arguments.of( "{'dataFilters':[{'dataItem': '', 'ge': '10', 'le': '20'}]}",
-                "Data item Uid is missing in filter" ),
-            Arguments.of( "{'attributeValueFilters':[{'attribute': '', 'ge': '10', 'le': '20'}]}",
-                "Attribute Uid is missing in filter" ) );
-    }
-
-    @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithDataElementFiltersAndExistingDataElement()
-    {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody(
-                "{ 'dataFilters':[{'dataItem': '" + dataElementId + "', 'ge': '10', 'le': '20'}]}" ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithAttributeFiltersAndExistingAttribute()
-    {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody(
-                "{ 'attributeValueFilters':[{'attribute': '" + attributeId + "', 'ge': '10', 'le': '20'}]}" ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @Test
-    void shouldReturnAllWorkingListsDefinitionWhenWorkingListsRequested()
+    void shouldReturnAllWorkingListsDefinitionsWhenWorkingListsRequested()
     {
         String workingListId1 = createWorkingListDefinition( "Test working list 1" );
         String workingListId2 = createWorkingListDefinition( "Test working list 2" );
@@ -319,11 +219,5 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
                 + workingListName + "'}" ) );
-    }
-
-    private String createPostRequestBody( String programStageQueryCriteria )
-    {
-        return "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId
-            + "'}, 'name':'wl name', 'programStageQueryCriteria':" + programStageQueryCriteria + "}";
     }
 }

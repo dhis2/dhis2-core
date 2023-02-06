@@ -257,7 +257,7 @@ public enum ErrorCode
     E4064( "Organisation Unit cannot be empty with `{0}` org unit mode" ),
     E4065( "Data item Uid is missing in filter" ),
     E4066( "No data element found for item: `{0}`" ),
-    E4067( "Attribute Uid is missing in filter`" ),
+    E4067( "Attribute Uid is missing in filter" ),
     E4068( "No tracked entity attribute found for attribute: `{0}`" ),
 
     /* SQL views */
