@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -558,6 +559,36 @@ public class AccountController
         result.put( "message", "Account was updated." );
 
         return ResponseEntity.ok().cacheControl( noStore() ).body( result );
+    }
+
+    @GetMapping( "/linkedAccounts" )
+    public ResponseEntity<List<User>> getLinkedAccounts( @CurrentUser User currentUser )
+    {
+        Map<String, String> result = new HashMap<>();
+
+        if ( currentUser == null )
+        {
+            result.put( "status", "NON_EXPIRED" );
+            result.put( "message", "Username is not valid, redirecting to login." );
+
+            return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
+        }
+
+        List<User> linkedUserAccounts = userService.getLinkedUserAccounts( currentUser );
+
+
+        return ResponseEntity.ok().cacheControl( noStore() ).body( linkedUserAccounts );
+        //        List<ExternalUserAccount> externalUserAccounts = externalUserAccountService.getExternalUserAccounts( currentUser );
+//
+//        result.put( "status", "OK" );
+//        result.put( "message", "Account was updated." );
+//        result.put( "accounts", externalUserAccounts.stream().map( ExternalUserAccount::getExternalAuthType )
+//            .collect( Collectors.joining( "," ) ) );
+//
+//        return ResponseEntity.ok().cacheControl( noStore() ).body( result );
+//    }
+//    {
+//        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
     }
 
     @GetMapping( "/username" )

@@ -1000,4 +1000,10 @@ public class DefaultUserService
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
     }
+
+    @Override
+    public List<User> getLinkedUserAccounts( @Nonnull User actingUser )
+    {
+        return userStore.getLinkedUserAccounts( actingUser );
+    }
 }

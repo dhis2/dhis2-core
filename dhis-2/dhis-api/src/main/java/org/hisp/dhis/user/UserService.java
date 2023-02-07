@@ -576,4 +576,11 @@ public interface UserService
      * @param userToModify The user object that is being updated.
      */
     void validateTwoFactorUpdate( boolean before, boolean after, User userToModify );
+
+    /**
+     * Get linked user accounts for the given user
+     * @param actingUser
+     * @return
+     */
+    List<User> getLinkedUserAccounts( User actingUser );
 }

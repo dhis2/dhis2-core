@@ -575,9 +575,10 @@ public class HibernateUserStore
     @Override
     public User getUserByOpenId( String openId )
     {
-        Query<User> query = getQuery( "from User u where u.openId = :openId" );
+        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.username" );
         query.setParameter( "openId", openId );
-        return query.uniqueResult();
+        List<User> list = query.getResultList();
+        return list.get( 0 );
     }
 
     @Override
@@ -615,6 +616,19 @@ public class HibernateUserStore
         Query<User> query = getQuery( hql );
         query.setParameter( "authority", authority );
 
+        return query.getResultList();
+    }
+
+    @Override
+    public List<User> getLinkedUserAccounts( @Nonnull User currentUser )
+    {
+        if ( currentUser.getOpenId() == null )
+        {
+            return new ArrayList<>();
+        }
+
+        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.username" );
+        query.setParameter( "openId", currentUser.getOpenId() );
         return query.getResultList();
     }
 

@@ -193,4 +193,6 @@ public interface UserStore
     User getUserByUuid( UUID uuid );
 
     List<User> getHasAuthority( String authority );
+
+    List<User> getLinkedUserAccounts( User currentUser );
 }
