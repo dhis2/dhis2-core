@@ -471,19 +471,16 @@ public class HibernateDataApprovalStore
                 ")";
         }
 
-        String readyBelowSubquery = "true"; // Ready below if this is the lowest
-                                           // (highest number) approval orgUnit
-                                           // level.
+        // Ready below if this is the lowest (highest number) approval level
+        String readyBelowSubquery = "true";
 
         if ( approvalLevelBelowOrgUnit != null )
         {
-            readyBelowSubquery = "not exists ( " + // Ready if nothing expected
-                                                  // below is
-                                                  // unapproved(/unaccepted)
+            // Ready if nothing expected below is unapproved(/unaccepted)
+            readyBelowSubquery = "not exists ( " +
                 "select 1 " +
-                "from organisationunit dao " + // Lower-level Data Approval
-                                                            // OrgUnit (DAO) where approval
-                                                            // is needed to be ready.
+                // Lower Data Approval OrgUnit (DAO) where approval is required
+                "from organisationunit dao " +
                 "where " + statementBuilder.position( "o.uid", "dao.path" ) + " = "
                 + pathPositionAtLevel( orgUnitLevel ) + " " +
                 "and dao.hierarchylevel = " + approvalLevelBelowOrgUnit.getOrgUnitLevel() + " " +
@@ -552,16 +549,16 @@ public class HibernateDataApprovalStore
             + (orgUnitIds != null ? "o.organisationunitid in (" + orgUnitIds + ") "
                 : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions + " ")
             +
-            "where not exists ( " + // Exclude any attribute option combo (COC)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       // that is linked (1 to many) to an
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       // unwanted attribute option (CO):
+            // Exclude any attribute option combo (COC) that is linked (1 to
+            // many) to an unwanted attribute option (CO):
+            "where not exists ( " +
             "select 1 " +
             "from categoryoptioncombos_categoryoptions cocco " +
             "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid " +
             "where cocco.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "and ( " +
 
-            // CO start date to late.
+            // CO start date too late
             "(co.startdate is not null and co.startdate > '" + endDate + "') " +
 
             // CO end date too early
@@ -584,8 +581,7 @@ public class HibernateDataApprovalStore
             ") " +
             ") " +
             (isSuperUser ? ""
-                : // Filter out COs the user doesn't have
-                                                                                                                                                                                                                                                                                                                                                                                                    // permission to see.
+                : // Filter out COs the user doesn't have permission to see:
                 "or ( ( co.sharing->>'public' is null or left(co.sharing->>'public', 1) != 'r' )"
                     + " and ( co.sharing->>'owner' is null or co.sharing->>'owner' != '" + user.getUid() + "' )" +
                     " and ( not " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "') or not " +

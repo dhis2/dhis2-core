@@ -36,6 +36,7 @@ import lombok.Setter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -96,6 +97,9 @@ public class MetadataItem
 
     @JsonProperty
     private Date endDate;
+
+    @JsonProperty
+    private String expression;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -208,6 +212,12 @@ public class MetadataItem
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
+        }
+        else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
+        {
+            ExpressionDimensionItem expressionDimensionItem = (ExpressionDimensionItem) dimensionalItemObject;
+
+            this.expression = expressionDimensionItem.getExpression();
         }
     }
 

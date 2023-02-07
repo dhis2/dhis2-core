@@ -80,7 +80,6 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -116,7 +115,7 @@ public class DefaultEventAnalyticsService
 
     private static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
 
-    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+    private static final Map<String, String> COLUMN_NAMES = Map.of(
         DATA_X_DIM_ID, "data",
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
