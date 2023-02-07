@@ -16,7 +16,10 @@
             "maxTeiCountToReturn": 0,
             "minAttributesRequiredToSearch": 1,
             "name": "Person",
-            "publicAccess": "--------",
+            "sharing": {
+                "public": "--------",
+                "external": false
+            },
             "style": {
                 "icon": "man_positive"
             },
@@ -163,7 +166,10 @@
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Data Analysis",
-            "publicAccess": "rw------",
+            "sharing": {
+                "public": "rw------",
+                "external": false
+            },
             "translations": [
                 {
                     "locale": "cs",
@@ -193,7 +199,10 @@
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Data Entry",
-            "publicAccess": "rw------",
+            "sharing": {
+                "public": "rw------",
+                "external": false
+            },
             "translations": [
                 {
                     "locale": "cs",
@@ -223,7 +232,10 @@
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Metadata Admin",
-            "publicAccess": "rw------",
+            "sharing": {
+                "public": "rw------",
+                "external": false
+            },
             "translations": [
                 {
                     "locale": "es",

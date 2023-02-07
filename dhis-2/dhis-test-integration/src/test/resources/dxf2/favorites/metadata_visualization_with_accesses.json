@@ -3,7 +3,10 @@
     {
       "lastUpdated": "2016-03-17T01:53:56.098+0000",
       "code": "Gender",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "dataDimensionType": "DISAGGREGATION",
       "userGroupAccesses": [],
       "id": "XFgfIO1qQmd",
@@ -105,7 +108,10 @@
         "F_DATAELEMENTGROUPSET_PUBLIC_ADD"
       ],
       "dataSets": [ ],
-      "publicAccess": "--------"
+      "sharing": {
+        "public": "--------",
+        "external": false
+      }
     }
   ],
   "organisationUnitGroups": [
@@ -117,7 +123,10 @@
           "id": "uyHni0GvBpD"
         }
       ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "user": {
         "id": "M5zQapPyTZI"
       },
