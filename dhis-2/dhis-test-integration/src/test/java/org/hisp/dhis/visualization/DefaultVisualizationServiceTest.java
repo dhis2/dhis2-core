@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Tests for {@link DefaultVisualizationService}.
  */
-public class DefaultVisualizationServiceTest extends TransactionalIntegrationTest
+class DefaultVisualizationServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private VisualizationService visualizationService;
