@@ -34,7 +34,6 @@ import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
-import org.hisp.dhis.eventhook.TargetTypes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -47,11 +46,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class ConsoleTarget extends Target
 {
+    public static final String TYPE = "webhook";
+
     @JsonProperty( required = true )
     private String clientId = "dhis2-console-" + CodeGenerator.generateUid();
 
     public ConsoleTarget()
     {
-        super( TargetTypes.CONSOLE.getValue() );
+        super( TYPE );
     }
 }
