@@ -435,7 +435,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected String coalesceAsDoubleNan( String column )
     {
-        return "coalesce(" + column + ", double precision 'NaN')";
+        return "nullif(coalesce(" + column + "), double precision 'NaN')";
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
