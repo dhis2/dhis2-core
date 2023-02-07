@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.FLUSH_MODE_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.REPORT_MODE;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
 import java.util.List;
 import java.util.Map;
@@ -36,8 +41,13 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 
 import com.google.common.base.Enums;
@@ -53,6 +63,11 @@ public class TrackerImportParamsValidator
     {
         Map<String, List<String>> parameters = request.getContextService().getParameterValuesMap();
 
+        validateEnum( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY );
+        validateEnum( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY );
+        validateEnum( AtomicMode.class, parameters, ATOMIC_MODE_KEY );
+        validateEnum( FlushMode.class, parameters, FLUSH_MODE_KEY );
+        validateEnum( ValidationMode.class, parameters, VALIDATION_MODE_KEY );
         validateEnum( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, IdScheme::isAttribute );
         validateEnum( TrackerBundleReportMode.class, parameters, REPORT_MODE );
     }
