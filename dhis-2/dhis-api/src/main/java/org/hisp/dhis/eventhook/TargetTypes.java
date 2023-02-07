@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
-import org.hisp.dhis.eventhook.TargetTypes;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class JmsTarget extends Target
+public enum TargetTypes
 {
-    @JsonProperty( required = true )
-    private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
+    WEBHOOK( "webhook" ),
+    CONSOLE( "console" ),
+    JMS( "jms" ),
+    KAFKA( "kafka" );
 
-    @JsonProperty( required = true )
-    private String groupId = "dhis2";
+    private static final Map<String, TargetTypes> MAP = new HashMap<>();
 
-    @JsonProperty( required = true )
-    private String address = "dhis2.hooks";
-
-    @JsonProperty( required = true )
-    private String brokerUrl = "tcp://localhost:61616";
-
-    @JsonProperty
-    private String username;
-
-    @JsonProperty
-    private String password;
-
-    @JsonProperty
-    private boolean useQueue;
-
-    public JmsTarget()
+    static
     {
-        super( TargetTypes.JMS.getValue() );
+        for ( TargetTypes targetTypes : TargetTypes.values() )
+        {
+            MAP.put( targetTypes.value, targetTypes );
+        }
+    }
+
+    private final String value;
+
+    TargetTypes( String value )
+    {
+        this.value = value;
+    }
+
+    public static TargetTypes fromValue( String value )
+    {
+        return MAP.get( value );
+    }
+
+    public String getValue()
+    {
+        return value;
     }
 }

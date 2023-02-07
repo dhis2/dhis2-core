@@ -34,6 +34,7 @@ import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.eventhook.TargetTypes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -46,8 +47,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class KafkaTarget extends Target
 {
-    public static final String TYPE = "kafka";
-
     @JsonProperty( required = true )
     private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
 
@@ -65,6 +64,6 @@ public class KafkaTarget extends Target
 
     public KafkaTarget()
     {
-        super( TYPE );
+        super( TargetTypes.KAFKA.getValue() );
     }
 }

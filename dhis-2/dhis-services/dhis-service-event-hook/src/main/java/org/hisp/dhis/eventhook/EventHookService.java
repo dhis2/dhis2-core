@@ -63,7 +63,6 @@ public class EventHookService
         {
             try
             {
-                // TODO: this is a bit of a hack, but we need to decrypt the password and not change the object in the database
                 EventHook eh = objectMapper.readValue( objectMapper.writeValueAsString( eventHook ), EventHook.class );
                 secretManager.decrypt( eh );
                 eventHooks.add( eh );

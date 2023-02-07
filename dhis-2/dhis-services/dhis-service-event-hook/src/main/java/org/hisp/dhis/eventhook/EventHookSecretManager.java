@@ -68,15 +68,15 @@ public class EventHookSecretManager
     {
         for ( Target target : eventHook.getTargets() )
         {
-            if ( target.getType().equals( WebhookTarget.TYPE ) )
+            if ( target.getType().equals( TargetTypes.WEBHOOK.getValue() ) )
             {
                 handleWebhook( (WebhookTarget) target, callback );
             }
-            else if ( target.getType().equals( JmsTarget.TYPE ) )
+            else if ( target.getType().equals( TargetTypes.JMS.getValue() ) )
             {
                 handleJms( (JmsTarget) target, callback );
             }
-            else if ( target.getType().equals( KafkaTarget.TYPE ) )
+            else if ( target.getType().equals( TargetTypes.KAFKA.getValue() ) )
             {
                 handleKafka( (KafkaTarget) target, callback );
             }
