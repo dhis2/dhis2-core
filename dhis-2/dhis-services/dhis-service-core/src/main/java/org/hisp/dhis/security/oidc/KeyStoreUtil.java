@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,57 +27,54 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.*;
-import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-
-import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.RSAKey;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public class KeyStoreUtil
 {
-    private final ClientRegistration clientRegistration;
-
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    private final JWK jwk;
-
-    private final RSAPublicKey rsaPublicKey;
-
-    private final String keyId;
-
-    private final String jwkSetUrl;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    private KeyStoreUtil()
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+        throw new IllegalArgumentException( "This class should not be instantiated" );
+    }
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+    public static KeyStore readKeyStore( String keystorePath, String keystorePassword )
+        throws KeyStoreException,
+        IOException,
+        NoSuchAlgorithmException,
+        CertificateException
+    {
+        KeyStore keyStore = KeyStore.getInstance( KeyStore.getDefaultType() );
+        try ( InputStream is = new FileInputStream( keystorePath ) )
+        {
+            keyStore.load( is, keystorePassword.toCharArray() );
+        }
+
+        return keyStore;
+    }
+
+    public static RSAKey loadRSAPublicKey( final KeyStore keyStore, final String alias, final char[] pin )
+        throws KeyStoreException,
+        JOSEException
+    {
+        java.security.cert.Certificate cert = keyStore.getCertificate( alias );
+
+        if ( cert.getPublicKey() instanceof RSAPublicKey )
+        {
+            return RSAKey.load( keyStore, alias, pin );
+        }
+
+        throw new JOSEException( "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm() );
     }
 }
