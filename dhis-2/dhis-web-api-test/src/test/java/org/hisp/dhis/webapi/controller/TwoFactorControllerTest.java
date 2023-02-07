@@ -98,7 +98,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testEnable2FaNotCalledQrFirst()
     {
-        assertEquals( "User must call /qr endpoint before you can call enable",
+        assertEquals( "User must call the /qrCode endpoint first",
             POST( "/2fa/enabled", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 

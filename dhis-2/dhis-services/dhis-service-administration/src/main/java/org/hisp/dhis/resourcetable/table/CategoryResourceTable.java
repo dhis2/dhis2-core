@@ -120,8 +120,8 @@ public class CategoryResourceTable
                 "select cog.name from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
+                "inner join categoryoptiongroupsetmembers cogsm on " +
+                "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
@@ -130,8 +130,8 @@ public class CategoryResourceTable
                 "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
+                "inner join categoryoptiongroupsetmembers cogsm on " +
+                "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
