@@ -48,8 +48,8 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageQueryCriteria;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition;
+import org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
@@ -61,7 +61,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class ProgramStageWorkingListDefinitionObjectBundleHookTest
+class ProgramStageWorkingListObjectBundleHookTest
 {
 
     @Mock
@@ -73,7 +73,7 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     @Mock
     private TrackedEntityAttributeService attributeService;
 
-    private ProgramStageWorkingListDefinitionObjectBundleHook workingListHook;
+    private ProgramStageWorkingListObjectBundleHook workingListHook;
 
     private final ObjectBundleParams objectBundleParams = new ObjectBundleParams();
 
@@ -81,14 +81,14 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
 
     private ProgramStageQueryCriteria queryCriteria;
 
-    private ProgramStageWorkingListDefinition programStageWorkingListDefinition;
+    private ProgramStageWorkingList programStageWorkingList;
 
     @BeforeEach
     public void setUp()
     {
-        workingListHook = new ProgramStageWorkingListDefinitionObjectBundleHook( dataElementService,
+        workingListHook = new ProgramStageWorkingListObjectBundleHook( dataElementService,
             organisationUnitService, attributeService );
-        programStageWorkingListDefinition = new ProgramStageWorkingListDefinition();
+        programStageWorkingList = new ProgramStageWorkingList();
         queryCriteria = new ProgramStageQueryCriteria();
     }
 
@@ -117,9 +117,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( new DataElement() );
         when( attributeService.getTrackedEntityAttribute( anyString() ) ).thenReturn( new TrackedEntityAttribute() );
 
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 0, errorReports.size() );
     }
@@ -128,9 +128,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEnrolledAt()
     {
         queryCriteria.setEnrolledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
@@ -142,9 +142,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEnrollmentOccurredAt()
     {
         queryCriteria.setEnrollmentOccurredAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
@@ -156,9 +156,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEventCreatedAt()
     {
         queryCriteria.setEventCreatedAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Start date or end date not specified with ABSOLUTE date period type for item `EventDate`",
@@ -169,9 +169,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForScheduledAt()
     {
         queryCriteria.setScheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
@@ -184,9 +184,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     {
         queryCriteria.setAssignedUsers( Collections.emptySet() );
         queryCriteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Assigned Users cannot be empty with PROVIDED assigned user mode",
@@ -198,9 +198,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     {
         queryCriteria.setAssignedUsers( Collections.emptySet() );
         queryCriteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Assigned Users cannot be empty with PROVIDED assigned user mode",
@@ -211,10 +211,10 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenOrgUnitProvidedDoesNotExist()
     {
         queryCriteria.setOrgUnit( "fakeOrgUnit" );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( null );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Organisation unit does not exist: `fakeOrgUnit`", errorReports.get( 0 ).getMessage() );
@@ -224,9 +224,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenOrgUnitNotProvidedAndModeSelectedOrDescendantsOrChildren()
     {
         queryCriteria.setOuMode( OrganisationUnitSelectionMode.SELECTED );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Organisation Unit cannot be empty with `SELECTED` org unit mode",
@@ -237,9 +237,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenDataItemUidNotProvided()
     {
         queryCriteria.setDataFilters( List.of( new EventDataFilter() ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Data item Uid is missing in filter", errorReports.get( 0 ).getMessage() );
@@ -251,10 +251,10 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
         EventDataFilter dataFilter = new EventDataFilter();
         dataFilter.setDataItem( "DataItem" );
         queryCriteria.setDataFilters( Collections.singletonList( dataFilter ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "No data element found for item: `DataItem`", errorReports.get( 0 ).getMessage() );
@@ -264,9 +264,9 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
     void shouldFailWhenAttributeFilterUidNotProvided()
     {
         queryCriteria.setAttributeValueFilters( List.of( new AttributeValueFilter() ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "Attribute Uid is missing in filter", errorReports.get( 0 ).getMessage() );
@@ -278,10 +278,10 @@ class ProgramStageWorkingListDefinitionObjectBundleHookTest
         AttributeValueFilter attributeValueFilter = new AttributeValueFilter();
         attributeValueFilter.setAttribute( "attribute" );
         queryCriteria.setAttributeValueFilters( Collections.singletonList( attributeValueFilter ) );
-        programStageWorkingListDefinition.setProgramStageQueryCriteria( queryCriteria );
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( attributeService.getTrackedEntityAttribute( anyString() ) ).thenReturn( null );
 
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingListDefinition, bundle );
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals( "No tracked entity attribute found for attribute: `attribute`",

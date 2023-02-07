@@ -79,7 +79,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "programRuleAction", // needs DataElement and TrackedEntityAttribute
         "validationRule", // generator insufficient (embedded fields)
         "programStage", // body request does not include mandatory field programId
-        "programStageWorkingListDefinition", // same reason as programStage
+        "programStageWorkingList", // same reason as programStage
         "dataElement", // non-postgres SQL in deletion handler
         "trackedEntityInstance", // conflict (no details)
         "predictor", // NPE in preheat when creating objects

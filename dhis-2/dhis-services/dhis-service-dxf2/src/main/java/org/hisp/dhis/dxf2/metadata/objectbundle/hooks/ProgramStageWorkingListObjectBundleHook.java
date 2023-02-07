@@ -48,18 +48,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageQueryCriteria;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition;
+import org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageWorkingListDefinitionObjectBundleHook" )
+@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageWorkingListObjectBundleHook" )
 @AllArgsConstructor
-public class ProgramStageWorkingListDefinitionObjectBundleHook
-    extends AbstractObjectBundleHook<ProgramStageWorkingListDefinition>
+public class ProgramStageWorkingListObjectBundleHook
+    extends AbstractObjectBundleHook<ProgramStageWorkingList>
 {
 
     private final DataElementService dataElementService;
@@ -69,7 +69,7 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
     private final TrackedEntityAttributeService teaService;
 
     @Override
-    public void validate( ProgramStageWorkingListDefinition workingListDefinition, ObjectBundle bundle,
+    public void validate( ProgramStageWorkingList workingListDefinition, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
 
@@ -98,7 +98,7 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
             && dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
             && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
         {
-            errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4062, item ) );
+            errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4062, item ) );
         }
     }
 
@@ -108,7 +108,7 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
         if ( CollectionUtils.isEmpty( assignedUsers )
             && userMode == AssignedUserSelectionMode.PROVIDED )
         {
-            errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4063 ) );
+            errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4063 ) );
         }
     }
 
@@ -121,7 +121,7 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
             if ( ou == null )
             {
                 errorReports
-                    .add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E7500, orgUnit ) );
+                    .add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E7500, orgUnit ) );
                 return;
             }
         }
@@ -131,7 +131,7 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
                 || ouMode == OrganisationUnitSelectionMode.DESCENDANTS
                 || ouMode == OrganisationUnitSelectionMode.CHILDREN) )
         {
-            errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4064, ouMode ) );
+            errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4064, ouMode ) );
         }
     }
 
@@ -142,14 +142,14 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
             dataFilters.forEach( avf -> {
                 if ( StringUtils.isEmpty( avf.getDataItem() ) )
                 {
-                    errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4065 ) );
+                    errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4065 ) );
                 }
                 else
                 {
                     DataElement dataElement = dataElementService.getDataElement( avf.getDataItem() );
                     if ( dataElement == null )
                     {
-                        errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4066,
+                        errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4066,
                             avf.getDataItem() ) );
                     }
                 }
@@ -167,14 +167,14 @@ public class ProgramStageWorkingListDefinitionObjectBundleHook
             attributes.forEach( avf -> {
                 if ( StringUtils.isEmpty( avf.getAttribute() ) )
                 {
-                    errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4067 ) );
+                    errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4067 ) );
                 }
                 else
                 {
                     TrackedEntityAttribute tea = attributeFetcher.apply( avf.getAttribute() );
                     if ( tea == null )
                     {
-                        errorReports.add( new ErrorReport( ProgramStageWorkingListDefinition.class, ErrorCode.E4068,
+                        errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4068,
                             avf.getAttribute() ) );
                     }
                 }

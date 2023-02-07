@@ -25,27 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programstageworkinglistdefinition.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition;
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinitionStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-@Repository( "org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinitionStore" )
-public class HibernateProgramStageWorkingListDefinitionStore
-    extends HibernateIdentifiableObjectStore<ProgramStageWorkingListDefinition>
-    implements ProgramStageWorkingListDefinitionStore
+import com.google.common.collect.Lists;
+
+public class ProgramStageWorkingListSchemaDescriptor implements SchemaDescriptor
 {
-    public HibernateProgramStageWorkingListDefinitionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    public static final String SINGULAR = "programStageWorkingList";
+
+    public static final String PLURAL = "programStageWorkingLists";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageWorkingListDefinition.class, currentUserService,
-            aclService, true );
+        Schema schema = new Schema( ProgramStageWorkingList.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setDefaultPrivate( true );
+
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
+        return schema;
     }
+
 }

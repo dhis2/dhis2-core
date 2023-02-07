@@ -6,11 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition" table="programstageworkinglistdefinition">
+  <class name="org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList" table="programstageworkinglist">
 
     <cache usage="read-write" />
 
-    <id name="id" column="programstageworkinglistdefinitionid">
+    <id name="id" column="programstageworkinglistid">
       <generator class="native" />
     </id>
     &identifiableProperties;

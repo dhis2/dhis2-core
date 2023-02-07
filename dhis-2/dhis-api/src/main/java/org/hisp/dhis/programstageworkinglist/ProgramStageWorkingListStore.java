@@ -25,36 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.programstageworkinglist;
 
-import org.hisp.dhis.programstageworkinglistdefinition.ProgramStageWorkingListDefinition;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import com.google.common.collect.Lists;
-
-public class ProgramStageWorkingListDefinitionSchemaDescriptor implements SchemaDescriptor
+public interface ProgramStageWorkingListStore
+    extends IdentifiableObjectStore<ProgramStageWorkingList>
 {
-    public static final String SINGULAR = "programStageWorkingListDefinition";
-
-    public static final String PLURAL = "programStageWorkingListDefinitions";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramStageWorkingListDefinition.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setImplicitPrivateAuthority( true );
-        schema.setDefaultPrivate( true );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
-
-        return schema;
-    }
-
 }

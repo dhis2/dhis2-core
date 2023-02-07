@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programstageworkinglistdefinition;
+package org.hisp.dhis.programstageworkinglist;
 
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
@@ -44,8 +44,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Setter
 @EqualsAndHashCode( callSuper = true )
-@JacksonXmlRootElement( localName = "programStageWorkingListDefinition", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
+@JacksonXmlRootElement( localName = "programStageWorkingList", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramStageWorkingList extends BaseIdentifiableObject
     implements MetadataObject
 {
 

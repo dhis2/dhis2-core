@@ -38,7 +38,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConvenienceTest
+class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest
 {
 
     private String programId;
@@ -66,7 +66,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutName()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+        HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -77,7 +77,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+        HttpResponse response = POST( "/programStageWorkingLists",
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -88,7 +88,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+        HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -99,7 +99,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramStageId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+        HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -110,7 +110,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramStageId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+        HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -124,7 +124,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId1 = createWorkingListDefinition( "Test working list 1" );
         String workingListId2 = createWorkingListDefinition( "Test working list 2" );
 
-        String response = GET( "/programStageWorkingListDefinitions?fields=id" ).content().toString();
+        String response = GET( "/programStageWorkingLists?fields=id" ).content().toString();
 
         assertTrue( response.contains( workingListId1 ),
             "The working list id: " + workingListId1 + " is not present in the response" );
@@ -138,11 +138,11 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
-        assertStatus( HttpStatus.OK, PUT( "/programStageWorkingListDefinitions/" + workingListId,
+        assertStatus( HttpStatus.OK, PUT( "/programStageWorkingLists/" + workingListId,
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
                 + updatedName + "'}" ) );
 
-        String response = GET( "/programStageWorkingListDefinitions/{id}", workingListId ).content().toString();
+        String response = GET( "/programStageWorkingLists/{id}", workingListId ).content().toString();
         assertTrue( response.contains( updatedName ),
             "Could not find the working list name: " + updatedName + " in the response" );
     }
@@ -153,7 +153,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
+        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'" + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -167,7 +167,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
+        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
             "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
                 + updatedName + "'}" );
 
@@ -182,7 +182,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
+        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
             "{'program': {'id': '" + programId + "'}, 'name':'" + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -196,7 +196,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
+        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'"
                 + updatedName + "'}" );
 
@@ -210,13 +210,13 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     {
         String workingListId = createWorkingListDefinition( "Test working to delete" );
 
-        HttpResponse response = DELETE( "/programStageWorkingListDefinitions/" + workingListId );
+        HttpResponse response = DELETE( "/programStageWorkingLists/" + workingListId );
         assertEquals( HttpStatus.OK, response.status() );
     }
 
     private String createWorkingListDefinition( String workingListName )
     {
-        return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+        return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
                 + workingListName + "'}" ) );
     }

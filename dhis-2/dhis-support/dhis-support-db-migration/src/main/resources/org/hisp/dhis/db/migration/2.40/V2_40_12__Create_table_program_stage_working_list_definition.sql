@@ -1,5 +1,5 @@
-CREATE TABLE if not exists programstageworkinglistdefinition (
-    programstageworkinglistdefinitionid integer NOT NULL,
+CREATE TABLE if not exists programstageworkinglist (
+    programstageworkinglistid integer NOT NULL,
     uid character varying(11) NOT NULL,
     code character varying(50),
     created timestamp without time zone NOT NULL,

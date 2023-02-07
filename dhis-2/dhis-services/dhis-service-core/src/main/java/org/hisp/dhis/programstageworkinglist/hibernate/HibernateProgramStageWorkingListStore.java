@@ -25,11 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programstageworkinglistdefinition;
+package org.hisp.dhis.programstageworkinglist.hibernate;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-public interface ProgramStageWorkingListDefinitionStore
-    extends IdentifiableObjectStore<ProgramStageWorkingListDefinition>
+@Repository( "org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore" )
+public class HibernateProgramStageWorkingListStore
+    extends HibernateIdentifiableObjectStore<ProgramStageWorkingList>
+    implements ProgramStageWorkingListStore
 {
+    public HibernateProgramStageWorkingListStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageWorkingList.class, currentUserService,
+            aclService, true );
+    }
 }
