@@ -37,6 +37,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -85,9 +86,12 @@ public class TrackerTrackedEntitiesExportController
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
+        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields )
+            .withIncludeDeleted( criteria.isIncludeDeleted() );
+
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                map( fields ), false, false ) );
+                trackedEntityInstanceParams, false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -115,8 +119,10 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
+        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
+            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 }
