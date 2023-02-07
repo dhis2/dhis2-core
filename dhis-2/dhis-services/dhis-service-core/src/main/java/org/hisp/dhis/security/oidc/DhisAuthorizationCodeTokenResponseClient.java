@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -70,10 +70,9 @@ import com.nimbusds.jose.jwk.JWK;
 public class DhisAuthorizationCodeTokenResponseClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
 {
+    private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
 
     private final DhisOidcProviderRepository clientRegistrations;
-
-    private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
 
     private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
 
@@ -92,7 +91,6 @@ public class DhisAuthorizationCodeTokenResponseClient
                     clientRegistration.getRegistrationId() );
                 return clientReg.getJwk();
             }
-
             return null;
         };
 
@@ -112,7 +110,7 @@ public class DhisAuthorizationCodeTokenResponseClient
         this.jwtRequestEntityConverter = jwtReqConverter;
 
         RestTemplate restTemplate = new RestTemplate(
-            Arrays.asList( new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter() ) );
+            List.of( new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter() ) );
         restTemplate.setErrorHandler( new OAuth2ErrorResponseErrorHandler() );
         this.restOperations = restTemplate;
     }
@@ -141,7 +139,6 @@ public class DhisAuthorizationCodeTokenResponseClient
                 "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: "
                     + ex.getMessage(),
                 null );
-
             throw new OAuth2AuthorizationException( oauth2Error, ex );
         }
     }

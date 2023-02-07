@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -75,22 +75,18 @@ public class PublicKeysController
         DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientId );
 
-        JWK jwk = dhisOidcClientRegistration.getJwk();
-        JwsAlgorithm jwsAlgorithm = resolveAlgorithm( jwk );
+        JwsAlgorithm jwsAlgorithm = resolveAlgorithm( dhisOidcClientRegistration.getJwk() );
         if ( jwsAlgorithm == null )
         {
-            throw new WebMessageException( error( "Could not resolve the Jws algorithm" ) );
+            throw new WebMessageException( conflict( ErrorCode.E3040.getMessage(), ErrorCode.E3040 ) );
         }
 
-        RSAPublicKey publicKey = dhisOidcClientRegistration.getRsaPublicKey();
-        String keyId = dhisOidcClientRegistration.getKeyId();
-        RSAKey.Builder builder = new RSAKey.Builder( publicKey )
+        RSAKey.Builder builder = new RSAKey.Builder( dhisOidcClientRegistration.getRsaPublicKey() )
             .keyUse( KeyUse.SIGNATURE )
             .algorithm( JWSAlgorithm.parse( jwsAlgorithm.toString() ) )
-            .keyID( keyId );
+            .keyID( dhisOidcClientRegistration.getKeyId() );
 
-        JWKSet jwkSet = new JWKSet( builder.build() );
-        return jwkSet.toJSONObject();
+        return new JWKSet( builder.build() ).toJSONObject();
     }
 
     private static JwsAlgorithm resolveAlgorithm( JWK jwk )
