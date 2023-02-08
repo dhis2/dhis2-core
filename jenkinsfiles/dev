@@ -194,7 +194,6 @@ pipeline {
                                 dir('scripts') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            // TODO: How do we avoid hard coding the name/version?
                                             script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - 2.39.0.sql.gz\") | .ID'"
                                     ).trim()
 
