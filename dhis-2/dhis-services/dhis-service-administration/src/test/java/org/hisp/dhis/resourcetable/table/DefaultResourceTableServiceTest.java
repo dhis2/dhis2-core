@@ -75,7 +75,7 @@ class DefaultResourceTableServiceTest
 
         List<Integer> dataYears = resourceTableService.generateDataYears();
 
-        assertEquals( dataYears.size(), 12 );
+        assertEquals( 12, dataYears.size() );
 
         assertTrue( dataYears.contains( (dataYears.get( storedDataYears.size() - 1 ) + 5) ) );
 
@@ -95,7 +95,7 @@ class DefaultResourceTableServiceTest
 
         List<Integer> dataYears = resourceTableService.generateDataYears();
 
-        assertEquals( dataYears.size(), 11 );
+        assertEquals( 11, dataYears.size() );
 
         assertTrue( dataYears.contains( now + 5 ) );
 
