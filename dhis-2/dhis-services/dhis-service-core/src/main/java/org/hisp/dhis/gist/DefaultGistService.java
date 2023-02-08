@@ -105,8 +105,7 @@ public class DefaultGistService
         GistBuilder queryBuilder = createFetchBuilder( query, context, access, this );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
-        queryBuilder.transform( rows );
-        return rows;
+        return queryBuilder.transform( rows );
     }
 
     @Override
