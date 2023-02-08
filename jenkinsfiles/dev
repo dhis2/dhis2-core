@@ -208,7 +208,7 @@ pipeline {
 
                                 dir('im-manager/scripts') {
                                     echo 'Creating DHIS2 instance ...'
-                                    sh "IMAGE_REPOSITORY=core-dev IMAGE_TAG=latest ./deploy-dhis2.sh play dev"
+                                    sh "IMAGE_REPOSITORY=core-dev IMAGE_TAG=latest IMAGE_PULL_POLICY=Always ./deploy-dhis2.sh play dev"
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
                             }
