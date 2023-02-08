@@ -193,7 +193,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.GIT_BRANCH == 'master') {
+                    if (env.GIT_BRANCH == 'feature/im-play') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                             dir('im-db-manager') {
                                 sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
