@@ -187,7 +187,7 @@ pipeline {
             if (env.GIT_BRANCH == 'master') {
                 steps {
                     script {
-                        withCredentials([usernamePassword(credentialsId: 'e2e-im-user', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                             dir('im-db-manager') {
                                 sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
 
