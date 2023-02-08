@@ -69,11 +69,11 @@ public class ProgramStageWorkingListObjectBundleHook
     private final TrackedEntityAttributeService teaService;
 
     @Override
-    public void validate( ProgramStageWorkingList workingListDefinition, ObjectBundle bundle,
+    public void validate( ProgramStageWorkingList workingList, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
 
-        ProgramStageQueryCriteria queryCriteria = workingListDefinition.getProgramStageQueryCriteria();
+        ProgramStageQueryCriteria queryCriteria = workingList.getProgramStageQueryCriteria();
 
         List<ErrorReport> errorReports = new ArrayList<>();
 

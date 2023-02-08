@@ -56,15 +56,15 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldReturnWorkingListIdDefinitionWhenWorkingListCreated()
+    void shouldReturnWorkingListIdWhenWorkingListCreated()
     {
-        String workingListId = createWorkingListDefinition( "Test working list" );
+        String workingListId = createWorkingList( "Test working list" );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
     }
 
     @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithoutName()
+    void shouldFailWhenCreatingWorkingListWithoutName()
     {
         HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}}" );
@@ -75,7 +75,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramId()
+    void shouldFailWhenCreatingWorkingListWithoutProgramId()
     {
         HttpResponse response = POST( "/programStageWorkingLists",
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
@@ -86,7 +86,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramId()
+    void shouldFailWhenCreatingWorkingListWithNonExistentProgramId()
     {
         HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
@@ -97,7 +97,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramStageId()
+    void shouldFailWhenCreatingWorkingListWithoutProgramStageId()
     {
         HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'name':'Test'}" );
@@ -108,7 +108,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramStageId()
+    void shouldFailWhenCreatingWorkingListWithNonExistentProgramStageId()
     {
         HttpResponse response = POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}" );
@@ -119,10 +119,10 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldReturnAllWorkingListsDefinitionsWhenWorkingListsRequested()
+    void shouldReturnAllWorkingListsWhenWorkingListsRequested()
     {
-        String workingListId1 = createWorkingListDefinition( "Test working list 1" );
-        String workingListId2 = createWorkingListDefinition( "Test working list 2" );
+        String workingListId1 = createWorkingList( "Test working list 1" );
+        String workingListId2 = createWorkingList( "Test working list 2" );
 
         String response = GET( "/programStageWorkingLists?fields=id" ).content().toString();
 
@@ -133,9 +133,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldUpdateWorkingListDefinitionWhenUpdateRequested()
+    void shouldUpdateWorkingListWhenUpdateRequested()
     {
-        String workingListId = createWorkingListDefinition( "Test working list to update" );
+        String workingListId = createWorkingList( "Test working list to update" );
 
         String updatedName = "Updated working list";
         assertStatus( HttpStatus.OK, PUT( "/programStageWorkingLists/" + workingListId,
@@ -148,9 +148,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenUpdatingWorkingListDefinitionWithoutProgramId()
+    void shouldFailWhenUpdatingWorkingListWithoutProgramId()
     {
-        String workingListId = createWorkingListDefinition( "Test working list to update" );
+        String workingListId = createWorkingList( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
@@ -162,9 +162,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenUpdatingWorkingListDefinitionWithNonExistentProgramId()
+    void shouldFailWhenUpdatingWorkingListWithNonExistentProgramId()
     {
-        String workingListId = createWorkingListDefinition( "Test working list to update" );
+        String workingListId = createWorkingList( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
@@ -177,9 +177,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenUpdatingWorkingListDefinitionWithoutProgramStageId()
+    void shouldFailWhenUpdatingWorkingListWithoutProgramStageId()
     {
-        String workingListId = createWorkingListDefinition( "Test working list to update" );
+        String workingListId = createWorkingList( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
@@ -191,9 +191,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldFailWhenUpdatingWorkingListDefinitionWithNonExistentProgramStageId()
+    void shouldFailWhenUpdatingWorkingListWithNonExistentProgramStageId()
     {
-        String workingListId = createWorkingListDefinition( "Test working list to update" );
+        String workingListId = createWorkingList( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
@@ -206,15 +206,15 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    void shouldDeleteWorkingListDefinitionWhenDeleteRequested()
+    void shouldDeleteWorkingListWhenDeleteRequested()
     {
-        String workingListId = createWorkingListDefinition( "Test working to delete" );
+        String workingListId = createWorkingList( "Test working to delete" );
 
         HttpResponse response = DELETE( "/programStageWorkingLists/" + workingListId );
         assertEquals( HttpStatus.OK, response.status() );
     }
 
-    private String createWorkingListDefinition( String workingListName )
+    private String createWorkingList( String workingListName )
     {
         return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingLists",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
