@@ -79,8 +79,6 @@ class ProgramStageWorkingListObjectBundleHookTest
 
     private final ObjectBundle bundle = new ObjectBundle( objectBundleParams, new Preheat(), Collections.emptyMap() );
 
-    private ProgramStageQueryCriteria queryCriteria;
-
     private ProgramStageWorkingList programStageWorkingList;
 
     @BeforeEach
@@ -89,34 +87,35 @@ class ProgramStageWorkingListObjectBundleHookTest
         workingListHook = new ProgramStageWorkingListObjectBundleHook( dataElementService,
             organisationUnitService, attributeService );
         programStageWorkingList = new ProgramStageWorkingList();
-        queryCriteria = new ProgramStageQueryCriteria();
     }
 
     @Test
     void shouldReturnNoErrorsWhenQueryCriteriaSuppliedIsValid()
     {
-        queryCriteria.setEnrolledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
-            DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) );
-        queryCriteria.setEnrollmentOccurredAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
-            DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) );
-        queryCriteria.setEventCreatedAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
-            DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) );
-        queryCriteria.setScheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
-            DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) );
-        queryCriteria.setAssignedUsers( Collections.singleton( "User" ) );
-        queryCriteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
-        queryCriteria.setOrgUnit( "orgUnit" );
-        queryCriteria.setOuMode( OrganisationUnitSelectionMode.SELECTED );
         EventDataFilter dataFilter = new EventDataFilter();
         dataFilter.setDataItem( "DataItem" );
-        queryCriteria.setDataFilters( List.of( dataFilter ) );
         AttributeValueFilter attributeValueFilter = new AttributeValueFilter();
         attributeValueFilter.setAttribute( "attribute" );
-        queryCriteria.setAttributeValueFilters( Collections.singletonList( attributeValueFilter ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .enrolledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
+            .enrollmentOccurredAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
+            .eventCreatedAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
+            .scheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
+            .assignedUsers( Collections.singleton( "User" ) )
+            .assignedUserMode( AssignedUserSelectionMode.PROVIDED )
+            .orgUnit( "orgUnit" )
+            .ouMode( OrganisationUnitSelectionMode.SELECTED )
+            .dataFilters( List.of( dataFilter ) )
+            .attributeValueFilters( Collections.singletonList( attributeValueFilter ) )
+            .build();
+
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( new OrganisationUnit() );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( new DataElement() );
         when( attributeService.getTrackedEntityAttribute( anyString() ) ).thenReturn( new TrackedEntityAttribute() );
-
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
@@ -127,90 +126,105 @@ class ProgramStageWorkingListObjectBundleHookTest
     @Test
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEnrolledAt()
     {
-        queryCriteria.setEnrolledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .enrolledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
-            "Start date or end date not specified with ABSOLUTE date period type for item `EnrollmentCreatedDate`",
+            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentCreatedDate`",
             errorReports.get( 0 ).getMessage() );
     }
 
     @Test
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEnrollmentOccurredAt()
     {
-        queryCriteria.setEnrollmentOccurredAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .enrollmentOccurredAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
-            "Start date or end date not specified with ABSOLUTE date period type for item `EnrollmentIncidentDate`",
+            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentIncidentDate`",
             errorReports.get( 0 ).getMessage() );
     }
 
     @Test
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEventCreatedAt()
     {
-        queryCriteria.setEventCreatedAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
-        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
-
-        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
-
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Start date or end date not specified with ABSOLUTE date period type for item `EventDate`",
-            errorReports.get( 0 ).getMessage() );
-    }
-
-    @Test
-    void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForScheduledAt()
-    {
-        queryCriteria.setScheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .eventCreatedAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
         assertEquals(
-            "Start date or end date not specified with ABSOLUTE date period type for item `EventScheduledDate`",
+            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventDate`",
+            errorReports.get( 0 ).getMessage() );
+    }
+
+    @Test
+    void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForScheduledAt()
+    {
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .scheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
+
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
+
+        assertEquals( 1, errorReports.size() );
+        assertEquals(
+            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventScheduledDate`",
             errorReports.get( 0 ).getMessage() );
     }
 
     @Test
     void shouldFailWhenUsersIsProvidedButNoUsersSupplied()
     {
-        queryCriteria.setAssignedUsers( Collections.emptySet() );
-        queryCriteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .assignedUsers( Collections.emptySet() )
+            .assignedUserMode( AssignedUserSelectionMode.PROVIDED )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned Users cannot be empty with PROVIDED assigned user mode",
+        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
             errorReports.get( 0 ).getMessage() );
     }
 
     @Test
     void shouldFailWhenAssignedUsersIsIncorrect()
     {
-        queryCriteria.setAssignedUsers( Collections.emptySet() );
-        queryCriteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .assignedUsers( Collections.emptySet() )
+            .assignedUserMode( AssignedUserSelectionMode.PROVIDED )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned Users cannot be empty with PROVIDED assigned user mode",
+        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
             errorReports.get( 0 ).getMessage() );
     }
 
     @Test
     void shouldFailWhenOrgUnitProvidedDoesNotExist()
     {
-        queryCriteria.setOrgUnit( "fakeOrgUnit" );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .orgUnit( "fakeOrgUnit" )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( null );
 
@@ -223,7 +237,9 @@ class ProgramStageWorkingListObjectBundleHookTest
     @Test
     void shouldFailWhenOrgUnitNotProvidedAndModeSelectedOrDescendantsOrChildren()
     {
-        queryCriteria.setOuMode( OrganisationUnitSelectionMode.SELECTED );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .ouMode( OrganisationUnitSelectionMode.SELECTED )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
@@ -236,13 +252,15 @@ class ProgramStageWorkingListObjectBundleHookTest
     @Test
     void shouldFailWhenDataItemUidNotProvided()
     {
-        queryCriteria.setDataFilters( List.of( new EventDataFilter() ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .dataFilters( List.of( new EventDataFilter() ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
-        assertEquals( "Data item Uid is missing in filter", errorReports.get( 0 ).getMessage() );
+        assertEquals( "Data item UID is missing in filter", errorReports.get( 0 ).getMessage() );
     }
 
     @Test
@@ -250,7 +268,9 @@ class ProgramStageWorkingListObjectBundleHookTest
     {
         EventDataFilter dataFilter = new EventDataFilter();
         dataFilter.setDataItem( "DataItem" );
-        queryCriteria.setDataFilters( Collections.singletonList( dataFilter ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .dataFilters( Collections.singletonList( dataFilter ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
@@ -263,13 +283,15 @@ class ProgramStageWorkingListObjectBundleHookTest
     @Test
     void shouldFailWhenAttributeFilterUidNotProvided()
     {
-        queryCriteria.setAttributeValueFilters( List.of( new AttributeValueFilter() ) );
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .attributeValueFilters( List.of( new AttributeValueFilter() ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
         assertEquals( 1, errorReports.size() );
-        assertEquals( "Attribute Uid is missing in filter", errorReports.get( 0 ).getMessage() );
+        assertEquals( "Attribute UID is missing in filter", errorReports.get( 0 ).getMessage() );
     }
 
     @Test
@@ -277,7 +299,10 @@ class ProgramStageWorkingListObjectBundleHookTest
     {
         AttributeValueFilter attributeValueFilter = new AttributeValueFilter();
         attributeValueFilter.setAttribute( "attribute" );
-        queryCriteria.setAttributeValueFilters( Collections.singletonList( attributeValueFilter ) );
+
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .attributeValueFilters( Collections.singletonList( attributeValueFilter ) )
+            .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
         when( attributeService.getTrackedEntityAttribute( anyString() ) ).thenReturn( null );
 

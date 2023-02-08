@@ -39,7 +39,6 @@ import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Setter
@@ -72,7 +71,6 @@ public class ProgramStageWorkingList extends BaseIdentifiableObject
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getProgram()
     {
         return program;
@@ -80,21 +78,18 @@ public class ProgramStageWorkingList extends BaseIdentifiableObject
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStage getProgramStage()
     {
         return programStage;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Translatable( propertyName = "description", key = "DESCRIPTION" )
     public String getDisplayDescription()
     {
@@ -102,7 +97,6 @@ public class ProgramStageWorkingList extends BaseIdentifiableObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStageQueryCriteria getProgramStageQueryCriteria()
     {
         return programStageQueryCriteria;

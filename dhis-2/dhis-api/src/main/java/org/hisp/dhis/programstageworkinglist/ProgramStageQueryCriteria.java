@@ -28,11 +28,13 @@
 package org.hisp.dhis.programstageworkinglist;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -50,7 +52,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * Represents the filtering/sorting criteria to be used when querying program
  * stage working lists.
  */
-@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProgramStageQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -94,7 +98,7 @@ public class ProgramStageQueryCriteria implements Serializable
     /**
      * Property which contains the order of output columns
      */
-    private List<String> displayColumnOrder = new ArrayList<>();
+    private List<String> displayColumnOrder = Collections.emptyList();
 
     /**
      * Property indicating the OU for the filter.
@@ -116,18 +120,18 @@ public class ProgramStageQueryCriteria implements Serializable
      * Property which contains the required assigned user ids to be used in the
      * event filter.
      */
-    private Set<String> assignedUsers;
+    private Set<String> assignedUsers = Collections.emptySet();
 
     /**
      * Property which contains the filters to be used when querying events.
      */
-    private List<EventDataFilter> dataFilters;
+    private List<EventDataFilter> dataFilters = Collections.emptyList();
 
     /**
      * Property to filter tracked entity instances based on tracked entity
      * attribute values
      */
-    private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
+    private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
