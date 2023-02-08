@@ -395,7 +395,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             if ( queryItem.getValueType() == ValueType.NUMBER )
             {
                 return ColumnAndAlias.ofColumnAndAlias(
-                    coalesceAsDoubleNan( programIndicatorSubquery ),
+                    programIndicatorSubquery,
                     asClause );
             }
             else
@@ -424,18 +424,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
 
             return ColumnAndAlias.ofColumnAndAlias(
-                coalesceAsDoubleNan( columnAndAlias.getColumn() ),
+                columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
         else
         {
             return getColumnAndAlias( queryItem, isGroupByClause, "" );
         }
-    }
-
-    protected String coalesceAsDoubleNan( String column )
-    {
-        return "coalesce(" + column + ", double precision 'NaN')";
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
