@@ -80,14 +80,6 @@ public class CommonParamsDelegator
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( List::stream )
             .collect( toSet() );
-        //
-        //        return dimensionIdentifiers.stream()
-        //            .filter( dimParam -> dimParam.getDimension() != null )
-        //            .map( dimParam -> dimParam.getDimension().getQueryItem() )
-        //            .filter( queryItem -> queryItem != null && queryItem.hasOptionSet() )
-        //            .map( q -> q.getOptionSet().getOptions() )
-        //            .flatMap( List::stream )
-        //            .collect( toSet() );
     }
 
     /**
@@ -135,11 +127,6 @@ public class CommonParamsDelegator
             .map( DimensionIdentifier::getDimension )
             .filter( DimensionParam::isDimensionalObject )
             .map( DimensionParam::getDimensionalObject ).collect( toList() );
-
-        //        return dimensionIdentifiers.stream()
-        //            .filter( dimensionIdentifier -> dimensionIdentifier.getDimension() != null
-        //                && dimensionIdentifier.getDimension().getDimensionalObject() != null )
-        //            .map( dimParam -> dimParam.getDimension().getDimensionalObject() ).collect( toList() );
     }
 
     /**
