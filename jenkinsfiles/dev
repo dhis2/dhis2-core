@@ -185,6 +185,12 @@ pipeline {
 
         stage('Update IM Play dev instance') {
             if (env.GIT_BRANCH == 'master') {
+                environment {
+                    INSTANCE_HOST="https://api.im.prod.test.c.dhis2.org"
+                    IMAGE_REPOSITORY=core-dev
+                    IMAGE_TAG=latest
+                    IMAGE_PULL_POLICY=Always
+                }
                 steps {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
@@ -207,7 +213,7 @@ pipeline {
 
                                 dir('scripts') {
                                     echo 'Creating DHIS2 instance ...'
-                                    sh "INSTANCE_HOST=https://api.im.prod.test.c.dhis2.org IMAGE_REPOSITORY=core-dev IMAGE_TAG=latest IMAGE_PULL_POLICY=Always ./deploy-dhis2.sh play dev"
+                                    sh "./deploy-dhis2.sh play dev"
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
                             }
