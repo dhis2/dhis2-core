@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.minmax;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MinMaxDataElementDeletionHandler extends DeletionHandler
 {
     private final MinMaxDataElementService minMaxDataElementService;
