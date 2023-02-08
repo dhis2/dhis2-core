@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -95,7 +96,7 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class DataValidationRunner
 {
     // String that is not an Attribute Option Combo
