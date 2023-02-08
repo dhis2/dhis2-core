@@ -185,15 +185,15 @@ pipeline {
         }
 */
         stage('Update IM Play dev instance') {
-            if (env.GIT_BRANCH == 'master') {
-                environment {
-                    INSTANCE_HOST="https://api.im.prod.test.c.dhis2.org"
-                    IMAGE_REPOSITORY=core-dev
-                    IMAGE_TAG=latest
-                    IMAGE_PULL_POLICY=Always
-                }
-                steps {
-                    script {
+            environment {
+                INSTANCE_HOST = "https://api.im.prod.test.c.dhis2.org"
+                IMAGE_REPOSITORY = "core-dev"
+                IMAGE_TAG = "latest"
+                IMAGE_PULL_POLICY = "Always"
+            }
+            steps {
+                script {
+                    if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                             dir('im-db-manager') {
                                 sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
@@ -201,7 +201,7 @@ pipeline {
                                 dir('scripts') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - 2.39.0.sql.gz\") | .ID'"
+                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
                                     ).trim()
 
                                     sh '[ -n "$DATABASE_ID" ]'
