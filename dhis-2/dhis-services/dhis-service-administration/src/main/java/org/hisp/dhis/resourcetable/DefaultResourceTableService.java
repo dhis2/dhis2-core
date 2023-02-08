@@ -263,7 +263,9 @@ public class DefaultResourceTableService
     @Override
     public List<Integer> generateDataYears()
     {
-        List<Integer> availableDataYears = resourceTableStore.getAvailableDataYears();
+        List<Integer> availableDataYears = new ArrayList<>();
+
+        availableDataYears.addAll( resourceTableStore.getAvailableDataYears() );
 
         if ( availableDataYears.isEmpty() )
         {
