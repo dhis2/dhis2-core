@@ -118,9 +118,11 @@ public class Visualization
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-    public static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap( DATA_X_DIM_ID, "data",
-        CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo", PERIOD_DIM_ID, "period", ORGUNIT_DIM_ID,
-        "organisationunit" );
+    public static final Map<String, String> COLUMN_NAMES = Map.of(
+        DATA_X_DIM_ID, "data",
+        CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
+        PERIOD_DIM_ID, "period",
+        ORGUNIT_DIM_ID, "organisationunit" );
 
     // -------------------------------------------------------------------------
     // Common attributes
