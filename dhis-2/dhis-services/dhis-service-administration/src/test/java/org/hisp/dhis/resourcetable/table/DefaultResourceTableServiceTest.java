@@ -50,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultResourceTableServiceTest
+class DefaultResourceTableServiceTest
 {
     private DefaultResourceTableService resourceTableService;
 
@@ -65,7 +65,7 @@ public class DefaultResourceTableServiceTest
     }
 
     @Test
-    public void shouldReturnFiveExtraYearsBeforeAndAfterDataYears()
+    void shouldReturnFiveExtraYearsBeforeAndAfterDataYears()
     {
         int now = now().getYear();
 
@@ -85,7 +85,7 @@ public class DefaultResourceTableServiceTest
     }
 
     @Test
-    public void shouldReturnFiveExtraYearsBeforeAndAfterCurrentYearWhenNoDataExists()
+    void shouldReturnFiveExtraYearsBeforeAndAfterCurrentYearWhenNoDataExists()
     {
         int now = now().getYear();
 
@@ -97,7 +97,7 @@ public class DefaultResourceTableServiceTest
 
         assertEquals( dataYears.size(), 11 );
 
-        assertTrue( dataYears.contains( (now + 5) ) );
+        assertTrue( dataYears.contains( now + 5 ) );
 
         assertTrue( dataYears.contains( now - 5 ) );
 
