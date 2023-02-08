@@ -28,9 +28,12 @@
 package org.hisp.dhis.common;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -53,6 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
@@ -784,10 +788,9 @@ public abstract class BaseAnalyticalObject
 
     private Optional<DimensionalObject> getTrackedEntityDimension( String dimension )
     {
-        // Tracked entity attribute
-
-        Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions,
-            TrackedEntityAttributeDimension::getUid );
+        // Tracked entity attribute.
+        Map<String, TrackedEntityAttributeDimension> attributes = attributeDimensions.stream()
+            .collect( toMap( TrackedEntityAttributeDimension::getUid, Function.identity() ) );
 
         if ( attributes.containsKey( dimension ) )
         {
@@ -800,39 +803,58 @@ public abstract class BaseAnalyticalObject
                 OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
                     : null;
 
-                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
+                return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_ATTRIBUTE, null,
                     tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter(), valueType, optionSet ) );
             }
         }
 
-        // Tracked entity data element
-
-        Map<String, TrackedEntityDataElementDimension> dataElements = Maps.uniqueIndex( dataElementDimensions,
-            TrackedEntityDataElementDimension::getUid );
-
-        if ( dataElements.containsKey( dimension ) )
+        // Tracked entity data element.
+        for ( TrackedEntityDataElementDimension tedd : dataElementDimensions )
         {
-            TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
-
             if ( tedd != null )
             {
-                ValueType valueType = tedd.getDataElement() != null
-                    ? tedd.getDataElement().getValueType()
-                    : null;
-                OptionSet optionSet = tedd.getDataElement() != null
-                    ? tedd.getDataElement().getOptionSet()
-                    : null;
+                if ( dimension.equals( tedd.getUid() ) )
+                {
+                    ValueType valueType = tedd.getDataElement() != null
+                        ? tedd.getDataElement().getValueType()
+                        : null;
+                    OptionSet optionSet = tedd.getDataElement() != null
+                        ? tedd.getDataElement().getOptionSet()
+                        : null;
 
-                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
-                    optionSet ) );
+                    return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_DATA_ELEMENT, null,
+                        tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
+                        optionSet ) );
+                }
             }
         }
 
+        //        Map<String, TrackedEntityDataElementDimension> dataElements = dataElementDimensions.stream()
+        //            .collect( toMap( this::getUid, tedd -> tedd ));
+
+        //        if ( dataElements.containsKey( stageWithDimension ) )
+        //        {
+        //            TrackedEntityDataElementDimension tedd = dataElements.get( stageWithDimension );
+        //
+        //            if ( tedd != null )
+        //            {
+        //                ValueType valueType = tedd.getDataElement() != null
+        //                    ? tedd.getDataElement().getValueType()
+        //                    : null;
+        //                OptionSet optionSet = tedd.getDataElement() != null
+        //                    ? tedd.getDataElement().getOptionSet()
+        //                    : null;
+        //
+        //                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
+        //                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
+        //                    optionSet ) );
+        //            }
+        //        }
+
         // Tracked entity program indicator
 
-        Map<String, TrackedEntityProgramIndicatorDimension> programIndicators = Maps
-            .uniqueIndex( programIndicatorDimensions, TrackedEntityProgramIndicatorDimension::getUid );
+        Map<String, TrackedEntityProgramIndicatorDimension> programIndicators = programIndicatorDimensions.stream()
+            .collect( toMap( TrackedEntityProgramIndicatorDimension::getUid, Function.identity() ) );
 
         if ( programIndicators.containsKey( dimension ) )
         {
