@@ -800,6 +800,7 @@ public abstract class BaseAnalyticalObject
             {
                 ValueType valueType = tead.getAttribute() != null ? tead.getAttribute().getValueType()
                     : null;
+
                 OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
                     : null;
 
@@ -818,6 +819,7 @@ public abstract class BaseAnalyticalObject
                     ValueType valueType = tedd.getDataElement() != null
                         ? tedd.getDataElement().getValueType()
                         : null;
+
                     OptionSet optionSet = tedd.getDataElement() != null
                         ? tedd.getDataElement().getOptionSet()
                         : null;
@@ -828,28 +830,6 @@ public abstract class BaseAnalyticalObject
                 }
             }
         }
-
-        //        Map<String, TrackedEntityDataElementDimension> dataElements = dataElementDimensions.stream()
-        //            .collect( toMap( this::getUid, tedd -> tedd ));
-
-        //        if ( dataElements.containsKey( stageWithDimension ) )
-        //        {
-        //            TrackedEntityDataElementDimension tedd = dataElements.get( stageWithDimension );
-        //
-        //            if ( tedd != null )
-        //            {
-        //                ValueType valueType = tedd.getDataElement() != null
-        //                    ? tedd.getDataElement().getValueType()
-        //                    : null;
-        //                OptionSet optionSet = tedd.getDataElement() != null
-        //                    ? tedd.getDataElement().getOptionSet()
-        //                    : null;
-        //
-        //                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-        //                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
-        //                    optionSet ) );
-        //            }
-        //        }
 
         // Tracked entity program indicator
 
