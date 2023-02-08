@@ -67,7 +67,9 @@
       "userGroupAccesses": [],
       "dataSets": [],
       "programs": [],
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "id": "VIkpd2KHCb1",
       "name": "Superuser",
       "lastUpdated": "2016-03-10T05:00:11.778+0000"
@@ -208,7 +210,10 @@
       "aggregationLevels": [],
       "aggregationType": "SUM",
       "id": "F3ogKBuviRA",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rwrw----",
+        "external": false
+      },
       "zeroIsSignificant": false,
       "userGroupAccesses": [],
       "valueType": "TEXT",
