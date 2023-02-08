@@ -212,7 +212,7 @@ pipeline {
                                 sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
                                 dir('scripts') {
-                                    echo 'Creating DHIS2 instance ...'
+                                    echo 'Creating DHIS2 instance on IM...'
                                     sh "./deploy-dhis2.sh play dev"
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
