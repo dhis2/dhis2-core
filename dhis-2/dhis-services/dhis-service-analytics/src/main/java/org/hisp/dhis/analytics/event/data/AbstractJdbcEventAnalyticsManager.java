@@ -392,17 +392,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
             }
 
-            if ( queryItem.getValueType() == ValueType.NUMBER )
-            {
-                return ColumnAndAlias.ofColumnAndAlias(
-                    programIndicatorSubquery,
-                    asClause );
-            }
-            else
-            {
-                return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
-            }
-
+            return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
         }
         else if ( ValueType.COORDINATE == queryItem.getValueType() )
         {
