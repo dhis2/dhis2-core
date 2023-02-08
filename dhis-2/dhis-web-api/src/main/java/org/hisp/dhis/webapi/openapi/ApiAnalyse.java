@@ -337,7 +337,7 @@ final class ApiAnalyse
                 RequestBody a = p.getAnnotation( RequestBody.class );
                 Api.RequestBody requestBody = endpoint.getRequestBody()
                     .init( () -> new Api.RequestBody( p, a.required() ) );
-                Api.Schema type = analyseParamSchema( endpoint, p.getParameterizedType(), p.getType() );
+                Api.Schema type = analyseParamSchema( endpoint, p.getParameterizedType() );
                 consumes.forEach( mediaType -> requestBody.getConsumes().putIfAbsent( mediaType, type ) );
             }
             else if ( isParams( p ) )
