@@ -75,4 +75,18 @@ public abstract class AbstractOidcProvider
     public static final String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
 
     public static final String EXTERNAL_CLIENT_PREFIX = "ext_client";
+
+    public static final String JWT_PRIVATE_KEY_KEYSTORE_PATH = "keystore_path";
+
+    public static final String JWT_PRIVATE_KEY_KEYSTORE_PASSWORD = "keystore_password";
+
+    public static final String JWT_PRIVATE_KEY_ALIAS = "key_alias";
+
+    public static final String JWT_PRIVATE_KEY_PASSWORD = "key_password";
+
+    public static final String AUTHORIZATION_GRANT_TYPE = "authorization_grant_type";
+
+    public static final String CLIENT_AUTHENTICATION_METHOD = "client_authentication_method";
+
+    public static final String JWK_SET_URL = "jwk_set_url";
 }

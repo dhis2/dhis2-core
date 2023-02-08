@@ -85,7 +85,10 @@
           "id": "HxFNfoxk7ac"
         }
       ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "translations": [
         {
           "locale": "pt",
@@ -147,7 +150,10 @@
       "optionSetValue": true,
       "orgunitScope": false,
       "pattern": "",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "shortName": "Area Urban Rural",
       "skipSynchronization": false,
       "translations": [
@@ -258,7 +264,10 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "style": {
         "icon": "man_positive"
       },
@@ -400,7 +409,10 @@
       "maxTeiCountToReturn": 0,
       "id": "bPJ0FMtcnEh",
       "userGroupAccesses": [],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "minAttributesRequiredToSearch": 1,
       "lastUpdated": "2019-03-29T09:20:08.103",
       "trackedEntityTypeAttributes": [
@@ -458,7 +470,10 @@
       "managedByGroups": [],
       "managedGroups": [],
       "name": "COVAC - Covid-19 Immunization Data Analysis",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "translations": [
         {
           "locale": "cs",
@@ -488,7 +503,10 @@
       "managedByGroups": [],
       "managedGroups": [],
       "name": "COVAC - Covid-19 Immunization Data Entry",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "translations": [
         {
           "locale": "cs",
@@ -504,8 +522,6 @@
       "user": {
         "id": "vUeLeQMSwhN"
       },
-      "userAccesses": [],
-      "userGroupAccesses": [],
       "users": []
     },
     {
@@ -534,8 +550,6 @@
       "user": {
         "id": "vUeLeQMSwhN"
       },
-      "userAccesses": [],
-      "userGroupAccesses": [],
       "users": []
     }
   ],
@@ -617,6 +631,9 @@
       "dataSets": [ ],
       "programs": [ ],
       "created": "2016-02-17T06:14:12.260+0000",
-      "publicAccess": "--------"
+      "sharing": {
+        "public": "--------",
+        "external": false
+      }
     }]
 }
