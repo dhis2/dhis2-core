@@ -29,10 +29,12 @@ package org.hisp.dhis.attribute;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -256,6 +258,18 @@ public class Attribute
         {
             objectTypes.remove( type );
         }
+    }
+
+    @JsonIgnore
+    public Set<String> getObjectTypes()
+    {
+        return objectTypes.stream().map( ObjectType::name ).collect( toSet() );
+    }
+
+    public void setObjectTypes( Set<String> objectTypes )
+    {
+        this.objectTypes.clear();
+        objectTypes.forEach( name -> this.objectTypes.add( ObjectType.valueOf( name ) ) );
     }
 
     @JsonProperty
