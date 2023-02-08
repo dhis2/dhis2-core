@@ -46,7 +46,6 @@ import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
-import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.ExpressionParams;
@@ -326,7 +325,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18nCache( new SingleValueCache<>( () -> (I18n) i18n ) )
+            .i18nSupplier( () -> new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( ITEM_GET_SQL )
             .params( params )

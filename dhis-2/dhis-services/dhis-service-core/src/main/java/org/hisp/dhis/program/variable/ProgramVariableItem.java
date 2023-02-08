@@ -75,7 +75,7 @@ public class ProgramVariableItem
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        I18n i18n = visitor.getI18nCache().get();
+        I18n i18n = visitor.getI18nSupplier().get();
 
         String variableName = i18n.getString( ctx.programVariable().getText() );
 

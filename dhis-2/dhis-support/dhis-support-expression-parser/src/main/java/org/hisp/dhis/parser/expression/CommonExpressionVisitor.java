@@ -31,6 +31,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +41,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.antlr.AntlrParserUtils;
-import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
@@ -78,12 +78,12 @@ public class CommonExpressionVisitor
     private StatementBuilder statementBuilder;
 
     /**
-     * A {@link SingleValueCache} object that can return a {@link I18n} instance
-     * when needed. This is done because retrieving a {@link I18n} instance can
-     * be expensive and is not needed for most parsing operations. When it is
+     * A {@link Supplier} object that can return a {@link I18n} instance when
+     * needed. This is done because retrieving a {@link I18n} instance can be
+     * expensive and is not needed for most parsing operations. When it is
      * needed, however, this can provide it.
      */
-    private SingleValueCache<I18n> i18nCache;
+    private Supplier<I18n> i18nSupplier;
 
     /**
      * Map of constant values to use in evaluating the expression.

@@ -97,7 +97,6 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.SingleValueCache;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -157,6 +156,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -756,7 +756,7 @@ public class DefaultExpressionService
             .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
             .statementBuilder( statementBuilder )
-            .i18nCache( new SingleValueCache<>( i18nManager::getI18n ) )
+            .i18nSupplier( Suppliers.memoize( i18nManager::getI18n ) )
             .constantMap( getConstantMap() )
             .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( params.getParseType() ) )
             .itemMethod( itemMethod )
