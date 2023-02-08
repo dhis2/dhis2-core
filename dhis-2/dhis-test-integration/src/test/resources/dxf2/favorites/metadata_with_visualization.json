@@ -3,7 +3,10 @@
     {
       "lastUpdated": "2016-03-17T01:53:56.098+0000",
       "code": "Gender",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "dataDimensionType": "DISAGGREGATION",
       "userGroupAccesses": [],
       "id": "XFgfIO1qQmd",
@@ -105,7 +108,10 @@
         "F_DATAELEMENTGROUPSET_PUBLIC_ADD"
       ],
       "dataSets": [ ],
-      "publicAccess": "--------"
+      "sharing": {
+        "public": "--------",
+        "external": false
+      }
     }
   ],
   "organisationUnitGroups": [
@@ -117,7 +123,10 @@
           "id": "uyHni0GvBpD"
         }
       ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "user": {
         "id": "M5zQapPyTZI"
       },
@@ -142,14 +151,20 @@
       "attributeValues": [ ],
       "lastUpdated": "2016-03-17T01:53:41.461+0000",
       "code": "Female",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "organisationUnits": [ ]
     },
     {
       "code": "Male",
       "lastUpdated": "2016-03-17T01:53:34.526+0000",
       "organisationUnits": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "name": "Male",
       "created": "2016-03-17T01:53:34.525+0000",
       "user": {
@@ -261,7 +276,10 @@
       "organisationUnitGroups": [ ],
       "name": "ChartA",
       "sortOrder": 0,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "category": "pe",
       "categoryOptionGroups": [ ],
       "dataElementGroups": [ ],
@@ -730,7 +748,10 @@
         "lastBimonth": false
       },
       "sortOrder": 0,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "id": "z3zvnIJYQ4J",
       "hideEmptyRows": false,
       "user": {
@@ -925,7 +946,10 @@
     },
     {
       "lastUpdated": "2016-03-17T01:53:21.549+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "id": "Kvv6LltZuOd",
       "name": "DataElementB",
       "created": "2016-03-17T01:53:21.548+0000",
@@ -952,7 +976,10 @@
       "attributeValues": [ ],
       "shortName": "DataElementShortC",
       "lastUpdated": "2016-03-17T01:54:39.782+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
       "code": "DataElementCodeC",
@@ -974,7 +1001,10 @@
       "attributeValues": [ ],
       "shortName": "DataElementShortD",
       "lastUpdated": "2016-03-17T01:55:00.724+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
       "zeroIsSignificant": false,
@@ -1008,7 +1038,10 @@
       "dataElementDecoration": false,
       "lastUpdated": "2016-03-17T01:55:35.911+0000",
       "renderAsTabs": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "fieldCombinationRequired": false,
       "mobile": false,
       "userGroupAccesses": [ ],

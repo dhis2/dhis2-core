@@ -50,7 +50,10 @@
       "dataElementDecoration": false,
       "openFuturePeriods": 0,
       "created": "2016-03-31T05:14:53.392+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "mobile": false,
       "noValueRequiresComment": false,
       "periodType": "Monthly",
@@ -114,7 +117,10 @@
         }
       ],
       "code": "Superuser",
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "description": "Superuser",
       "created": "2016-03-31T05:06:45.437+0000",
       "name": "Superuser",
@@ -229,7 +235,10 @@
       "valueType": "NUMBER",
       "shortName": "DataElementShortA",
       "created": "2016-03-31T05:14:04.663+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "attributeValues": [ ],
       "user": {
         "id": "M5zQapPyTZI"
@@ -249,7 +258,10 @@
       "shortName": "DataElementShortB",
       "attributeValues": [ ],
       "created": "2016-03-31T05:14:25.848+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "aggregationLevels": [ ],
       "user": {
         "id": "M5zQapPyTZI"
@@ -268,7 +280,10 @@
       "shortName": "ProgramShortA",
       "created": "2016-03-31T05:16:08.193+0000",
       "validationCriterias": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "attributeValues": [ ],
       "selectEnrollmentDatesInFuture": false,
       "displayFrontPageList": false,
@@ -316,7 +331,6 @@
           "id": "akbbc91qpUc"
         }
       ],
-      "userGroupAccesses": [ ],
       "id": "MBhDW2M2mtT"
     }
   ],
@@ -324,7 +338,10 @@
     {
       "attributeValues": [ ],
       "created": "2016-03-31T05:15:42.569+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "shortName": "TrackedEntityAttributeShortA",
       "inherit": false,
       "displayOnVisitSchedule": false,
