@@ -264,11 +264,15 @@ public class DefaultGeoJsonService implements GeoJsonService
             report.addConflict( createConflict( index, GeoJsonImportConflict.GEOMETRY_INVALID ) );
             return false;
         }
-        if ( coordinatesEmpty( geometry.get( "coordinates" ) ) )
+        if ( !geometry.isUndefined() )
         {
-            report.addConflict( createConflict( index, GeoJsonImportConflict.COORDINATES_EMPTY,
-                geometry.get( "coordinates" ).node().getDeclaration() ) );
-            return false;
+            JsonValue coordinates = geometry.get( "coordinates" );
+            if ( coordinatesEmpty( coordinates ) )
+            {
+                report.addConflict( createConflict( index, GeoJsonImportConflict.COORDINATES_EMPTY,
+                    coordinates.exists() ? coordinates.node().getDeclaration() : "" ) );
+                return false;
+            }
         }
         return true;
     }

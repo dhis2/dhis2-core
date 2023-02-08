@@ -248,7 +248,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
-                "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid'} }]}" )
+                "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid', 'coordinates':[1,2]} }]}" )
                     .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7707, List.of( 0 ) );
     }

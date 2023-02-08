@@ -46,6 +46,8 @@ public final class CoordinatesUtils
 {
     public static String geometryWithCoordinatePairs( JsonObject geometry )
     {
+        if ( geometry.isUndefined() )
+            return geometry.node().getDeclaration();
         JsonArray coordinates = geometry.getArray( "coordinates" );
         int dimensions = coordinateDimensions( coordinates );
         JsonArray pair = coordinates;
@@ -62,18 +64,14 @@ public final class CoordinatesUtils
 
     public static boolean coordinatesEmpty( JsonValue coordinates )
     {
-        if ( !coordinates.isArray() )
-        {
-            return coordinates.isNull();
-        }
-        if ( coordinates.as( JsonArray.class ).isEmpty() )
-        {
+        if ( !coordinates.exists() )
             return true;
-        }
+        if ( !coordinates.isArray() )
+            return coordinates.isNull();
+        if ( coordinates.as( JsonArray.class ).isEmpty() )
+            return true;
         if ( coordinates.as( JsonArray.class ).size() > 1 )
-        {
             return false;
-        }
         return coordinatesEmpty( coordinates.as( JsonArray.class ).get( 0 ) );
     }
 

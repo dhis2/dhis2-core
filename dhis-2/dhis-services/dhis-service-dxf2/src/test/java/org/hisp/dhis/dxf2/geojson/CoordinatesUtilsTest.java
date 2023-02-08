@@ -47,6 +47,7 @@ class CoordinatesUtilsTest
     @Test
     void testCoordinatesEmpty()
     {
+        assertTrue( coordinatesEmpty( JsonValue.of( "{}" ).asObject().get( "coordinates" ) ) );
         assertTrue( coordinatesEmpty( JsonValue.of( "null" ) ) );
         assertTrue( coordinatesEmpty( JsonValue.of( "[]" ) ) );
         assertTrue( coordinatesEmpty( JsonValue.of( "[[]]" ) ) );
