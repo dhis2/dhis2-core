@@ -191,7 +191,7 @@ pipeline {
                             dir('im-db-manager') {
                                 sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
 
-                                dir('/scripts') {
+                                dir('scripts') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
                                             // TODO: How do we avoid hard coding the name/version?
@@ -206,7 +206,7 @@ pipeline {
                             dir('im-manager') {
                                 sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
-                                dir('im-manager/scripts') {
+                                dir('scripts') {
                                     echo 'Creating DHIS2 instance ...'
                                     sh "INSTANCE_HOST=https://api.im.prod.test.c.dhis2.org IMAGE_REPOSITORY=core-dev IMAGE_TAG=latest IMAGE_PULL_POLICY=Always ./deploy-dhis2.sh play dev"
                                     waitFor.statusOk("${env.INSTANCE_URL}")
