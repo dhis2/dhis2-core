@@ -165,7 +165,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         assertContains( "Filter for attribute " + TEA_UID + " was specified more than once.",
             GET( "/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2" )
-                .error( HttpStatus.CONFLICT )
+                .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
 

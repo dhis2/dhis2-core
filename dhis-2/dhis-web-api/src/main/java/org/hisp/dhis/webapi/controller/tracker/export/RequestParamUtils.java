@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,13 +39,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.CheckedFunction;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request
@@ -111,8 +113,8 @@ class RequestParamUtils
     /**
      * Parse request parameter to filter tracked entity attributes using
      * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, Function)} for details on the expected
-     * item format.
+     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
+     * expected item format.
      *
      * @param items query item strings each composed of identifier, operator and
      *        value
@@ -123,17 +125,22 @@ class RequestParamUtils
      */
     public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
         Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
-        return items.stream()
-            .map( i -> parseAttributeQueryItem( i, attributes ) )
-            .collect( Collectors.toList() );
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String item : items )
+        {
+            itemList.add( parseAttributeQueryItem( item, attributes ) );
+        }
+
+        return itemList;
     }
 
     /**
      * Parse request parameter to filter tracked entity attributes using
      * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, Function)} for details on the expected
-     * item format.
+     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
+     * expected item format.
      *
      * @param item query item string composed of identifier, operator and value
      * @param attributes tracked entity attribute map from identifiers to
@@ -141,22 +148,25 @@ class RequestParamUtils
      * @return query item of tracked entity attribute with attached query
      *         filters
      */
+
     public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
     }
 
     private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         if ( attributes.isEmpty() )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         TrackedEntityAttribute at = attributes.get( identifier );
         if ( at == null )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
@@ -172,13 +182,14 @@ class RequestParamUtils
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
      * then added to this QueryItem.
      */
-    public static QueryItem parseQueryItem( String item, Function<String, QueryItem> map )
+    public static QueryItem parseQueryItem( String item, CheckedFunction<String, QueryItem> map )
+        throws BadRequestException
     {
         String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
 
         if ( split.length % 2 != 1 )
         {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+            throw new BadRequestException( "Query item or filter is invalid: " + item );
         }
 
         QueryItem queryItem = map.apply( split[0] );
@@ -194,5 +205,4 @@ class RequestParamUtils
 
         return queryItem;
     }
-
 }
