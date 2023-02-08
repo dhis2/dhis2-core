@@ -34,7 +34,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,17 +43,12 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class FieldFilterParser
 {
-    public static List<FieldPath> parse( Set<String> fields )
-    {
-        return expandField( StringUtils.join( fields, "," ) );
-    }
-
     public static List<FieldPath> parse( String fields )
     {
         return expandField( fields );
     }
 
-    public static List<FieldPath> parseWithPrefix( Set<String> fields, String prefix )
+    public static List<FieldPath> parseWithPrefix( String fields, String prefix )
     {
         return expandField( StringUtils.join( fields, "," ), prefix );
     }

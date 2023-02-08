@@ -37,8 +37,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.security.FieldPathConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.format.support.DefaultFormattingConversionService;

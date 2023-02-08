@@ -550,7 +550,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
+        FieldFilterParams<T> filterParams = FieldFilterParams.of( entities, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
 
         return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get( 0 );
     }

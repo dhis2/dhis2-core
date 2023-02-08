@@ -134,8 +134,7 @@ public class TrackerTrackedEntitiesExportController
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodesAlternative( trackedEntityInstances, fields,
-            null, false );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );
         return pagingWrapper.withInstances( objectNodes );
     }
 
@@ -194,7 +193,7 @@ public class TrackerTrackedEntitiesExportController
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
-        return ResponseEntity.ok( fieldFilterService.toObjectNodeAlternative( trackedEntity, fields, null, false ) );
+        return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
     @GetMapping( value = "{id}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )

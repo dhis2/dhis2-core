@@ -28,7 +28,6 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +76,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 /**
  * @author Morten Olav Hansen
  */
-@Service
+@Service( "org.hisp.dhis.fieldfiltering.FieldFilterService" )
 public class FieldFilterService
 {
     private final FieldPathHelper fieldPathHelper;
@@ -117,6 +116,19 @@ public class FieldFilterService
         this.attributeService = attributeService;
     }
 
+    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
+    {
+        objectMapper = objectMapper.copy();
+
+        SimpleModule module = new SimpleModule();
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+
+        objectMapper.registerModule( module );
+        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
+
+        return objectMapper;
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -135,9 +147,15 @@ public class FieldFilterService
         }
     }
 
-    public <T> ObjectNode toObjectNode( T object, List<String> filters )
+    public <T> ObjectNode toObjectNode( T object, String filters )
     {
-        List<ObjectNode> objectNodes = toObjectNodes( FieldFilterParams.of( List.of( object ), filters ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( filters );
+        return toObjectNode( List.of( object ), fieldPaths );
+    }
+
+    public <T> ObjectNode toObjectNode( T object, List<FieldPath> filters )
+    {
+        List<ObjectNode> objectNodes = toObjectNodes( List.of( object ), filters, null, false );
 
         if ( objectNodes.isEmpty() )
         {
@@ -147,24 +165,25 @@ public class FieldFilterService
         return objectNodes.get( 0 );
     }
 
-    public <T> ObjectNode toObjectNodeAlternative( T object, List<FieldPath> filters, User user, boolean isSkipSharing )
+    public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
     {
-        List<ObjectNode> objectNodes = toObjectNodesAlternative( List.of( object ), filters, user, isSkipSharing );
+        List<ObjectNode> objectNodes = new ArrayList<>();
 
-        if ( objectNodes.isEmpty() )
+        if ( params.getObjects().isEmpty() )
         {
-            return null;
+            return objectNodes;
         }
 
-        return objectNodes.get( 0 );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+        return toObjectNodes( params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing() );
     }
 
-    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
+    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths )
     {
-        return toObjectNodes( FieldFilterParams.of( objects, filters ) );
+        return toObjectNodes( objects, fieldPaths, null, false );
     }
 
-    public <T> List<ObjectNode> toObjectNodesAlternative( List<T> objects, List<FieldPath> fieldPaths, User user,
+    private <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
         boolean isSkipSharing )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
@@ -205,66 +224,6 @@ public class FieldFilterService
         }
 
         return objectNodes;
-    }
-
-    public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
-    {
-        List<ObjectNode> objectNodes = new ArrayList<>();
-
-        if ( params.getObjects().isEmpty() )
-        {
-            return objectNodes;
-        }
-
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
-
-        if ( params.getUser() == null )
-        {
-            params.setUser( currentUserService.getCurrentUser() );
-        }
-
-        // In case we get a proxied object in we can't just use o.getClass(), we
-        // need to figure out the real class name by using HibernateProxyUtils.
-        Object firstObject = params.getObjects().iterator().next();
-        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
-
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
-
-        // only set filter provider on a local copy so that we don't affect
-        // other object mappers (running across other threads)
-        ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
-
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
-
-        for ( Object object : params.getObjects() )
-        {
-            applyAccess( params, fieldPaths, object );
-            applySharingDisplayNames( params, fieldPaths, object );
-            applyAttributeValuesAttribute( params, fieldPaths, object );
-
-            ObjectNode objectNode = objectMapper.valueToTree( object );
-            applyTransformers( objectNode, null, "", fieldTransformers );
-
-            objectNodes.add( objectNode );
-        }
-
-        return objectNodes;
-    }
-
-    /**
-     * JsonGenerator using given OutputStream.
-     *
-     * @param params Filter params to apply
-     * @param outputStream OutputStream
-     * @throws IOException
-     */
-    public void toObjectNodesStream( FieldFilterParams<?> params, OutputStream outputStream )
-        throws IOException
-    {
-        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
-        {
-            toObjectNodesStream( params, generator );
-        }
     }
 
     /**
@@ -405,19 +364,6 @@ public class FieldFilterService
     public ArrayNode createArrayNode()
     {
         return jsonMapper.createArrayNode();
-    }
-
-    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
-    {
-        objectMapper = objectMapper.copy();
-
-        SimpleModule module = new SimpleModule();
-        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
-
-        objectMapper.registerModule( module );
-        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
-
-        return objectMapper;
     }
 
     /**

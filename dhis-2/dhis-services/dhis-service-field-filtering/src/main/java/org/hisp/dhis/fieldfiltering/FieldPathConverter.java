@@ -25,14 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.fieldfiltering;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
@@ -59,7 +56,19 @@ public class FieldPathConverter implements ConditionalGenericConverter
     {
         if ( sourceType.isArray() )
         {
-            return FieldFilterParser.parse( Collections.singleton( String.join( ",", (String[]) source ) ) );
+            /*
+             * @formatter:off
+             *
+             * Undo Spring's splitting of
+             * `fields=attributes[attribute,value],deleted` into
+             * 0 = "attributes[attribute"
+             * 1 = "value]"
+             * 2 = "deleted"
+             * separating nested fields attribute and value.
+             *
+             * @formatter:on
+             */
+            return FieldFilterParser.parse( String.join( ",", (String[]) source ) );
         }
         return FieldFilterParser.parse( (String) source );
     }
