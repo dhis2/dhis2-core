@@ -168,7 +168,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             throw new BadRequestException( "No such property: " + property );
         }
 
-        if ( !objProperty.isCollection() )
+        if ( !objProperty.isCollection() || !PrimaryKeyObject.class.isAssignableFrom( objProperty.getItemKlass() ) )
         {
             return gistToJsonObjectResponse( uid, createGistQuery( params, getEntityClass(), GistAutoType.L )
                 .withFilter( new Filter( "id", Comparison.EQ, uid ) )
