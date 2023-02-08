@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
@@ -190,12 +189,7 @@ public class CommonParams
 
     public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
     {
-        if ( isNotEmpty( dimensionIdentifiers ) )
-        {
-            return dimensionIdentifiers.stream().filter( Objects::nonNull ).collect( toList() );
-        }
-
-        return emptyList();
+        return emptyIfNull( dimensionIdentifiers ).stream().filter( Objects::nonNull ).collect( toList() );
     }
 
     /**
@@ -205,6 +199,6 @@ public class CommonParams
      */
     public CommonParamsDelegator delegate()
     {
-        return new CommonParamsDelegator( this );
+        return new CommonParamsDelegator( getDimensionIdentifiers() );
     }
 }

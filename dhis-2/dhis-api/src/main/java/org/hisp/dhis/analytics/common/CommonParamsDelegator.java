@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -56,14 +58,10 @@ import org.hisp.dhis.program.ProgramStage;
  *
  * @author maikel arabori
  */
+@RequiredArgsConstructor
 public class CommonParamsDelegator
 {
     private final List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers;
-
-    public CommonParamsDelegator( CommonParams commonParams )
-    {
-        this.dimensionIdentifiers = commonParams.getDimensionIdentifiers();
-    }
 
     /**
      * Retrieves all {@link Option} objects from all existing {@link QueryItem}
@@ -74,12 +72,22 @@ public class CommonParamsDelegator
     public Set<Option> getItemsOptions()
     {
         return dimensionIdentifiers.stream()
-            .filter( dimParam -> dimParam.getDimension() != null )
-            .map( dimParam -> dimParam.getDimension().getQueryItem() )
-            .filter( queryItem -> queryItem != null && queryItem.hasOptionSet() )
+            .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
+            .map( DimensionIdentifier::getDimension )
+            .filter( DimensionParam::isQueryItem )
+            .map( dimensionParam -> dimensionParam.getQueryItem() )
+            .filter( QueryItem::hasOptionSet )
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( List::stream )
             .collect( toSet() );
+        //
+        //        return dimensionIdentifiers.stream()
+        //            .filter( dimParam -> dimParam.getDimension() != null )
+        //            .map( dimParam -> dimParam.getDimension().getQueryItem() )
+        //            .filter( queryItem -> queryItem != null && queryItem.hasOptionSet() )
+        //            .map( q -> q.getOptionSet().getOptions() )
+        //            .flatMap( List::stream )
+        //            .collect( toSet() );
     }
 
     /**
@@ -91,8 +99,11 @@ public class CommonParamsDelegator
     public List<QueryItem> getAllItems()
     {
         return dimensionIdentifiers.stream()
-            .filter( dimParam -> dimParam.getDimension() != null && dimParam.getDimension().getQueryItem() != null )
-            .map( dimParam -> dimParam.getDimension().getQueryItem() ).collect( toList() );
+            .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
+            .map( DimensionIdentifier::getDimension )
+            .filter( DimensionParam::isQueryItem )
+            .map( DimensionParam::getQueryItem )
+            .collect( toList() );
     }
 
     /**
@@ -104,9 +115,10 @@ public class CommonParamsDelegator
     public List<QueryItem> getItemsAsFilters()
     {
         return dimensionIdentifiers.stream()
-            .filter( dimParam -> dimParam.getDimension() != null && dimParam.getDimension().isFilter()
-                && dimParam.getDimension().getQueryItem() != null )
-            .map( dimParam -> dimParam.getDimension().getQueryItem() )
+            .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
+            .map( DimensionIdentifier::getDimension )
+            .filter( dimension -> dimension.isFilter() && dimension.isQueryItem() )
+            .map( DimensionParam::getQueryItem )
             .collect( toList() );
     }
 
@@ -119,9 +131,15 @@ public class CommonParamsDelegator
     public List<DimensionalObject> getAllDimensionalObjects()
     {
         return dimensionIdentifiers.stream()
-            .filter( dimensionIdentifier -> dimensionIdentifier.getDimension() != null
-                && dimensionIdentifier.getDimension().getDimensionalObject() != null )
-            .map( dimParam -> dimParam.getDimension().getDimensionalObject() ).collect( toList() );
+            .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
+            .map( DimensionIdentifier::getDimension )
+            .filter( DimensionParam::isDimensionalObject )
+            .map( DimensionParam::getDimensionalObject ).collect( toList() );
+
+        //        return dimensionIdentifiers.stream()
+        //            .filter( dimensionIdentifier -> dimensionIdentifier.getDimension() != null
+        //                && dimensionIdentifier.getDimension().getDimensionalObject() != null )
+        //            .map( dimParam -> dimParam.getDimension().getDimensionalObject() ).collect( toList() );
     }
 
     /**
