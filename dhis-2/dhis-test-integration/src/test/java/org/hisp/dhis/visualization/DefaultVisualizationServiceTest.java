@@ -50,7 +50,6 @@ class DefaultVisualizationServiceTest extends TransactionalIntegrationTest
     {
         // Given
         Icon icon = new Icon();
-        icon.setShow( true );
         icon.setType( DATA_ITEM );
 
         Visualization aVisWithIcons = createVisualization( "any" );

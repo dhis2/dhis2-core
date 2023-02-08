@@ -56,13 +56,6 @@ public class Icon implements Serializable
     }
 
     /**
-     * Flag to show or hide the icon. False by default.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean show;
-
-    /**
      * The type of this icon.
      */
     @JsonProperty
