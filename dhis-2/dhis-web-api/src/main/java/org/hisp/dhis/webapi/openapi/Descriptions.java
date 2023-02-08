@@ -155,7 +155,7 @@ final class Descriptions
                     else
                     {
                         // in CommonMark 2 spaces at the end mean new line
-                        value.append( line ).append( "  \\n" );
+                        value.append( line ).append( "  \n" );
                     }
                 }
             }
@@ -166,13 +166,13 @@ final class Descriptions
     private String trimText( String value )
     {
         String text = value;
-        while ( text.startsWith( "  \\n" ) )
+        while ( text.startsWith( "  \n" ) )
         {
-            text = text.substring( 4 );
+            text = text.substring( 3 );
         }
-        while ( text.endsWith( "  \\n" ) )
+        while ( text.endsWith( "  \n" ) )
         {
-            text = text.substring( 0, text.length() - 4 );
+            text = text.substring( 0, text.length() - 3 );
         }
         return text.trim();
     }
