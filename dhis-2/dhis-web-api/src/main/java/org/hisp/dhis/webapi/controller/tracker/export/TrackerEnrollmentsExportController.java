@@ -48,10 +48,10 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -143,7 +143,7 @@ public class TrackerEnrollmentsExportController
             .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
         if ( enrollment == null )
         {
-            throw new NotFoundException( "Enrollment", id );
+            throw new NotFoundException( Enrollment.class, id );
         }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
