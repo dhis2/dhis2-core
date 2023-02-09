@@ -98,6 +98,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -690,6 +691,8 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
+            .add( "expressiondimensionitems", this.getExpressionDimensionItems().stream()
+                .map( edi -> ((ExpressionDimensionItem) edi).getExpression() ).collect( Collectors.joining() ) )
             .addIgnoreNull( "apiVersion", apiVersion )
             .addIgnoreNull( "locale", locale );
     }
