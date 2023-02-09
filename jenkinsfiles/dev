@@ -188,6 +188,7 @@ pipeline {
             environment {
                 HTTP = "http --check-status"
                 INSTANCE_HOST = "https://api.im.prod.test.c.dhis2.org"
+                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
                 IMAGE_REPOSITORY = "core-dev"
                 IMAGE_TAG = "latest"
                 IMAGE_PULL_POLICY = "Always"
