@@ -299,35 +299,25 @@ public class DefaultPreheatService implements PreheatService
         }
         for ( Class<? extends IdentifiableObject> klass : objects.keySet() )
         {
-            List<Attribute> mandatoryAttributes = attributesByObjectType.get( klass ).stream()
+            List<Attribute> mandatoryAttributes = attributesByObjectType.getOrDefault( klass, List.of() ).stream()
                 .filter( Attribute::isMandatory )
                 .collect( toUnmodifiableList() );
 
-            if ( !mandatoryAttributes.isEmpty() )
-            {
-                preheat.getMandatoryAttributes().put( klass, new HashSet<>() );
-            }
+            mandatoryAttributes.forEach( attribute -> preheat.getMandatoryAttributes()
+                .computeIfAbsent( klass, key -> new HashSet<>() ).add( attribute.getUid() ) );
 
-            mandatoryAttributes
-                .forEach( attribute -> preheat.getMandatoryAttributes().get( klass ).add( attribute.getUid() ) );
-
-            List<Attribute> uniqueAttributes = attributesByObjectType.get( klass ).stream()
+            List<Attribute> uniqueAttributes = attributesByObjectType.getOrDefault( klass, List.of() ).stream()
                 .filter( Attribute::isUnique )
                 .collect( toUnmodifiableList() );
 
-            if ( !uniqueAttributes.isEmpty() )
-            {
-                preheat.getUniqueAttributes().put( klass, new HashSet<>() );
-            }
-
-            uniqueAttributes
-                .forEach( attribute -> preheat.getUniqueAttributes().get( klass ).add( attribute.getUid() ) );
+            uniqueAttributes.forEach( attribute -> preheat.getUniqueAttributes()
+                .computeIfAbsent( klass, key -> new HashSet<>() ).add( attribute.getUid() ) );
 
             List<? extends IdentifiableObject> uniqueAttributeValues = manager.getAllByAttributes( klass,
                 uniqueAttributes );
             handleUniqueAttributeValues( klass, uniqueAttributeValues, preheat );
 
-            addAllClassesAttributes( klass, preheat, attributesByObjectType.get( klass ) );
+            addAllClassesAttributes( klass, preheat, attributesByObjectType.getOrDefault( klass, List.of() ) );
         }
 
         if ( objects.containsKey( Attribute.class ) )
