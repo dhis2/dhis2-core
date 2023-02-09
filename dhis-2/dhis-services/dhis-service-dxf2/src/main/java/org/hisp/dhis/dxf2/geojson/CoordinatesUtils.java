@@ -47,12 +47,16 @@ public final class CoordinatesUtils
     public static String geometryWithCoordinatePairs( JsonObject geometry )
     {
         if ( geometry.isUndefined() )
+        {
             return geometry.node().getDeclaration();
+        }
         JsonArray coordinates = geometry.getArray( "coordinates" );
         int dimensions = coordinateDimensions( coordinates );
         JsonArray pair = coordinates;
         for ( int d = 1; d < dimensions; d++ )
+        {
             pair = pair.getArray( 0 );
+        }
         if ( pair.size() == 2 || dimensions > 4 )
         {
             return geometry.node().getDeclaration();
@@ -65,13 +69,21 @@ public final class CoordinatesUtils
     public static boolean coordinatesEmpty( JsonValue coordinates )
     {
         if ( !coordinates.exists() )
+        {
             return true;
+        }
         if ( !coordinates.isArray() )
+        {
             return coordinates.isNull();
+        }
         if ( coordinates.as( JsonArray.class ).isEmpty() )
+        {
             return true;
+        }
         if ( coordinates.as( JsonArray.class ).size() > 1 )
+        {
             return false;
+        }
         return coordinatesEmpty( coordinates.as( JsonArray.class ).get( 0 ) );
     }
 
@@ -83,7 +95,9 @@ public final class CoordinatesUtils
     public static int coordinateDimensions( JsonValue coordinates )
     {
         if ( !coordinates.isArray() )
+        {
             return 0;
+        }
         JsonValue first = coordinates.as( JsonArray.class ).get( 0 );
         int dimensions = 1;
         while ( first.isArray() )
@@ -206,7 +220,9 @@ public final class CoordinatesUtils
         for ( int i = 0; i < len; i++ )
         {
             if ( i > 0 )
+            {
                 asPairs.append( ',' );
+            }
             appendElement.accept( arr.get( i ), asPairs );
         }
         asPairs.append( "]" );
