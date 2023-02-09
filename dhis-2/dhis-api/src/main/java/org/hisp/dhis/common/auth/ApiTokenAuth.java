@@ -50,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class ApiTokenAuth extends Auth
 {
+    public static final String TYPE = "api-token";
+
     @JsonProperty( required = true )
     private String token;
 

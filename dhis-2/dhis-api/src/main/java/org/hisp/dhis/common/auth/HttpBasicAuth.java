@@ -48,6 +48,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class HttpBasicAuth extends Auth
 {
+    public static final String TYPE = "http-basic";
+
     @JsonProperty( required = true )
     private String username;
 
