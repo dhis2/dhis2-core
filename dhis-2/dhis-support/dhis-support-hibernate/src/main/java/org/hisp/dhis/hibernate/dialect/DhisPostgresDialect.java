@@ -65,6 +65,8 @@ public class DhisPostgresDialect
             new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
         registerFunction( JsonbFunctions.REGEXP_SEARCH,
             new StandardSQLFunction( JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( "jsonb_exists_any",
+            new StandardSQLFunction( "jsonb_exists_any", StandardBasicTypes.BOOLEAN ) );
         registerFunction( "array_agg",
             new StandardSQLFunction( "array_agg", StringArrayType.INSTANCE ) );
     }
