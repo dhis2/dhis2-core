@@ -29,7 +29,6 @@ pipeline {
     }
 
     stages {
-/*
         stage('Build') {
             steps {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
@@ -183,7 +182,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Update IM Play dev instance') {
             environment {
                 HTTP = "http --check-status"
@@ -228,16 +227,16 @@ pipeline {
     }
 
     post {
-//        always {
-//            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
-//        }
-/*
+        always {
+            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+        }
+
         failure {
             script {
                 slack.sendFailureMessage()
             }
         }
-*/
+
         aborted {
             script {
                 slack.sendTimedoutMessage(30)
