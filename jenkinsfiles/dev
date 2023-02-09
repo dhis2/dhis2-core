@@ -228,9 +228,9 @@ pipeline {
     }
 
     post {
-        always {
+//        always {
 //            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
-        }
+//        }
 /*
         failure {
             script {
