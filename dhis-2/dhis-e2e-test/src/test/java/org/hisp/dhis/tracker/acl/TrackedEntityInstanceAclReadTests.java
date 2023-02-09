@@ -249,7 +249,8 @@ public class TrackedEntityInstanceAclReadTests
     @Test
     void shouldReturnEventsWhenExplicitFieldsAreProvided()
     {
-        User user = users.stream().findFirst().orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
+        User user = users.stream().findFirst()
+            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
         new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
@@ -260,19 +261,21 @@ public class TrackedEntityInstanceAclReadTests
         response.validate().statusCode( 200 );
         response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
 
-        JsonObject tei = response.getBody().getAsJsonArray("trackedEntityInstances").get(0).getAsJsonObject();
+        JsonObject tei = response.getBody().getAsJsonArray( "trackedEntityInstances" ).get( 0 ).getAsJsonObject();
         assertTrue( tei.has( "enrollments" ) );
 
         JsonArray enrollmentsArray = tei.getAsJsonArray( "enrollments" );
-        assertEquals(1, enrollmentsArray.size());
-        assertTrue(enrollmentsArray.get(0).getAsJsonObject().has("events"));
+        assertEquals( 1, enrollmentsArray.size() );
+        assertTrue( enrollmentsArray.get( 0 ).getAsJsonObject().has( "events" ) );
 
-        JsonArray eventsArray = enrollmentsArray.get(0).getAsJsonObject().getAsJsonArray("events");
-        assertEquals(2, eventsArray.size());
-        assertTrue(eventsArray.get(0).getAsJsonObject().has("dueDate"));
-        assertEquals("2020-04-24T00:00:00.000", eventsArray.get(0).getAsJsonObject().get("dueDate").getAsString());
-        assertTrue(eventsArray.get(1).getAsJsonObject().has("dueDate"));
-        assertEquals("2020-04-24T00:00:00.000", eventsArray.get(1).getAsJsonObject().get("dueDate").getAsString());
+        JsonArray eventsArray = enrollmentsArray.get( 0 ).getAsJsonObject().getAsJsonArray( "events" );
+        assertEquals( 2, eventsArray.size() );
+        assertTrue( eventsArray.get( 0 ).getAsJsonObject().has( "dueDate" ) );
+        assertEquals( "2020-04-24T00:00:00.000",
+            eventsArray.get( 0 ).getAsJsonObject().get( "dueDate" ).getAsString() );
+        assertTrue( eventsArray.get( 1 ).getAsJsonObject().has( "dueDate" ) );
+        assertEquals( "2020-04-24T00:00:00.000",
+            eventsArray.get( 1 ).getAsJsonObject().get( "dueDate" ).getAsString() );
     }
 
     /* Helper methods */
