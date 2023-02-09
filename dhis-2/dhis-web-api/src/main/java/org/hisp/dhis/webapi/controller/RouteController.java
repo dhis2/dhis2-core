@@ -62,7 +62,7 @@ public class RouteController
     private final RouteService routeService;
 
     @RequestMapping( value = "/exec/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
-    public ResponseEntity<String> runProxy( @PathVariable( "id" ) String id, HttpServletRequest request )
+    public ResponseEntity<String> run( @PathVariable( "id" ) String id, HttpServletRequest request )
         throws IOException
     {
         Route route = routeService.getDecryptedById( id );
