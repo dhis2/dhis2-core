@@ -68,7 +68,7 @@ public class RouteService
     @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
-    private final static RestTemplate restTemplate = new RestTemplate();
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     static
     {

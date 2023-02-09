@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.common.auth.ApiTokenAuth;
+import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.hisp.dhis.eventhook.targets.auth.ApiTokenAuth;
-import org.hisp.dhis.eventhook.targets.auth.HttpBasicAuth;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
