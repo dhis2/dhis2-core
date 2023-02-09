@@ -150,6 +150,7 @@ public class AggregateDataExchangeService
      * identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param params the {@link SourceDataQueryParams}.
      * @return the source data for the analytics data exchange.
      */
     public List<Grid> getSourceData( String uid, SourceDataQueryParams params )
@@ -165,6 +166,7 @@ public class AggregateDataExchangeService
      * the given identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param params the {@link SourceDataQueryParams}.
      * @return the source data value sets for the analytics data exchange.
      */
     public List<DataValueSet> getSourceDataValueSets( String uid, SourceDataQueryParams params )
