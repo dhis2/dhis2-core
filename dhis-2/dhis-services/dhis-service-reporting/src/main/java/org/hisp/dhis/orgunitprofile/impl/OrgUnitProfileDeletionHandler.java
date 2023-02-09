@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.orgunitprofile.impl;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -42,10 +42,10 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OrgUnitProfileDeletionHandler extends DeletionHandler
 {
-    private OrgUnitProfileService orgUnitProfileService;
+    private final OrgUnitProfileService orgUnitProfileService;
 
     @Override
     protected void register()

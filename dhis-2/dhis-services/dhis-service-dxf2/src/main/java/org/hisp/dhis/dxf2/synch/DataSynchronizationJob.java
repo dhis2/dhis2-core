@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt (job progress tracking)
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataSynchronizationJob implements Job
 {
     private final SynchronizationManager syncManager;

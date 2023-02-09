@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation.notification;
+package org.hisp.dhis.visualization;
 
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import java.io.Serializable;
+
+import lombok.Data;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Stian Sandvold (original)
- * @author Jan Bernitt (job progress tracking)
+ * Representation of an icon object that can be used by clients to manage and
+ * show/hide icons.
+ *
+ * We should allow only one Icon per type.
+ *
+ * @author maikel arabori
  */
-@Component
-@RequiredArgsConstructor
-public class ValidationResultNotificationJob implements Job
+@Data
+public class Icon implements Serializable
 {
-    private final ValidationNotificationService notificationService;
+    public enum IconType
+    {
+        DATA_ITEM;
+    }
+
+    /**
+     * The type of this icon.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private IconType type;
 
     @Override
-    public JobType getJobType()
+    public boolean equals( Object o )
     {
-        return JobType.VALIDATION_RESULTS_NOTIFICATION;
+        if ( this == o )
+            return true;
+
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+
+        Icon icon = (Icon) o;
+
+        return new EqualsBuilder().append( type, icon.type ).isEquals();
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public int hashCode()
     {
-        progress.startingProcess( "Validation result notification" );
-        notificationService.sendUnsentNotifications( progress );
-        progress.completedProcess( null );
+        return new HashCodeBuilder( 17, 37 ).append( type ).toHashCode();
     }
 }

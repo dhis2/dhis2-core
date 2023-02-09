@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dashboard;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DashboardItemDeletionHandler extends DeletionHandler
 {
     private final DashboardService dashboardService;

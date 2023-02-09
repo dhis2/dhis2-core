@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation.notification;
+package org.hisp.dhis.visualization;
 
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.visualization.Icon.IconType.DATA_ITEM;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import java.util.Set;
+
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Stian Sandvold (original)
- * @author Jan Bernitt (job progress tracking)
+ * Tests for {@link DefaultVisualizationService}.
  */
-@Component
-@RequiredArgsConstructor
-public class ValidationResultNotificationJob implements Job
+class DefaultVisualizationServiceTest extends TransactionalIntegrationTest
 {
-    private final ValidationNotificationService notificationService;
+    @Autowired
+    private VisualizationService visualizationService;
 
-    @Override
-    public JobType getJobType()
+    @Test
+    void testPostWithIconsObject()
     {
-        return JobType.VALIDATION_RESULTS_NOTIFICATION;
+        // Given
+        Icon icon = new Icon();
+        icon.setType( DATA_ITEM );
+
+        Visualization aVisWithIcons = createVisualization( "any" );
+        aVisWithIcons.setIcons( Set.of( icon ) );
+
+        // When
+        long uid = visualizationService.save( aVisWithIcons );
+
+        // Then
+        Visualization saved = visualizationService.getVisualization( uid );
+        assertIterableEquals( Set.of( icon ), saved.getIcons() );
+        assertEquals( "any", saved.getName() );
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    private Visualization createVisualization( String name )
     {
-        progress.startingProcess( "Validation result notification" );
-        notificationService.sendUnsentNotifications( progress );
-        progress.completedProcess( null );
+        Visualization visualization = createVisualization( 'X' );
+        visualization.setName( name );
+        return visualization;
     }
 }
