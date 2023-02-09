@@ -32,7 +32,7 @@ import java.util.Iterator;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,14 +40,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class SectionDeletionHandler extends DeletionHandler
+public class SectionDeletionHandler extends IdObjectDeletionHandler<Section>
 {
     private final SectionService sectionService;
 
     private final SectionStore sectionStore;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( DataElement.class, this::deleteDataElement );
         whenDeleting( DataSet.class, this::deleteDataSet );

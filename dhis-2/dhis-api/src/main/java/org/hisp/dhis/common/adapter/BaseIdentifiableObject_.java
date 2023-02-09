@@ -37,6 +37,8 @@ public class BaseIdentifiableObject_
 {
     public static final String CREATED_BY = "createdBy";
 
+    public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+
     public static final String TRANSLATIONS = "translations";
 
     public static final String SHARING = "sharing";
