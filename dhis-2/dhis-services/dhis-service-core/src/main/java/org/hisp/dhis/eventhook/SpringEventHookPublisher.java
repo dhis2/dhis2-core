@@ -27,17 +27,36 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen
  */
-@FunctionalInterface
-public interface EventHookPublisher
+@Component
+@RequiredArgsConstructor
+public class SpringEventHookPublisher implements EventHookPublisher
 {
-    List<? extends Class<?>> BLOCKLIST = List.of( User.class );
+    private final DhisConfigurationProvider dhisConfig;
 
-    void publishEvent( Event event );
+    private final ApplicationEventPublisher publisher;
+
+    @Override
+    public void publishEvent( Event event )
+    {
+        if ( event == null || event.getObject() == null )
+        {
+            return;
+        }
+
+        if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED )
+            && !BLOCKLIST.contains( event.getObject().getClass() ) )
+        {
+            publisher.publishEvent( event );
+        }
+    }
 }
