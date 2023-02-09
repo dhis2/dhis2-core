@@ -25,22 +25,8 @@ mvn test \
 
 ### Inside Docker
 
-The following describes 2 options for you to run and test DHIS2 using Docker. First you need to
-build or pick a Docker image.
-
-#### DHIS2 Docker Image
-
-If you want to run DHIS2 inside Docker you will need a DHIS2 Docker image. You can either
-
-* build the DHIS2 image of your local changes using [build-dev](../build-dev.sh) `../build-dev.sh`
-* or use a pre-built image and prefix the docker compose commands in this README with `DHIS2_IMAGE=<image name>`
-
-We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
-repositories
-
-* releases or release candidates [dhis2/core](https://hub.docker.com/r/dhis2/core/tags)
-* development (branches master and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
-* PRs labeled with `publish-docker-image` [dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags)
+The following describes 2 options for you to run and test DHIS2 using Docker. Refer to [Run DHIS2 in
+Docker](../../README.md#run-dhis2-in-docker) on how to build or pick a Docker image.
 
 #### Only DHIS2 In Docker
 
@@ -125,10 +111,8 @@ artifacts.
 
 #### Running Tests Locally
 
-We build/push the DHIS2 Docker image of PRs to
-[Dockerhub dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags) if the PR is
-labeled with
-[publish-docker-image](https://github.com/dhis2/dhis2-core/labels/publish-docker-image).
+We build/push the DHIS2 Docker image of PRs to [Dockerhub
+dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags).
 
 To run PR [12065](https://github.com/dhis2/dhis2-core/pull/12065) locally you need to run
 
