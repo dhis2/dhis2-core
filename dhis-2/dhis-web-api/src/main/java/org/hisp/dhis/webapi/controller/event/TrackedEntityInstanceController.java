@@ -546,7 +546,7 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "events" ) )
         {
-            params.withTeiEnrollmentParams(
+            params = params.withTeiEnrollmentParams(
                 params.getTeiEnrollmentParams().withIncludeEvents( true ) );
         }
 
