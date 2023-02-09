@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.validation.notification;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt (job progress tracking)
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ValidationResultNotificationJob implements Job
 {
     private final ValidationNotificationService notificationService;

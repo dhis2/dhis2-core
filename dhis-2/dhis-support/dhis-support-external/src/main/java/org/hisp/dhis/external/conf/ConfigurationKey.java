@@ -728,7 +728,12 @@ public enum ConfigurationKey
     /**
      * CSP default header value/string. Enable or disable the feature.
      */
-    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false );
+    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
+
+    /**
+     * Event hooks for system events. Enable or disable the feature.
+     */
+    EVENT_HOOKS_ENABLED( "event_hooks.enabled", Constants.OFF, false );
 
     private final String key;
 

@@ -67,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -163,6 +164,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @Autowired
     private TranslationsCheck translationsCheck;
+
+    @Autowired
+    protected EventHookPublisher eventHookPublisher;
 
     // --------------------------------------------------------------------------
     // OLD PATCH
