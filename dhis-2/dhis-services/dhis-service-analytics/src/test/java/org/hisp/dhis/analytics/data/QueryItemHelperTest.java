@@ -217,7 +217,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         queryItem.addFilter( new QueryFilter( IN, "Code-A;Code-B" ) );
         queryItems.add( queryItem );
 
-        Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
+        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
 
         assertEquals( 2, actualOptions.size(), "Should have size of 2: actualOptions" );
     }
@@ -237,7 +237,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         queryItem.addFilter( new QueryFilter( IN, "CODE-A;CODE-C" ) );
         queryItems.add( queryItem );
 
-        Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
+        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
 
         // Then
         assertEquals( 2, actualOptions.size(), "Should have size of 2: actualOptions" );
@@ -256,7 +256,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         List<QueryItem> queryItems = new ArrayList<>();
         queryItems.add( queryItem );
 
-        Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
+        Set<Option> actualOptions = QueryItemHelper.getItemOptionsAsFilter( options, queryItems );
 
         assertEquals( 0, actualOptions.size(), "Should have size of 0: actualOptions" );
     }
@@ -274,7 +274,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
         params.getItems().add( queryItem );
 
-        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
+        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params.getItems() );
 
         assertTrue(
             options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
@@ -293,7 +293,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
         params.getItems().add( queryItem );
 
-        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
+        Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params.getItems() );
 
         assertTrue( options.values().stream()
             .flatMap( Collection::stream )

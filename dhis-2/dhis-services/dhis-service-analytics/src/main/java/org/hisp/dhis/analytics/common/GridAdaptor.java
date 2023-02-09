@@ -35,10 +35,13 @@ import javax.annotation.Nonnull;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.analytics.common.processing.ParamsHandler;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
+import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,7 +55,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class GridAdaptor
 {
-    private final ParamsHandler paramsHandler;
+    private final HeaderParamsHandler headerParamsHandler;
+
+    private final MetadataParamsHandler metadataParamsHandler;
+
+    private final AnalyticsSecurityManager analyticsSecurityManager;
+
+    private final CurrentUserService currentUserService;
 
     /**
      * Based on the given headers and result map, this method takes care of the
@@ -75,7 +84,8 @@ public class GridAdaptor
 
         Grid grid = new ListGrid();
 
-        paramsHandler.addHeaders( grid, teiQueryParams );
+        // Adding headers.
+        headerParamsHandler.handle( grid, teiQueryParams );
 
         // Adding rows.
         if ( sqlQueryResult.isPresent() )
@@ -83,10 +93,13 @@ public class GridAdaptor
             grid.addRows( sqlQueryResult.get().result() );
         }
 
-        paramsHandler.addMetaData( grid, teiQueryParams.getCommonParams(), rowsCount );
+        CommonParams commonParams = teiQueryParams.getCommonParams();
 
-        // Retain only selected headers, if any.
-        grid.retainColumns( teiQueryParams.getCommonParams().getHeaders() );
+        // Adding metadata info.
+        metadataParamsHandler.handle( grid, commonParams, currentUserService.getCurrentUser(), rowsCount );
+
+        // Retain only selected Grid columns, if any.
+        grid.retainColumns( commonParams.getHeaders() );
 
         return grid;
     }

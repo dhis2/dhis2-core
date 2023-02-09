@@ -25,38 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.processing;
+package org.hisp.dhis.analytics.common;
 
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.user.CurrentUserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Unit tests for {@link ParamsHandler}.
+ * Encapsulates all metadata information using its own internal map.
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class ParamsHandlerTest
+public class MetadataInfo
 {
-    private ParamsHandler paramsHandler;
+    private final Map<String, Object> metadataRootMap = new HashMap<>();
 
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @BeforeEach
-    void setUp()
+    /**
+     * Adds a new metadata key along with its respective objet into the current
+     * instance.
+     *
+     * @param metaDataKey the key for this entry.
+     * @param metadataObject the metadata object associated with the key.
+     */
+    public void put( String metaDataKey, Object metadataObject )
     {
-        paramsHandler = new ParamsHandler( currentUserService );
+        metadataRootMap.put( metaDataKey, metadataObject );
     }
 
-    // TODO: Add missing unit tests for each method.
-
-    private GridHeader getGridHeader( String name, String column )
+    /**
+     * Returns the reference of the internal map where all metadata info lives.
+     *
+     * @return the map of metadata key/objects.
+     */
+    public Map<String, Object> getMap()
     {
-        return new GridHeader( name, column );
+        return metadataRootMap;
     }
 }

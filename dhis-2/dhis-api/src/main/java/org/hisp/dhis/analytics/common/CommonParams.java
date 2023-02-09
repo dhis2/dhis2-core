@@ -27,9 +27,16 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.Builder;
@@ -38,6 +45,10 @@ import lombok.Setter;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -67,7 +78,8 @@ public class CommonParams
 
     /**
      * Data structure containing headers. If present, they will represent the
-     * columns to be retrieved.
+     * columns to be retrieved. Cannot be repeated and should keep ordering,
+     * hence a {@link LinkedHashSet}.
      */
     @Builder.Default
     private final Set<String> headers = new LinkedHashSet<>();
@@ -78,14 +90,115 @@ public class CommonParams
     @Builder.Default
     private final AnalyticsPagingParams pagingParams = AnalyticsPagingParams.builder().build();
 
+    /**
+     * List of sorting params.
+     */
     @Builder.Default
     private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
 
+    /**
+     * The coordinate fields to use as basis for spatial event analytics. The
+     * list is built as collection of coordinate field and fallback fields. The
+     * order defines priority of geometry fields.
+     */
+    @Builder.Default
+    private final List<String> coordinateFields;
+
+    /**
+     * The dimensional object for which to produce aggregated data.
+     */
+    @Builder.Default
+    private final DimensionalItemObject value;
+
+    /**
+     * Indicates which property to display.
+     */
+    @Builder.Default
+    private final DisplayProperty displayProperty;
+
+    /**
+     * The user's organization unit.
+     */
+    @Builder.Default
+    private final String userOrgUnit;
+
+    /**
+     * The mode of selecting organisation units. Default is DESCENDANTS, meaning
+     * all subunits in the hierarchy. CHILDREN refers to immediate children in
+     * the hierarchy; SELECTED refers to the selected organisation units only.
+     */
+    @Builder.Default
+    private final OrganisationUnitSelectionMode ouMode = DESCENDANTS;
+
+    /**
+     * Id scheme to be used for data, more specifically data elements and
+     * attributes which have an option set or legend set, e.g. return the name
+     * of the option instead of the code, or the name of the legend instead of
+     * the legend ID, in the data response.
+     */
+    @Builder.Default
+    private final IdScheme dataIdScheme = UID;
+
+    /**
+     * Overrides the start date of the relative period. e.g: "2016-01-01".
+     */
+    @Builder.Default
+    private final Date relativePeriodDate;
+
+    /**
+     * Indicates if the metadata element should be omitted from the response.
+     */
+    @Builder.Default
     private final boolean skipMeta;
 
+    /**
+     * Indicates if the data should be omitted from the response.
+     */
+    @Builder.Default
+    private final boolean skipData;
+
+    /**
+     * Indicates if the headers should be omitted from the response.
+     */
+    @Builder.Default
+    private final boolean skipHeaders;
+
+    /**
+     * Indicates if full precision should be provided for numeric values.
+     */
+    @Builder.Default
+    private final boolean skipRounding;
+
+    /**
+     * Indicates if full metadata details should be provided.
+     */
+    @Builder.Default
     private final boolean includeMetadataDetails;
 
+    /**
+     * Indicates if organization unit hierarchy should be provided.
+     */
+    @Builder.Default
     private final boolean hierarchyMeta;
 
+    /**
+     * Indicates if additional ou hierarchy data should be provided.
+     */
+    @Builder.Default
     private final boolean showHierarchy;
+
+    public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
+    {
+        return emptyIfNull( dimensionIdentifiers ).stream().filter( Objects::nonNull ).collect( toList() );
+    }
+
+    /**
+     * Gets a new instance of the internal delegator object.
+     *
+     * @return an instance of {@link CommonParamsDelegator}.
+     */
+    public CommonParamsDelegator delegate()
+    {
+        return new CommonParamsDelegator( getDimensionIdentifiers() );
+    }
 }
