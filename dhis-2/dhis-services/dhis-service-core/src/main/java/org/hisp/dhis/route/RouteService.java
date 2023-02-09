@@ -38,9 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.route.auth.ApiTokenAuth;
-import org.hisp.dhis.route.auth.Auth;
-import org.hisp.dhis.route.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.ApiTokenAuth;
+import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;

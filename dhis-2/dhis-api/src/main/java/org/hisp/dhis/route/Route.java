@@ -39,7 +39,7 @@ import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.route.auth.Auth;
+import org.hisp.dhis.common.auth.Auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

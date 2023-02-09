@@ -31,11 +31,11 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.auth.ApiTokenAuth;
+import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.route.Route;
-import org.hisp.dhis.route.auth.ApiTokenAuth;
-import org.hisp.dhis.route.auth.Auth;
-import org.hisp.dhis.route.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;

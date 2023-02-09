@@ -78,8 +78,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         HttpBasicAuth.class, List.of( "targets.auth.password" ),
         JmsTarget.class, List.of( "targets.password" ),
         KafkaTarget.class, List.of( "targets.password" ),
-        org.hisp.dhis.route.auth.HttpBasicAuth.class, List.of( "auth.password" ),
-        org.hisp.dhis.route.auth.ApiTokenAuth.class, List.of( "auth.token" ) );
+        org.hisp.dhis.common.auth.HttpBasicAuth.class, List.of( "auth.password" ),
+        org.hisp.dhis.common.auth.ApiTokenAuth.class, List.of( "auth.token" ) );
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
