@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -112,6 +113,11 @@ final class GistLogic
     static boolean isAccessProperty( Property p )
     {
         return "access".equals( p.key() ) && p.getKlass() == Access.class;
+    }
+
+    static boolean isAttributeValuesProperty( Property p )
+    {
+        return "attributeValues".equals( p.key() ) && p.getItemKlass() == AttributeValue.class;
     }
 
     static boolean isCollectionSizeFilter( Filter filter, Property property )

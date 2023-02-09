@@ -32,14 +32,19 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.dxf2.sync.*;
+import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
+import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
+import org.hisp.dhis.dxf2.sync.EventSynchronization;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
+import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -56,7 +61,7 @@ import org.springframework.stereotype.Component;
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MetadataSyncPreProcessor
 {
     private final SystemSettingManager systemSettingManager;
