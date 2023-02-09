@@ -12,6 +12,8 @@ concurrency:
 jobs:
   api-test:
     env:
+      # We only publish to Dockerhub on PRs from https://github.com/dhis2/dhis2-core. PRs from forks or dependabot cannot access secrets.
+      DOCKERHUB_PUSH: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       CORE_IMAGE_NAME: "dhis2/core-pr:${{ github.event_name == 'pull_request' && github.event.number || 'local' }}"
     
     runs-on: ubuntu-latest
@@ -25,10 +27,8 @@ jobs:
           distribution: temurin
           cache: maven
 
-      # we only want to publish to Dockerhub on PRs
-      # PRs from forks cannot access secrets so such PRs cannot publish Docker images
       - name: Login to Docker Hub
-        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
+        if: ${{ env.DOCKERHUB_PUSH == 'true' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
@@ -41,8 +41,8 @@ jobs:
 
       - name: Build container image
         run: |
-          if [ "${{github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork}}" = "true" ]; then
-            # on PRs (of non-forks): build and publish multi-arch images using Jib. Image is used for api tests in
+          if [ "$DOCKERHUB_PUSH" = "true" ]; then
+            # build and publish multi-arch images using Jib. Image is used for api tests in
             # this workflow and can be pulled from Dockerhub by devs to run locally, ...
             mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                 -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
