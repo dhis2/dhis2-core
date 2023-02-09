@@ -88,6 +88,7 @@ public class DefaultCacheProvider
     private enum Region
     {
         analyticsResponse,
+        expressionDimensionItemAnalyticsResponseCache,
         defaultObjectCache,
         isDataApproved,
         allConstantsCache,
@@ -645,5 +646,14 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.subExpressionCache.name() )
             .expireAfterWrite( 5, TimeUnit.MINUTES ) );
+    }
+
+    @Override
+    public <V> Cache<V> createExpressionDimensionItemAnalyticsResponseCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.expressionDimensionItemAnalyticsResponseCache.name() )
+            .expireAfterWrite( 10, HOURS )
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 }

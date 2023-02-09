@@ -27,8 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.util.Optional;
+import java.util.Set;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.ExpressionDimensionItemAnalyticsCache;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -42,6 +50,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
 {
+    private final AnalyticsCache analyticsCache;
+
+    private final ExpressionDimensionItemAnalyticsCache expressionDimensionItemAnalyticsCache;
+
+    /**
+     * Extension of basic method is handling of update event for expression
+     * dimension item
+     *
+     * @param patch
+     * @param entityAfter
+     */
+    @Override
+    protected void postPatchEntity( JsonPatch patch, ExpressionDimensionItem entityAfter )
+    {
+        super.postPatchEntity( patch, entityAfter );
+
+        Optional<Set<String>> dataQueryParamsKeySet = expressionDimensionItemAnalyticsCache.get( entityAfter.getUid() );
+
+        // All entries will be invalidated in analytics cache to provide new calculated data of expression dimension item
+        // in further analytics requests.
+        dataQueryParamsKeySet.ifPresent( keys -> keys.forEach( analyticsCache::invalidate ) );
+
+        // reference/instance of updated expression dimension item will be removed from cache as well.
+        // Next put of key/value will happen in process of analytics request (expression dimension item must be included)
+        expressionDimensionItemAnalyticsCache.invalidate( entityAfter.getUid() );
+    }
 }

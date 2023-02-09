@@ -47,9 +47,9 @@ public class LocalCache<V> implements Cache<V>
 {
     private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-    private org.cache2k.Cache<String, V> cache2kInstance;
+    private final org.cache2k.Cache<String, V> cache2kInstance;
 
-    private V defaultValue;
+    private final V defaultValue;
 
     /**
      * Constructor to instantiate LocalCache object.

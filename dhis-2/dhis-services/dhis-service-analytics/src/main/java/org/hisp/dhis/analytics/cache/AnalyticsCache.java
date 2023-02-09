@@ -51,7 +51,7 @@ public class AnalyticsCache
 {
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    private Cache<Grid> queryCache;
+    private final Cache<Grid> queryCache;
 
     /**
      * Default constructor. Note that a default expiration time is set, as as
@@ -150,6 +150,16 @@ public class AnalyticsCache
         queryCache.invalidateAll();
 
         log.info( "Analytics cache cleared" );
+    }
+
+    /**
+     * Remove/invalidate the key/value pair from cache
+     *
+     * @param key
+     */
+    public void invalidate( String key )
+    {
+        queryCache.invalidate( key );
     }
 
     public boolean isEnabled()

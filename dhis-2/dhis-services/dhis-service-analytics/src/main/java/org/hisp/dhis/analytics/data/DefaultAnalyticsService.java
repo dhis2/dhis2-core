@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.ExpressionDimensionItemAnalyticsCache;
 import org.hisp.dhis.analytics.data.handler.DataAggregator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
@@ -75,6 +76,8 @@ public class DefaultAnalyticsService
 
     private final AnalyticsCache analyticsCache;
 
+    private final ExpressionDimensionItemAnalyticsCache expressionDimensionItemAnalyticsCache;
+
     private final DataAggregator dataAggregator;
 
     // -------------------------------------------------------------------------
@@ -82,14 +85,21 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
 
     @Override
-    public Grid getAggregatedDataValues( DataQueryParams params )
+    public Grid getAggregatedDataValues( DataQueryParams dataQueryParams )
     {
-        params = checkSecurityConstraints( params );
+        final DataQueryParams params = checkSecurityConstraints( dataQueryParams );
 
         queryValidator.validate( params );
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
+            // expression dimension items will be cached along their DataQueryParams keys (getKey())
+            // when the expression dimension item content is modified (expression dimension item controller),
+            // the key/value pairs in analytics cache is invalidated, all responses related to updated expression dimension item
+            // will be removed
+            params.getExpressionDimensionItems()
+                .forEach( edi -> expressionDimensionItemAnalyticsCache.put( edi.getUid(), params ) );
+
             DataQueryParams immutableParams = newBuilder( params ).build();
 
             return analyticsCache.getOrFetch( params,
