@@ -36,6 +36,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
+import org.hisp.dhis.dataexchange.aggregate.SourceDataQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.NoopJobProgress;
@@ -79,15 +80,15 @@ public class AggregateDataExchangeController
 
     @GetMapping( "/{uid}/sourceData" )
     @ResponseStatus( value = HttpStatus.OK )
-    public List<Grid> getSourceData( @PathVariable String uid )
+    public List<Grid> getSourceData( @PathVariable String uid, SourceDataQueryParams params )
     {
-        return service.getSourceData( uid );
+        return service.getSourceData( uid, params );
     }
 
     @GetMapping( "/{uid}/sourceDataValueSets" )
     @ResponseStatus( value = HttpStatus.OK )
-    public List<DataValueSet> getSourceDataValueSets( @PathVariable String uid )
+    public List<DataValueSet> getSourceDataValueSets( @PathVariable String uid, SourceDataQueryParams params )
     {
-        return service.getSourceDataValueSets( uid );
+        return service.getSourceDataValueSets( uid, params );
     }
 }
