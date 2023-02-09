@@ -691,10 +691,15 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
-            .add( "expressiondimensionitems", this.getExpressionDimensionItems().stream()
-                .map( edi -> ((ExpressionDimensionItem) edi).getExpression() ).collect( Collectors.joining() ) )
+            .add( "expressiondimensionitems", getExpressionDimensionItemsExpressions() )
             .addIgnoreNull( "apiVersion", apiVersion )
             .addIgnoreNull( "locale", locale );
+    }
+
+    private String getExpressionDimensionItemsExpressions()
+    {
+        return this.getExpressionDimensionItems().stream()
+            .map( edi -> ((ExpressionDimensionItem) edi).getExpression() ).collect( Collectors.joining() );
     }
 
     private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
