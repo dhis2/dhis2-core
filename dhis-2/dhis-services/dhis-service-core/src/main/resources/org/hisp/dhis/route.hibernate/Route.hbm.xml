@@ -15,18 +15,20 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230"/>
 
-        <property name="url" type="text"/>
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                     foreign-key="fk_route_userid_userinfoid"/>
 
         <property name="description" type="text"/>
 
         <property name="enabled" type="boolean"/>
 
-        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
-                     foreign-key="fk_route_userid_userinfoid"/>
+        <property name="url" type="text"/>
+
+        <property name="headers" column="headers" type="jbMap" not-null="true"/>
 
         <property name="auth" column="auth" type="jbAuth" not-null="false"/>
 
-        <property name="headers" column="headers" type="jbMap" not-null="true"/>
+        <property name="authorities" column="authorities" type="jbList" not-null="true"/>
 
         <!-- Translations -->
         <property name="translations" column="translations" type="jblTranslations"/>

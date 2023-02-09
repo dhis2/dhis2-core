@@ -32,6 +32,7 @@ import java.util.Map;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
@@ -57,6 +58,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
  *
  * @author Morten Olav Hansen
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
@@ -75,7 +77,9 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         ApiTokenAuth.class, List.of( "targets.auth.token" ),
         HttpBasicAuth.class, List.of( "targets.auth.password" ),
         JmsTarget.class, List.of( "targets.password" ),
-        KafkaTarget.class, List.of( "targets.password" ) );
+        KafkaTarget.class, List.of( "targets.password" ),
+        org.hisp.dhis.route.auth.HttpBasicAuth.class, List.of( "auth.password" ),
+        org.hisp.dhis.route.auth.ApiTokenAuth.class, List.of( "auth.token" ) );
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -96,6 +100,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         if ( ctx.getCurrentValue() == null )
         {
             return false;
+        }
+
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath() );
         }
 
         if ( IGNORE_LIST.containsKey( ctx.getCurrentValue().getClass() ) &&

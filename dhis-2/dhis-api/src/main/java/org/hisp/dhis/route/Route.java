@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.route;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.EqualsAndHashCode;
@@ -66,4 +68,7 @@ public class Route
 
     @JsonProperty
     private Auth auth;
+
+    @JsonProperty
+    private List<String> authorities = new ArrayList<>();
 }
