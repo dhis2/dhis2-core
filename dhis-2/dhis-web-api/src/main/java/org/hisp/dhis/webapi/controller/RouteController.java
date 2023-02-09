@@ -38,6 +38,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +64,8 @@ public class RouteController
     private final RouteService routeService;
 
     @RequestMapping( value = "/exec/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
-    public ResponseEntity<String> exec( @PathVariable( "id" ) String id, HttpServletRequest request )
+    public ResponseEntity<String> exec( @PathVariable( "id" ) String id, @CurrentUser User user,
+        HttpServletRequest request )
         throws IOException
     {
         Route route = routeService.getDecryptedById( id );
@@ -70,6 +73,11 @@ public class RouteController
         if ( route == null )
         {
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Route not found" );
+        }
+
+        if ( !aclService.canRead( user, route ) || !user.hasAnyAuthority( route.getAuthorities() ) )
+        {
+            throw new HttpClientErrorException( HttpStatus.FORBIDDEN, "User not authorized" );
         }
 
         ResponseEntity<String> entity = routeService.exec( route, request );
