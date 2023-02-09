@@ -330,20 +330,14 @@ public class DefaultPreheatService implements PreheatService
 
                 if ( attribute.isMandatory() )
                 {
-                    attribute.getSupportedClasses().forEach( klass -> {
-                        if ( !preheat.getMandatoryAttributes().containsKey( klass ) )
-                            preheat.getMandatoryAttributes().put( klass, new HashSet<>() );
-                        preheat.getMandatoryAttributes().get( klass ).add( attribute.getUid() );
-                    } );
+                    attribute.getSupportedClasses().forEach( klass -> preheat.getMandatoryAttributes()
+                        .computeIfAbsent( klass, key -> new HashSet<>() ).add( attribute.getUid() ) );
                 }
 
                 if ( attribute.isUnique() )
                 {
-                    attribute.getSupportedClasses().forEach( klass -> {
-                        if ( !preheat.getUniqueAttributes().containsKey( klass ) )
-                            preheat.getUniqueAttributes().put( klass, new HashSet<>() );
-                        preheat.getUniqueAttributes().get( klass ).add( attribute.getUid() );
-                    } );
+                    attribute.getSupportedClasses().forEach( klass -> preheat.getUniqueAttributes()
+                        .computeIfAbsent( klass, key -> new HashSet<>() ).add( attribute.getUid() ) );
                 }
 
                 attribute.getSupportedClasses().forEach( klass -> preheat.addClassAttribute( klass, attribute ) );
