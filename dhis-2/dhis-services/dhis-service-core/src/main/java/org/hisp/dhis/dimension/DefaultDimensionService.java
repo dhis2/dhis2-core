@@ -380,13 +380,13 @@ public class DefaultDimensionService
             {
                 return reportingRate;
             }
-            if ( (programDataElement = dataDimensionExtractor.getProgramDataElementDimensionItem( idScheme,
-                id0, id1 )) != null )
+            if ( (programDataElement = dataDimensionExtractor
+                .getProgramDataElementDimensionItem( idScheme, id0, id1 )) != null )
             {
                 return programDataElement;
             }
-            if ( (programAttribute = dataDimensionExtractor.getProgramAttributeDimensionItem( idScheme, id0,
-                id1 )) != null )
+            if ( (programAttribute = dataDimensionExtractor
+                .getProgramAttributeDimensionItem( idScheme, id0, id1 )) != null )
             {
                 return programAttribute;
             }

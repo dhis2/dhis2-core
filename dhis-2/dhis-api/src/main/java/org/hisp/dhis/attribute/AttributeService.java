@@ -38,8 +38,6 @@ import org.hisp.dhis.common.IdentifiableObject;
  */
 public interface AttributeService
 {
-    String ID = AttributeService.class.getName();
-
     // -------------------------------------------------------------------------
     // Attribute
     // -------------------------------------------------------------------------
@@ -103,12 +101,6 @@ public interface AttributeService
      * @return a set of all attributes.
      */
     List<Attribute> getAllAttributes();
-
-    List<Attribute> getAttributes( Class<?> klass );
-
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
-
-    List<Attribute> getUniqueAttributes( Class<?> klass );
 
     // -------------------------------------------------------------------------
     // AttributeValue

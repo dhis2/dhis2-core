@@ -9,8 +9,10 @@ services:
       - 127.0.0.1:9010:9010 # JMX port (for example for VisualVM)
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
     environment:
       JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
+              -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
               -Dcom.sun.management.jmxremote \
               -Dcom.sun.management.jmxremote.port=9010 \
               -Dcom.sun.management.jmxremote.local.only=false \

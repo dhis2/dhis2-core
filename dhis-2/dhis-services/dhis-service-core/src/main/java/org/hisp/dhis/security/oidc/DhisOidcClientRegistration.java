@@ -29,17 +29,16 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.security.interfaces.RSAPublicKey;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+
+import com.nimbusds.jose.jwk.JWK;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -57,6 +56,14 @@ public class DhisOidcClientRegistration
     private final String loginIconPadding;
 
     private final String loginText;
+
+    private final JWK jwk;
+
+    private final RSAPublicKey rsaPublicKey;
+
+    private final String keyId;
+
+    private final String jwkSetUrl;
 
     @Builder.Default
     private final Map<String, Map<String, String>> externalClients = new HashMap<>();

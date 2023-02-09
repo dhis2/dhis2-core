@@ -33,7 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -59,7 +59,7 @@ import org.springframework.stereotype.Component;
  * @author anilkumk
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" )
 @Scope( "prototype" )
 public class MetadataSyncImportHandler
