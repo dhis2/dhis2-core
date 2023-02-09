@@ -62,7 +62,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
@@ -141,7 +140,6 @@ public class FieldFilterService
          */
         @Override
         public JavaType refineSerializationType( MapperConfig<?> config, Annotated a, JavaType baseType )
-            throws JsonMappingException
         {
             return baseType;
         }
@@ -263,9 +261,9 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            applyAccess( params, fieldPaths, object );
-            applySharingDisplayNames( params, fieldPaths, object );
-            applyAttributeValuesAttribute( params, fieldPaths, object );
+            applyAccess( object, fieldPaths, params.isSkipSharing(), params.getUser() );
+            applySharingDisplayNames( object, fieldPaths, params.isSkipSharing() );
+            applyAttributeValuesAttribute( object, fieldPaths, params.isSkipSharing() );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyAttributeValueFields( object, objectNode, fieldPaths );
@@ -314,29 +312,6 @@ public class FieldFilterService
         boolean isSkipSharing, Predicate<String> filter, Consumer<Object> consumer )
     {
         if ( object == null || isSkipSharing )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        if ( !schema.isIdentifiableObject() )
-        {
-            return;
-        }
-
-        fieldPaths.forEach( fp -> {
-            if ( filter.test( fp.toFullPath() ) )
-            {
-                fieldPathHelper.visitFieldPaths( object, List.of( fp ), consumer );
-            }
-        } );
-    }
-
-    private void applyFieldPathVisitor( Object object, List<FieldPath> fieldPaths,
-        FieldFilterParams<?> params, Predicate<String> filter, Consumer<Object> consumer )
-    {
-        if ( object == null || params.isSkipSharing() )
         {
             return;
         }
@@ -471,51 +446,10 @@ public class FieldFilterService
             } );
     }
 
-    private void applyAttributeValuesAttribute( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
-    {
-        applyFieldPathVisitor( object, fieldPaths, params,
-            s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
-            o -> {
-                if ( o instanceof AttributeValue )
-                {
-                    ((AttributeValue) o).setAttribute(
-                        attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
-                }
-            } );
-    }
-
     private void applySharingDisplayNames( Object root, List<FieldPath> fieldPaths,
         boolean isSkipSharing )
     {
         applyFieldPathVisitor( root, fieldPaths, isSkipSharing,
-            s -> s.contains( "sharing" )
-                || s.equals( "userGroupAccesses" ) || s.endsWith( ".userGroupAccesses" )
-                || s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" )
-                || s.equals( "userAccesses" ) || s.endsWith( ".userAccesses" )
-                || s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ),
-            o -> {
-                if ( root instanceof BaseIdentifiableObject )
-                {
-                    ((BaseIdentifiableObject) root).getSharing().getUserGroups().values()
-                        .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((BaseIdentifiableObject) root).getSharing().getUsers().values()
-                        .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
-                }
-
-                if ( o instanceof BaseIdentifiableObject )
-                {
-                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
-                        .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
-                        .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
-                }
-            } );
-    }
-
-    private void applySharingDisplayNames( FieldFilterParams<?> params, List<FieldPath> fieldPaths,
-        Object root )
-    {
-        applyFieldPathVisitor( root, fieldPaths, params,
             s -> s.contains( "sharing" )
                 || s.equals( "userGroupAccesses" ) || s.endsWith( ".userGroupAccesses" )
                 || s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" )
@@ -552,15 +486,4 @@ public class FieldFilterService
             } );
     }
 
-    private void applyAccess( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
-    {
-        applyFieldPathVisitor( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ),
-            o -> {
-                if ( o instanceof BaseIdentifiableObject )
-                {
-                    ((BaseIdentifiableObject) o)
-                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
-                }
-            } );
-    }
 }
