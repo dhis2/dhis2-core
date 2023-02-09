@@ -75,7 +75,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 /**
  * @author Morten Olav Hansen
  */
-@Service( "org.hisp.dhis.fieldfiltering.FieldFilterService" )
+@Service
 public class FieldFilterService
 {
     private final FieldPathHelper fieldPathHelper;
