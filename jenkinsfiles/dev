@@ -215,7 +215,7 @@ pipeline {
 
                                 dir('scripts') {
                                     echo 'Creating DHIS2 instance on IM...'
-                                    sh "(./findByName.sh play dev && ./update-whoami.sh play dev) || ./deploy-dev.sh play dev"
+                                    sh "(./findByName.sh play dev && ./update-dhis2.sh play dev) || ./deploy-dhis2.sh play dev"
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
                             }
