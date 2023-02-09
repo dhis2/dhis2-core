@@ -63,7 +63,7 @@ class UserDeletionHandlerTest extends SingleSetupIntegrationTestBase
 
         userA.setTeiSearchOrganisationUnits( new HashSet<>( Set.of( OUa ) ) );
         userA.setDataViewOrganisationUnits( new HashSet<>( Set.of( OUa ) ) );
-        userA.setOrganisationUnits( new HashSet<>( Set.of( OUa ) ) );
+        userA.addOrganisationUnit( OUa );
 
         userService.updateUser( userA );
 

@@ -74,7 +74,7 @@ public class UserDeletionHandler extends JdbcDeletionHandler
 
     private void deleteOrganisationUnit( OrganisationUnit unit )
     {
-        for ( User user : userStore.getUsers( new UserQueryParams().addOrganisationUnit( unit ) ) )
+        for ( User user : unit.getUsers() )
         {
             user.getOrganisationUnits().remove( unit );
             idObjectManager.updateNoAcl( user );

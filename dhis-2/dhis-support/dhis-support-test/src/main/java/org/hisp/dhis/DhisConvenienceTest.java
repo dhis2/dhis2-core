@@ -2897,11 +2897,13 @@ public abstract class DhisConvenienceTest
     }
 
     protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
-        OrganisationUnit dataViewOrganisationUnits, String... auths )
+        OrganisationUnit dataViewOrganisationUnit, String... auths )
     {
-        User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
-            dataViewOrganisationUnits != null ? newHashSet( dataViewOrganisationUnits ) : newHashSet( orgUnit ),
-            auths );
+        Set<OrganisationUnit> organisationUnits = orgUnit == null ? new HashSet<>() : newHashSet( orgUnit );
+        Set<OrganisationUnit> dataViewOrganisationUnits = dataViewOrganisationUnit != null
+            ? newHashSet( dataViewOrganisationUnit )
+            : new HashSet<>( organisationUnits );
+        User user = _createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
 
         persistUserAndRoles( user );
 
