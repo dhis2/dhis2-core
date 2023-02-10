@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
@@ -208,6 +209,13 @@ public abstract class BaseAnalyticalObject
     protected transient List<DimensionalObject> filters = new ArrayList<>();
 
     protected transient Map<String, String> parentGraphMap = new HashMap<>();
+
+    /**
+     * Keeps the uids of element + program stage, so we are able to return the
+     * correct elements in cases of repeated elements with distinct program
+     * stages.
+     */
+    private Set<String> addedElementsProgramStages = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -824,9 +832,19 @@ public abstract class BaseAnalyticalObject
                         ? tedd.getDataElement().getOptionSet()
                         : null;
 
-                    return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_DATA_ELEMENT, null,
-                        tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
-                        optionSet ) );
+                    String elementProgramStage = dimension + (tedd.getProgramStage() != null
+                        ? tedd.getProgramStage().getUid()
+                        : EMPTY);
+
+                    if ( !addedElementsProgramStages.contains( elementProgramStage ) )
+                    {
+                        addedElementsProgramStages.add( elementProgramStage );
+
+                        return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_DATA_ELEMENT, null,
+                            tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(),
+                            valueType,
+                            optionSet ) );
+                    }
                 }
             }
         }

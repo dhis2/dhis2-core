@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -158,9 +159,12 @@ class BaseAnalyticalObjectTest
         String dimensionUid = "abc123abc11";
         String dimensionName = "anyName";
         String dimensionFilter = "gt:71";
+        ProgramStage programStage = new ProgramStage( "anyName", null );
 
         TrackedEntityDataElementDimension dataElementDimension = stubTrackedEntityDataElementDimension( dimensionName,
             dimensionUid, dimensionFilter );
+        dataElementDimension.setProgramStage( programStage );
+
         List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = List.of( dataElementDimension );
 
         EventVisualization ev = new EventVisualization( "anyName" );
@@ -180,6 +184,55 @@ class BaseAnalyticalObjectTest
         assertEquals( dataElementDimension.getDataElement().getValueType(), baseDimensionalObject.getValueType() );
     }
 
+    @Test
+    void testPopulateDimensionsForSameDimensionDifferentStages()
+    {
+        String sameDimensionUid = "abc123abc11";
+        String dimensionName = "anyName";
+        String dimensionFilter = "gt:71";
+        ProgramStage programStage1 = new ProgramStage( "anyStage1", null );
+        programStage1.setUid( "ps1234abc11" );
+
+        ProgramStage programStage2 = new ProgramStage( "anyStage2", null );
+        programStage1.setUid( "ps1234abc22" );
+
+        TrackedEntityDataElementDimension dataElementDimension1 = stubTrackedEntityDataElementDimension( dimensionName,
+            sameDimensionUid, dimensionFilter );
+        dataElementDimension1.setProgramStage( programStage1 );
+
+        TrackedEntityDataElementDimension dataElementDimension2 = stubTrackedEntityDataElementDimension( dimensionName,
+            sameDimensionUid, dimensionFilter );
+        dataElementDimension2.setProgramStage( programStage2 );
+
+        List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = List.of( dataElementDimension1,
+            dataElementDimension2 );
+
+        List<String> sameDimensions = List.of( sameDimensionUid, sameDimensionUid );
+        List<DimensionalObject> dimensionalObjects = new ArrayList<>();
+
+        EventVisualization ev = new EventVisualization( "anyName" );
+        ev.setDataElementDimensions( trackedEntityDataElementDimensions );
+
+        ev.populateDimensions( sameDimensions, dimensionalObjects );
+
+        BaseDimensionalObject baseDimensionalObject1 = (BaseDimensionalObject) dimensionalObjects.get( 0 );
+        BaseDimensionalObject baseDimensionalObject2 = (BaseDimensionalObject) dimensionalObjects.get( 1 );
+
+        assertEquals( 2, dimensionalObjects.size() );
+        assertEquals( PROGRAM_DATA_ELEMENT, baseDimensionalObject1.getDimensionType() );
+        assertEquals( sameDimensionUid, baseDimensionalObject1.getDimension() );
+        assertEquals( dimensionFilter, baseDimensionalObject1.getFilter() );
+        assertNull( baseDimensionalObject1.getDisplayName() );
+        assertNotNull( baseDimensionalObject1.getProgramStage() );
+        assertEquals( programStage1, baseDimensionalObject1.getProgramStage() );
+        assertEquals( dataElementDimension1.getDataElement().getValueType(), baseDimensionalObject1.getValueType() );
+
+        assertEquals( PROGRAM_DATA_ELEMENT, baseDimensionalObject2.getDimensionType() );
+        assertEquals( sameDimensionUid, baseDimensionalObject2.getDimension() );
+        assertNotNull( baseDimensionalObject2.getProgramStage() );
+        assertEquals( programStage2, baseDimensionalObject2.getProgramStage() );
+    }
+
     private TrackedEntityDataElementDimension stubTrackedEntityDataElementDimension( String deName, String deUid,
         String deFilter )
     {
@@ -187,7 +240,6 @@ class BaseAnalyticalObjectTest
         dataElement.setUid( deUid );
         dataElement.setValueType( INTEGER );
 
-        ProgramStage programStage = new ProgramStage( deName, null );
-        return new TrackedEntityDataElementDimension( dataElement, null, programStage, deFilter );
+        return new TrackedEntityDataElementDimension( dataElement, null, null, deFilter );
     }
 }
