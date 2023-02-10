@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -81,9 +82,9 @@ public class RouteService
         restTemplate.setRequestFactory( requestFactory );
     }
 
-    public Route getDecryptedById( String id )
+    public Route getDecryptedById( @Nonnull String id )
     {
-        Route route = routeStore.getByUid( id );
+        Route route = routeStore.getByUidNoAcl( id );
 
         if ( route == null )
         {
