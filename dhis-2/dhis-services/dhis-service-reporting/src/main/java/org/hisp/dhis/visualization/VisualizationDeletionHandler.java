@@ -58,7 +58,7 @@ public class VisualizationDeletionHandler
     }
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         // generic
         whenDeleting( Indicator.class, this::deleteIndicator );

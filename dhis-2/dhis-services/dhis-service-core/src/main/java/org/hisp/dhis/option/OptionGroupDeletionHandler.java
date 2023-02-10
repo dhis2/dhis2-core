@@ -29,22 +29,20 @@ package org.hisp.dhis.option;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
-public class OptionGroupDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class OptionGroupDeletionHandler extends IdObjectDeletionHandler<OptionGroup>
 {
-    @Autowired
-    private OptionGroupStore optionGroupStore;
+    private final OptionGroupStore optionGroupStore;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Option.class, this::deleteOption );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.system.deletion;
 
-import java.util.Set;
+import java.lang.reflect.ParameterizedType;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Lars Helge Overland
+ * This base deletion handler for {@link IdentifiableObject} implements method
+ * {@link IdObjectDeletionHandler#allowDeleteUser(User)} by default. If there is
+ * any object has property createdBy or lastUpdatedBy linked to deleting
+ * {@link User} then the deletion is vetoed.
  */
-@Component
-@RequiredArgsConstructor
-public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
+public abstract class IdObjectDeletionHandler<T extends IdentifiableObject> extends JdbcDeletionHandler
 {
-    private final CurrentUserService currentUserService;
+    protected final DeletionVeto VETO;
+
+    private final Class<T> klass;
+
+    protected IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
+    {
+        this.idObjectManager = idObjectManager;
+    }
+
+    protected IdObjectDeletionHandler()
+    {
+        this.klass = (Class) (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+        this.VETO = new DeletionVeto( klass );
+    }
 
     @Override
-    protected void registerHandler()
+    protected final void register()
     {
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( UserGroup.class, this::deleteUserGroup );
+        whenVetoing( User.class, this::allowDeleteUser );
+        registerHandler();
     }
 
-    private void deleteUser( User user )
+    protected abstract void registerHandler();
+
+    private DeletionVeto allowDeleteUser( User user )
     {
-        Set<UserGroup> userGroups = user.getGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getMembers().remove( user );
-            idObjectManager.updateNoAcl( group );
-        }
-    }
-
-    private void deleteUserGroup( UserGroup userGroup )
-    {
-        Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getManagedGroups().remove( userGroup );
-            idObjectManager.updateNoAcl( group );
-        }
-
-        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
+        return idObjectManager.findByUser( klass, user ).isEmpty() ? DeletionVeto.ACCEPT : VETO;
     }
 }

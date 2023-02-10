@@ -38,10 +38,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -226,7 +224,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( entry.getValue() ) )
-                .filters( new HashSet<>( params.getFields( entry.getKey() ) ) )
+                .filters( params.getFields( entry.getKey() ) )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 
@@ -280,7 +278,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
                 FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                     .objects( objects )
-                    .filters( new HashSet<>( params.getFields( klass ) ) )
+                    .filters( params.getFields( klass ) )
                     .skipSharing( params.getSkipSharing() )
                     .user( currentUser )
                     .build();
@@ -319,7 +317,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             {
                 FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                     .objects( new ArrayList<>( metadata.get( klass ) ) )
-                    .filters( Set.of( ":owner" ) )
+                    .filters( ":owner" )
                     .skipSharing( params.getSkipSharing() )
                     .build();
 
@@ -358,7 +356,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( metadata.get( klass ) ) )
-                .filters( Set.of( ":owner" ) )
+                .filters( ":owner" )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 
