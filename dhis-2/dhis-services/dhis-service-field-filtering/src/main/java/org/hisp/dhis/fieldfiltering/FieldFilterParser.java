@@ -34,22 +34,27 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * FieldFilterParser parses <a href=
+ * "https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter">metadata
+ * field filters</a>. For example <code>"dataSets[id,name]"</code> will result
+ * in two {@link FieldPath}'s for <code>id</code> and <code>name</code> with
+ * path <code>dataSet</code>.
+ *
  * @author Morten Olav Hansen
  */
 public class FieldFilterParser
 {
-    public static List<FieldPath> parse( Set<String> fields )
+    public static List<FieldPath> parse( String fields )
     {
-        return expandField( StringUtils.join( fields, "," ) );
+        return expandField( fields );
     }
 
-    public static List<FieldPath> parseWithPrefix( Set<String> fields, String prefix )
+    public static List<FieldPath> parseWithPrefix( String fields, String prefix )
     {
         return expandField( StringUtils.join( fields, "," ), prefix );
     }

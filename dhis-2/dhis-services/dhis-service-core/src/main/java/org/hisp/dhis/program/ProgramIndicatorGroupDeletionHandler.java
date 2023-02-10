@@ -29,7 +29,7 @@ package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,12 +37,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramIndicatorGroupDeletionHandler extends DeletionHandler
+public class ProgramIndicatorGroupDeletionHandler extends IdObjectDeletionHandler<ProgramIndicatorGroup>
 {
     private final ProgramIndicatorService programIndicatorService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
     }

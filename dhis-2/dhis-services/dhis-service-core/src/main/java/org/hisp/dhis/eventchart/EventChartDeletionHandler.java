@@ -54,7 +54,7 @@ public class EventChartDeletionHandler
     }
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         // generic
         whenDeleting( Period.class, this::deletePeriod );
