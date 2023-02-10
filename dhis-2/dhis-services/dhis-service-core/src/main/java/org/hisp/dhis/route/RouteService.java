@@ -143,12 +143,12 @@ public class RouteService
             return;
         }
 
-        if ( auth.getType().equals( "api-token" ) )
+        if ( auth.getType().equals( ApiTokenAuth.TYPE ) )
         {
             ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
             apiTokenAuth.setToken( encryptor.decrypt( apiTokenAuth.getToken() ) );
         }
-        else if ( auth.getType().equals( "http-basic" ) )
+        else if ( auth.getType().equals( HttpBasicAuth.TYPE ) )
         {
             HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
             httpBasicAuth.setPassword( encryptor.decrypt( httpBasicAuth.getPassword() ) );

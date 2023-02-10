@@ -58,7 +58,7 @@ public class HttpBasicAuth extends Auth
 
     public HttpBasicAuth()
     {
-        super( "http-basic" );
+        super( TYPE );
     }
 
     @Override

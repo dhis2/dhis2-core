@@ -73,7 +73,7 @@ public class RouteObjectBundleHook
             return;
         }
 
-        if ( auth.getType().equals( "api-token" ) )
+        if ( auth.getType().equals( ApiTokenAuth.TYPE ) )
         {
             ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
 
@@ -82,7 +82,7 @@ public class RouteObjectBundleHook
                 apiTokenAuth.setToken( encryptor.encrypt( apiTokenAuth.getToken() ) );
             }
         }
-        else if ( auth.getType().equals( "http-basic" ) )
+        else if ( auth.getType().equals( HttpBasicAuth.TYPE ) )
         {
             HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
 

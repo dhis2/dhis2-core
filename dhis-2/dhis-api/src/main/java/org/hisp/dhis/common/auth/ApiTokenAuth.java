@@ -57,7 +57,7 @@ public class ApiTokenAuth extends Auth
 
     public ApiTokenAuth()
     {
-        super( "api-token" );
+        super( TYPE );
     }
 
     @Override
