@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_EVENTS;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getFieldPaths;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
@@ -51,11 +50,9 @@ public class TrackedEntityFieldsParamMapper
 
     private static final String FIELD_ENROLLMENTS = "enrollments";
 
-    public static TrackedEntityInstanceParams map( List<String> fields )
+    public static TrackedEntityInstanceParams map( List<FieldPath> fields )
     {
-        List<FieldPath> fieldPaths = getFieldPaths( fields );
-
-        Map<String, FieldPath> roots = rootFields( fieldPaths );
+        Map<String, FieldPath> roots = rootFields( fields );
 
         TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
 
@@ -65,10 +62,10 @@ public class TrackedEntityFieldsParamMapper
 
         params = initNestedEnrollmentProperties( roots, params );
 
-        params = withFieldEnrollmentsAndEvents( fieldPaths, roots, params );
-        params = withFieldEnrollmentAndAttributes( fieldPaths, roots, params );
-        params = withFieldEnrollmentAndRelationships( fieldPaths, roots, params );
-        params = withFieldEventsAndRelationships( fieldPaths, roots, params );
+        params = withFieldEnrollmentsAndEvents( fields, roots, params );
+        params = withFieldEnrollmentAndAttributes( fields, roots, params );
+        params = withFieldEnrollmentAndRelationships( fields, roots, params );
+        params = withFieldEventsAndRelationships( fields, roots, params );
 
         return params;
     }

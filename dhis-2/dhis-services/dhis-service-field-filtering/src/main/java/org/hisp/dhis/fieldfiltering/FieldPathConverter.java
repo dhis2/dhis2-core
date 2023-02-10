@@ -25,52 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.fieldfiltering;
 
+import java.util.List;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Lars Helge Overland
- */
-@Component
-@RequiredArgsConstructor
-public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
+public class FieldPathConverter implements ConditionalGenericConverter
 {
-    private final CurrentUserService currentUserService;
 
     @Override
-    protected void registerHandler()
+    public boolean matches( TypeDescriptor sourceType, TypeDescriptor targetType )
     {
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( UserGroup.class, this::deleteUserGroup );
+        return targetType.getResolvableType().getGenerics().length == 1 &&
+            FieldPath.class.equals( targetType.getResolvableType().getGeneric( 0 ).resolve() );
     }
 
-    private void deleteUser( User user )
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes()
     {
-        Set<UserGroup> userGroups = user.getGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getMembers().remove( user );
-            idObjectManager.updateNoAcl( group );
-        }
+        return Set.of(
+            new ConvertiblePair( String.class, List.class ),
+            new ConvertiblePair( String[].class, List.class ) );
     }
 
-    private void deleteUserGroup( UserGroup userGroup )
+    @Override
+    public Object convert( Object source, TypeDescriptor sourceType, TypeDescriptor targetType )
     {
-        Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
-        for ( UserGroup group : userGroups )
+        if ( sourceType.isArray() )
         {
-            group.getManagedGroups().remove( userGroup );
-            idObjectManager.updateNoAcl( group );
+            /*
+             * @formatter:off
+             *
+             * Undo Spring's splitting of
+             * `fields=attributes[attribute,value],deleted` into
+             * 0 = "attributes[attribute"
+             * 1 = "value]"
+             * 2 = "deleted"
+             * separating nested fields attribute and value.
+             *
+             * @formatter:on
+             */
+            return FieldFilterParser.parse( String.join( ",", (String[]) source ) );
         }
-
-        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
+        return FieldFilterParser.parse( (String) source );
     }
 }

@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,12 +42,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramStageDataElementDeletionHandler extends DeletionHandler
+public class ProgramStageDataElementDeletionHandler extends IdObjectDeletionHandler<ProgramStageDataElement>
 {
     private final ProgramStageDataElementService programStageDataElementService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( ProgramStage.class, this::deleteProgramStage );
         whenDeleting( DataElement.class, this::deleteDataElement );

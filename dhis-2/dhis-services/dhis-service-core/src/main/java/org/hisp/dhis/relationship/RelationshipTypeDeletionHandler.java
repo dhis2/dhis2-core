@@ -29,23 +29,23 @@ package org.hisp.dhis.relationship;
 
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
 @Component
-@AllArgsConstructor
-public class RelationshipTypeDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class RelationshipTypeDeletionHandler extends IdObjectDeletionHandler<RelationshipType>
 {
     private final RelationshipTypeService relationshipTypeService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Program.class, this::deleteProgram );
     }
