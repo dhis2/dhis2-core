@@ -25,41 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.fieldfiltering;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper.map;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
+import java.util.List;
+import java.util.Set;
 
-import java.util.stream.Stream;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-class EventFieldsMapperTest
+public class FieldPathConverter implements ConditionalGenericConverter
 {
-    static Stream<Arguments> getEventParamsMultipleCases()
+
+    @Override
+    public boolean matches( TypeDescriptor sourceType, TypeDescriptor targetType )
     {
-        return Stream.of(
-            arguments( "!*", false ),
-            arguments( "*", true ),
-            arguments( "relationships", true ),
-            arguments( "*,!relationships", false ),
-            arguments( "relationships[*]", true ),
-            arguments( "relationships[*],!relationships[*]", false ),
-            arguments( "!relationships[*],relationships[*]", false ),
-            arguments( "relationships,relationships[!from]", true ) );
+        return targetType.getResolvableType().getGenerics().length == 1 &&
+            FieldPath.class.equals( targetType.getResolvableType().getGeneric( 0 ).resolve() );
     }
 
-    @MethodSource
-    @ParameterizedTest
-    void getEventParamsMultipleCases( String fields, boolean expectRelationships )
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes()
     {
-        EventParams params = map( FieldFilterParser.parse( fields ) );
+        return Set.of(
+            new ConvertiblePair( String.class, List.class ),
+            new ConvertiblePair( String[].class, List.class ) );
+    }
 
-        assertEquals( expectRelationships, params.isIncludeRelationships() );
+    @Override
+    public Object convert( Object source, TypeDescriptor sourceType, TypeDescriptor targetType )
+    {
+        if ( sourceType.isArray() )
+        {
+            /*
+             * @formatter:off
+             *
+             * Undo Spring's splitting of
+             * `fields=attributes[attribute,value],deleted` into
+             * 0 = "attributes[attribute"
+             * 1 = "value]"
+             * 2 = "deleted"
+             * separating nested fields attribute and value.
+             *
+             * @formatter:on
+             */
+            return FieldFilterParser.parse( String.join( ",", (String[]) source ) );
+        }
+        return FieldFilterParser.parse( (String) source );
     }
 }
