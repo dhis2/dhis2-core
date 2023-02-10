@@ -1,4 +1,4 @@
--- Add proxy table
+-- Add route table
 
 DROP TABLE IF EXISTS route;
 

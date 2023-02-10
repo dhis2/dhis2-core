@@ -95,13 +95,14 @@ public class RouteService
         try
         {
             route = objectMapper.readValue( objectMapper.writeValueAsString( route ), Route.class );
-            decrypt( route );
         }
         catch ( JsonProcessingException ex )
         {
             log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check it's data." );
             return null;
         }
+
+        decrypt( route );
 
         return route;
     }
