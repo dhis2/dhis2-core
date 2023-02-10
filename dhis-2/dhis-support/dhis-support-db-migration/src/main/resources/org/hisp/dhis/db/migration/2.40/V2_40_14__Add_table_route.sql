@@ -11,7 +11,7 @@ CREATE TABLE route (
 	lastupdatedby int8 NULL,
 	name varchar(230) NOT NULL,
 	description text NULL,
-	enabled bool NOT NULL,
+	disabled bool NOT NULL,
 	url text NOT NULL,
 	headers jsonb NULL DEFAULT '{}'::jsonb,
 	auth jsonb NULL DEFAULT '{}'::jsonb,

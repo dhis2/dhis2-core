@@ -32,6 +32,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -86,7 +87,7 @@ public class RouteService
     {
         Route route = routeStore.getByUidNoAcl( id );
 
-        if ( route == null )
+        if ( route == null || route.isDisabled() )
         {
             return null;
         }
@@ -126,12 +127,7 @@ public class RouteService
 
         HttpEntity<String> entity = new HttpEntity<>( body, headers );
 
-        HttpMethod httpMethod = HttpMethod.resolve( request.getMethod() );
-
-        if ( httpMethod == null )
-        {
-            httpMethod = HttpMethod.GET;
-        }
+        HttpMethod httpMethod = Objects.requireNonNullElse( HttpMethod.resolve( request.getMethod() ), HttpMethod.GET );
 
         return restTemplate.exchange( uriComponentsBuilder.toUriString(), httpMethod,
             entity, String.class );

@@ -58,7 +58,7 @@ public class Route
     private String description;
 
     @JsonProperty( required = true )
-    private boolean enabled = true;
+    private boolean disabled;
 
     @JsonProperty( required = true )
     private String url;
