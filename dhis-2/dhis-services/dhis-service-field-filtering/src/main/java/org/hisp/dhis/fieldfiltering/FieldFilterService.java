@@ -216,6 +216,7 @@ public class FieldFilterService
             applyAttributeValuesAttribute( object, fieldPaths, isSkipSharing );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyAttributeValueFields( object, objectNode, fieldPaths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             objectNodes.add( objectNode );
