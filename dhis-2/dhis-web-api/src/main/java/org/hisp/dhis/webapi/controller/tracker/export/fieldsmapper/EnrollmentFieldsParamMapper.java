@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_EVENTS;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getRoots;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
 import java.util.Map;
@@ -45,9 +45,9 @@ public class EnrollmentFieldsParamMapper
     {
     }
 
-    public static EnrollmentParams map( List<String> fields )
+    public static EnrollmentParams map( List<FieldPath> fields )
     {
-        Map<String, FieldPath> roots = getRoots( fields );
+        Map<String, FieldPath> roots = rootFields( fields );
         EnrollmentParams params = initUsingAllOrNoFields( roots );
 
         params = withFieldRelationships( roots, params );

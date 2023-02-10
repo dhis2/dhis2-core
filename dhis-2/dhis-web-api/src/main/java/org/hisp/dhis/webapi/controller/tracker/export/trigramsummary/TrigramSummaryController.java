@@ -40,7 +40,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -66,6 +66,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @AllArgsConstructor
 public class TrigramSummaryController
 {
+    public static final String DEFAULT_FIELDS_PARAM = "id,displayName";
+
     public static final String RESOURCE_PATH = "/trigramSummary";
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -80,16 +82,11 @@ public class TrigramSummaryController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    public @ResponseBody TrigramSummary getTrigramSummary( @RequestParam Map<String, String> rpParameters )
+    public @ResponseBody TrigramSummary getTrigramSummary(
+        @RequestParam Map<String, String> rpParameters,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
         TrigramSummary trigramSummary = new TrigramSummary();
-
-        List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.defaultPreset().getFields() );
-        }
 
         Set<TrackedEntityAttribute> allIndexableAttributes = trackedEntityAttributeService
             .getAllTrigramIndexableTrackedEntityAttributes();
