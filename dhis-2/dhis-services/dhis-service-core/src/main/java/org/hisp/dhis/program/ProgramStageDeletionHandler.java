@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,14 +44,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramStageDeletionHandler extends JdbcDeletionHandler
+public class ProgramStageDeletionHandler extends IdObjectDeletionHandler<ProgramStage>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramStage.class );
-
     private final ProgramStageService programStageService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Program.class, this::deleteProgram );
         whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
