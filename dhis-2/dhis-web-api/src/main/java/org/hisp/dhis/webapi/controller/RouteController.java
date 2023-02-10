@@ -63,8 +63,8 @@ public class RouteController
 {
     private final RouteService routeService;
 
-    @RequestMapping( value = "/exec/{id}", method = { RequestMethod.GET, RequestMethod.POST } )
-    public ResponseEntity<String> exec( @PathVariable( "id" ) String id, @CurrentUser User user,
+    @RequestMapping( value = "/{id}/run", method = { RequestMethod.GET, RequestMethod.POST } )
+    public ResponseEntity<String> run( @PathVariable( "id" ) String id, @CurrentUser User user,
         HttpServletRequest request )
         throws IOException
     {
