@@ -75,7 +75,7 @@ public class RouteController
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Route not found" );
         }
 
-        if ( !aclService.canRead( user, route ) || !user.hasAnyAuthority( route.getAuthorities() ) )
+        if ( !aclService.canRead( user, route ) && !user.hasAnyAuthority( route.getAuthorities() ) )
         {
             throw new HttpClientErrorException( HttpStatus.FORBIDDEN, "User not authorized" );
         }
