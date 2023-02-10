@@ -187,6 +187,7 @@ public class FieldFilterService
             applyAttributeValuesAttribute( params, fieldPaths, object );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyAttributeValueFields( object, objectNode, fieldPaths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             objectNodes.add( objectNode );
