@@ -820,32 +820,29 @@ public abstract class BaseAnalyticalObject
         // Tracked entity data element.
         for ( TrackedEntityDataElementDimension tedd : dataElementDimensions )
         {
-            if ( tedd != null )
+            if ( tedd != null && dimension.equals( tedd.getUid() ) )
             {
-                if ( dimension.equals( tedd.getUid() ) )
+                ValueType valueType = tedd.getDataElement() != null
+                    ? tedd.getDataElement().getValueType()
+                    : null;
+
+                OptionSet optionSet = tedd.getDataElement() != null
+                    ? tedd.getDataElement().getOptionSet()
+                    : null;
+
+                String elementProgramStage = dimension + (tedd.getProgramStage() != null
+                    ? tedd.getProgramStage().getUid()
+                    : EMPTY);
+
+                // Return dimensions with distinct program stages.
+                if ( !addedElementsProgramStages.contains( elementProgramStage ) )
                 {
-                    ValueType valueType = tedd.getDataElement() != null
-                        ? tedd.getDataElement().getValueType()
-                        : null;
+                    addedElementsProgramStages.add( elementProgramStage );
 
-                    OptionSet optionSet = tedd.getDataElement() != null
-                        ? tedd.getDataElement().getOptionSet()
-                        : null;
-
-                    String elementProgramStage = dimension + (tedd.getProgramStage() != null
-                        ? tedd.getProgramStage().getUid()
-                        : EMPTY);
-
-                    // Return dimensions with distinct program stages.
-                    if ( !addedElementsProgramStages.contains( elementProgramStage ) )
-                    {
-                        addedElementsProgramStages.add( elementProgramStage );
-
-                        return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_DATA_ELEMENT, null,
-                            tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(),
-                            valueType,
-                            optionSet ) );
-                    }
+                    return Optional.of( new BaseDimensionalObject( dimension, PROGRAM_DATA_ELEMENT, null,
+                        tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(),
+                        valueType,
+                        optionSet ) );
                 }
             }
         }
