@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -89,7 +90,7 @@ public class TrackerEnrollmentsExportController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException
     {
@@ -133,10 +134,9 @@ public class TrackerEnrollmentsExportController
     @GetMapping( value = "{id}" )
     public ResponseEntity<ObjectNode> getEnrollmentById(
         @PathVariable String id,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-
         EnrollmentParams enrollmentParams = map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER

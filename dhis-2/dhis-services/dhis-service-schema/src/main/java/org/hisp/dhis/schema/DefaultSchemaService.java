@@ -91,6 +91,7 @@ public class DefaultSchemaService
     private void init()
     {
         register( new AggregateDataExchangeSchemaDescriptor() );
+        register( new EventHookSchemaDescriptor() );
         register( new AnalyticsTableHookSchemaDescriptor() );
         register( new AttributeSchemaDescriptor() );
         register( new AttributeValueSchemaDescriptor() );
@@ -153,6 +154,7 @@ public class DefaultSchemaService
         register( new ProgramStageDataElementSchemaDescriptor() );
         register( new ProgramStageSchemaDescriptor() );
         register( new ProgramStageSectionSchemaDescriptor() );
+        register( new ProgramStageWorkingListSchemaDescriptor() );
         register( new ProgramSectionSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() );

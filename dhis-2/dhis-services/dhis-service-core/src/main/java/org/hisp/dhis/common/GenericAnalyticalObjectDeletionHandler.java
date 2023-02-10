@@ -44,14 +44,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 
 /**
  * @author Lars Helge Overland
  */
 public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnalyticalObject, S extends AnalyticalObjectService<T>>
-    extends DeletionHandler
+    extends IdObjectDeletionHandler<T>
 {
 
     protected final DeletionVeto veto;
@@ -108,7 +108,7 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnaly
         {
             if ( analyticalObject.getPeriods().contains( period ) )
             {
-                return veto;
+                return VETO;
             }
         }
 
