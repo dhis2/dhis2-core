@@ -431,4 +431,31 @@ public interface IdentifiableObjectStore<T>
      * Remove given UserGroup UID from all sharing records in database
      */
     void removeUserGroupFromSharing( @Nonnull String userGroupUID, @Nonnull String tableName );
+
+    /**
+     * Look up list objects which have property createdBy or lastUpdatedBy
+     * linked to given {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    List<T> findByUser( @Nonnull User user );
+
+    /**
+     * Look up list objects which have property lastUpdatedBy linked to given
+     * {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    List<T> findByLastUpdatedBy( @Nonnull User user );
+
+    /**
+     * Look up list objects which have property createdBy linked to given
+     * {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    List<T> findByCreatedBy( @Nonnull User user );
 }

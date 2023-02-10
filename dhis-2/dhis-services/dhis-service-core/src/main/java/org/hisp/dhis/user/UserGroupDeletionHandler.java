@@ -29,25 +29,22 @@ package org.hisp.dhis.user;
 
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class UserGroupDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     private final CurrentUserService currentUserService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( User.class, this::deleteUser );
         whenDeleting( UserGroup.class, this::deleteUserGroup );
