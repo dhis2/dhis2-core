@@ -836,6 +836,7 @@ public abstract class BaseAnalyticalObject
                         ? tedd.getProgramStage().getUid()
                         : EMPTY);
 
+                    // Return dimensions with distinct program stages.
                     if ( !addedElementsProgramStages.contains( elementProgramStage ) )
                     {
                         addedElementsProgramStages.add( elementProgramStage );
