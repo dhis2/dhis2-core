@@ -587,6 +587,11 @@ public abstract class AbstractJdbcTableManager
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Organisation unit name hierarchy delivery.
+     *
+     * @return a table column {@link AnalyticsTableColumn}
+     */
     protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn()
     {
         String columnAlias = "concat_ws('/'," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
