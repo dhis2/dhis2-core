@@ -87,8 +87,8 @@ public abstract class VectorFunction
     }
 
     /**
-     * Computes a vector (aggregation) function. This is exposed to enable
-     * other functions to call an aggregation function if needed for their
+     * Computes a vector (aggregation) function. This is exposed to enable other
+     * functions to call an aggregation function if needed for their
      * calculation.
      *
      * @param expr the expression as argument to the vector function
