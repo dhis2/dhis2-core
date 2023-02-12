@@ -119,6 +119,10 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbProgramStageQueryCriteria">
+    <param name="clazz">org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
     <param name="clazz">org.hisp.dhis.visualization.Series</param>
   </typedef>

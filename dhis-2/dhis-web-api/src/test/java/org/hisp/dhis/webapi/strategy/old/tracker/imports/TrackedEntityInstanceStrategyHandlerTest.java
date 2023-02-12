@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;

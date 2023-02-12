@@ -89,8 +89,7 @@ public class EventHookListener
 
                     for ( Object object : ((Collection<?>) event.getObject()) )
                     {
-                        objects.add( fieldFilterService.toObjectNode( object,
-                            List.of( eventHook.getSource().getFields() ) ) );
+                        objects.add( fieldFilterService.toObjectNode( object, eventHook.getSource().getFields() ) );
                     }
 
                     event = event.withObject( objects );
@@ -98,7 +97,7 @@ public class EventHookListener
                 else
                 {
                     ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
-                        List.of( eventHook.getSource().getFields() ) );
+                        eventHook.getSource().getFields() );
                     event = event.withObject( objectNode );
                 }
 

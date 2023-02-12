@@ -25,21 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.programstageworkinglist;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/**
- * @author Luca Cambi luca@dhis2.org
- */
-@ResponseStatus( HttpStatus.CONFLICT )
-public class ConflictException extends Exception
+public interface ProgramStageWorkingListStore
+    extends IdentifiableObjectStore<ProgramStageWorkingList>
 {
-
-    public ConflictException( String message )
-    {
-        super( message );
-    }
-
 }

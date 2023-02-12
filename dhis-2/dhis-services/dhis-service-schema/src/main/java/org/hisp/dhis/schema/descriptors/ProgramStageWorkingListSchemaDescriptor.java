@@ -25,35 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.schema.descriptors;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
+import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.google.common.collect.Lists;
 
-/**
- * @author anilkumk.
- */
-@ResponseStatus( HttpStatus.BAD_REQUEST )
-@OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
-public class BadRequestException extends Exception
+public class ProgramStageWorkingListSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "programStageWorkingList";
 
-    public BadRequestException( String message )
+    public static final String PLURAL = "programStageWorkingLists";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        super( message );
+        Schema schema = new Schema( ProgramStageWorkingList.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setDefaultPrivate( true );
+
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
+        return schema;
     }
 
-    public BadRequestException( Throwable cause )
-    {
-        super( cause );
-    }
-
-    public BadRequestException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
 }
