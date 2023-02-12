@@ -41,7 +41,6 @@
       "created": "2021-01-18T13:54:49.882",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -101,7 +100,6 @@
       "created": "2020-12-09T10:30:20.666",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -132,7 +130,6 @@
       "created": "2020-12-09T10:30:20.666",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -163,7 +160,6 @@
       "created": "2020-12-09T10:30:20.667",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -194,7 +190,6 @@
       "created": "2020-12-09T10:30:20.667",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -225,7 +220,6 @@
       "created": "2020-12-09T10:30:20.667",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -256,7 +250,6 @@
       "created": "2020-12-09T10:30:20.667",
       "displayInReports": false,
       "skipSynchronization": false,
-      "externalAccess": false,
       "renderOptionsAsRadio": false,
       "allowFutureDate": false,
       "compulsory": false,
@@ -316,7 +309,6 @@
       "name": "TaPlaceOfBirth",
       "displayName": "TaPlaceOfBirth",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
-      "externalAccess": false,
       "useCodeForOptionSet": false,
       "favorite": false,
       "program": {
@@ -477,7 +469,6 @@
       "displayName": "TA event program with program rules",
       "completeEventsExpiryDays": 0,
       "displayShortName": "TA_EP_PR",
-      "externalAccess": false,
       "withoutRegistration": true,
       "minAttributesRequiredToSearch": 1,
       "displayFrontPageList": false,
@@ -708,7 +699,6 @@
         "created": "2021-01-18T13:54:49.882",
         "displayInReports": false,
         "skipSynchronization": false,
-        "externalAccess": false,
         "renderOptionsAsRadio": false,
         "allowFutureDate": false,
         "compulsory": false,
@@ -753,7 +743,6 @@
       "favorite": false,
       "preGenerateUID": false,
       "displayName": "TA event program with program rules",
-      "externalAccess": false,
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -973,7 +962,6 @@
       "created": "2020-12-08T09:10:20.341",
       "name": "TA tracker program rule - showerror on stage",
       "displayName": "TA tracker program rule - showerror",
-      "externalAccess": false,
       "condition": "V{enrollment_date} > V{current_date}",
       "favorite": false,
       "program": {
@@ -1011,7 +999,6 @@
       "created": "2021-01-18T13:36:20.994",
       "name": "TA tracker program rule - show error ",
       "displayName": "TA tracker program rule - show error",
-      "externalAccess": false,
       "sharing": {
         "external": false,
         "users": {},
@@ -1041,7 +1028,6 @@
       "created": "2021-01-18T13:36:20.994",
       "name": "TA tracker program rule - show error ",
       "displayName": "TA tracker program rule - show error",
-      "externalAccess": false,
       "sharing": {
         "external": false,
         "users": {},
@@ -1069,7 +1055,6 @@
       "created": "2020-12-08T09:10:20.341",
       "name": "TA event program rule - showerror",
       "displayName": "TA event program rule - showerror",
-      "externalAccess": false,
       "condition": "true",
       "favorite": false,
       "program": {
@@ -1099,7 +1084,6 @@
       "created": "2020-12-08T09:10:20.341",
       "name": "TA tracker program rule - warnings",
       "displayName": "TA tracker program rule - warnings",
-      "externalAccess": false,
       "condition": "V{enrollment_date} < V{current_date}",
       "favorite": false,
       "program": {
@@ -1128,7 +1112,6 @@
       "id": "tZz1oAC5i6P",
       "name": "TA event program rule - assign value",
       "displayName": "TA event program rule - assign value",
-      "externalAccess": false,
       "condition": "!d2:hasValue(#{TAComment})",
       "favorite": false,
       "program": {
@@ -1157,7 +1140,6 @@
       "id": "R4bFX7Q5oQa",
       "name": "TA event program - set mandatory DE - if has diabetes",
       "displayName": "TA event program - set mandatory DE - if has diabetes",
-      "externalAccess": false,
       "condition": "d2:hasValue( #{TADiabetes})",
       "favorite": false,
       "program": {
@@ -1190,7 +1172,6 @@
     {
       "id": "hyJMNkTi9YG",
       "content": "TA on stage error",
-      "externalAccess": false,
       "displayContent": "TA on stage error",
       "programRuleActionType": "SHOWERROR",
       "evaluationTime": "ALWAYS",
@@ -1216,7 +1197,6 @@
     {
       "id": "E4p8zQsczbS",
       "content": "event date is earlier than today ",
-      "externalAccess": false,
       "displayContent": "event date is earlier than today",
       "programRuleActionType": "SHOWERROR",
       "evaluationTime": "ALWAYS",
@@ -1235,7 +1215,6 @@
     {
       "id": "E4p8zQsczXX",
       "content": "event date is earlier than today ",
-      "externalAccess": false,
       "displayContent": "event date is earlier than today",
       "programRuleActionType": "SHOWERROR",
       "evaluationTime": "ALWAYS",
@@ -1276,7 +1255,6 @@
     {
       "id": "hyJMNkTi9YF",
       "content": "TA warning",
-      "externalAccess": false,
       "displayContent": "TA warning",
       "programRuleActionType": "SHOWWARNING",
       "evaluationTime": "ALWAYS",
@@ -1299,7 +1277,6 @@
     {
       "id": "mbCnp26WeKe",
       "data": "\"AUTO_ASSIGNED_COMMENT\"",
-      "externalAccess": false,
       "programRuleActionType": "ASSIGN",
       "evaluationTime": "ALWAYS",
       "favorite": false,
@@ -1328,7 +1305,6 @@
     },
     {
       "id": "JFso0S8PMZV",
-      "externalAccess": false,
       "programRuleActionType": "SETMANDATORYFIELD",
       "evaluationTime": "ALWAYS",
       "favorite": false,
