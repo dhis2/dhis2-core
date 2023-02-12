@@ -56,9 +56,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "created": "2020-12-08T08:54:10.298",
@@ -124,9 +123,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "lastUpdated": "2020-12-09T10:30:20.666",
@@ -156,9 +154,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "lastUpdated": "2020-12-09T10:30:20.667",
@@ -188,9 +185,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "lastUpdated": "2020-12-09T10:30:20.667",
@@ -220,9 +216,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "lastUpdated": "2020-12-09T10:30:20.667",
@@ -252,9 +247,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "lastUpdated": "2020-12-09T10:30:20.667",
@@ -284,9 +278,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     }
   ],
   "programRuleVariables": [
@@ -334,9 +327,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     }
   ],
   "programs": [
@@ -347,7 +339,10 @@
       "created": "2020-12-08T08:51:38.020",
       "name": "TA tracker program with program rules",
       "shortName": "TA tracker program with program rules",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -378,7 +373,6 @@
           "displayName": "TA tracker program with program rules TA First name",
           "mandatory": false,
           "displayShortName": "TA tracker program with program rules TA First name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -402,9 +396,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-08T10:09:42.736",
@@ -414,7 +406,6 @@
           "displayName": "TA tracker program with program rules TA Last name",
           "mandatory": false,
           "displayShortName": "TA tracker program with program rules TA Last name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -437,10 +428,8 @@
           },
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -459,7 +448,6 @@
           "id": "YuQRtpLP10I"
         }
       ],
-      "userGroupAccesses": [],
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -469,14 +457,12 @@
         {
           "id": "yKg8CY252Yk"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "id": "uHi4GZJOD3n",
       "name": "TA event program with program rules",
       "shortName": "TA_EP_PR",
-      "publicAccess": "rw------",
       "ignoreOverdueEvents": false,
       "skipOffline": false,
       "onlyEnrollOnce": false,
@@ -504,15 +490,18 @@
       },
       "programIndicators": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "userRoles": [],
-      "userAccesses": [],
       "favorites": [],
       "programRuleVariables": [],
       "programTrackedEntityAttributes": [],
@@ -547,7 +536,6 @@
       "name": "Stage 1",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": true,
       "remindCompleted": false,
@@ -571,7 +559,6 @@
           "created": "2020-12-08T08:54:10.299",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": true,
           "compulsory": false,
@@ -594,14 +581,17 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [
-            {
-              "id": "OPVIvvXzNTw",
-              "access": "rwrw----"
+          "sharing": {
+            "public": "rw------",
+            "external": false,
+            "userGroups":{
+              "OPVIvvXzNTw": {
+                "id": "OPVIvvXzNTw",
+                "access": "rwrw----"
+              }
             }
-          ],
-          "attributeValues": [],
-          "userAccesses": []
+          },
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-08T08:54:10.298",
@@ -609,7 +599,6 @@
           "created": "2020-12-08T08:54:10.298",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": true,
           "compulsory": false,
@@ -632,14 +621,17 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [
-            {
-              "id": "OPVIvvXzNTw",
-              "access": "rwrw----"
+          "sharing": {
+            "public": "rw------",
+            "external": false,
+            "userGroups":{
+              "OPVIvvXzNTw": {
+                "id": "OPVIvvXzNTw",
+                "access": "rwrw----"
+              }
             }
-          ],
-          "attributeValues": [],
-          "userAccesses": []
+          },
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-08T08:54:10.299",
@@ -647,7 +639,6 @@
           "created": "2020-12-08T08:54:10.299",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": true,
           "compulsory": false,
@@ -670,20 +661,22 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [
-            {
-              "id": "OPVIvvXzNTw",
-              "access": "rwrw----"
+          "sharing": {
+            "public": "rw------",
+            "external": false,
+            "userGroups":{
+              "OPVIvvXzNTw": {
+                "id": "OPVIvvXzNTw",
+                "access": "rwrw----"
+              }
             }
-          ],
-          "attributeValues": [],
-          "userAccesses": []
+          },
+          "attributeValues": []
         }
       ],
       "translations": [],
-      "userGroupAccesses": [],
+
       "attributeValues": [],
-      "userAccesses": [],
       "programStageSections": []
     },
     {
@@ -693,7 +686,6 @@
       "name": "Stage 2",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": true,
       "remindCompleted": false,
@@ -731,26 +723,27 @@
         },
         "favorites": [],
         "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userAccesses": []
+  
+        "attributeValues": []
       }],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "programStageSections": []
     },
     {
       "id": "Mt6Ac5brjoK",
       "name": "TA event program with program rules",
       "allowGenerateNextVisit": false,
-      "publicAccess": "rw------",
       "formType": "DEFAULT",
       "generatedByEnrollmentDate": false,
       "displayFormName": "TA event program with program rules",
@@ -772,12 +765,16 @@
         "id": "uHi4GZJOD3n"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "programStageDataElements": [
         {
           "lastUpdated": "2020-12-09T11:32:42.498",
@@ -785,7 +782,6 @@
           "created": "2020-12-09T11:32:42.498",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -807,10 +803,8 @@
             "id": "BuZ5LGNfGEU"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-09T11:32:42.497",
@@ -818,7 +812,6 @@
           "created": "2020-12-09T11:32:42.497",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -840,10 +833,8 @@
             "id": "inc5BJvr4W5"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-09T11:32:42.498",
@@ -851,7 +842,6 @@
           "created": "2020-12-09T11:32:42.498",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -873,10 +863,8 @@
             "id": "ILRgzHhzFkg"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-09T11:32:42.498",
@@ -884,7 +872,6 @@
           "created": "2020-12-09T11:32:42.498",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -906,10 +893,8 @@
             "id": "ZrqtjjveTFc"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-09T11:32:42.498",
@@ -917,7 +902,6 @@
           "created": "2020-12-09T11:32:42.498",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -939,10 +923,8 @@
             "id": "mB2QHw1tU96"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-12-09T11:32:42.498",
@@ -950,7 +932,6 @@
           "created": "2020-12-09T11:32:42.498",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -972,14 +953,11 @@
             "id": "z3Z4TD3oBCP"
           },
           "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "translations": [],
+          "attributeValues": []
         }
       ],
       "attributeValues": [],
-      "userAccesses": [],
       "favorites": [],
       "notificationTemplates": [
         {
@@ -1006,12 +984,16 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "programRuleActions": [
         {
@@ -1020,8 +1002,7 @@
         {
           "id": "gYMwXjEMRlS"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "lastUpdated": "2021-01-18T13:36:20.994",
@@ -1045,14 +1026,13 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
+
       "attributeValues": [],
       "programRuleActions": [
         {
           "id": "E4p8zQsczbS"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "lastUpdated": "2021-01-18T13:36:20.994",
@@ -1076,14 +1056,13 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
+
       "attributeValues": [],
       "programRuleActions": [
         {
           "id": "E4p8zQsczXX"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "id": "Xh9idCUkyaE",
@@ -1098,19 +1077,22 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "programRuleActions": [
         {
           "id": "BU1pK9RQLu4"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "id": "Xh9idCUkyaF",
@@ -1125,19 +1107,22 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "programRuleActions": [
         {
           "id": "hyJMNkTi9YF"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "id": "tZz1oAC5i6P",
@@ -1151,19 +1136,22 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "programRuleActions": [
         {
           "id": "mbCnp26WeKe"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "id": "R4bFX7Q5oQa",
@@ -1177,12 +1165,16 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "programRuleActions": [
         {
@@ -1191,8 +1183,7 @@
         {
           "id": "fCvheO89KCl"
         }
-      ],
-      "userAccesses": []
+      ]
     }
   ],
   "programRuleActions": [
@@ -1219,9 +1210,8 @@
         "ANDROID"
       ],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "id": "E4p8zQsczbS",
@@ -1303,9 +1293,8 @@
         "ANDROID"
       ],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "id": "mbCnp26WeKe",
@@ -1334,9 +1323,8 @@
         "WEB"
       ],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "id": "JFso0S8PMZV",
@@ -1356,9 +1344,8 @@
         "WEB"
       ],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+
+      "attributeValues": []
     },
     {
       "templateUid": "IIyHlMh9ORz",

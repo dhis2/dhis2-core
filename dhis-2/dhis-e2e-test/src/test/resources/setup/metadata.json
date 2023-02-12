@@ -8,7 +8,6 @@
       "dataDimensionType": "ATTRIBUTE",
       "dimensionType": "CATEGORY_OPTION_GROUP_SET",
       "displayName": "TA category option group set",
-      "publicAccess": "rw------",
       "displayShortName": "TA cat opt group set",
       "externalAccess": false,
       "dimension": "a3DyYqCZrJ5",
@@ -33,10 +32,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
       "categoryOptionGroups": [],
-      "userAccesses": [],
       "items": []
     }
   ],
@@ -70,7 +67,6 @@
       "name": "default",
       "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
       "skipTotal": false,
       "sharing": {
         "userGroups": {
@@ -81,7 +77,6 @@
         }
       },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "GLevLNI9wkl"
@@ -120,9 +115,7 @@
           "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
         }
       ],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "items": [
         {
           "id": "fjvZIRlTBrp",
