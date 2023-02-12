@@ -110,6 +110,8 @@ public abstract class AbstractJdbcTableManager
 
     protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
+    protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
+
     protected final IdentifiableObjectManager idObjectManager;
 
     protected final OrganisationUnitService organisationUnitService;
@@ -583,6 +585,14 @@ public abstract class AbstractJdbcTableManager
                 return new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( lv.getCreated() );
             } )
             .collect( Collectors.toList() );
+    }
+
+    protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn()
+    {
+        String columnAlias = "concat_ws('/'," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .map( lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel() )
+            .collect( Collectors.joining( "," ) ) + ") as ounamehierarchy";
+        return new AnalyticsTableColumn( "ounamehierarchy", TEXT, columnAlias );
     }
 
     /**
