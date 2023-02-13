@@ -125,8 +125,8 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                .thenReturn( dimensionalObject );
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
@@ -188,8 +188,8 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, queryItem ) ).thenReturn( ouDimensionIdentifier );
         when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
-            List.of( orgUnitUid ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                .thenReturn( dimensionalObject );
+            List.of( orgUnitUid ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
@@ -258,13 +258,13 @@ class CommonQueryRequestMapperTest
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
             asList( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
-            UID )) ).thenReturn( dimensionalObject );
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject );
 
         when( dimensionIdentifierConverter.fromString( programs, orgUnitDimension ) )
             .thenReturn( ouDimensionIdentifier );
         when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
-            asList( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                .thenReturn( orgUnitObject );
+            asList( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( orgUnitObject );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
@@ -358,8 +358,8 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                .thenReturn( null );
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
         when( eventDataQueryService.getQueryItem( deDimensionIdentifier.getDimension().getUid(),
             deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
                 .thenReturn( anyQueryItem );
@@ -411,8 +411,8 @@ class CommonQueryRequestMapperTest
         when( dimensionIdentifierConverter.fromString( noPrograms, nonFullyQualifiedDimension ) )
             .thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                .thenReturn( null );
+            asList( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+            aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
@@ -465,8 +465,8 @@ class CommonQueryRequestMapperTest
 
         Stream.of( queryItem_1, queryItem_2 )
             .forEach( s -> when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
-                asList( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true, UID )) )
-                    .thenReturn( dimensionalObject ) );
+                asList( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits, true,
+                aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( dimensionalObject ) );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
