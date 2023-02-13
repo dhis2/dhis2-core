@@ -337,7 +337,7 @@ public class CommonQueryRequestMapper
         // Then we check if it's a DimensionalObject.
         DimensionalObject dimensionalObject = dataQueryService.getDimension(
             dimensionIdentifier.getDimension().getUid(), items, queryRequest.getRelativePeriodDate(), userOrgUnits,
-            true, UID );
+            true, queryRequest.getDisplayProperty(), UID );
 
         if ( Objects.nonNull( dimensionalObject ) )
         {
