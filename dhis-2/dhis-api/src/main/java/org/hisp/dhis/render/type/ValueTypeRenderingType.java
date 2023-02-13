@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.render.type;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -66,25 +67,25 @@ public enum ValueTypeRenderingType
     /**
      * RenderingTypes supported by boolean ValueTypes
      */
-    public static final Set<ValueTypeRenderingType> BOOLEAN_TYPES = Set
+    public static final Set<ValueTypeRenderingType> BOOLEAN_TYPES = EnumSet
         .of( DEFAULT, VERTICAL_RADIOBUTTONS, HORIZONTAL_RADIOBUTTONS, VERTICAL_CHECKBOXES,
             HORIZONTAL_CHECKBOXES, TOGGLE );
 
     /**
      * RenderingTypes supported by numerical ValueTypes
      */
-    public static final Set<ValueTypeRenderingType> NUMERIC_TYPES = Set
+    public static final Set<ValueTypeRenderingType> NUMERIC_TYPES = EnumSet
         .of( DEFAULT, VALUE, SLIDER, LINEAR_SCALE, SPINNER );
 
     /**
      * RenderingTypes supported by textual valueTypes
      */
-    public static final Set<ValueTypeRenderingType> TEXT_TYPES = Set
+    public static final Set<ValueTypeRenderingType> TEXT_TYPES = EnumSet
         .of( DEFAULT, VALUE, AUTOCOMPLETE, QR_CODE, BAR_CODE, GS1_DATAMATRIX );
 
     /**
      * RenderingTypes supported by IMAGE valueTypes
      */
-    public static final Set<ValueTypeRenderingType> IMAGE_TYPES = Set
+    public static final Set<ValueTypeRenderingType> IMAGE_TYPES = EnumSet
         .of( DEFAULT, CANVAS );
 }
