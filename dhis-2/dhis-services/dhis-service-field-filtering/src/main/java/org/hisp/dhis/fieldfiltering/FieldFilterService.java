@@ -197,7 +197,7 @@ public class FieldFilterService
         return objectNodes;
     }
 
-    private <T> void toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
+    private <T> void toObjectNodes( List<T> objects, List<FieldPath> filter, User user,
         boolean isSkipSharing, Consumer<ObjectNode> consumer )
     {
         if ( user == null )
@@ -208,24 +208,25 @@ public class FieldFilterService
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
         Object firstObject = objects.iterator().next();
-        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+        List<FieldPath> expandedFilter = fieldPathHelper.apply( filter,
+            HibernateProxyUtils.getRealClass( firstObject ) );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, isSkipSharing );
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( expandedFilter, isSkipSharing );
 
         // only set filter provider on a local copy so that we don't affect
         // other object mappers (running across other threads)
         ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
 
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( expandedFilter );
 
         for ( Object object : objects )
         {
-            applyAccess( object, fieldPaths, isSkipSharing, user );
-            applySharingDisplayNames( object, fieldPaths, isSkipSharing );
-            applyAttributeValuesAttribute( object, fieldPaths, isSkipSharing );
+            applyAccess( object, expandedFilter, isSkipSharing, user );
+            applySharingDisplayNames( object, expandedFilter, isSkipSharing );
+            applyAttributeValuesAttribute( object, expandedFilter, isSkipSharing );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
-            applyAttributeValueFields( object, objectNode, fieldPaths );
+            applyAttributeValueFields( object, objectNode, expandedFilter );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             consumer.accept( objectNode );
