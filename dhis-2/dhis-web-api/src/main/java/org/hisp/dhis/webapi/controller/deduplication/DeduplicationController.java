@@ -29,10 +29,8 @@ package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -97,10 +95,7 @@ public class DeduplicationController
         PotentialDuplicateCriteria potentialDuplicateCriteria,
         HttpServletResponse response,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
-        throws BadRequestException
     {
-        checkDeduplicationStatusRequestParam( potentialDuplicateCriteria.getStatus() );
-
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
 
         if ( potentialDuplicateCriteria.isPagingRequest() )
@@ -153,8 +148,6 @@ public class DeduplicationController
         throws NotFoundException,
         BadRequestException
     {
-        checkDeduplicationStatusRequestParam( status );
-
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
         checkDbAndRequestStatus( potentialDuplicate, status );
@@ -216,18 +209,6 @@ public class DeduplicationController
         if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
             throw new BadRequestException( "Can't update a potential duplicate that is already "
                 + DeduplicationStatus.MERGED.name() );
-    }
-
-    private void checkDeduplicationStatusRequestParam( DeduplicationStatus status )
-        throws BadRequestException
-    {
-        if ( null == status || Arrays.stream( DeduplicationStatus.values() )
-            .noneMatch( ds -> ds == status ) )
-        {
-            throw new BadRequestException(
-                "Valid deduplication status are : " + Arrays.stream( DeduplicationStatus.values() )
-                    .map( Object::toString ).collect( Collectors.joining( "," ) ) );
-        }
     }
 
     private PotentialDuplicate getPotentialDuplicateBy( String id )
