@@ -31,6 +31,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ZERO_POS_VALUE_COUNT;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 
@@ -72,7 +73,9 @@ public class ProgramVariableItem
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        String variableName = visitor.getI18n().getString( ctx.programVariable().getText() );
+        I18n i18n = visitor.getI18nSupplier().get();
+
+        String variableName = i18n.getString( ctx.programVariable().getText() );
 
         visitor.getItemDescriptions().put( ctx.getText(), variableName );
 
