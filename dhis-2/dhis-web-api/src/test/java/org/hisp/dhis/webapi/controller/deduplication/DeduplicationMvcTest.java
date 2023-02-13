@@ -229,19 +229,6 @@ class DeduplicationMvcTest
     }
 
     @Test
-    void shouldGetAllPotentialDuplicateWhenNoPagingRequest()
-        throws Exception
-    {
-        when( deduplicationService.getPotentialDuplicates( any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
-        mockMvc
-            .perform( get( ENDPOINT ).param( "teis", teiA ).param( "skipPaging", "true" ).content( "{}" )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() ).andExpect( content().contentType( "application/json" ) );
-        verify( deduplicationService ).getPotentialDuplicates( any() );
-    }
-
-    @Test
     void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists()
         throws Exception
     {
