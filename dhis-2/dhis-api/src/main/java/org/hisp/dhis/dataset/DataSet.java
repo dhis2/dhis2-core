@@ -284,6 +284,16 @@ public class DataSet
     // Logic
     // -------------------------------------------------------------------------
 
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+        if ( shortName == null && name != null )
+        {
+            setShortName( name.length() <= 50 ? name : name.substring( 0, 50 ) );
+        }
+    }
+
     public void addOrganisationUnit( OrganisationUnit organisationUnit )
     {
         sources.add( organisationUnit );
