@@ -35,13 +35,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,18 +67,20 @@ public class RouteController
     @RequestMapping( value = "/{id}/run", method = { RequestMethod.GET, RequestMethod.POST } )
     public ResponseEntity<String> run( @PathVariable( "id" ) String id, @CurrentUser User user,
         HttpServletRequest request )
-        throws IOException
+        throws IOException,
+        ForbiddenException,
+        NotFoundException
     {
         Route route = routeService.getDecryptedRoute( id );
 
         if ( route == null )
         {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, String.format( "Route %s not found", id ) );
+            throw new NotFoundException( String.format( "Route %s not found", id ) );
         }
 
         if ( !aclService.canRead( user, route ) && !user.hasAnyAuthority( route.getAuthorities() ) )
         {
-            throw new HttpClientErrorException( HttpStatus.FORBIDDEN, "User not authorized" );
+            throw new ForbiddenException( "User not authorized" );
         }
 
         ResponseEntity<String> entity = routeService.exec( route, request );
