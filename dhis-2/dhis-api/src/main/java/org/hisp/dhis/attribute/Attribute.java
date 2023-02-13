@@ -28,11 +28,14 @@
 package org.hisp.dhis.attribute;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -192,7 +195,7 @@ public class Attribute
 
     private ValueType valueType;
 
-    private final EnumSet<ObjectType> objectTypes = EnumSet.noneOf( ObjectType.class );
+    private EnumSet<ObjectType> objectTypes = EnumSet.noneOf( ObjectType.class );
 
     private boolean mandatory;
 
@@ -256,6 +259,18 @@ public class Attribute
         {
             objectTypes.remove( type );
         }
+    }
+
+    @JsonIgnore
+    public Set<String> getObjectTypes()
+    {
+        return objectTypes.stream().map( ObjectType::name ).collect( toSet() );
+    }
+
+    public void setObjectTypes( Set<String> objectTypes )
+    {
+        this.objectTypes = objectTypes.stream().map( ObjectType::valueOf )
+            .collect( toCollection( () -> EnumSet.noneOf( ObjectType.class ) ) );
     }
 
     @JsonProperty

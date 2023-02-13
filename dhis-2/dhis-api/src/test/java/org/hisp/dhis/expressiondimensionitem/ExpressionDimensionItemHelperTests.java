@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,49 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
-import static java.util.Arrays.stream;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
 
 /**
- * @author Dusan Bernat
+ * Test for {@link ExpressionDimensionItemHelper}
  */
-public interface ExpressionDimensionItemStore
-    extends IdentifiableObjectStore<ExpressionDimensionItem>
+class ExpressionDimensionItemHelperTests
 {
-    String ID = ExpressionDimensionItemStore.class.getName();
+    @Mock
+    private IdentifiableObjectManager manager;
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
+    @Test
+    void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
+    {
+        // Given
+        // When
+        // Then
+        assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size(),
+            "NPE assertion failed" );
+    }
 
-    /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
-     */
-    List<ExpressionDimensionItem> getAttributes( Class<?> klass );
+    @ParameterizedTest
+    @CsvSource( { "'fbfJHSPpUQD.pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'PT59n8BQbqM'" } )
+    void testGetExpressionTokensReturnsCollectionOfTokens( String token1, String token2 )
+    {
+        // Given
+        // When
+        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( ExpressionDimensionItemHelper.pattern,
+            "#{" + token1 + "/#{" + token2 + "}" );
 
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<ExpressionDimensionItem> getMandatoryAttributes( Class<?> klass );
-
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<ExpressionDimensionItem> getUniqueAttributes( Class<?> klass );
+        // Then
+        assertEquals( 2, tokens.size() );
+        assertEquals( token1, tokens.get( 0 ) );
+        assertEquals( token2, tokens.get( 1 ) );
+    }
 }

@@ -37,7 +37,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 @Getter
@@ -60,7 +59,7 @@ public final class NotFoundException extends Exception implements Error
 
     private final ErrorCode code;
 
-    public NotFoundException( Class<? extends PrimaryKeyObject> type, String uid )
+    public NotFoundException( Class<?> type, String uid )
     {
         this( type.getSimpleName() + " with id " + uid + " could not be found." );
     }

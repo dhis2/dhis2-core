@@ -31,7 +31,7 @@ import static java.lang.String.format;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AggregateDataExchangeJob implements Job
 {
     private final AggregateDataExchangeService dataExchangeService;

@@ -57,11 +57,13 @@ import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -139,8 +141,9 @@ public class TrackerEventsExportController
                 PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+        FieldFilterParams<org.hisp.dhis.webapi.controller.tracker.view.Event> filterParams = FieldFilterParams
+            .of( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
         return pagingWrapper.withInstances( objectNodes );
 
     }
@@ -228,7 +231,7 @@ public class TrackerEventsExportController
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
         HttpServletRequest request,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
         EventParams eventParams = map( fields );
@@ -236,10 +239,11 @@ public class TrackerEventsExportController
             eventParams );
         if ( event == null )
         {
-            throw new NotFoundException( "Event", uid );
+            throw new NotFoundException( Event.class, uid );
         }
 
         event.setHref( getUri( uid, request ) );
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
+        return ResponseEntity
+            .ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
     }
 }

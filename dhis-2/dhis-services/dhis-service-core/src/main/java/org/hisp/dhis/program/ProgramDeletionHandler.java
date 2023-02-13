@@ -38,11 +38,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserRole;
@@ -53,18 +52,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramDeletionHandler extends DeletionHandler
+public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Program.class );
-
     private final ProgramService programService;
-
-    private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );

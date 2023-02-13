@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-/**
- * Created by sultanm. This exception could be used in all operation forbidden
- * cases
- */
-@ResponseStatus( HttpStatus.FORBIDDEN )
-public class OperationNotAllowedException
-    extends Exception
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class SourceDataQueryParams
 {
-
-    public OperationNotAllowedException( String message )
-    {
-        super( message );
-    }
-
-    public OperationNotAllowedException( Throwable cause )
-    {
-        super( cause );
-    }
-
-    public OperationNotAllowedException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+    private String outputIdScheme;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expressiondimensionitem;
+package org.hisp.dhis.eventhook;
 
-import java.util.Map;
+import java.util.concurrent.Executor;
 
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * @author maikel arabori
+ * @author Morten Olav Hansen
  */
-@Component
-public class ExpressionDimensionItemDeletionHandler extends JdbcDeletionHandler
+@Configuration
+public class EventHookConfiguration
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Visualization.class ); // Not a typo!
-
-    @Override
-    protected void register()
+    @Bean( name = "eventHookTaskExecutor" )
+    public Executor eventHookPoolTaskExecutor()
     {
-        whenVetoing( ExpressionDimensionItem.class, this::allowDeleteExpressionDimensionItem );
-    }
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-    private DeletionVeto allowDeleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
-    {
-        String sql = "select 1 from datadimensionitem where expressiondimensionitemid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", expressionDimensionItem.getId() ) );
+        // setting static defaults for now, we might to make this configurable in dhis.conf in the future
+        executor.setCorePoolSize( 50 );
+        executor.setMaxPoolSize( 500 );
+        executor.setQueueCapacity( 5000 );
+        executor.setThreadNamePrefix( "EventHook-" );
+        executor.initialize();
+
+        return executor;
     }
 }

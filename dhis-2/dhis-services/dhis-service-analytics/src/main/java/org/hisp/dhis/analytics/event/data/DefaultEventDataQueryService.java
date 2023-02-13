@@ -306,7 +306,7 @@ public class DefaultEventDataQueryService
                     List<String> items = getDimensionItemsFromParam( dim );
 
                     GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
-                        items, request.getRelativePeriodDate(), userOrgUnits, true, idScheme );
+                        items, request.getRelativePeriodDate(), userOrgUnits, true, null, idScheme );
 
                     if ( groupableItem != null )
                     {
@@ -378,7 +378,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                getDimensionalItemIds( dimension.getItems() ), date, null, true, idScheme );
+                getDimensionalItemIds( dimension.getItems() ), date, null, true, null, idScheme );
 
             if ( dimObj != null )
             {
@@ -394,7 +394,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject filter : object.getFilters() )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                getDimensionalItemIds( filter.getItems() ), date, null, true, idScheme );
+                getDimensionalItemIds( filter.getItems() ), date, null, true, null, idScheme );
 
             if ( dimObj != null )
             {

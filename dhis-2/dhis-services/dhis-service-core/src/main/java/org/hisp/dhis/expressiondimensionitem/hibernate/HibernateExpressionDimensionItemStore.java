@@ -27,15 +27,9 @@
  */
 package org.hisp.dhis.expressiondimensionitem.hibernate;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +43,6 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemStore" )
 public class HibernateExpressionDimensionItemStore
     extends HibernateIdentifiableObjectStore<ExpressionDimensionItem>
-    implements ExpressionDimensionItemStore
 {
     @Autowired
     public HibernateExpressionDimensionItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -58,49 +51,5 @@ public class HibernateExpressionDimensionItemStore
     {
         super( sessionFactory, jdbcTemplate, publisher, ExpressionDimensionItem.class, currentUserService, aclService,
             true );
-    }
-
-    @Override
-    public List<ExpressionDimensionItem> getAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) ) );
-    }
-
-    @Override
-    public List<ExpressionDimensionItem> getMandatoryAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
-            .addPredicate( root -> builder.equal( root.get( "mandatory" ), true ) ) );
-    }
-
-    @Override
-    public List<ExpressionDimensionItem> getUniqueAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
-            .addPredicate( root -> builder.equal( root.get( "unique" ), true ) ) );
     }
 }
