@@ -87,6 +87,11 @@ public class RouteService
     {
         Route route = routeStore.getByUidNoAcl( id );
 
+        if ( route == null )
+        {
+            route = routeStore.getByUidNoAcl( id );
+        }
+
         if ( route == null || route.isDisabled() )
         {
             return null;

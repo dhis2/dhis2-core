@@ -306,6 +306,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
+    @Override
+    public final T getByCodeNoAcl( @Nonnull String code )
+    {
+        if ( isTransientIdentifiableProperties() )
+        {
+            return null;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "code" ), code ) );
+
+        return getSingleResult( builder, param );
+    }
+
     @Nonnull
     @Override
     public final T loadByUid( @Nonnull String uid )

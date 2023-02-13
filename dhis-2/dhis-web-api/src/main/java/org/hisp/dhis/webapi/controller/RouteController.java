@@ -72,7 +72,7 @@ public class RouteController
 
         if ( route == null )
         {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Route not found" );
+            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, String.format( "Route %s not found", id ) );
         }
 
         if ( !aclService.canRead( user, route ) && !user.hasAnyAuthority( route.getAuthorities() ) )
