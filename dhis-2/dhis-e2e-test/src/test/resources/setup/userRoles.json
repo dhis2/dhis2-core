@@ -21,7 +21,6 @@
       "name": "TA Admin",
       "displayName": "TA admin",
       "description": "TA admin",
-      "userGroupAccesses": [],
       "authorities": [
         "F_PROGRAM_INDICATOR_PUBLIC_ADD",
         "F_SQLVIEW_EXECUTE",
