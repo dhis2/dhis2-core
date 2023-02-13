@@ -30,8 +30,8 @@ package org.hisp.dhis.parser.expression.function;
 import static java.lang.Double.NaN;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import static org.hisp.dhis.rules.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
