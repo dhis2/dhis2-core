@@ -115,6 +115,10 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbProgramStageQueryCriteria">
+    <param name="clazz">org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
     <param name="clazz">org.hisp.dhis.visualization.Series</param>
   </typedef>
@@ -173,6 +177,14 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
     <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
-  </typedef>  
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblEventHookSource">
+    <param name="clazz">org.hisp.dhis.eventhook.Source</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventHookTargets">
+    <param name="clazz">org.hisp.dhis.eventhook.Target</param>
+  </typedef>
 
 </hibernate-mapping>

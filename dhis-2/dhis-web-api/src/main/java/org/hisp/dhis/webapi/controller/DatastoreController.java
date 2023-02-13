@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
@@ -56,8 +57,8 @@ import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.webapi.JsonWriter;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -112,7 +113,7 @@ public class DatastoreController
     public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
         @PathVariable String namespace,
         HttpServletResponse response )
-        throws Exception
+        throws NotFoundException
     {
         return getKeysInNamespaceLegacy( lastUpdated, namespace, response );
     }
@@ -125,7 +126,7 @@ public class DatastoreController
     public @ResponseBody List<String> getKeysInNamespaceLegacy( @RequestParam( required = false ) Date lastUpdated,
         @PathVariable String namespace,
         HttpServletResponse response )
-        throws Exception
+        throws NotFoundException
     {
         setNoStore( response );
 
@@ -162,7 +163,7 @@ public class DatastoreController
         @RequestParam( required = true ) String fields,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
         DatastoreParams params, HttpServletResponse response )
-        throws Exception
+        throws IOException
     {
         DatastoreQuery query = service.plan( DatastoreQuery.builder()
             .namespace( namespace )
@@ -225,7 +226,7 @@ public class DatastoreController
     @ResponseBody
     @DeleteMapping( "/{namespace}" )
     public WebMessage deleteNamespace( @PathVariable String namespace )
-        throws Exception
+        throws NotFoundException
     {
         if ( !service.isUsedNamespace( namespace ) )
         {

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen
@@ -44,7 +43,10 @@ class FieldFilterParamsTest
     void testBuilderWithObjectAndFilters()
     {
         FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .filters( "id,name" )
+            .build();
+
         assertTrue( params.getObjects().contains( "A" ) );
         assertTrue( params.getObjects().contains( "B" ) );
         assertTrue( params.getObjects().contains( "C" ) );
@@ -56,10 +58,12 @@ class FieldFilterParamsTest
     void testBuilderWithDefault()
     {
         FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .build();
+
         assertTrue( params.getObjects().contains( "A" ) );
         assertTrue( params.getObjects().contains( "B" ) );
         assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
+        assertEquals( "*", params.getFilters() );
     }
 }

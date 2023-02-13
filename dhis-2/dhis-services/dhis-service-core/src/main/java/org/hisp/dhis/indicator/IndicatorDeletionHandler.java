@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,23 +43,23 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class IndicatorDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class IndicatorDeletionHandler extends IdObjectDeletionHandler<Indicator>
 {
     private final IndicatorService indicatorService;
 
     private final ExpressionService expressionService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( IndicatorType.class, this::allowDeleteIndicatorType );
         whenDeleting( IndicatorGroup.class, this::deleteIndicatorGroup );
