@@ -31,7 +31,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -124,7 +124,7 @@ public class RouteService
         }
 
         HttpHeaders queryParameters = new HttpHeaders();
-        request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, Arrays.asList( value ) ) );
+        request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, List.of( value ) ) );
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( route.getUrl() )
             .queryParams( queryParameters );

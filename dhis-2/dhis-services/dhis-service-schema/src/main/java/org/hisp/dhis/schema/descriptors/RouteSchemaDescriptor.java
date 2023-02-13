@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import java.util.List;
+
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,9 +53,9 @@ public class RouteSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1200 );
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_ROUTE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_ROUTE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ROUTE_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_ROUTE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_ROUTE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ROUTE_DELETE" ) ) );
 
         return schema;
     }
