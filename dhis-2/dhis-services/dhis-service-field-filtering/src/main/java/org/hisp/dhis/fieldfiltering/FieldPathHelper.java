@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,15 +72,10 @@ public class FieldPathHelper
             return result;
         }
 
-        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
-        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
-
-        fieldPaths.removeIf( FieldPath::isPreset );
-        fieldPaths.removeIf( FieldPath::isExclude );
-
         Map<String, FieldPath> fieldPathMap = getFieldPathMap( fieldPaths );
-
         applyProperties( fieldPathMap.values(), rootKlass );
+
+        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
         applyPresets( presets, fieldPathMap, rootKlass );
 
         calculatePathCount( fieldPathMap.values() ).forEach( ( k, v ) -> {
@@ -91,10 +87,10 @@ public class FieldPathHelper
             applyDefaults( fieldPathMap.get( k ), rootKlass, fieldPathMap );
         } );
 
+        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
         applyExclusions( exclusions, fieldPathMap );
 
-        fieldPaths.clear();
-        fieldPaths.addAll( fieldPathMap.values() );
+        result.addAll( fieldPathMap.values() );
 
         return result;
     }
@@ -382,7 +378,9 @@ public class FieldPathHelper
 
     private Map<String, FieldPath> getFieldPathMap( List<FieldPath> fieldPaths )
     {
-        return fieldPaths.stream().collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
+        return fieldPaths.stream()
+            .filter( not( FieldPath::isPreset ).and( not( FieldPath::isExclude ) ) )
+            .collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
     }
 
     private Schema getSchemaByPath( List<String> paths, Class<?> klass )
