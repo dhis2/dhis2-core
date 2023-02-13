@@ -750,8 +750,6 @@ public class DefaultExpressionService
      */
     private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ExpressionParams params )
     {
-        i18nManager.getI18n();
-
         return CommonExpressionVisitor.builder()
             .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
