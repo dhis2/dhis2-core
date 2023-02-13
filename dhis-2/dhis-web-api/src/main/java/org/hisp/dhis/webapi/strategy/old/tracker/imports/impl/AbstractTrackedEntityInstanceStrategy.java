@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.springframework.http.MediaType;
 

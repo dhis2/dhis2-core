@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -71,7 +72,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -417,7 +417,7 @@ public class EnrollmentController
 
         if ( enrollment == null )
         {
-            throw new NotFoundException( "Enrollment", id );
+            throw new NotFoundException( Enrollment.class, id );
         }
 
         return enrollment;

@@ -50,7 +50,9 @@ import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -59,7 +61,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -132,7 +133,7 @@ public class TrackerRelationshipsExportController
     @GetMapping
     PagingWrapper<ObjectNode> getInstances(
         TrackerRelationshipCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws WebMessageException
     {
 
@@ -161,7 +162,7 @@ public class TrackerRelationshipsExportController
     @GetMapping( "{id}" )
     public ResponseEntity<ObjectNode> getRelationship(
         @PathVariable String id,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
 
@@ -169,7 +170,7 @@ public class TrackerRelationshipsExportController
             .from( relationshipService.findRelationshipByUid( id ).orElse( null ) );
         if ( relationship == null )
         {
-            throw new NotFoundException( "Relationship", id );
+            throw new NotFoundException( Relationship.class, id );
         }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( relationship, fields ) );
     }

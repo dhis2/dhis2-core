@@ -9,7 +9,9 @@
       "shortName": "DESE",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------"
+      },
       "description": "DEDE",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",

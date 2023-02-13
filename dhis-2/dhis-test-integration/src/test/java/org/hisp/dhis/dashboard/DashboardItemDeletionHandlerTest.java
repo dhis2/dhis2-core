@@ -186,8 +186,8 @@ class DashboardItemDeletionHandlerTest extends TransactionalIntegrationTest
     @Test
     void testDeleteUser()
     {
-        User userA = makeUser( "A" );
-        User userB = makeUser( "B" );
+        User userA = makeUser( "X" );
+        User userB = makeUser( "Y" );
         userService.addUser( userA );
         userService.addUser( userB );
         dashboardItem.getUsers().add( userA );

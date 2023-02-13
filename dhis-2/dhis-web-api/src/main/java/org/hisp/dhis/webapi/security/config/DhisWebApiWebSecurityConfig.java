@@ -47,6 +47,7 @@ import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
+import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -276,6 +277,7 @@ public class DhisWebApiWebSecurityConfig
         final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore( tokenStore() );
         defaultTokenServices.setSupportRefreshToken( true );
+        defaultTokenServices.setRefreshTokenValiditySeconds( Integer.MAX_VALUE );
         return defaultTokenServices;
     }
 
@@ -300,6 +302,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
+        @Autowired
+        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -322,6 +327,8 @@ public class DhisWebApiWebSecurityConfig
                 } )
 
                 .oauth2Login( oauth2 -> oauth2
+                    .tokenEndpoint()
+                    .accessTokenResponseClient( jwtPrivateCodeTokenResponseClient ).and()
                     .failureUrl( "/dhis-web-commons/security/login.action?oidcFailure=true" )
                     .clientRegistrationRepository( dhisOidcProviderRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )

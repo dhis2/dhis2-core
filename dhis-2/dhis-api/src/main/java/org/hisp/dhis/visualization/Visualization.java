@@ -52,9 +52,11 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -85,6 +87,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Icon.IconType;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -115,9 +118,11 @@ public class Visualization
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-    public static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap( DATA_X_DIM_ID, "data",
-        CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo", PERIOD_DIM_ID, "period", ORGUNIT_DIM_ID,
-        "organisationunit" );
+    public static final Map<String, String> COLUMN_NAMES = Map.of(
+        DATA_X_DIM_ID, "data",
+        CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
+        PERIOD_DIM_ID, "period",
+        ORGUNIT_DIM_ID, "organisationunit" );
 
     // -------------------------------------------------------------------------
     // Common attributes
@@ -233,6 +238,12 @@ public class Visualization
      * bars.
      */
     private String colorSet;
+
+    /**
+     * The collection of {@link Icon} objects associated. Should be unique for
+     * each {@link IconType}.
+     */
+    private Set<Icon> icons = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -736,6 +747,19 @@ public class Visualization
     public void setOptionalAxes( List<Axis> optionalAxes )
     {
         this.optionalAxes = optionalAxes;
+    }
+
+    @JsonProperty( "icons" )
+    @JacksonXmlElementWrapper( localName = "icons", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "icons", namespace = DXF_2_0 )
+    public Set<Icon> getIcons()
+    {
+        return icons;
+    }
+
+    public void setIcons( Set<Icon> icons )
+    {
+        this.icons = icons;
     }
 
     @JsonProperty( "legend" )
