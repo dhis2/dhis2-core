@@ -62,11 +62,13 @@ public class FieldPathHelper
 {
     private final SchemaService schemaService;
 
-    public void apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
+    public List<FieldPath> apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
     {
-        if ( rootKlass == null || fieldPaths.isEmpty() )
+        List<FieldPath> result = new ArrayList<>();
+
+        if ( fieldPaths.isEmpty() || rootKlass == null )
         {
-            return;
+            return result;
         }
 
         List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
@@ -93,6 +95,8 @@ public class FieldPathHelper
 
         fieldPaths.clear();
         fieldPaths.addAll( fieldPathMap.values() );
+
+        return result;
     }
 
     /**
