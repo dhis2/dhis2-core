@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
+import java.util.List;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -51,14 +52,16 @@ import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,12 +75,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 @ExtendWith( MockitoExtension.class )
-class DeduplicationControllerMvcTest
+class DeduplicationMvcTest
 {
-
     private final static String ENDPOINT = "/" + "potentialDuplicates";
 
     private MockMvc mockMvc;
@@ -113,9 +114,9 @@ class DeduplicationControllerMvcTest
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String teiA = "trackedentA";
+    private static final String teiA = CodeGenerator.generateUid();
 
-    private static final String teiB = "trackedentB";
+    private static final String teiB = CodeGenerator.generateUid();
 
     @BeforeEach
     void setUp()
@@ -125,27 +126,48 @@ class DeduplicationControllerMvcTest
             .duplicate( trackedEntityInstanceB ).mergeObject( MergeObject.builder().build() ).build();
         mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController )
             .setControllerAdvice( new CrudControllerAdvice() ).build();
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
-            .thenReturn( trackedEntityInstanceA );
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
-            .thenReturn( trackedEntityInstanceB );
-        lenient().when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) )
-            .thenReturn( Lists.newArrayList() );
     }
 
     @Test
-    void shouldPostPotentialDuplicate()
+    void shouldPostPotentialDuplicateWhenTeisExistAndUserHasAccess()
         throws Exception
     {
+        when( trackerAccessManager.canRead( any( User.class ), any( TrackedEntityInstance.class ) ) )
+            .thenReturn( Collections.emptyList() );
+        when( currentUserService.getCurrentUser() ).thenReturn( new User() );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         mockMvc
             .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
                 .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() ).andExpect( content().contentType( "application/json" ) );
+        verify( deduplicationService ).addPotentialDuplicate( any() );
     }
 
     @Test
-    void shouldThrowPostPotentialDuplicateMissingTei()
+    void shouldThrowOperationNotAllowedExceptionWhenPostAndUserHasNoTeiAccess()
+        throws Exception
+    {
+        when( trackerAccessManager.canRead( any( User.class ), any( TrackedEntityInstance.class ) ) )
+            .thenReturn( List.of( "error" ) );
+        when( currentUserService.getCurrentUser() ).thenReturn( new User() );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        mockMvc
+            .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
+                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof OperationNotAllowedException ) );
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    void shouldThrowBadRequestExceptionWhenPostAndTeiDoNotExists()
         throws Exception
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, null );
@@ -153,10 +175,11 @@ class DeduplicationControllerMvcTest
             .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
                 .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
-    void shouldThrowUpdatePotentialDuplicateAlreadyMerged()
+    void shouldThrowBadRequestExceptionWhenPutAndPotentialDuplicateIsAlreadyMerged()
         throws Exception
     {
         String uid = "uid";
@@ -172,7 +195,7 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldThrowUpdatePotentialDuplicateToMergedStatus()
+    void shouldThrowBadRequestExceptionWhenPutPotentialDuplicateToMergedStatus()
         throws Exception
     {
         String uid = "uid";
@@ -187,7 +210,7 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldUpdatePotentialDuplicate()
+    void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExists()
         throws Exception
     {
         String uid = "uid";
@@ -206,7 +229,7 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldGetAllPotentialDuplicateNoPaging()
+    void shouldGetAllPotentialDuplicateWhenNoPagingRequest()
         throws Exception
     {
         when( deduplicationService.getPotentialDuplicates( any() ) )
@@ -219,7 +242,7 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldGetPotentialDuplicateById()
+    void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists()
         throws Exception
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
@@ -233,7 +256,7 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldThrowMissingPotentialDuplicate()
+    void shouldThrowNotFoundExceptionWhenPotentialDuplicateNotExists()
         throws Exception
     {
         String uid = "uid";
@@ -242,12 +265,18 @@ class DeduplicationControllerMvcTest
             .perform( get( ENDPOINT + "/" + uid ).content( "{}" ).contentType( MediaType.APPLICATION_JSON )
                 .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
+        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
     }
 
     @Test
-    void shouldMergePotentialDuplicate()
+    void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk()
         throws Exception
     {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
         String uid = "uid";
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
@@ -262,9 +291,14 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldManualMergePotentialDuplicate()
+    void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk()
         throws Exception
     {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
         String uid = "uid";
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
@@ -279,9 +313,14 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldThrowAutoMergeForbiddenException()
+    void shouldThrowForbiddenExceptionWhenAutoMergingIsForbidden()
         throws Exception
     {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
         String uid = "uid";
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
@@ -299,9 +338,14 @@ class DeduplicationControllerMvcTest
     }
 
     @Test
-    void shouldThrowAutoMergeConflictException()
+    void shouldThrowConflictExceptionWhenAutoMergeHasConflicts()
         throws Exception
     {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
         String uid = "uid";
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
