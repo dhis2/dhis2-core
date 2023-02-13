@@ -95,10 +95,17 @@ public class StaticRenderingConfiguration
         .add( new ObjectValueTypeRenderingOption( ProgramTrackedEntityAttribute.class, ValueType.PERCENTAGE, false,
             ValueTypeRenderingType.NUMERIC_TYPES ) )
 
+        // Textual
         .add( new ObjectValueTypeRenderingOption( ProgramStageDataElement.class, ValueType.TEXT, false,
             ValueTypeRenderingType.TEXT_TYPES ) )
         .add( new ObjectValueTypeRenderingOption( ProgramTrackedEntityAttribute.class, ValueType.TEXT, false,
             ValueTypeRenderingType.TEXT_TYPES ) )
+
+        // Images
+        .add( new ObjectValueTypeRenderingOption( ProgramStageDataElement.class, ValueType.IMAGE, false,
+            ValueTypeRenderingType.IMAGE_TYPES ) )
+        .add( new ObjectValueTypeRenderingOption( ProgramTrackedEntityAttribute.class, ValueType.IMAGE, false,
+            ValueTypeRenderingType.IMAGE_TYPES ) )
 
         .build();
 
