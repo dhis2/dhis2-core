@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.hisp.dhis.web.WebClient.JwtTokenHeader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.Properties;

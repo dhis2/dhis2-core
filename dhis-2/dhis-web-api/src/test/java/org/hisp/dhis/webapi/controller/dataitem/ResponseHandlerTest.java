@@ -37,7 +37,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.hibernate.validator.internal.util.CollectionHelper.asSet;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -131,7 +130,7 @@ class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = Set.of( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
@@ -154,7 +153,7 @@ class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = Set.of( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
