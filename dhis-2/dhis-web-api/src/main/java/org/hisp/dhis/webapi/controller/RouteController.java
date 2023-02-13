@@ -68,7 +68,7 @@ public class RouteController
         HttpServletRequest request )
         throws IOException
     {
-        Route route = routeService.getDecryptedById( id );
+        Route route = routeService.getDecryptedRoute( id );
 
         if ( route == null )
         {

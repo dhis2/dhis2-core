@@ -83,7 +83,7 @@ public class RouteService
         restTemplate.setRequestFactory( requestFactory );
     }
 
-    public Route getDecryptedById( @Nonnull String id )
+    public Route getDecryptedRoute( @Nonnull String id )
     {
         Route route = routeStore.getByUidNoAcl( id );
 
