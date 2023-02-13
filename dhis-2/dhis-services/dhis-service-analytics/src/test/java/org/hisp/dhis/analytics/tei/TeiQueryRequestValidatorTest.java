@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link TeiQueryRequestValidator}.
  *
- * @author maikel araboei
+ * @author maikel arabori
  */
 class TeiQueryRequestValidatorTest
 {
@@ -107,6 +107,7 @@ class TeiQueryRequestValidatorTest
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
             () -> new TeiQueryRequestValidator( commonQueryRequestValidator ).validate( queryRequest ) );
 
+        // Then
         assertEquals( "Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage() );
     }
 }
