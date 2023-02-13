@@ -55,6 +55,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Process;
@@ -83,6 +85,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
     private final Notifier notifier;
 
+    private final EventHookPublisher eventHookPublisher;
+
     /**
      * Set of currently running jobs. We use a map to use CAS operation
      * {@link Map#putIfAbsent(Object, Object)} to "atomically" start or abort
@@ -99,13 +103,15 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
     private final Cache<Boolean> cancelledRemotely;
 
     protected AbstractSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService, LeaderManager leaderManager, Notifier notifier, CacheProvider cacheProvider )
+        MessageService messageService, LeaderManager leaderManager, Notifier notifier,
+        EventHookPublisher eventHookPublisher, CacheProvider cacheProvider )
     {
         this.jobService = jobService;
         this.jobConfigurationService = jobConfigurationService;
         this.messageService = messageService;
         this.leaderManager = leaderManager;
         this.notifier = notifier;
+        this.eventHookPublisher = eventHookPublisher;
 
         this.runningRemotely = cacheProvider.createRunningJobsInfoCache();
         this.completedRemotely = cacheProvider.createCompletedJobsInfoCache();
@@ -315,8 +321,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 : "TYPE:" + configuration.getJobType().name();
             MDC.put( "sessionId", identifier );
             // run the actual job
+            eventHookPublisher.publishEvent( EventUtils.schedulerStart( configuration ) );
             jobService.getJob( type ).execute( configuration, progress );
-
             Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
             {
@@ -331,12 +337,24 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 JobStatus errorStatus = progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
                 configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus );
             }
+
+            if ( wasSuccessfulRun )
+            {
+                eventHookPublisher.publishEvent( EventUtils.schedulerCompleted( configuration ) );
+            }
+            else
+            {
+                eventHookPublisher.publishEvent( EventUtils.schedulerFailed( configuration ) );
+            }
+
             return wasSuccessfulRun;
         }
         catch ( Exception ex )
         {
             progress.failedProcess( ex );
             whenRunThrewException( configuration, ex, progress );
+
+            eventHookPublisher.publishEvent( EventUtils.schedulerFailed( configuration ) );
             return false;
         }
         finally

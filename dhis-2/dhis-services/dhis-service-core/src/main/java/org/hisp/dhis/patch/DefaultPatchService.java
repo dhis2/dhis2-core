@@ -312,7 +312,7 @@ public class DefaultPatchService implements PatchService
 
         for ( int i = 0; i < paths.length; i++ )
         {
-            if ( !currentSchema.haveProperty( paths[i] ) )
+            if ( !currentSchema.hasProperty( paths[i] ) )
             {
                 return;
             }

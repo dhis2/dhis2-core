@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -149,14 +150,31 @@ public class AggregateDataExchangeService
      * identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param params the {@link SourceDataQueryParams}.
      * @return the source data for the analytics data exchange.
      */
-    public List<Grid> getSourceData( String uid )
+    public List<Grid> getSourceData( String uid, SourceDataQueryParams params )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
         return mapToList( exchange.getSource().getRequests(),
-            request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
+            request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request, params ) ) );
+    }
+
+    /**
+     * Returns the source data value sets for the analytics data exchange with
+     * the given identifier.
+     *
+     * @param uid the {@link AggregateDataExchange} identifier.
+     * @param params the {@link SourceDataQueryParams}.
+     * @return the source data value sets for the analytics data exchange.
+     */
+    public List<DataValueSet> getSourceDataValueSets( String uid, SourceDataQueryParams params )
+    {
+        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
+
+        return mapToList( exchange.getSource().getRequests(),
+            request -> analyticsService.getAggregatedDataValueSet( toDataQueryParams( request, params ) ) );
     }
 
     /**
@@ -172,7 +190,8 @@ public class AggregateDataExchangeService
     {
         try
         {
-            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+            DataValueSet dataValueSet = analyticsService
+                .getAggregatedDataValueSet( toDataQueryParams( request, new SourceDataQueryParams() ) );
 
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
@@ -257,14 +276,17 @@ public class AggregateDataExchangeService
      * {@link SourceRequest}.
      *
      * @param request the {@link SourceRequest}.
+     * @param params the {@link SourceDataQueryParams}.
      * @return the {@link DataQueryParams}.
      */
-    DataQueryParams toDataQueryParams( SourceRequest request )
+    DataQueryParams toDataQueryParams( SourceRequest request, SourceDataQueryParams params )
     {
+        String queryOutputIdScheme = params.getOutputIdScheme();
+
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
-        IdScheme outputDataElementIdScheme = toIdScheme( request.getOutputDataElementIdScheme() );
-        IdScheme outputOrgUnitIdScheme = toIdScheme( request.getOutputOrgUnitIdScheme() );
-        IdScheme outputIdScheme = toIdScheme( request.getOutputIdScheme() );
+        IdScheme outputDataElementIdScheme = toIdScheme( queryOutputIdScheme, request.getOutputDataElementIdScheme() );
+        IdScheme outputOrgUnitIdScheme = toIdScheme( queryOutputIdScheme, request.getOutputOrgUnitIdScheme() );
+        IdScheme outputIdScheme = toIdScheme( queryOutputIdScheme, request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
@@ -291,7 +313,7 @@ public class AggregateDataExchangeService
      */
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
-        return dataQueryService.getDimension( dimension, items, new Date(), null, false, inputIdScheme );
+        return dataQueryService.getDimension( dimension, items, new Date(), null, false, null, inputIdScheme );
     }
 
     /**
@@ -304,18 +326,21 @@ public class AggregateDataExchangeService
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), new Date(), null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, false, null, inputIdScheme );
     }
 
     /**
-     * Returns the {@link IdScheme} based on the given ID scheme string, or null
-     * if the given ID scheme string is null.
+     * Returns the {@link IdScheme} based on the given ID scheme strings. The
+     * first non-null value will be used. Returns null if all of the given ID
+     * scheme strings are null.
      *
-     * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or null if null.
+     * @param idSchemes the ID scheme strings.
+     * @return the given ID scheme, or null.
      */
-    IdScheme toIdScheme( String idScheme )
+    IdScheme toIdScheme( String... idSchemes )
     {
+        String idScheme = ObjectUtils.firstNonNull( idSchemes );
+
         return idScheme != null ? IdScheme.from( idScheme ) : null;
     }
 

@@ -111,4 +111,27 @@ class QueryKeyTest
 
         assertNotEquals( keyA, keyB );
     }
+
+    @Test
+    void testNoCollisionDueTheExpressionDimensionItem()
+    {
+        // Given
+        // When
+        String keyA = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "filter", "ou" )
+            .add( "aggregationType", AggregationType.SUM )
+            .add( "expressiondimensionitems", "#{fbfJHSPpUQD.pq2XI5kz2BY}/#{fbfJHSPpUQD.PT59n8BQbqM} + 2000" )
+            .asPlainKey();
+
+        String keyB = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "filter", "ou" )
+            .add( "aggregationType", AggregationType.SUM )
+            .add( "expressiondimensionitems", "#{fbfJHSPpUQD.pq2XI5kz2BY}/#{fbfJHSPpUQD.PT59n8BQbqM} + 2100" )
+            .asPlainKey();
+
+        // Then
+        assertNotEquals( keyA, keyB );
+    }
 }

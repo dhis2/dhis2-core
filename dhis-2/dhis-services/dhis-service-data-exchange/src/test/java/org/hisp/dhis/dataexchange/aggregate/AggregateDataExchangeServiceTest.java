@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -88,15 +89,15 @@ class AggregateDataExchangeServiceTest
         when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
             .thenReturn( new DataValueSet() );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
         when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
@@ -137,15 +138,15 @@ class AggregateDataExchangeServiceTest
     void testToDataQueryParams()
     {
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
 
@@ -158,12 +159,21 @@ class AggregateDataExchangeServiceTest
             .setOutputOrgUnitIdScheme( IdScheme.CODE.name() )
             .setOutputIdScheme( IdScheme.CODE.name() );
 
-        DataQueryParams query = service.toDataQueryParams( sourceRequest );
+        DataQueryParams query = service.toDataQueryParams( sourceRequest, new SourceDataQueryParams() );
 
         assertTrue( query.hasDimension( DimensionalObject.DATA_X_DIM_ID ) );
         assertTrue( query.hasDimension( DimensionalObject.PERIOD_DIM_ID ) );
         assertTrue( query.hasDimension( DimensionalObject.ORGUNIT_DIM_ID ) );
         assertEquals( IdScheme.UID, query.getOutputDataElementIdScheme() );
+        assertEquals( IdScheme.CODE, query.getOutputOrgUnitIdScheme() );
+        assertEquals( IdScheme.CODE, query.getOutputIdScheme() );
+
+        SourceDataQueryParams params = new SourceDataQueryParams()
+            .setOutputIdScheme( IdScheme.CODE.name() );
+
+        query = service.toDataQueryParams( sourceRequest, params );
+
+        assertEquals( IdScheme.CODE, query.getOutputDataElementIdScheme() );
         assertEquals( IdScheme.CODE, query.getOutputOrgUnitIdScheme() );
         assertEquals( IdScheme.CODE, query.getOutputIdScheme() );
     }
@@ -216,10 +226,16 @@ class AggregateDataExchangeServiceTest
     @Test
     void testToIdScheme()
     {
+        String undefined = null;
+
         assertEquals( IdScheme.CODE, service.toIdScheme( "code" ) );
         assertEquals( IdScheme.UID, service.toIdScheme( "UID" ) );
         assertEquals( IdScheme.UID, service.toIdScheme( "uid" ) );
-        assertNull( service.toIdScheme( null ) );
+        assertEquals( IdScheme.UID, service.toIdScheme( "uid" ) );
+        assertEquals( IdScheme.UID, service.toIdScheme( undefined, "uid" ) );
+        assertEquals( IdScheme.UID, service.toIdScheme( undefined, undefined, "uid" ) );
+        assertNull( service.toIdScheme( undefined ) );
+        assertNull( service.toIdScheme( undefined, undefined ) );
     }
 
     @Test

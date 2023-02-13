@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -48,6 +49,7 @@ import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
@@ -88,8 +90,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
@@ -211,7 +211,7 @@ public class WebTestConfiguration
     {
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
         defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
+            Map.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
         return defaultAuthenticationEventPublisher;
     }
 
@@ -227,11 +227,11 @@ public class WebTestConfiguration
     @Bean
     @Primary
     public SchedulingManager synchronousSchedulingManager( JobService jobService,
-        JobConfigurationService jobConfigurationService,
-        MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
+        JobConfigurationService jobConfigurationService, MessageService messageService, Notifier notifier,
+        EventHookPublisher eventHookPublisher, LeaderManager leaderManager, CacheProvider cacheProvider )
     {
         return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
-            leaderManager, cacheProvider );
+            eventHookPublisher, leaderManager, cacheProvider );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -241,9 +241,11 @@ public class WebTestConfiguration
         private boolean isRunning = false;
 
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
+            MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
+            LeaderManager leaderManager, CacheProvider cacheProvider )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
+            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
+                cacheProvider );
         }
 
         @Override

@@ -60,6 +60,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
@@ -73,7 +74,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -377,12 +377,16 @@ public class DataApprovalController
         @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam( required = false ) Set<String> ds,
         @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) Set<String> wf,
         @OpenApi.Param( Period.class ) @RequestParam String pe,
-        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou )
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ouFilter,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
@@ -403,7 +407,7 @@ public class DataApprovalController
             for ( CategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    attributeCombo ) );
+                    orgUnitFilter, attributeCombo, attributeOptionCombo ) );
             }
         }
 

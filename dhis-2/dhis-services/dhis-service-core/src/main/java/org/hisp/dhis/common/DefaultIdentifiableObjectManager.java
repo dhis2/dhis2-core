@@ -63,6 +63,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -253,6 +254,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .map( store -> store.getByUid( uid ) )
             .filter( Objects::nonNull )
             .findFirst();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> findByUser( Class<T> type, @Nonnull User user )
+    {
+        IdentifiableObjectStore<T> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return List.of();
+        }
+
+        return findByUser( store, user );
     }
 
     @CheckForNull
@@ -545,9 +559,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> List<T> getAllByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return List.of();
         }
@@ -568,9 +580,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return List.of();
         }
@@ -589,9 +599,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     public <T extends IdentifiableObject> long countAllValuesByAttributes( @Nonnull Class<T> type,
         @Nonnull List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( type );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        if ( !hasAttributeValues( type ) || attributes.isEmpty() )
         {
             return 0;
         }
@@ -974,11 +982,18 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         }
         if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
         {
+            if ( !hasAttributeValues( type ) )
+            {
+                return null;
+            }
+
             Attribute attribute = get( Attribute.class, idScheme.getAttribute() );
+
             if ( attribute == null )
             {
                 throw new InvalidIdentifierReferenceException( "Attribute does not exist: " + idScheme.getAttribute() );
             }
+
             return store.getByUniqueAttributeValue( attribute, value );
         }
         if ( idScheme.is( IdentifiableProperty.ID ) && Integer.parseInt( value ) > 0 )
@@ -1161,7 +1176,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     {
         Schema schema = schemaService.getDynamicSchema( type );
 
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        if ( schema == null || !schema.hasPersistedProperty( "attributeValues" ) )
         {
             return List.of();
         }
@@ -1266,11 +1281,27 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @Transactional
     public void removeUserGroupFromSharing( @Nonnull String userGroupUid )
     {
-        List<Schema> schemas = schemaService.getSchemas().stream().filter( Schema::isShareable ).collect(
-            toList() );
+        List<Schema> schemas = schemaService.getSchemas().stream()
+            .filter( Schema::isShareable )
+            .collect( toList() );
 
         IdentifiableObjectStore<?> store = getIdentifiableObjectStore( UserGroup.class );
         schemas.forEach( schema -> store.removeUserGroupFromSharing( userGroupUid, schema.getTableName() ) );
+    }
+
+    /**
+     * Indicates whether the given class type is attribute enabled, i.e. has an
+     * attribute value collection as part of the data model.
+     *
+     * @param <T>
+     * @param type the class type.
+     * @return true if type is attribute enabled.
+     */
+    private <T extends IdentifiableObject> boolean hasAttributeValues( @Nonnull Class<T> type )
+    {
+        Schema schema = schemaService.getDynamicSchema( type );
+
+        return schema != null && schema.hasAttributeValues();
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1310,4 +1341,34 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         } );
     }
 
+    /**
+     * Look up list objects by property createdBy or lastUpdatedBy. Among those
+     * properties, only persisted ones will be used for looking up.
+     *
+     * @param store the store to be used for looking up objects.
+     * @param user the {@link User} that is linked to createdBy or lastUpdateBy
+     *        property.
+     * @return list of {@link IdentifiableObject} found.
+     */
+    private <T extends IdentifiableObject> List<T> findByUser( IdentifiableObjectStore<T> store, User user )
+    {
+        Schema schema = schemaService.getDynamicSchema( store.getClazz() );
+        boolean hasCreatedBy = schema.getPersistedProperty( BaseIdentifiableObject_.CREATED_BY ) != null;
+        boolean hasLastUpdatedBy = schema.getPersistedProperty( BaseIdentifiableObject_.LAST_UPDATED_BY ) != null;
+
+        if ( hasCreatedBy && hasLastUpdatedBy )
+        {
+            return store.findByUser( user );
+        }
+        else if ( hasLastUpdatedBy )
+        {
+            return store.findByLastUpdatedBy( user );
+        }
+        else if ( hasCreatedBy )
+        {
+            return store.findByCreatedBy( user );
+        }
+
+        return List.of();
+    }
 }

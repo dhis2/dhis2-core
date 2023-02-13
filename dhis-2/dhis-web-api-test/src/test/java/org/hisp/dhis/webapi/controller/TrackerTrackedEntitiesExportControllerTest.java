@@ -165,7 +165,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         assertContains( "Filter for attribute " + TEA_UID + " was specified more than once.",
             GET( "/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2" )
-                .error( HttpStatus.CONFLICT )
+                .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
 
@@ -303,7 +303,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     @Test
     void getTrackedEntityByIdNotFound()
     {
-        assertEquals( "TrackedEntityInstance not found for uid: Hq3Kc6HK4OZ",
+        assertEquals( "TrackedEntityInstance with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );

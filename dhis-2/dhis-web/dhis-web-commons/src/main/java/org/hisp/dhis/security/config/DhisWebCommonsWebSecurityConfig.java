@@ -31,6 +31,8 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -76,10 +78,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
@@ -169,6 +167,7 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
@@ -192,7 +191,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/fonts/**" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" );
+                .antMatchers( "/favicon.ico" )
+                .antMatchers( "/api/publicKeys/**" );
         }
 
         @Override
@@ -313,7 +313,7 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of( "/dhis-web-commons-stream/ping.action", "/" ) );
+            mappedRedirectStrategy.setRedirectMap( Map.of( "/dhis-web-commons-stream/ping.action", "/" ) );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
@@ -339,7 +339,7 @@ public class DhisWebCommonsWebSecurityConfig
         {
             ModuleAccessVoter voter = new ModuleAccessVoter();
             voter.setAttributePrefix( "M_" );
-            voter.setAlwaysAccessible( ImmutableSet.of(
+            voter.setAlwaysAccessible( Set.of(
                 "dhis-web-commons-menu",
                 "dhis-web-commons-oust",
                 "dhis-web-commons-ouwt",
@@ -383,11 +383,11 @@ public class DhisWebCommonsWebSecurityConfig
         public LogicalOrAccessDecisionManager accessDecisionManager()
         {
             List<AccessDecisionManager> decisionVoters = Arrays.asList(
-                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
-                new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
-                new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+                new UnanimousBased( List.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( List.of( actionAccessVoter(), moduleAccessVoter() ) ),
+                new UnanimousBased( List.of( webExpressionVoter() ) ),
+                new UnanimousBased( List.of( externalAccessVoter ) ),
+                new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }

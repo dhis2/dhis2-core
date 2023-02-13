@@ -32,27 +32,25 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.Iterator;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class CategoryOptionComboDeletionHandler extends JdbcDeletionHandler
+@RequiredArgsConstructor
+public class CategoryOptionComboDeletionHandler extends IdObjectDeletionHandler<CategoryOptionCombo>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( CategoryOptionCombo.class );
-
     private final CategoryService categoryService;
 
     // TODO expressionoptioncombo
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
         whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );

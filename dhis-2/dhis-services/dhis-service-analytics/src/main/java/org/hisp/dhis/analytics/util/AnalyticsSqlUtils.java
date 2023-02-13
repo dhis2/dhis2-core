@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,6 +75,11 @@ public class AnalyticsSqlUtils
         String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
 
         return QUOTE + rel + QUOTE;
+    }
+
+    public static List<String> quotedListOf( String... relation )
+    {
+        return Arrays.asList( relation ).stream().map( AnalyticsSqlUtils::quote ).collect( toList() );
     }
 
     /**
@@ -124,6 +132,13 @@ public class AnalyticsSqlUtils
     {
         return items.stream()
             .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( Collectors.joining( "," ) );
+    }
+
+    public static String quoteWithFunction( String function, String... items )
+    {
+        return Arrays.asList( items ).stream()
+            .map( item -> String.format( "%s(%s) as %s", function, quote( item ), quote( item ) ) )
             .collect( Collectors.joining( "," ) );
     }
 

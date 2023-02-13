@@ -172,10 +172,6 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultExpressionService
     implements ExpressionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final HibernateGenericStore<Expression> expressionStore;
 
     private final ConstantService constantService;

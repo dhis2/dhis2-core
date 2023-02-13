@@ -48,16 +48,17 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -97,7 +98,7 @@ public class DeduplicationController
     public PagingWrapper<ObjectNode> getPotentialDuplicates(
         PotentialDuplicateCriteria potentialDuplicateCriteria,
         HttpServletResponse response,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
 
@@ -133,7 +134,7 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public PotentialDuplicate postPotentialDuplicate(
         @RequestBody PotentialDuplicate potentialDuplicate )
-        throws OperationNotAllowedException,
+        throws ForbiddenException,
         ConflictException,
         NotFoundException,
         BadRequestException,
@@ -222,7 +223,7 @@ public class DeduplicationController
     }
 
     private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
-        throws OperationNotAllowedException,
+        throws ForbiddenException,
         ConflictException,
         NotFoundException,
         BadRequestException,
@@ -273,11 +274,11 @@ public class DeduplicationController
     }
 
     private void canReadTei( TrackedEntityInstance trackedEntityInstance )
-        throws OperationNotAllowedException
+        throws ForbiddenException
     {
         if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
         {
-            throw new OperationNotAllowedException(
+            throw new ForbiddenException(
                 "You don't have read access to '" + trackedEntityInstance.getUid() + "'." );
         }
     }

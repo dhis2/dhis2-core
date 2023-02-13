@@ -49,6 +49,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -60,7 +62,6 @@ import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -238,20 +239,16 @@ public class TrackerImportController
 
     @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
     public ImportReport getJobReport( @PathVariable String uid,
-        @RequestParam( defaultValue = "errors", required = false ) String reportMode,
+        @RequestParam( defaultValue = "errors", required = false ) TrackerBundleReportMode reportMode,
         HttpServletResponse response )
         throws HttpStatusCodeException,
         NotFoundException
     {
-        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
-            .getTrackerBundleReportMode( reportMode );
-
         setNoStore( response );
 
         return Optional.ofNullable( notifier
             .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .map( report -> trackerImportService.buildImportReport( (ImportReport) report,
-                trackerBundleReportMode ) )
-            .orElseThrow( () -> NotFoundException.notFoundUid( uid ) );
+            .map( report -> trackerImportService.buildImportReport( (ImportReport) report, reportMode ) )
+            .orElseThrow( () -> new NotFoundException( JobConfiguration.class, uid ) );
     }
 }

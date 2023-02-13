@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asser
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,11 +41,8 @@ import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
-
 class BaseDimensionMapperTest
 {
-
     public static final String UID = "uid";
 
     public static final long ID = 100L;
@@ -75,14 +73,14 @@ class BaseDimensionMapperTest
         asserter(
             mapper,
             BaseIdentifiableObject::new,
-            ImmutableList.of(
+            List.of(
                 b -> b.setUid( UID ),
                 b -> b.setId( ID ),
                 b -> b.setName( NAME ),
                 b -> b.setCreated( CREATED ),
                 b -> b.setCode( CODE ),
                 b -> b.setLastUpdated( LAST_UPDATED ) ),
-            ImmutableList.of(
+            List.of(
                 Pair.of( DimensionResponse::getId, UID ),
                 Pair.of( DimensionResponse::getUid, UID ),
                 Pair.of( DimensionResponse::getDisplayName, NAME ),
@@ -98,10 +96,7 @@ class BaseDimensionMapperTest
         asserter(
             mapper,
             BaseNameableObject::new,
-            ImmutableList.of(
-                b -> b.setShortName( SHORT_NAME ) ),
-            ImmutableList.of(
-                Pair.of( DimensionResponse::getDisplayShortName, SHORT_NAME ) ) );
+            List.of( b -> b.setShortName( SHORT_NAME ) ),
+            List.of( Pair.of( DimensionResponse::getDisplayShortName, SHORT_NAME ) ) );
     }
-
 }

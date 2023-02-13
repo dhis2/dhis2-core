@@ -222,6 +222,8 @@
 
     <property name="axes" type="jbAxes"/>
 
+    <property name="icons" type="jbIcons"/>
+
     <component name="legendDefinitions" class="org.hisp.dhis.visualization.LegendDefinitions">
       <property name="legendDisplayStyle" length="40">
         <type name="org.hibernate.type.EnumType">

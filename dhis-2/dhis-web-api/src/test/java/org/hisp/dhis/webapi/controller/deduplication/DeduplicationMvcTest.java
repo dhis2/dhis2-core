@@ -52,6 +52,9 @@ import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -59,9 +62,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -149,7 +149,7 @@ class DeduplicationMvcTest
     }
 
     @Test
-    void shouldThrowOperationNotAllowedExceptionWhenPostAndUserHasNoTeiAccess()
+    void shouldThrowForbiddenExceptionExceptionWhenPostAndUserHasNoTeiAccess()
         throws Exception
     {
         when( trackerAccessManager.canRead( any( User.class ), any( TrackedEntityInstance.class ) ) )
@@ -162,7 +162,7 @@ class DeduplicationMvcTest
         mockMvc
             .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
                 .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof OperationNotAllowedException ) );
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof ForbiddenException ) );
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 

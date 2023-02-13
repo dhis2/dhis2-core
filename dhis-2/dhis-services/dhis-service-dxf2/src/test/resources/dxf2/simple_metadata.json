@@ -87,7 +87,10 @@
       "skipOffline": false,
       "notifyCompletingUser": false,
       "code": "DataSetCodeA",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "fieldCombinationRequired": false,
       "organisationUnits": [
         {
@@ -158,7 +161,10 @@
       "dataSets": [ ],
       "programs": [ ],
       "created": "2016-02-17T06:14:12.260+0000",
-      "publicAccess": "--------"
+      "sharing": {
+        "public": "--------",
+        "external": false
+      }
     }
   ],
   "trackedEntityTypes": [
@@ -187,13 +193,19 @@
         "id": "ueKaFVdR8Fz"
       },
       "zeroIsSignificant": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "code": "DataElementCodeA",
       "name": "DataElementA"
     },
     {
       "code": "DataElementCodeB",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "name": "DataElementB",
       "attributeValues": [ ],
       "userGroupAccesses": [ ],

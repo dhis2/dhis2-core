@@ -44,10 +44,12 @@ import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_M
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -256,8 +258,9 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
 
     private MapMap<Period, DimensionalItemObject, Object> samples;
 
-    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new ImmutableMap.Builder<String, Integer>()
-        .put( "orgUnitGrpA", 1000000 ).put( "orgUnitGrpB", 2000000 ).build();
+    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = Map.of(
+        "orgUnitGrpA", 1000000,
+        "orgUnitGrpB", 2000000 );
 
     private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString( "20200101" );
 
@@ -562,6 +565,17 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
     private String eval( String expr, MissingValueStrategy missingValueStrategy )
     {
         return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC, defaultValueMap );
+    }
+
+    /**
+     * Evaluates a test expression that returns a boolean.
+     *
+     * @param expr expression to evaluate
+     * @return the expression value: true or false
+     */
+    private boolean evalBoolean( String expr )
+    {
+        return Boolean.valueOf( eval( expr, PREDICTOR_SKIP_TEST, NEVER_SKIP, BOOLEAN, null ) );
     }
 
     /**
@@ -886,19 +900,19 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testLogarithms()
     {
-        assertEquals( evalDouble( "log(50)" ), DELTA, 3.912023005428146 );
-        assertEquals( evalDouble( "log(2.718281828459045)" ), DELTA, 1 );
+        assertEquals( 3.912023005428146, evalDouble( "log(50)" ), DELTA );
+        assertEquals( 1, evalDouble( "log(2.718281828459045)" ), DELTA );
         assertEquals( "-Infinity", eval( "log(0)" ) );
         assertEquals( "NaN", eval( "log(-1)" ) );
-        assertEquals( evalDouble( "log(50,3)" ), DELTA, 3.5608767950073115 );
-        assertEquals( evalDouble( "log(8,2)" ), DELTA, 3 );
+        assertEquals( 3.5608767950073115, evalDouble( "log(50,3)" ), DELTA );
+        assertEquals( 3, evalDouble( "log(8,2)" ), DELTA );
         assertEquals( "-Infinity", eval( "log(0,3)" ) );
         assertEquals( "NaN", eval( "log(-1,3)" ) );
         assertEquals( "0", eval( "log(50,0)" ) );
         assertEquals( "NaN", eval( "log(50,-3)" ) );
         assertEquals( "NaN", eval( "log(-50,-3)" ) );
-        assertEquals( evalDouble( "log10(50)" ), DELTA, 1.6989700043360187 );
-        assertEquals( evalDouble( "log10(1000)" ), DELTA, 3 );
+        assertEquals( 1.6989700043360187, evalDouble( "log10(50)" ), DELTA );
+        assertEquals( 3, evalDouble( "log10(1000)" ), DELTA );
         assertEquals( "-Infinity", eval( "log10(0)" ) );
         assertEquals( "NaN", eval( "log10(-1)" ) );
     }
@@ -920,6 +934,11 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( "1", eval( "if(2 >= 1, 1, 0)" ) );
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenA} > #{dataElemenE}, 1, 0)" ) );
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenE} < #{dataElemenA}, 1, 0)" ) );
+    }
+
+    @Test
+    void testComparisonPrecidence()
+    {
         // Comparison precedence is after Add, Subtract
         assertEquals( "0", eval( "if(5 < 2 + 3, 1, 0)" ) );
         assertEquals( "0", eval( "if(5 > 2 + 3, 1, 0)" ) );
@@ -1063,7 +1082,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    public void testRemoveZeros()
+    void testRemoveZeros()
     {
         assertEquals( "null", eval( "removeZeros( 0 )" ) );
         assertEquals( "null", eval( "removeZeros( 10 - 2 * 5 )" ) );
@@ -1238,6 +1257,20 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
+    void testIsIn()
+    {
+        assertTrue( evalBoolean( "is('A' in 'A','B','C')" ) );
+        assertTrue( evalBoolean( "is('B' in 'A','B','C')" ) );
+        assertTrue( evalBoolean( "is('C' in 'A','B','C')" ) );
+        assertFalse( evalBoolean( "is('D' in 'A','B','C')" ) );
+
+        assertTrue( evalBoolean( "is( 1 in 1, 2, 3 )" ) );
+        assertTrue( evalBoolean( "is( 2 in 1, 2, 3 )" ) );
+        assertTrue( evalBoolean( "is( 3 in 1, 2, '3' )" ) );
+        assertFalse( evalBoolean( "is( 4 in 1, 2, 3 )" ) );
+    }
+
+    @Test
     void testMissingValueStrategy()
     {
         assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ANY_VALUE_MISSING ) );
@@ -1325,6 +1358,8 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( "if(orgUnit.ancestor(OuA,OuB),1,0)",
             desc( "if(orgUnit.ancestor(OrgUnitUidA,OrgUnitUidB),1,0)" ) );
         assertEquals( "if(orgUnit.group(OugA,OugB),1,0)", desc( "if(orgUnit.group(orgUnitGrpA,orgUnitGrpB),1,0)" ) );
+        assertEquals( "if(is(DeA in DeB,DeC,DeD),1,0)",
+            desc( "if(is(#{dataElemenA} in #{dataElemenB},#{dataElemenC},#{dataElemenD}),1,0)" ) );
     }
 
     @Test
@@ -1359,7 +1394,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         DimensionalItemId idC = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorC.getUid() );
         DimensionalItemId idD = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorD.getUid() );
         List<Indicator> indicators = singletonList( indicatorE );
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of( idB, indicatorB, idC,
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of( idB, indicatorB, idC,
             indicatorC, idD, indicatorD );
         Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
             .getIndicatorDimensionalItemMap( indicators );
@@ -1384,7 +1419,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
             "REPORTING_RATE" );
         DimensionalItemId id4 = new DimensionalItemId( DimensionItemType.PROGRAM_ATTRIBUTE, programA.getUid(),
             trackedEntityAttributeA.getUid() );
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of( id1,
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of( id1,
             new DataElementOperand( dataElementA, categoryOptionComboB ), id2,
             new DataElementOperand( dataElementB, categoryOptionComboA ), id3, new ReportingRate( dataSetA ), id4,
             new ProgramTrackedEntityAttributeDimensionItem( programA, trackedEntityAttributeA ) );
@@ -1427,20 +1462,20 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
             .getIndicatorDimensionalItemMap( indicators );
         IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, singletonList( period ),
             itemMap, defaultValueMap, null );
-        assertEquals( value.getNumeratorValue(), DELTA, 2.5 );
-        assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
-        assertEquals( value.getFactor(), DELTA, 100.0 );
-        assertEquals( value.getMultiplier(), DELTA, 100 );
-        assertEquals( value.getDivisor(), DELTA, 1 );
-        assertEquals( value.getValue(), DELTA, 50.0 );
+        assertEquals( 2.5, value.getNumeratorValue(), DELTA );
+        assertEquals( 5.0, value.getDenominatorValue(), DELTA );
+        assertEquals( 100.0, value.getFactor(), DELTA );
+        assertEquals( 100, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
+        assertEquals( 50.0, value.getValue(), DELTA );
         value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ),
             itemMap, defaultValueMap, null );
-        assertEquals( value.getNumeratorValue(), DELTA, 20.0 );
-        assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
-        assertEquals( value.getFactor(), DELTA, 36500.0 );
-        assertEquals( value.getMultiplier(), DELTA, 36500 );
-        assertEquals( value.getDivisor(), DELTA, 1 );
-        assertEquals( value.getValue(), DELTA, 146000.0 );
+        assertEquals( 20.0, value.getNumeratorValue(), DELTA );
+        assertEquals( 5.0, value.getDenominatorValue(), DELTA );
+        assertEquals( 36500.0, value.getFactor(), DELTA );
+        assertEquals( 36500, value.getMultiplier(), DELTA );
+        assertEquals( 1, value.getDivisor(), DELTA );
+        assertEquals( 146000.0, value.getValue(), DELTA );
     }
 
     @Test
