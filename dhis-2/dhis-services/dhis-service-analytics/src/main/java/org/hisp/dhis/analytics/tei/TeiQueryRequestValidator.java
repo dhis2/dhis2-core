@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.feedback.ErrorCode.E7222;
+
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.QueryRequest;
@@ -50,12 +55,41 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
      * preventing basic syntax and consistency issues.
      *
      * @param queryRequest the {@link QueryRequest} of type
-     *        {@link TeiQueryRequest}
-     * @throws IllegalQueryException is some invalid state is found
+     *        {@link TeiQueryRequest}.
+     *
+     * @throws IllegalQueryException if some invalid state is found.
      */
     @Override
     public void validate( QueryRequest<TeiQueryRequest> queryRequest )
     {
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
+
+        checkAllowedDimensions( queryRequest );
+    }
+
+    /**
+     * Looks for invalid or unsupported queries/filters/dimensions.
+     *
+     * @param queryRequest the {@link QueryRequest} of
+     *        type{@link TeiQueryRequest}.
+     *
+     * @throws IllegalQueryException if some invalid state is found.
+     */
+    private void checkAllowedDimensions( QueryRequest<TeiQueryRequest> queryRequest )
+    {
+        Set<String> dimensions = queryRequest.getCommonQueryRequest().getDimension();
+
+        dimensions.forEach( dim -> {
+            // The "pe" dimension is not supported for TEI queries.
+            if ( containsPe( dim ) )
+            {
+                throwIllegalQueryEx( E7222, dim );
+            }
+        } );
+    }
+
+    private boolean containsPe( String dimension )
+    {
+        return dimension.contains( "pe:" );
     }
 }
