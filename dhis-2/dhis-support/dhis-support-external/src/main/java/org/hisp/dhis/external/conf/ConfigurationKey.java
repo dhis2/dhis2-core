@@ -733,7 +733,14 @@ public enum ConfigurationKey
     /**
      * Event hooks for system events. Enable or disable the feature.
      */
-    EVENT_HOOKS_ENABLED( "event_hooks.enabled", Constants.OFF, false );
+    EVENT_HOOKS_ENABLED( "event_hooks.enabled", Constants.OFF, false ),
+
+    /**
+     * Linked accounts via OpenID mapping. Enable or disable the feature.
+     */
+    LINKED_ACCOUNTS_ENABLED( "linked_accounts.enabled", Constants.OFF, false ),
+
+    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false );
 
     private final String key;
 

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOGIN_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED;
 
 import java.io.IOException;
 
@@ -36,37 +40,59 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@RequiredArgsConstructor
 public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
 {
-    private OidcClientInitiatedLogoutSuccessHandler handler;
+    private final DhisOidcProviderRepository dhisOidcProviderRepository;
 
-    @Autowired
-    private DhisOidcProviderRepository dhisOidcProviderRepository;
+    private final DhisConfigurationProvider config;
 
-    @Autowired
-    public DhisConfigurationProvider dhisConfigurationProvider;
+    private final UserService userService;
+
+    private SimpleUrlLogoutSuccessHandler handler;
 
     @PostConstruct
     public void init()
     {
-        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        if ( !Strings.isNullOrEmpty( logoutUri ) )
+        if ( config.isEnabled( OIDC_OAUTH2_LOGIN_ENABLED ) )
         {
-            this.handler.setPostLogoutRedirectUri( logoutUri );
+            setOidcLogoutUrl();
+        }
+    }
+
+    private void setOidcLogoutUrl()
+    {
+        String logoutUri = config.getProperty( OIDC_LOGOUT_REDIRECT_URL );
+
+        if ( config.isEnabled( LINKED_ACCOUNTS_ENABLED ) )
+        {
+            this.handler = new SimpleUrlLogoutSuccessHandler();
+            if ( !isNullOrEmpty( logoutUri ) )
+            {
+                this.handler.setDefaultTargetUrl( logoutUri );
+            }
+        }
+        else
+        {
+            OidcClientInitiatedLogoutSuccessHandler oidcHandler = new OidcClientInitiatedLogoutSuccessHandler(
+                dhisOidcProviderRepository );
+            oidcHandler.setPostLogoutRedirectUri( logoutUri );
+            this.handler = oidcHandler;
             this.handler.setDefaultTargetUrl( logoutUri );
         }
     }
@@ -77,6 +103,40 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         throws IOException,
         ServletException
     {
+        if ( config.isEnabled( OIDC_OAUTH2_LOGIN_ENABLED ) )
+        {
+            boolean linkedAccountEnabled = config.isEnabled( LINKED_ACCOUNTS_ENABLED );
+            if ( linkedAccountEnabled )
+            {
+                handleLinkedAccountsLogout( request, response, authentication );
+            }
+            else
+            {
+                handler.onLogoutSuccess( request, response, authentication );
+            }
+        }
+    }
+
+    private void handleLinkedAccountsLogout( HttpServletRequest request, HttpServletResponse response,
+        Authentication authentication )
+        throws IOException,
+        ServletException
+    {
+        String currentUsername = request.getParameter( "current" );
+        String usernameToSwitchTo = request.getParameter( "switch" );
+
+        if ( isNullOrEmpty( currentUsername ) || isNullOrEmpty( usernameToSwitchTo ) )
+        {
+            setOidcLogoutUrl();
+        }
+        else
+        {
+            User currentUser = userService.getUserByUsername( currentUsername );
+            userService.setActiveLinkedAccounts( currentUser, usernameToSwitchTo );
+
+            this.handler.setDefaultTargetUrl( config.getProperty( LINKED_ACCOUNTS_RELOGIN_URL ) );
+        }
+
         handler.onLogoutSuccess( request, response, authentication );
     }
 }

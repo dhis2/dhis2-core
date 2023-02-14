@@ -562,33 +562,9 @@ public class AccountController
     }
 
     @GetMapping( "/linkedAccounts" )
-    public ResponseEntity<List<User>> getLinkedAccounts( @CurrentUser User currentUser )
+    public @ResponseBody List<User> getLinkedAccounts( @CurrentUser User currentUser )
     {
-        Map<String, String> result = new HashMap<>();
-
-        if ( currentUser == null )
-        {
-            result.put( "status", "NON_EXPIRED" );
-            result.put( "message", "Username is not valid, redirecting to login." );
-
-            return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
-        }
-
-        List<User> linkedUserAccounts = userService.getLinkedUserAccounts( currentUser );
-
-
-        return ResponseEntity.ok().cacheControl( noStore() ).body( linkedUserAccounts );
-        //        List<ExternalUserAccount> externalUserAccounts = externalUserAccountService.getExternalUserAccounts( currentUser );
-//
-//        result.put( "status", "OK" );
-//        result.put( "message", "Account was updated." );
-//        result.put( "accounts", externalUserAccounts.stream().map( ExternalUserAccount::getExternalAuthType )
-//            .collect( Collectors.joining( "," ) ) );
-//
-//        return ResponseEntity.ok().cacheControl( noStore() ).body( result );
-//    }
-//    {
-//        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
+        return userService.getLinkedUserAccounts( currentUser );
     }
 
     @GetMapping( "/username" )

@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -256,7 +257,8 @@ public interface UserService
      * @param openId the openId of the User.
      * @return the User or null if there is no match
      */
-    User getUserByOpenId( String openId );
+    @CheckForNull
+    User getUserByOpenId( @Nonnull String openId );
 
     /**
      * Retrieves the User associated with the User with the given LDAP ID.
@@ -579,8 +581,18 @@ public interface UserService
 
     /**
      * Get linked user accounts for the given user
-     * @param actingUser
-     * @return
+     *
+     * @param actingUser the acting/current user
+     * @return list of linked user accounts
      */
-    List<User> getLinkedUserAccounts( User actingUser );
+    @Nonnull
+    List<User> getLinkedUserAccounts( @Nonnull User actingUser );
+
+    /**
+     * Get active linked user accounts for the given user
+     *
+     * @param actingUser the acting/current user
+     * @param activeUsername the username of the user to set as active
+     */
+    void setActiveLinkedAccounts( @Nonnull User actingUser, @Nonnull String activeUsername );
 }

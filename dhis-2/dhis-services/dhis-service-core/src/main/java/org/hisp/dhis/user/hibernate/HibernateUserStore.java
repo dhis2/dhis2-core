@@ -47,6 +47,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
@@ -573,12 +574,13 @@ public class HibernateUserStore
     }
 
     @Override
-    public User getUserByOpenId( String openId )
+    @CheckForNull
+    public User getUserByOpenId( @Nonnull String openId )
     {
-        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.username" );
+        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.loginDate" );
         query.setParameter( "openId", openId );
         List<User> list = query.getResultList();
-        return list.get( 0 );
+        return list.isEmpty() ? null : list.get( 0 );
     }
 
     @Override
@@ -620,11 +622,12 @@ public class HibernateUserStore
     }
 
     @Override
+    @Nonnull
     public List<User> getLinkedUserAccounts( @Nonnull User currentUser )
     {
         if ( currentUser.getOpenId() == null )
         {
-            return new ArrayList<>();
+            return List.of();
         }
 
         Query<User> query = getQuery( "from User u where u.openId = :openId order by u.username" );

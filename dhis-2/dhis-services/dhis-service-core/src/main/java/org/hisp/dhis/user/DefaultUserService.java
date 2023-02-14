@@ -35,7 +35,9 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -52,6 +54,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -609,7 +612,8 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public User getUserByOpenId( String openId )
+    @CheckForNull
+    public User getUserByOpenId( @Nonnull String openId )
     {
         User user = userStore.getUserByOpenId( openId );
 
@@ -1002,8 +1006,29 @@ public class DefaultUserService
     }
 
     @Override
+    @Nonnull
     public List<User> getLinkedUserAccounts( @Nonnull User actingUser )
     {
         return userStore.getLinkedUserAccounts( actingUser );
+    }
+
+    @Override
+    @Transactional
+    public void setActiveLinkedAccounts( @Nonnull User actingUser, @Nonnull String activeUsername )
+    {
+        List<User> linkedUserAccounts = getLinkedUserAccounts( actingUser );
+        for ( User user : linkedUserAccounts )
+        {
+            if ( user.getUsername().equals( activeUsername ) )
+            {
+                user.setLastLogin( new Date() );
+            }
+            else
+            {
+                user.setLastLogin( Date.from( Instant.now().minus( 1, ChronoUnit.HOURS ) ) );
+            }
+
+            updateUser( user );
+        }
     }
 }
