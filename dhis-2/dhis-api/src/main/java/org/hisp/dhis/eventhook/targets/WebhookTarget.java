@@ -36,8 +36,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.eventhook.Target;
-import org.hisp.dhis.eventhook.targets.auth.Auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

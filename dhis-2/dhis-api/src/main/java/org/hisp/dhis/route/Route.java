@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.route;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.auth.Auth;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
-class HttpBasicAuthTest
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class Route
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
-    @Test
-    void testAuthorizationHeaderSet()
-    {
-        HttpBasicAuth auth = new HttpBasicAuth()
-            .setUsername( "admin" )
-            .setPassword( "district" );
+    @JsonProperty
+    private String description;
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
+    @JsonProperty( required = true )
+    private boolean disabled;
 
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
-    }
+    @JsonProperty( required = true )
+    private String url;
+
+    @JsonProperty( required = true )
+    private Map<String, String> headers = new HashMap<>();
+
+    @JsonProperty
+    private Auth auth;
+
+    @JsonProperty
+    private List<String> authorities = new ArrayList<>();
 }

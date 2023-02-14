@@ -25,109 +25,71 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import java.util.function.UnaryOperator;
-
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.route.Route;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen
  */
-@Service
-@RequiredArgsConstructor
-public class EventHookSecretManager
+@Component
+@AllArgsConstructor
+public class RouteObjectBundleHook
+    extends AbstractObjectBundleHook<Route>
 {
     @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
-    public void encrypt( EventHook eventHook )
+    @Override
+    public void preCreate( Route route, ObjectBundle bundle )
     {
-        handleSecrets( eventHook, encryptor::encrypt );
+        encrypt( route );
     }
 
-    public void decrypt( EventHook eventHook )
+    @Override
+    public void preUpdate( Route route, Route persistedObject, ObjectBundle bundle )
     {
-        handleSecrets( eventHook, encryptor::decrypt );
+        encrypt( route );
     }
 
-    private void handleSecrets( EventHook eventHook, UnaryOperator<String> callback )
+    private void encrypt( Route route )
     {
-        for ( Target target : eventHook.getTargets() )
-        {
-            if ( target.getType().equals( WebhookTarget.TYPE ) )
-            {
-                handleWebhook( (WebhookTarget) target, callback );
-            }
-            else if ( target.getType().equals( JmsTarget.TYPE ) )
-            {
-                handleJms( (JmsTarget) target, callback );
-            }
-            else if ( target.getType().equals( KafkaTarget.TYPE ) )
-            {
-                handleKafka( (KafkaTarget) target, callback );
-            }
-        }
-    }
-
-    private void handleWebhook( WebhookTarget target, UnaryOperator<String> callback )
-    {
-        Auth auth = target.getAuth();
+        Auth auth = route.getAuth();
 
         if ( auth == null )
         {
             return;
         }
 
-        switch ( auth.getType() )
+        if ( auth.getType().equals( ApiTokenAuth.TYPE ) )
         {
-        case HttpBasicAuth.TYPE:
-            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-
-            if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
-            {
-                httpBasicAuth.setPassword( callback.apply( httpBasicAuth.getPassword() ) );
-            }
-            break;
-        case ApiTokenAuth.TYPE:
             ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
 
             if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
             {
-                apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
+                apiTokenAuth.setToken( encryptor.encrypt( apiTokenAuth.getToken() ) );
             }
-            break;
-        default:
-            break;
         }
-    }
-
-    private void handleJms( JmsTarget target, UnaryOperator<String> callback )
-    {
-        if ( StringUtils.hasText( target.getPassword() ) )
+        else if ( auth.getType().equals( HttpBasicAuth.TYPE ) )
         {
-            target.setPassword( callback.apply( target.getPassword() ) );
-        }
-    }
+            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
 
-    private void handleKafka( KafkaTarget target, UnaryOperator<String> callback )
-    {
-        if ( StringUtils.hasText( target.getPassword() ) )
-        {
-            target.setPassword( callback.apply( target.getPassword() ) );
+            if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
+            {
+                httpBasicAuth.setPassword( encryptor.encrypt( httpBasicAuth.getPassword() ) );
+            }
         }
     }
 }
