@@ -20,7 +20,7 @@
 
         <property name="description" type="text"/>
 
-        <property name="enabled" type="boolean"/>
+        <property name="disabled" type="boolean"/>
 
         <property name="url" type="text"/>
 
