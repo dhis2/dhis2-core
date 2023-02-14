@@ -91,19 +91,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     }
 
     @Override
-    protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
-    {
-        entity.setKey( null );
-    }
-
-    @Override
-    protected void postProcessResponseEntities( List<ApiToken> entityList, WebOptions options,
-        Map<String, String> parameters )
-    {
-        entityList.forEach( t -> t.setKey( null ) );
-    }
-
-    @Override
     public void partialUpdateObject( String pvUid, Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
     {
