@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.feedback.ErrorCode.E4062;
+import static org.hisp.dhis.feedback.ErrorCode.E4063;
+import static org.hisp.dhis.feedback.ErrorCode.E4064;
+import static org.hisp.dhis.feedback.ErrorCode.E4065;
+import static org.hisp.dhis.feedback.ErrorCode.E4066;
+import static org.hisp.dhis.feedback.ErrorCode.E4067;
+import static org.hisp.dhis.feedback.ErrorCode.E4068;
+import static org.hisp.dhis.feedback.ErrorCode.E7500;
+import static org.hisp.dhis.utils.Assertions.assertErrorReport;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -120,7 +129,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 0, errorReports.size() );
+        assertIsEmpty( errorReports );
     }
 
     @Test
@@ -133,10 +142,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentCreatedDate`",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EnrollmentCreatedDate" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -149,10 +156,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentIncidentDate`",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EnrollmentIncidentDate" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -165,10 +170,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventDate`",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EventDate" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -181,10 +184,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventScheduledDate`",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EventScheduledDate" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -198,9 +199,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4063 );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -214,9 +214,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4063 );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -230,8 +229,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Organisation unit does not exist: `fakeOrgUnit`", errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E7500, "fakeOrgUnit" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -244,9 +243,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Organisation Unit cannot be empty with `SELECTED` org unit mode",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4064, "SELECTED" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -259,8 +257,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Data item UID is missing in filter", errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4065, "SELECTED" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -276,8 +274,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "No data element found for item: `DataItem`", errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4066, "DataItem" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -290,8 +288,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Attribute UID is missing in filter", errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4067 );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     @Test
@@ -308,9 +306,8 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "No tracked entity attribute found for attribute: `attribute`",
-            errorReports.get( 0 ).getMessage() );
+        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4068, "attribute" );
+        assertErrorReport( expectedErrorReport, errorReports );
     }
 
     private DateFilterPeriod createDatePeriod( Date startDate, Date endDate, DatePeriodType dateType )
