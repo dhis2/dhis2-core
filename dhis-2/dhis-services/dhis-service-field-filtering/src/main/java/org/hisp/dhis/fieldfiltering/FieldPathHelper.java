@@ -308,10 +308,6 @@ public class FieldPathHelper
         Set<String> excludedPaths = new HashSet<>();
         for ( FieldPath exclusion : exclusions )
         {
-            // TODO(ivo): would it break other code if we exclude all children? A child will not be included in the JSON
-            // if its parent is explicitly excluded
-            // before:
-            //             fieldPathMap.remove( exclusion.toFullPath() );
             excludedPaths.add( exclusion.toFullPath() );
 
             for ( String path : fieldPathMap.keySet() )

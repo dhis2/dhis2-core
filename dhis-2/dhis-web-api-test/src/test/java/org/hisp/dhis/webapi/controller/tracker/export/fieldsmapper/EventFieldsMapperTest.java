@@ -48,10 +48,8 @@ class EventFieldsMapperTest extends DhisControllerConvenienceTest
     static Stream<Arguments> getEventParamsMultipleCases()
     {
         return Stream.of(
-            // TODO(ivo): this is a potential bug :( while the parser does parse this into FieldPath(name=all, path=[], exclude=true, preset=true, transformers=[], fullPath=null)
-            // if you make requests using it to a metadata API you'll get the same result whether its an inclusion or exclusion
-            // try: curl --silent -u admin:district -H 'content-type: application/json' 'https://play.dhis2.org/2.39.1/api/organisationUnits?page=1&pageSize=1&fields=!*' | jq .organisationUnits
-            // so the FieldFilterService.apply differs from implementation and assumption of what it would do
+            // This value does not make sense as it means exclude all.
+            // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
             arguments( "!*", true ), // expected value is false on master
             arguments( "*", true ),
             arguments( "relationships", true ),

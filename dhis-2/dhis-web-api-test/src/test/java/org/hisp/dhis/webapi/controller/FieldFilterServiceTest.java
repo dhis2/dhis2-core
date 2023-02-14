@@ -56,7 +56,7 @@ class FieldFilterServiceTest extends DhisControllerConvenienceTest
     FieldPathHelper fieldPathHelper;
 
     @Test
-    void shouldIncludePathGivenFilterContainsPresetAll()
+    void shouldIncludeAllPathsGivenFilterContainsPresetAll()
     {
         Root root = new Root( new First( new Second( new Third() ) ) );
         List<FieldPath> filter = FieldFilterParser.parse( "*" );
@@ -89,7 +89,9 @@ class FieldFilterServiceTest extends DhisControllerConvenienceTest
 
         assertAll( "filterIncludes should match what's included in the filtered JSON",
             () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first" ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ) );
+            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
+            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
+            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
     }
 
     @Test
@@ -115,27 +117,8 @@ class FieldFilterServiceTest extends DhisControllerConvenienceTest
         assertAll( "filterIncludes should match what's included in the filtered JSON",
             () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first" ),
             () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ),
-            () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first.second" ),
             () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second" ) ),
             () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first.second.third" ) ) );
-    }
-
-    @Test
-    void REMOVE_WHEN_DONE_DEBUGGING_PLAYGROUND()
-    {
-        assertFalse( fieldFilterService.filterIncludes( Root.class, FieldFilterParser.parse( "!first,first[second]" ),
-            "first.second" ) );
-    }
-
-    @Test
-    void shouldExcludePathGivenFilterContainsExplicitExclusionOfPathDespiteExplicitInclusionOfPath()
-    {
-        Root root = new Root( new First( new Second( new Third() ) ) );
-        List<FieldPath> filter = FieldFilterParser.parse( "first,!first" );
-
-        assertAll( "filterIncludes should match what's included in the filtered JSON",
-            () -> assertJSONExcludes( fieldFilterService.toObjectNode( root, filter ), "first" ),
-            () -> assertFalse( fieldFilterService.filterIncludes( Root.class, filter, "first" ) ) );
     }
 
     void assertJSONIncludes( ObjectNode json, String path )
