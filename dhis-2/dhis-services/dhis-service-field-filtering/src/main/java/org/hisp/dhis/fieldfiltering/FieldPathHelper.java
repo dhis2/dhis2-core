@@ -33,8 +33,10 @@ import static java.util.function.Predicate.not;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -303,10 +305,24 @@ public class FieldPathHelper
 
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
     {
+        Set<String> excludedPaths = new HashSet<>();
         for ( FieldPath exclusion : exclusions )
         {
-            fieldPathMap.remove( exclusion.toFullPath() );
+            // TODO(ivo): would it break other code if we exclude all children? A child will not be included in the JSON
+            // if its parent is explicitly excluded
+            // before:
+            //             fieldPathMap.remove( exclusion.toFullPath() );
+            excludedPaths.add( exclusion.toFullPath() );
+
+            for ( String path : fieldPathMap.keySet() )
+            {
+                if ( path.startsWith( exclusion.toFullPath() ) )
+                {
+                    excludedPaths.add( path );
+                }
+            }
         }
+        fieldPathMap.keySet().removeAll( excludedPaths );
     }
 
     // ----------------------------------------------------------------------------------------------------------------

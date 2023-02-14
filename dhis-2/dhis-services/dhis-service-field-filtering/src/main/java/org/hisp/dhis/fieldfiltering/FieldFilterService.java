@@ -166,10 +166,6 @@ public class FieldFilterService
         {
             if ( f.toFullPath().equals( path ) )
             {
-                if ( f.isExclude() )
-                {
-                    return false;
-                }
                 return true;
             }
         }
