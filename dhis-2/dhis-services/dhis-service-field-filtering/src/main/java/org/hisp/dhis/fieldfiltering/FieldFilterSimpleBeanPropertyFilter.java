@@ -32,12 +32,13 @@ import java.util.Map;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.auth.ApiTokenAuth;
+import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
-import org.hisp.dhis.eventhook.targets.auth.ApiTokenAuth;
-import org.hisp.dhis.eventhook.targets.auth.HttpBasicAuth;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
@@ -57,6 +58,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
  *
  * @author Morten Olav Hansen
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
@@ -72,8 +74,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
      * filtering.
      */
     private static final Map<Class<?>, List<String>> IGNORE_LIST = Map.of(
-        ApiTokenAuth.class, List.of( "targets.auth.token" ),
-        HttpBasicAuth.class, List.of( "targets.auth.password" ),
+        HttpBasicAuth.class, List.of( "auth.password", "targets.auth.password" ),
+        ApiTokenAuth.class, List.of( "auth.token", "targets.auth.token" ),
         JmsTarget.class, List.of( "targets.password" ),
         KafkaTarget.class, List.of( "targets.password" ) );
 
@@ -96,6 +98,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         if ( ctx.getCurrentValue() == null )
         {
             return false;
+        }
+
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath() );
         }
 
         if ( IGNORE_LIST.containsKey( ctx.getCurrentValue().getClass() ) &&
