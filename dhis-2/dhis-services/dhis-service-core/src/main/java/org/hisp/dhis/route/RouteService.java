@@ -83,6 +83,12 @@ public class RouteService
         restTemplate.setRequestFactory( requestFactory );
     }
 
+    /**
+     * Get {@see Route} by uid/code, decrypts its password/token and returns it.
+     *
+     * @param id uid/code
+     * @return {@see Route}
+     */
     public Route getDecryptedRoute( @Nonnull String id )
     {
         Route route = routeStore.getByUidNoAcl( id );
