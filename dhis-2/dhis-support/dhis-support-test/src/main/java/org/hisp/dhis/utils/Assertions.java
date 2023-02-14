@@ -243,13 +243,13 @@ public final class Assertions
     }
 
     public static void assertErrorReport( List<ErrorReport> actualErrors, ErrorCode expectedErrorCode,
-        String expectedErrorMessage )
+        String expectedMessage )
     {
-        assertFalse( actualErrors.isEmpty(), expectedErrorMessage + " not found as error report list is empty" );
+        assertFalse( actualErrors.isEmpty(), expectedMessage + " not found as error report list is empty" );
 
-        assertTrue( actualErrors.stream().anyMatch( er -> er.getMessage().contains( expectedErrorMessage )
+        assertTrue( actualErrors.stream().anyMatch( er -> er.getMessage().contains( expectedMessage )
             && er.getErrorCode() == expectedErrorCode ),
             String.format( "Error report with code %s and and message '%s' not found in %s", expectedErrorCode,
-                expectedErrorMessage, actualErrors ) );
+                expectedMessage, actualErrors ) );
     }
 }
