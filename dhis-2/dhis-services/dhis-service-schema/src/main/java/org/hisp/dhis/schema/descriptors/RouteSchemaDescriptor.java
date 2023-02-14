@@ -25,21 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.schema.descriptors;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import java.util.List;
+
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /**
- * @author Luca Cambi luca@dhis2.org
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ResponseStatus( HttpStatus.CONFLICT )
-public class ConflictException extends Exception
+public class RouteSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "route";
 
-    public ConflictException( String message )
+    public static final String PLURAL = "routes";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        super( message );
-    }
+        Schema schema = new Schema( Route.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1200 );
 
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_ROUTE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_ROUTE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ROUTE_DELETE" ) ) );
+
+        return schema;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.common.auth;
 
-import java.util.Base64;
+import java.io.Serializable;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,41 +35,35 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
+@EqualsAndHashCode
 @Accessors( chain = true )
-public class HttpBasicAuth extends Auth
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
+    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
+} )
+public abstract class Auth
+    implements Serializable
 {
-    public static final String TYPE = "http-basic";
+    @JsonProperty
+    protected final String type;
 
-    @JsonProperty( required = true )
-    private String username;
-
-    @JsonProperty( required = true )
-    private String password;
-
-    public HttpBasicAuth()
+    @JsonCreator
+    protected Auth( @JsonProperty( "type" ) String type )
     {
-        super( TYPE );
+        this.type = type;
     }
 
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
-        {
-            return;
-        }
-
-        headers.add( "Authorization",
-            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
-    }
+    public abstract void apply( MultiValueMap<String, String> headers );
 }

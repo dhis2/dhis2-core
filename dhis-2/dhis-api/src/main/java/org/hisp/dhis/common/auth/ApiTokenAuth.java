@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
-
-import java.io.Serializable;
+package org.hisp.dhis.common.auth;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,35 +33,41 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
+ * for dhis2 personal access token, but can be used anywhere the format is
+ * accepted.
+ *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = HttpBasicAuth.TYPE ),
-    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = ApiTokenAuth.TYPE ),
-} )
-public abstract class Auth
-    implements Serializable
+public class ApiTokenAuth extends Auth
 {
-    @JsonProperty
-    protected final String type;
+    public static final String TYPE = "api-token";
 
-    @JsonCreator
-    protected Auth( @JsonProperty( "type" ) String type )
+    @JsonProperty( required = true )
+    private String token;
+
+    public ApiTokenAuth()
     {
-        this.type = type;
+        super( TYPE );
     }
 
-    public abstract void apply( MultiValueMap<String, String> headers );
+    @Override
+    public void apply( MultiValueMap<String, String> headers )
+    {
+        if ( !StringUtils.hasText( token ) )
+        {
+            return;
+        }
+
+        headers.set( "Authorization", "ApiToken " + token );
+    }
 }

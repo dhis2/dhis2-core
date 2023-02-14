@@ -40,7 +40,7 @@ import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
 import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
 import org.hisp.dhis.cache.CappedLocalCache;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.common.auth;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
+import java.util.Base64;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen
  */
-@ResponseStatus( HttpStatus.NOT_FOUND )
-@OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
-public class NotFoundException extends Exception
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class HttpBasicAuth extends Auth
 {
-    public static NotFoundException notFoundUid( String uid )
+    public static final String TYPE = "http-basic";
+
+    @JsonProperty( required = true )
+    private String username;
+
+    @JsonProperty( required = true )
+    private String password;
+
+    public HttpBasicAuth()
     {
-        return new NotFoundException( "Object not found for uid: " + uid );
+        super( TYPE );
     }
 
-    public NotFoundException()
+    @Override
+    public void apply( MultiValueMap<String, String> headers )
     {
-        super( "Object not found." );
-    }
+        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
+        {
+            return;
+        }
 
-    public NotFoundException( String message )
-    {
-        super( message );
-    }
-
-    public NotFoundException( String type, String uid )
-    {
-        super( type + " not found for uid: " + uid );
+        headers.add( "Authorization",
+            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
     }
 }

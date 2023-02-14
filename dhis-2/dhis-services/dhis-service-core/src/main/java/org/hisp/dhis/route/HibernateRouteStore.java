@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.route;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
-
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author anilkumk.
+ * @author Morten Olav Hansen
  */
-@ResponseStatus( HttpStatus.BAD_REQUEST )
-@OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
-public class BadRequestException extends Exception
+@Repository
+public class HibernateRouteStore extends HibernateIdentifiableObjectStore<Route>
+    implements RouteStore
 {
-
-    public BadRequestException( String message )
+    public HibernateRouteStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( message );
-    }
-
-    public BadRequestException( Throwable cause )
-    {
-        super( cause );
-    }
-
-    public BadRequestException( String message, Throwable cause )
-    {
-        super( message, cause );
+        super( sessionFactory, jdbcTemplate, publisher,
+            Route.class, currentUserService, aclService, false );
     }
 }
