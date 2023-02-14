@@ -132,30 +132,25 @@ public class FieldFilterService
     /**
      * Determines whether given path is included in the resulting ObjectNodes
      * after applying {@link #toObjectNode(Object, List)}. This obviously
-     * requires that the actual data contains such path.
+     * requires that the actual data contains such path when filtered.
      *
-     * FieldPath inclusion, exclusion as well as preset {@link FieldPreset.ALL}
-     * are taken into account.
+     * For example given a structure like
+     * <p>
+     * <code>{"event": "relationships": [] }</code>
+     * </p>
+     * and a
+     * <p>
+     * <code>filter="*,first[second[!third]]"</code>
+     * </p>
+     * <p>
+     * both paths<code>first</code> and <code>first.second</code> will result in
+     * true as they will be included in the filtered result. While
+     * <code>first.second.third</code> will result in false.
+     * </p>
      *
-     * // TODO: this does not yet support Attribute UIDs TODO: add examples with
-     * exclusion and preset all. Especially for the fact that with
-     * filter=FieldPreset.ALL you will get true for any path even if this field
-     * is not part of your objects schema.
-     *
-     * // TODO this example isn't good as I need to show given List<FieldPath>
-     * and path For example given data
-     *
-     * {"event": "relationships": [] }
-     *
-     * both paths
-     *
-     * <code>event</code> <code>event.relationships</code>
-     *
-     * will result in true as they will be included in the filtered result.
-     *
-     * @param rootClass
-     * @param filter
-     * @param path
+     * @param rootClass class the filter will be applied on
+     * @param filter field paths to be applied on the class
+     * @param path path to check for inclusion in the filter
      * @return
      */
     public boolean filterIncludes( Class<?> rootClass, List<FieldPath> filter, String path )
