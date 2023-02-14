@@ -1016,16 +1016,19 @@ public class DefaultUserService
     @Transactional
     public void setActiveLinkedAccounts( @Nonnull User actingUser, @Nonnull String activeUsername )
     {
+        Instant oneHourAgo = Instant.now().minus( 1, ChronoUnit.HOURS );
+        Instant oneHourInTheFuture = Instant.now().plus( 1, ChronoUnit.HOURS );
+
         List<User> linkedUserAccounts = getLinkedUserAccounts( actingUser );
         for ( User user : linkedUserAccounts )
         {
             if ( user.getUsername().equals( activeUsername ) )
             {
-                user.setLastLogin( new Date() );
+                user.setLastLogin( Date.from( oneHourInTheFuture ) );
             }
             else
             {
-                user.setLastLogin( Date.from( Instant.now().minus( 1, ChronoUnit.HOURS ) ) );
+                user.setLastLogin( Date.from( oneHourAgo ) );
             }
 
             updateUser( user );

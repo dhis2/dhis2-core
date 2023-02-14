@@ -577,7 +577,7 @@ public class HibernateUserStore
     @CheckForNull
     public User getUserByOpenId( @Nonnull String openId )
     {
-        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.loginDate" );
+        Query<User> query = getQuery( "from User u where u.openId = :openId order by u.lastLogin desc" );
         query.setParameter( "openId", openId );
         List<User> list = query.getResultList();
         return list.isEmpty() ? null : list.get( 0 );
