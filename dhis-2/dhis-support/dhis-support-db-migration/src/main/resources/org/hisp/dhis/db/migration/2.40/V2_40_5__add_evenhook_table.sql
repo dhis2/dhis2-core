@@ -5,6 +5,7 @@ create table if not exists eventhook (
     eventhookid int8 not null,
     uid varchar(11) null,
     code varchar(100) null,
+    disabled bool NOT NULL,
     created timestamp null,
     userid int8 null,
     lastupdated timestamp null,

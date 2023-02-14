@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.route;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen
  */
-class HttpBasicAuthTest
+public interface RouteStore extends IdentifiableObjectStore<Route>
 {
-    @Test
-    void testAuthorizationHeaderSet()
-    {
-        HttpBasicAuth auth = new HttpBasicAuth()
-            .setUsername( "admin" )
-            .setPassword( "district" );
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
-
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
-    }
 }

@@ -2,27 +2,33 @@
 <!DOCTYPE hibernate-mapping PUBLIC
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
-        >
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.eventhook.EventHook" table="eventhook">
-
+    <class name="org.hisp.dhis.route.Route" table="route">
         <cache usage="read-write"/>
 
-        <id name="id" column="eventhookid">
+        <id name="id" column="routeid">
             <generator class="native"/>
         </id>
         &identifiableProperties;
 
         <property name="name" column="name" not-null="true" unique="true" length="230"/>
 
-        <property name="description" type="text" />
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                     foreign-key="fk_route_userid_userinfoid"/>
+
+        <property name="description" type="text"/>
 
         <property name="disabled" type="boolean"/>
 
-        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
-                     foreign-key="fk_eventhook_userid_userinfoid"/>
+        <property name="url" type="text"/>
+
+        <property name="headers" column="headers" type="jbMap" not-null="true"/>
+
+        <property name="auth" column="auth" type="jbAuth" not-null="false"/>
+
+        <property name="authorities" column="authorities" type="jbList" not-null="true"/>
 
         <!-- Translations -->
         <property name="translations" column="translations" type="jblTranslations"/>
@@ -33,10 +39,5 @@
         <!-- Dynamic attribute values -->
         <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
 
-        <property name="source" type="jblEventHookSource" column="source" not-null="true" />
-
-        <property name="targets" type="jblEventHookTargets" column="targets" not-null="true" />
-
     </class>
-
 </hibernate-mapping>

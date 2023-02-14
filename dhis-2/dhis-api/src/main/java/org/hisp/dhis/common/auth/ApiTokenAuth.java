@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.common.auth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
+ * for dhis2 personal access token, but can be used anywhere the format is
+ * accepted.
+ *
  * @author Morten Olav Hansen
  */
-class HttpBasicAuthTest
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class ApiTokenAuth extends Auth
 {
-    @Test
-    void testAuthorizationHeaderSet()
+    public static final String TYPE = "api-token";
+
+    @JsonProperty( required = true )
+    private String token;
+
+    public ApiTokenAuth()
     {
-        HttpBasicAuth auth = new HttpBasicAuth()
-            .setUsername( "admin" )
-            .setPassword( "district" );
+        super( TYPE );
+    }
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
+    @Override
+    public void apply( MultiValueMap<String, String> headers )
+    {
+        if ( !StringUtils.hasText( token ) )
+        {
+            return;
+        }
 
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
+        headers.set( "Authorization", "ApiToken " + token );
     }
 }

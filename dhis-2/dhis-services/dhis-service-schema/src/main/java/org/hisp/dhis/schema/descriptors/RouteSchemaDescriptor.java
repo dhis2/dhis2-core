@@ -25,32 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.schema.descriptors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /**
- * @author Morten Olav Hansen
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class HttpBasicAuthTest
+public class RouteSchemaDescriptor implements SchemaDescriptor
 {
-    @Test
-    void testAuthorizationHeaderSet()
+    public static final String SINGULAR = "route";
+
+    public static final String PLURAL = "routes";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        HttpBasicAuth auth = new HttpBasicAuth()
-            .setUsername( "admin" )
-            .setPassword( "district" );
+        Schema schema = new Schema( Route.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1200 );
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_ROUTE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_ROUTE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ROUTE_DELETE" ) ) );
 
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
+        return schema;
     }
 }

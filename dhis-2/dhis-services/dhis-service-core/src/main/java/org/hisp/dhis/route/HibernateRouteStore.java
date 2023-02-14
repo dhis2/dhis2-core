@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.route;
 
-import java.util.Base64;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class HttpBasicAuth extends Auth
+@Repository
+public class HibernateRouteStore extends HibernateIdentifiableObjectStore<Route>
+    implements RouteStore
 {
-    public static final String TYPE = "http-basic";
-
-    @JsonProperty( required = true )
-    private String username;
-
-    @JsonProperty( required = true )
-    private String password;
-
-    public HttpBasicAuth()
+    public HibernateRouteStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( TYPE );
-    }
-
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
-        {
-            return;
-        }
-
-        headers.add( "Authorization",
-            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
+        super( sessionFactory, jdbcTemplate, publisher,
+            Route.class, currentUserService, aclService, false );
     }
 }
