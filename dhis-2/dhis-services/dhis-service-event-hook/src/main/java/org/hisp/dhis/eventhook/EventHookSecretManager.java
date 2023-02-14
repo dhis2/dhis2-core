@@ -33,12 +33,12 @@ import java.util.function.UnaryOperator;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.auth.ApiTokenAuth;
+import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.hisp.dhis.eventhook.targets.auth.ApiTokenAuth;
-import org.hisp.dhis.eventhook.targets.auth.Auth;
-import org.hisp.dhis.eventhook.targets.auth.HttpBasicAuth;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

@@ -32,6 +32,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -78,7 +79,13 @@ public class CommonExpressionVisitor
 
     private StatementBuilder statementBuilder;
 
-    private I18n i18n;
+    /**
+     * A {@link Supplier} object that can return a {@link I18n} instance when
+     * needed. This is done because retrieving a {@link I18n} instance can be
+     * expensive and is not needed for most parsing operations. When it is
+     * needed, however, this can provide it.
+     */
+    private Supplier<I18n> i18nSupplier;
 
     /**
      * Map of constant values to use in evaluating the expression.

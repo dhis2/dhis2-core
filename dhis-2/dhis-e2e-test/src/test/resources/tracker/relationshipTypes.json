@@ -6,9 +6,7 @@
       "name": "TA tei to enrollment",
       "bidirectional": true,
       "displayName": "TA tei to enrollment",
-      "publicAccess": "rw------",
       "fromToName": "TA",
-      "externalAccess": false,
       "displayFromToName": "TA",
       "favorite": false,
       "toConstraint": {
@@ -56,19 +54,15 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+      "attributeValues": []
     },
     {
       "id": "HrS7b5Lis6w",
       "name": "TA tei to event",
       "bidirectional": true,
       "displayName": "TA tei to event",
-      "publicAccess": "rw------",
       "fromToName": "TEI of event",
       "toFromName": "Event of TEI",
-      "externalAccess": false,
       "favorite": false,
       "toConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
@@ -99,24 +93,25 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": []
+      },
+      "attributeValues": []
     },
     {
       "id": "HrS7b5Lis6E",
       "name": "TA event to TEI",
       "bidirectional": true,
       "displayName": "TA event to TEI",
-      "publicAccess": "rw------",
       "fromToName": "Event of TEI",
       "toFromName": "TEI of event",
-      "externalAccess": false,
       "favorite": false,
       "access": {
         "read": true,
@@ -165,24 +160,25 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": []
+      },
+      "attributeValues": []
     },
     {
       "id": "HrS7b5Lis6P",
       "name": "TA event to event",
       "bidirectional": true,
       "displayName": "TA event to event",
-      "publicAccess": "rw------",
       "fromToName": "Related event",
       "toFromName": "Related event",
-      "externalAccess": false,
       "favorite": false,
       "access": {
         "read": true,
@@ -216,14 +212,16 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": []
+      }
     },
     {
       "code": "TA_TR_EVENT_TO_ENROLLMENT",
@@ -234,9 +232,7 @@
       "name": "TA tracker event to enrollment",
       "bidirectional": true,
       "displayName": "TA tracker event to enrollment",
-      "publicAccess": "rw------",
       "fromToName": "Event related to enrollment",
-      "externalAccess": false,
       "displayFromToName": "Event related to enrollment",
       "toFromName": "Enrollment related to event",
       "displayToFromName": "Enrollment related to event",
@@ -274,16 +270,7 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "attributeValues": [],
-      "userAccesses": []
+      "attributeValues": []
     },
     {
       "code": "TA_TEI_TO_TEI",
@@ -291,9 +278,7 @@
       "name": "TA tei to tei",
       "bidirectional": false,
       "displayName": "TA tei to tei",
-      "publicAccess": "rw------",
       "fromToName": "TA",
-      "externalAccess": false,
       "displayFromToName": "TA",
       "favorite": false,
       "toConstraint": {
@@ -322,9 +307,7 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+      "attributeValues": []
     }
   ]
 }
