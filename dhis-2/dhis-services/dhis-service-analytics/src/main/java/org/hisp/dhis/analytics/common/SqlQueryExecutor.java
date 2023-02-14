@@ -38,6 +38,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 /**
  * @see org.hisp.dhis.analytics.common.QueryExecutor
  * @author maikel arabori
@@ -76,7 +78,12 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
     {
         notNull( query, "The 'query' must not be null" );
 
-        return namedParameterJdbcTemplate.queryForObject( query.getStatement(),
-            new MapSqlParameterSource().addValues( query.getParams() ), Long.class );
+        return Optional.ofNullable(
+                namedParameterJdbcTemplate.queryForObject(
+                        query.getStatement(),
+                        new MapSqlParameterSource()
+                                .addValues( query.getParams() ),
+                        Long.class ) )
+                .orElse(0L);
     }
 }
