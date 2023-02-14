@@ -83,7 +83,7 @@
 
     <!--DBMS -->
     <flyway-core.version>7.0.4</flyway-core.version>
-    <hibernate.version>5.4.28.Final</hibernate.version>
+    <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.10.4</hibernate-types.version>
     <!-- Keep in sync with Hibernate! -->
     <byte-buddy.version>1.10.17</byte-buddy.version>
