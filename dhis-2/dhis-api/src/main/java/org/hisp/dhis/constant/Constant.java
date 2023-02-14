@@ -67,16 +67,6 @@ public class Constant
         this.value = value;
     }
 
-    @Override
-    public void setAutoFields()
-    {
-        super.setAutoFields();
-        if ( shortName == null && name != null )
-        {
-            setShortName( name.length() <= 50 ? name : name.substring( 0, 50 ) );
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Getter & Setter
     // -------------------------------------------------------------------------

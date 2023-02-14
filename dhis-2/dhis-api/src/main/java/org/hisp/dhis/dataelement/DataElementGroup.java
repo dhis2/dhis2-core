@@ -73,16 +73,6 @@ public class DataElementGroup
     // Logic
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setAutoFields()
-    {
-        super.setAutoFields();
-        if ( shortName == null && name != null )
-        {
-            setShortName( name.length() <= 50 ? name : name.substring( 0, 50 ) );
-        }
-    }
-
     public void addDataElement( DataElement dataElement )
     {
         members.add( dataElement );
