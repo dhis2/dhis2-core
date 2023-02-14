@@ -110,6 +110,7 @@ class CategorySecurityUtilsTest
 
         Program program = mock( Program.class );
         when( program.getCategoryCombo() ).thenReturn( categoryCombo );
+        when( program.hasNonDefaultCategoryCombo() ).thenReturn( true );
 
         EventQueryParams.Builder paramBuilder = new EventQueryParams.Builder().withProgram( program );
 
