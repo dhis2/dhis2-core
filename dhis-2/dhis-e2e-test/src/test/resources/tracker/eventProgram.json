@@ -7,7 +7,6 @@
       "name": "TA Program with user assignment",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -62,14 +61,17 @@
         }
       ],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "programStageSections": []
     }
   ],
@@ -80,7 +82,6 @@
       "created": "2019-04-09T13:29:20.304",
       "name": "Program with user assignment",
       "shortName": "User assignment program ",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -116,20 +117,23 @@
           "id": "YuQRtpLP10I"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "id": "OPVIvvXzNTw",
-          "access": "rwrw----"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
       "programStages": [
         {
           "id": "l8oDIfJJhtg"
         }
-      ],
-      "userAccesses": []
+      ]
     }
   ]
 }

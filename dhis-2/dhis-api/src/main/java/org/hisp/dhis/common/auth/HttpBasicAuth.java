@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.common.auth;
+
+import java.util.Base64;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -38,24 +40,23 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
- * for dhis2 personal access token, but can be used anywhere the format is
- * accepted.
- *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
 @EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
-public class ApiTokenAuth extends Auth
+public class HttpBasicAuth extends Auth
 {
-    public static final String TYPE = "api-token";
+    public static final String TYPE = "http-basic";
 
     @JsonProperty( required = true )
-    private String token;
+    private String username;
 
-    public ApiTokenAuth()
+    @JsonProperty( required = true )
+    private String password;
+
+    public HttpBasicAuth()
     {
         super( TYPE );
     }
@@ -63,11 +64,12 @@ public class ApiTokenAuth extends Auth
     @Override
     public void apply( MultiValueMap<String, String> headers )
     {
-        if ( !StringUtils.hasText( token ) )
+        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
         {
             return;
         }
 
-        headers.set( "Authorization", "ApiToken " + token );
+        headers.add( "Authorization",
+            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
     }
 }

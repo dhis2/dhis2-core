@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.common.auth;
 
 import java.io.Serializable;
 
@@ -50,8 +50,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Accessors( chain = true )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = HttpBasicAuth.TYPE ),
-    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = ApiTokenAuth.TYPE ),
+    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
+    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
 } )
 public abstract class Auth
     implements Serializable

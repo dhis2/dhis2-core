@@ -7,9 +7,6 @@
       "created": "2022-05-30T12:01:22.699",
       "lastUpdated": "2022-05-30T12:01:22.719",
       "translations": [],
-      "externalAccess": false,
-      "userGroupAccesses": [],
-      "userAccesses": [],
       "favorites": [],
       "sharing": {
         "external": false,
@@ -80,9 +77,6 @@
           "created": "2022-05-30T09:36:31.935",
           "lastUpdated": "2022-05-30T09:36:31.935",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "access": {
             "manage": true,
             "externalize": true,
@@ -225,9 +219,6 @@
           "created": "2022-02-22T09:08:39.533",
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -256,9 +247,6 @@
           "created": "2022-02-22T09:08:39.532",
           "lastUpdated": "2022-02-22T09:08:39.532",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -287,9 +275,6 @@
           "created": "2022-02-22T09:08:39.533",
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -560,16 +545,6 @@
       "created": "2022-05-30T09:11:33.613",
       "lastUpdated": "2022-05-30T09:11:57.248",
       "translations": [],
-      "externalAccess": false,
-      "publicAccess": "rw------",
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "userAccesses": [],
       "access": {
         "manage": true,
         "externalize": true,
@@ -630,10 +605,6 @@
       "created": "2022-05-30T09:33:51.936",
       "lastUpdated": "2022-05-30T09:33:51.936",
       "translations": [],
-      "externalAccess": false,
-      "publicAccess": "rw------",
-      "userGroupAccesses": [],
-      "userAccesses": [],
       "access": {
         "manage": true,
         "externalize": true,
@@ -823,7 +794,6 @@
       "created": "2022-05-30T11:49:39.597",
       "lastUpdated": "2022-05-30T11:49:39.597",
       "translations": [],
-      "externalAccess": false,
       "favorites": [],
       "sharing": {
         "owner": "PQD6wXJ2r5j",
