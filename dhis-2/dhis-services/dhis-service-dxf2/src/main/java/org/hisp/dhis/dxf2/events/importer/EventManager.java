@@ -248,6 +248,7 @@ public class EventManager
             catch ( Exception e )
             {
                 handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
+                log.error( "Failed to update events: ", e );
             }
 
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
