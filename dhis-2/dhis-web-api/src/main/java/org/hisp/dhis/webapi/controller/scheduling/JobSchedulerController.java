@@ -130,7 +130,7 @@ public class JobSchedulerController
         List<String> sequence = new ArrayList<>();
     }
 
-    @GetMapping( "/queues/" )
+    @GetMapping( "/queues" )
     public Set<String> getQueueNames()
     {
         return jobQueueService.getQueueNames();
