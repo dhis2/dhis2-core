@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EventFieldsMapperTest extends DhisControllerConvenienceTest
 {
     @Autowired
-    EventFieldsParamMapper eventFieldsParamMapper;
+    EventFieldsParamMapper mapper;
 
     static Stream<Arguments> getEventParamsMultipleCases()
     {
@@ -66,7 +66,7 @@ class EventFieldsMapperTest extends DhisControllerConvenienceTest
     @ParameterizedTest
     void getEventParamsMultipleCases( String fields, boolean expectRelationships )
     {
-        EventParams params = eventFieldsParamMapper.map( FieldFilterParser.parse( fields ) );
+        EventParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectRelationships, params.isIncludeRelationships() );
     }

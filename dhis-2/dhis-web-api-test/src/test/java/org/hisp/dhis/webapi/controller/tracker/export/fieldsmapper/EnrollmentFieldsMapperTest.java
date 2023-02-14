@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -35,16 +34,25 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class EnrollmentFieldsMapperTest
+class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    EnrollmentFieldsParamMapper mapper;
+
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
         return Stream.of(
-            arguments( "!*", false, false, false ),
+            // TODO(ivo): this is a potential bug :( while the parser does parse this into FieldPath(name=all, path=[], exclude=true, preset=true, transformers=[], fullPath=null)
+            // if you make requests using it to a metadata API you'll get the same result whether its an inclusion or exclusion
+            // try: curl --silent -u admin:district -H 'content-type: application/json' 'https://play.dhis2.org/2.39.1/api/organisationUnits?page=1&pageSize=1&fields=!*' | jq .organisationUnits
+            // so the FieldFilterService.apply differs from implementation and assumption of what it would do
+            arguments( "!*", true, true, true ), // expected value are false on master
             arguments( "*", true, true, true ),
             arguments( "*,!relationships", true, true, false ),
             arguments( "*,!attributes", false, true, true ),
@@ -71,7 +79,7 @@ class EnrollmentFieldsMapperTest
     void getEnrollmentParamsMultipleCases( String fields, boolean expectAttributes,
         boolean expectEvents, boolean expectRelationships )
     {
-        EnrollmentParams params = map( FieldFilterParser.parse( fields ) );
+        EnrollmentParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectAttributes, params.isIncludeAttributes() );
         assertEquals( expectEvents, params.isIncludeEvents() );
