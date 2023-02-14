@@ -681,7 +681,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( new I18n( null, null ) )
+            .i18nSupplier( () -> new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
             .params( params )
