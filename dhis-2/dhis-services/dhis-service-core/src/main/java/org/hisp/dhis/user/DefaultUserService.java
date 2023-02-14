@@ -1007,6 +1007,7 @@ public class DefaultUserService
 
     @Override
     @Nonnull
+    @Transactional( readOnly = true )
     public List<User> getLinkedUserAccounts( @Nonnull User actingUser )
     {
         return userStore.getLinkedUserAccounts( actingUser );
@@ -1022,14 +1023,9 @@ public class DefaultUserService
         List<User> linkedUserAccounts = getLinkedUserAccounts( actingUser );
         for ( User user : linkedUserAccounts )
         {
-            if ( user.getUsername().equals( activeUsername ) )
-            {
-                user.setLastLogin( Date.from( oneHourInTheFuture ) );
-            }
-            else
-            {
-                user.setLastLogin( Date.from( oneHourAgo ) );
-            }
+            user.setLastLogin( user.getUsername().equals( activeUsername )
+                ? Date.from( oneHourInTheFuture )
+                : Date.from( oneHourAgo ) );
 
             updateUser( user );
         }
