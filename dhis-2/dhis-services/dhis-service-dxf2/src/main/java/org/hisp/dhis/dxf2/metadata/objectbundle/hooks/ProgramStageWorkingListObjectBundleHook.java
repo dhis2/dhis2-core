@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageWorkingListObjectBundleHook" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramStageWorkingListObjectBundleHook
     extends AbstractObjectBundleHook<ProgramStageWorkingList>
 {
@@ -137,26 +137,28 @@ public class ProgramStageWorkingListObjectBundleHook
 
     private void validateDataFilters( List<ErrorReport> errorReports, List<EventDataFilter> dataFilters )
     {
-        if ( !CollectionUtils.isEmpty( dataFilters ) )
+        if ( CollectionUtils.isEmpty( dataFilters ) )
         {
-            dataFilters.forEach( avf -> {
-                if ( StringUtils.isEmpty( avf.getDataItem() ) )
-                {
-                    errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4065 ) );
-                }
-                else
-                {
-                    DataElement dataElement = dataElementService.getDataElement( avf.getDataItem() );
-                    if ( dataElement == null )
-                    {
-                        errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4066,
-                            avf.getDataItem() ) );
-                    }
-                }
-
-                validateDateFilterPeriod( errorReports, avf.getDataItem(), avf.getDateFilter() );
-            } );
+            return;
         }
+
+        dataFilters.forEach( f -> {
+            if ( StringUtils.isEmpty( f.getDataItem() ) )
+            {
+                errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4065 ) );
+            }
+            else
+            {
+                DataElement dataElement = dataElementService.getDataElement( f.getDataItem() );
+                if ( dataElement == null )
+                {
+                    errorReports.add( new ErrorReport( ProgramStageWorkingList.class, ErrorCode.E4066,
+                        f.getDataItem() ) );
+                }
+            }
+
+            validateDateFilterPeriod( errorReports, f.getDataItem(), f.getDateFilter() );
+        } );
     }
 
     private void validateAttributeValueFilters( List<ErrorReport> errorReports, List<AttributeValueFilter> attributes,
