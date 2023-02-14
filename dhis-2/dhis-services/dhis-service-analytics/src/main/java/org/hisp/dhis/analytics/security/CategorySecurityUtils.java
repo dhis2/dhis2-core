@@ -58,6 +58,7 @@ public class CategorySecurityUtils
     {
         return Optional.of( params )
             .map( DataQueryParams::getProgram )
+            .filter( Program::hasNonDefaultCategoryCombo )
             .map( Program::getCategoryCombo )
             .map( CategoryCombo::getCategories )
             .orElse( Collections.emptyList() )
