@@ -142,8 +142,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EnrollmentCreatedDate" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4062, "EnrollmentCreatedDate" );
     }
 
     @Test
@@ -156,8 +155,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EnrollmentIncidentDate" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4062, "EnrollmentIncidentDate" );
     }
 
     @Test
@@ -170,8 +168,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EventDate" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4062, "EventDate" );
     }
 
     @Test
@@ -184,8 +181,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4062, "EventScheduledDate" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4062, "EventScheduledDate" );
     }
 
     @Test
@@ -199,8 +195,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4063 );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4063 );
     }
 
     @Test
@@ -214,8 +209,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4063 );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4063 );
     }
 
     @Test
@@ -229,8 +223,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E7500, "fakeOrgUnit" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E7500, "fakeOrgUnit" );
     }
 
     @Test
@@ -243,8 +236,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4064, "SELECTED" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4064, "SELECTED" );
     }
 
     @Test
@@ -257,8 +249,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4065, "SELECTED" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4065 );
     }
 
     @Test
@@ -274,8 +265,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4066, "DataItem" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4066, "DataItem" );
     }
 
     @Test
@@ -288,8 +278,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4067 );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4067 );
     }
 
     @Test
@@ -306,8 +295,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        ErrorReport expectedErrorReport = new ErrorReport( this.getClass(), E4068, "attribute" );
-        assertErrorReport( expectedErrorReport, errorReports );
+        assertErrorReport( errorReports, E4068, "attribute" );
     }
 
     private DateFilterPeriod createDatePeriod( Date startDate, Date endDate, DatePeriodType dateType )
