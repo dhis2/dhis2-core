@@ -28,6 +28,7 @@
 package org.hisp.dhis.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -68,6 +69,29 @@ public final class Assertions
             assertEquals( "Did not expect value in " + actual.toString(),
                 e.getValue(), expected.get( e.getKey() ) );
         }
+    }
+
+    /**
+     * Asserts that the given collection is not null and empty.
+     *
+     * @param <E>
+     * @param actual the collection.
+     */
+    public static <E> void assertIsEmpty( Collection<E> actual )
+    {
+        assertNotNull( actual );
+        assertTrue( actual.isEmpty() );
+    }
+
+    /**
+     * Asserts that the given collection is not null and not empty.
+     *
+     * @param actual the collection.
+     */
+    public static void assertNotEmpty( Collection<?> actual )
+    {
+        assertNotNull( actual );
+        assertFalse( actual.isEmpty() );
     }
 
     /**
