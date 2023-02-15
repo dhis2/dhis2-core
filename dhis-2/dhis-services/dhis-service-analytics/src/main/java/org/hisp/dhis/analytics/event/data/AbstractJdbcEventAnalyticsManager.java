@@ -415,17 +415,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
             }
 
-            if ( queryItem.getValueType() == ValueType.NUMBER )
-            {
-                return ColumnAndAlias.ofColumnAndAlias(
-                    coalesceAsDoubleNan( programIndicatorSubquery ),
-                    asClause );
-            }
-            else
-            {
-                return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
-            }
-
+            return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
         }
         else if ( ValueType.COORDINATE == queryItem.getValueType() )
         {
@@ -447,18 +437,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
 
             return ColumnAndAlias.ofColumnAndAlias(
-                coalesceAsDoubleNan( columnAndAlias.getColumn() ),
+                columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
         else
         {
             return getColumnAndAlias( queryItem, isGroupByClause, "" );
         }
-    }
-
-    protected String coalesceAsDoubleNan( String column )
-    {
-        return "coalesce(" + column + ", double precision 'NaN')";
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
