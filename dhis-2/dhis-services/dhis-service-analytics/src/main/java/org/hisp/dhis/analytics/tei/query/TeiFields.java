@@ -268,8 +268,8 @@ public class TeiFields
      * headers, reordering the headers respecting the given fields ordering.
      * Only elements inside the given map are returned. The rest is ignored.
      *
-     * @param headersMap
-     * @param fields
+     * @param headersMap the map of {@link GridHeader}.
+     * @param fields the list of {@link Field} to be respected.
      * @return the reordered set of {@link GridHeader}.
      */
     private static Set<GridHeader> reorder( Map<String, GridHeader> headersMap, List<Field> fields )
