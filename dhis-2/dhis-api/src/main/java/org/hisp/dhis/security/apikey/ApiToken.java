@@ -36,6 +36,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -63,9 +64,7 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 
     private List<ApiTokenAttribute> attributes = new ArrayList<>();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.TEXT )
+    @JsonIgnore
     public String getKey()
     {
         return key;
