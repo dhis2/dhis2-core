@@ -40,7 +40,8 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.program.Program;
@@ -61,7 +62,8 @@ class OrganisationUnitConditionTest
         DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, null, null );
 
-        QueryContext queryContext = QueryContext.of( null );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
@@ -83,7 +85,8 @@ class OrganisationUnitConditionTest
         DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
             ous, null, null );
 
-        QueryContext queryContext = QueryContext.of( null );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
@@ -108,8 +111,8 @@ class OrganisationUnitConditionTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
-
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( teiQueryParams, sqlParameterManager );
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
 
@@ -146,8 +149,8 @@ class OrganisationUnitConditionTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
-
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( teiQueryParams, sqlParameterManager );
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
 
@@ -184,7 +187,8 @@ class OrganisationUnitConditionTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( teiQueryParams, sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
@@ -217,7 +221,8 @@ class OrganisationUnitConditionTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
-        QueryContext queryContext = QueryContext.of( teiQueryParams );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( teiQueryParams, sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );

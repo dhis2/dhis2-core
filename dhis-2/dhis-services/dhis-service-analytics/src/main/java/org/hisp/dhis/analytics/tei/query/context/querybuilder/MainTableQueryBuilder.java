@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.OrCondition;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.common.query.Table;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
+import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+/**
+ * this class is responsible to set the main table part of the sql
+ */
+@Service
+public class MainTableQueryBuilder implements SqlQueryBuilder
 {
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+    @Getter
+    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = Collections.emptyList();
 
-    private final QueryContext queryContext;
+    @Getter
+    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = Collections.emptyList();
 
     @Override
-    public String render()
+    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> unused,
+        List<AnalyticsSortingParams> unused_ )
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
-
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofFieldName( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+        return RenderableSqlQuery.builder()
+            .mainTable( Table.ofStrings( queryContext.getMainTableName(), TEI_ALIAS ) )
+            .build();
     }
 }

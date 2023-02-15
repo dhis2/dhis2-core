@@ -25,72 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextService.SUBQUERY_TABLE_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.P_UID;
 
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+/**
+ * Utility class for the
+ * {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}.
+ */
 @NoArgsConstructor( access = PRIVATE )
 class ContextUtils
 {
     // TODO: Think about implementing this using the query builders
     static String enrollmentSelect( ElementWithOffset<Program> program,
-        TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
+        TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
     {
         return "select innermost_enr.*" +
             " from (select *," +
             " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn " +
             " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +
-            " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() )
+            " where " + P_UID + " = " + sqlParameterManager.bindParamAndGetIndex( program.getElement().getUid() )
             + ") innermost_enr" +
             " where innermost_enr.rn = 1";
-    }
-
-    static String enrollmentProgramIndicatorSelect( ElementWithOffset<Program> program,
-        String expression, String filter, boolean needsExpressions )
-    {
-        return "select innermost_enr.*" +
-            " from (select tei as " + TEI_UID + ", pi as " + PI_UID + ", " +
-            (needsExpressions ? expression + " as value, " : "") +
-            " row_number() over (partition by tei order by enrollmentdate desc) as rn " +
-            " from analytics_enrollment_" + program.getElement().getUid() + " as " + SUBQUERY_TABLE_ALIAS +
-            (needsExpressions ? " where " + filter : "") + ") innermost_enr" +
-            " where innermost_enr.rn = 1";
-    }
-
-    static String eventProgramIndicatorSelect( ElementWithOffset<Program> program,
-        String expression, String filter )
-    {
-        return "select innermost_evt.*" +
-            " from (select pi as " + PI_UID + ", " + expression + " as value, " +
-            " row_number() over (partition by pi order by executiondate desc) as rn " +
-            " from analytics_event_" + program.getElement().getUid() + " as " + SUBQUERY_TABLE_ALIAS +
-            " where " + filter + ") innermost_evt" +
-            " where innermost_evt.rn = 1";
     }
 
     // TODO: Think about implementing this using the query builders
     static String eventSelect( ElementWithOffset<Program> program,
         ElementWithOffset<ProgramStage> programStage,
-        TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
+        TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
     {
         return "select innermost_evt.*" +
             " from (select *," +
             " row_number() over (partition by programinstanceuid order by executiondate desc) as rn" +
             " from " + ANALYTICS_TEI_EVT + trackedEntityType.getUid().toLowerCase() +
-            " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() ) +
-            " and programstageuid = " + parameterManager.bindParamAndGetIndex( programStage.getElement().getUid() )
+            " where " + P_UID + " = " + sqlParameterManager.bindParamAndGetIndex( program.getElement().getUid() ) +
+            " and " + PS_UID + " = " + sqlParameterManager.bindParamAndGetIndex( programStage.getElement().getUid() )
             + ") innermost_evt" +
             " where innermost_evt.rn = 1";
     }

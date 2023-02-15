@@ -42,7 +42,7 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 /**
  * Provides methods responsible for generating SQL statements on top of

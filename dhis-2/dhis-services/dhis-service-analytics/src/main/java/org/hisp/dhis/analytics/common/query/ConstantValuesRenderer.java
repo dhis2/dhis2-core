@@ -43,8 +43,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
+/**
+ * This class represents the constant values renderer. It will render the
+ * constant values and bind them to the query.
+ */
 @Getter
 @RequiredArgsConstructor( staticName = "of" )
 public class ConstantValuesRenderer extends BaseRenderable

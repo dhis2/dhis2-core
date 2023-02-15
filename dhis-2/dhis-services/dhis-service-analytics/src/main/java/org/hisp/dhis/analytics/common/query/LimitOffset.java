@@ -29,12 +29,9 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class LimitOffset extends BaseRenderable
@@ -43,35 +40,24 @@ public class LimitOffset extends BaseRenderable
 
     private final Integer offset;
 
+    private final boolean isPaging;
+
+    public static LimitOffset of( AnalyticsPagingParams pagingParams )
+    {
+        return LimitOffset.of(
+            pagingParams.getPageSizePlusOne(),
+            pagingParams.getOffset(),
+            pagingParams.isPaging() );
+    }
+
     @Override
     public String render()
     {
-        return "limit " + limit + (Objects.isNull( offset ) ? EMPTY : " offset " + offset);
+        if ( !isPaging )
+        {
+            return EMPTY;
+        }
+        return "limit " + limit + " offset " + offset;
     }
 
-    public static LimitOffset ofStrings( String limit, String offset )
-    {
-        Integer intLimit = Optional.ofNullable( limit )
-            .filter( StringUtils::isNotBlank )
-            .map( LimitOffset::toIntSafely )
-            .orElse( 1 );
-        Integer intOffset = Optional.ofNullable( offset )
-            .filter( StringUtils::isNotBlank )
-            .map( LimitOffset::toIntSafely )
-            .orElse( 0 );
-        return LimitOffset.of( intLimit, intOffset );
-    }
-
-    private static Integer toIntSafely( String s )
-    {
-        try
-        {
-            return Integer.parseInt( s );
-        }
-        catch ( Exception e )
-        {
-            // safely
-            return null;
-        }
-    }
 }

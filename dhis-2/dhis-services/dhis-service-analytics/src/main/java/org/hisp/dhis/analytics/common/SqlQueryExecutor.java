@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.common;
 
 import static org.springframework.util.Assert.notNull;
 
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,8 +39,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * @see org.hisp.dhis.analytics.common.QueryExecutor
@@ -79,11 +79,11 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
         notNull( query, "The 'query' must not be null" );
 
         return Optional.ofNullable(
-                namedParameterJdbcTemplate.queryForObject(
-                        query.getStatement(),
-                        new MapSqlParameterSource()
-                                .addValues( query.getParams() ),
-                        Long.class ) )
-                .orElse(0L);
+            namedParameterJdbcTemplate.queryForObject(
+                query.getStatement(),
+                new MapSqlParameterSource()
+                    .addValues( query.getParams() ),
+                Long.class ) )
+            .orElse( 0L );
     }
 }

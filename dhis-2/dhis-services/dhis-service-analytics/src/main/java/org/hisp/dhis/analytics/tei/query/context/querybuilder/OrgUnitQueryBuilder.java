@@ -1,0 +1,166 @@
+/*
+ * Copyright (c) 2004-2023, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
+
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrollmentSortingQueryBuilders.handleEnrollmentOrder;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EventSortingQueryBuilders.handleEventOrder;
+import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
+import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import lombok.Getter;
+
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.GroupableCondition;
+import org.hisp.dhis.analytics.common.query.IndexedOrder;
+import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.common.query.RenderableDimensionIdentifier;
+import org.hisp.dhis.analytics.tei.query.OrganisationUnitCondition;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
+import org.springframework.stereotype.Service;
+
+/**
+ * A {@link SqlQueryBuilder} that builds a {@link RenderableSqlQuery} for
+ * {@link DimensionParam} of type
+ * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
+ *
+ */
+@Service
+public class OrgUnitQueryBuilder implements SqlQueryBuilder
+{
+    private final static BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> RENDERABLE_DI_SUPPLIER = (
+        uniqueAlias, di ) -> Field.of(
+            uniqueAlias,
+            () -> di.getDimension().getUid(),
+            doubleQuote( RenderableDimensionIdentifier.of( di ).render() ) );
+
+    @Getter
+    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
+        .of( OrgUnitQueryBuilder::isOuFilter );
+
+    @Getter
+    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of( OrgUnitQueryBuilder::isOuOrder );
+
+    @Override
+    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        List<AnalyticsSortingParams> acceptedSortingParams )
+    {
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+
+        acceptedDimensions
+            .stream()
+            .map( dimId -> GroupableCondition.of(
+                dimId.getGroupId(),
+                OrganisationUnitCondition.of( dimId, queryContext ) ) )
+            .forEach( builder::groupableCondition );
+
+        acceptedSortingParams.forEach( param -> handle( queryContext, builder, param ) );
+
+        return builder.build();
+    }
+
+    private static void handle(
+        QueryContext queryContext,
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder,
+        AnalyticsSortingParams param )
+    {
+        if ( param.getOrderBy().isEventDimension() )
+        {
+            handleEventOrder(
+                param,
+                queryContext,
+                builder,
+                RENDERABLE_DI_SUPPLIER );
+        }
+        else if ( param.getOrderBy().isEnrollmentDimension() )
+        {
+            handleEnrollmentOrder(
+                param,
+                queryContext,
+                builder,
+                RENDERABLE_DI_SUPPLIER );
+        }
+        else
+        {
+            String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
+            builder.orderClause(
+                IndexedOrder.of(
+                    param.getIndex(),
+                    Order.of(
+                        Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY ),
+                        param.getSortDirection() ) ) );
+        }
+    }
+
+    private static boolean isOuOrder( AnalyticsSortingParams analyticsSortingParams )
+    {
+        return isOu( analyticsSortingParams.getOrderBy() );
+    }
+
+    protected Stream<GroupableCondition> where( QueryContext ctx )
+    {
+        return ctx.getTeiQueryParams()
+            .getCommonParams().getDimensionIdentifiers()
+            .stream()
+            .filter( OrgUnitQueryBuilder::isOuFilter )
+            .map( dimId -> GroupableCondition.of(
+                dimId.getGroupId(),
+                OrganisationUnitCondition.of( dimId, ctx ) ) );
+    }
+
+    private static boolean isOuFilter( DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return hasRestrictions( dimensionIdentifier ) && isOu( dimensionIdentifier );
+    }
+
+    public static boolean isOu( DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return isOfType( dimensionIdentifier, ORGANISATION_UNIT );
+    }
+
+    public static boolean isNotOuDimension( DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return !isOu( dimensionIdentifier );
+    }
+}

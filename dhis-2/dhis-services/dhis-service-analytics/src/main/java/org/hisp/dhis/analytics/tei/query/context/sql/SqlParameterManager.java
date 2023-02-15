@@ -25,19 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.Getter;
 
 /**
- * Class to represent a renderables with it's groupId.
+ * This class is used to hold the parameters that are used to build the query
+ * along with the placeholder that will be used in the query.
  */
-@Data
-@RequiredArgsConstructor( staticName = "of" )
-public class GroupRenderable
+public class SqlParameterManager
 {
-    private final String groupId;
+    private int parameterIndex = 0;
 
-    private final Renderable renderable;
+    @Getter
+    private final Map<String, Object> parametersPlaceHolder = new HashMap<>();
+
+    public String bindParamAndGetIndex( Object param )
+    {
+        parameterIndex++;
+        parametersPlaceHolder.put( String.valueOf( parameterIndex ), param );
+
+        return ":" + parameterIndex;
+    }
 }

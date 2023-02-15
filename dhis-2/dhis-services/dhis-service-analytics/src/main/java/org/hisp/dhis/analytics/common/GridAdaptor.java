@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common;
 
 import static org.springframework.util.Assert.notNull;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -78,28 +80,24 @@ public class GridAdaptor
      *         least one null element, or if the queryResult is null.
      */
     public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
-        @Nonnull TeiQueryParams teiQueryParams )
+        @Nonnull TeiQueryParams teiQueryParams, List<Field> fields )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
 
         Grid grid = new ListGrid();
 
         // Adding headers.
-        headerParamsHandler.handle( grid, teiQueryParams );
+        headerParamsHandler.handle( grid, teiQueryParams, fields );
 
         // Adding rows.
         if ( sqlQueryResult.isPresent() )
         {
-            grid.addRows( sqlQueryResult.get().result() );
+            grid.addNamedRows( sqlQueryResult.get().result() );
         }
 
-        CommonParams commonParams = teiQueryParams.getCommonParams();
-
         // Adding metadata info.
-        metadataParamsHandler.handle( grid, commonParams, currentUserService.getCurrentUser(), rowsCount );
-
-        // Retain only selected Grid columns, if any.
-        grid.retainColumns( commonParams.getHeaders() );
+        metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),
+            rowsCount );
 
         return grid;
     }

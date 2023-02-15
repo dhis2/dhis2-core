@@ -27,49 +27,17 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static java.util.stream.Collectors.mapping;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
- * joined with an AND condition.
+ * Class to represent a renderable with it's index.
  */
+@Data
 @RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
+public class IndexedOrder
 {
-    private final List<GroupableCondition> groupableConditions;
+    private final long index;
 
-    @Override
-    public String render()
-    {
-        return AndCondition.of(
-            Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
-    }
-
-    private List<Renderable> getOrCondition()
-    {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
-                GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
-    }
+    private final Order renderable;
 }

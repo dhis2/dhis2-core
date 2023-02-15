@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static java.util.stream.Collectors.toList;
-import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
-
-import java.util.Objects;
-import java.util.stream.Stream;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
-@Getter
-@Setter
-@AllArgsConstructor( access = PRIVATE )
-@Builder( toBuilder = true )
-public class Query extends BaseRenderable
+import org.hisp.dhis.analytics.common.SqlQuery;
+
+/**
+ * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses
+ * the {@link QueryContext} to get the parameter placeholders. Supports both
+ * select and count queries. A select query can be converted to a count query by
+ * calling {@link #createForCount()}.
+ */
+@RequiredArgsConstructor( staticName = "of" )
+public class SqlQueryCreator
 {
-    private final Select select;
+    private final QueryContext queryContext;
 
-    private final From from;
+    @Getter
+    private final RenderableSqlQuery renderableSqlQuery;
 
-    private final Where where;
-
-    private final Order order;
-
-    private final LimitOffset limit;
-
-    @Override
-    public String render()
+    public SqlQuery createForSelect()
     {
-        return join( Stream.of( select, from, where, order, limit )
-            .filter( Objects::nonNull )
-            .collect( toList() ),
-            SPACE );
+        return new SqlQuery( renderableSqlQuery.render(),
+            queryContext.getParametersPlaceHolder() );
+    }
+
+    public SqlQuery createForCount()
+    {
+        return new SqlQuery( renderableSqlQuery.forCount().render(),
+            queryContext.getParametersPlaceHolder() );
     }
 }

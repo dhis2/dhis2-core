@@ -36,13 +36,14 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.junit.jupiter.api.Test;
 
-class ProgramAttributeConditionTest
+class TeiAttributeConditionTest
 {
     @Test
     void testProgramAttributeConditionProduceCorrectSql()
@@ -55,12 +56,13 @@ class ProgramAttributeConditionTest
             "attr", values );
 
         // CALL
-        QueryContext queryContext = QueryContext.of( null );
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
 
-        ProgramAttributeCondition programAttributeCondition = ProgramAttributeCondition.of( dimensionIdentifier,
+        TeiAttributeCondition teiAttributeCondition = TeiAttributeCondition.of( dimensionIdentifier,
             queryContext );
 
-        String render = programAttributeCondition.render();
+        String render = teiAttributeCondition.render();
 
         assertEquals( "\"" + attr + "\" = :1", render );
         assertEquals( "v1", queryContext.getParametersPlaceHolder().get( "1" ) );

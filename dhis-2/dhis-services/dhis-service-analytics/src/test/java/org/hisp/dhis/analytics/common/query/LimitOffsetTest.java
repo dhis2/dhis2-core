@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,35 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static java.util.stream.Collectors.mapping;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.junit.jupiter.api.Test;
 
-import lombok.RequiredArgsConstructor;
-
-/**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
- * joined with an AND condition.
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
+public class LimitOffsetTest
 {
-    private final List<GroupableCondition> groupableConditions;
-
-    @Override
-    public String render()
+    @Test
+    public void testRenderLimit()
     {
-        return AndCondition.of(
-            Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
+        LimitOffset limitOffset = LimitOffset.of(
+            AnalyticsPagingParams.builder()
+                .paging( true )
+                .page( 1 )
+                .pageSize( 1 )
+                .build() );
+        assertEquals( limitOffset.render(), "limit 2 offset 0" );
     }
 
-    private List<Renderable> getOrCondition()
+    @Test
+    public void testRenderLimitNoPaging()
     {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
-                GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
+        LimitOffset limitOffset = LimitOffset.of(
+            AnalyticsPagingParams.builder()
+                .paging( false )
+                .page( 1 )
+                .pageSize( 1 )
+                .build() );
+        assertEquals( limitOffset.render(), "" );
     }
+
 }

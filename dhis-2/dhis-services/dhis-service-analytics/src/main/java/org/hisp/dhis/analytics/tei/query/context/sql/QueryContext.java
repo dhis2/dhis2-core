@@ -25,51 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static java.util.stream.Collectors.mapping;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
+
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
- * joined with an AND condition.
+ * This class is used to hold the context of the query and the parameters that
+ * are used to build the query.
  */
+@Getter
 @RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
+public class QueryContext
 {
-    private final List<GroupableCondition> groupableConditions;
+    private final TeiQueryParams teiQueryParams;
 
-    @Override
-    public String render()
+    @Delegate
+    private final SqlParameterManager sqlParameterManager;
+
+    private final AtomicInteger sequence = new AtomicInteger( 0 );
+
+    public String getMainTableName()
     {
-        return AndCondition.of(
-            Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
+        return ANALYTICS_TEI + getTetTableSuffix();
     }
 
-    private List<Renderable> getOrCondition()
+    public String getTetTableSuffix()
     {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
-                GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
+        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
     }
 }

@@ -47,7 +47,7 @@ import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.DateUtils;

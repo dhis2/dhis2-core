@@ -31,6 +31,8 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.P_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 @RequiredArgsConstructor
 public abstract class AbstractCondition extends BaseRenderable
@@ -67,11 +69,7 @@ public abstract class AbstractCondition extends BaseRenderable
         return getTeiCondition().render();
     }
 
-    protected Renderable getTeiCondition()
-    {
-        // Default implementation, subclasses will override where needed
-        throw new IllegalStateException( "Not supported for TEI dimension" );
-    }
+    protected abstract Renderable getTeiCondition();
 
     private String enrollmentConditionInternal()
     {
@@ -80,11 +78,7 @@ public abstract class AbstractCondition extends BaseRenderable
             + getEnrollmentCondition().render() + ")";
     }
 
-    protected Renderable getEnrollmentCondition()
-    {
-        // Default implementation, subclasses will override where needed
-        throw new IllegalStateException( "Not supported for enrollment dimension" );
-    }
+    protected abstract Renderable getEnrollmentCondition();
 
     private String getEnrollmentSubQuery( String programUid )
     {
@@ -92,7 +86,7 @@ public abstract class AbstractCondition extends BaseRenderable
             " from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn"
             +
             " from " + ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix() +
-            " where programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
+            " where " + P_UID + " = " + queryContext.bindParamAndGetIndex( programUid ) +
             " and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr" +
             " where innermost_enr.rn = 1) " + ENR_ALIAS;
     }
@@ -121,7 +115,7 @@ public abstract class AbstractCondition extends BaseRenderable
         return "(select *" +
             " from (select *, row_number() over (partition by programinstanceuid order by executiondate desc) as rn" +
             " from " + ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix() +
-            " where programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) +
+            " where " + PS_UID + " = " + queryContext.bindParamAndGetIndex( programStageUid ) +
             " and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr" +
             " where innermost_enr.rn = 1) " + EVT_ALIAS;
     }

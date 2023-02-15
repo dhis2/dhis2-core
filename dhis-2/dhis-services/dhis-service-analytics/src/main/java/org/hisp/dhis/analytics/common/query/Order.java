@@ -27,20 +27,27 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import java.util.List;
-
 import lombok.Builder;
-import lombok.Singular;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Builder( toBuilder = true )
+@RequiredArgsConstructor( staticName = "of" )
 public class Order extends BaseRenderable
 {
-    @Singular
-    private final List<Renderable> orders;
+    private final Renderable order;
+
+    private final SortDirection direction;
 
     @Override
     public String render()
     {
-        return RenderableUtils.join( orders, ", ", "order by " );
+        String rendered = order.render();
+        if ( direction == SortDirection.DESC )
+        {
+            rendered += " desc";
+        }
+        return rendered;
     }
 }
