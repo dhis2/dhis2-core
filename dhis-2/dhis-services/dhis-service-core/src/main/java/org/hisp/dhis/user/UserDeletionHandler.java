@@ -51,6 +51,8 @@ public class UserDeletionHandler
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final UserStore userStore;
+
     private static final DeletionVeto VETO = new DeletionVeto( User.class );
 
     @Override
@@ -77,6 +79,16 @@ public class UserDeletionHandler
         for ( User user : unit.getUsers() )
         {
             user.getOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( user );
+        }
+        for ( User user : userStore.getUsers( new UserQueryParams().addDataViewOrganisationUnit( unit ) ) )
+        {
+            user.getDataViewOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( user );
+        }
+        for ( User user : userStore.getUsers( new UserQueryParams().addTeiSearchOrganisationUnit( unit ) ) )
+        {
+            user.getTeiSearchOrganisationUnits().remove( unit );
             idObjectManager.updateNoAcl( user );
         }
     }
