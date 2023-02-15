@@ -79,26 +79,26 @@
         <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
-        <spring.version>5.3.23</spring.version>
-        <spring-data-redis.version>2.6.0</spring-data-redis.version>
-        <spring-session-data-redis.version>2.6.2</spring-session-data-redis.version>
+        <spring.version>5.3.25</spring.version>
+        <spring-data-redis.version>2.7.5</spring-data-redis.version>
+        <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
         <spring-hateoas.version>1.4.0</spring-hateoas.version>
         <spring-retry.version>1.3.1</spring-retry.version>
-        <spring-restdocs-mockmvc.version>2.0.6.RELEASE</spring-restdocs-mockmvc.version>
+        <spring-restdocs-mockmvc.version>2.0.7.RELEASE</spring-restdocs-mockmvc.version>
         <cache2k-api.version>1.6.0.Final</cache2k-api.version>
         <lettuce.version>6.1.6.RELEASE</lettuce.version>
 
         <!--DBMS -->
-        <flyway-core.version>8.5.1</flyway-core.version>
-        <hibernate.version>5.4.28.Final</hibernate.version>
-        <hibernate-types.version>2.14.0</hibernate-types.version>
+        <flyway-core.version>9.14.1</flyway-core.version>
+        <hibernate.version>5.6.15.Final</hibernate.version>
+        <hibernate-types.version>2.21.1</hibernate-types.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.1</HikariCP.version>
-        <postgresql-driver.version>42.3.3</postgresql-driver.version>
-        <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
-        <datasource-proxy.version>1.7</datasource-proxy.version>
+        <postgresql-driver.version>42.5.3</postgresql-driver.version>
+        <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
+        <datasource-proxy.version>1.8.1</datasource-proxy.version>
 
         <!-- Servlet-->
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
