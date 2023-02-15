@@ -51,7 +51,7 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}" ) );
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
         assertStatus( HttpStatus.OK, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );

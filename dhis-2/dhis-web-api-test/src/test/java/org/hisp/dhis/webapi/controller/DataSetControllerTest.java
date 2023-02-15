@@ -52,7 +52,7 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
     void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}" ) );
     }
 
     @Test

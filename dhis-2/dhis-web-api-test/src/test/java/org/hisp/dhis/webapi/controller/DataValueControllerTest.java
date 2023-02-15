@@ -130,7 +130,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     {
         String dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/",
-                "{'name':'My data set', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
+                "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
                     + dataElementId + "'}}]}" ) );
 
         String body = String.format( "{" +

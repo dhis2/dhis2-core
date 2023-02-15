@@ -72,7 +72,8 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
         dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'set1', 'organisationUnits': [{'id':'" + orgUnitId + "'}], 'periodType':'Daily'}" ) );
+            "{'name':'set1', 'shortName':'set1', 'organisationUnits': [{'id':'" + orgUnitId
+                + "'}], 'periodType':'Daily'}" ) );
     }
 
     protected final void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
