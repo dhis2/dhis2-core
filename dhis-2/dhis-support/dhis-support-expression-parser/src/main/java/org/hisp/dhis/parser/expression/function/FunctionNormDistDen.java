@@ -25,38 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.parser.expression.function;
 
-import java.util.List;
-
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Finds the density of a normal distribution.
+ *
+ * @author Jim Grace
  */
-public class ProgramStageSchemaDescriptor implements SchemaDescriptor
+public class FunctionNormDistDen
+    extends FunctionNormDistAbstract
 {
-    public static final String SINGULAR = "programStage";
-
-    public static final String PLURAL = "programStages";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
     @Override
-    public Schema getSchema()
+    protected Double getDistributionValue( NormalDistribution dist, Double x )
     {
-        Schema schema = new Schema( ProgramStage.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1509 );
-        schema.setDataShareable( true );
-
-        schema.add( new Authority( AuthorityType.CREATE, List.of( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_PROGRAMSTAGE_DELETE" ) ) );
-
-        return schema;
+        return dist.density( x );
     }
 }
