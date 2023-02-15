@@ -756,14 +756,10 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testOrganisationUnitGroupSetsBasic()
     {
-        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup();
-        organisationUnitGroup1.setName( "oug1" );
-        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup();
-        organisationUnitGroup2.setName( "oug2" );
-        OrganisationUnitGroup organisationUnitGroup3 = new OrganisationUnitGroup();
-        organisationUnitGroup3.setName( "oug3" );
-        OrganisationUnitGroup organisationUnitGroup4 = new OrganisationUnitGroup();
-        organisationUnitGroup4.setName( "oug4" );
+        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup( "oug1" );
+        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup( "oug2" );
+        OrganisationUnitGroup organisationUnitGroup3 = new OrganisationUnitGroup( "oug3" );
+        OrganisationUnitGroup organisationUnitGroup4 = new OrganisationUnitGroup( "oug4" );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup2 );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup3 );
