@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.SqlQuery;
@@ -42,6 +43,7 @@ public class SqlQueryCreator
 {
     private final QueryContext queryContext;
 
+    @Getter
     private final RenderableSqlQuery renderableSqlQuery;
 
     public SqlQuery createForSelect()

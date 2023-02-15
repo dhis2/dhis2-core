@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -46,18 +50,38 @@ import org.springframework.stereotype.Component;
 public class HeaderParamsHandler
 {
     /**
-     * Adds the correct headers into the given {@Grid}.
+     * Adds the correct headers into the given {@Grid}. It takes into
+     * consideration the header params, if any.
      *
      * @param grid the {@link Grid}.
      * @param teiQueryParams all headers represent by a set of
      *        {@link GridHeader}.
-     * @return a new set of {@link GridHeader} containing elements that only
-     *         match the param headers name.
+     * @param fields the columns to retain, represented by {@link Field}.
      */
-    public void handle( Grid grid, TeiQueryParams teiQueryParams )
+    public void handle( Grid grid, TeiQueryParams teiQueryParams, List<Field> fields )
     {
-        Set<GridHeader> headers = getGridHeaders( teiQueryParams );
+        Set<GridHeader> headers = getGridHeaders( teiQueryParams, fields );
+        Set<String> paramHeaders = teiQueryParams.getCommonParams().getHeaders();
 
-        headers.forEach( grid::addHeader );
+        if ( isEmpty( paramHeaders ) )
+        {
+            // Adds all headers.
+            headers.forEach( grid::addHeader );
+        }
+        else
+        {
+            List<GridHeader> headerList = new ArrayList<>( headers );
+
+            // Adds only the headers present in params, in the same order.
+            paramHeaders.forEach( header -> {
+                GridHeader gridHeader = new GridHeader( header );
+
+                if ( headerList.contains( gridHeader ) )
+                {
+                    int element = headerList.indexOf( gridHeader );
+                    grid.addHeader( headerList.get( element ) );
+                }
+            } );
+        }
     }
 }

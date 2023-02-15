@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXIS
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -45,6 +46,7 @@ import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.Grid;
@@ -113,7 +115,9 @@ public class TeiAnalyticsQueryService
             throw new QueryRuntimeException( E7131 );
         }
 
-        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams );
+        List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
+
+        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams, fields );
     }
 
     /**

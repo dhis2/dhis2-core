@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1145,6 +1146,31 @@ public class ListGrid
                 }
             }
         }
+
+        return this;
+    }
+
+    public Grid addNamedRows( SqlRowSet rs )
+    {
+        String[] cols = headers.stream().map( GridHeader::getName ).toArray( String[]::new );
+        Set<String> headers = new LinkedHashSet<>();
+
+        while ( rs.next() )
+        {
+            addRow();
+
+            for ( int i = 0; i < cols.length; i++ )
+            {
+                if ( headerExists( cols[i] ) )
+                {
+                    addValue( rs.getObject( cols[i] ) );
+                    headers.add( cols[i] );
+                }
+            }
+        }
+
+        // Needs to ensure the ordering of columns based on grid headers.
+        repositionColumns( repositionHeaders( new ArrayList<>( headers ) ) );
 
         return this;
     }

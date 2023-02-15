@@ -38,8 +38,10 @@ import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -233,28 +235,53 @@ public class TeiFields
     /**
      * Returns a collection of all possible headers for the given
      * {@link TeiQueryParams}. It includes headers extracted for static and
-     * dynamic dimensions.
+     * dynamic dimensions that matches the given list of {@link Field}.
      *
      * The static headers are also delivered on the top of the collection. The
      * dynamic comes after the static ones.
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param fields the list of {@link Field}.
      *
      * @return a {@link Set} of {@link GridHeader}.
      */
-    public static Set<GridHeader> getGridHeaders( @Nonnull TeiQueryParams teiQueryParams )
+    public static Set<GridHeader> getGridHeaders( @Nonnull TeiQueryParams teiQueryParams, @Nonnull List<Field> fields )
     {
-        Set<GridHeader> headers = new LinkedHashSet<>();
+        Map<String, GridHeader> headersMap = new HashMap<>();
 
         // Adding static and dynamic headers.
         Stream.concat( stream( Static.values() ), stream( Dynamic.values() ) )
-            .forEach( f -> headers.add( new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
+            .forEach( f -> headersMap.put( f.getAlias(),
+                new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
         getDimensionFields( teiQueryParams )
             .map( field -> findDimensionParamForField( field,
                 teiQueryParams.getCommonParams().getDimensionIdentifiers() ) )
             .map( dimensionParam -> getHeaderForDimensionParam( dimensionParam, teiQueryParams.getCommonParams() ) )
-            .forEach( headers::add );
+            .forEach( g -> headersMap.put( g.getName(), g ) );
+
+        return reorder( headersMap, fields );
+    }
+
+    /**
+     * Based on the given map of {@link GridHeader}, it will return a set of
+     * headers, reordering the headers respecting the given fields ordering.
+     * Only elements inside the given map are returned. The rest is ignored.
+     *
+     * @param headersMap
+     * @param fields
+     * @return the reordered set of {@link GridHeader}.
+     */
+    private static Set<GridHeader> reorder( Map<String, GridHeader> headersMap, List<Field> fields )
+    {
+        Set<GridHeader> headers = new LinkedHashSet<>();
+
+        fields.forEach( field -> {
+            if ( headersMap.containsKey( field.getFieldAlias() ) )
+            {
+                headers.add( headersMap.get( field.getFieldAlias() ) );
+            }
+        } );
 
         return headers;
     }

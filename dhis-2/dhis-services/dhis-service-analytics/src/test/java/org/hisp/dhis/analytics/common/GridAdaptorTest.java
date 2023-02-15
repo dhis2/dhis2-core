@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,6 +61,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -70,18 +73,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
- * // TODO: Improve unit tests and coverage
- *
  * Tests for {@link GridAdaptor}.
  *
  * @author maikel arabori
@@ -93,7 +92,6 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private HeaderParamsHandler headerParamsHandler;
 
-    @Mock
     private MetadataParamsHandler metadataDetailsHandler;
 
     private User user;
@@ -108,64 +106,106 @@ class GridAdaptorTest extends DhisConvenienceTest
     void setUp()
     {
         headerParamsHandler = new HeaderParamsHandler();
+        metadataDetailsHandler = new MetadataParamsHandler();
         gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, analyticsSecurityManager,
             currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
 
     @Test
-    @Disabled
-    void testCreateGridSuccessfully()
+    void testCreateGridWithField()
         throws SQLException
     {
         // Given
         ResultSet resultSet = mock( ResultSet.class );
+
         RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "anyFakeCol-1" );
+        metaData.setColumnName( 2, "anyFakeCol-2" );
+
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "col-1" );
-        metaData.setColumnName( 2, "col-2" );
+
+        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
 
         when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
         when( resultSet.getMetaData() ).thenReturn( metaData );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
         SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
         long anyCount = 0;
 
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
-
         // When
-        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams );
+        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams, fields );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
         assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
         assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 12, grid.getHeaders().size(), "Should have size of 12: headers" );
+        assertEquals( 1, grid.getHeaders().size(), "Should have size of 12: headers" );
         assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
     @Test
-    @Disabled
+    void testCreateGridWithEmptyField()
+        throws SQLException
+    {
+        // Given
+        ResultSet resultSet = mock( ResultSet.class );
+
+        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "anyFakeCol-1" );
+        metaData.setColumnName( 2, "anyFakeCol-2" );
+
+        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
+            .commonParams( stubCommonParams() ).build();
+
+        List<Field> fields = emptyList();
+
+        when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
+        when( resultSet.getMetaData() ).thenReturn( metaData );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+
+        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+        SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
+        long anyCount = 0;
+
+        // When
+        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams, fields );
+
+        // Then
+        assertNotNull( grid, "Should not be null: grid" );
+        assertTrue( grid.getHeaders().isEmpty(), "Should be empty: headers" );
+        assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
+        assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
+        assertTrue( MapUtils.isNotEmpty( grid.getMetaData() ) );
+    }
+
+    @Test
     void testCreateGridWithEmptySqlResult()
     {
         // Given
         Optional<SqlQueryResult> emptySqlResult = Optional.empty();
+
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
+
+        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
+
         long anyCount = 0;
 
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         // When
-        Grid resultGrid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams );
+        Grid grid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams, fields );
 
         // Then
-        assertTrue( isNotEmpty( resultGrid.getHeaders() ) );
-        assertTrue( MapUtils.isNotEmpty( resultGrid.getMetaData() ) );
-        assertTrue( isEmpty( resultGrid.getRows() ) );
+        assertTrue( isNotEmpty( grid.getHeaders() ) );
+        assertTrue( MapUtils.isNotEmpty( grid.getMetaData() ) );
+        assertTrue( isEmpty( grid.getRows() ) );
     }
 
     @Test
@@ -179,7 +219,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         // When
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams ),
+            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams, null ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
