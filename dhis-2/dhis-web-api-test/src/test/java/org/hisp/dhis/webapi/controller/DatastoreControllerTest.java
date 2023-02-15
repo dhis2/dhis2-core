@@ -271,8 +271,6 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
 
-        switchToNewUser( "guest" );
-
         JsonDatastoreValue metaData = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class );
         assertEquals( "pets", metaData.getNamespace() );
         assertEquals( "cat", metaData.getKey() );
