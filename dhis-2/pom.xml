@@ -212,7 +212,7 @@
         <awaitility.version>4.0.2</awaitility.version>
         <easy-random.version>5.0.0</easy-random.version>
         <tree.version>0.2.5</tree.version>
-        <h2.version>2.1.214</h2.version>
+        <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
         <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
