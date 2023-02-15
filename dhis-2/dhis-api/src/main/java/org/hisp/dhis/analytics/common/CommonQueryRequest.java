@@ -167,6 +167,12 @@ public class CommonQueryRequest
     private boolean totalPages = false;
 
     /**
+     * When true, the pageSize can be higher than the system analytics max
+     * limit.
+     */
+    private boolean ignoreLimit = false;
+
+    /**
      * Dimensions identifier to be sorted ascending, can reference event date,
      * org unit name and code and any item identifiers.
      */

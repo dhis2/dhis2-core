@@ -55,30 +55,40 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     @Override
     public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )
     {
-        return commonQueryRequest
-            .withPageSize( computePageSize( commonQueryRequest ) );
+        return computePagingParams( commonQueryRequest );
     }
 
-    private Integer computePageSize( CommonQueryRequest commonQueryRequest )
+    /**
+     * Apply paging parameters to the given {@link CommonQueryRequest} object,
+     * taking into account the system setting for the maximum limit and the
+     * ignoreLimit flag.
+     *
+     * @param commonQueryRequest the {@link CommonQueryRequest} to compute the
+     * @return the computed {@link CommonQueryRequest}
+     */
+    private CommonQueryRequest computePagingParams( CommonQueryRequest commonQueryRequest )
     {
         int maxLimit = systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
+        boolean ignoreLimit = commonQueryRequest.isIgnoreLimit();
+        boolean hasMaxLimit = maxLimit > 0 && !ignoreLimit;
+        int pageSize = commonQueryRequest.getPageSize();
 
         if ( commonQueryRequest.isPaging() )
         {
-            boolean hasMaxLimit = commonQueryRequest.getPageSize() != null && maxLimit > 0;
+            commonQueryRequest = commonQueryRequest.withPaging( true );
+            if ( hasMaxLimit && pageSize > maxLimit )
+            {
+                return commonQueryRequest.withPageSize( maxLimit );
+            }
+            return commonQueryRequest.withPage( pageSize );
+        }
 
-            if ( hasMaxLimit && commonQueryRequest.getPageSize() > maxLimit )
-            {
-                return maxLimit;
-            }
-            else
-            {
-                return commonQueryRequest.getPageSize();
-            }
-        }
-        else
+        if ( ignoreLimit || maxLimit == 0 )
         {
-            return maxLimit;
+            return commonQueryRequest.withPaging( false );
         }
+
+        return commonQueryRequest.withPaging( true )
+            .withPageSize( Math.min( pageSize, maxLimit ) );
     }
 }

@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -37,8 +41,10 @@ import org.junit.jupiter.api.Test;
 
 class CommonQueryRequestProcessorTest
 {
+    private SystemSettingManager systemSettingManager = mock( SystemSettingManager.class );
+
     private final CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
-        mock( SystemSettingManager.class ) );
+        systemSettingManager );
 
     @Test
     @Disabled( "behaviour has changed, this test doesn't make sense anymore" )
@@ -54,5 +60,74 @@ class CommonQueryRequestProcessorTest
         assertEquals(
             "pe:IpHINAT79UW.LAST_YEAR:EVENT_DATE;2021-06-30:ENROLLMENT_DATE;YESTERDAY:SCHEDULED_DATE;LAST_MONTH:INCIDENT_DATE;TODAY:LAST_UPDATED",
             commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ) );
+    }
+
+    @Test
+    void testPaginationPagingTruePageSizeHigherThanMaxLimit()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 1000 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPaging( true )
+            .withPageSize( 10000 );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertEquals( 1000, processed.getPageSize() );
+        assertTrue( processed.isPaging() );
+    }
+
+    @Test
+    void testPaginationPagingTruePageSizeLowerThanMaxLimit()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 1000 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPaging( true )
+            .withPageSize( 100 );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertEquals( 100, processed.getPageSize() );
+        assertTrue( processed.isPaging() );
+    }
+
+    @Test
+    void testUnlimitedMaxLimit0()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 0 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPaging( false );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertFalse( processed.isPaging() );
+    }
+
+    @Test
+    void testUnlimitedIgnoreLimit()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 100 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withIgnoreLimit( true )
+            .withPaging( false );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertFalse( processed.isPaging() );
+    }
+
+    @Test
+    void testPagingFalseMaxLimit()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 100 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPageSize( 150 )
+            .withPaging( false );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertTrue( processed.isPaging() );
+        assertEquals( 100, processed.getPageSize() );
+    }
+
+    @Test
+    void testPagingFalsePaging()
+    {
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 100 );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPageSize( 50 )
+            .withPaging( false );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertTrue( processed.isPaging() );
+        assertEquals( 50, processed.getPageSize() );
     }
 }

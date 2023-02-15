@@ -27,37 +27,35 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.junit.jupiter.api.Test;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class LimitOffset extends BaseRenderable
+public class LimitOffsetTest
 {
-    private final Integer limit;
-
-    private final Integer offset;
-
-    private final boolean isPaging;
-
-    public static LimitOffset of( AnalyticsPagingParams pagingParams )
+    @Test
+    public void testRenderLimit()
     {
-        return LimitOffset.of(
-            pagingParams.getPageSizePlusOne(),
-            pagingParams.getOffset(),
-            pagingParams.isPaging() );
+        LimitOffset limitOffset = LimitOffset.of(
+            AnalyticsPagingParams.builder()
+                .paging( true )
+                .page( 1 )
+                .pageSize( 1 )
+                .build() );
+        assertEquals( limitOffset.render(), "limit 2 offset 0" );
     }
 
-    @Override
-    public String render()
+    @Test
+    public void testRenderLimitNoPaging()
     {
-        if ( !isPaging )
-        {
-            return EMPTY;
-        }
-        return "limit " + limit + " offset " + offset;
+        LimitOffset limitOffset = LimitOffset.of(
+            AnalyticsPagingParams.builder()
+                .paging( false )
+                .page( 1 )
+                .pageSize( 1 )
+                .build() );
+        assertEquals( limitOffset.render(), "" );
     }
 
 }
