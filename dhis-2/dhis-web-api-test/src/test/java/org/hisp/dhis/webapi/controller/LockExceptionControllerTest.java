@@ -78,7 +78,7 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     void testAddLockException_DataSetNotLinked()
     {
         String dsId2 = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set2', 'shortName':'MDS2', 'periodType':'Monthly'}" ) );
         assertWebMessage( "Conflict", 409, "ERROR",
             format( "None of the target organisation unit(s) %s is linked to the specified data set: %s",
                 ouId, dsId2 ),
