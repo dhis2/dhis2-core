@@ -728,7 +728,19 @@ public enum ConfigurationKey
     /**
      * CSP default header value/string. Enable or disable the feature.
      */
-    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false );
+    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
+
+    /**
+     * Event hooks for system events. Enable or disable the feature.
+     */
+    EVENT_HOOKS_ENABLED( "event_hooks.enabled", Constants.OFF, false ),
+
+    /**
+     * Linked accounts via OpenID mapping. Enable or disable the feature.
+     */
+    LINKED_ACCOUNTS_ENABLED( "linked_accounts.enabled", Constants.OFF, false ),
+
+    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false );
 
     private final String key;
 

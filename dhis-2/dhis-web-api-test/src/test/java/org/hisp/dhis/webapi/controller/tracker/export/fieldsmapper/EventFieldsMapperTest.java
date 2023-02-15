@@ -31,10 +31,10 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventF
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.EventParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,21 +44,21 @@ class EventFieldsMapperTest
     static Stream<Arguments> getEventParamsMultipleCases()
     {
         return Stream.of(
-            arguments( List.of( "!*" ), false ),
-            arguments( List.of( "*" ), true ),
-            arguments( List.of( "relationships" ), true ),
-            arguments( List.of( "*", "!relationships" ), false ),
-            arguments( List.of( "relationships[*]" ), true ),
-            arguments( List.of( "relationships[*]", "!relationships[*]" ), false ),
-            arguments( List.of( "!relationships[*]", "relationships[*]" ), false ),
-            arguments( List.of( "relationships", "relationships[!from]" ), true ) );
+            arguments( "!*", false ),
+            arguments( "*", true ),
+            arguments( "relationships", true ),
+            arguments( "*,!relationships", false ),
+            arguments( "relationships[*]", true ),
+            arguments( "relationships[*],!relationships[*]", false ),
+            arguments( "!relationships[*],relationships[*]", false ),
+            arguments( "relationships,relationships[!from]", true ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void getEventParamsMultipleCases( List<String> fields, boolean expectRelationships )
+    void getEventParamsMultipleCases( String fields, boolean expectRelationships )
     {
-        EventParams params = map( fields );
+        EventParams params = map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectRelationships, params.isIncludeRelationships() );
     }

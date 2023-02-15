@@ -32,12 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen
@@ -47,7 +44,8 @@ class FieldFilterParserTest
     @Test
     void testDepth0Filters()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "id, name", "    abc" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "id, name,    abc" );
+
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "name" );
         assertFieldPathContains( fieldPaths, "abc" );
@@ -56,7 +54,8 @@ class FieldFilterParserTest
     @Test
     void testDepth1Filters()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "id,name,group[id,name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "id,name,group[id,name]" );
+
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "name" );
         assertFieldPathContains( fieldPaths, "group.id" );
@@ -67,7 +66,8 @@ class FieldFilterParserTest
     void testDepthXFilters()
     {
         List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Sets.newHashSet( "id,name,group[id,name]", "group[id,name,group[id,name,group[id,name]]]" ) );
+            .parse( "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]" );
+
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "name" );
         assertFieldPathContains( fieldPaths, "group.id" );
@@ -81,7 +81,8 @@ class FieldFilterParserTest
     @Test
     void testOnlyBlockFilters()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "group[id,name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "group[id,name]" );
+
         assertFieldPathContains( fieldPaths, "group.id" );
         assertFieldPathContains( fieldPaths, "group.name" );
     }
@@ -89,7 +90,8 @@ class FieldFilterParserTest
     @Test
     void testOnlySpringBlockFilters()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "group[id", "name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "group[id,name]" );
+
         assertFieldPathContains( fieldPaths, "group.id" );
         assertFieldPathContains( fieldPaths, "group.name" );
     }
@@ -97,7 +99,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithPrefix1()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "a", "b" ), "prefix" );
+        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( "a,b", "prefix" );
+
         assertFieldPathContains( fieldPaths, "prefix.a" );
         assertFieldPathContains( fieldPaths, "prefix.b" );
     }
@@ -105,8 +108,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithPrefix2()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( Collections.singleton( "aaa[a],bbb[b]" ),
-            "prefix" );
+        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( "aaa[a],bbb[b]", "prefix" );
+
         assertFieldPathContains( fieldPaths, "prefix.aaa.a" );
         assertFieldPathContains( fieldPaths, "prefix.bbb.b" );
     }
@@ -114,8 +117,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer1()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Collections.singleton( "name::x(a;b),id~y(a;b;c),code|z(t)" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::x(a;b),id~y(a;b;c),code|z(t)" );
+
         assertFieldPathContains( fieldPaths, "name" );
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "code" );
@@ -124,7 +127,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer2()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "groups[name::x(a;b)]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "groups[name::x(a;b)]" );
+
         assertFieldPathContains( fieldPaths, "groups" );
         assertFieldPathContains( fieldPaths, "groups.name" );
     }
@@ -132,8 +136,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer3()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Collections.singleton( "groups[name::x(a;b), code~y(a)]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "groups[name::x(a;b), code~y(a)]" );
+
         assertFieldPathContains( fieldPaths, "groups" );
         assertFieldPathContains( fieldPaths, "groups.name" );
         assertFieldPathContains( fieldPaths, "groups.code" );
@@ -142,7 +146,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer4()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "name::rename(n),groups[name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::rename(n),groups[name]" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         assertFieldPathContains( fieldPaths, "groups" );
         assertFieldPathContains( fieldPaths, "groups.name", false );
@@ -151,8 +156,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer5()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Collections.singleton( "name::rename(n),groups::rename(g)[name::rename(n)]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::rename(n),groups::rename(g)[name::rename(n)]" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         assertFieldPathContains( fieldPaths, "groups", true );
         assertFieldPathContains( fieldPaths, "groups.name", true );
@@ -161,8 +166,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer6()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Collections.singleton( "name::rename(n),groups::rename(g)[name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::rename(n),groups::rename(g)[name]" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         assertFieldPathContains( fieldPaths, "groups", true );
         assertFieldPathContains( fieldPaths, "groups.name", false );
@@ -171,7 +176,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer7()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "name::size,group::isEmpty" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::size,group::isEmpty" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         assertFieldPathContains( fieldPaths, "group", true );
     }
@@ -179,7 +185,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithTransformer8()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "name::rename(n)" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::rename(n)" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         FieldPathTransformer fieldPathTransformer = fieldPaths.get( 0 ).getTransformers().get( 0 );
         assertEquals( "rename", fieldPathTransformer.getName() );
@@ -188,7 +195,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithMultipleTransformers()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "name::size::rename(n)" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "name::size::rename(n)" );
+
         assertFieldPathContains( fieldPaths, "name", true );
         FieldPathTransformer fieldPathTransformer = fieldPaths.get( 0 ).getTransformers().get( 0 );
         assertEquals( "size", fieldPathTransformer.getName() );
@@ -199,7 +207,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithPresetAndExclude1()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "id,name,!code,:owner" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "id,name,!code,:owner" );
+
         FieldPath id = getFieldPath( fieldPaths, "id" );
         assertNotNull( id );
         assertFalse( id.isExclude() );
@@ -221,8 +230,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithPresetAndExclude()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Collections.singleton( "id,name,!code,:owner,group[:owner,:all,!code,hello]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "id,name,!code,:owner,group[:owner,:all,!code,hello]" );
+
         FieldPath id = getFieldPath( fieldPaths, "id" );
         assertNotNull( id );
         assertFalse( id.isExclude() );
@@ -260,7 +269,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithAsterisk1()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "*,!code" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "*,!code" );
+
         FieldPath asterisk = getFieldPath( fieldPaths, "all" );
         assertNotNull( asterisk );
         assertFalse( asterisk.isExclude() );
@@ -274,7 +284,8 @@ class FieldFilterParserTest
     @Test
     void testParseWithAsterisk2()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "*,!code,group[*]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "*,!code,group[*]" );
+
         FieldPath asterisk = getFieldPath( fieldPaths, "all" );
         assertNotNull( asterisk );
         assertFalse( asterisk.isExclude() );
@@ -292,7 +303,8 @@ class FieldFilterParserTest
     @Test
     void testMixedBlockSingleFields()
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( Collections.singleton( "id,name,group[id,name],code" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( "id,name,group[id,name],code" );
+
         assertEquals( 6, fieldPaths.size() );
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "name" );

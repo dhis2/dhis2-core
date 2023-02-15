@@ -36,7 +36,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
 
@@ -45,14 +45,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramInstanceDeletionHandler extends JdbcDeletionHandler
+public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramInstance>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramInstance.class );
-
     private final ProgramInstanceService programInstanceService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
         whenVetoing( Program.class, this::allowDeleteProgram );

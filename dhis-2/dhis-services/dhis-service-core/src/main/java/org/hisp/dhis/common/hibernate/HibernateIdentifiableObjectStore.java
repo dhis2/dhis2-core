@@ -306,6 +306,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
+    @Override
+    public final T getByCodeNoAcl( @Nonnull String code )
+    {
+        if ( isTransientIdentifiableProperties() )
+        {
+            return null;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "code" ), code ) );
+
+        return getSingleResult( builder, param );
+    }
+
     @Nonnull
     @Override
     public final T loadByUid( @Nonnull String uid )
@@ -871,6 +887,57 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         log.debug( "Executing query: " + sql );
 
         jdbcTemplate.execute( sql );
+    }
+
+    /**
+     * Look up list objects which have property createdBy or lastUpdatedBy
+     * linked to given {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    @Override
+    public List<T> findByUser( @Nonnull User user )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getListFromPartitions( builder, List.of( user ), 10000,
+            partition -> newJpaParameters()
+                .addPredicate( root -> builder.or( builder.equal( root.get( "createdBy" ), user ),
+                    builder.equal( root.get( "lastUpdatedBy" ), user ) ) ) );
+    }
+
+    /**
+     * Look up list objects which have property lastUpdatedBy linked to given
+     * {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    @Override
+    public List<T> findByLastUpdatedBy( @Nonnull User user )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getListFromPartitions( builder, List.of( user ), 10000,
+            partition -> newJpaParameters()
+                .addPredicate( root -> builder.equal( root.get( "lastUpdatedBy" ), user ) ) );
+    }
+
+    /**
+     * Look up list objects which have property createdBy linked to given
+     * {@link User}
+     *
+     * @param user the {@link User} for filtering
+     * @return List of objects found.
+     */
+    @Override
+    public List<T> findByCreatedBy( @Nonnull User user )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getListFromPartitions( builder, List.of( user ), 10000,
+            partition -> newJpaParameters().addPredicate( root -> builder.equal( root.get( "createdBy" ), user ) ) );
     }
 
     /**

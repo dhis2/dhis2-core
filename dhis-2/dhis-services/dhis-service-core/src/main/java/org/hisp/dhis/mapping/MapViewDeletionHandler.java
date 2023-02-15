@@ -59,7 +59,7 @@ public class MapViewDeletionHandler
     }
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         // generic
         whenDeleting( Indicator.class, this::deleteIndicator );

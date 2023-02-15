@@ -31,19 +31,17 @@ import java.util.Map;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-public class TrackedEntityInstanceDeletionHandler extends JdbcDeletionHandler
+public class TrackedEntityInstanceDeletionHandler extends IdObjectDeletionHandler<TrackedEntityInstance>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityInstance.class );
-
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
         whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );

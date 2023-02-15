@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.attribute;
 
-import static java.util.Arrays.stream;
-
-import java.util.List;
-
-import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,35 +35,4 @@ import com.google.common.collect.ImmutableMap;
 public interface AttributeStore
     extends IdentifiableObjectStore<Attribute>
 {
-    String ID = AttributeStore.class.getName();
-
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
-
-    /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
-     */
-    List<Attribute> getAttributes( Class<?> klass );
-
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
-
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<Attribute> getUniqueAttributes( Class<?> klass );
 }

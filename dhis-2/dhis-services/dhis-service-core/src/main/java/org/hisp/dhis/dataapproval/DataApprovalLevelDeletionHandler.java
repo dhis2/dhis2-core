@@ -31,19 +31,17 @@ import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Jim Grace
  */
 @Component
-public class DataApprovalLevelDeletionHandler extends JdbcDeletionHandler
+public class DataApprovalLevelDeletionHandler extends IdObjectDeletionHandler<DataApprovalLevel>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
-
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet );
         whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );

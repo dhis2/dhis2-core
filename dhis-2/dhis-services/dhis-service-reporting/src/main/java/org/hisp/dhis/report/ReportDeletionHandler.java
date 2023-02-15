@@ -29,7 +29,7 @@ package org.hisp.dhis.report;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReportDeletionHandler extends DeletionHandler
 {
     private final ReportService reportService;

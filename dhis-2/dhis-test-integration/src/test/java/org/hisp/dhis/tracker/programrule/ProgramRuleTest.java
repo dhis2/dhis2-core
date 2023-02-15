@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
 
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -79,6 +81,9 @@ class ProgramRuleTest extends TrackerTest
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
+    @Autowired
+    private ConstantService constantService;
+
     private Program program;
 
     private Program programWithoutRegistration;
@@ -104,6 +109,7 @@ class ProgramRuleTest extends TrackerTest
         ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
             dataElement2 );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
+        constantService.saveConstant( constant() );
 
         injectAdminUser();
     }
@@ -149,6 +155,17 @@ class ProgramRuleTest extends TrackerTest
             .importTracker( fromJson( "tracker/programrule/program_event.json" ) );
 
         assertHasOnlyWarnings( report, E1300 );
+    }
+
+    @Test
+    void shouldNotImportProgramEventWhenAnErrorIsTriggeredBasedOnConditionEvaluatingAConstant()
+        throws IOException
+    {
+        conditionWithConstantEvaluatesToTrue();
+        ImportReport report = trackerImportService
+            .importTracker( fromJson( "tracker/programrule/program_event.json" ) );
+
+        assertHasOnlyErrors( report, E1300 );
     }
 
     @Test
@@ -434,6 +451,16 @@ class ProgramRuleTest extends TrackerTest
         programRuleService.updateProgramRule( programRule );
     }
 
+    private void conditionWithConstantEvaluatesToTrue()
+    {
+        ProgramRule programRule = createProgramRule( 'L', programWithoutRegistration, null, "C{NAgjOfWMXg6} < 10" );
+        programRuleService.addProgramRule( programRule );
+        ProgramRuleAction programRuleAction = createProgramRuleAction( programRule, SHOWERROR, null, null );
+        programRuleActionService.addProgramRuleAction( programRuleAction );
+        programRule.getProgramRuleActions().add( programRuleAction );
+        programRuleService.updateProgramRule( programRule );
+    }
+
     private void storeProgramRule( char uniqueCharacter, Program program, ProgramRuleActionType actionType )
     {
         storeProgramRule( uniqueCharacter, program, null, actionType );
@@ -470,5 +497,14 @@ class ProgramRuleTest extends TrackerTest
         programRuleAction.setData( data );
 
         return programRuleAction;
+    }
+
+    private Constant constant()
+    {
+        Constant constant = new Constant();
+        constant.setValue( 7.8 );
+        constant.setUid( "NAgjOfWMXg6" );
+        constant.setName( "Gravity" );
+        return constant;
     }
 }

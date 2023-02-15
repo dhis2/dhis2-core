@@ -303,7 +303,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     @Test
     void getTrackedEntityByIdNotFound()
     {
-        assertEquals( "TrackedEntityInstance not found for uid: Hq3Kc6HK4OZ",
+        assertEquals( "TrackedEntityInstance with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );

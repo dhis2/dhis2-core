@@ -25,32 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
- * Created by sultanm. This exception could be used in all operation forbidden
- * cases
+ * @author Morten Olav Hansen
  */
-@ResponseStatus( HttpStatus.FORBIDDEN )
-public class OperationNotAllowedException
-    extends Exception
+class HttpBasicAuthTest
 {
-
-    public OperationNotAllowedException( String message )
+    @Test
+    void testAuthorizationHeaderSet()
     {
-        super( message );
-    }
+        HttpBasicAuth auth = new HttpBasicAuth()
+            .setUsername( "admin" )
+            .setPassword( "district" );
 
-    public OperationNotAllowedException( Throwable cause )
-    {
-        super( cause );
-    }
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        auth.apply( headers );
 
-    public OperationNotAllowedException( String message, Throwable cause )
-    {
-        super( message, cause );
+        assertTrue( headers.containsKey( "Authorization" ) );
+        assertFalse( headers.get( "Authorization" ).isEmpty() );
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
     }
 }

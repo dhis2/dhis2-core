@@ -30,22 +30,22 @@ package org.hisp.dhis.program;
 import java.util.Collection;
 import java.util.HashSet;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
-public class ProgramIndicatorDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class ProgramIndicatorDeletionHandler extends IdObjectDeletionHandler<ProgramIndicator>
 {
     private final ProgramIndicatorService programIndicatorService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Program.class, this::deleteProgram );
     }

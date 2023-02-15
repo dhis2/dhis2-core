@@ -31,10 +31,10 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.Enroll
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,35 +44,34 @@ class EnrollmentFieldsMapperTest
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
         return Stream.of(
-            arguments( List.of( "!*" ), false, false, false ),
-            arguments( List.of( "*" ), true, true, true ),
-            arguments( List.of( "*", "!relationships" ), true, true, false ),
-            arguments( List.of( "*", "!attributes" ), false, true, true ),
-            arguments( List.of( "*", "!events" ), true, false, true ),
-            arguments( List.of( "!events" ), false, false, false ),
-            arguments( List.of( "events" ), false, true, false ),
-            arguments( List.of( "!attributes" ), false, false, false ),
-            arguments( List.of( "attributes" ), true, false, false ),
-            arguments( List.of( "!attributes", "attributes" ), false, false, false ),
-            arguments( List.of( "!attributes[*]" ), false, false, false ),
-            arguments( List.of( "attributes[createdAt]", "attributes", "attributes", "!attributes" ), false, false,
-                false ),
-            arguments( List.of( "events[!createdAt]" ), false, true, false ),
-            arguments( List.of( "attributes", "!events" ), true, false, false ),
-            arguments( List.of( "relationships", "!attributes" ), false, false, true ),
-            arguments( List.of( "events", "!relationships" ), false, true, false ),
-            arguments( List.of( "attributes[*]", "events[*]", "relationships[*]" ), true, true, true ),
-            arguments( List.of( "relationships[*]", "!relationships[*]" ), false, false, false ),
-            arguments( List.of( "!relationships[*]", "relationships[*]" ), false, false, false ),
-            arguments( List.of( "relationships", "relationships[!from]" ), false, false, true ) );
+            arguments( "!*", false, false, false ),
+            arguments( "*", true, true, true ),
+            arguments( "*,!relationships", true, true, false ),
+            arguments( "*,!attributes", false, true, true ),
+            arguments( "*,!events", true, false, true ),
+            arguments( "!events", false, false, false ),
+            arguments( "events", false, true, false ),
+            arguments( "!attributes", false, false, false ),
+            arguments( "attributes", true, false, false ),
+            arguments( "!attributes", "attributes", false, false, false ),
+            arguments( "!attributes[*]", false, false, false ),
+            arguments( "attributes[createdAt],attributes,attributes,!attributes", false, false, false ),
+            arguments( "events[!createdAt]", false, true, false ),
+            arguments( "attributes,!events", true, false, false ),
+            arguments( "relationships,!attributes", false, false, true ),
+            arguments( "events,!relationships", false, true, false ),
+            arguments( "attributes[*],events[*],relationships[*]", true, true, true ),
+            arguments( "relationships[*],!relationships[*]", false, false, false ),
+            arguments( "!relationships[*],relationships[*]", false, false, false ),
+            arguments( "relationships,relationships[!from]", false, false, true ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void getEnrollmentParamsMultipleCases( List<String> fields, boolean expectAttributes,
+    void getEnrollmentParamsMultipleCases( String fields, boolean expectAttributes,
         boolean expectEvents, boolean expectRelationships )
     {
-        EnrollmentParams params = map( fields );
+        EnrollmentParams params = map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectAttributes, params.isIncludeAttributes() );
         assertEquals( expectEvents, params.isIncludeEvents() );

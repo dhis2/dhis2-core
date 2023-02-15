@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -74,15 +73,11 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -284,13 +279,6 @@ public class CrudControllerAdvice
         return unauthorized( ex.getMessage() );
     }
 
-    @ExceptionHandler( NotFoundException.class )
-    @ResponseBody
-    public WebMessage notFoundExceptionHandler( NotFoundException ex )
-    {
-        return notFound( ex.getMessage() );
-    }
-
     @ExceptionHandler( ConstraintViolationException.class )
     @ResponseBody
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
@@ -368,19 +356,11 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
-        JsonPatchException.class } )
+    @ExceptionHandler( { IllegalArgumentException.class, SchemaPathException.class, JsonPatchException.class } )
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
     {
         return badRequest( exception.getMessage() );
-    }
-
-    @ExceptionHandler( { ConflictException.class } )
-    @ResponseBody
-    public WebMessage handleConflictRequest( Exception exception )
-    {
-        return conflict( exception.getMessage() );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
@@ -413,13 +393,6 @@ public class CrudControllerAdvice
             return conflict( conflictException.getMessage() );
         }
         return conflict( null ).setResponse( conflictException.getMetadataSyncSummary() );
-    }
-
-    @ExceptionHandler( OperationNotAllowedException.class )
-    @ResponseBody
-    public WebMessage handleOperationNotAllowedException( OperationNotAllowedException ex )
-    {
-        return forbidden( ex.getMessage() );
     }
 
     @ExceptionHandler( OAuth2AuthenticationException.class )
