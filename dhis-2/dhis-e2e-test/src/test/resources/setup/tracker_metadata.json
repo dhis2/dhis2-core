@@ -142,7 +142,6 @@
           "displayName": "TA Tracker_program TA First name",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA First name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": true,
@@ -172,9 +171,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.387",
@@ -183,7 +180,6 @@
           "displayName": "TA Tracker_program TA Last name",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA Last name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": true,
@@ -213,9 +209,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.387",
@@ -224,7 +218,6 @@
           "displayName": "TA Tracker_program TA Date of birth",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA DOB",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "DATE",
           "searchable": false,
@@ -251,12 +244,7 @@
             "external": false,
             "users": {}
           },
-          "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "favorites": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.387",
@@ -265,7 +253,6 @@
           "displayName": "TA Tracker_program TA Age in years",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA Age in years",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "INTEGER_ZERO_OR_POSITIVE",
           "searchable": false,
@@ -295,9 +282,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.387",
@@ -306,7 +291,6 @@
           "displayName": "TA Tracker_program TA Sex",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA_SEX",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -336,9 +320,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "name": "TA Tracker_program TA org unit",
@@ -388,7 +370,6 @@
           "displayName": "TA Tracker_program TA TEA Number",
           "mandatory": false,
           "displayShortName": "TA Tracker_program TA Number",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "NUMBER",
           "searchable": false,
@@ -418,9 +399,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -502,7 +481,6 @@
           "displayName": "TA Tracker program with category combo TA First name",
           "mandatory": false,
           "displayShortName": "TA Tracker program with cat combo TA First name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -532,9 +510,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T14:58:26.525",
@@ -543,7 +519,6 @@
           "displayName": "TA Tracker program with category combo TA Last name",
           "mandatory": false,
           "displayShortName": "TA Tracker program with cat combo TA Last name",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -573,9 +548,7 @@
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -596,7 +569,6 @@
       "name": "TA Event_program",
       "code": "TA EVENT_PROGRAM",
       "shortName": "TAEP",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -641,22 +613,22 @@
           "code": "OU_525"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
-      "programSections": [],
-      "attributeValues": [],
+      },
       "programStages": [
         {
           "id": "jKLB23QZS4I",
           "code": "TA_EVENT_PROGRAM_STAGE"
         }
-      ],
-      "userAccesses": []
+      ]
     },
     {
       "lastUpdated": "2019-02-28T12:42:58.283",
@@ -665,7 +637,6 @@
       "name": "TA Tracker_another_program",
       "code": "TA TRACKER_ANOTHER_PROGRAM",
       "shortName": "TA Tracker_another_program",
-      "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -709,13 +680,16 @@
       ],
       "notificationTemplates": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rwrw----",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -723,8 +697,7 @@
           "id": "PaOOjwLVW2X",
           "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE"
         }
-      ],
-      "userAccesses": []
+      ]
     }
   ],
   "trackedEntityAttributes": [
@@ -926,7 +899,6 @@
       "name": "TA org unit",
       "shortName": "TA org unit",
       "code": "TA_ORG_UNIT_ATTRIBUTE",
-      "publicAccess": "rw------",
       "generated": false,
       "valueType": "ORGANISATION_UNIT",
       "confidential": false,
@@ -939,7 +911,6 @@
       "pattern": "",
       "skipSynchronization": false,
       "displayShortName": "TA org unit",
-      "externalAccess": false,
       "displayOnVisitSchedule": false,
       "orgunitScope": false,
       "dimensionItem": "xuAl9UIMcmI",
@@ -961,9 +932,7 @@
         "manage": true
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "favorites": []
     },
@@ -974,7 +943,6 @@
       "name": "TA auto generated ou code",
       "shortName": "TA auto generated ou code",
       "code": "TA_AUTO_GENERATED_OU_CODE",
-      "publicAccess": "rw------",
       "generated": true,
       "valueType": "TEXT",
       "confidential": false,
@@ -988,7 +956,6 @@
       "pattern": "ORG_UNIT_CODE() + \"/\" + RANDOM(###)",
       "skipSynchronization": false,
       "displayShortName": "TA auto generated ou code",
-      "externalAccess": false,
       "displayOnVisitSchedule": false,
       "orgunitScope": false,
       "dimensionItem": "zaFORM1InP3",
@@ -1002,9 +969,7 @@
         "users": {}
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "favorites": []
     },
@@ -1015,7 +980,6 @@
       "name": "TA auto generated random",
       "shortName": "TA auto generated random",
       "code": "TA_AUTO_GENERATED_RANDOM",
-      "publicAccess": "rw------",
       "generated": true,
       "valueType": "TEXT",
       "confidential": false,
@@ -1029,7 +993,6 @@
       "pattern": "\"TA_\" + RANDOM(###)",
       "skipSynchronization": false,
       "displayShortName": "TA auto generated random",
-      "externalAccess": false,
       "displayOnVisitSchedule": false,
       "orgunitScope": false,
       "dimensionItem": "XaWmZShaP3I",
@@ -1043,9 +1006,7 @@
         "users": {}
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "favorites": []
     },
@@ -1056,7 +1017,6 @@
       "name": "TA auto generated sequential",
       "shortName": "TA auto generated sequential",
       "code": "TA_AUTO_GENERATED_SEQUENTIAL",
-      "publicAccess": "rw------",
       "generated": true,
       "valueType": "TEXT",
       "confidential": false,
@@ -1070,7 +1030,6 @@
       "pattern": "\"TA_\" + SEQUENTIAL(####)",
       "skipSynchronization": false,
       "displayShortName": "TA auto generated sequential",
-      "externalAccess": false,
       "displayOnVisitSchedule": false,
       "orgunitScope": false,
       "dimensionItem": "qUH2LHGwGjj",
@@ -1084,9 +1043,7 @@
         "users": {}
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "favorites": []
     }
@@ -1129,7 +1086,6 @@
           "created": "2022-01-07T14:58:26.513",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1158,9 +1114,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T14:58:26.514",
@@ -1168,7 +1122,6 @@
           "created": "2022-01-07T14:58:26.514",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1197,9 +1150,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
       "translations": [],
@@ -1249,7 +1200,6 @@
           "created": "2022-01-07T12:50:38.507",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1278,9 +1228,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.507",
@@ -1288,7 +1236,6 @@
           "created": "2022-01-07T12:50:38.507",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1317,9 +1264,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.506",
@@ -1327,7 +1272,6 @@
           "created": "2022-01-07T12:50:38.506",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1356,9 +1300,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "translations": [],
@@ -1408,7 +1350,6 @@
           "created": "2019-04-23T07:32:17.624",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1437,9 +1378,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.505",
@@ -1447,7 +1386,6 @@
           "created": "2019-04-23T07:32:17.623",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1476,9 +1414,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.505",
@@ -1486,7 +1422,6 @@
           "created": "2019-04-23T07:32:17.624",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1515,9 +1450,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.505",
@@ -1525,7 +1458,6 @@
           "created": "2021-09-06T09:21:47.347",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1554,9 +1486,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.505",
@@ -1564,7 +1494,6 @@
           "created": "2022-01-07T12:50:38.505",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1593,9 +1522,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.505",
@@ -1603,7 +1530,6 @@
           "created": "2022-01-07T12:50:38.505",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1632,9 +1558,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:50:38.506",
@@ -1642,7 +1566,6 @@
           "created": "2022-01-07T12:50:38.506",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "skipAnalytics": false,
           "allowFutureDate": false,
@@ -1671,9 +1594,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "translations": [],
@@ -1688,7 +1609,6 @@
       "code": "TA_EVENT_PROGRAM_STAGE",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -1753,15 +1673,17 @@
         }
       ],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "programStageSections": []
     },
     {
@@ -1769,7 +1691,6 @@
       "name": "Program Stage - Another Program",
       "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE",
       "allowGenerateNextVisit": false,
-      "publicAccess": "rwrw----",
       "formType": "DEFAULT",
       "generatedByEnrollmentDate": false,
       "displayFormName": "Program Stage - Another Program",
@@ -1780,7 +1701,6 @@
       "favorite": false,
       "preGenerateUID": false,
       "displayName": "Program Stage - Another Program",
-      "externalAccess": false,
       "openAfterEnrollment": false,
       "repeatable": true,
       "remindCompleted": false,
@@ -1794,16 +1714,17 @@
       },
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rwrw----",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "programStageSections": []
     },
     {
@@ -1903,9 +1824,6 @@
           "created": "2022-02-22T09:08:39.533",
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -1934,9 +1852,6 @@
           "created": "2022-02-22T09:08:39.532",
           "lastUpdated": "2022-02-22T09:08:39.532",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -1965,9 +1880,6 @@
           "created": "2022-02-22T09:08:39.533",
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
-          "externalAccess": false,
-          "userGroupAccesses": [],
-          "userAccesses": [],
           "favorites": [],
           "sharing": {
             "external": false,
@@ -2078,7 +1990,6 @@
           "created": "2019-02-05T13:46:01.219",
           "displayName": "TA Person TA First name",
           "displayShortName": "null TA First name",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": true,
           "displayInList": true,
@@ -2105,9 +2016,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-04-25T08:34:44.295",
@@ -2115,7 +2024,6 @@
           "created": "2019-02-05T13:46:01.220",
           "displayName": "TA Person TA Last name",
           "displayShortName": "null TA Last name",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": true,
           "displayInList": true,
@@ -2142,9 +2050,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-04-25T08:34:44.295",
@@ -2152,7 +2058,6 @@
           "created": "2022-04-25T08:31:04.681",
           "displayName": "TA Person TA org unit",
           "displayShortName": "null TA org unit",
-          "externalAccess": false,
           "valueType": "ORGANISATION_UNIT",
           "searchable": false,
           "displayInList": false,
@@ -2179,9 +2084,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-04-25T08:34:44.295",
@@ -2189,7 +2092,6 @@
           "created": "2022-04-25T08:34:44.231",
           "displayName": "TA Person TA Sex",
           "displayShortName": "null TA_SEX",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": true,
           "displayInList": true,
@@ -2216,9 +2118,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-04-25T08:34:44.296",
@@ -2226,7 +2126,6 @@
           "created": "2022-04-25T08:34:44.231",
           "displayName": "TA Person TA Age in years",
           "displayShortName": "null TA Age in years",
-          "externalAccess": false,
           "valueType": "INTEGER_ZERO_OR_POSITIVE",
           "searchable": true,
           "displayInList": true,
@@ -2253,9 +2152,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-04-25T08:34:44.296",
@@ -2263,7 +2160,6 @@
           "created": "2022-04-25T08:34:44.231",
           "displayName": "TA Person TA Date of birth",
           "displayShortName": "null TA DOB",
-          "externalAccess": false,
           "valueType": "DATE",
           "searchable": true,
           "displayInList": true,
@@ -2290,9 +2186,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "translations": []
@@ -2329,7 +2223,6 @@
           "lastUpdated": "2022-01-07T12:45:47.414",
           "id": "OTdOi0KOK3h",
           "created": "2022-01-07T10:26:29.298",
-          "externalAccess": false,
           "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD",
           "boundaryTarget": "EVENT_DATE",
           "favorite": false,
@@ -2348,15 +2241,12 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.414",
           "id": "Ln9unpwr4eJ",
           "created": "2022-01-07T10:26:29.298",
-          "externalAccess": false,
           "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD",
           "boundaryTarget": "EVENT_DATE",
           "favorite": false,
@@ -2375,9 +2265,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "attributeValues": [],
@@ -3121,7 +3009,6 @@
       "code": "TA_SIBLING",
       "id": "xLmPUYJX8Ks",
       "bidirectional": true,
-      "publicAccess": "rw------",
       "toFromName": "Sibling of",
       "fromToName": "Sibling of",
       "fromConstraint": {
@@ -3138,15 +3025,17 @@
           "code": "TA_PERSON_TET"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
-      "translations": [],
-      "userAccesses": []
+      },
+      "translations": []
     },
     {
       "lastUpdated": "2020-11-20T09:06:23.348",
@@ -3156,9 +3045,7 @@
       "code": "TA_PARENT_TO_CHILD_RELATIONSHIP",
       "bidirectional": false,
       "displayName": "TA Parent to Child",
-      "publicAccess": "rw------",
       "fromToName": "Parent Of",
-      "externalAccess": false,
       "displayFromToName": "Parent Of",
       "favorite": false,
       "toConstraint": {
@@ -3175,13 +3062,16 @@
           "code": "TA_PERSON_TET"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ]
+      }
     },
     {
       "lastUpdated": "2020-11-20T09:06:23.348",
@@ -3191,9 +3081,7 @@
       "code": "Person to Case",
       "bidirectional": false,
       "displayName": "Person to Case",
-      "publicAccess": "rw------",
       "fromToName": "Person to Case",
-      "externalAccess": false,
       "displayFromToName": "Person to Case",
       "favorite": false,
       "toConstraint": {
@@ -3209,13 +3097,16 @@
           "id": "f1AyMswryyQ"
         }
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ]
+      }
     }
   ]
 }

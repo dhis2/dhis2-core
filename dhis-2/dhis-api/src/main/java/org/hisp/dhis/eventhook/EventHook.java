@@ -51,8 +51,8 @@ public class EventHook
     extends BaseIdentifiableObject
     implements MetadataObject
 {
-    @JsonProperty
-    private boolean enabled = true;
+    @JsonProperty( required = true )
+    private boolean disabled;
 
     @JsonProperty
     private String description;

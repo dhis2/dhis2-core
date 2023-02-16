@@ -255,7 +255,7 @@ public enum ErrorCode
         "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
     E4062( "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `{0}`" ),
     E4063( "Assigned users cannot be empty when assigned user mode is set to PROVIDED" ),
-    E4064( "Organisation Unit cannot be empty with `{0}` org unit mode" ),
+    E4064( "Organisation unit cannot be empty with `{0}` org unit mode" ),
     E4065( "Data item UID is missing in filter" ),
     E4066( "No data element found for item: `{0}`" ),
     E4067( "Attribute UID is missing in filter" ),

@@ -124,7 +124,7 @@ public class EventHookListener
 
         for ( EventHook eh : eventHooks )
         {
-            if ( !eh.isEnabled() )
+            if ( eh.isDisabled() )
             {
                 continue;
             }
