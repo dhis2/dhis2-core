@@ -1,6 +1,3 @@
--- Add route table
-
-DROP TABLE IF EXISTS route;
 
 CREATE TABLE route (
 	routeid int8 NOT NULL,
