@@ -60,6 +60,7 @@ import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -316,12 +317,12 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
 
         // When
-        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
             () -> new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
                 dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
 
         // Then
-        assertEquals( "The following programs couldn't be found: [ur1Edk5Oe2n]", thrown.getMessage(),
+        assertEquals( "Program is specified but does not exist: `[ur1Edk5Oe2n]`", thrown.getMessage(),
             "Exception message does not match." );
     }
 
@@ -415,12 +416,12 @@ class CommonQueryRequestMapperTest
             aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
 
         // When
-        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
             () -> new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
                 dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
 
         // Then
-        assertEquals( "yLIPuJHRgey is not a fully qualified dimension", thrown.getMessage(),
+        assertEquals( "Dimension is not a fully qualified: `yLIPuJHRgey`", thrown.getMessage(),
             "Exception message does not match." );
     }
 

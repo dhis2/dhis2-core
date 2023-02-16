@@ -27,16 +27,18 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.getTrackedEntityAttributes;
+import static org.hisp.dhis.feedback.ErrorCode.E7125;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
@@ -59,33 +61,39 @@ public class TeiQueryRequestMapper
      * {@link TeiQueryParams}.
      *
      * @param queryRequest the {@link QueryRequest} of type
-     *        {@link TeiQueryRequest}
-     * @return the populated {@link TeiQueryParams}
-     * @throws IllegalArgumentException if the current TrackedEntityType in the
-     *         given request is invalid or non-existent
+     *        {@link TeiQueryRequest}.
+     * @return the populated {@link TeiQueryParams}.
+     * @throws IllegalQueryException if the current TrackedEntityType specified
+     *         in the given request is invalid or non-existent.
      */
     public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest )
     {
-        TrackedEntityType trackedEntityType = getTrackedEntityType( queryRequest );
+        TrackedEntityType trackedEntityType = getTrackedEntityType( queryRequest.getRequest().getTrackedEntityType() );
 
-        // adding tracked entity type attributes to the list of dimensions
+        // Adding tracked entity type attributes to the list of dimensions.
         queryRequest.getCommonQueryRequest().getDimension().addAll(
             getTrackedEntityAttributes( trackedEntityType )
                 .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() ) );
+                .collect( toList() ) );
 
-        return TeiQueryParams.builder()
-            .trackedEntityType( getTrackedEntityType( queryRequest ) )
+        return TeiQueryParams.builder().trackedEntityType( trackedEntityType )
             .commonParams( commonQueryRequestMapper.map(
                 queryRequest.getCommonQueryRequest() ) )
             .build();
     }
 
-    private TrackedEntityType getTrackedEntityType( QueryRequest<TeiQueryRequest> queryRequest )
+    /**
+     * Simply loads the given tracked entity type. If nothing is found, it
+     * throws an exception.
+     *
+     * @param trackedEntityTypeUid the tracked entity type uid.
+     * @throws IllegalQueryException if the tracked entity type specified is
+     *         invalid or non-existent.
+     */
+    private TrackedEntityType getTrackedEntityType( String trackedEntityTypeUid )
     {
-        return Optional.of( queryRequest.getRequest().getTrackedEntityType() )
+        return Optional.of( trackedEntityTypeUid )
             .map( trackedEntityTypeService::getTrackedEntityType )
-            .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
-                + queryRequest.getRequest().getTrackedEntityType() ) );
+            .orElseThrow( () -> new IllegalQueryException( E7125, trackedEntityTypeUid ) );
     }
 }

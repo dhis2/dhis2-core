@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
+import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,8 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,6 +60,7 @@ public class HeaderParamsHandler
      * @param teiQueryParams all headers represent by a set of
      *        {@link GridHeader}.
      * @param fields the columns to retain, represented by {@link Field}.
+     * @throws IllegalQueryException if header requested does not exist.
      */
     public void handle( Grid grid, TeiQueryParams teiQueryParams, List<Field> fields )
     {
@@ -70,18 +74,40 @@ public class HeaderParamsHandler
         }
         else
         {
-            List<GridHeader> headerList = new ArrayList<>( headers );
+            List<GridHeader> gridHeaders = new ArrayList<>( headers );
 
             // Adds only the headers present in params, in the same order.
             paramHeaders.forEach( header -> {
                 GridHeader gridHeader = new GridHeader( header );
 
-                if ( headerList.contains( gridHeader ) )
+                if ( gridHeaders.contains( gridHeader ) )
                 {
-                    int element = headerList.indexOf( gridHeader );
-                    grid.addHeader( headerList.get( element ) );
+                    int element = gridHeaders.indexOf( gridHeader );
+                    grid.addHeader( gridHeaders.get( element ) );
                 }
             } );
         }
+
+        checkHeaders( headers, paramHeaders );
+    }
+
+    /**
+     * Simply checks if the headers requested are valid ones.
+     *
+     * @param gridHeaders the set of {@link GridHeader}.
+     * @param paramHeaders the set of param headers.
+     * @throws IllegalQueryException if any header in "paramHeaders" is not
+     *         present in the given "gridHeaders".
+     */
+    private void checkHeaders( Set<GridHeader> gridHeaders, Set<String> paramHeaders )
+    {
+        paramHeaders.forEach( header -> {
+            GridHeader gridHeader = new GridHeader( header );
+
+            if ( !gridHeaders.contains( gridHeader ) )
+            {
+                throw new IllegalQueryException( new ErrorMessage( E7230, header ) );
+            }
+        } );
     }
 }

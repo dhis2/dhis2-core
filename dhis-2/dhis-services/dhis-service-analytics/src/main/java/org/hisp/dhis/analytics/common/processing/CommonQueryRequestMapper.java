@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
@@ -41,11 +43,12 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryRequestBuilder.DIMENSION_OR_SEPARATOR;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.feedback.ErrorCode.E7129;
+import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +74,7 @@ import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -102,8 +106,8 @@ public class CommonQueryRequestMapper
     /**
      * Maps the input request into the respective queryable objects.
      *
-     * @param request the input request
-     * @return the {@link CommonParams}
+     * @param request the input {@CommonQueryRequest}.
+     * @return the {@link CommonParams}.
      */
     public CommonParams map( CommonQueryRequest request )
     {
@@ -122,9 +126,10 @@ public class CommonQueryRequestMapper
                 fullyQualifiedDimension.getRight(),
                 fullyQualifiedDimension.getLeft().getUid() + "." + fullyQualifiedDimension.getRight() ) );
 
-        // removes all items already existing for which exists a fully qualified dimension name
+        // Removes all items already existing for which exists a fully qualified dimension name.
         request.getDimension().removeIf( dimensionsByUid::containsKey );
-        // adds all dimensions from all programs
+
+        // Adds all dimensions from all programs.
         request.getDimension().addAll( dimensionsByUid.values() );
 
         return CommonParams.builder()
@@ -160,8 +165,8 @@ public class CommonQueryRequestMapper
     /**
      * Returns the headers specified in the given request.
      *
-     * @param request
-     * @return the set of headers
+     * @param request the {@link CommonQueryRequest}.
+     * @return the set of headers.
      */
     private Set<String> getHeaders( CommonQueryRequest request )
     {
@@ -174,10 +179,10 @@ public class CommonQueryRequestMapper
      * where index of each element is the index of the sorting param in the
      * request.
      *
-     * @param request the {@link CommonQueryRequest}
-     * @param programs the list of {@link Program}
-     * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return the {@link List} of sorting {@link AnalyticsSortingParams}
+     * @param request the {@link CommonQueryRequest}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return the {@link List} of sorting {@link AnalyticsSortingParams}.
      */
     private List<AnalyticsSortingParams> getSortingParams( CommonQueryRequest request, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
@@ -192,13 +197,13 @@ public class CommonQueryRequestMapper
      * Based on the given arguments, it extracts the sort param object
      * {@link AnalyticsSortingParams}.
      *
-     * @param index the index of the sorting param in the request
-     * @param sortParam the representation in the format
-     *        uid1.uid2.uid3OrAttribute:ASC
-     * @param request the {@link CommonQueryRequest}
-     * @param programs the list of {@link Program}
-     * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return the built {@link AnalyticsSortingParams}
+     * @param index the index of the sorting param in the request.
+     * @param sortParam the representation in the format.
+     *        uid1.uid2.uid3OrAttribute:ASC.
+     * @param request the {@link CommonQueryRequest}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return the built {@link AnalyticsSortingParams}.
      */
     private AnalyticsSortingParams toSortParam( long index, String sortParam, CommonQueryRequest request,
         List<Program> programs,
@@ -216,9 +221,9 @@ public class CommonQueryRequestMapper
      * Returns a {@link List} of {@link Program} objects based on the given
      * {@link CommonQueryRequest}.
      *
-     * @param queryRequest the {@link CommonQueryRequest}
-     * @return the {@link List} of {@link Program} found
-     * @throws IllegalArgumentException if the program cannot be found
+     * @param queryRequest the {@link CommonQueryRequest}.
+     * @return the {@link List} of {@link Program} found.
+     * @throws IllegalQueryException if the program(s) cannot be found.
      */
     private List<Program> getPrograms( CommonQueryRequest queryRequest )
     {
@@ -233,11 +238,11 @@ public class CommonQueryRequestMapper
 
             List<String> missingProgramUids = Optional.of( queryRequest )
                 .map( CommonQueryRequest::getProgram )
-                .orElse( Collections.emptySet() ).stream()
+                .orElse( emptySet() ).stream()
                 .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
                 .collect( toList() );
 
-            throw new IllegalArgumentException( "The following programs couldn't be found: " + missingProgramUids );
+            throw new IllegalQueryException( E7129, missingProgramUids );
         }
 
         return programs;
@@ -247,10 +252,10 @@ public class CommonQueryRequestMapper
      * Returns a {@link List} of {@link DimensionIdentifier} built from given
      * arguments, params and filter.
      *
-     * @param queryRequest the {@link CommonQueryRequest}
-     * @param programs the list of {@link Program}
-     * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return a {@link List} of {@link DimensionIdentifier}
+     * @param queryRequest the {@link CommonQueryRequest}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return a {@link List} of {@link DimensionIdentifier}.
      */
     private List<DimensionIdentifier<DimensionParam>> retrieveDimensionParams(
         CommonQueryRequest queryRequest, List<Program> programs, List<OrganisationUnit> userOrgUnits )
@@ -259,10 +264,11 @@ public class CommonQueryRequestMapper
 
         Stream.of( DIMENSIONS, FILTERS, DATE_FILTERS )
             .forEach( dimensionParamType -> {
-                // A Collection of dimensions or filters coming from the request
+                // A Collection of dimensions or filters coming from the request.
                 Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( queryRequest );
+
                 dimensionParams.addAll(
-                    ImmutableList.copyOf( dimensionsOrFilter.stream()
+                    unmodifiableList( dimensionsOrFilter.stream()
                         .map( this::splitOnOrIfNecessary )
                         .map( dof -> toDimensionIdentifier( dof, dimensionParamType, queryRequest, programs,
                             userOrgUnits ) )
@@ -270,7 +276,7 @@ public class CommonQueryRequestMapper
                         .collect( toList() ) ) );
             } );
 
-        return ImmutableList.copyOf( dimensionParams );
+        return unmodifiableList( dimensionParams );
     }
 
     /**
@@ -278,14 +284,13 @@ public class CommonQueryRequestMapper
      * arguments, params and filter, assigning the same (random) groupId to all
      * dimensionIdentifier.
      *
-     * @param dimensions the {@link List} of dimensions
-     * @param dimensionParamType the {@link DimensionParamType}
-     * @param queryRequest the {@link CommonQueryRequest}
-     * @param programs the list of {@link Program}
-     * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return a {@link List} of {@link DimensionIdentifier}
-     * @throws IllegalArgumentException if "dimensionOrFilter" is not
-     *         well-formed
+     * @param dimensions the {@link List} of dimensions.
+     * @param dimensionParamType the {@link DimensionParamType}.
+     * @param queryRequest the {@link CommonQueryRequest}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return a {@link List} of {@link DimensionIdentifier}.
+     * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
      */
     private List<DimensionIdentifier<DimensionParam>> toDimensionIdentifier(
         List<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest queryRequest,
@@ -302,7 +307,7 @@ public class CommonQueryRequestMapper
     /**
      * Splits the dimensions grouped by _OR_ into a {@link List} of String.
      *
-     * @param dimensionAsString, in the format dim_OR_anotherDim
+     * @param dimensionAsString, in the format dim_OR_anotherDim.
      * @return the {@link List} of String.
      */
     private List<String> splitOnOrIfNecessary( String dimensionAsString )
@@ -315,14 +320,13 @@ public class CommonQueryRequestMapper
      * Returns a {@link DimensionIdentifier} built from given arguments, params
      * and filter.
      *
-     * @param dimensionOrFilter the uid of a dimension or filter
-     * @param dimensionParamType the {@link DimensionParamType}
-     * @param queryRequest the {@link CommonQueryRequest}
-     * @param programs the list of {@link Program}
-     * @param userOrgUnits the list of {@link OrganisationUnit}
-     * @return the {@link DimensionIdentifier}
-     * @throws IllegalArgumentException if "dimensionOrFilter" is not
-     *         well-formed
+     * @param dimensionOrFilter the uid of a dimension or filter.
+     * @param dimensionParamType the {@link DimensionParamType}.
+     * @param queryRequest the {@link CommonQueryRequest}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return the {@link DimensionIdentifier}.
+     * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
      */
     private DimensionIdentifier<DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
         DimensionParamType dimensionParamType, CommonQueryRequest queryRequest, List<Program> programs,
@@ -368,9 +372,7 @@ public class CommonQueryRequestMapper
                 dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE );
 
             // The fully qualified dimension identification is required here.
-            DimensionParam dimensionParam = DimensionParam.ofObject(
-                queryItem,
-                dimensionParamType, items );
+            DimensionParam dimensionParam = DimensionParam.ofObject( queryItem, dimensionParamType, items );
 
             return DimensionIdentifier.of(
                 dimensionIdentifier.getProgram(),
@@ -378,6 +380,6 @@ public class CommonQueryRequestMapper
                 dimensionParam );
         }
 
-        throw new IllegalArgumentException( dimensionId + " is not a fully qualified dimension" );
+        throw new IllegalQueryException( E7250, dimensionId );
     }
 }

@@ -429,6 +429,9 @@ public enum ErrorCode
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
     E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
 
+    /* TEI analytics */
+    E7250( "Dimension is not a fully qualified: `{0}`" ),
+
     /* Org unit analytics */
     E7300( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),
     E7301( "At least one organisation unit group set must be specified" ),
