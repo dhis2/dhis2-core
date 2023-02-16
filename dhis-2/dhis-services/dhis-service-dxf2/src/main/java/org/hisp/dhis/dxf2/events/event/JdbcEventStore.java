@@ -1918,11 +1918,6 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        for ( OrderParam order : params.getAttributeOrders() )
-        {
-            orderFields.add( order.getField() + "_value " + order.getDirection() );
-        }
-
         for ( OrderParam order : params.getOrders() )
         {
             if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
@@ -1930,6 +1925,10 @@ public class JdbcEventStore implements EventStore
                 String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
                 orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
                 orderFields.add( orderText );
+            }
+            else if ( params.getAttributeOrders().contains( order ) )
+            {
+                orderFields.add( order.getField() + "_value " + order.getDirection() );
             }
         }
 
