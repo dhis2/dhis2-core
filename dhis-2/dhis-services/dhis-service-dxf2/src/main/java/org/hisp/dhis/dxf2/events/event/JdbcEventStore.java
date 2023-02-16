@@ -2104,12 +2104,9 @@ public class JdbcEventStore implements EventStore
             .addValue( "programInstanceId", programStageInstance.getProgramInstance().getId() )
             .addValue( "programstageid", programStageInstance.getProgramStage()
                 .getId() )
-            .addValue( DUE_DATE.getColumnName(), new Timestamp( programStageInstance.getDueDate()
-                .getTime() ) )
+            .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( programStageInstance.getDueDate() ) )
             .addValue( EXECUTION_DATE.getColumnName(),
-                (programStageInstance.getExecutionDate() != null
-                    ? new Timestamp( programStageInstance.getExecutionDate().getTime() )
-                    : null) )
+                JdbcEventSupport.toTimestamp( programStageInstance.getExecutionDate() ) )
             .addValue( "organisationunitid", programStageInstance.getOrganisationUnit().getId() )
             .addValue( STATUS.getColumnName(), programStageInstance.getStatus().toString() )
             .addValue( COMPLETEDDATE.getColumnName(),
