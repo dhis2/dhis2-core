@@ -390,10 +390,12 @@ public class DefaultFieldFilterService implements FieldFilterService
                 .setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
         }
 
-        if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
+        if ( Sharing.class.isAssignableFrom( object.getClass() ) )
         {
-            AttributeValue attributeValue = (AttributeValue) object;
-            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
+            Sharing sharing = (Sharing) object;
+            sharing.getUsers().values().forEach( u -> u.setDisplayName( userService.getDisplayName( u.getId() ) ) );
+            sharing.getUserGroups().values()
+                .forEach( ug -> ug.setDisplayName( userGroupService.getDisplayName( ug.getId() ) ) );
         }
 
         if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
