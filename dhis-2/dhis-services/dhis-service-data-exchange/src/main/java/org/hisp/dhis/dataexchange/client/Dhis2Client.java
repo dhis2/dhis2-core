@@ -31,6 +31,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -62,6 +64,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class Dhis2Client
 {
     private final String url;
@@ -279,7 +282,9 @@ public class Dhis2Client
         }
         catch ( JsonProcessingException ex )
         {
-            throw new UncheckedIOException( "Failed to read JSON value", ex );
+            log.error( "Failed to read JSON value", ex );
+
+            throw new UncheckedIOException( "Failed to read JSON value: " + ex.getMessage(), ex );
         }
     }
 }

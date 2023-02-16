@@ -131,7 +131,7 @@ class Dhis2ClientTest
     @Test
     void testDeserialize()
     {
-        String json = "{\"httpStatus\": \"CONFLICT\", \"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
+        String json = "{\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
 
         Dhis2Client client = Dhis2Client.withBasicAuth(
             "https://play.dhis2.org/2.38.0", "admin", "district" );
