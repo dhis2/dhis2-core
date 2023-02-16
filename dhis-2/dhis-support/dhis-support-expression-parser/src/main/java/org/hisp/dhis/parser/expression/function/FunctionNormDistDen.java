@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.scheduling;
+package org.hisp.dhis.parser.expression.function;
 
-import java.util.Date;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
-import lombok.Value;
-
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Value
-class SchedulerEntryJob
+/**
+ * Finds the density of a normal distribution.
+ *
+ * @author Jim Grace
+ */
+public class FunctionNormDistDen
+    extends FunctionNormDistAbstract
 {
-    @JsonProperty
-    @OpenApi.Property( { SchemaGenerators.UID.class, JobConfiguration.class } )
-    String id;
-
-    @JsonProperty
-    String name;
-
-    @JsonProperty
-    JobType type;
-
-    @JsonProperty
-    String cronExpression;
-
-    @JsonProperty
-    Integer delay;
-
-    @JsonProperty
-    Date nextExecutionTime;
-
-    @JsonProperty
-    JobStatus status;
-
-    static SchedulerEntryJob of( JobConfiguration config )
+    @Override
+    protected Double getDistributionValue( NormalDistribution dist, Double x )
     {
-        return new SchedulerEntryJob(
-            config.getUid(),
-            config.getName(),
-            config.getJobType(),
-            config.getCronExpression(),
-            config.getDelay(),
-            config.getNextExecutionTime(),
-            config.getJobStatus() );
+        return dist.density( x );
     }
 }

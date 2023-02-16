@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import javax.validation.constraints.NotBlank;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,7 +55,6 @@ import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataSetValueQueryParams
 {
-    @NotBlank
     @OpenApi.Property( { UID.class, DataElement.class } )
     private String ds;
 
@@ -67,11 +64,9 @@ public class DataSetValueQueryParams
     @OpenApi.Property( { UID.class, CategoryOption.class } )
     private String cp;
 
-    @NotBlank
     @OpenApi.Property( Period.class )
     private String pe;
 
-    @NotBlank
     @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String ou;
 }
