@@ -41,8 +41,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -66,11 +64,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Main service class for aggregate data exchange.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AggregateDataExchangeService
@@ -198,7 +200,9 @@ public class AggregateDataExchangeService
         }
         catch ( HttpClientErrorException ex )
         {
-            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+            String message = toErrorMessage( ex );
+
+            log.warn( message );
 
             return new ImportSummary( ImportStatus.ERROR, message );
         }
@@ -461,6 +465,18 @@ public class AggregateDataExchangeService
     {
         return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
             success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
+    }
+
+    /**
+     * Returns an error message for the given {@link HttpClientErrorException}.
+     *
+     * @param ex the {@link HttpClientErrorException}.
+     * @return the error message.
+     */
+    private String toErrorMessage( HttpClientErrorException ex )
+    {
+        String error = format( "status code: %s, response: '%s'", ex.getStatusCode(), ex.getResponseBodyAsString() );
+        return format( "Data import to target instance failed with %s", error );
     }
 
     /**

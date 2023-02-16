@@ -654,7 +654,7 @@
               <removeUnusedImports />
               <importOrder>
                 <order>
-                  java,javax,org,com
+                  java,javax,org,com,lombok
                 </order>
               </importOrder>
               <licenseHeader>
