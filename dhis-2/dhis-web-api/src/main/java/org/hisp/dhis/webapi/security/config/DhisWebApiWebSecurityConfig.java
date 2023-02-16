@@ -196,10 +196,10 @@ public class DhisWebApiWebSecurityConfig
 
             http
                 .authorizeRequests()
-                .requestMatchers( tokenEndpointPath ).fullyAuthenticated()
+                .antMatchers( tokenEndpointPath ).fullyAuthenticated()
                 .and()
                 .requestMatchers()
-                .requestMatchers( tokenEndpointPath )
+                .antMatchers( tokenEndpointPath )
                 .and()
                 .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
@@ -322,8 +322,8 @@ public class DhisWebApiWebSecurityConfig
                 .antMatcher( "/oauth2/**" )
                 .authorizeRequests( authorize -> {
                     providerIds.forEach( providerId -> authorize
-                        .requestMatchers( "/oauth2/authorization/" + providerId ).permitAll()
-                        .requestMatchers( "/oauth2/code/" + providerId ).permitAll() );
+                        .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+                        .antMatchers( "/oauth2/code/" + providerId ).permitAll() );
                     authorize.anyRequest().authenticated();
                 } )
 
@@ -479,19 +479,19 @@ public class DhisWebApiWebSecurityConfig
 
             authorize
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
-                .requestMatchers( "/index.html" ).permitAll()
+                .antMatchers( "/index.html" ).permitAll()
 
-                .requestMatchers( apiContextPath + "/authentication/login" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/username" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/recovery" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/restore" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/password" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
-                .requestMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
-                .requestMatchers( apiContextPath + "/account" ).permitAll()
-                .requestMatchers( apiContextPath + "/staticContent/*" ).permitAll()
-                .requestMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
-                .requestMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
+                .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
+                .antMatchers( apiContextPath + "/account/username" ).permitAll()
+                .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
+                .antMatchers( apiContextPath + "/account/restore" ).permitAll()
+                .antMatchers( apiContextPath + "/account/password" ).permitAll()
+                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
+                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
+                .antMatchers( apiContextPath + "/account" ).permitAll()
+                .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
+                .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
+                .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
 
                 .anyRequest()
                 .authenticated()
