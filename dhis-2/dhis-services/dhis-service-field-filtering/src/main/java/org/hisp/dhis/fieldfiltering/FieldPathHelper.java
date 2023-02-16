@@ -32,6 +32,7 @@ import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,11 +68,9 @@ public class FieldPathHelper
 
     public List<FieldPath> apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
     {
-        List<FieldPath> result = new ArrayList<>();
-
         if ( fieldPaths.isEmpty() || rootKlass == null )
         {
-            return result;
+            return Collections.emptyList();
         }
 
         Map<String, FieldPath> fieldPathMap = getFieldPathMap( fieldPaths );
@@ -92,9 +91,7 @@ public class FieldPathHelper
         List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
         applyExclusions( exclusions, fieldPathMap );
 
-        result.addAll( fieldPathMap.values() );
-
-        return result;
+        return new ArrayList<>( fieldPathMap.values() );
     }
 
     /**
