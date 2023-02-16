@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.client;
 
+import static java.lang.String.format;
+
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
@@ -263,7 +265,7 @@ public class Dhis2Client
      */
     private <T extends Dhis2Response> ResponseEntity<T> getResponseEntity( T body, HttpClientErrorException ex )
     {
-        return new ResponseEntity<T>( body, ex.getResponseHeaders(), ex.getStatusCode() );
+        return new ResponseEntity<>( body, ex.getResponseHeaders(), ex.getStatusCode() );
     }
 
     /**
@@ -284,7 +286,7 @@ public class Dhis2Client
         {
             log.error( "Failed to read JSON value", ex );
 
-            throw new UncheckedIOException( "Failed to read JSON value: " + ex.getMessage(), ex );
+            throw new UncheckedIOException( format( "Failed to read JSON value: %s", ex.getMessage() ), ex );
         }
     }
 }
