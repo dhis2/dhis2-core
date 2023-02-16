@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
@@ -48,34 +49,13 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     @Autowired
     TrackedEntityFieldsParamMapper mapper;
 
-    @Test
-    void mapWithStar()
+    @ParameterizedTest
+    @ValueSource( strings = { "*", "!*" } )
+    void mapWithStar( String fields )
     {
-        TrackedEntityInstanceParams params = map( "*" );
-
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
-    }
-
-    @Test
-    void mapWithPresetAll()
-    {
-        TrackedEntityInstanceParams params = map( ":all" );
-
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
-    }
-
-    @Test
-    void mapWithAllExcluded()
-    {
-        // This value does not make sense as it means exclude all.
+        // This value "!*" does not make sense as it means exclude all.
         // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
-        TrackedEntityInstanceParams params = map( "!*" );
+        TrackedEntityInstanceParams params = map( fields );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );

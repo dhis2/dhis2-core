@@ -50,7 +50,6 @@ public class EventFieldsParamMapper
 
     public EventParams map( List<FieldPath> fields )
     {
-        // TODO we could create a type FieldPaths wrapping List<FieldPath> to answer questions like containsPreset(ALL)
         Map<String, FieldPath> roots = rootFields( fields );
         EventParams params = initUsingAllOrNoFields( roots );
         return params
