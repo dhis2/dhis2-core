@@ -17,7 +17,7 @@
 
     <property name="name" column="name" not-null="true" length="230" />
 
-    <property name="description" />
+    <property name="description" type="text"/>
     
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programstageworkinglist_programid" lazy="false" />

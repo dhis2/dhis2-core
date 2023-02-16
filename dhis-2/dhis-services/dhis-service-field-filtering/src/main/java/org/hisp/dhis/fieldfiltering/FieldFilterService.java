@@ -149,7 +149,7 @@ public class FieldFilterService
     public <T> ObjectNode toObjectNode( T object, String filters )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( filters );
-        return toObjectNode( List.of( object ), fieldPaths );
+        return toObjectNode( object, fieldPaths );
     }
 
     public <T> ObjectNode toObjectNode( T object, List<FieldPath> filters )
