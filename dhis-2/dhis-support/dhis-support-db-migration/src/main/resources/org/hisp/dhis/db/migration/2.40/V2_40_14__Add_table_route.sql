@@ -1,5 +1,5 @@
 
-CREATE TABLE route (
+CREATE TABLE IF NOT EXISTS route (
 	routeid int8 NOT NULL,
 	uid varchar(11) NOT NULL,
 	code varchar(50) NULL,
