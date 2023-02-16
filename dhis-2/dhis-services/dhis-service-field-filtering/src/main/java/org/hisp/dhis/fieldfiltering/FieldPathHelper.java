@@ -302,6 +302,11 @@ public class FieldPathHelper
         }
     }
 
+    /**
+     * Returns included field paths. Included paths are not explicitly excluded
+     * (full-path matches exclusion) and not indirectly excluded via a parent
+     * field path.
+     */
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
     {
         Set<String> excludedPaths = new HashSet<>();
