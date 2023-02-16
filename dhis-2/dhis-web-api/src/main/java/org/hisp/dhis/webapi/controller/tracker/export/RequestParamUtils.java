@@ -75,14 +75,24 @@ class RequestParamUtils
      * to include until another operator:value definition. This will allow to
      * define a filter value with any character
      */
-    private static final String OPERATOR_VALUE_ITEM_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
+    private static final String OPERATOR_VALUE_ITEM_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
         DIMENSION_NAME_SEP + "(.(?i)(?!" + OPERATOR_GROUP + "))+";
+
+    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN = Pattern
+        .compile(
+            "(.*)" + DIMENSION_NAME_SEP + OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+
+    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_PATTERN = Pattern
+        .compile( OPERATOR_VALUE_ITEM_FILTER_REG_EX );
 
     /**
      * RegEx to validate {operator}:{value} in a query filter
      */
-    private static final String OPERATOR_VALUE_QUERY_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
+    private static final String OPERATOR_VALUE_QUERY_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
         DIMENSION_NAME_SEP + "(.)+";
+
+    private static final Pattern OPERATOR_VALUE_QUERY_FILTER_PATTERN = Pattern
+        .compile( OPERATOR_VALUE_QUERY_FILTER_REG_EX );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -219,15 +229,13 @@ class RequestParamUtils
 
         QueryItem queryItem = map.apply( fullPath.substring( 0, identifierPath ) );
 
-        if ( !Pattern
-            .compile(
-                "(.*)" + DIMENSION_NAME_SEP + OPERATOR_VALUE_ITEM_REG_EX )
+        if ( !OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN
             .matcher( fullPath ).matches() )
         {
             throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
         }
 
-        Matcher matcher = Pattern.compile( OPERATOR_VALUE_ITEM_REG_EX ).matcher( fullPath );
+        Matcher matcher = OPERATOR_VALUE_ITEM_FILTER_PATTERN.matcher( fullPath );
 
         while ( matcher.find() )
         {
@@ -261,8 +269,7 @@ class RequestParamUtils
         }
         else
         {
-            if ( !Pattern
-                .compile( OPERATOR_VALUE_QUERY_REG_EX )
+            if ( !OPERATOR_VALUE_QUERY_FILTER_PATTERN
                 .matcher( query ).matches() )
             {
                 throw new BadRequestException( "Query has invalid format: " + query );
