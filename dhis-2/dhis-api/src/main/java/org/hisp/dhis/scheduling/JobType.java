@@ -100,6 +100,7 @@ public enum JobType
     TRACKER_IMPORT_JOB( false ),
     TRACKER_IMPORT_NOTIFICATION_JOB( false ),
     TRACKER_IMPORT_RULE_ENGINE_JOB( false ),
+    SQL_VIEW_UPDATE( true ),
 
     // Internal jobs
     LEADER_ELECTION( false ),
