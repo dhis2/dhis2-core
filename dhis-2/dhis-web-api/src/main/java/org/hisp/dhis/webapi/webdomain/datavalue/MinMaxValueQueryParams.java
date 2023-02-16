@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import javax.validation.constraints.NotBlank;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,15 +53,12 @@ import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class MinMaxValueQueryParams
 {
-    @NotBlank
     @OpenApi.Property( { UID.class, DataElement.class } )
     private String de;
 
-    @NotBlank
     @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String ou;
 
-    @NotBlank
     @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
     private String co;
 }
