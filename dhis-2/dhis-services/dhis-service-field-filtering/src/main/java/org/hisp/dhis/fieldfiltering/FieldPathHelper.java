@@ -73,7 +73,10 @@ public class FieldPathHelper
             return Collections.emptyList();
         }
 
-        Map<String, FieldPath> fieldPathMap = getFieldPathMap( fieldPaths );
+        Map<String, FieldPath> fieldPathMap = fieldPaths.stream()
+            .filter( not( FieldPath::isPreset ).and( not( FieldPath::isExclude ) ) )
+            .collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
+
         applyProperties( fieldPathMap.values(), rootKlass );
 
         List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
@@ -197,8 +200,7 @@ public class FieldPathHelper
      *        populated.
      * @param rootKlass the root class type of the entity.
      */
-    public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap,
-        Class<?> rootKlass )
+    public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap, Class<?> rootKlass )
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
 
@@ -383,13 +385,6 @@ public class FieldPathHelper
         fieldPath.setProperty( property );
 
         return fieldPath;
-    }
-
-    private Map<String, FieldPath> getFieldPathMap( List<FieldPath> fieldPaths )
-    {
-        return fieldPaths.stream()
-            .filter( not( FieldPath::isPreset ).and( not( FieldPath::isExclude ) ) )
-            .collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
     }
 
     private Schema getSchemaByPath( List<String> paths, Class<?> klass )
