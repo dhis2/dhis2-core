@@ -93,8 +93,11 @@ public class DatePeriodResourceTable
 
         List<Object[]> batchArgs = new ArrayList<>();
 
-        Date startDate = new Cal( objects.get( 0 ), 1, 1, true ).time();
-        Date endDate = new Cal( objects.get( objects.size() - 1 ), 1, 1, true ).time();
+        int firstYearSupported = objects.get( 0 );
+        int lastYearSupported = objects.get( objects.size() - 1 );
+
+        Date startDate = new Cal( firstYearSupported, 1, 1, true ).time();
+        Date endDate = new Cal( lastYearSupported + 1, 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
