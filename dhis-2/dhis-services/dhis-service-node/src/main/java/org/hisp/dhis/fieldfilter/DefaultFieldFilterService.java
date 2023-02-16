@@ -387,12 +387,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             ((BaseIdentifiableObject) object).setAccess( access );
         }
 
-        if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
-        {
-            AttributeValue attributeValue = (AttributeValue) object;
-            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
-        }
-
         if ( Sharing.class.isAssignableFrom( object.getClass() ) )
         {
             Sharing sharing = (Sharing) object;
