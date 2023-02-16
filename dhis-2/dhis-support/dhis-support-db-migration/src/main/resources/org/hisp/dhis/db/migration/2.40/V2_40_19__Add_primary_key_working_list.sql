@@ -1,1 +1,0 @@
-ALTER TABLE programstageworkinglist ADD PRIMARY KEY (programstageworkinglistid);
