@@ -107,12 +107,12 @@ public class CspFilter
 
     private boolean isRegularApi( String requestURI )
     {
-        return CspUtils.allApi.matcher( requestURI ).matches();
+        return CspUtils.ALL_API.matcher( requestURI ).matches();
     }
 
     private boolean addCspIfStaticContentInsideApi( String requestURI )
     {
-        for ( Pattern pattern : CspUtils.STATIC_RESOURCES_IN_AP_IURL_PATTERNS )
+        for ( Pattern pattern : CspUtils.STATIC_RESOURCES_IN_API_URL_PATTERNS )
         {
             if ( pattern.matcher( requestURI ).matches() )
             {
