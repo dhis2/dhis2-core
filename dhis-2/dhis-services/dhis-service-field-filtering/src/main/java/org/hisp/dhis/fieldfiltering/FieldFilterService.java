@@ -133,7 +133,7 @@ public class FieldFilterService
      * Determines whether given path is included in the resulting ObjectNodes
      * after applying {@link #toObjectNode(Object, List)}. This obviously
      * requires that the actual data contains such path when filtered.
-     *
+     * <p>
      * For example given a structure like
      * <p>
      * <code>{"event": "relationships": [] }</code>
@@ -151,20 +151,12 @@ public class FieldFilterService
      * @param rootClass class the filter will be applied on
      * @param filter field paths to be applied on the class
      * @param path path to check for inclusion in the filter
-     * @return
+     * @return true if path is included in filter
      */
     public boolean filterIncludes( Class<?> rootClass, List<FieldPath> filter, String path )
     {
-        List<FieldPath> expandedFilter = fieldPathHelper.apply( filter, rootClass );
-
-        for ( FieldPath f : expandedFilter )
-        {
-            if ( f.toFullPath().equals( path ) )
-            {
-                return true;
-            }
-        }
-        return false;
+        return fieldPathHelper.apply( filter, rootClass ).stream()
+            .anyMatch( f -> f.toFullPath().equals( path ) );
     }
 
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
@@ -246,25 +238,24 @@ public class FieldFilterService
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
         Object firstObject = objects.iterator().next();
-        List<FieldPath> expandedFilter = fieldPathHelper.apply( filter,
-            HibernateProxyUtils.getRealClass( firstObject ) );
+        List<FieldPath> paths = fieldPathHelper.apply( filter, HibernateProxyUtils.getRealClass( firstObject ) );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( expandedFilter, isSkipSharing );
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( paths, isSkipSharing );
 
         // only set filter provider on a local copy so that we don't affect
         // other object mappers (running across other threads)
         ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
 
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( expandedFilter );
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( paths );
 
         for ( Object object : objects )
         {
-            applyAccess( object, expandedFilter, isSkipSharing, user );
-            applySharingDisplayNames( object, expandedFilter, isSkipSharing );
-            applyAttributeValuesAttribute( object, expandedFilter, isSkipSharing );
+            applyAccess( object, paths, isSkipSharing, user );
+            applySharingDisplayNames( object, paths, isSkipSharing );
+            applyAttributeValuesAttribute( object, paths, isSkipSharing );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
-            applyAttributeValueFields( object, objectNode, expandedFilter );
+            applyAttributeValueFields( object, objectNode, paths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             consumer.accept( objectNode );
