@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -68,7 +69,6 @@ import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -167,6 +167,9 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
@@ -176,24 +179,24 @@ public class DhisWebCommonsWebSecurityConfig
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
-        @Override
-        public void configure( WebSecurity web )
-            throws Exception
-        {
-            super.configure( web );
-            web
-                .ignoring()
-                .antMatchers( "/api/staticContent/**" )
-                .antMatchers( "/dhis-web-commons/oidc/**" )
-                .antMatchers( "/dhis-web-commons/javascripts/**" )
-                .antMatchers( "/dhis-web-commons/css/**" )
-                .antMatchers( "/dhis-web-commons/flags/**" )
-                .antMatchers( "/dhis-web-commons/fonts/**" )
-                .antMatchers( "/api/files/style/external" )
-                .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" )
-                .antMatchers( "/api/publicKeys/**" );
-        }
+        //        @Override
+        //        public void configure( WebSecurity web )
+        //            throws Exception
+        //        {
+        //            super.configure( web );
+        //            web
+        //                .ignoring()
+        //                .antMatchers( "/api/staticContent/**" )
+        //                .antMatchers( "/dhis-web-commons/oidc/**" )
+        //                .antMatchers( "/dhis-web-commons/javascripts/**" )
+        //                .antMatchers( "/dhis-web-commons/css/**" )
+        //                .antMatchers( "/dhis-web-commons/flags/**" )
+        //                .antMatchers( "/dhis-web-commons/fonts/**" )
+        //                .antMatchers( "/api/files/style/external" )
+        //                .antMatchers( "/external-static/**" )
+        //                .antMatchers( "/favicon.ico" )
+        //                .antMatchers( "/api/publicKeys/**" );
+        //        }
 
         @Override
         protected void configure( HttpSecurity http )
@@ -203,53 +206,65 @@ public class DhisWebCommonsWebSecurityConfig
                 .authorizeRequests()
                 .accessDecisionManager( accessDecisionManager() )
                 .requestMatchers( analyticsPluginResources() ).permitAll()
-
-                // Dynamic content
-                .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
-                .antMatchers( "/oauth2/**" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/enrolTwoFa.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/invite.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/restore.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/account.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/loginStrings.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/accountStrings.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/recoveryStrings.action" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/logo_front.png" ).permitAll()
-                .antMatchers( "/dhis-web-commons/security/logo_mobile.png" ).permitAll()
-                .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
-                .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
-                .antMatchers( "/dhis-web-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-visualizer" )
-                .antMatchers( "/dhis-web-data-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-data-visualizer" )
-                .antMatchers( "/dhis-web-mapping/**" ).hasAnyAuthority( "ALL", "M_dhis-web-mapping" )
-                .antMatchers( "/dhis-web-maps/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maps" )
-                .antMatchers( "/dhis-web-event-reports/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-reports" )
-                .antMatchers( "/dhis-web-event-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-visualizer" )
-                .antMatchers( "/dhis-web-interpretation/**" ).hasAnyAuthority( "ALL", "M_dhis-web-interpretation" )
-                .antMatchers( "/dhis-web-settings/**" ).hasAnyAuthority( "ALL", "M_dhis-web-settings" )
-                .antMatchers( "/dhis-web-maintenance/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maintenance" )
-                .antMatchers( "/dhis-web-app-management/**" ).hasAnyAuthority( "ALL", "M_dhis-web-app-management" )
-                .antMatchers( "/dhis-web-usage-analytics/**" ).hasAnyAuthority( "ALL", "M_dhis-web-usage-analytics" )
-                .antMatchers( "/dhis-web-event-capture/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-capture" )
-                .antMatchers( "/dhis-web-tracker-capture/**" ).hasAnyAuthority( "ALL", "M_dhis-web-tracker-capture" )
-                .antMatchers( "/dhis-web-cache-cleaner/**" ).hasAnyAuthority( "ALL", "M_dhis-web-cache-cleaner" )
-                .antMatchers( "/dhis-web-data-administration/**" )
+                .requestMatchers( "/api/staticContent/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/javascripts/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/css/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/flags/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/fonts/**" ).permitAll()
+                .requestMatchers( "/api/files/style/external" ).permitAll()
+                .requestMatchers( "/external-static/**" ).permitAll()
+                .requestMatchers( "/favicon.ico" ).permitAll()
+                .requestMatchers( "/api/publicKeys/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
+                .requestMatchers( "/oauth2/**" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/enrolTwoFa.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/invite.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/restore.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/account.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/loginStrings.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/accountStrings.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/recoveryStrings.action" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/logo_front.png" ).permitAll()
+                .requestMatchers( "/dhis-web-commons/security/logo_mobile.png" ).permitAll()
+                .requestMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
+                .requestMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
+                .requestMatchers( "/dhis-web-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-visualizer" )
+                .requestMatchers( "/dhis-web-data-visualizer/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-data-visualizer" )
+                .requestMatchers( "/dhis-web-mapping/**" ).hasAnyAuthority( "ALL", "M_dhis-web-mapping" )
+                .requestMatchers( "/dhis-web-maps/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maps" )
+                .requestMatchers( "/dhis-web-event-reports/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-reports" )
+                .requestMatchers( "/dhis-web-event-visualizer/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-event-visualizer" )
+                .requestMatchers( "/dhis-web-interpretation/**" ).hasAnyAuthority( "ALL", "M_dhis-web-interpretation" )
+                .requestMatchers( "/dhis-web-settings/**" ).hasAnyAuthority( "ALL", "M_dhis-web-settings" )
+                .requestMatchers( "/dhis-web-maintenance/**" ).hasAnyAuthority( "ALL", "M_dhis-web-maintenance" )
+                .requestMatchers( "/dhis-web-app-management/**" ).hasAnyAuthority( "ALL", "M_dhis-web-app-management" )
+                .requestMatchers( "/dhis-web-usage-analytics/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-usage-analytics" )
+                .requestMatchers( "/dhis-web-event-capture/**" ).hasAnyAuthority( "ALL", "M_dhis-web-event-capture" )
+                .requestMatchers( "/dhis-web-tracker-capture/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-tracker-capture" )
+                .requestMatchers( "/dhis-web-cache-cleaner/**" ).hasAnyAuthority( "ALL", "M_dhis-web-cache-cleaner" )
+                .requestMatchers( "/dhis-web-data-administration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-data-administration" )
-                .antMatchers( "/dhis-web-data-quality/**" ).hasAnyAuthority( "ALL", "M_dhis-web-data-quality" )
-                .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
-                .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
-                .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
-                .antMatchers( "/dhis-web-sms-configuration/**" )
+                .requestMatchers( "/dhis-web-data-quality/**" ).hasAnyAuthority( "ALL", "M_dhis-web-data-quality" )
+                .requestMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
+                .requestMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
+                .requestMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
+                .requestMatchers( "/dhis-web-sms-configuration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
-                .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
-                .antMatchers( "/dhis-web-aggregate-data-entry/**" )
+                .requestMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
+                .requestMatchers( "/dhis-web-aggregate-data-entry/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-aggregate-data-entry" )
 
-                .antMatchers( "/**" ).authenticated()
+                .requestMatchers( "/**" ).authenticated()
                 .and()
 
                 .formLogin()
@@ -278,7 +293,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
-                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                .addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )

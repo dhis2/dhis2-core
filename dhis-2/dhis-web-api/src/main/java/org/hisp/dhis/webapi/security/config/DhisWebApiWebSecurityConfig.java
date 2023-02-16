@@ -36,6 +36,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -195,10 +196,10 @@ public class DhisWebApiWebSecurityConfig
 
             http
                 .authorizeRequests()
-                .antMatchers( tokenEndpointPath ).fullyAuthenticated()
+                .requestMatchers( tokenEndpointPath ).fullyAuthenticated()
                 .and()
                 .requestMatchers()
-                .antMatchers( tokenEndpointPath )
+                .requestMatchers( tokenEndpointPath )
                 .and()
                 .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
 
@@ -321,8 +322,8 @@ public class DhisWebApiWebSecurityConfig
                 .antMatcher( "/oauth2/**" )
                 .authorizeRequests( authorize -> {
                     providerIds.forEach( providerId -> authorize
-                        .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
-                        .antMatchers( "/oauth2/code/" + providerId ).permitAll() );
+                        .requestMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+                        .requestMatchers( "/oauth2/code/" + providerId ).permitAll() );
                     authorize.anyRequest().authenticated();
                 } )
 
@@ -409,6 +410,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -475,19 +479,19 @@ public class DhisWebApiWebSecurityConfig
 
             authorize
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
-                .antMatchers( "/index.html" ).permitAll()
+                .requestMatchers( "/index.html" ).permitAll()
 
-                .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
-                .antMatchers( apiContextPath + "/account/username" ).permitAll()
-                .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
-                .antMatchers( apiContextPath + "/account/restore" ).permitAll()
-                .antMatchers( apiContextPath + "/account/password" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
-                .antMatchers( apiContextPath + "/account" ).permitAll()
-                .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
-                .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
-                .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
+                .requestMatchers( apiContextPath + "/authentication/login" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/username" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/recovery" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/restore" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/password" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
+                .requestMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
+                .requestMatchers( apiContextPath + "/account" ).permitAll()
+                .requestMatchers( apiContextPath + "/staticContent/*" ).permitAll()
+                .requestMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
+                .requestMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
 
                 .anyRequest()
                 .authenticated()
@@ -506,7 +510,7 @@ public class DhisWebApiWebSecurityConfig
 
             configureMatchers( http );
             configureOAuthAuthorizationServer( http );
-            configureCspFilter( http, dhisConfig, dhisOidcProviderRepository );
+            configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
             configureApiTokenAuthorizationFilter( http );
@@ -578,9 +582,9 @@ public class DhisWebApiWebSecurityConfig
         }
 
         private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
-            DhisOidcProviderRepository dhisOidcProviderRepository )
+            ConfigurationService configurationService )
         {
-            http.addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+            http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                 HeaderWriterFilter.class );
         }
 
