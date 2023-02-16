@@ -799,4 +799,22 @@ class TrackerEventCriteriaMapperTest
         assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
             exception.getMessage() );
     }
+
+    @Test
+    void shouldCreateQueryFilterattributesWhenQueryHasOperatorAndValueWithDelimiter()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:project:x" ) );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilterAttributes().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "project:x" ),
+            new QueryFilter( QueryOperator.EQ, "2" ) ), actualFilters );
+    }
 }
