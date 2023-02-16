@@ -55,7 +55,7 @@ public class WebhookHandler implements Handler
     {
         this.webhookTarget = target;
         this.restTemplate = new RestTemplate();
-        configure( this.restTemplate, target );
+        configure( this.restTemplate );
     }
 
     @Override
@@ -86,7 +86,7 @@ public class WebhookHandler implements Handler
         }
     }
 
-    private void configure( RestTemplate template, WebhookTarget target )
+    private void configure( RestTemplate template )
     {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
