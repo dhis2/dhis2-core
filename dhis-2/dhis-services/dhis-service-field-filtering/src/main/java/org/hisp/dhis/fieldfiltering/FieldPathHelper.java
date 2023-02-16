@@ -32,7 +32,6 @@ import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +69,7 @@ public class FieldPathHelper
     {
         if ( fieldPaths.isEmpty() || rootKlass == null )
         {
-            return Collections.emptyList();
+            return List.of();
         }
 
         Map<String, FieldPath> fieldPathMap = fieldPaths.stream()
