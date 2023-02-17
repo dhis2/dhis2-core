@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
@@ -51,6 +50,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -84,6 +84,8 @@ public class TrackerEnrollmentsExportController
     @NonNull
     private final FieldFilterService fieldFilterService;
 
+    private final EnrollmentFieldsParamMapper fieldsMapper;
+
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
@@ -93,7 +95,7 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = map( fields )
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
@@ -132,7 +134,7 @@ public class TrackerEnrollmentsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-        EnrollmentParams enrollmentParams = map( fields );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
