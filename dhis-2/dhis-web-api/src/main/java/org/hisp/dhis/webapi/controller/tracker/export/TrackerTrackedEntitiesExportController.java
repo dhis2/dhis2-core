@@ -151,7 +151,6 @@ public class TrackerTrackedEntitiesExportController
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        // TODO the filtering does not apply to CSV. Why are we using the mapper here?
         TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
 

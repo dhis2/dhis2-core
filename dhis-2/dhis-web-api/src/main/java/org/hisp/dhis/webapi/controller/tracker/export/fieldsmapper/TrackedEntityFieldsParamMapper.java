@@ -59,8 +59,6 @@ public class TrackedEntityFieldsParamMapper
 
     public TrackedEntityInstanceParams map( List<FieldPath> fields )
     {
-        // TODO should includeDeleted by false when a controller does not pass it in?
-        // TODO what about dataSynchronizationQuery? When should it be true, when false? Who sets this?
         return map( fields, false );
     }
 
