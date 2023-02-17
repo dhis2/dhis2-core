@@ -73,11 +73,23 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "rows", hasSize( equalTo( 0 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 100 ) )
-            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager.isLastPage", is( false ) )
             .body( "metaData.pager", not( hasKey( "total" ) ) )
             .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
             .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
+            .body( "metaData.items.lZGmxYbs97q.name", equalTo( "Unique ID" ) )
+            .body( "metaData.items.zDhUuAYrxNC.name", equalTo( "Last name" ) )
+            .body( "metaData.items.IpHINAT79UW.name", equalTo( "Child Programme" ) )
+            .body( "metaData.items.ZzYYXq4fJie.name", equalTo( "Baby Postnatal" ) )
+            .body( "metaData.items.w75KJ2mc4zz.name", equalTo( "First name" ) )
+            .body( "metaData.items.A03MvHHogjR.name", equalTo( "Birth" ) )
+            .body( "metaData.items.cejWyOfXge6.name", equalTo( "Gender" ) )
+            .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
+            .body( "metaData.dimensions", not( hasKey( "lZGmxYbs97q" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "zDhUuAYrxNC" ) ) )
             .body( "metaData.dimensions", not( hasKey( "pe" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "w75KJ2mc4zz" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "cejWyOfXge6" ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 0 ) )
@@ -99,29 +111,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 9, "enrollments", "Enrollments", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 10, "\"w75KJ2mc4zz\"", "", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "\"zDhUuAYrxNC\"", "", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "\"cejWyOfXge6\"", "", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "\"lZGmxYbs97q\"", "", "TEXT", "java.lang.String", false, true );
-
-        // TODO:
-        // Validate the first three rows, as samples.
-        //        validateRow( response, 0,
-        //            List.of( "EbRsJr8LSSO",
-        //                "oi3PMIGYJH8",
-        //                "2022-07-02 02:00:00.0",
-        //                "2022-07-08 02:00:00.0",
-        //                "",
-        //                "",
-        //                "",
-        //                "2017-07-23 12:45:49.807",
-        //                "",
-        //                "",
-        //                "",
-        //                "Ngelehun CHC",
-        //                "OU_559",
-        //                "ACTIVE",
-        //                "DiszpKrYNg8",
-        //                "1231.0" ) );
+        validateHeader( response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "zDhUuAYrxNC", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
     }
 }
