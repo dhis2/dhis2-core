@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +54,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -349,6 +353,18 @@ public abstract class DhisConvenienceTest
         dataTime = dataTime.withDayOfYear( day );
 
         return dataTime.toDate();
+    }
+
+    /**
+     * Converts a {@link Date} into a {@link LocalDate}.
+     *
+     * @param date the {@link Date}
+     * @return the {@link LocalDate} object
+     * @throws NullPointerException if the given date is null
+     */
+    public LocalDate toLocalDate( Date date )
+    {
+        return date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
     }
 
     /**
@@ -1130,6 +1146,16 @@ public abstract class DhisConvenienceTest
     public static Period createPeriod( String isoPeriod )
     {
         return PeriodType.getPeriodFromIsoString( isoPeriod );
+    }
+
+    /**
+     * @param isoPeriod the ISO period strings.
+     */
+    public static List<Period> createPeriods( String... isoPeriod )
+    {
+        return Stream.of( isoPeriod )
+            .map( PeriodType::getPeriodFromIsoString )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -2699,7 +2725,7 @@ public abstract class DhisConvenienceTest
         hibernateService.flushSession();
         user = userService.getUser( user.getUid() );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails, "",
             currentUserDetails.getAuthorities() );
@@ -2871,11 +2897,13 @@ public abstract class DhisConvenienceTest
     }
 
     protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
-        OrganisationUnit dataViewOrganisationUnits, String... auths )
+        OrganisationUnit dataViewOrganisationUnit, String... auths )
     {
-        User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
-            dataViewOrganisationUnits != null ? newHashSet( dataViewOrganisationUnits ) : newHashSet( orgUnit ),
-            auths );
+        Set<OrganisationUnit> organisationUnits = orgUnit == null ? new HashSet<>() : newHashSet( orgUnit );
+        Set<OrganisationUnit> dataViewOrganisationUnits = dataViewOrganisationUnit != null
+            ? newHashSet( dataViewOrganisationUnit )
+            : new HashSet<>( organisationUnits );
+        User user = _createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
 
         persistUserAndRoles( user );
 
@@ -2946,7 +2974,7 @@ public abstract class DhisConvenienceTest
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        CurrentUserDetails currentUserDetails = userService.createUserDetails( user );
         Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails,
             DEFAULT_ADMIN_PASSWORD,
             List.of( new SimpleGrantedAuthority( "ALL" ) ) );

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.programrule;
 
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_COMPLETE;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_DATA_ENTRY;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.getAll;
 
 import java.util.Set;
 
@@ -35,7 +37,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -68,28 +69,28 @@ public enum ProgramRuleActionType
     /**
      * Actions which require server-side execution.
      */
-    public static final ImmutableSet<ProgramRuleActionType> IMPLEMENTED_ACTIONS = ImmutableSet.of(
+    public static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS = Set.of(
         SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN );
 
     /**
      * Actions associated with {@link DataElement} or
      * {@link TrackedEntityAttribute}.
      */
-    public static final ImmutableSet<ProgramRuleActionType> DATA_LINKED_TYPES = ImmutableSet.of(
+    public static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = Set.of(
         HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP );
 
     /**
      * Actions associated with {@link NotificationTemplate}.
      */
-    public static final ImmutableSet<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = ImmutableSet.of(
+    public static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = Set.of(
         SENDMESSAGE, SCHEDULEMESSAGE );
 
     /**
      * Complete set of actions which require server-side execution.
      */
-    public static final ImmutableSet<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = ImmutableSet
-        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN,
-            SETMANDATORYFIELD );
+    public static final Set<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = Set
+        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE,
+            WARNINGONCOMPLETE, ASSIGN, SETMANDATORYFIELD );
 
     ProgramRuleActionType( String value )
     {

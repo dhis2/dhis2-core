@@ -1,0 +1,58 @@
+{
+  "id": "f1OijtLnf8a",
+  "name": "test",
+  "code": "",
+  "description": "",
+  "dashboardItems": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 20,
+      "h": 29,
+      "id": "YcpTnjbWwsR",
+      "type": "TEXT",
+      "position": null,
+      "text": "TEXT_ITEM_WITH_NO_CONTENT",
+      "i": "YcpTnjbWwsR",
+      "minH": 4,
+      "width": 20,
+      "height": 29
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "w": 20,
+      "h": 29,
+      "id": "KnmKNIFiAwC",
+      "type": "VISUALIZATION",
+      "position": null,
+      "visualization": {
+        "id": "gyYXi0rXAIc",
+        "name": "ANC: 1-3 dropout rate Yearly"
+      },
+      "i": "KnmKNIFiAwC",
+      "minH": 4,
+      "width": 20,
+      "height": 29
+    }
+  ],
+  "allowedFilters": [],
+  "restrictFilters": false,
+  "layout": {
+    "columns": []
+  },
+  "itemConfig": {
+    "insertPosition": "END"
+  },
+  "sharing": {
+    "public": "--------",
+    "external" : false,
+    "owner" : "M5zQapPyTZI",
+    "users" : {
+      "XThzKnyzeYW": {
+        "id" : "XThzKnyzeYW",
+        "access" : "rw------"
+      }
+    }
+  }
+}

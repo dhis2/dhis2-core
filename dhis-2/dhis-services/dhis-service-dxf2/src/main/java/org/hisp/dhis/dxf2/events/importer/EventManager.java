@@ -78,8 +78,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
-
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -113,7 +111,7 @@ public class EventManager
 
     public ImportSummary addEvent( final Event event, final WorkContext workContext )
     {
-        final ImportSummaries importSummaries = addEvents( ImmutableList.of( event ), workContext );
+        final ImportSummaries importSummaries = addEvents( List.of( event ), workContext );
 
         if ( isNotEmpty( importSummaries.getImportSummaries() ) )
         {
@@ -250,6 +248,7 @@ public class EventManager
             catch ( Exception e )
             {
                 handleFailure( workContext, importSummaries, events, IMPORT_ERROR_STRING, UPDATE );
+                log.error( "Failed to update events: ", e );
             }
 
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()

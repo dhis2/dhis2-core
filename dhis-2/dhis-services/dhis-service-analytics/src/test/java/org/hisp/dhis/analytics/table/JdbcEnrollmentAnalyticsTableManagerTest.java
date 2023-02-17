@@ -37,7 +37,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -62,8 +64,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -79,6 +79,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     private JdbcEnrollmentAnalyticsTableManager subject;
 
     private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
@@ -89,7 +92,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest
         subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
-            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
+            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate,
+            analyticsExportSettings );
     }
 
     @Test
@@ -104,9 +108,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest
 
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
 
-        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        p1.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( p1 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).build();

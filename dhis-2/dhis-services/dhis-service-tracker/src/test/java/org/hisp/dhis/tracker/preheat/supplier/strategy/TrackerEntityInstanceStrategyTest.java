@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -41,14 +38,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -62,71 +57,43 @@ class TrackerEntityInstanceStrategyTest
     @Mock
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
+    @Mock
+    private TrackerPreheat preheat;
+
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
-    void verifyStrategyFiltersOutNonRootTei()
+    void verifyStrategyAddRightTeisToPreheat()
     {
-        // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
-            .collect( Collectors.toList() );
+        final List<TrackedEntity> trackedEntities = trackedEntities();
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
-        // Preheat
-        TrackerPreheat preheat = new TrackerPreheat();
+        final List<String> uids = List.of( "TEIA", "TEIB" );
 
-        final List<String> rootUids = trackedEntities.stream().map( TrackedEntity::getTrackedEntity )
-            .collect( Collectors.toList() );
-        // Add uid of non-root tei
-        rootUids.add( "noroottei" );
+        List<List<String>> splitUids = new ArrayList<>();
+        splitUids.add( uids );
 
-        List<List<String>> uids = new ArrayList<>();
-        uids.add( rootUids );
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstances();
+        when( trackedEntityInstanceStore.getIncludingDeleted( uids ) ).thenReturn( trackedEntityInstances );
+        strategy.add( params, splitUids, preheat );
 
-        // when
-        strategy.add( params, uids, preheat );
-        preheat.createReferenceTree();
-
-        assertTrue( preheat.getReference( trackedEntities.get( 0 ).getTrackedEntity() ).isPresent() );
-        assertTrue( preheat.getReference( trackedEntities.get( 1 ).getTrackedEntity() ).isPresent() );
-        assertFalse( preheat.getReference( "noroottei" ).isPresent() );
+        Mockito.verify( trackedEntityInstanceStore ).getIncludingDeleted( uids );
+        Mockito.verify( preheat ).putTrackedEntities( trackedEntityInstances );
     }
 
-    @Test
-    void verifyStrategyIgnoresPersistedTei()
+    private List<TrackedEntity> trackedEntities()
     {
-        // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
-            .collect( Collectors.toList() );
-        final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
+        return List.of(
+            TrackedEntity.builder().trackedEntity( "TEIA" ).build(),
+            TrackedEntity.builder().trackedEntity( "TEIB" ).build() );
+    }
 
-        // Preheat
-        User user = new User();
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setUser( user );
-
-        final List<String> rootUids = trackedEntities.stream().map( TrackedEntity::getTrackedEntity )
-            .collect( Collectors.toList() );
-        // Add uid of non-root tei
-        rootUids.add( "noroottei" );
-
-        List<List<String>> uids = new ArrayList<>();
-        uids.add( rootUids );
-
-        when( trackedEntityInstanceStore.getIncludingDeleted( rootUids ) ).thenReturn( Lists.newArrayList(
-            new TrackedEntityInstance()
-            {
-                {
-                    setUid( trackedEntities.get( 0 ).getTrackedEntity() );
-                }
-            } ) );
-
-        // when
-        strategy.add( params, uids, preheat );
-        preheat.createReferenceTree();
-
-        assertFalse( preheat.getReference( trackedEntities.get( 0 ).getTrackedEntity() ).isPresent() );
-        assertTrue( preheat.getReference( trackedEntities.get( 1 ).getTrackedEntity() ).isPresent() );
-        assertFalse( preheat.getReference( "noroottei" ).isPresent() );
+    private List<TrackedEntityInstance> trackedEntityInstances()
+    {
+        TrackedEntityInstance teiA = new TrackedEntityInstance();
+        teiA.setUid( "TEIA" );
+        TrackedEntityInstance teiB = new TrackedEntityInstance();
+        teiB.setUid( "TEIB" );
+        return List.of( teiA, teiB );
     }
 }

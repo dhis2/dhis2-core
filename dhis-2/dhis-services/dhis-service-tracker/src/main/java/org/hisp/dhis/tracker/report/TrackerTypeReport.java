@@ -51,12 +51,12 @@ public class TrackerTypeReport
     private final TrackerType trackerType;
 
     @JsonProperty
-    private TrackerStats stats = new TrackerStats();
+    private Stats stats = new Stats();
 
     @JsonIgnore
     private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
-    private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
+    private Map<Integer, Entity> entityReport = new HashMap<>();
 
     public TrackerTypeReport( TrackerType trackerType )
     {
@@ -65,27 +65,27 @@ public class TrackerTypeReport
 
     @JsonCreator
     public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
-        @JsonProperty( "stats" ) TrackerStats stats,
+        @JsonProperty( "stats" ) Stats stats,
         @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
-        @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
+        @JsonProperty( "objectReports" ) List<Entity> entityReport )
     {
         this.trackerType = trackerType;
         this.stats = stats;
         this.sideEffectDataBundles = sideEffectDataBundles;
 
-        if ( objectReports != null )
+        if ( entityReport != null )
         {
-            for ( TrackerObjectReport objectReport : objectReports )
+            for ( Entity entity : entityReport )
             {
-                this.objectReportMap.put( objectReport.getIndex(), objectReport );
+                this.entityReport.put( entity.getIndex(), entity );
             }
         }
     }
 
-    @JsonProperty
-    public List<TrackerObjectReport> getObjectReports()
+    @JsonProperty( "objectReports" )
+    public List<Entity> getEntityReport()
     {
-        return new ArrayList<>( objectReportMap.values() );
+        return new ArrayList<>( entityReport.values() );
     }
 
     // -----------------------------------------------------------------------------------
@@ -102,22 +102,22 @@ public class TrackerTypeReport
         return getErrorReports().isEmpty();
     }
 
-    public void addObjectReport( TrackerObjectReport objectReport )
+    public void addEntity( Entity entity )
     {
-        this.objectReportMap.put( objectReport.getIndex(), objectReport );
+        this.entityReport.put( entity.getIndex(), entity );
     }
 
-    private List<TrackerErrorReport> getErrorReports()
+    private List<Error> getErrorReports()
     {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-        objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
+        List<Error> errorReports = new ArrayList<>();
+        entityReport.values().forEach( entity -> errorReports.addAll( entity.getErrorReports() ) );
 
         return errorReports;
     }
 
-    public Map<Integer, TrackerObjectReport> getObjectReportMap()
+    public Map<Integer, Entity> getEntityReportMap()
     {
-        return objectReportMap;
+        return entityReport;
     }
 
     public List<TrackerSideEffectDataBundle> getSideEffectDataBundles()

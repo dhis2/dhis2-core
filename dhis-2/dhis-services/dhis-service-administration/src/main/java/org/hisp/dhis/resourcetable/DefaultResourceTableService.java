@@ -34,9 +34,10 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -79,7 +80,7 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultResourceTableService
     implements ResourceTableService
 {
@@ -99,12 +100,15 @@ public class DefaultResourceTableService
 
     private final StatementBuilder statementBuilder;
 
+    private final AnalyticsExportSettings analyticsExportSettings;
+
     @Override
     @Transactional
     public void generateOrganisationUnitStructures()
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable(
-            null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
+            null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels(),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -112,7 +116,8 @@ public class DefaultResourceTableService
     public void generateDataSetOrganisationUnitCategoryTable()
     {
         resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable(
-            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo() ) );
+            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo(),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -120,7 +125,7 @@ public class DefaultResourceTableService
     public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable(
-            idObjectManager.getAllNoAcl( CategoryCombo.class ) ) );
+            idObjectManager.getAllNoAcl( CategoryCombo.class ), analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -128,7 +133,8 @@ public class DefaultResourceTableService
     public void generateDataElementGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new DataElementGroupSetResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ) ) );
+            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -136,7 +142,7 @@ public class DefaultResourceTableService
     public void generateIndicatorGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new IndicatorGroupSetResourceTable(
-            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ) ) );
+            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ), analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -145,7 +151,8 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.supportsPartialIndexes(), organisationUnitService.getNumberOfOrganisationalLevels() ) );
+            statementBuilder.supportsPartialIndexes(), organisationUnitService.getNumberOfOrganisationalLevels(),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -154,7 +161,8 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl( Category.class ),
-            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ) ) );
+            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -162,33 +170,38 @@ public class DefaultResourceTableService
     public void generateDataElementTable()
     {
         resourceTableStore.generateResourceTable( new DataElementResourceTable(
-            idObjectManager.getAllNoAcl( DataElement.class ) ) );
+            idObjectManager.getAllNoAcl( DataElement.class ), analyticsExportSettings.getTableType() ) );
     }
 
     @Override
     public void generateDatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( null ) );
+        resourceTableStore
+            .generateResourceTable( new DatePeriodResourceTable( null, analyticsExportSettings.getTableType() ) );
     }
 
     @Override
     @Transactional
     public void generatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
+        resourceTableStore
+            .generateResourceTable(
+                new PeriodResourceTable( periodService.getAllPeriods(), analyticsExportSettings.getTableType() ) );
     }
 
     @Override
     @Transactional
     public void generateCategoryOptionComboTable()
     {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );
+        resourceTableStore.generateResourceTable(
+            new CategoryOptionComboResourceTable( null, analyticsExportSettings.getTableType() ) );
     }
 
     @Override
     public void generateDataApprovalRemapLevelTable()
     {
-        resourceTableStore.generateResourceTable( new DataApprovalRemapLevelResourceTable( null ) );
+        resourceTableStore.generateResourceTable(
+            new DataApprovalRemapLevelResourceTable( null, analyticsExportSettings.getTableType() ) );
     }
 
     @Override
@@ -199,7 +212,9 @@ public class DefaultResourceTableService
 
         if ( !orgUnitLevels.isEmpty() )
         {
-            resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( orgUnitLevels ) );
+            resourceTableStore
+                .generateResourceTable(
+                    new DataApprovalMinLevelResourceTable( orgUnitLevels, analyticsExportSettings.getTableType() ) );
         }
     }
 

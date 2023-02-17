@@ -29,26 +29,24 @@ package org.hisp.dhis.program;
 
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends JdbcDeletionHandler
+@RequiredArgsConstructor
+public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramStageInstance>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramStageInstance.class );
-
     private final ProgramStageInstanceService programStageInstanceService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );

@@ -165,9 +165,9 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     void testValidation_Access_UserPrivateFields2()
     {
         switchToGuestUser();
-        String url = "/users/{id}/gist?fields=twoFA,disabled";
+        String url = "/users/{id}/gist?fields=email,disabled";
         assertEquals(
-            "Field `twoFA` is not readable as user is not allowed to view objects of type User.",
+            "Field `email` is not readable as user is not allowed to view objects of type User.",
             GET( url, getSuperuserUid() ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToSuperuser();
         assertStatus( HttpStatus.OK, GET( url, getSuperuserUid() ) );

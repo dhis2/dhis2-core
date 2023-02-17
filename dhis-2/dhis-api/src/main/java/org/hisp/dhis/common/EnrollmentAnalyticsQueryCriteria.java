@@ -91,6 +91,8 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
 
     private boolean hierarchyMeta;
 
+    private boolean showHierarchy;
+
     private boolean coordinatesOnly;
 
     private boolean includeMetadataDetails;

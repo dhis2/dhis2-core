@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.maintenance;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collections;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -47,7 +46,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.maintenance.MaintenanceService" )
 public class DefaultMaintenanceService
     implements MaintenanceService
@@ -64,59 +68,27 @@ public class DefaultMaintenanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MaintenanceStore maintenanceStore;
+    private final MaintenanceStore maintenanceStore;
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    private UserService userService;
+    private final UserService userService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    private DataValueAuditService dataValueAuditService;
+    private final DataValueAuditService dataValueAuditService;
 
-    private CompleteDataSetRegistrationService completeRegistrationService;
+    private final CompleteDataSetRegistrationService completeRegistrationService;
 
-    private DataApprovalService dataApprovalService;
+    private final DataApprovalService dataApprovalService;
 
-    private DataApprovalAuditService dataApprovalAuditService;
+    private final DataApprovalAuditService dataApprovalAuditService;
 
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
-
-    public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
-        UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
-        DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
-        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService,
-        ApplicationEventPublisher eventPublisher,
-        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
-    {
-
-        checkNotNull( maintenanceStore );
-        checkNotNull( periodService );
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        checkNotNull( dataValueService );
-        checkNotNull( dataValueAuditService );
-        checkNotNull( completeRegistrationService );
-        checkNotNull( dataApprovalService );
-        checkNotNull( dataApprovalAuditService );
-        checkNotNull( trackedEntityDataValueAuditService );
-
-        this.maintenanceStore = maintenanceStore;
-        this.periodService = periodService;
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-        this.dataValueService = dataValueService;
-        this.dataValueAuditService = dataValueAuditService;
-        this.completeRegistrationService = completeRegistrationService;
-        this.dataApprovalService = dataApprovalService;
-        this.dataApprovalAuditService = dataApprovalAuditService;
-        this.eventPublisher = eventPublisher;
-        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
-    }
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
     // -------------------------------------------------------------------------
     // MaintenanceService implementation
@@ -257,7 +229,7 @@ public class DefaultMaintenanceService
         PageRange range = new PageRange( userCount ).setPageSize( 200 );
         List<int[]> pages = range.getPages();
         Collections.reverse( pages ); // Iterate from end since users are
-                                      // deleted
+                                     // deleted
 
         log.debug( "Pages: " + pages );
 

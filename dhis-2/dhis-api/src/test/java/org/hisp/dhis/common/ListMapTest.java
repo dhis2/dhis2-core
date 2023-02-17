@@ -43,7 +43,6 @@ import com.google.common.collect.Lists;
  */
 class ListMapTest
 {
-
     @Test
     void testPutValue()
     {

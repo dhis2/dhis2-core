@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -63,11 +65,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
 @RequiredArgsConstructor
@@ -75,6 +76,8 @@ import com.google.common.collect.ImmutableList;
 public class ApiTokenController extends AbstractCrudController<ApiToken>
 {
     public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN = "Operation not supported on ApiToken";
+
+    private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     private final ApiTokenService apiTokenService;
 
@@ -85,20 +88,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         ArrayList<ApiToken> list = new ArrayList<>();
         java.util.Optional.ofNullable( manager.get( ApiToken.class, uid ) ).ifPresent( list::add );
         return list;
-    }
-
-    @Override
-    protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
-        throws Exception
-    {
-        entity.setKey( null );
-    }
-
-    @Override
-    protected void postProcessResponseEntities( List<ApiToken> entityList, WebOptions options,
-        Map<String, String> parameters )
-    {
-        entityList.forEach( t -> t.setKey( null ) );
     }
 
     @Override
@@ -127,7 +116,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         final ApiToken apiToken = deserializeJsonEntity( request );
 
@@ -217,8 +206,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     private void validateHttpMethod( String httpMethodName )
     {
-        final ImmutableList<String> validMethods = ImmutableList.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
-        if ( !validMethods.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
+        if ( !VALID_METHODS.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
         {
             throw new IllegalArgumentException( "Not a valid http method, value=" + httpMethodName );
         }

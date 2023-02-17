@@ -231,12 +231,12 @@ class ValidationRuleServiceTest extends TransactionalIntegrationTest
         // -
         // deD
         validationRuleB = createValidationRule( "B", greater_than, expressionC, expressionD, // deC
-                                                                                             // -
-                                                                                             // deD
-                                                                                             // >
-                                                                                             // deB
-                                                                                             // *
-                                                                                             // 2
+            // -
+            // deD
+            // >
+            // deB
+            // *
+            // 2
             periodTypeMonthly );
     }
 

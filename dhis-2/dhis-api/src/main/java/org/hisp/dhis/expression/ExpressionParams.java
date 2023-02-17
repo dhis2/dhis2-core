@@ -66,6 +66,8 @@ import org.hisp.dhis.program.Program;
 @Builder( toBuilder = true )
 public class ExpressionParams
 {
+    public static final ExpressionParams DEFAULT_EXPRESSION_PARAMS;
+
     /**
      * Dummy data for sample periods, so in the absence of real sampled data the
      * parser will still traverse the contents of aggregation functions once for
@@ -84,6 +86,7 @@ public class ExpressionParams
         period.setStartDate( genTheFirst99 );
         period.setEndDate( genTheFirst99 );
         SAMPLE_PERIODS = Collections.singletonList( period );
+        DEFAULT_EXPRESSION_PARAMS = builder().build();
     }
 
     /**
@@ -204,7 +207,7 @@ public class ExpressionParams
      * {@see ExpressionInfo} instance.
      */
     @Builder.Default
-    private ExpressionInfo expressionInfo = new ExpressionInfo();
+    private final ExpressionInfo expressionInfo = new ExpressionInfo();
 
     // -------------------------------------------------------------------------
     // Logic

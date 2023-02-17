@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class IndicatorGroupSetResourceTable
     extends ResourceTable<IndicatorGroupSet>
 {
-    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
+    private final String tableType;
+
+    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
@@ -85,16 +88,19 @@ public class IndicatorGroupSetResourceTable
             sql += "(" +
                 "select ig.name from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on " +
+                "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " +
+                groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select ig.uid from indicatorgroup ig " +
-                "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join indicatorgroupmembers igm on " +
+                "igm.indicatorgroupid = ig.indicatorgroupid " +
+                "inner join indicatorgroupsetmembers igsm on " +
+                "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " +
+                groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

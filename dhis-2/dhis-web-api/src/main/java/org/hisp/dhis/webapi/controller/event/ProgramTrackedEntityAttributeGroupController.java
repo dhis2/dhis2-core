@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Viet Nguyen
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramTrackedEntityAttributeGroupSchemaDescriptor.API_ENDPOINT )
 public class ProgramTrackedEntityAttributeGroupController

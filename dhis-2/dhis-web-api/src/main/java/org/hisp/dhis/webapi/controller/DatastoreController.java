@@ -34,27 +34,37 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.JsonWriter;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,19 +75,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Stian Sandvold
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( "/dataStore" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DatastoreController
 {
     private final DatastoreService service;
+
+    private final AclService aclService;
 
     private final ObjectMapper jsonMapper;
 
@@ -94,13 +109,30 @@ public class DatastoreController
     }
 
     /**
-     * Returns a list of strings representing keys in the given namespace.
+     * The path {@code /{namespace}} is clashing with
+     * {@link #getEntries(String, String, boolean, DatastoreParams, HttpServletResponse)}
+     * therefore a collision free alternative was added
+     * {@code /{namespace}/keys}.
      */
-    @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
+    @GetMapping( value = { "/{namespace}/keys" }, produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
         @PathVariable String namespace,
         HttpServletResponse response )
-        throws Exception
+        throws NotFoundException
+    {
+        return getKeysInNamespaceLegacy( lastUpdated, namespace, response );
+    }
+
+    /**
+     * Returns a list of strings representing keys in the given namespace.
+     */
+    @OpenApi.Ignore
+    @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
+    public @ResponseBody List<String> getKeysInNamespaceLegacy( @RequestParam( required = false ) Date lastUpdated,
+        @PathVariable String namespace,
+        HttpServletResponse response )
+        throws NotFoundException
     {
         setNoStore( response );
 
@@ -114,18 +146,36 @@ public class DatastoreController
         return keys;
     }
 
+    @Value
+    private static class Pager
+    {
+        int page;
+
+        int pageSize;
+    }
+
+    @Value
+    private static class EntriesResponse
+    {
+        Pager pager;
+
+        List<Map<String, JsonNode>> entries;
+    }
+
+    @OpenApi.Response( status = Status.OK, value = EntriesResponse.class )
+    @OpenApi.Response( status = Status.BAD_REQUEST, value = WebMessage.class )
     @GetMapping( value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE )
     public void getEntries( @PathVariable String namespace,
         @RequestParam( required = true ) String fields,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        DatastoreParams params, HttpServletResponse response )
+        throws IOException
     {
         DatastoreQuery query = service.plan( DatastoreQuery.builder()
             .namespace( namespace )
             .fields( parseFields( fields ) )
             .includeAll( includeAll )
-            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) ) );
+            .build().with( params ) );
 
         response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
@@ -178,10 +228,11 @@ public class DatastoreController
     /**
      * Deletes all keys with the given namespace.
      */
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
     @ResponseBody
     @DeleteMapping( "/{namespace}" )
     public WebMessage deleteNamespace( @PathVariable String namespace )
-        throws Exception
+        throws NotFoundException
     {
         if ( !service.isUsedNamespace( namespace ) )
         {
@@ -197,6 +248,7 @@ public class DatastoreController
      * Retrieves the value of the KeyJsonValue represented by the given key from
      * the given namespace.
      */
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key )
         throws NotFoundException
@@ -208,11 +260,14 @@ public class DatastoreController
      * Retrieves the KeyJsonValue represented by the given key from the given
      * namespace.
      */
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody DatastoreEntry getKeyJsonValueMetaData( @PathVariable String namespace,
         @PathVariable String key,
-        HttpServletResponse response )
-        throws Exception
+        @CurrentUser User currentUser )
+        throws NotFoundException,
+        InvocationTargetException,
+        IllegalAccessException
     {
         DatastoreEntry entry = getExistingEntry( namespace, key );
 
@@ -221,6 +276,7 @@ public class DatastoreController
         metaData.setValue( null );
         metaData.setJbPlainValue( null );
         metaData.setEncryptedValue( null );
+        metaData.setAccess( aclService.getAccess( entry, currentUser ) );
         return metaData;
     }
 
@@ -230,6 +286,7 @@ public class DatastoreController
      */
     @ResponseBody
     @PostMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.CREATED )
     public WebMessage addKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         @RequestBody String value,
         @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletRequest request )
@@ -248,6 +305,7 @@ public class DatastoreController
     /**
      * Update a key in the given namespace.
      */
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
     @ResponseBody
     @PutMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     public WebMessage updateKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
@@ -265,6 +323,7 @@ public class DatastoreController
     /**
      * Delete a key from the given namespace.
      */
+    @OpenApi.Response( status = Status.NOT_FOUND, value = WebMessage.class )
     @ResponseBody
     @DeleteMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public WebMessage deleteKeyJsonValue( @PathVariable String namespace, @PathVariable String key )

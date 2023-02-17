@@ -28,7 +28,11 @@
 package org.hisp.dhis.fileresource;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -115,7 +119,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
             try ( InputStream is = new BufferedInputStream( new FileInputStream( file ) ) )
             {
                 String mimeType = URLConnection.guessContentTypeFromStream( is );
-                return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
+                return FileResource.isImage( mimeType );
             }
             catch ( IOException e )
             {

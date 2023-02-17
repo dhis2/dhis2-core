@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -71,8 +71,8 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
-@AllArgsConstructor
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
@@ -184,7 +184,7 @@ public class DefaultDataApprovalService
                     da.getDataApprovalLevel().getLevel() >= status.getActionLevel().getLevel() )
                 {
                     continue; // Already approved at or above the level
-                              // requested
+                             // requested
                 }
 
                 DataApprovalLevel nextLevel = nextHigherLevel( status.getActionLevel(), da.getWorkflow() );
@@ -393,7 +393,7 @@ public class DefaultDataApprovalService
                 da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel() )
             {
                 continue; // Already unaccepted at or not approved up to this
-                          // level
+                         // level
             }
 
             if ( !status.getPermissions().isMayUnaccept() )
@@ -492,7 +492,7 @@ public class DefaultDataApprovalService
         DataApprovalStatus status;
 
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow, period,
-            Lists.newArrayList( organisationUnit ), organisationUnit.getHierarchyLevel(), null,
+            Lists.newArrayList( organisationUnit ), organisationUnit.getHierarchyLevel(), null, null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ),
             dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
                 currentUserService.getCurrentUser(), workflow ),
@@ -542,12 +542,15 @@ public class DefaultDataApprovalService
     @Override
     @Transactional( readOnly = true )
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo )
+        Period period, OrganisationUnit orgUnit, OrganisationUnit orgUnitFilter, CategoryCombo attributeCombo,
+        CategoryOptionCombo attributeOptionCombo )
     {
         List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses(
             workflow, period, orgUnit == null ? null : Lists.newArrayList( orgUnit ),
-            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(), attributeCombo, null, dataApprovalLevelService
-                .getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ),
+            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(), orgUnitFilter, attributeCombo,
+            attributeOptionCombo == null ? null : Set.of( attributeOptionCombo ),
+            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(),
+                workflow ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
 
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
@@ -666,7 +669,7 @@ public class DefaultDataApprovalService
             DataApproval da = dataApprovals.get( 0 );
 
             List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( da.getWorkflow(),
-                da.getPeriod(), orgUnits, da.getOrganisationUnit().getHierarchyLevel(), null,
+                da.getPeriod(), orgUnits, da.getOrganisationUnit().getHierarchyLevel(), null, null,
                 getCategoryOptionCombos( dataApprovals ), dataApprovalLevelService
                     .getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), da.getWorkflow() ),
                 dataApprovalLevelService.getDataApprovalLevelMap() );

@@ -45,8 +45,6 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Chau Thu Tran
  */
@@ -169,7 +167,7 @@ class ProgramStageDataElementServiceTest extends IntegrationTestBase
     void testRemoveReferencedDataElement()
     {
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        stageA.getProgramStageDataElements().addAll( ImmutableSet.of( stageDataElementA ) );
+        stageA.getProgramStageDataElements().addAll( Set.of( stageDataElementA ) );
         programStageService.updateProgramStage( stageA );
         assertThrows( DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement( dataElementA ) );
     }

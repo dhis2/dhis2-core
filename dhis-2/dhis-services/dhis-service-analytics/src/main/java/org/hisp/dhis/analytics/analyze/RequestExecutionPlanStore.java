@@ -62,11 +62,12 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
     @Nonnull
     private final JdbcTemplate jdbcTemplate;
 
-    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool( 10 );
+    private final ScheduledExecutorService executorService;
 
     public RequestExecutionPlanStore( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
+        this.executorService = Executors.newScheduledThreadPool( 10 );
     }
 
     @Override

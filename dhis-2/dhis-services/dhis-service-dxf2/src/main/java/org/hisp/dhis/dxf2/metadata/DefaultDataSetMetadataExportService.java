@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang3.ObjectUtils;
@@ -80,7 +80,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService" )
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
@@ -240,7 +240,7 @@ public class DefaultDataSetMetadataExportService
 
         for ( DataSet dataSet : dataSets )
         {
-            ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
+            ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, FIELDS_DATA_SETS );
             objectNode.set( PROPERTY_DATA_SET_ELEMENTS, toDataSetElementsArrayNode( dataSet.getDataSetElements() ) );
             objectNode.set( PROPERTY_ORGANISATION_UNITS, toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
             objectNodes.add( objectNode );
@@ -310,7 +310,7 @@ public class DefaultDataSetMetadataExportService
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( Set.of( filters ) )
+            .filters( filters )
             .skipSharing( true )
             .build();
 

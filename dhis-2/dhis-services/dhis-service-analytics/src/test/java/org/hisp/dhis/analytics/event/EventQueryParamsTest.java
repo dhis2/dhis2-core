@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -36,16 +37,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,8 +55,10 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -64,9 +67,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -92,6 +92,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
     private DataElement deC;
 
     private DataElement deD;
+
+    private DataElement deE;
 
     private OrganisationUnit ouA;
 
@@ -130,6 +132,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         deC.setValueType( ValueType.DATE );
         deD = createDataElement( 'D' );
         deD.setValueType( ValueType.ORGANISATION_UNIT );
+        deE = createDataElement( 'E' );
+        deE.setValueType( ValueType.TEXT );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         psA = createProgramStage( 'A', prA );
@@ -145,16 +149,61 @@ class EventQueryParamsTest extends DhisConvenienceTest
         psB.addDataElement( deB, 1 );
         // Program Stage C
         psC.addDataElement( deA, 0 );
-        prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
-        prB = createProgram( 'B', Sets.newHashSet( psB ), ouA );
-        prC = createProgram( 'C', Sets.newHashSet( psC ), ouA );
+        prA = createProgram( 'A', Set.of( psA ), ouA );
+        prB = createProgram( 'B', Set.of( psB ), ouA );
+        prC = createProgram( 'C', Set.of( psC ), ouA );
         TrackedEntityAttribute teA = createTrackedEntityAttribute( 'A', ValueType.ORGANISATION_UNIT );
         teA.setUid( deD.getUid() );
         ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA );
-        prC.setProgramAttributes( Collections.singletonList( pteA ) );
+        prC.setProgramAttributes( List.of( pteA ) );
         peA = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() );
         peB = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         peC = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() );
+    }
+
+    @Test
+    void testHasDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        assertTrue( paramsA.hasValueDimension() );
+    }
+
+    @Test
+    void testHasNumericDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deC )
+            .build();
+
+        assertTrue( paramsA.hasNumericValueDimension() );
+        assertFalse( paramsB.hasNumericValueDimension() );
+    }
+
+    @Test
+    void testHasTextDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deE )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        assertTrue( paramsA.hasTextValueDimension() );
+        assertFalse( paramsB.hasTextValueDimension() );
     }
 
     @Test
@@ -163,17 +212,16 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams paramsA = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA, ouB ) ) )
-            .addItem( qiA ).addItem( qiB ).build();
+            .withPeriods( List.of( peA, peB, peC ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .addItem( qiA ).addItem( qiB )
+            .withLocale( Locale.FRENCH )
+            .build();
         EventQueryParams paramsB = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA ) ) )
-            .addItem( qiA ).addItem( qiB ).withGeometryOnly( true ).build();
+            .withPeriods( List.of( peA, peB ), MONTHLY.getName() )
+            .withOrganisationUnits( List.of( ouA ) )
+            .addItem( qiA ).addItem( qiB ).withGeometryOnly( true )
+            .build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
         assertNotNull( paramsB.getKey() );
@@ -182,62 +230,233 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testReplacePeriodsWithStartEndDates()
+    void testWithStartEndDatesForPeriodsForScheduledMonthlyWithDateField()
     {
+        // Given
+        Period periodMay = MonthlyPeriodType.getPeriodFromIsoString( "202305" );
+        periodMay.setDateField( SCHEDULED_DATE.name() );
+
+        Period periodMarch = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        periodMarch.setDateField( SCHEDULED_DATE.name() );
+
+        Period periodFebruary = MonthlyPeriodType.getPeriodFromIsoString( "202302" );
+        periodFebruary.setDateField( SCHEDULED_DATE.name() );
+
+        // When
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .withPeriods( List.of( periodMay, periodMarch, periodFebruary ), MONTHLY.getName() )
+            .withStartEndDatesForPeriods()
             .build();
+
+        // Then
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
-        assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
-        assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
-        assertEquals( 3, params.getDateRangeList().size() );
+        assertEquals( 1, params.getTimeDateRanges().size() );
+        assertTrue( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
+
+        List<DateRange> ranges = params.getTimeDateRanges().get( SCHEDULED_DATE );
+        assertEquals( 3, ranges.size() );
+
+        LocalDate febDate = toLocalDate( ranges.get( 0 ).getStartDate() );
+        assertEquals( 2023, febDate.getYear() );
+        assertEquals( 2, febDate.getMonthValue() );
+        assertEquals( 1, febDate.getDayOfMonth() );
+
+        LocalDate marchDate = toLocalDate( ranges.get( 1 ).getStartDate() );
+        assertEquals( 2023, marchDate.getYear() );
+        assertEquals( 3, marchDate.getMonthValue() );
+        assertEquals( 1, marchDate.getDayOfMonth() );
+
+        LocalDate mayDate = toLocalDate( ranges.get( 2 ).getStartDate() );
+        assertEquals( 2023, mayDate.getYear() );
+        assertEquals( 5, mayDate.getMonthValue() );
+        assertEquals( 1, mayDate.getDayOfMonth() );
     }
 
     @Test
-    void testContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithDateField()
     {
         // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
+        weeklyPeriod.setDateField( SCHEDULED_DATE.name() );
+
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        monthlyPeriod.setDateField( SCHEDULED_DATE.name() );
+
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+        dailyPeriod.setDateField( SCHEDULED_DATE.name() );
+
+        List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
+
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .withStartEndDatesForPeriods()
             .build();
+        params.getDimensions().add( new BaseDimensionalObject( "pe", PERIOD, periods ) );
 
         // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+        params.replacePeriodsWithDates();
 
         // Then
-        assertEquals( 3, params.getDateRangeList().size() );
-        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
-        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
-        assertEquals( peB.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
-        assertEquals( peB.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
-        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 2 ).getStartDate() );
-        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 2 ).getEndDate() );
-        assertTrue( params.hasContinuousDateRangeList() );
+        assertNull( params.getStartDate() );
+        assertNull( params.getEndDate() );
+        assertEquals( 1, params.getTimeDateRanges().size() );
+        assertTrue( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
+        assertEquals( 3, params.getTimeDateRanges().get( SCHEDULED_DATE ).size() );
     }
 
     @Test
-    void testNonContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithoutDateField()
     {
         // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+
+        List<Period> periods = List.of( weeklyPeriod, monthlyPeriod, dailyPeriod );
+
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+            .withStartEndDatesForPeriods()
             .build();
+        params.getDimensions().add( new BaseDimensionalObject( "pe", PERIOD, periods ) );
 
         // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+        params.replacePeriodsWithDates();
 
         // Then
-        assertEquals( 2, params.getDateRangeList().size() );
-        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
-        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
-        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
-        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
-        assertFalse( params.hasContinuousDateRangeList() );
+        assertNotNull( params.getStartDate() );
+        assertNotNull( params.getEndDate() );
+        assertEquals( 0, params.getTimeDateRanges().size() );
+        assertFalse( params.getTimeDateRanges().containsKey( SCHEDULED_DATE ) );
+        assertNull( params.getTimeDateRanges().get( SCHEDULED_DATE ) );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeIsFalseWithDateField()
+    {
+        // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+        DateRange dailyRange = new DateRange( dailyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, monthlyRange, dailyRange ) );
+
+        // Then
+        assertFalse( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeIsFalse()
+    {
+        // Given
+        Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString( "2023W5" );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString( "202303" );
+        DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString( "20230105" );
+        DateRange dailyRange = new DateRange( dailyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, monthlyRange, dailyRange ) );
+
+        // Then
+        assertFalse( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeIsTrue()
+    {
+        // Given
+        Period jan = WeeklyPeriodType.getPeriodFromIsoString( "202301" );
+        DateRange janRange = new DateRange( jan.getStartDate(), jan.getEndDate() );
+
+        Period feb = MonthlyPeriodType.getPeriodFromIsoString( "202302" );
+        DateRange febRange = new DateRange( feb.getStartDate(), feb.getEndDate() );
+
+        Period mar = DailyPeriodType.getPeriodFromIsoString( "20230103" );
+        DateRange marRange = new DateRange( mar.getStartDate(), mar.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( janRange, febRange, marRange ) );
+
+        // Then
+        assertTrue( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeForThisWeeklyAndDailyPeriods()
+    {
+        // Given
+        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange todayRange = new DateRange( todayPeriod.getStartDate(), todayPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, todayRange ) );
+
+        // Then
+        assertTrue( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeForThisWeeklyDailyAndMonthlyPeriods()
+    {
+        // Given
+        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange todayRange = new DateRange( todayPeriod.getStartDate(), todayPeriod.getEndDate() );
+
+        Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), monthlyPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( weeklyRange, todayRange, monthlyRange ) );
+
+        // Then
+        assertTrue( hasContinuousRange );
+    }
+
+    @Test
+    void testHasContinuousRangeDateRangeForWeeklyDailyAndMonthlyIsFalse()
+    {
+        // Given
+        Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
+        DateRange monthlyRange = new DateRange( monthlyPeriod.getStartDate(), monthlyPeriod.getEndDate() );
+
+        Period weeklyPeriod = new WeeklyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange weeklyRange = new DateRange( weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate() );
+
+        Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
+        DateRange todayRange = new DateRange( todayPeriod.getStartDate(), todayPeriod.getEndDate() );
+
+        EventQueryParams params = new EventQueryParams.Builder().build();
+
+        // When
+        boolean hasContinuousRange = params.hasContinuousRange( List.of( monthlyRange, weeklyRange, todayRange ) );
+
+        // Then
+        assertFalse( hasContinuousRange );
     }
 
     @Test
@@ -247,8 +466,10 @@ class EventQueryParamsTest extends DhisConvenienceTest
         Legend leB = createLegend( 'B', 1d, 2d );
         LegendSet lsA = createLegendSet( 'A', leA, leB );
         QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( qiA ).build();
-        Set<Legend> expected = Sets.newHashSet( leA, leB );
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( qiA )
+            .build();
+        Set<Legend> expected = Set.of( leA, leB );
         assertEquals( expected, params.getItemLegends() );
     }
 
@@ -257,8 +478,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( qiA ).addItem( qiB ).build();
-        Set<Option> expected = Sets.newHashSet( opA, opB, opC, opD );
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( qiA )
+            .addItem( qiB )
+            .build();
+        Set<Option> expected = Set.of( opA, opB, opC, opD );
         assertEquals( expected, params.getItemOptions() );
     }
 
@@ -269,7 +493,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem iB = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
         QueryItem iC = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
         QueryItem iD = new QueryItem( createDataElement( 'D', new CategoryCombo() ) );
-        EventQueryParams params = new EventQueryParams.Builder().addItem( iA ).addItem( iB ).addItem( iC ).addItem( iD )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( iA )
+            .addItem( iB )
+            .addItem( iC )
+            .addItem( iD )
             .build();
         List<QueryItem> duplicates = params.getDuplicateQueryItems();
         assertEquals( 1, duplicates.size() );
@@ -280,13 +508,20 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsTimeFieldValid()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( deC.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( deC.getUid() )
             .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
-        params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( TimeField.SCHEDULED_DATE.name() )
+        params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( SCHEDULED_DATE.name() )
             .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
-        params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( "someInvalidTimeField" ).addItem( iA )
+        params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withTimeField( "someInvalidTimeField" )
+            .addItem( iA )
             .build();
         assertFalse( params.timeFieldIsValid() );
     }
@@ -295,8 +530,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValid()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
-            .withOrgUnitField( new OrgUnitField( deD.getUid() ) ).addItem( iA ).build();
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
+            .addItem( iA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
         params = new EventQueryParams.Builder().withProgram( prA )
             .withOrgUnitField( new OrgUnitField( "someInvalidOrgUnitField" ) ).addItem( iA ).build();
@@ -308,9 +546,12 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( null )
             .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-            .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
 
@@ -319,11 +560,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
-        // this PI has 0 Data Element of type OrgUnit -> test should fail
+        // This PI has 0 Data Element of type OrgUnit -> test should fail.
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( null )
             .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-            .addItem( iA ).addItemProgramIndicator( programIndicatorA ).addItemProgramIndicator( programIndicatorB )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .addItemProgramIndicator( programIndicatorB )
             .build();
         assertFalse( params.orgUnitFieldIsValid() );
     }
@@ -332,12 +576,14 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValidWithMultipleProgramIndicator2()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        // This PI has a Program that has a Tracked Entity Attribute of type Org
-        // Unit
+        // This PI has a Program that has a Tracked Entity Attribute of type Org Unit.
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( null )
             .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
-            .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
 }

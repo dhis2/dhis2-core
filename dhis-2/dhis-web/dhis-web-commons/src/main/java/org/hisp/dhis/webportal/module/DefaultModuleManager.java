@@ -27,16 +27,7 @@
  */
 package org.hisp.dhis.webportal.module;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +40,8 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.ActionAccessResolver;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.config.Configuration;
@@ -85,6 +78,9 @@ public class DefaultModuleManager
 
     @Autowired
     private LocaleManager localeManager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private ActionAccessResolver actionAccessResolver;
 
@@ -164,8 +160,11 @@ public class DefaultModuleManager
     public List<Module> getAccessibleMenuModulesAndApps( String contextPath )
     {
         List<Module> modules = getAccessibleMenuModules();
+
+        User user = currentUserService.getCurrentUser();
+
         List<App> apps = appManager
-            .getAccessibleApps( contextPath )
+            .getAccessibleApps( contextPath, user )
             .stream()
             .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
             .collect( Collectors.toList() );

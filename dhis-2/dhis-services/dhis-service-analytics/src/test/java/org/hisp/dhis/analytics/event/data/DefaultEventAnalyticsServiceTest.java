@@ -116,44 +116,36 @@ class DefaultEventAnalyticsServiceTest
     @Test
     void testOutputSchemeWhenSchemeIsSet()
     {
-        // Given mock variables
         IdScheme codeScheme = IdScheme.CODE;
         OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
         Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
         EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, codeScheme );
 
-        // Given mock calls
         doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
         when( securityManager.withUserConstraints( mockParams ) ).thenReturn( mockParams );
         doNothing().when( eventQueryValidator ).validate( mockParams );
         when( queryPlanner.planEventQuery( any( EventQueryParams.class ) ) ).thenReturn( mockParams );
 
-        // When
         defaultEventAnalyticsService.getEvents( mockParams );
 
-        // Then
         verify( schemaIdResponseMapper, atMost( 1 ) ).getSchemeIdResponseMap( mockParams );
     }
 
     @Test
     void testOutputSchemeWhenNoSchemeIsSet()
     {
-        // Given mock variables
         IdScheme noScheme = null;
         OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
         Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
         EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, noScheme );
 
-        // Given mock calls
         doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
         when( securityManager.withUserConstraints( mockParams ) ).thenReturn( mockParams );
         doNothing().when( eventQueryValidator ).validate( mockParams );
         when( queryPlanner.planEventQuery( any( EventQueryParams.class ) ) ).thenReturn( mockParams );
 
-        // When
         defaultEventAnalyticsService.getEvents( mockParams );
 
-        // Then
         verify( schemaIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
     }
 

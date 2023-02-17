@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.textpattern;
 
+import java.util.Set;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Stian Sandvold
@@ -78,18 +77,16 @@ public enum TextPatternMethod
      */
     CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) ) );
 
-    public static final ImmutableSet<TextPatternMethod> GENERATED = ImmutableSet.of(
-        RANDOM,
-        SEQUENTIAL );
+    public static final Set<TextPatternMethod> GENERATED = Set.of(
+        RANDOM, SEQUENTIAL );
 
-    public static final ImmutableSet<TextPatternMethod> REQUIRED = ImmutableSet.of(
+    public static final Set<TextPatternMethod> REQUIRED = Set.of(
         ORG_UNIT_CODE );
 
-    public static final ImmutableSet<TextPatternMethod> OPTIONAL = ImmutableSet.of(
-        RANDOM,
-        SEQUENTIAL );
+    public static final Set<TextPatternMethod> OPTIONAL = Set.of(
+        RANDOM, SEQUENTIAL );
 
-    public static final ImmutableSet<TextPatternMethod> PERSIST = ImmutableSet.of(
+    public static final Set<TextPatternMethod> PERSIST = Set.of(
         RANDOM );
 
     private MethodType type;

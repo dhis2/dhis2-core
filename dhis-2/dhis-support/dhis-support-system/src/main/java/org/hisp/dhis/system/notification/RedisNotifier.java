@@ -150,11 +150,13 @@ public class RedisNotifier implements Notifier
     @Override
     public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        Set<String> keys = redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0, -1 );
-        if ( keys == null )
+        Set<String> notifications = redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0,
+            -1 );
+        if ( notifications == null )
             return new LinkedList<>();
         Deque<Notification> res = new LinkedList<>();
-        keys.forEach( x -> executeLogErrors( () -> res.add( jsonMapper.readValue( x, Notification.class ) ) ) );
+        notifications.stream().sorted().forEach( notification -> executeLogErrors(
+            () -> res.add( jsonMapper.readValue( notification, Notification.class ) ) ) );
         return res;
     }
 
@@ -165,7 +167,7 @@ public class RedisNotifier implements Notifier
         if ( keys == null || keys.isEmpty() )
             return Map.of();
         LinkedHashMap<String, Deque<Notification>> res = new LinkedHashMap<>();
-        keys.forEach( j -> res.put( j, getNotificationsByJobId( jobType, j ) ) );
+        keys.forEach( jobId -> res.put( jobId, getNotificationsByJobId( jobType, jobId ) ) );
         return res;
     }
 

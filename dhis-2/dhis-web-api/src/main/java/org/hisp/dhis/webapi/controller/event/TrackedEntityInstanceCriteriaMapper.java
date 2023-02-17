@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -41,7 +42,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -159,8 +159,6 @@ public class TrackedEntityInstanceCriteriaMapper
             params.getOrganisationUnits().add( organisationUnit );
         }
 
-        validateAssignedUser( criteria );
-
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
@@ -170,7 +168,7 @@ public class TrackedEntityInstanceCriteriaMapper
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
-        validateOrderParams( program, orderParams, attributes );
+        validateOrderParams( orderParams, attributes );
 
         params.setQuery( getQueryFilter( criteria.getQuery() ) )
             .setProgram( program )
@@ -189,17 +187,16 @@ public class TrackedEntityInstanceCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventStartDate() )
             .setEventEndDate( criteria.getEventEndDate() )
-            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( criteria.getAssignedUsers() )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, criteria.getAssignedUsers() )
             .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
             .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setUser( user )
+            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
             .setOrders( orderParams );
 
         return params;
@@ -333,16 +330,6 @@ public class TrackedEntityInstanceCriteriaMapper
         return trackedEntityType;
     }
 
-    private void validateAssignedUser( TrackedEntityInstanceCriteria criteria )
-    {
-        if ( criteria.getAssignedUserMode() != null && !criteria.getAssignedUsers().isEmpty()
-            && !criteria.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-    }
-
     private ProgramStage getProgramStageFromProgram( Program program, String programStage )
     {
         if ( program == null )
@@ -354,14 +341,14 @@ public class TrackedEntityInstanceCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( Program program, List<OrderParam> orderParams,
+    private void validateOrderParams( List<OrderParam> orderParams,
         Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }

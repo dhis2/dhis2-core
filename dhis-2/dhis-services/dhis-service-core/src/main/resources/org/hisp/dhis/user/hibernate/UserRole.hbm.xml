@@ -32,6 +32,12 @@
       <element type="string" column="authority" />
     </set>
 
+    <set name="restrictions" table="userrolerestrictions">
+      <cache usage="read-write" />
+      <key column="userroleid" foreign-key="fk_userrolerestrictions_userroleid" />
+      <element type="string" column="restriction" />
+    </set>
+
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_userrole_userid" />
 
     <!-- Sharing -->

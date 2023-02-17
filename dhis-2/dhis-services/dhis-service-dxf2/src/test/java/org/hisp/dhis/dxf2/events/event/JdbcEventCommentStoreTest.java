@@ -28,8 +28,8 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -48,8 +48,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -105,9 +103,9 @@ class JdbcEventCommentStoreTest
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         if ( withComments )
         {
-            programStageInstance.setComments( ImmutableList.of( getComment( emptyComment ? "" : "Some comment" ) ) );
+            programStageInstance.setComments( List.of( getComment( emptyComment ? "" : "Some comment" ) ) );
         }
-        return ImmutableList.of( programStageInstance );
+        return List.of( programStageInstance );
     }
 
     private TrackedEntityComment getComment( String commentText )

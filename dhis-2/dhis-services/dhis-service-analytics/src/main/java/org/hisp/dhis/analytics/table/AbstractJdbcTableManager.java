@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -81,7 +82,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -106,7 +106,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
 
-    protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
+    protected static final Set<ValueType> NO_INDEX_VAL_TYPES = Set.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
     protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
@@ -131,6 +131,8 @@ public abstract class AbstractJdbcTableManager
     protected final DatabaseInfo databaseInfo;
 
     protected final JdbcTemplate jdbcTemplate;
+
+    protected final AnalyticsExportSettings analyticsExportSettings;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
@@ -347,7 +349,10 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
+        StringBuilder sqlCreate = new StringBuilder();
+
+        sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+            .append( tableName ).append( " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -381,22 +386,25 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " (";
+            StringBuilder sqlCreate = new StringBuilder();
+
+            sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+                .append( tableName ).append( "(" );
 
             if ( !checks.isEmpty() )
             {
                 StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
+                sqlCreate.append( TextUtils.removeLastComma( sqlCheck.toString() ) );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate.append( ") inherits (" ).append( table.getTempTableName() ).append( ") " )
+                .append( getTableOptions() );
 
             log.info( "Creating partition table: '{}'", tableName );
-
             log.debug( "Create SQL: {}", sqlCreate );
 
-            jdbcTemplate.execute( sqlCreate );
+            jdbcTemplate.execute( sqlCreate.toString() );
         }
     }
 
@@ -423,11 +431,13 @@ public abstract class AbstractJdbcTableManager
     {
         Calendar calendar = PeriodType.getCalendar();
 
-        Collections.sort( dataYears );
+        List<Integer> years = ListUtils.mutableCopy( dataYears );
+
+        Collections.sort( years );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
-        for ( Integer year : dataYears )
+        for ( Integer year : years )
         {
             table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
                 PartitionUtils.getEndDate( calendar, year ) );

@@ -44,12 +44,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Stian Strandli
@@ -128,7 +127,7 @@ class SystemSettingManagerTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetSystemSettingsByCollection()
     {
-        Collection<SettingKey> keys = ImmutableSet.of( SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO );
+        Collection<SettingKey> keys = Set.of( SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO );
         systemSettingManager.saveSystemSetting( APPLICATION_TITLE, "valueA" );
         systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueB" );
         assertEquals( 2, systemSettingManager.getSystemSettings( keys ).size() );

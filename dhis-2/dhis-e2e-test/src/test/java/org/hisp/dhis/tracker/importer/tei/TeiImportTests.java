@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.importer.tei;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -36,6 +37,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.Constants;
@@ -52,6 +55,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -137,10 +141,11 @@ public class TeiImportTests
             .readJsonAndGenerateData(
                 new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
+        JsonObject teiToTeiRelationship = new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh",
+            "Nav6inZRw1u", "xLmPUYJX8Ks" );
+
         JsonObjectBuilder.jsonObject( teiPayload )
-            .addArray( "relationships",
-                new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u",
-                    "xLmPUYJX8Ks" ) );
+            .addArray( "relationships", teiToTeiRelationship );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
@@ -158,7 +163,23 @@ public class TeiImportTests
 
         ApiResponse trackedEntityResponse = trackerActions
             .getTrackedEntity( teiBody.get( "trackedEntity" ).getAsString() + "?fields=*" ).validateStatus( 200 );
-        assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody ) );
+
+        // Compare Tei Relationship
+        assertThat( trackedEntityResponse.getBody().getAsJsonArray( "relationships" ).get( 0 ),
+            matchesJSON( teiToTeiRelationship ) );
+
+        // Compare Enrollment attributes and events
+        JsonArray enrollmentsAttributes = trackedEntityResponse.getBody().getAsJsonArray( "enrollments" ).get( 0 )
+            .getAsJsonObject().getAsJsonArray( "attributes" );
+
+        List<String> expectedAttributes = new ArrayList<>();
+
+        enrollmentsAttributes
+            .forEach( ea -> expectedAttributes.add( ea.getAsJsonObject().get( "attribute" ).getAsString() ) );
+
+        assertThat( teiBody.getAsJsonObject( "events" ),
+            equalTo( trackedEntityResponse.getBody().getAsJsonObject( "events" ) ) );
+        assertThat( expectedAttributes, containsInAnyOrder( "kZeSYCgaHTk", "dIVt4l5vIOa" ) );
     }
 
     Stream<Arguments> shouldImportTeiAttributes()

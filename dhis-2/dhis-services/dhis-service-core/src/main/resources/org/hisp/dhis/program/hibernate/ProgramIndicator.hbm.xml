@@ -23,6 +23,8 @@
 
     <property name="formName" type="text" />
 
+    <property name="orgUnitField" type="text" column="orgunitfield" />
+
     <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="translations" type="jblTranslations"/>

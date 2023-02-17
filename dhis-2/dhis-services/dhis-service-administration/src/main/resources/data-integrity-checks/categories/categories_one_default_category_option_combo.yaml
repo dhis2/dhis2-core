@@ -39,6 +39,9 @@ details_id_type: categoryOptionCombos
 severity: SEVERE
 introduction: >
   There should only exist one category option with name and code "default".
+section_order: 4
+summary_uid: GmX5ZiyrlCL
+details_uid: COP7dnqnfJH
 recommendation: >
   Only the category option combo with UID "HllvX50cXC0" should be named "default" and have code "default".
   Either rename the conflicting category option combo or move all references to category option combo "HllvX50cXC0"

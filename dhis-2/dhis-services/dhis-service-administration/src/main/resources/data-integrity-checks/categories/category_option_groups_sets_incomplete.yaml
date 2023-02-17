@@ -1,0 +1,140 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: vTuF0zbwTcd
+name: category_option_group_sets_incomplete
+description: Category option group sets which which do not contain all category options.
+section: Categories
+section_order: 10
+summary_sql: >-
+  WITH cat_option_group_complete as(
+  SELECT cogs.uid,cogs.name , cats.name || ':{' || opt.name || '}' as comment
+  FROM (
+  SELECT categoryoptiongroupsetid,categoryid,unnest(missing_catoptions) as categoryoptionid
+  FROM (
+  SELECT categoryoptiongroupsetid, categoryid,array(SELECT unnest(wants) EXCEPT SELECT unnest(has)) as missing_catoptions
+  FROM (
+    SELECT y.categoryoptiongroupsetid,y.categoryid, y.has, z.wants
+    FROM
+    (SELECT x.categoryoptiongroupsetid,
+    x.categoryid,
+    array_agg(categoryoptionid) as has FROM
+    (
+    SELECT a.categoryoptiongroupsetid,
+    b.categoryoptionid,
+    c.categoryid from categoryoptiongroupsetmembers a
+    INNER JOIN categoryoptiongroupmembers b USING(categoryoptiongroupid)
+    INNER JOIN categories_categoryoptions c USING(categoryoptionid) ) x
+    GROUP BY categoryoptiongroupsetid, categoryid ) y
+    LEFT OUTER JOIN
+    (SELECT categoryid,array_agg(categoryoptionid) as wants from categories_categoryoptions
+    GROUP BY categoryid) as z USING (categoryid) ) as cat_option_group_check ) f) g
+  INNER JOIN categoryoptiongroupset cogs USING(categoryoptiongroupsetid)
+  INNER JOIN dataelementcategory cats USING(categoryid)
+  INNER JOIN dataelementcategoryoption opt USING(categoryoptionid)
+  ORDER BY cogs.uid, cats.name)
+  SELECT COUNT(*) as value,
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*)  from categoryoptiongroupmembers 
+  where categoryoptiongroupid in (SELECT categoryoptiongroupid from categoryoptiongroupsetmembers)), 0) as percent
+  FROM cat_option_group_complete;
+details_uid: xrA4Mhz6yjH
+details_sql: >-
+  SELECT cogs.uid,cogs.name , cats.name || ':{' || opt.name || '}' as comment
+  FROM (
+  SELECT categoryoptiongroupsetid,categoryid,unnest(missing_catoptions) as categoryoptionid
+  FROM (
+  SELECT categoryoptiongroupsetid, categoryid,array(SELECT unnest(wants) EXCEPT SELECT unnest(has)) as missing_catoptions
+  FROM (
+    SELECT y.categoryoptiongroupsetid,y.categoryid, y.has, z.wants
+    FROM
+    (SELECT x.categoryoptiongroupsetid,
+    x.categoryid,
+    array_agg(categoryoptionid) as has FROM
+    (
+    SELECT a.categoryoptiongroupsetid,
+    b.categoryoptionid,
+    c.categoryid from categoryoptiongroupsetmembers a
+    INNER JOIN categoryoptiongroupmembers b USING(categoryoptiongroupid)
+    INNER JOIN categories_categoryoptions c USING(categoryoptionid) ) x
+    GROUP BY categoryoptiongroupsetid, categoryid ) y
+    LEFT OUTER JOIN
+    (SELECT categoryid,array_agg(categoryoptionid) as wants from categories_categoryoptions
+    GROUP BY categoryid) as z USING (categoryid) ) as cat_option_group_check ) f) g
+  INNER JOIN categoryoptiongroupset cogs USING(categoryoptiongroupsetid)
+  INNER JOIN dataelementcategory cats USING(categoryid)
+  INNER JOIN dataelementcategoryoption opt USING(categoryoptionid)
+  ORDER BY cogs.uid, cats.name;
+details_id_type: categoryOptionGroupSets
+severity: SEVERE
+introduction: >
+  Category option group sets are composed of multiple category option groups, which are in turn composed of various category
+  options. Category option group sets are often used to group related category options together for analytical purposes. 
+  Categories are also composed of category options. In general, but not always, category option group sets should contain 
+  all category options of related categories. Suppose we have the following two age categories. 
+  
+  Age coarse: <15, 15+
+  Age fine: <1, 1-10, 10-14,15-19,20-24,25-29,30-34,35-39,40-44,45+
+  
+  In many cases, related data elements may be disaggregated differently. This may be to differences in the way
+  in which the data is collected, or as is often the case, the disaggregation has changed over time. If we 
+  wish to analyze data for two different data elements (one of which uses Age coarse and the other Age fine), we
+  can create a category option group set consisting of two category option groups which should consist
+  of the following category options from above. 
+  
+  <15: <15, <1, 1-10, 10-14
+  15+: 15+, 15-19,20-24,25-29,30-34,35-39,40-44,45+
+  
+  Suppose that we happen to omit the category option "<1" from the "<15" category option group. This would
+  result in potential aggregation errors in when using this category option group set in any analytical 
+  objects. The details of this metadata check would return the UID and name of the category option group
+  set. The category and category option would also be provided. Using the previous example, we would
+  see "Age fine:{<1}" in the metadata check details section, to indicate that the <1 category option
+  which is part of the "Age fine" category, is missing from the category option group set.
+  
+  There may exist specific analytical reasons why specific category options are omitted from a category option group set. 
+  However,these should usually be special cases. This metadata check will identify cases where category option group
+  sets appear to be incomplete, however you should carefully review any groups which appear in the details. 
+  
+  This check may also produce a number of issues which may at first glance appear to be false positives. In some
+  cases, category options may be added to a category by mistake. When category option group sets are created,
+  this extraneous option may be omitted and thus appear as missing from the group set. 
+  
+  Another observed situation is where an option like "Unknown" is used across unrelated categories. Suppose you 
+  have two categories "Age (<15, 15+, Unknown)" and "Sex (Male,Female,Unknown)". Similar to above, we create
+  category option group sets like: 
+  
+  <15: <15
+  15+: 15+
+  Unknown: Unknown
+  
+  This metadata check will report that "Male" and "Female" are missing from the group set. This is because the
+  same "Unknown" option is shared between two different, unrelated categories. It is recommended  that if this 
+  situation occurs, that you create two separate "Unknown" category options like "Unknown sex" and "Unknown age". 
+
+recommendation: >
+  Using the maintenance app, assign the missing category options to an appropriate category option group
+  within the affected category option group set.

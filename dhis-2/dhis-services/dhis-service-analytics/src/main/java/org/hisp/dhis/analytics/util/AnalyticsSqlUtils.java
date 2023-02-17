@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,6 +77,11 @@ public class AnalyticsSqlUtils
         return QUOTE + rel + QUOTE;
     }
 
+    public static List<String> quotedListOf( String... relation )
+    {
+        return Arrays.asList( relation ).stream().map( AnalyticsSqlUtils::quote ).collect( toList() );
+    }
+
     /**
      * Quotes and qualifies the given relation (typically a column). Quotes part
      * of the given relation are encoded (replaced by double quotes that is).
@@ -110,6 +119,38 @@ public class AnalyticsSqlUtils
         Assert.notNull( relation, "Relation must be specified" );
 
         return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
+    }
+
+    /**
+     * Returns a concatenated string of the given collection items separated by
+     * comma where each item is quoted and aliased.
+     *
+     * @param items the collection of items.
+     * @return a string.
+     */
+    public static String quoteAliasCommaSeparate( Collection<String> items )
+    {
+        return items.stream()
+            .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( Collectors.joining( "," ) );
+    }
+
+    public static String quoteWithFunction( String function, String... items )
+    {
+        return Arrays.asList( items ).stream()
+            .map( item -> String.format( "%s(%s) as %s", function, quote( item ), quote( item ) ) )
+            .collect( Collectors.joining( "," ) );
+    }
+
+    /**
+     * Encodes and quotes the given value.
+     *
+     * @param value the value.
+     * @return the encoded and quoted value.
+     */
+    public static String encode( String value )
+    {
+        return encode( value, true );
     }
 
     /**

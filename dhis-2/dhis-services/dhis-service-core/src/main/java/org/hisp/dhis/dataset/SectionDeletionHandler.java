@@ -29,25 +29,25 @@ package org.hisp.dhis.dataset;
 
 import java.util.Iterator;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class SectionDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class SectionDeletionHandler extends IdObjectDeletionHandler<Section>
 {
     private final SectionService sectionService;
 
     private final SectionStore sectionStore;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( DataElement.class, this::deleteDataElement );
         whenDeleting( DataSet.class, this::deleteDataSet );

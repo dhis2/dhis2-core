@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -43,31 +45,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService" )
 @Transactional( readOnly = true )
 public class DefaultProgramStageInstanceFilterService implements ProgramStageInstanceFilterService
 {
+    private final ProgramService programService;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final ProgramStageService programStageService;
 
-    private ProgramService programService;
-
-    private ProgramStageService programStageService;
-
-    private OrganisationUnitService organisationUnitService;
-
-    public DefaultProgramStageInstanceFilterService( ProgramService programService,
-        ProgramStageService programStageService,
-        OrganisationUnitService organisationUnitService )
-    {
-        this.programService = programService;
-        this.programStageService = programStageService;
-        this.organisationUnitService = organisationUnitService;
-    }
+    private final OrganisationUnitService organisationUnitService;
 
     // -------------------------------------------------------------------------
     // ProgramStageInstanceFilterService implementation

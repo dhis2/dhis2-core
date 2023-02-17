@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.cluster;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( "/cluster" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

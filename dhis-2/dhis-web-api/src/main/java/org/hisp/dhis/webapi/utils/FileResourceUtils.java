@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -127,7 +129,7 @@ public class FileResourceUtils
     public static void setImageFileDimensions( FileResource fileResource, ImageFileDimension dimension )
     {
         if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
-            FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+            FileResourceDomain.isDomainForMultipleImages( fileResource.getDomain() ) )
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {
@@ -137,12 +139,14 @@ public class FileResourceUtils
         }
     }
 
-    public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource )
+    public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource,
+        DhisConfigurationProvider dhisConfig )
         throws WebMessageException
     {
         response.setContentType( fileResource.getContentType() );
         response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( CSP_HEADER_VALUE ) );
 
         try
         {

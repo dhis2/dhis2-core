@@ -555,10 +555,11 @@ public class DataSet
             return false;
         }
 
-        DateTime date = now != null ? new DateTime( now ) : new DateTime();
+        Date date = now != null ? now : new Date();
 
-        return expiryDays != DataSet.NO_EXPIRY &&
-            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date );
+        return expiryDays != DataSet.NO_EXPIRY
+            && !Period.isDateInTimeFrame( null, new DateTime( period.getEndDate() ).plusDays( expiryDays ).toDate(),
+                date );
     }
 
     /**
@@ -574,9 +575,7 @@ public class DataSet
     public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
     {
         return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
-            .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
-            .reduce( ( a, b ) -> a || b )
-            .orElse( true );
+            .anyMatch( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) );
     }
 
     // -------------------------------------------------------------------------

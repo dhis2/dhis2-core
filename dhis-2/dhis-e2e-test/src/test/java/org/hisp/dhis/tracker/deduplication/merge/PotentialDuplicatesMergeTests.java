@@ -85,8 +85,8 @@ public class PotentialDuplicatesMergeTests
     public void shouldCheckReferences( String property )
     {
         String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be
-                                   // any enrollments, relationships or TEAs
-                                   // with that id.
+                                  // any enrollments, relationships or TEAs
+                                  // with that id.
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( Constants.TRACKED_ENTITY_TYPE );
 

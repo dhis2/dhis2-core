@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
+import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,8 +40,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.ValueType;
@@ -478,6 +481,20 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
             .filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deGBoolean.getUid() + "})" ) );
         assertTrue(
             programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deHDate.getUid() + "})" ) );
+    }
+
+    @Test
+    void testValidate()
+    {
+        Map<String, String> descriptions = new HashMap<>();
+        programIndicatorService.validate( "#{" + psA.getUid() + "." + deAInteger.getUid() + "}",
+            Double.class, descriptions );
+        assertMapEquals( Map.of( "#{ProgrmStagA.DataElmentA}", "StageA\\.DataElementA" ), descriptions );
+
+        descriptions = new HashMap<>();
+        programIndicatorService.validate( "sum(#{" + psA.getUid() + "." + deAInteger.getUid() + "})",
+            Double.class, descriptions );
+        assertMapEquals( Map.of( "#{ProgrmStagA.DataElmentA}", "StageA\\.DataElementA" ), descriptions );
     }
 
     @Test

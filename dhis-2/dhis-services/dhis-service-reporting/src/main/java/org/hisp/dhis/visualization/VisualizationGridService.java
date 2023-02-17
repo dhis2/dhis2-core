@@ -36,5 +36,5 @@ public interface VisualizationGridService
 {
     Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid );
 
-    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String orgUnitUid, User user );
+    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid, User user );
 }

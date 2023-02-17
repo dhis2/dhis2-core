@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
@@ -127,7 +127,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dimension.DimensionService" )
 public class DefaultDimensionService
     implements DimensionService
@@ -380,20 +380,20 @@ public class DefaultDimensionService
             {
                 return reportingRate;
             }
-            if ( (programDataElement = dataDimensionExtractor.getProgramDataElementDimensionItem( idScheme,
-                id0, id1 )) != null )
+            if ( (programDataElement = dataDimensionExtractor
+                .getProgramDataElementDimensionItem( idScheme, id0, id1 )) != null )
             {
                 return programDataElement;
             }
-            if ( (programAttribute = dataDimensionExtractor.getProgramAttributeDimensionItem( idScheme, id0,
-                id1 )) != null )
+            if ( (programAttribute = dataDimensionExtractor
+                .getProgramAttributeDimensionItem( idScheme, id0, id1 )) != null )
             {
                 return programAttribute;
             }
         }
         else if ( !idScheme.is( IdentifiableProperty.UID ) || CodeGenerator.isValidUid( dimensionItem ) )
         {
-            return idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES, idScheme, dimensionItem );
+            return idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES, idScheme, dimensionItem );
         }
 
         return null;

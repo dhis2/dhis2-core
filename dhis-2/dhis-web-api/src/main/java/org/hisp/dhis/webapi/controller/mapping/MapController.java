@@ -46,6 +46,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -87,6 +88,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = MapSchemaDescriptor.API_ENDPOINT )
 public class MapController
@@ -139,7 +141,7 @@ public class MapController
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         Map map = mappingService.getMap( uid );
 
@@ -153,7 +155,7 @@ public class MapController
         Map newMap = deserializeJsonEntity( request );
         newMap.setUid( uid );
 
-        mergeService.merge( new MergeParams<>( newMap, map )
+        mergeService.merge( new MergeParams<>( map, newMap )
             .setMergeMode( params.getMergeMode() )
             .setSkipSharing( params.isSkipSharing() )
             .setSkipTranslation( params.isSkipTranslation() ) );
@@ -226,7 +228,6 @@ public class MapController
 
     @Override
     public void postProcessResponseEntity( Map map, WebOptions options, java.util.Map<String, String> parameters )
-        throws Exception
     {
         I18nFormat format = i18nManager.getI18nFormat();
 

@@ -32,7 +32,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.Iterator;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Ken Haase
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PredictorDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Predictor.class );

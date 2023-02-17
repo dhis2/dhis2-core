@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -94,7 +94,7 @@ public class HibernateEncryptionConfig
     public HibernateEncryptorRegistry hibernateEncryptors()
     {
         HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
-        registry.setEncryptors( ImmutableMap.of( AES_128_STRING_ENCRYPTOR, aes128StringEncryptor() ) );
+        registry.setEncryptors( Map.of( AES_128_STRING_ENCRYPTOR, aes128StringEncryptor() ) );
         return registry;
     }
 

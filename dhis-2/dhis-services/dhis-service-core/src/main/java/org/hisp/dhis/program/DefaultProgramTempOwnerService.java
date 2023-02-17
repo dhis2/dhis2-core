@@ -27,26 +27,21 @@
  */
 package org.hisp.dhis.program;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramTempOwnerService" )
 public class DefaultProgramTempOwnerService implements ProgramTempOwnerService
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private ProgramTempOwnerStore programTempOwnerStore;
+    private final ProgramTempOwnerStore programTempOwnerStore;
 
     // -------------------------------------------------------------------------
     // ProgramTempOwnershipAuditService implementation

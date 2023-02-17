@@ -29,8 +29,6 @@ package org.hisp.dhis.hibernate;
 
 import java.util.Objects;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.HibernateProxyHelper;
@@ -38,8 +36,6 @@ import org.hibernate.proxy.HibernateProxyHelper;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-
-@Slf4j
 public class HibernateProxyUtils
 {
     private HibernateProxyUtils()

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dashboard;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DashboardItemDeletionHandler extends DeletionHandler
 {
     private final DashboardService dashboardService;
@@ -123,7 +123,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
         {
             while ( item.getReports().contains( report ) ) // In case of
-                                                           // duplicates
+                                                          // duplicates
             {
                 item.getReports().remove( report );
             }
@@ -140,7 +140,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
         {
             while ( item.getResources().contains( document ) ) // In case of
-                                                               // duplicates
+                                                              // duplicates
             {
                 item.getResources().remove( document );
             }

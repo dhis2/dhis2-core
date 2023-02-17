@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 import java.io.File;
 
@@ -66,7 +68,7 @@ public class AtomicModeTests
 
         response.validateErrorReport()
             .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
+            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
     }
 
     @Test
@@ -83,8 +85,7 @@ public class AtomicModeTests
 
         response.validateErrorReport()
             .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
-
+            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
     }
 
     private JsonObject createWrongPayload()

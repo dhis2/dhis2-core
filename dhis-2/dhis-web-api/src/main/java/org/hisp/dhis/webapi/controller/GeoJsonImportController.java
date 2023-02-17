@@ -45,6 +45,7 @@ import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportParams;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
@@ -73,6 +74,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "data" )
 @RequestMapping( "/organisationUnits" )
 @RestController
 @AllArgsConstructor

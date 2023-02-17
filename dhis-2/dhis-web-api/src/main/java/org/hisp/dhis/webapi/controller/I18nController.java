@@ -32,6 +32,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -49,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = "/i18n" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

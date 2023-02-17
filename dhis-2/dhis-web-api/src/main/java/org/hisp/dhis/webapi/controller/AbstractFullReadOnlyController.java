@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
@@ -47,6 +45,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.Value;
+
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,15 +54,18 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
@@ -81,6 +84,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -89,14 +94,12 @@ import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -170,7 +173,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
      * storage and before it is returned to the view. Entity is null-safe.
      */
     protected void postProcessResponseEntity( T entity, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
     }
 
@@ -187,11 +189,27 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
+    @Value
+    @OpenApi.Shared( value = false )
+    private static class ObjectListResponse
+    {
+        @OpenApi.Property
+        Pager pager;
+
+        @OpenApi.Property( name = "path$", value = OpenApi.EntityType[].class )
+        List<Object> entries;
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
-        throws QueryParserException
+        throws ForbiddenException,
+        BadRequestException
     {
         List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -207,7 +225,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException(
+            throw new ForbiddenException(
                 "You don't have the proper permissions to read objects of this type." );
         }
 
@@ -250,6 +268,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
     @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -259,7 +280,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
         HttpServletResponse response )
         throws IOException,
-        WebMessageException
+        NotFoundException,
+        ConflictException,
+        ForbiddenException,
+        BadRequestException
     {
         List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -276,12 +300,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         // only support metadata
         if ( !getSchema().isMetadata() )
         {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
+            throw new NotFoundException( "Not a metadata object type: " + getEntityClass().getSimpleName() );
         }
 
         if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException(
+            throw new ForbiddenException(
                 "You don't have the proper permissions to read objects of this type." );
         }
 
@@ -371,9 +395,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         {
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-            throw new WebMessageException( conflict(
-                "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
-                ex.getMessage() ) );
+            throw new ConflictException(
+                "Invalid property selected. Make sure all properties are either simple or collections of refs / simple." )
+                    .setDevMessage( ex.getMessage() );
         }
     }
 
@@ -397,18 +421,23 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return null;
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
-        @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        throws ForbiddenException,
+        NotFoundException
     {
         if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException(
+            throw new ForbiddenException(
                 "You don't have the proper permissions to read objects of this type." );
         }
 
@@ -428,7 +457,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
@@ -451,14 +480,18 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
         @CurrentUser User currentUser,
         HttpServletResponse response )
-        throws Exception
+        throws ForbiddenException,
+        NotFoundException
     {
         if ( !"translations".equals( pvProperty ) )
         {
@@ -467,7 +500,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException(
+            throw new ForbiddenException(
                 "You don't have the proper permissions to read objects of this type." );
         }
 
@@ -491,14 +524,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @SuppressWarnings( "unchecked" )
     private ObjectNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User currentUser )
-        throws Exception
+        throws NotFoundException
     {
         WebOptions options = new WebOptions( parameters );
         List<T> entities = getEntity( uid, options );
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), uid ) );
+            throw new NotFoundException( getEntityClass(), uid );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
@@ -517,7 +550,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
+        FieldFilterParams<T> filterParams = FieldFilterParams.of( entities, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
 
         return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get( 0 );
     }
@@ -525,30 +559,27 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
-        throws QueryParserException
+        throws BadRequestException
     {
-        List<T> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
+        Query query = BadRequestException.on( QueryParserException.class,
+            () -> queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+                options.getRootJunction() ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         if ( options.getOptions().containsKey( "query" ) )
         {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            return Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
         }
-        else
-        {
-            entityList = (List<T>) queryService.query( query );
-        }
-
-        return entityList;
+        return (List<T>) queryService.query( query );
     }
 
     private long countTotal( WebOptions options, List<String> filters, List<Order> orders )
+        throws BadRequestException
     {
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction() );
+        Query query = BadRequestException.on( QueryParserException.class,
+            () -> queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+                options.getRootJunction() ) );
 
         return queryService.count( query );
     }

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.stereotype.Service;
@@ -38,22 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityTypeService" )
 public class DefaultTrackedEntityTypeService
     implements TrackedEntityTypeService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
-
-    public DefaultTrackedEntityTypeService( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
-    {
-        checkNotNull( trackedEntityTypeStore );
-
-        this.trackedEntityTypeStore = trackedEntityTypeStore;
-    }
 
     // -------------------------------------------------------------------------
     // TrackedEntityType

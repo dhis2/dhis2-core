@@ -52,8 +52,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -81,10 +80,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Halvdan Hoem Grelland
  */
-@Slf4j
-@Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Service
 public class DefaultValidationNotificationService implements ValidationNotificationService
 {
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr -> Objects.nonNull( vr ) &&
@@ -396,7 +394,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
         if ( limitToHierarchy )
         {
             orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include
-                                                                             // self
+                                                                            // self
             orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
 
             recipients = recipients.stream()

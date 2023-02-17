@@ -246,24 +246,6 @@ public class BaseDimensionalObject
     }
 
     @Override
-    public boolean hasItems()
-    {
-        return !getItems().isEmpty();
-    }
-
-    @Override
-    public boolean hasLegendSet()
-    {
-        return getLegendSet() != null;
-    }
-
-    @Override
-    public boolean hasProgramStage()
-    {
-        return getProgramStage() != null;
-    }
-
-    @Override
     public String getDimensionName()
     {
         return dimensionName != null ? dimensionName : uid;

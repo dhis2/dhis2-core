@@ -148,7 +148,7 @@ class ControlledJobProgressTest
         assertFalse( progress.isSkipCurrentStage() );
 
         progress.startingWorkItem( "4", PARENT ); // inherit the skip stage
-                                                  // behaviour
+                                                 // behaviour
         progress.failedWorkItem( "Oh no!" );
         assertTrue( progress.isSkipCurrentStage() );
         assertFalse( progress.isCancellationRequested() );

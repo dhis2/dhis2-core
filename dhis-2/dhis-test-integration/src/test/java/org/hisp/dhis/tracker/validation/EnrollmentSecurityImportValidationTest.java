@@ -52,8 +52,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,9 +180,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( trackerImportReport, 4, TrackerErrorCode.E1000 );
+        assertHasErrors( importReport, 4, ValidationCode.E1000 );
     }
 
     @Test
@@ -204,9 +203,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1104 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1104 );
     }
 
     @Test
@@ -227,9 +226,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1091 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1091 );
     }
 
     @Test
@@ -250,9 +249,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( importReport );
     }
 
     @Test
@@ -273,8 +272,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1104 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1104 );
     }
 }

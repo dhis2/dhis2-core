@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.sms;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.concurrent.ScheduledFuture;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.sms.SmsPublisher" )
 public class SmsPublisher
 {
@@ -42,18 +43,6 @@ public class SmsPublisher
     private final SmsConsumerThread smsConsumer;
 
     private final TaskScheduler taskScheduler;
-
-    public SmsPublisher( MessageQueue messageQueue, SmsConsumerThread smsConsumer, TaskScheduler taskScheduler )
-    {
-
-        checkNotNull( messageQueue );
-        checkNotNull( smsConsumer );
-        checkNotNull( taskScheduler );
-
-        this.messageQueue = messageQueue;
-        this.smsConsumer = smsConsumer;
-        this.taskScheduler = taskScheduler;
-    }
 
     private ScheduledFuture<?> future;
 

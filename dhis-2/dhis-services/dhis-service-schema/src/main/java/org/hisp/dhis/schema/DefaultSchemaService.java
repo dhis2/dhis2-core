@@ -67,7 +67,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -80,19 +79,19 @@ public class DefaultSchemaService
     implements SchemaService
 {
     // Simple alias map for our concrete implementations of the core interfaces
-    private static final ImmutableMap<Class<?>, Class<?>> BASE_ALIAS_MAP = ImmutableMap.<Class<?>, Class<?>> builder()
-        .put( IdentifiableObject.class, BaseIdentifiableObject.class )
-        .put( NameableObject.class, BaseNameableObject.class )
-        .put( DimensionalObject.class, BaseDimensionalObject.class )
-        .put( DimensionalItemObject.class, BaseDimensionalItemObject.class )
-        .put( AnalyticalObject.class, BaseAnalyticalObject.class )
-        .build();
+    private static final Map<Class<?>, Class<?>> BASE_ALIAS_MAP = Map.of(
+        IdentifiableObject.class, BaseIdentifiableObject.class,
+        NameableObject.class, BaseNameableObject.class,
+        DimensionalObject.class, BaseDimensionalObject.class,
+        DimensionalItemObject.class, BaseDimensionalItemObject.class,
+        AnalyticalObject.class, BaseAnalyticalObject.class );
 
     private final Map<Class<?>, SchemaDescriptor> descriptors = new ConcurrentHashMap<>();
 
     private void init()
     {
         register( new AggregateDataExchangeSchemaDescriptor() );
+        register( new EventHookSchemaDescriptor() );
         register( new AnalyticsTableHookSchemaDescriptor() );
         register( new AttributeSchemaDescriptor() );
         register( new AttributeValueSchemaDescriptor() );
@@ -155,6 +154,7 @@ public class DefaultSchemaService
         register( new ProgramStageDataElementSchemaDescriptor() );
         register( new ProgramStageSchemaDescriptor() );
         register( new ProgramStageSectionSchemaDescriptor() );
+        register( new ProgramStageWorkingListSchemaDescriptor() );
         register( new ProgramSectionSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() );
@@ -215,6 +215,7 @@ public class DefaultSchemaService
         register( new OutlierAnalysisSchemaDescriptor() );
         register( new ItemConfigSchemaDescriptor() );
         register( new LayoutSchemaDescriptor() );
+        register( new RouteSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -314,12 +315,6 @@ public class DefaultSchemaService
             return null;
         }
 
-        if ( klass.getName().contains( "Proxy" ) )
-        {
-            log.error( "Error, can't use Hibernate proxy class names!!!" );
-            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
-        }
-
         if ( classSchemaMap.containsKey( klass ) )
         {
             return classSchemaMap.get( klass );
@@ -340,12 +335,6 @@ public class DefaultSchemaService
         {
             log.error( "getDynamicSchema() Error, input class should not be null!" );
             return null;
-        }
-
-        if ( klass.getName().contains( "Proxy" ) )
-        {
-            log.error( "Error, can't use Hibernate proxy class names!!!" );
-            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
         Schema schema = getSchema( klass );
@@ -436,7 +425,7 @@ public class DefaultSchemaService
 
     private void updateSelf( Schema schema )
     {
-        if ( schema.haveProperty( PROPERTY_SCHEMA ) )
+        if ( schema.hasProperty( PROPERTY_SCHEMA ) )
         {
             Property property = schema.getProperty( PROPERTY_SCHEMA );
             schema.setName( property.getName() );

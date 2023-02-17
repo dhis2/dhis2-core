@@ -35,6 +35,7 @@ package org.hisp.dhis.common;
  * <li>PROVIDED: The user provided in the param/payload.</li>
  * <li>NONE: Unassigned.</li>
  * <li>ANY: Assigned to anyone.</li>
+ * <li>ALL: all events irrespective of whether a user is assigned.</li>
  * </ul>
  *
  * @author Ameen Mohamed
@@ -44,5 +45,6 @@ public enum AssignedUserSelectionMode
     CURRENT,
     PROVIDED,
     NONE,
-    ANY;
+    ANY,
+    ALL;
 }

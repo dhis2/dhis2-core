@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
@@ -72,8 +74,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalDto;
@@ -98,6 +100,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -149,11 +152,11 @@ public class DataApprovalController
     @ResponseBody
     @ResponseStatus( HttpStatus.OK )
     public DataApprovalPermissions getApprovalPermissions(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) String wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
@@ -175,12 +178,12 @@ public class DataApprovalController
     @ResponseBody
     @ResponseStatus( HttpStatus.OK )
     public List<ApprovalStatusDto> getMultipleApprovalPermissions(
-        @RequestParam Set<String> wf,
-        @RequestParam( required = false ) Set<String> pe,
+        @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam Set<String> wf,
+        @OpenApi.Param( Period[].class ) @RequestParam( required = false ) Set<String> pe,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> ou,
-        @RequestParam( required = false ) Set<String> aoc )
+        @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam Set<String> ou,
+        @OpenApi.Param( { UID[].class, CategoryOptionCombo.class } ) @RequestParam( required = false ) Set<String> aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
@@ -266,11 +269,11 @@ public class DataApprovalController
 
     @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
-        @RequestParam Set<String> ds,
-        @RequestParam( required = false ) String pe,
+        @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam Set<String> ds,
+        @OpenApi.Param( Period.class ) @RequestParam( required = false ) String pe,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> ou,
+        @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam Set<String> ou,
         @RequestParam( required = false ) boolean children,
         HttpServletResponse response )
         throws WebMessageException,
@@ -371,15 +374,19 @@ public class DataApprovalController
     @ResponseBody
     @ResponseStatus( HttpStatus.OK )
     public List<Map<String, Object>> getApprovalByCategoryOptionCombos(
-        @RequestParam( required = false ) Set<String> ds,
-        @RequestParam( required = false ) Set<String> wf,
-        @RequestParam String pe,
-        @RequestParam( required = false ) String ou )
+        @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam( required = false ) Set<String> ds,
+        @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) Set<String> wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ouFilter,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
@@ -400,7 +407,7 @@ public class DataApprovalController
             for ( CategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    attributeCombo ) );
+                    orgUnitFilter, attributeCombo, attributeOptionCombo ) );
             }
         }
 
@@ -438,11 +445,11 @@ public class DataApprovalController
     @PostMapping( value = APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) String wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
@@ -483,11 +490,11 @@ public class DataApprovalController
     @PostMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void acceptApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) String wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
@@ -528,11 +535,11 @@ public class DataApprovalController
     @DeleteMapping( APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApproval(
-        @RequestParam( required = false ) Set<String> ds,
-        @RequestParam( required = false ) Set<String> wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam( required = false ) Set<String> ds,
+        @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) Set<String> wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
@@ -559,11 +566,11 @@ public class DataApprovalController
     @DeleteMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void unacceptApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID.class, DataSet.class } ) @RequestParam( required = false ) String ds,
+        @OpenApi.Param( { UID.class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) String wf,
+        @OpenApi.Param( Period.class ) @RequestParam String pe,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );

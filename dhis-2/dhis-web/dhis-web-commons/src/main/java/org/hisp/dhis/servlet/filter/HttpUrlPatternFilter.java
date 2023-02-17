@@ -121,7 +121,7 @@ public abstract class HttpUrlPatternFilter
         else
         {
             chain.doFilter( request, response ); // Ignore this filter and
-                                                 // proceed
+                                                // proceed
         }
     }
 

@@ -27,25 +27,7 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_URI;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_SECRET;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DISPLAY_ALIAS;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_LOGOUT;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_PKCE;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_ENDPOINT;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTERNAL_CLIENT_PREFIX;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ISSUER_URI;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE_PADDING;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.MAPPING_CLAIM;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.PROVIDER_ID;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT_URL;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.SCOPES;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.TOKEN_URI;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USERINFO_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,7 +51,6 @@ import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -88,7 +69,7 @@ public final class GenericOidcProviderConfigParser
      * will be ignored by this parser, these clients/providers have their own
      * respective provider classes and config parsers.
      */
-    private static final Set<String> RESERVED_PROVIDER_IDS = ImmutableSet.of(
+    private static final Set<String> RESERVED_PROVIDER_IDS = Set.of(
         "azure",
         "google",
         "wso2" );
@@ -117,6 +98,15 @@ public final class GenericOidcProviderConfigParser
         builder.put( LOGIN_IMAGE_PADDING, Boolean.FALSE );
         builder.put( EXTRA_REQUEST_PARAMETERS, Boolean.FALSE );
         builder.put( ISSUER_URI, Boolean.FALSE );
+
+        // private_key_jwt related
+        builder.put( JWT_PRIVATE_KEY_KEYSTORE_PATH, Boolean.FALSE );
+        builder.put( JWT_PRIVATE_KEY_KEYSTORE_PASSWORD, Boolean.FALSE );
+        builder.put( JWT_PRIVATE_KEY_ALIAS, Boolean.FALSE );
+        builder.put( JWT_PRIVATE_KEY_PASSWORD, Boolean.FALSE );
+        builder.put( AUTHORIZATION_GRANT_TYPE, Boolean.FALSE );
+        builder.put( CLIENT_AUTHENTICATION_METHOD, Boolean.FALSE );
+        builder.put( JWK_SET_URL, Boolean.FALSE );
 
         KEY_REQUIRED_MAP = builder.build();
     }
@@ -327,7 +317,7 @@ public final class GenericOidcProviderConfigParser
      * finally logs the error to the logger.
      *
      * @param providerName Provider name
-     * @param nonValidKeys Set of non valid key names
+     * @param nonValidKeys Set of non-valid key names
      */
     private static void checkAndLogInvalidKeyNames( String providerName, Sets.SetView<String> nonValidKeys )
     {
@@ -362,10 +352,10 @@ public final class GenericOidcProviderConfigParser
      * distance is less than the max distance set in the keyAndMaxDist it
      * updates the keyAndMaxDist with that key (aka. the most similar)
      *
-     * @param wrongKeyName The non valid key name to check against the valid
+     * @param wrongKeyName The non-valid key name to check against the valid
      *        ones.
      * @param keyAndMaxDist A pair of a maximum interesting Levenshtein distance
-     *        and a place holder for the valid key name.
+     *        and a placeholder for the valid key name.
      *
      * @return keyAndMinDist with possibly valid key name if there was a match
      *         with a valid key with less than the maximum Levenshtein distance.

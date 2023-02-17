@@ -1,0 +1,85 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: indicators_duplicated_terms
+description: Indicators with the same terms.
+section: Indicators
+section_order: 7
+summary_uid: gsOyEd4aHT6
+summary_sql: >-
+    WITH duplicated_indicators as (
+    SELECT unnest(indicatorids) from (
+    SELECT sorted_expression,
+    array_agg(indicatorid) as indicatorids from (
+    SELECT a.indicatorid,
+    replace(array_to_string(b.sorted_vals,''),' ','') as sorted_expression from (
+    SELECT indicatorid, numerator, denominator from indicator ) a
+    LEFT JOIN LATERAL (
+    SELECT array_agg(vals.x) as sorted_vals FROM (
+    SELECT unnest(regexp_split_to_array(numerator || denominator,'')) as x
+    where indicatorid = a.indicatorid ORDER BY x ASC ) vals ) b ON TRUE) c
+    GROUP BY sorted_expression) d 
+      where array_length(indicatorids,1) > 1)   
+    SELECT COUNT(*) as count,
+    100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM indicator), 0) as percent
+    from duplicated_indicators;
+details_uid: oqHwQcfFw1W
+details_sql: >-
+    WITH duplicated_indicators as (
+    SELECT a.indicatorid,
+    replace(array_to_string(b.sorted_vals,''),' ','') as sorted_expression from (
+    SELECT indicatorid, numerator, denominator from indicator ) a
+    LEFT JOIN LATERAL (
+    SELECT array_agg(vals.x) as sorted_vals FROM (
+    SELECT unnest(regexp_split_to_array(numerator || denominator,'')) as x
+    where indicatorid = a.indicatorid ORDER BY x ASC ) vals ) b ON TRUE)
+    SELECT f.uid,f.name, f.numerator || '/' ||  f.denominator as comment
+    FROM indicator f
+    INNER JOIN (
+    SELECT unnest(indicatorids) as indicatorid FROM (
+    SELECT indicatorids,array_length(indicatorids,1) indicator_count FROM (
+    SELECT sorted_expression,array_agg(indicatorid) as indicatorids
+    FROM duplicated_indicators
+    GROUP BY sorted_expression) as c ) as d
+    WHERE indicator_count > 1 ) e
+    on e.indicatorid = f.indicatorid;
+details_id_type: indicators
+severity: WARNING
+introduction: >
+    Indicators should generally have unique formulas. This metadata check attempts
+    to identify indicators with the same formulas, regardless of the order of their 
+    their terms. Suppose you have an indicator which calculates total ANC attendance:
+    ANC Total = ANC1 + ANC2 + ANC3
+    Suppose then another indicator exists in the system, which has been defined as: 
+    ANC Totals = ANC3 + ANC2 + ANC1
+    These two indicators are equivalent, and will produce the same result, and are thus
+    considered to be duplicated.
+recommendation: >
+    Duplicative indicators should be considered to be removed from the system, since
+    they may cause confusion on the part of users as to which one should be used. 
+    Considered deleting all but one of the duplicated indicators using the maintenance
+    app. 

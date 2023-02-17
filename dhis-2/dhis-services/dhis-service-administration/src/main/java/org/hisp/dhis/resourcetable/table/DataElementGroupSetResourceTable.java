@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class DataElementGroupSetResourceTable
     extends ResourceTable<DataElementGroupSet>
 {
-    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects )
+    private final String tableType;
+
+    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "dataelementid bigint not null, " +
             "dataelementname varchar(230), ";
 
@@ -85,16 +88,18 @@ public class DataElementGroupSetResourceTable
             sql += "(" +
                 "select deg.name from dataelementgroup deg " +
                 "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid " +
-                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join dataelementgroupsetmembers degsm on " +
+                "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " +
+                groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select deg.uid from dataelementgroup deg " +
                 "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid " +
-                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join dataelementgroupsetmembers degsm on " +
+                "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " +
+                groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

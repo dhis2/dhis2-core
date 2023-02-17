@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,6 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.dxf2.events.TrackerAccessManager" )
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
@@ -60,18 +61,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private final TrackerOwnershipManager ownershipAccessManager;
 
     private final OrganisationUnitService organisationUnitService;
-
-    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( aclService );
-        checkNotNull( ownershipAccessManager );
-        checkNotNull( organisationUnitService );
-
-        this.aclService = aclService;
-        this.ownershipAccessManager = ownershipAccessManager;
-        this.organisationUnitService = organisationUnitService;
-    }
 
     @Override
     public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance )

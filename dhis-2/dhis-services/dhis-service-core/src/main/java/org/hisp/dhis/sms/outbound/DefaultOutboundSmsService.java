@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,24 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
  * forwards the request to a {@link org.hisp.dhis.sms.config.SmsMessageSender
  * sms transport service} for sending.
  */
-
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.sms.outbound.OutboundSmsService" )
 @Transactional
 public class DefaultOutboundSmsService
     implements OutboundSmsService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final OutboundSmsStore outboundSmsStore;
-
-    public DefaultOutboundSmsService( OutboundSmsStore outboundSmsStore )
-    {
-        checkNotNull( outboundSmsStore );
-
-        this.outboundSmsStore = outboundSmsStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

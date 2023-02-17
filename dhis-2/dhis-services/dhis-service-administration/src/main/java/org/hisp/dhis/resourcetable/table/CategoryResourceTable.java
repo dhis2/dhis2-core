@@ -46,12 +46,15 @@ import com.google.common.collect.Lists;
 public class CategoryResourceTable
     extends ResourceTable<Category>
 {
-    private List<CategoryOptionGroupSet> groupSets;
+    private final List<CategoryOptionGroupSet> groupSets;
 
-    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets )
+    private final String tableType;
+
+    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets, String tableType )
     {
         super( objects );
         this.groupSets = groupSets;
+        this.tableType = tableType;
     }
 
     @Override
@@ -63,11 +66,12 @@ public class CategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "categoryoptioncomboid bigint not null, " +
             "categoryoptioncomboname varchar(255), ";
 
         UniqueNameContext nameContext = new UniqueNameContext();
+
         for ( Category category : objects )
         {
             statement += quote( nameContext.uniqueName( category.getShortName() ) ) + " varchar(230), ";
@@ -116,8 +120,8 @@ public class CategoryResourceTable
                 "select cog.name from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
+                "inner join categoryoptiongroupsetmembers cogsm on " +
+                "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
@@ -126,8 +130,8 @@ public class CategoryResourceTable
                 "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
+                "inner join categoryoptiongroupsetmembers cogsm on " +
+                "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
@@ -40,6 +39,8 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -50,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramExpressionService" )
 public class DefaultProgramExpressionService
     implements ProgramExpressionService
@@ -58,28 +60,12 @@ public class DefaultProgramExpressionService
         + SEPARATOR_OBJECT + "([a-zA-Z0-9\\- ]+[" + SEPARATOR_ID + "([a-zA-Z0-9\\- ]|" + DUE_DATE + "|" + REPORT_DATE
         + ")+]*)\\]";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
+    @Qualifier( "org.hisp.dhis.program.ProgramExpressionStore" )
     private final GenericStore<ProgramExpression> programExpressionStore;
 
     private final ProgramStageService programStageService;
 
     private final DataElementService dataElementService;
-
-    public DefaultProgramExpressionService(
-        @Qualifier( "org.hisp.dhis.program.ProgramExpressionStore" ) GenericStore<ProgramExpression> programExpressionStore,
-        ProgramStageService programStageService, DataElementService dataElementService )
-    {
-        checkNotNull( programExpressionStore );
-        checkNotNull( programStageService );
-        checkNotNull( dataElementService );
-
-        this.programExpressionStore = programExpressionStore;
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-    }
 
     // -------------------------------------------------------------------------
     // ProgramExpression CRUD operations

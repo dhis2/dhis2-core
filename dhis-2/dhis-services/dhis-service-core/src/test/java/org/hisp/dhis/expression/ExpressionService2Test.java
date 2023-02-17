@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -117,7 +118,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class ExpressionService2Test extends DhisConvenienceTest
 {
-
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
 
@@ -379,7 +379,7 @@ class ExpressionService2Test extends DhisConvenienceTest
         switch ( type )
         {
         case DATA_ELEMENT:
-            return new DimensionalItemId( type, o.getUid() );
+            return new DimensionalItemId( type, o.getUid(), null, null, o.getDimensionItem() );
 
         case DATA_ELEMENT_OPERAND:
             DataElementOperand deo = (DataElementOperand) o;
@@ -418,6 +418,7 @@ class ExpressionService2Test extends DhisConvenienceTest
         }
     }
 
+    @SafeVarargs
     private <T extends IdentifiableObject> Map<String, T> getMap( T... idObjects )
     {
         return IdentifiableObjectUtils.getIdMap( List.of( idObjects ), IdScheme.UID );
@@ -439,11 +440,9 @@ class ExpressionService2Test extends DhisConvenienceTest
 
     private void mockConstantService()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        when( constantService.getConstantMap() ).thenReturn( Map.of(
+            constantA.getUid(), constantA,
+            constantB.getUid(), constantB ) );
     }
 
     // -------------------------------------------------------------------------
@@ -483,6 +482,22 @@ class ExpressionService2Test extends DhisConvenienceTest
         assertTrue( itemIds.contains( getId( pdeA ) ) );
         assertTrue( itemIds.contains( getId( pteaA ) ) );
         assertTrue( itemIds.contains( getId( piA ) ) );
+    }
+
+    @Test
+    void testGetExpressionDimensionalItemIdsWithDeGroup()
+    {
+        mockConstantService();
+
+        String deGroupUid = "deGroupUidA";
+        String expr = "#{deGroup:" + deGroupUid + "}";
+
+        DimensionalItemId itemId = new DimensionalItemId( DATA_ELEMENT, "deGroup:" + deGroupUid, null, null, expr );
+
+        Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( expr, INDICATOR_EXPRESSION );
+
+        assertEquals( 1, itemIds.size() );
+        assertTrue( itemIds.contains( itemId ) );
     }
 
     @Test
@@ -814,7 +829,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
@@ -852,7 +867,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ), getId( opE ), getId( opF ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA,
             getId( opE ), opE,
             getId( opF ), opF );
@@ -1009,7 +1024,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
@@ -1059,7 +1074,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA );
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );

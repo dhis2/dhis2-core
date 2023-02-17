@@ -39,7 +39,8 @@ import org.hisp.dhis.cache.CacheInfo;
 import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
 import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
 import org.hisp.dhis.cache.CappedLocalCache;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -58,6 +59,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "system" )
+@OpenApi.Ignore
 @Controller
 @RequestMapping( value = "/caches" )
 @RequiredArgsConstructor

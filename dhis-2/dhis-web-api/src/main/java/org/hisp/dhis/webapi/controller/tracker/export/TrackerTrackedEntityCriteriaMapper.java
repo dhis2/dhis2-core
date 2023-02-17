@@ -27,17 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,13 +49,15 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -97,6 +103,8 @@ public class TrackerTrackedEntityCriteriaMapper
 
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
+        throws BadRequestException,
+        ForbiddenException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -107,7 +115,6 @@ public class TrackerTrackedEntityCriteriaMapper
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
-        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
@@ -125,6 +132,8 @@ public class TrackerTrackedEntityCriteriaMapper
         List<QueryItem> attributeItems = parseAttributeQueryItems( criteria.getAttribute(), attributes );
 
         List<QueryItem> filters = parseAttributeQueryItems( criteria.getFilter(), attributes );
+
+        validateDuplicatedAttributeFilters( filters );
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
         validateOrderParams( orderParams, attributes );
@@ -150,8 +159,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventOccurredAfter() )
             .setEventEndDate( criteria.getEventOccurredBefore() )
-            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( assignedUserIds )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
             .setTrackedEntityInstanceUids( trackedEntities )
             .setAttributes( attributeItems )
             .setFilters( filters )
@@ -159,15 +167,59 @@ public class TrackerTrackedEntityCriteriaMapper
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
             .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setUser( user )
+            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
             .setOrders( orderParams );
+
         return params;
     }
 
+    private void validateDuplicatedAttributeFilters( List<QueryItem> attributeItems )
+        throws BadRequestException
+    {
+        Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes( attributeItems );
+
+        if ( !duplicatedAttributes.isEmpty() )
+        {
+            List<String> errorMessages = new ArrayList<>();
+            for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
+            {
+                List<String> duplicateDFilters = getDuplicateDFilters( attributeItems, duplicatedAttribute );
+                String message = MessageFormat.format( "Filter for attribute {0} was specified more than once. " +
+                    "Try to define a single filter with multiple operators [{0}:{1}]",
+                    duplicatedAttribute.getUid(), StringUtils.join( duplicateDFilters, ':' ) );
+                errorMessages.add( message );
+            }
+
+            throw new BadRequestException( StringUtils.join( errorMessages, ", " ) );
+        }
+    }
+
+    private List<String> getDuplicateDFilters( List<QueryItem> attributeItems,
+        DimensionalItemObject duplicatedAttribute )
+    {
+        return attributeItems.stream()
+            .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
+            .flatMap( q -> q.getFilters().stream() )
+            .map( f -> f.getOperator() + ":" + f.getFilter() )
+            .collect( Collectors.toList() );
+    }
+
+    private Set<DimensionalItemObject> getDuplicatedAttributes( List<QueryItem> attributeItems )
+    {
+        return attributeItems.stream()
+            .collect( Collectors.groupingBy( QueryItem::getItem, Collectors.counting() ) )
+            .entrySet().stream()
+            .filter( m -> m.getValue() > 1 )
+            .map( Map.Entry::getKey )
+            .collect( Collectors.toSet() );
+    }
+
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+        throws BadRequestException,
+        ForbiddenException
     {
 
         Set<OrganisationUnit> orgUnits = new HashSet<>();
@@ -177,14 +229,14 @@ public class TrackerTrackedEntityCriteriaMapper
 
             if ( orgUnit == null )
             {
-                throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnitId );
+                throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
             }
 
             if ( user != null && !user.isSuper()
                 && !organisationUnitService.isInUserHierarchy( orgUnit.getUid(),
                     user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
-                throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnitId );
+                throw new ForbiddenException( "Organisation unit is not part of the search scope: " + orgUnitId );
             }
             orgUnits.add( orgUnit );
         }
@@ -198,6 +250,7 @@ public class TrackerTrackedEntityCriteriaMapper
      * QueryOperator is used as operator if not specified.
      */
     private QueryFilter getQueryFilter( String query )
+        throws BadRequestException
     {
         if ( query == null || query.isEmpty() )
         {
@@ -214,7 +267,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
             if ( split.length != 2 )
             {
-                throw new IllegalQueryException( "Query has invalid format: " + query );
+                throw new BadRequestException( "Query has invalid format: " + query );
             }
 
             QueryOperator op = QueryOperator.fromString( split[0] );
@@ -224,14 +277,16 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private static void validateProgram( String id, Program program )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && program == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + id );
+            throw new BadRequestException( "Program is specified but does not exist: " + id );
         }
     }
 
     private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
+        throws BadRequestException
     {
 
         final String programStage = criteria.getProgramStage();
@@ -240,7 +295,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
         if ( programStage != null && ps == null )
         {
-            throw new IllegalQueryException( "Program does not contain the specified programStage: " + programStage );
+            throw new BadRequestException( "Program does not contain the specified programStage: " + programStage );
         }
         return ps;
     }
@@ -257,36 +312,24 @@ public class TrackerTrackedEntityCriteriaMapper
     }
 
     private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
-            throw new IllegalQueryException( "Tracked entity type does not exist: " + id );
-        }
-    }
-
-    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
-    {
-        if ( mode == null )
-        {
-            return;
-        }
-
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+            throw new BadRequestException( "Tracked entity type does not exist: " + id );
         }
     }
 
     private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( findColumn( orderParam.getField() ).isEmpty() && !attributes.containsKey( orderParam.getField() ) )
                 {
-                    throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
+                    throw new BadRequestException( "Invalid order property: " + orderParam.getField() );
                 }
             }
         }

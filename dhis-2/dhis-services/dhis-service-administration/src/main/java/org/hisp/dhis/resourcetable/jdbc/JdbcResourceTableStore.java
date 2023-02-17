@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -49,6 +48,7 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.resourcetable.ResourceTableStore" )
 public class JdbcResourceTableStore
     implements ResourceTableStore
@@ -64,20 +64,6 @@ public class JdbcResourceTableStore
     private final StatementBuilder statementBuilder;
 
     private final JdbcTemplate jdbcTemplate;
-
-    public JdbcResourceTableStore( AnalyticsTableHookService analyticsTableHookService, DbmsManager dbmsManager,
-        StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( analyticsTableHookService );
-        checkNotNull( dbmsManager );
-        checkNotNull( statementBuilder );
-        checkNotNull( jdbcTemplate );
-
-        this.analyticsTableHookService = analyticsTableHookService;
-        this.dbmsManager = dbmsManager;
-        this.statementBuilder = statementBuilder;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     // -------------------------------------------------------------------------
     // ResourceTableStore implementation

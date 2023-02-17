@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -67,6 +68,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( "/schemas" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -144,7 +146,7 @@ public class SchemaController
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
         }
 
-        if ( schema.haveProperty( property ) )
+        if ( schema.hasProperty( property ) )
         {
             return schema.getProperty( property );
         }

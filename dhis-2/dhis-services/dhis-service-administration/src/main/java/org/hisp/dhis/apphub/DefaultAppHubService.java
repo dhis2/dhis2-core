@@ -44,7 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
@@ -62,7 +62,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAppHubService implements AppHubService
 {
     private final RestTemplate restTemplate;

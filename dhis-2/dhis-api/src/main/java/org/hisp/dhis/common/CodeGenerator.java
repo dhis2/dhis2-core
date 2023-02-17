@@ -94,6 +94,22 @@ public class CodeGenerator
     }
 
     /**
+     * Generates a random token encoded in Base64
+     *
+     * @param lengthInBytes length in bytes of the token
+     * @return a Base64 encoded string of the token
+     */
+    public static String getRandomNonSecureToken( int lengthInBytes )
+    {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        byte[] tokenBytes = new byte[lengthInBytes];
+        random.nextBytes( tokenBytes );
+
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString( tokenBytes );
+    }
+
+    /**
      * Generates a cryptographically strong random token encoded in Base64
      *
      * @param lengthInBytes length in bytes of the token

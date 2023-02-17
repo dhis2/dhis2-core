@@ -60,7 +60,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -175,7 +174,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
     {
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
+        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = Map.of( uniqueAttribute,
             List.of( UNIQUE_VALUE ) );
         List<TrackedEntityAttributeValue> attributeValues = List.of( trackedEntityAttributeValue );
         when( trackedEntityAttributeValueService.getUniqueAttributeByValues( trackedEntityAttributeListMap ) )
@@ -194,7 +193,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
     {
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
+        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = Map.of( uniqueAttribute,
             List.of( UNIQUE_VALUE ) );
         List<TrackedEntityAttributeValue> attributeValues = List.of( trackedEntityAttributeValue );
         when( trackedEntityAttributeValueService.getUniqueAttributeByValues( trackedEntityAttributeListMap ) )

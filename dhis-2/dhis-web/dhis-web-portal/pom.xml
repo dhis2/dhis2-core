@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -13,8 +13,68 @@
     <packaging>war</packaging>
     <name>DHIS Web Portal</name>
 
+    <profiles>
+        <profile>
+            <!-- used to build and push multi-architecture images -->
+            <id>jibBuild</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <configuration>
+                            <from>
+                                <platforms>
+                                    <platform>
+                                        <architecture>amd64</architecture>
+                                        <os>linux</os>
+                                    </platform>
+                                    <platform>
+                                        <architecture>arm64</architecture>
+                                        <os>linux</os>
+                                    </platform>
+                                </platforms>
+                            </from>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- used to automatically build images for arm64 on Mac without users needing to configure Jib -->
+            <id>jibBuildArmOnly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <configuration>
+                            <from>
+                                <platforms>
+                                    <platform>
+                                        <architecture>arm64</architecture>
+                                        <os>linux</os>
+                                    </platform>
+                                </platforms>
+                            </from>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <finalName>dhis</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
@@ -46,11 +106,11 @@
                                 <rules>
                                     <rule>
                                         <glob>/opt/dhis2</glob>
-                                        <ownership>${jib.container.user}</ownership>
+                                        <ownership>${jib.container.user}:${jib.container.user}</ownership>
                                     </rule>
                                     <rule>
                                         <glob>/opt/dhis2/**</glob>
-                                        <ownership>${jib.container.user}</ownership>
+                                        <ownership>${jib.container.user}:${jib.container.user}</ownership>
                                     </rule>
                                 </rules>
                             </configuration>
@@ -96,10 +156,10 @@
     </dependencies>
     <properties>
         <rootDir>../../</rootDir>
-        <jib.version>3.3.0</jib.version>
+        <jib.version>3.3.1</jib.version>
         <jib.from.image>tomcat:9.0-jre11</jib.from.image>
         <jib.to.image>dhis2/core-dev:local</jib.to.image>
-        <!-- uid=65534(nobody) present in Tomcat image -->
+        <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
         <jib.container.user>65534</jib.container.user>
         <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
     </properties>

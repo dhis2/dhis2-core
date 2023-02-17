@@ -30,9 +30,12 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
 
+@Getter
 public class DataQueryRequest
 {
     protected Set<String> dimension;
@@ -99,164 +102,9 @@ public class DataQueryRequest
 
     protected DhisApiVersion apiVersion;
 
-    public Set<String> getDimension()
+    public boolean hasAggregationType()
     {
-        return dimension;
-    }
-
-    public Set<String> getFilter()
-    {
-        return filter;
-    }
-
-    public AggregationType getAggregationType()
-    {
-        return aggregationType;
-    }
-
-    public String getMeasureCriteria()
-    {
-        return measureCriteria;
-    }
-
-    public String getPreAggregationMeasureCriteria()
-    {
-        return preAggregationMeasureCriteria;
-    }
-
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public SortOrder getOrder()
-    {
-        return order;
-    }
-
-    public String getTimeField()
-    {
-        return timeField;
-    }
-
-    public String getOrgUnitField()
-    {
-        return orgUnitField;
-    }
-
-    public boolean isSkipMeta()
-    {
-        return skipMeta;
-    }
-
-    public boolean isSkipData()
-    {
-        return skipData;
-    }
-
-    public boolean isSkipRounding()
-    {
-        return skipRounding;
-    }
-
-    public boolean isCompletedOnly()
-    {
-        return completedOnly;
-    }
-
-    public boolean isHierarchyMeta()
-    {
-        return hierarchyMeta;
-    }
-
-    public boolean isIgnoreLimit()
-    {
-        return ignoreLimit;
-    }
-
-    public boolean isHideEmptyRows()
-    {
-        return hideEmptyRows;
-    }
-
-    public boolean isHideEmptyColumns()
-    {
-        return hideEmptyColumns;
-    }
-
-    public boolean isShowHierarchy()
-    {
-        return showHierarchy;
-    }
-
-    public boolean isIncludeNumDen()
-    {
-        return includeNumDen;
-    }
-
-    public boolean isIncludeMetadataDetails()
-    {
-        return includeMetadataDetails;
-    }
-
-    public DisplayProperty getDisplayProperty()
-    {
-        return displayProperty;
-    }
-
-    public IdScheme getOutputIdScheme()
-    {
-        return outputIdScheme;
-    }
-
-    public IdScheme getOutputDataElementIdScheme()
-    {
-        return outputDataElementIdScheme;
-    }
-
-    public IdScheme getOutputOrgUnitIdScheme()
-    {
-        return outputOrgUnitIdScheme;
-    }
-
-    public IdScheme getInputIdScheme()
-    {
-        return inputIdScheme;
-    }
-
-    public String getApprovalLevel()
-    {
-        return approvalLevel;
-    }
-
-    public Date getRelativePeriodDate()
-    {
-        return relativePeriodDate;
-    }
-
-    public String getUserOrgUnit()
-    {
-        return userOrgUnit;
-    }
-
-    public UserOrgUnitType getUserOrgUnitType()
-    {
-        return userOrgUnitType;
-    }
-
-    public DhisApiVersion getApiVersion()
-    {
-        return apiVersion;
-    }
-
-    public boolean isDuplicatesOnly()
-    {
-        return duplicatesOnly;
+        return aggregationType != null;
     }
 
     public static DataQueryRequestBuilder newBuilder()

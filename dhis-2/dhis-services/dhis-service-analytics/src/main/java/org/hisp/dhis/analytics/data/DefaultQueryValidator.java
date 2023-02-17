@@ -47,14 +47,10 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Component;
 
@@ -69,12 +65,6 @@ import com.google.common.collect.Lists;
 public class DefaultQueryValidator
     implements QueryValidator
 {
-    private final SystemSettingManager systemSettingManager;
-
-    // -------------------------------------------------------------------------
-    // QueryValidator implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public void validate( DataQueryParams params )
         throws IllegalQueryException
@@ -101,9 +91,8 @@ public class DefaultQueryValidator
             throw new IllegalQueryException( ErrorCode.E7100 );
         }
 
-        List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements()
-            .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        List<DimensionalItemObject> dataElements = Lists
+            .newArrayList( params.getDataElementsOperandsProgramDataElements() );
         List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
             AggregatableDataElementFilter.INSTANCE );
 
@@ -233,17 +222,4 @@ public class DefaultQueryValidator
             throw new IllegalQueryException( violation );
         }
     }
-
-    @Override
-    public void validateMaintenanceMode()
-        throws MaintenanceModeException
-    {
-        boolean maintenance = systemSettingManager.getBoolSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE );
-
-        if ( maintenance )
-        {
-            throw new MaintenanceModeException( "Analytics engine is in maintenance mode, try again later" );
-        }
-    }
-
 }

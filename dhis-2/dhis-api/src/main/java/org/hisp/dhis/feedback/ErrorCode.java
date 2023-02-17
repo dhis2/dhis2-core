@@ -36,6 +36,10 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
+    E1003( "API query contains errors" ),
+    E1004( "API query cannot be performed" ),
+    E1005( "API query object not found" ),
+    E1006( "API request not permitted for the current user" ),
 
     /* Basic metadata */
     E1100( "Data element not found or not accessible: `{0}`" ),
@@ -167,12 +171,19 @@ public enum ErrorCode
     E3019( "Sharing is not enabled for this object `{0}`" ),
     E3020( "You must have permissions to create user, or ability to manage at least one user group for the user" ),
     E3021( "Not allowed to disable 2FA for current user" ),
-    E3022( "User already has two factor authentication enabled, disable 2FA before you create a new QR code" ),
+    E3022( "User has two factor authentication enabled, disable 2FA before you create a new QR code" ),
     E3023( "Invalid 2FA code" ),
     E3024( "Not allowed to disable 2FA" ),
-    E3025( "User must have a secret" ),
+    E3025( "No current user" ),
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
+    E3028( "User must have a secret" ),
+    E3029( "User must call the /qrCode endpoint first" ),
+    E3030(
+        "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" ),
+    E3031( "Two factor authentication is not enabled" ),
+    E3032( "User `{0}` does not have access to user role" ),
+    E3040( "Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
@@ -240,6 +251,15 @@ public enum ErrorCode
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
+    E4061(
+        "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
+    E4062( "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `{0}`" ),
+    E4063( "Assigned users cannot be empty when assigned user mode is set to PROVIDED" ),
+    E4064( "Organisation unit cannot be empty with `{0}` org unit mode" ),
+    E4065( "Data item UID is missing in filter" ),
+    E4066( "No data element found for item: `{0}`" ),
+    E4067( "Attribute UID is missing in filter" ),
+    E4068( "No tracked entity attribute found for attribute: `{0}`" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -267,6 +287,7 @@ public enum ErrorCode
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found" ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
+    E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one program instance" ),
@@ -323,10 +344,15 @@ public enum ErrorCode
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
     E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),
     E7004( "Cron expression must be not null for job with scheduling type CRON: `{0}`" ),
-    E7005( "Cron expression is invalid for job: `{0}` " ),
+    E7005( "Cron expression is invalid: `{0}`" ),
     E7006( "Failed to execute job: `{0}`" ),
     E7007( "Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime: `{0}`" ),
+    E7020( "Job queue does not exist: `{0}`" ),
+    E7021( "Job queue already exist: `{0}`" ),
+    E7022( "Job `{0}` is already used in another queue: `{1}`" ),
+    E7023( "Job `{0}` is a system job and as such cannot be added to a queue.`" ),
+    E7024( "Job queue must have at least two jobs." ),
 
     /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
@@ -396,10 +422,11 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
-    E7229( "Operator `{0}` does not allow missing value" ),
+    E7229( "Query operator `{0}` does not allow missing values" ),
     E7230( "Header param `{0}` does not exist" ),
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
+    E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
@@ -446,7 +473,7 @@ public enum ErrorCode
     E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
-    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`" ),
     E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
@@ -470,7 +497,8 @@ public enum ErrorCode
     E7708( "GeoJSON target organisation unit does not exist" ),
     E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
     E7710( "User is not allowed to update the target organisation unit" ),
-    E7711( "Organisation unit cannot be uniquely identified by its name" );
+    E7711( "Organisation unit cannot be uniquely identified by its name" ),
+    E7712( "GeoJSON geometry coordinates must be non empty but was: `{0}`" );
 
     private String message;
 

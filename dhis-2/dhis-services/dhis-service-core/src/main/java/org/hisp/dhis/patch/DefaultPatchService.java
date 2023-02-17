@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.patch;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -36,20 +34,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,30 +58,13 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@RequiredArgsConstructor
 @Transactional // TODO not sure if this can be completely readonly
 public class DefaultPatchService implements PatchService
 {
     private final SchemaService schemaService;
 
     private final QueryService queryService;
-
-    @Autowired
-    public DefaultPatchService(
-        SchemaService schemaService,
-        QueryService queryService,
-        CurrentUserService currentUserService,
-        RenderService renderService,
-        SystemService systemService )
-    {
-        checkNotNull( schemaService );
-        checkNotNull( queryService );
-        checkNotNull( currentUserService );
-        checkNotNull( renderService );
-        checkNotNull( systemService );
-
-        this.schemaService = schemaService;
-        this.queryService = queryService;
-    }
 
     @Override
     public Patch diff( PatchParams params )
@@ -333,7 +312,7 @@ public class DefaultPatchService implements PatchService
 
         for ( int i = 0; i < paths.length; i++ )
         {
-            if ( !currentSchema.haveProperty( paths[i] ) )
+            if ( !currentSchema.hasProperty( paths[i] ) )
             {
                 return;
             }
@@ -404,10 +383,10 @@ public class DefaultPatchService implements PatchService
                     Query query = Query.from( schema );
 
                     query.add( Restrictions.eq( "id", (T) object ) ); // optimize
-                                                                      // by
-                                                                      // using
-                                                                      // .in(..)
-                                                                      // query
+                                                                     // by
+                                                                     // using
+                                                                     // .in(..)
+                                                                     // query
 
                     List<? extends IdentifiableObject> objects = queryService.query( query );
 

@@ -98,8 +98,8 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     /**
-     * This tests also verify that the join after WHERE is changing when outer
-     * join is type EVENT
+     * Verifies that the join after WHERE is changing when outer join is type
+     * EVENT.
      */
     @Test
     void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
@@ -170,7 +170,7 @@ class ProgramIndicatorSubqueryBuilderTest
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.ENROLLMENT, startDate, endDate );
 
         assertThat( sql, is( "(SELECT avg (distinct psi) FROM analytics_event_" + program.getUid().toLowerCase()
-            + " as subax WHERE pi = ax.pi AND a = b)" ) );
+            + " as subax WHERE pi = ax.pi AND (a = b))" ) );
     }
 
 }

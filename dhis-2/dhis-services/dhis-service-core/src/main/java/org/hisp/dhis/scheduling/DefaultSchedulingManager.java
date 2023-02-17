@@ -28,6 +28,7 @@
 package org.hisp.dhis.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.time.Duration;
@@ -35,7 +36,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -71,20 +72,33 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
 {
     private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
-    private final Map<JobType, Future<?>> scheduled = new ConcurrentHashMap<>();
-
-    private final Map<JobType, Future<?>> running = new ConcurrentHashMap<>();
+    /**
+     * When a job is scheduled using an executor that will then invoke the job
+     * at specific times in the future a {@link Future} is added to the map
+     * which can be used to stop the job to continue to run in the future. It is
+     * essentially removed from the executor.
+     *
+     * The key is the UID of the {@link JobConfiguration}. Should the UID be
+     * {@code null} the {@link JobConfiguration#getName()} is used as key.
+     *
+     * This means any {@link JobConfiguration} only aborts itself from further
+     * runs in the future. Other configurations for the same {@link JobType}
+     * might exist and continue to run if there have been scheduled to do so.
+     */
+    private final Map<String, Future<?>> removeFromScheduleByIdOrName = new ConcurrentHashMap<>();
 
     private final TaskScheduler jobScheduler;
 
     private final AsyncTaskExecutor taskExecutor;
 
     public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService, Notifier notifier,
+        MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
         LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
         AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
+        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
+            cacheProvider );
+
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );
         checkNotNull( leaderManager );
@@ -99,57 +113,73 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     }
 
     @Override
-    public void schedule( JobConfiguration configuration )
+    public boolean isScheduled( JobConfiguration conf )
     {
-        log.info( String.format( "Scheduling job: %s", configuration ) );
-
-        scheduleTask( configuration, task -> configuration.getJobType().getSchedulingType() == SchedulingType.CRON
-            ? scheduleCronBased( configuration, task )
-            : scheduleFixedDelayBased( configuration, task ) );
-
-        log.info( String.format( "Scheduled job: %s", configuration ) );
+        Future<?> removeFromSchedule = removeFromScheduleByIdOrName.get( getKey( conf ) );
+        return removeFromSchedule != null && !removeFromSchedule.isDone();
     }
 
     @Override
-    public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
+    public void schedule( JobConfiguration conf )
     {
-        scheduleTask( configuration, task -> scheduleTimeBased( startTime, task ) );
-
-        log.info( String.format( "Scheduled job: %s with start time: %s", configuration,
-            getMediumDateString( startTime ) ) );
-    }
-
-    private void scheduleTask( JobConfiguration configuration, Function<Runnable, Future<?>> scheduler )
-    {
-        String jobId = configuration.getUid();
-        JobType type = configuration.getJobType();
-        CompletableFuture<Future<?>> cancellation = new CompletableFuture<>();
-        Runnable task = configuration.isInMemoryJob()
-            ? () -> execute( configuration )
-            : () -> execute( jobId );
-        Future<?> cancelable = scheduler.apply( runIfPossible( configuration, cancellation, task ) );
-        Future<?> scheduledBefore = scheduled.put( type, cancelable );
-        if ( scheduledBefore != null && !scheduledBefore.cancel( true ) )
+        boolean isCronTriggered = conf.getJobType().getSchedulingType() == SchedulingType.CRON;
+        if ( isCronTriggered && isNullOrEmpty( conf.getCronExpression() ) )
         {
-            cancellation.cancel( false );
+            log.warn( "Job {} of type {} cannot be scheduled as it has no CRON expression.", conf.getUid(),
+                conf.getJobType() );
+            return;
         }
-        else
+        log.info( "Scheduling job: {}", conf );
+
+        if ( scheduleTask( conf, task -> isCronTriggered
+            ? scheduleCronBased( conf, task )
+            : scheduleFixedDelayBased( conf, task ) ) )
         {
-            cancellation.complete( cancelable );
+            log.info( "Scheduled job: {}", conf );
         }
     }
 
-    private Future<?> scheduleFixedDelayBased( JobConfiguration configuration, Runnable task )
+    @Override
+    public void scheduleWithStartTime( JobConfiguration conf, Date startTime )
+    {
+        if ( scheduleTask( conf, task -> scheduleTimeBased( startTime, task ) ) )
+        {
+            log.info( "Scheduled job: {} with start time: {}", conf, getMediumDateString( startTime ) );
+        }
+    }
+
+    private boolean scheduleTask( JobConfiguration conf, Function<Runnable, Future<?>> schedule )
+    {
+        String jobId = conf.getUid();
+        if ( isNullOrEmpty( jobId ) && isNullOrEmpty( conf.getName() ) )
+        {
+            log.warn( "Job of type {} cannot be scheduled as it has no UID or name", conf.getJobType() );
+            return false;
+        }
+        Runnable task = conf.isInMemoryJob()
+            ? () -> execute( conf )
+            : conf.isUsedInQueue()
+                ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
+                : () -> execute( jobId );
+        Future<?> removeFromSchedule = schedule.apply( task );
+        String key = getKey( conf );
+        Future<?> removeScheduledBefore = removeFromScheduleByIdOrName.put( key, removeFromSchedule );
+        removeFromSchedule( conf, key, removeScheduledBefore );
+        log.info( "Job {} of type {} has been added to the schedule", key, conf.getJobType() );
+        return true;
+    }
+
+    private Future<?> scheduleFixedDelayBased( JobConfiguration conf, Runnable task )
     {
         return jobScheduler.scheduleWithFixedDelay( task,
             Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
-            Duration.of( configuration.getDelay(), ChronoUnit.SECONDS ) );
+            Duration.of( conf.getDelay(), ChronoUnit.SECONDS ) );
     }
 
-    private Future<?> scheduleCronBased( JobConfiguration configuration, Runnable task )
+    private Future<?> scheduleCronBased( JobConfiguration conf, Runnable task )
     {
         return jobScheduler.schedule( task,
-            new CronTrigger( configuration.getCronExpression() ) );
+            new CronTrigger( conf.getCronExpression() ) );
     }
 
     private Future<?> scheduleTimeBased( Date startTime, Runnable task )
@@ -158,99 +188,50 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     }
 
     @Override
-    public void stop( JobConfiguration configuration )
+    public boolean executeNow( JobConfiguration conf )
     {
-        JobType type = configuration.getJobType();
-        if ( type != null && isRunningLocally( type ) )
-        {
-            stoppedSuccessful( type );
-        }
-    }
-
-    @Override
-    public boolean executeNow( JobConfiguration configuration )
-    {
-        if ( configuration == null )
+        if ( conf == null || conf.getJobType() == null || isRunning( conf.getJobType() ) )
         {
             return false;
         }
-        JobType type = configuration.getJobType();
-        if ( type == null || isRunning( type ) )
-        {
-            return false;
-        }
-        log.info( String.format( "Scheduler initiated execution of job: %s", configuration ) );
-        CompletableFuture<Future<?>> cancellation = new CompletableFuture<>();
-        Runnable task = runIfPossible( configuration, cancellation, () -> execute( configuration ) );
-        cancellation.complete( taskExecutor.executeTaskWithCancelation( task ) );
+        log.info( "Scheduler initiated execution of job: {}", conf );
+        Runnable task = conf.isUsedInQueue()
+            ? () -> executeQueue( conf.getQueueName(), conf.getQueuePosition() )
+            : () -> execute( conf );
+        taskExecutor.executeTaskWithCancelation( task );
         return true;
     }
 
-    /**
-     * Wraps the original task in order to manage cancellation state correctly
-     * as part of running the task so that transitions occur when the task
-     * actually executes.
-     */
-    private Runnable runIfPossible( JobConfiguration configuration, Future<Future<?>> cancellation, Runnable task )
+    @Override
+    public void stop( JobConfiguration conf )
     {
-        JobType type = configuration.getJobType();
-        return () -> {
-            Future<?> cancelable = getOrThrow( cancellation );
-            if ( cancelable == null )
-            {
-                log.warn( "Job {} aborted as no cancellation was provided", type );
-                return;
-            }
-            scheduled.remove( type, cancelable );
-            if ( type == null || isRunningLocally( type ) && !stoppedSuccessful( type ) || isRunningRemotely( type ) )
-            {
-                return;
-            }
-            running.put( type, cancelable );
-            try
-            {
-                task.run();
-            }
-            finally
-            {
-                JobStatus lastExecutedStatus = configuration.getLastExecutedStatus();
-                if ( cancelable.isCancelled()
-                    && (lastExecutedStatus == JobStatus.RUNNING || lastExecutedStatus == JobStatus.COMPLETED) )
-                {
-                    configuration.setLastExecutedStatus( JobStatus.STOPPED );
-                }
-                running.remove( type, cancelable );
-            }
-        };
-    }
-
-    private Future<?> getOrThrow( Future<Future<?>> cancelProvider )
-    {
-        try
+        String key = getKey( conf );
+        if ( !isNullOrEmpty( key ) )
         {
-            return cancelProvider.get();
-        }
-        catch ( InterruptedException ex )
-        {
-            Thread.currentThread().interrupt();
-            return null;
-        }
-        catch ( Exception ex )
-        {
-            throw ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException( ex );
+            removeFromSchedule( conf, key, removeFromScheduleByIdOrName.remove( key ) );
         }
     }
 
-    private boolean stoppedSuccessful( JobType type )
+    private void removeFromSchedule( JobConfiguration conf, String key, Future<?> removeFromSchedule )
     {
-        Future<?> cancelable = running.get( type );
-        if ( cancelable == null )
+        JobType type = conf.getJobType();
+        if ( removeFromSchedule == null )
         {
-            log.info( "Tried to stop job of type '{}' but no job was found", type );
-            return true;
+            log.debug( "Job '{}' of type '{}' was not scheduled before.", key, type );
+            return;
         }
-        boolean success = cancelable.isDone() || cancelable.cancel( true );
-        log.info( String.format( "Stopped job of type: '%s' with successful result: '%b'", type, success ) );
-        return success;
+        if ( removeFromSchedule.isDone() )
+        {
+            log.info( "Removing job '{}' of type '{}' from schedule had no effect as no further runs were scheduled.",
+                key, type );
+            return;
+        }
+        boolean accepted = removeFromSchedule.cancel( false );
+        log.info( "Removed job '{}' of type: '{}' from schedule: '{}'", key, type, accepted );
+    }
+
+    private static String getKey( JobConfiguration conf )
+    {
+        return isNullOrEmpty( conf.getUid() ) ? conf.getName() : conf.getUid();
     }
 }

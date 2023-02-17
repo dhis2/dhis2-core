@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.hibernate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -44,8 +45,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author markusbekken
  */
@@ -56,10 +55,9 @@ public class HibernateProgramRuleActionStore
 {
     private static final String QUERY = "FROM ProgramRuleAction pra WHERE pra.programRuleActionType =:type  AND pra.%s IS NULL";
 
-    private static final ImmutableMap<ProgramRuleActionType, String> QUERY_FILTER = new ImmutableMap.Builder<ProgramRuleActionType, String>()
-        .put( ProgramRuleActionType.HIDESECTION, "programStageSection" )
-        .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, "programStage" )
-        .build();
+    private static final Map<ProgramRuleActionType, String> QUERY_FILTER = Map.of(
+        ProgramRuleActionType.HIDESECTION, "programStageSection",
+        ProgramRuleActionType.HIDEPROGRAMSTAGE, "programStage" );
 
     public HibernateProgramRuleActionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

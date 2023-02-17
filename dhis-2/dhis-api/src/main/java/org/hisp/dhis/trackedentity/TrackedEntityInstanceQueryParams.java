@@ -31,11 +31,11 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +44,7 @@ import lombok.Getter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -93,6 +94,10 @@ public class TrackedEntityInstanceQueryParams
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
+
+    public static final String MAIN_QUERY_ALIAS = "TEI";
+
+    public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
     /**
      * Query value, will apply to all relevant attributes.
@@ -183,15 +188,8 @@ public class TrackedEntityInstanceQueryParams
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
-    private AssignedUserSelectionMode assignedUserSelectionMode;
-
-    /**
-     * Set of user ids to filter based on events assigned to the users.
-     */
-    private Set<String> assignedUsers = new HashSet<>();
+    @Getter
+    private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
     /**
      * Set of tei uids to explicitly select.
@@ -278,9 +276,15 @@ public class TrackedEntityInstanceQueryParams
     private Date skipChangedBefore;
 
     /**
+     * Potential Duplicate query parameter value. If null, we don't check
+     * whether a TEI is a potentialDuplicate or not
+     */
+    private Boolean potentialDuplicate;
+
+    /**
      * TEI order params
      */
-    private List<OrderParam> orders;
+    private List<OrderParam> orders = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -397,37 +401,9 @@ public class TrackedEntityInstanceQueryParams
         }
     }
 
-    /**
-     * Prepares the assignedUsers list to the current user id, if the selection
-     * mode is CURRENT.
-     */
-    public void handleCurrentUserSelectionMode()
-    {
-        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && this.user != null )
-        {
-            this.assignedUsers = Collections.singleton( this.user.getUid() );
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-        }
-    }
-
     public boolean hasTrackedEntityInstances()
     {
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
-    }
-
-    public boolean hasAssignedUsers()
-    {
-        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
-    }
-
-    public boolean isIncludeOnlyUnassignedEvents()
-    {
-        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
-    }
-
-    public boolean isIncludeOnlyAssignedEvents()
-    {
-        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
 
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
@@ -438,7 +414,7 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasFilterForEvents()
     {
-        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents()
+        return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
             || hasEventStatus();
     }
 
@@ -507,7 +483,7 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Returns a list of of attributes and filters combined.
+     * Returns a list of attributes and filters combined.
      */
     public Set<String> getAttributeAndFilterIds()
     {
@@ -735,6 +711,14 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Check whether we are filtering for potential duplicate property.
+     */
+    public boolean hasPotentialDuplicateFilter()
+    {
+        return potentialDuplicate != null;
+    }
+
+    /**
      * Checks if there is atleast one unique filter in the params. In attributes
      * or filters.
      *
@@ -765,33 +749,6 @@ public class TrackedEntityInstanceQueryParams
         }
 
         return false;
-    }
-
-    /**
-     * Indicated whether this params specifies ordering
-     */
-    public boolean hasOrders()
-    {
-        return orders != null && !orders.isEmpty();
-    }
-
-    public boolean hasAttributeAsOrder()
-    {
-        return hasOrders() && getOrders().stream()
-            .anyMatch( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) );
-    }
-
-    public String getFirstAttributeOrder()
-    {
-        if ( hasOrders() )
-        {
-            return getOrders().stream()
-                .map( OrderParam::getField )
-                .filter( field -> !OrderColumn.isStaticColumn( field ) )
-                .findFirst()
-                .orElse( null );
-        }
-        return null;
     }
 
     /**
@@ -852,8 +809,7 @@ public class TrackedEntityInstanceQueryParams
             .add( "programIncidentEndDate", programIncidentEndDate )
             .add( "trackedEntityType", trackedEntityType )
             .add( "organisationUnitMode", organisationUnitMode )
-            .add( "assignedUserSelectionMode", assignedUserSelectionMode )
-            .add( "assignedUsers", assignedUsers )
+            .add( "assignedUserQueryParam", assignedUserQueryParam )
             .add( "eventStatus", eventStatus )
             .add( "eventStartDate", eventStartDate )
             .add( "eventEndDate", eventEndDate )
@@ -868,7 +824,9 @@ public class TrackedEntityInstanceQueryParams
             .add( "synchronizationQuery", synchronizationQuery )
             .add( "skipChangedBefore", skipChangedBefore )
             .add( "orders", orders )
-            .add( "user", user ).toString();
+            .add( "user", user )
+            .add( "potentialDuplicate", potentialDuplicate )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -966,6 +924,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
+    }
+
+    public Boolean getPotentialDuplicate()
+    {
+        return this.potentialDuplicate;
+    }
+
+    public TrackedEntityInstanceQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
+    {
+        this.potentialDuplicate = potentialDuplicate;
         return this;
     }
 
@@ -1229,12 +1198,6 @@ public class TrackedEntityInstanceQueryParams
         return user;
     }
 
-    public TrackedEntityInstanceQueryParams setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
     public List<OrderParam> getOrders()
     {
         return orders;
@@ -1243,17 +1206,6 @@ public class TrackedEntityInstanceQueryParams
     public void setOrders( List<OrderParam> orders )
     {
         this.orders = orders;
-    }
-
-    public AssignedUserSelectionMode getAssignedUserSelectionMode()
-    {
-        return assignedUserSelectionMode;
-    }
-
-    public TrackedEntityInstanceQueryParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserMode )
-    {
-        this.assignedUserSelectionMode = assignedUserMode;
-        return this;
     }
 
     public Set<String> getTrackedEntityInstanceUids()
@@ -1267,14 +1219,21 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public Set<String> getAssignedUsers()
+    /**
+     * Set assigned user selection mode, assigned users and the current user for
+     * the query. Non-empty assigned users are only allowed with mode PROVIDED
+     * (or null).
+     *
+     * @param mode assigned user mode
+     * @param current current user with which query is made
+     * @param assignedUsers assigned user uids
+     * @return this
+     */
+    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+        Set<String> assignedUsers )
     {
-        return assignedUsers;
-    }
-
-    public TrackedEntityInstanceQueryParams setAssignedUsers( Set<String> assignedUsers )
-    {
-        this.assignedUsers = assignedUsers;
+        this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );
+        this.user = current;
         return this;
     }
 
@@ -1288,46 +1247,60 @@ public class TrackedEntityInstanceQueryParams
         this.trackedEntityTypes = trackedEntityTypes;
     }
 
-    public boolean hasFilterForPrograms()
-    {
-        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
-            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
-    }
-
     @Getter
     @AllArgsConstructor
     public enum OrderColumn
     {
-        TRACKEDENTITY( "trackedEntity", "tei.uid" ),
+        TRACKEDENTITY( "trackedEntity", "uid", MAIN_QUERY_ALIAS ),
         // Ordering by id is the same as ordering by created date
-        CREATED( CREATED_ID, "tei.trackedentityinstanceid" ),
-        CREATED_AT( "createdAt", "tei.trackedentityinstanceid" ),
-        CREATED_AT_CLIENT( "createdAtClient", "tei.createdAtClient" ),
-        UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
-        UPDATED_AT_CLIENT( "updatedAtClient", "tei.lastUpdatedAtClient" ),
-        ENROLLED_AT( "enrolledAt", "pi.enrollmentDate" ),
+        CREATED( CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS ),
+        CREATED_AT( "createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS ),
+        CREATED_AT_CLIENT( "createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS ),
+        UPDATED_AT( "updatedAt", "lastUpdated", MAIN_QUERY_ALIAS ),
+        UPDATED_AT_CLIENT( "updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS ),
+        ENROLLED_AT( "enrolledAt", "enrollmentDate", PROGRAM_INSTANCE_ALIAS ),
         // this works only for the new endpoint
-        // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
-        INACTIVE( INACTIVE_ID, "tei.inactive" );
+        // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
+        INACTIVE( INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS );
 
         private final String propName;
 
         private final String column;
 
-        public static boolean isStaticColumn( String propName )
+        private final String tableAlias;
+
+        public boolean isPropertyEqualTo( String property )
         {
-            return Arrays.stream( OrderColumn.values() )
-                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
+            return propName.equalsIgnoreCase( property );
         }
 
-        public static String getColumn( String property )
+        /**
+         * @param property
+         * @return an Optional of an OrderColumn matching by property name
+         */
+        public static Optional<OrderColumn> findColumn( String property )
         {
             return Arrays.stream( values() )
                 .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
-                .map( OrderColumn::getColumn )
-                .findFirst()
-                .orElseThrow(
-                    () -> new IllegalArgumentException( "Property" + property + " is not defined as order column" ) );
+                .findFirst();
+        }
+
+        /**
+         * @return a Sql string composed by the actual table alias and column.
+         *         In use for the inner query select fields and order by
+         */
+        public String getSqlColumnWithTableAlias()
+        {
+            return tableAlias + "." + column;
+        }
+
+        /**
+         * @return a Sql string composed by the main query alias and column. In
+         *         use for the outer query select fields and order by
+         */
+        public String getSqlColumnWithMainTable()
+        {
+            return MAIN_QUERY_ALIAS + "." + column;
         }
     }
 }

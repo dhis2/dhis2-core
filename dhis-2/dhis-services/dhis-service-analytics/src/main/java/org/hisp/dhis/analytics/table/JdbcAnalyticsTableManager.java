@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
@@ -50,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -84,8 +84,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -110,12 +108,12 @@ import com.google.common.collect.Sets;
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ),
         new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" )
-            .withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ),
+            .withIndexColumns( List.of( quote( "dx" ), quote( "co" ) ) ),
         new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" )
-            .withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ),
+            .withIndexColumns( List.of( quote( "dx" ), quote( "ao" ) ) ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ),
@@ -128,11 +126,11 @@ public class JdbcAnalyticsTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate );
+            databaseInfo, jdbcTemplate, analyticsExportSettings );
     }
 
     // -------------------------------------------------------------------------
@@ -153,7 +151,7 @@ public class JdbcAnalyticsTableManager
             ? getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() )
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
+        return table.hasPartitionTables() ? List.of( table ) : List.of();
     }
 
     @Override
@@ -221,8 +219,8 @@ public class JdbcAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return partition.isLatestPartition() ? newArrayList()
-            : newArrayList( "year = " + partition.getYear() + "",
+        return partition.isLatestPartition() ? List.of()
+            : List.of( "year = " + partition.getYear() + "",
                 "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
 
@@ -456,7 +454,7 @@ public class JdbcAnalyticsTableManager
      */
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        return Lists.newArrayList(
+        return List.of(
             new AnalyticsTableColumn( quote( "daysxvalue" ), DOUBLE, "daysxvalue" ),
             new AnalyticsTableColumn( quote( "daysno" ), INTEGER, NOT_NULL, "daysno" ),
             new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ),

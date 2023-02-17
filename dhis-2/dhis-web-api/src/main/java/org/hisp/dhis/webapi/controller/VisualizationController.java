@@ -32,12 +32,20 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -48,6 +56,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = API_ENDPOINT )
 public class VisualizationController
@@ -60,8 +69,8 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
-    public VisualizationController( final LegendSetService legendSetService, final DimensionService dimensionService,
-        final I18nManager i18nManager )
+    public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
+        I18nManager i18nManager )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
@@ -139,6 +148,45 @@ public class VisualizationController
                     period.setName( i18nFormat.formatPeriod( period ) );
                 }
             }
+
+            addExpressionDimensionItemElementsToDataDimensionItems( visualization );
+        }
+    }
+
+    private void addExpressionDimensionItemElementsToDataDimensionItems( Visualization visualization )
+    {
+        List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
+
+        visualization.getDataDimensionItems()
+            .stream()
+            .filter( ddi -> ddi.getExpressionDimensionItem() != null )
+            .forEach( ddi -> {
+                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemHelper
+                    .getExpressionItems( manager, ddi );
+
+                expressionItems.forEach( ei -> {
+                    DataDimensionItem dataDimensionItem = new DataDimensionItem();
+
+                    switch ( ei.getDimensionItemType() )
+                    {
+                    case DATA_ELEMENT:
+                        dataDimensionItem.setDataElement( (DataElement) ei );
+                        dataDimensionItems.add( dataDimensionItem );
+                        break;
+                    case DATA_ELEMENT_OPERAND:
+                        dataDimensionItem.setDataElementOperand( (DataElementOperand) ei );
+                        dataDimensionItems.add( dataDimensionItem );
+                        break;
+                    default:
+                        //ignore
+                        break;
+                    }
+                } );
+            } );
+
+        if ( !dataDimensionItems.isEmpty() )
+        {
+            visualization.getDataDimensionItems().addAll( dataDimensionItems );
         }
     }
 }

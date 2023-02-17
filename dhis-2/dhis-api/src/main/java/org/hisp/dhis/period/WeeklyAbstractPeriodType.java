@@ -126,7 +126,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
         Calendar calendar = getCalendar();
         List<Period> periods = new ArrayList<>();
         start = new DateTimeUnit( start ); // create clone so we don't modify
-                                           // the original start DT
+                                          // the original start DT
 
         start.setMonth( 1 );
         start.setDay( 4 );

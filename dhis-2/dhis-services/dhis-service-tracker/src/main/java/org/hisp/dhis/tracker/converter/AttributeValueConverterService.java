@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.fromInstant;
 import static org.hisp.dhis.util.DateUtils.instantFromDate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -75,6 +76,11 @@ public class AttributeValueConverterService
     {
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( at.getAttribute() );
 
+        if ( attribute == null )
+        {
+            return null;
+        }
+
         TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
 
         teav.setCreated( fromInstant( at.getCreatedAt() ) );
@@ -89,6 +95,10 @@ public class AttributeValueConverterService
     @Override
     public List<TrackedEntityAttributeValue> from( TrackerPreheat preheat, List<Attribute> attributes )
     {
-        return attributes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
+        return attributes
+            .stream()
+            .filter( Objects::nonNull )
+            .map( n -> from( preheat, n ) )
+            .collect( Collectors.toList() );
     }
 }

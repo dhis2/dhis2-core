@@ -27,29 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Henning Håkonsen
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = JobConfigurationSchemaDescriptor.API_ENDPOINT )
 public class JobConfigurationController
@@ -99,7 +98,7 @@ public class JobConfigurationController
 
         if ( jobConfiguration == null )
         {
-            throw NotFoundException.notFoundUid( uid );
+            throw new NotFoundException( JobConfiguration.class, uid );
         }
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
@@ -117,32 +116,32 @@ public class JobConfigurationController
 
     @Override
     protected void preCreateEntity( JobConfiguration jobConfiguration )
-        throws WebMessageException
+        throws ConflictException
     {
-        checkConfigurable( jobConfiguration, HttpStatus.BAD_REQUEST, "Job %s must be configurable but was not." );
+        checkConfigurable( jobConfiguration, "Job %s must be configurable but was not." );
     }
 
     @Override
     protected void preUpdateEntity( JobConfiguration before, JobConfiguration after )
-        throws WebMessageException
+        throws ConflictException
     {
-        checkConfigurable( before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified." );
-        checkConfigurable( after, HttpStatus.CONFLICT, "Job %s can not be changed into a system job." );
+        checkConfigurable( before, "Job %s is a system job that cannot be modified." );
+        checkConfigurable( after, "Job %s can not be changed into a system job." );
     }
 
     @Override
     protected void preDeleteEntity( JobConfiguration jobConfiguration )
-        throws WebMessageException
+        throws ConflictException
     {
-        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
+        checkConfigurable( jobConfiguration,
             "Job %s is a system job that cannot be deleted." );
     }
 
     @Override
     protected void preUpdateItems( JobConfiguration jobConfiguration, IdentifiableObjects items )
-        throws Exception
+        throws ConflictException
     {
-        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
+        checkConfigurable( jobConfiguration,
             "Job %s is a system job that cannot be modified." );
     }
 
@@ -160,8 +159,8 @@ public class JobConfigurationController
         }
     }
 
-    private void checkConfigurable( JobConfiguration configuration, HttpStatus status, String message )
-        throws WebMessageException
+    private void checkConfigurable( JobConfiguration configuration, String message )
+        throws ConflictException
     {
         if ( !configuration.isConfigurable() )
         {
@@ -170,8 +169,7 @@ public class JobConfigurationController
             {
                 identifier = configuration.getName();
             }
-            throw new WebMessageException(
-                createWebMessage( String.format( message, identifier ), Status.ERROR, status ) );
+            throw new ConflictException( String.format( message, identifier ) );
         }
     }
 

@@ -59,10 +59,6 @@ import com.google.common.collect.Lists;
 public class DefaultProgramService
     implements ProgramService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramStore programStore;
 
     private final IdentifiableObjectManager idObjectManager;

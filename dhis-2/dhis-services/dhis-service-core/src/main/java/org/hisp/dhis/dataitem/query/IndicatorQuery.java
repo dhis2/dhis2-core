@@ -72,7 +72,8 @@ public class IndicatorQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
         + " cast (null as text) as program_shortname, indicator.uid as item_uid, indicator.name as item_name,"
         + " indicator.shortname as item_shortname, cast (null as text) as item_valuetype, indicator.code as item_code,"
-        + " indicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('INDICATOR' as text) as item_type";
+        + " indicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('INDICATOR' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -184,7 +185,8 @@ public class IndicatorQuery implements DataItemQuery
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", indicator.name as i18n_first_name, cast (null as text) as i18n_second_name" )
-            .append( ", indicator.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
+            .append(
+                ", indicator.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( " from indicator " ).toString();
     }
 }

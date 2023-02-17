@@ -38,8 +38,8 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +78,9 @@ class RelationshipImportTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 2 ) );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertThat( importReport.getStatus(), is( Status.OK ) );
+        assertThat( importReport.getStats().getCreated(), is( 2 ) );
     }
 
     @Test
@@ -91,9 +91,9 @@ class RelationshipImportTest extends TrackerTest
         trackerImportService.importTracker( trackerImportParams );
         trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );
-        assertThat( trackerImportReport.getStats().getIgnored(), is( 1 ) );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertThat( importReport.getStatus(), is( Status.OK ) );
+        assertThat( importReport.getStats().getCreated(), is( 0 ) );
+        assertThat( importReport.getStats().getIgnored(), is( 1 ) );
     }
 }

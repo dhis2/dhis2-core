@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -61,14 +60,8 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
         {
             List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted( ids );
 
-            final List<String> rootEntities = params.getEnrollments().stream().map( Enrollment::getEnrollment )
-                .collect( Collectors.toList() );
-
             preheat.putEnrollments(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ),
-                params.getEnrollments().stream().filter(
-                    e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEnrollment() ) )
-                    .collect( Collectors.toList() ) );
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ) );
 
         }
     }

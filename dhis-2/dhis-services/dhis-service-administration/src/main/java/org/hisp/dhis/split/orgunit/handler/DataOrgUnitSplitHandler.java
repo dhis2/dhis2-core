@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataOrgUnitSplitHandler
 {
     private static final String PARAM_ORG_UNIT = "organisationUnit";

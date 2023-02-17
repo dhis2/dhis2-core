@@ -36,8 +36,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,18 +59,18 @@ class TeTaEncryptionValidationTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
 
         trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
         trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_region.json" );
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
     }
 
     @Test
@@ -80,13 +79,13 @@ class TeTaEncryptionValidationTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
 
         trackerImportParams = fromJson( "tracker/validations/te-program_with_tea_unique_data2.json" );
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1064 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1064 );
     }
 }

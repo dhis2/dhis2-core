@@ -66,8 +66,8 @@ public class QueryExecutor
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public QueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate, final List<DataItemQuery> dataItemQueries )
+    public QueryExecutor(
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, List<DataItemQuery> dataItemQueries )
     {
         checkNotNull( jdbcTemplate );
 
@@ -88,7 +88,7 @@ public class QueryExecutor
     {
         final String unionQuery = unionQuery( targetEntities, paramsMap );
 
-        if ( unionQuery.length() > 0 )
+        if ( !unionQuery.isEmpty() )
         {
             final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( unionQuery, paramsMap );
 
@@ -112,7 +112,7 @@ public class QueryExecutor
         final String unionQuery = unionQuery( targetEntities, paramsMap );
         final StringBuilder countQuery = new StringBuilder();
 
-        if ( unionQuery.length() > 0 )
+        if ( !unionQuery.isEmpty() )
         {
             countQuery.append( SPACED_SELECT + "count(*) from (" )
                 .append( unionQuery.replaceAll( maxLimit( paramsMap ), EMPTY ) )

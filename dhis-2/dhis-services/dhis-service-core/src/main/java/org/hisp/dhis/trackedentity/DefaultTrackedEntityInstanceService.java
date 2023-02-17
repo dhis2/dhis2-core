@@ -47,6 +47,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -61,7 +62,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -75,13 +75,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,15 +185,10 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        params.setUser( user );
-
-        params.handleCurrentUserSelectionMode();
-
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore
             .getTrackedEntityInstances( params );
 
+        User user = params.getUser();
         trackedEntityInstances = trackedEntityInstances.stream()
             .filter( ( tei ) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
             .collect( Collectors.toList() );
@@ -238,21 +233,15 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        User user = this.currentUserService.getCurrentUser();
-
-        params.setUser( user );
-
-        params.handleCurrentUserSelectionMode();
-
         return trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
     }
 
     /**
      * This method handles any dynamic sort order columns in the params. These
-     * has to be added to attribute list if there it is neither present in
-     * attribute list nor filter list.
+     * have to be added to the attribute list if neither are present in the
+     * attribute list nor the filter list.
      *
-     * For example, if attributes or filters doesnt have a specific
+     * For example, if attributes or filters don't have a specific
      * trackedentityattribute uid, but sorting has been requested for that tea
      * uid, then we need to add them to the attribute list.
      *
@@ -260,19 +249,20 @@ public class DefaultTrackedEntityInstanceService
      */
     private void handleSortAttributes( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasAttributeAsOrder() )
-        {
-            // Collecting TEAs for all non static sort order columns.
-            List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
-                .filter( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) ).map( orderParam -> {
-                    return attributeService.getTrackedEntityAttribute( orderParam.getField() );
-                } ).collect( Collectors.toList() );
+        List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
+            .map( OrderParam::getField )
+            .filter( this::isDynamicColumn )
+            .map( attributeService::getTrackedEntityAttribute )
+            .collect( Collectors.toList() );
 
-            // adding to attributes conditionally if they are also not present
-            // in filters.
-            params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
-                .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
-        }
+        params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
+            .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
+    }
+
+    public boolean isDynamicColumn( String propName )
+    {
+        return Arrays.stream( TrackedEntityInstanceQueryParams.OrderColumn.values() )
+            .noneMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
     }
 
     @Override
@@ -291,10 +281,6 @@ public class DefaultTrackedEntityInstanceService
         {
             validateSearchScope( params, false );
         }
-
-        params.setUser( currentUserService.getCurrentUser() );
-
-        params.handleCurrentUserSelectionMode();
 
         // using countForGrid here to leverage the better performant rewritten
         // sql query
@@ -317,7 +303,6 @@ public class DefaultTrackedEntityInstanceService
         // ---------------------------------------------------------------------
 
         params.conform();
-        params.handleCurrentUserSelectionMode();
 
         // ---------------------------------------------------------------------
         // Grid headers
@@ -603,12 +588,6 @@ public class DefaultTrackedEntityInstanceService
         if ( params.hasEventStatus() && (!params.hasEventStartDate() || !params.hasEventEndDate()) )
         {
             violation = "Event start and end date must be specified when event status is specified";
-        }
-
-        if ( params.getAssignedUserSelectionMode() != null && params.hasAssignedUsers()
-            && !params.getAssignedUserSelectionMode().equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            violation = "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED";
         }
 
         if ( params.isOrQuery() && params.hasFilters() )

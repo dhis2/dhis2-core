@@ -51,7 +51,6 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
 /**
@@ -60,7 +59,7 @@ import com.google.common.collect.Multimap;
 @Slf4j
 public class ReflectionUtils
 {
-    public static final List<String> SHARING_PROPS = ImmutableList.of(
+    private static final Set<String> SHARING_PROPS = Set.of(
         "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing" );
 
     /**
@@ -527,7 +526,7 @@ public class ReflectionUtils
 
     public static boolean isSharingProperty( Property property )
     {
-        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
+        return isSharingProp( property.getName() ) || isSharingProp( property.getCollectionName() );
     }
 
     public static boolean isTranslationProperty( Property property )
@@ -575,5 +574,10 @@ public class ReflectionUtils
         }
 
         return innerType.getActualTypeArguments()[0];
+    }
+
+    private static boolean isSharingProp( String prop )
+    {
+        return prop != null && SHARING_PROPS.contains( prop );
     }
 }

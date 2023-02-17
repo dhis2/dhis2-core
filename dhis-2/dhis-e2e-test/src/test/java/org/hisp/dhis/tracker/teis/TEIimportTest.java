@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.tracker.teis;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
 
-import org.hamcrest.Matchers;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
@@ -51,8 +56,12 @@ public class TEIimportTest
 {
     JsonObject object;
 
+    private static final String TEI = "Kj6vYde4LHh";
+
+    private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
+
     @BeforeAll
-    public void before()
+    void before()
         throws Exception
     {
         loginActions.loginAsSuperUser();
@@ -64,7 +73,7 @@ public class TEIimportTest
     }
 
     @Test
-    public void teisShouldBeUpdatedAndDeletedInBulk()
+    void teisShouldBeUpdatedAndDeletedInBulk()
     {
         // arrange
 
@@ -90,24 +99,24 @@ public class TEIimportTest
             .statusCode( 200 )
             .body( "response", notNullValue() )
             .rootPath( "response" )
-            .body( "updated", Matchers.greaterThanOrEqualTo( 2 ) )
+            .body( "updated", greaterThanOrEqualTo( 2 ) )
             .appendRootPath( "importSummaries[0]" )
             .body( "importCount.updated", greaterThanOrEqualTo( 1 ) )
             .appendRootPath( "enrollments.importSummaries[0].events.importSummaries[0]" )
             .body(
-                "status", Matchers.equalTo( "SUCCESS" ),
+                "status", equalTo( "SUCCESS" ),
                 "reference", notNullValue(),
-                "importCount.deleted", Matchers.equalTo( 1 ),
-                "description", Matchers.stringContainsInOrder( "Deletion of event", "was successful" ) )
+                "importCount.deleted", equalTo( 1 ),
+                "description", stringContainsInOrder( "Deletion of event", "was successful" ) )
             .extract()
             .path( "response.importSummaries[0].enrollments.importSummaries[0].events.importSummaries[0].reference" );
 
         String enrollmentId = response.validate()
             .rootPath( "response.importSummaries[1].enrollments.importSummaries[0]" )
             .body(
-                "status", Matchers.equalTo( "SUCCESS" ),
+                "status", equalTo( "SUCCESS" ),
                 "reference", notNullValue(),
-                "importCount.updated", Matchers.equalTo( 1 ) )
+                "importCount.updated", equalTo( 1 ) )
             .extract().path( "response.importSummaries[1].enrollments.importSummaries[0].reference" );
 
         // check if updates on event and enrollment were done.
@@ -115,11 +124,59 @@ public class TEIimportTest
         response = enrollmentActions.get( enrollmentId );
 
         response.validate().statusCode( 200 )
-            .body( "status", Matchers.equalTo( "COMPLETED" ) );
+            .body( "status", equalTo( "COMPLETED" ) );
 
         response = eventActions.get( eventId );
 
         response.validate().statusCode( 404 );
 
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamNull()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder() );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 2 ) );
+
+        assertThat( response.getBody().getAsJsonObject(),
+            matchesJSON( new JsonObjectBuilder()
+                .addArray( "trackedEntityInstances",
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI ).build(),
+                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI_POTENTIAL_DUPLICATE ).build() )
+                .build() ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamFalse()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( false ) );
+    }
+
+    @Test
+    void getTeiByPotentialDuplicateParamTrue()
+    {
+        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( TEI_POTENTIAL_DUPLICATE ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( true ) );
+    }
+
+    private static QueryParamsBuilder teiParamsBuilder()
+    {
+        return new QueryParamsBuilder().addAll(
+            "trackedEntityInstance=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
+            "trackedEntityType=" + "Q9GufDoplCL",
+            "ou=" + "O6uvpzGd5pu" );
     }
 }

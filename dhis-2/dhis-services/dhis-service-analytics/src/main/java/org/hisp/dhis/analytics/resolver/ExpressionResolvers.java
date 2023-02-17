@@ -35,8 +35,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Dusan Bernat
  */
@@ -52,27 +50,21 @@ public class ExpressionResolvers implements ExpressionResolverCollection
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver )
     {
         checkNotNull( coExpressionResolver );
-
         checkNotNull( degExpressionResolver );
-
         checkNotNull( cogTaglessExpressionResolver );
-
         checkNotNull( cogExpressionResolver );
 
         expressionResolvers = new ArrayList<>();
 
         expressionResolvers.add( coExpressionResolver );
-
         expressionResolvers.add( degExpressionResolver );
-
         expressionResolvers.add( cogTaglessExpressionResolver );
-
         expressionResolvers.add( cogExpressionResolver );
     }
 
     @Override
     public List<ExpressionResolver> getExpressionResolvers()
     {
-        return ImmutableList.copyOf( expressionResolvers );
+        return List.copyOf( expressionResolvers );
     }
 }

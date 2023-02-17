@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.datasummary;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Joao Antunes
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( value = DataSummaryController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

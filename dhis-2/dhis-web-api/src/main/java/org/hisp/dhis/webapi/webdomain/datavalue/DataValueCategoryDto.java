@@ -35,6 +35,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -51,8 +56,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataValueCategoryDto
 {
     @JsonProperty
+    @OpenApi.Property( { UID.class, CategoryCombo.class } )
     private String combo;
 
     @JsonProperty
+    @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private Set<String> options;
 }

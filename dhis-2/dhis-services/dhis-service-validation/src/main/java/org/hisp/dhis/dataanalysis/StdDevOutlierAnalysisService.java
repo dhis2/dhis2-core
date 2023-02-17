@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,21 +51,12 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
 public class StdDevOutlierAnalysisService
     implements DataAnalysisService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataAnalysisStore dataAnalysisStore;
-
-    public StdDevOutlierAnalysisService( DataAnalysisStore dataAnalysisStore )
-    {
-        checkNotNull( dataAnalysisStore );
-        this.dataAnalysisStore = dataAnalysisStore;
-    }
 
     // -------------------------------------------------------------------------
     // DataAnalysisService implementation
@@ -90,11 +85,11 @@ public class StdDevOutlierAnalysisService
                     categoryOptionCombos, parentsPaths, from );
 
                 MapMap<Long, Long, Integer> lowBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                             // orgUnitId,
-                                                                             // lowBound
+                                                                            // orgUnitId,
+                                                                            // lowBound
                 MapMap<Long, Long, Integer> highBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                              // orgUnitId,
-                                                                              // highBound
+                                                                             // orgUnitId,
+                                                                             // highBound
 
                 for ( DataAnalysisMeasures measures : measuresList )
                 {

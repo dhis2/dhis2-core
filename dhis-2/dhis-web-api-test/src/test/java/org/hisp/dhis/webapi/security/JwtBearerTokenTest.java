@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.hisp.dhis.web.WebClient.JwtTokenHeader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -59,7 +60,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
-import com.google.common.collect.ImmutableList;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -71,11 +71,22 @@ import com.nimbusds.jose.proc.SecurityContext;
  */
 class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 {
-
     // @formatter:off
-    public static final String EXPIRED_GOOGLE_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx" + "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO" + "iIxMDE5NDE3MDAyNTQ0LW1xYTdmbGs0bWpvaHJnc2JnOWJ0YTlidmx1b2o4NW8wLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiY" + "XVkIjoiMTAxOTQxNzAwMjU0NC1tcWE3ZmxrNG1qb2hyZ3NiZzlidGE5YnZsdW9qODVvMC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvb" + "SIsInN1YiI6IjExMDk3ODA1MDEyNzk2NzA2NTUwNiIsImVtYWlsIjoiZGhpczJvaWRjdXNlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZ" + "mllZCI6dHJ1ZSwiYXRfaGFzaCI6IkhXbTNXcXphM2p5TEFUZjNlU1pBNVEiLCJuYW1lIjoiZGhpczJvaWRjdXNlciBUZXN0ZXIiLCJwa" + "WN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1oRmptUnhOQkJTWS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQ" + "S9BTVp1dWNuQkdYVTF5X05fV25qSXJndHBpSXFWMl9ndll3L3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJkaGlzMm9pZGN1c" + "2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0ZXIiLCJsb2NhbGUiOiJlbiIsImlhdCI6MTYxNDk1NzU5MCwiZXhwIjoxNjE0OTYxMTkwfQ.OC" + "m7hj4H-UqRpM_Xrfq58U3ZGI3k7-S3c4AslVAaMxKsNitsPDZ7oxs-FJT-E7uDqnp1wW5LyBLj8jfJZ4JnvuiNGZrvCCpR3m70_4mSgP" + "8VTjFFEijgfW1IIy_BWI8gDY6iCK7qgOATdYnCyJteWBMKRPr5wVSN05TT3xxLzsE7C5ViOzHAm2v6XrrsEhfcjNmwKmlljjpImTwtUS" + "TBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzG" + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
-
+    public static final String EXPIRED_GOOGLE_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx" +
+        "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO" +
+        "iIxMDE5NDE3MDAyNTQ0LW1xYTdmbGs0bWpvaHJnc2JnOWJ0YTlidmx1b2o4NW8wLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiY" +
+        "XVkIjoiMTAxOTQxNzAwMjU0NC1tcWE3ZmxrNG1qb2hyZ3NiZzlidGE5YnZsdW9qODVvMC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvb" +
+        "SIsInN1YiI6IjExMDk3ODA1MDEyNzk2NzA2NTUwNiIsImVtYWlsIjoiZGhpczJvaWRjdXNlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZ" +
+        "mllZCI6dHJ1ZSwiYXRfaGFzaCI6IkhXbTNXcXphM2p5TEFUZjNlU1pBNVEiLCJuYW1lIjoiZGhpczJvaWRjdXNlciBUZXN0ZXIiLCJwa" +
+        "WN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1oRmptUnhOQkJTWS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQ" +
+        "S9BTVp1dWNuQkdYVTF5X05fV25qSXJndHBpSXFWMl9ndll3L3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJkaGlzMm9pZGN1c" +
+        "2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0ZXIiLCJsb2NhbGUiOiJlbiIsImlhdCI6MTYxNDk1NzU5MCwiZXhwIjoxNjE0OTYxMTkwfQ.OC" +
+        "m7hj4H-UqRpM_Xrfq58U3ZGI3k7-S3c4AslVAaMxKsNitsPDZ7oxs-FJT-E7uDqnp1wW5LyBLj8jfJZ4JnvuiNGZrvCCpR3m70_4mSgP" +
+        "8VTjFFEijgfW1IIy_BWI8gDY6iCK7qgOATdYnCyJteWBMKRPr5wVSN05TT3xxLzsE7C5ViOzHAm2v6XrrsEhfcjNmwKmlljjpImTwtUS" +
+        "TBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzG" +
+        "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
     // @formatter:on
+
     public static final String GOOGLE_CLIENT_ID = "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
 
     public static final String TEST_PROVIDER_ONE_URI = "testproviderone.com";
@@ -106,7 +117,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     {
         DhisWebApiWebSecurityConfig.setApiContextPath( "" );
         JWKSource<SecurityContext> jwkSource = ( jwkSelector, securityContext ) -> jwkSelector
-            .select( new JWKSet( ImmutableList.of( RSA_KEY ) ) );
+            .select( new JWKSet( List.of( RSA_KEY ) ) );
         jwsEncoder = new JwtUtils( jwkSource );
         jwtDecoder = NimbusJwtDecoder.withPublicKey( RSA_KEY.toRSAPublicKey() ).build();
     }

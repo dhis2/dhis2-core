@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.geojson;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.hisp.dhis.dxf2.geojson.CoordinatesUtils.coordinatesEmpty;
+import static org.hisp.dhis.dxf2.geojson.CoordinatesUtils.geometryWithCoordinatePairs;
 import static org.hisp.dhis.dxf2.importsummary.ImportConflict.createConflict;
 
 import java.io.IOException;
@@ -43,7 +45,6 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -73,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultGeoJsonService implements GeoJsonService
 {
     private final AttributeService attributeService;
@@ -263,6 +264,16 @@ public class DefaultGeoJsonService implements GeoJsonService
             report.addConflict( createConflict( index, GeoJsonImportConflict.GEOMETRY_INVALID ) );
             return false;
         }
+        if ( !geometry.isUndefined() )
+        {
+            JsonValue coordinates = geometry.get( "coordinates" );
+            if ( coordinatesEmpty( coordinates ) )
+            {
+                report.addConflict( createConflict( index, GeoJsonImportConflict.COORDINATES_EMPTY,
+                    coordinates.exists() ? coordinates.node().getDeclaration() : "" ) );
+                return false;
+            }
+        }
         return true;
     }
 
@@ -314,7 +325,8 @@ public class DefaultGeoJsonService implements GeoJsonService
             report.getImportCount().incrementIgnored();
             return;
         }
-        GeometryUpdate update = new GeometryUpdate( index, target, geometry.node().getDeclaration() );
+        String geometryJSON = geometryWithCoordinatePairs( geometry );
+        GeometryUpdate update = new GeometryUpdate( index, target, geometryJSON );
         if ( attribute != null )
         {
             if ( !updateGeometryAttribute( attribute, report, update ) )

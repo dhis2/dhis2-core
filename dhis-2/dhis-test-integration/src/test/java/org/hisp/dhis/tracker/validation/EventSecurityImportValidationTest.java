@@ -63,8 +63,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,9 +233,9 @@ class EventSecurityImportValidationTest extends TrackerTest
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        ImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1095, TrackerErrorCode.E1096 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1095, ValidationCode.E1096 );
     }
 
     @Test
@@ -246,8 +245,8 @@ class EventSecurityImportValidationTest extends TrackerTest
         setupMetadata();
         TrackerImportParams params = fromJson( "tracker/validations/events_error-no-uncomplete.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertNoErrors( trackerImportReport );
+        ImportReport importReport = trackerImportService.importTracker( params );
+        assertNoErrors( importReport );
         // Change just inserted Event to status COMPLETED...
         ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
         zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
@@ -267,7 +266,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         manager.clear();
         trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1083 );
+        importReport = trackerImportService.importTracker( trackerBundleParams );
+        assertHasOnlyErrors( importReport, ValidationCode.E1083 );
     }
 }

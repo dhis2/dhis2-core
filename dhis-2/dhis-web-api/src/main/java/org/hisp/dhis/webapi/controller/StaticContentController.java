@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -83,14 +84,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
  * and for the logo on the top banner (logo_banner).
  *
  * @author Stian Sandvold
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( RESOURCE_PATH )
 @Slf4j
@@ -111,7 +111,7 @@ public class StaticContentController
 
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = Map.of(
         LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
         LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
 

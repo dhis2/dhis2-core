@@ -31,19 +31,17 @@ import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Jim Grace
  */
 @Component
-public class DataElementOperandDeletionHandler extends JdbcDeletionHandler
+public class DataElementOperandDeletionHandler extends IdObjectDeletionHandler<DataElementOperand>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataElementOperand.class );
-
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }

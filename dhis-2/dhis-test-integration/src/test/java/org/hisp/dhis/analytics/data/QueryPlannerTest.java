@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -274,15 +273,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void testSetGetCopy()
     {
-        List<DimensionalItemObject> desA = getList( deA, deB );
-        List<DimensionalItemObject> ousA = getList( ouA, ouB );
-        List<DimensionalItemObject> ousB = getList( ouC, ouD );
-        List<DimensionalItemObject> pesA = getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ) );
-        List<DimensionalItemObject> pesB = getList( createPeriod( "200001" ), createPeriod( "200002" ) );
-        DataQueryParams paramsA = DataQueryParams.newBuilder().withDataElements( desA ).withOrganisationUnits( ousA )
-            .withPeriods( pesA ).build();
-        DataQueryParams paramsB = DataQueryParams.newBuilder( paramsA ).withOrganisationUnits( ousB )
-            .withPeriods( pesB ).build();
+        List<DimensionalItemObject> desA = List.of( deA, deB );
+        List<DimensionalItemObject> ousA = List.of( ouA, ouB );
+        List<DimensionalItemObject> ousB = List.of( ouC, ouD );
+        List<DimensionalItemObject> pesA = List.of( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ) );
+        List<DimensionalItemObject> pesB = List.of( createPeriod( "200001" ), createPeriod( "200002" ) );
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withDataElements( desA )
+            .withOrganisationUnits( ousA )
+            .withPeriods( pesA )
+            .build();
+        DataQueryParams paramsB = DataQueryParams.newBuilder( paramsA )
+            .withOrganisationUnits( ousB )
+            .withPeriods( pesB )
+            .build();
         assertEquals( desA, paramsA.getDataElements() );
         assertEquals( ousA, paramsA.getOrganisationUnits() );
         assertEquals( pesA, paramsA.getPeriods() );
@@ -452,9 +456,11 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void testGetDimensionOptionPermutations()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ) ) ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2" ) )
+            .build();
         List<List<DimensionItem>> permutations = params.getDimensionItemPermutations();
         assertNotNull( permutations );
         assertEquals( 6, permutations.size() );
@@ -470,10 +476,10 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void testGetDataPeriodAggregationPeriodMap()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC, deD ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deC, deD ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
             .withPeriodType( PeriodTypeEnum.QUARTERLY.getName() ).withDataPeriodType( new YearlyPeriodType() ).build();
         ListMap<DimensionalItemObject, DimensionalItemObject> map = params.getDataPeriodAggregationPeriodMap();
         assertEquals( 2, map.size() );
@@ -497,17 +503,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryA()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC, deD ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
-                createPeriod( "200107" ), createPeriod( "2002Q3" ), createPeriod( "2002Q4" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deC, deD ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "200101", "200103", "200105", "200107", "2002Q3", "2002Q4" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -523,17 +532,19 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryB()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
-                createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000", "200002", "200003", "200004" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 6 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 6, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -563,16 +574,19 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         organisationUnitService.updateOrganisationUnit( ouC );
         organisationUnitService.updateOrganisationUnit( ouD );
         organisationUnitService.updateOrganisationUnit( ouE );
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3" ) )
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 5, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 5, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -588,18 +602,21 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryD()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ), createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ),
-                createPeriod( "200008" ), createPeriod( "200009" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deC ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( createPeriods( "200001", "200002", "200003", "200004",
+                "200005", "200006", "200007", "200008", "200009" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -615,17 +632,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryE()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ), createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ),
-                createPeriod( "200008" ), createPeriod( "200009" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deC ) )
+            .withPeriods( createPeriods( "200001", "200002", "200003", "200004",
+                "200005", "200006", "200007", "200008", "200009" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -639,18 +659,21 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryF()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ), createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ),
-                createPeriod( "200008" ), createPeriod( "200009" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "200001", "200002", "200003",
+                "200004", "200005", "200006", "200007", "200008", "200009" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 3, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -665,17 +688,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryH()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC, deD ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withFilterPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deC, deD ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withFilterPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
@@ -691,17 +717,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryI()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deE, deF ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
-                createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deE, deF ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000", "200002", "200003", "200004" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 6 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 12, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -716,16 +745,19 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryK()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withReportingRates( getList( rrA, rrB, rrC, rrD ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withReportingRates( List.of( rrA, rrB, rrC, rrD ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD, ouE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 4, queries.size() );
+
         for ( DataQueryParams query : queries )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -741,15 +773,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryL()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deE, deF ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
-            .withFilterPeriods( getList( createPeriod( "2000Q1" ) ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deE, deF ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD ) )
+            .withFilterPeriods( List.of( createPeriod( "2000Q1" ) ) )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
@@ -764,15 +801,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryM()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deG, deH ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ) ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB, deG, deH ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( createPeriods( "200101", "200103" ) )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -800,11 +842,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         deD.setAggregationType( AggregationType.SUM );
         deI.setAggregationType( AggregationType.SUM );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( getList( deA, deB, deC, deD, deG, deH, deI ) )
-            .withPeriods( getList( createPeriod( "2022" ) ) )
+            .withDataElements( List.of( deA, deB, deC, deD, deG, deH, deI ) )
+            .withPeriods( createPeriods( "2022" ) )
             .build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 5, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
@@ -846,15 +890,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
 
     private void planQueryForFirstOrLastAggregationType( AnalyticsAggregationType analyticsAggregationType )
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA ) )
-            .withOrganisationUnits( getList( ouA ) ).withPeriods( getList( createPeriod( "200101" ),
-                createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
-            .withAggregationType( analyticsAggregationType ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( createPeriods( "200101", "200102", "200103", "200104" ) )
+            .withAggregationType( analyticsAggregationType )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 4, queries.size() );
+
         for ( DataQueryParams query : queries )
         {
             assertEquals( 1, query.getPeriods().size() );
@@ -871,19 +920,24 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryStartEndDateRestrictionQueryGrouperA()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
-            .withOrganisationUnits( getList( ouA ) ).withPeriods( getList( createPeriod( "200101" ),
-                createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( createPeriods( "200101", "200102", "200103", "200104" ) )
             .build();
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
         queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).withQueryGroupers( queryGroupers ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .withQueryGroupers( queryGroupers )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 4, queries.size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queries )
         {
             assertNull( query.getStartDate() );
@@ -904,19 +958,23 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryStartEndDateRestrictionQueryGrouperB()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
-            .withOrganisationUnits( getList( ouA ) ).withFilterPeriods( getList( createPeriod( "200101" ),
-                createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withFilterPeriods( createPeriods( "200101", "200102", "200103", "200104" ) )
             .build();
-        List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
+        List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
         queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).withQueryGroupers( queryGroupers ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .withQueryGroupers( queryGroupers )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 2, queries.size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 2, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queries )
         {
             assertNull( query.getStartDate() );
@@ -938,13 +996,16 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     {
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         DataElement deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT );
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
-            .withOrganisationUnits( getList( ouA ) ).withPeriods( getList( createPeriod( "200101" ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA ) ).withPeriods( List.of( createPeriod( "200101" ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 2, queryGroups.getAllQueries().size() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
@@ -963,13 +1024,19 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     {
         DataElement deA = createDataElement( 'A', ValueType.BOOLEAN, AggregationType.SUM );
         DataElement deB = createDataElement( 'B', ValueType.BOOLEAN, AggregationType.COUNT );
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
-            .withOrganisationUnits( getList( ouA ) ).withPeriods( getList( createPeriod( "200101" ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( createPeriods( "200101" ) )
+            .withAggregationType( AnalyticsAggregationType.AVERAGE )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 2, queryGroups.getAllQueries().size() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
@@ -986,15 +1053,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryDataElementDisaggregation()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deI, deJ ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
-            .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deI, deJ ) )
+            .withOrganisationUnits( List.of( ouA, ouB, ouC, ouD ) )
+            .withPeriods( createPeriods( "201001", "201003" ) )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -1013,15 +1085,20 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void planQueryDataElementGroupSetDisaggregation()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElementGroupSet( dgsB )
-            .withOrganisationUnits( getList( ouA, ouB ) )
-            .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElementGroupSet( dgsB )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( createPeriods( "201001", "201003" ) )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 2, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 2, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -1035,10 +1112,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     @Test
     void testWithTableTypeAndPartition()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withStartDate( getDate( 2014, 4, 1 ) )
-            .withEndDate( getDate( 2016, 8, 1 ) ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2014, 4, 1 ) )
+            .withEndDate( getDate( 2016, 8, 1 ) )
+            .build();
         assertTrue( params.hasStartEndDate() );
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withTableType( ANALYTICS_TABLE_TYPE )
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withTableType( ANALYTICS_TABLE_TYPE )
             .build();
         DataQueryParams query = queryPlanner.withTableNameAndPartitions( params, plannerParams );
         Partitions partitions = query.getPartitions();
@@ -1052,18 +1132,22 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
     private static boolean samePeriodType( List<DimensionalItemObject> isoPeriods )
     {
         Iterator<DimensionalItemObject> periods = new ArrayList<>( isoPeriods ).iterator();
         PeriodType first = ((Period) periods.next()).getPeriodType();
+
         while ( periods.hasNext() )
         {
             PeriodType next = ((Period) periods.next()).getPeriodType();
+
             if ( !first.equals( next ) )
             {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -1084,6 +1168,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     {
         Function<String, Number> findValueByUid = ( String uid ) -> in.stream()
             .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
+
         for ( DimensionItemObjectValue dimensionItemObjectValue : collection )
         {
             final Number val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );

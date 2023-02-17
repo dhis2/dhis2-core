@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerObjectReport;
+import org.hisp.dhis.tracker.report.Entity;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.stereotype.Service;
 
@@ -57,9 +57,8 @@ import com.google.common.collect.Lists;
 /**
  * @author Zubair Asghar
  */
-
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService
     implements TrackerObjectDeletionService
 {
@@ -86,7 +85,7 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = enrollments.get( idx ).getEnrollment();
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, uid, idx );
+            Entity objectReport = new Entity( TrackerType.ENROLLMENT, uid, idx );
 
             ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
 
@@ -107,7 +106,7 @@ public class DefaultTrackerObjectsDeletionService
             teiService.updateTrackedEntityInstance( tei );
 
             typeReport.getStats().incDeleted();
-            typeReport.addObjectReport( objectReport );
+            typeReport.addEntity( objectReport );
         }
 
         return typeReport;
@@ -124,7 +123,7 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = events.get( idx ).getEvent();
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, uid, idx );
+            Entity objectReport = new Entity( TrackerType.EVENT, uid, idx );
 
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
@@ -141,7 +140,7 @@ public class DefaultTrackerObjectsDeletionService
             }
 
             typeReport.getStats().incDeleted();
-            typeReport.addObjectReport( objectReport );
+            typeReport.addEntity( objectReport );
         }
 
         return typeReport;
@@ -158,7 +157,7 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = trackedEntities.get( idx ).getTrackedEntity();
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, uid, idx );
+            Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
 
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
                 .getTrackedEntityInstance( uid );
@@ -179,7 +178,7 @@ public class DefaultTrackerObjectsDeletionService
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
 
             typeReport.getStats().incDeleted();
-            typeReport.addObjectReport( objectReport );
+            typeReport.addEntity( objectReport );
         }
 
         return typeReport;
@@ -196,14 +195,14 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = relationships.get( idx ).getRelationship();
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP, uid, idx );
+            Entity objectReport = new Entity( TrackerType.RELATIONSHIP, uid, idx );
 
             org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
 
             relationshipService.deleteRelationship( relationship );
 
             typeReport.getStats().incDeleted();
-            typeReport.addObjectReport( objectReport );
+            typeReport.addEntity( objectReport );
         }
 
         return typeReport;

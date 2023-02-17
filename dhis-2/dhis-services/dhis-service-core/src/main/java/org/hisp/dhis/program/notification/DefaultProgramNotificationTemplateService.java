@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Zubair Asghar
  */
-
 @Service( "org.hisp.dhis.program.ProgramNotificationTemplateService" )
 public class DefaultProgramNotificationTemplateService implements ProgramNotificationTemplateService
 {

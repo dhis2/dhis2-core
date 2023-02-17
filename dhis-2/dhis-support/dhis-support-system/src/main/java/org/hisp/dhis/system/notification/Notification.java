@@ -29,6 +29,8 @@ package org.hisp.dhis.system.notification;
 
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobType;
@@ -41,10 +43,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
-public class Notification
+public class Notification implements Comparable<Notification>
 {
     private String uid; // FIXME expose as "id" externally in next API version
-                        // as "uid" is internal
+                       // as "uid" is internal
 
     private NotificationLevel level;
 
@@ -94,7 +96,7 @@ public class Notification
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getId() // expose as ID also to be future proof, we should not
-                          // expose UID fields
+                         // expose UID fields
     {
         return uid;
     }
@@ -196,5 +198,16 @@ public class Notification
     public String toString()
     {
         return "[Level: " + level + ", category: " + category + ", time: " + time + ", message: " + message + "]";
+    }
+
+    @Override
+    public int compareTo( @Nonnull Notification other )
+    {
+        if ( category != other.category )
+        {
+            return category.compareTo( other.category );
+        }
+        // flip this/other => newest first
+        return other.time.compareTo( time );
     }
 }

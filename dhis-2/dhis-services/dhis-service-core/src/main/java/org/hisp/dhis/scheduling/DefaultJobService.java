@@ -30,7 +30,7 @@ package org.hisp.dhis.scheduling;
 import java.util.EnumMap;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultJobService implements JobService
 {
     private final ApplicationContext applicationContext;

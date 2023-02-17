@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -87,6 +88,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = InterpretationSchemaDescriptor.API_ENDPOINT )
 public class InterpretationController extends AbstractCrudController<Interpretation>

@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -56,6 +57,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( { "user", "query" } )
 @RestController
 @RequestMapping( value = UserLookupController.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -83,7 +85,7 @@ public class UserLookupController
 
     @GetMapping
     public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( required = false ) String orgUnitBoundary )
+        @RequestParam( required = false ) @OpenApi.Param( UserOrgUnitType.class ) String orgUnitBoundary )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )

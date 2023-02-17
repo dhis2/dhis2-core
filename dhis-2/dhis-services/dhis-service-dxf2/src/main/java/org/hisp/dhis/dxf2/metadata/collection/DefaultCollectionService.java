@@ -28,27 +28,27 @@
 package org.hisp.dhis.dxf2.metadata.collection;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultCollectionService implements CollectionService
 {
     private final IdentifiableObjectManager manager;
@@ -83,7 +83,10 @@ public class DefaultCollectionService implements CollectionService
     @Transactional
     public TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         Property property = validateUpdate( object, propertyName,
             "Only identifiable object collections can be added to." );
@@ -115,7 +118,7 @@ public class DefaultCollectionService implements CollectionService
         Property property,
         Collection<String> itemCodes,
         TypeReport report )
-        throws Exception
+        throws BadRequestException
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -163,7 +166,10 @@ public class DefaultCollectionService implements CollectionService
     @Transactional
     public TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         Property property = validateUpdate( object, propertyName,
             "Only identifiable object collections can be removed from." );
@@ -198,7 +204,6 @@ public class DefaultCollectionService implements CollectionService
         Property property,
         Collection<String> itemCodes,
         TypeReport report )
-        throws Exception
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -243,7 +248,10 @@ public class DefaultCollectionService implements CollectionService
     @Transactional
     public TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         Property property = validateUpdate( object, propertyName,
             "Only identifiable object collections can be replaced." );
@@ -256,7 +264,10 @@ public class DefaultCollectionService implements CollectionService
     @Override
     @Transactional
     public TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         TypeReport delReport = delCollectionItems( object, propertyName, items.getDeletions() );
         TypeReport addReport = addCollectionItems( object, propertyName, items.getAdditions() );
@@ -264,26 +275,28 @@ public class DefaultCollectionService implements CollectionService
     }
 
     private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
-        throws WebMessageException
+        throws ForbiddenException,
+        NotFoundException,
+        ConflictException
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !schema.haveProperty( propertyName ) )
+        if ( !schema.hasProperty( propertyName ) )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
+            throw new NotFoundException(
+                "Property " + propertyName + " does not exist on " + object.getClass().getName() );
         }
 
         Property property = schema.getProperty( propertyName );
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( conflict( message ) );
+            throw new ConflictException( message );
         }
         return property;
     }
@@ -301,9 +314,15 @@ public class DefaultCollectionService implements CollectionService
 
     @SuppressWarnings( "unchecked" )
     private Collection<IdentifiableObject> getCollection( IdentifiableObject object, Property property )
-        throws Exception
     {
-        return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+        try
+        {
+            return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+        }
+        catch ( Exception ex )
+        {
+            throw new RuntimeException( ex );
+        }
     }
 
     @FunctionalInterface

@@ -27,33 +27,24 @@
  */
 package org.hisp.dhis.sms;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.sms.MessageQueue" )
 public class DatabaseSupportedInternalMemoryMessageQueue
     implements MessageQueue
 {
     private List<IncomingSms> queue = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final IncomingSmsService incomingSmsService;
-
-    public DatabaseSupportedInternalMemoryMessageQueue( IncomingSmsService incomingSmsService )
-    {
-        checkNotNull( incomingSmsService );
-        this.incomingSmsService = incomingSmsService;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

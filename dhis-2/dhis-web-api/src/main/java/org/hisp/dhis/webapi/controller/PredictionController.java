@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.message.MessageService;
@@ -63,7 +64,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = PredictionController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

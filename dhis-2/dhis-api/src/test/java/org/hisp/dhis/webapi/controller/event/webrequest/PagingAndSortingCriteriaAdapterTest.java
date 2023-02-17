@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -44,24 +45,20 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
-
 class PagingAndSortingCriteriaAdapterTest
 {
-
     /**
-     * should not fail when paging=true and pageSize is null
+     * Should not fail when paging=true and pageSize is null
      */
     @Test
     void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull()
     {
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
-
             @Override
             public Integer getPageSize()
             {
-                // redundant just to make test more readable
+                // Redundant just to make test more readable
                 return null;
             }
         };
@@ -81,7 +78,7 @@ class PagingAndSortingCriteriaAdapterTest
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
         };
-        assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
+        assertFalse( toBooleanDefaultIfNull( pagingAndSortingCriteriaAdapter.isSkipPaging(), false ) );
         assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
 
@@ -95,7 +92,7 @@ class PagingAndSortingCriteriaAdapterTest
             @Override
             public List<String> getAllowedOrderingFields()
             {
-                return ImmutableList.of( "field1", "field2" );
+                return List.of( "field1", "field2" );
             }
 
             @Override
@@ -104,7 +101,7 @@ class PagingAndSortingCriteriaAdapterTest
                 return Optional.of( dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName );
             }
         };
-        tested.setOrder( ImmutableList.of( OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
+        tested.setOrder( List.of( OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
             OrderCriteria.of( "field2", OrderParam.SortDirection.ASC ),
             OrderCriteria.of( "field3", OrderParam.SortDirection.ASC ) ) );
         Collection<String> orderField = tested.getOrder().stream().map( OrderCriteria::getField )

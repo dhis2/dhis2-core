@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -40,22 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.user.UserGroupAccessService" )
 public class DefaultUserGroupAccessService implements UserGroupAccessService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private GenericStore<UserGroupAccess> userGroupAccessStore;
-
-    public DefaultUserGroupAccessService(
-        @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" ) GenericStore<UserGroupAccess> userGroupAccessStore )
-    {
-        checkNotNull( userGroupAccessStore );
-
-        this.userGroupAccessStore = userGroupAccessStore;
-    }
+    @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" )
+    private final GenericStore<UserGroupAccess> userGroupAccessStore;
 
     // -------------------------------------------------------------------------
     // UserGroupAccess

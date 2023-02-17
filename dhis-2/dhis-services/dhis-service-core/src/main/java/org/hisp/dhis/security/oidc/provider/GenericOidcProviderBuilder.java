@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -44,6 +51,9 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import com.google.common.collect.ImmutableList;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -81,7 +91,60 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
             .loginIconPadding( StringUtils.defaultIfEmpty( config.get( LOGIN_IMAGE_PADDING ), "0px 0px" ) )
             .loginText( StringUtils.defaultIfEmpty( config.get( DISPLAY_ALIAS ), providerId ) )
             .externalClients( externalClients )
+            .jwk( getJWK( config ) )
+            .rsaPublicKey( getPublicKey( config ) )
+            .keyId( config.get( JWT_PRIVATE_KEY_ALIAS ) )
+            .jwkSetUrl( config.get( JWK_SET_URL ) )
             .build();
+    }
+
+    private static RSAPublicKey getPublicKey( Map<String, String> config )
+    {
+        String keystorePath = config.get( JWT_PRIVATE_KEY_KEYSTORE_PATH );
+        if ( keystorePath == null || keystorePath.isEmpty() )
+        {
+            return null;
+        }
+
+        try
+        {
+            KeyStore keyStore = KeyStoreUtil.readKeyStore( keystorePath,
+                config.get( JWT_PRIVATE_KEY_KEYSTORE_PASSWORD ) );
+            RSAKey rsaKey = KeyStoreUtil.loadRSAPublicKey( keyStore, config.get( JWT_PRIVATE_KEY_ALIAS ),
+                config.get( JWT_PRIVATE_KEY_PASSWORD ).toCharArray() );
+
+            return rsaKey.toRSAPublicKey();
+        }
+        catch ( KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | JOSEException e )
+        {
+            throw new IllegalStateException( "Could not load public key from keystore", e );
+        }
+    }
+
+    private static JWK getJWK( Map<String, String> config )
+    {
+        ClientAuthenticationMethod clientAuthenticationMethod = new ClientAuthenticationMethod(
+            StringUtils.defaultIfEmpty( config.get( CLIENT_AUTHENTICATION_METHOD ),
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue() ) );
+
+        if ( clientAuthenticationMethod.equals( ClientAuthenticationMethod.PRIVATE_KEY_JWT ) )
+        {
+            try
+            {
+                KeyStore keyStore = KeyStoreUtil.readKeyStore( config.get( JWT_PRIVATE_KEY_KEYSTORE_PATH ),
+                    config.get( JWT_PRIVATE_KEY_KEYSTORE_PASSWORD ) );
+
+                return JWK.load( keyStore, config.get( JWT_PRIVATE_KEY_ALIAS ),
+                    config.get( JWT_PRIVATE_KEY_PASSWORD ).toCharArray() );
+            }
+            catch ( KeyStoreException | JOSEException | CertificateException | IOException
+                | NoSuchAlgorithmException e )
+            {
+                throw new IllegalStateException( "Could not load key from keystore", e );
+            }
+        }
+
+        return null;
     }
 
     private static ClientRegistration buildClientRegistration( Map<String, String> config, String providerId,
@@ -91,20 +154,21 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         builder.clientName( providerId );
         builder.clientId( clientId );
         builder.clientSecret( clientSecret );
-        builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
-        builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
+        builder.clientAuthenticationMethod( new ClientAuthenticationMethod(
+            StringUtils.defaultIfEmpty( config.get( CLIENT_AUTHENTICATION_METHOD ),
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue() ) ) );
+        builder.authorizationGrantType( new AuthorizationGrantType(
+            StringUtils.defaultIfEmpty( config.get( AUTHORIZATION_GRANT_TYPE ),
+                AuthorizationGrantType.AUTHORIZATION_CODE.getValue() ) ) );
         builder.authorizationUri( config.get( AUTHORIZATION_URI ) );
         builder.tokenUri( config.get( TOKEN_URI ) );
         builder.jwkSetUri( config.get( JWK_URI ) );
         builder.issuerUri( config.get( ISSUER_URI ) );
         builder.userInfoUri( config.get( USERINFO_URI ) );
-        builder.redirectUri( StringUtils.defaultIfEmpty(
-            config.get( REDIRECT_URL ),
-            DEFAULT_REDIRECT_TEMPLATE_URL ) );
+        builder.redirectUri( StringUtils.defaultIfEmpty( config.get( REDIRECT_URL ), DEFAULT_REDIRECT_TEMPLATE_URL ) );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
-        builder.scope( ImmutableList.<String> builder()
-            .add( DEFAULT_SCOPE )
+        builder.scope( ImmutableList.<String> builder().add( DEFAULT_SCOPE )
             .add( StringUtils.defaultIfEmpty( config.get( SCOPES ), "" ).split( " " ) ).build() );
 
         builder.providerConfigurationMetadata( parseMetaData( config ) );
@@ -133,8 +197,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
     }
 
     /**
-     * Extra req. params has to be in this form: acr_value 4, test_param five
-     * (trailing (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
+     * Extra request parameters has to be in this form: acr_value 4, test_param
+     * five (trailing (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
      *
      * @param config
      * @return
@@ -143,12 +207,14 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
     {
         String params = StringUtils.defaultIfEmpty( config.get( EXTRA_REQUEST_PARAMETERS ), "" );
 
+        final String whitespace = "\\s+";
+
         return Arrays
             .stream( params.split( "," ) )
-            .filter( s -> s.trim().split( "\\s+" ).length == 2 )
+            .filter( s -> s.trim().split( whitespace ).length == 2 )
             .map( s -> Pair.of(
-                s.trim().split( "\\s+" )[0],
-                s.trim().split( "\\s+" )[1] ) )
+                s.trim().split( whitespace )[0],
+                s.trim().split( whitespace )[1] ) )
             .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
     }
 }

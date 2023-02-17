@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.MergeMode;
@@ -41,16 +42,12 @@ import org.springframework.stereotype.Service;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.schema.MergeService" )
 @Slf4j
 public class DefaultMergeService implements MergeService
 {
     private final SchemaService schemaService;
-
-    public DefaultMergeService( SchemaService schemaService )
-    {
-        this.schemaService = schemaService;
-    }
 
     @Override
     public <T> T merge( MergeParams<T> mergeParams )

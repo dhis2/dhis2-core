@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.commons.collection;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -104,7 +107,7 @@ public class CollectionUtils
     {
         return collection.stream()
             .map( mapper )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     /**
@@ -153,6 +156,22 @@ public class CollectionUtils
         List<A> list = new ArrayList<>( collection1 );
         list.removeAll( collection2 );
         return Collections.unmodifiableList( list );
+    }
+
+    /**
+     * Returns a list that contains all the members of one or more collections.
+     * No check for duplicates is made.
+     *
+     * @param <T>
+     * @param collections the collections to be concatenated.
+     * @return the concatenated collections.
+     */
+    @SafeVarargs
+    public static <T> List<T> concat( Collection<T>... collections )
+    {
+        return Arrays.stream( collections )
+            .flatMap( Collection::stream )
+            .collect( toList() );
     }
 
     /**
@@ -249,7 +268,7 @@ public class CollectionUtils
     /**
      * Indicates whether the given collection is null or empty.
      *
-     * @param collection the collection.
+     * @param collection the collection, may be null.
      * @return true if the given collection is null or empty, false otherwise.
      */
     public static boolean isEmpty( Collection<?> collection )
@@ -306,5 +325,32 @@ public class CollectionUtils
     {
         return StreamSupport.stream( Spliterators.spliteratorUnknownSize( iterator,
             Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE ), false );
+    }
+
+    /**
+     * Find duplicate item in given collection.
+     *
+     * @param collection the collection to be checked.
+     * @param <T> The object type of the collection item.
+     * @return Set of duplicate items.
+     */
+    public static <T> Set<T> findDuplicates( Collection<T> collection )
+    {
+        if ( CollectionUtils.isEmpty( collection ) )
+        {
+            return Set.of();
+        }
+        Set<T> duplicates = new HashSet<>();
+        Set<T> uniques = new HashSet<>();
+
+        for ( T t : collection )
+        {
+            if ( !uniques.add( t ) )
+            {
+                duplicates.add( t );
+            }
+        }
+
+        return duplicates;
     }
 }

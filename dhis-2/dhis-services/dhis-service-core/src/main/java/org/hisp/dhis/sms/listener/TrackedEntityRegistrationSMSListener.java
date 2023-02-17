@@ -65,9 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" )
 @Transactional
-public class TrackedEntityRegistrationSMSListener
-    extends
-    CommandSMSListener
+public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 {
     private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
 

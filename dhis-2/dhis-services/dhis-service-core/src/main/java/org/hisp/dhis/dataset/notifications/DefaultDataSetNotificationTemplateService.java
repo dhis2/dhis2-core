@@ -29,7 +29,7 @@ package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
  * Created by zubair@dhis2.org on 20.07.17.
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultDataSetNotificationTemplateService implements DataSetNotificationTemplateService
 {
     private final DataSetNotificationTemplateStore store;

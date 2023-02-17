@@ -31,25 +31,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
-public class ProgramStageSectionDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class ProgramStageSectionDeletionHandler extends IdObjectDeletionHandler<ProgramStageSection>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     private final ProgramStageSectionService programStageSectionService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
         whenDeleting( ProgramStage.class, this::deleteProgramStage );

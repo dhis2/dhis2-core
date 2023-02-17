@@ -55,6 +55,8 @@ class ResultProcessor
 
     private static final String PROGRAM_UID = "program_uid";
 
+    private static final String EXPRESSION = "expression";
+
     private ResultProcessor()
     {
     }
@@ -81,7 +83,8 @@ class ResultProcessor
                 .code( rowSet.getString( "item_code" ) )
                 .dimensionItemType( getItemType( rowSet ) )
                 .programId( rowSet.getString( PROGRAM_UID ) )
-                .valueType( getValueType( rowSet ) ).build() );
+                .valueType( getValueType( rowSet ) )
+                .expression( rowSet.getString( EXPRESSION ) ).build() );
         }
 
         return dataItems;

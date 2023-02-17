@@ -31,6 +31,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author markusbekken
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @AllArgsConstructor
 @RequestMapping( value = ProgramRuleSchemaDescriptor.API_ENDPOINT )

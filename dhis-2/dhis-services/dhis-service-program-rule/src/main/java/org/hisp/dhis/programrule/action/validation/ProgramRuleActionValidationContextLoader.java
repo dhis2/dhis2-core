@@ -32,6 +32,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -57,10 +58,13 @@ public class ProgramRuleActionValidationContextLoader
     @Nonnull
     private final ProgramRuleActionValidationService validationService;
 
+    private final IdentifiableObjectManager objectManager;
+
     public ProgramRuleActionValidationContextLoader(
-        @Nonnull ProgramRuleActionValidationService actionValidationService )
+        @Nonnull ProgramRuleActionValidationService actionValidationService, IdentifiableObjectManager manager )
     {
         this.validationService = actionValidationService;
+        this.objectManager = manager;
     }
 
     @Transactional( readOnly = true )
@@ -71,6 +75,12 @@ public class ProgramRuleActionValidationContextLoader
             ruleAction.getProgramRule() );
 
         Program program = preheat.get( preheatIdentifier, Program.class, rule.getProgram() );
+
+        if ( program == null )
+        {
+            program = objectManager.get( Program.class, rule.getProgram().getUid() );
+            preheat.put( preheatIdentifier, program );
+        }
 
         List<ProgramStage> stages = preheat.getAll( preheatIdentifier, new ArrayList<>( program.getProgramStages() ) );
 

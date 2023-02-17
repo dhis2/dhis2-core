@@ -267,14 +267,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntityInstance getTrackedEntityInstance( String uid, User user )
-    {
-        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid, user ),
-            TrackedEntityInstanceParams.TRUE, user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params )
     {
         return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid ), params );
@@ -1235,10 +1227,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             if ( existingAttributeValue != null ) // value exists
             {
                 if ( !existingAttributeValue.getValue().equals( dtoAttribute.getValue() ) ) // value
-                                                                                            // is
-                                                                                            // changed,
-                                                                                            // do
-                                                                                            // update
+                                                                                           // is
+                                                                                           // changed,
+                                                                                           // do
+                                                                                           // update
                 {
                     existingAttributeValue.setStoredBy( storedBy );
                     existingAttributeValue.setValue( dtoAttribute.getValue() );
@@ -1655,10 +1647,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
                     && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
-                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                    Optional<Relationship> relationship = relationshipService.findRelationship(
+                        relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
-
-                    trackedEntityInstance.getRelationships().add( relationship );
+                    relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );
                 }
             }
         }
@@ -1671,7 +1663,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                     && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
                 {
                     trackedEntityInstance.getEnrollments()
-                        .add( enrollmentService.getEnrollment( user, programInstance, params, true ) );
+                        .add( enrollmentService.getEnrollment( user, programInstance,
+                            params.getEnrollmentParams(), true ) );
                 }
             }
         }

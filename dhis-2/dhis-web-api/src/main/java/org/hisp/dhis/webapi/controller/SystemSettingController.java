@@ -50,6 +50,7 @@ import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.setting.SettingKey;
@@ -80,6 +81,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( "/systemSettings" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

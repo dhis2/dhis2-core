@@ -32,7 +32,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
@@ -58,13 +58,11 @@ public interface EnrollmentService
     List<Enrollment> getEnrollmentsXml( InputStream inputStream )
         throws IOException;
 
-    Enrollment getEnrollment( String id );
+    Enrollment getEnrollment( String id, EnrollmentParams params );
 
-    Enrollment getEnrollment( ProgramInstance programInstance );
+    Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params );
 
-    Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
-
-    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+    Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
         boolean skipOwnershipCheck );
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );

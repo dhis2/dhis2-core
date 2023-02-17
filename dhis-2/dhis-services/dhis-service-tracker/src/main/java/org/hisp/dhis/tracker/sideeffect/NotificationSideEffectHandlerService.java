@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.sideeffect;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
@@ -36,16 +38,11 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair Asghar
  */
-
+@RequiredArgsConstructor
 @Service
 public class NotificationSideEffectHandlerService implements SideEffectHandlerService
 {
     private final TrackerNotificationMessageManager notificationMessageManager;
-
-    public NotificationSideEffectHandlerService( TrackerNotificationMessageManager messageManager )
-    {
-        this.notificationMessageManager = messageManager;
-    }
 
     @Override
     public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )

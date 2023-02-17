@@ -31,27 +31,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author Luciano Fiandesio (initial)
- * @author Jan Bernitt (current)
+ * @author Luciano Fiandesio
+ * @author Jan Bernitt
  */
 public final class UniqueNameContext
 {
-
     private final Set<String> uniqueNames = new HashSet<>();
 
     /**
-     * Returns the name that is unique in this name context.
+     * Returns the name that is unique within the name context. The returned
+     * name is potentially appended with a number to ensure uniqueness.
      *
-     * @param name a String
-     * @return a unique name based on the given name, eventually extended by a
-     *         counter number
+     * @param name the name.
+     * @return a unique name based on the given name.
      */
     public String uniqueName( String name )
     {
         String uniqueName = name;
+
         if ( uniqueNames.contains( uniqueName ) )
         {
             int n = uniqueNames.size();
+
             do
             {
                 uniqueName = name + n;
@@ -59,7 +60,9 @@ public final class UniqueNameContext
             }
             while ( uniqueNames.contains( uniqueName ) );
         }
+
         this.uniqueNames.add( uniqueName );
+
         return uniqueName;
     }
 }

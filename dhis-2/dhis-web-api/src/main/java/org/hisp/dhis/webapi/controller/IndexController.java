@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @Controller
 public class IndexController
 {
@@ -92,7 +94,7 @@ public class IndexController
 
         for ( Schema schema : schemaService.getSchemas() )
         {
-            if ( schema.haveApiEndpoint() )
+            if ( schema.hasApiEndpoint() )
             {
                 indexResources.getResources()
                     .add( new IndexResource( beautify( schema.getPlural() ), schema.getSingular(),

@@ -32,16 +32,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -61,6 +62,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( value = ValidationRuleSchemaDescriptor.API_ENDPOINT )
 public class ValidationRuleController
@@ -81,7 +83,7 @@ public class ValidationRuleController
     @Override
     protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
-        throws QueryParserException
+        throws BadRequestException
     {
         if ( options.contains( "dataSet" ) )
         {
@@ -89,7 +91,7 @@ public class ValidationRuleController
 
             if ( ds == null )
             {
-                return null;
+                return List.of();
             }
 
             return Lists.newArrayList( validationRuleService.getValidationRulesForDataSet( ds ) );

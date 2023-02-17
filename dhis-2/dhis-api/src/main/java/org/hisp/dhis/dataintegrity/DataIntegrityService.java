@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -49,24 +51,41 @@ public interface DataIntegrityService
      *             compatibility until new UI exists
      */
     @Deprecated( since = "2.38", forRemoval = true )
+    @Nonnull
     FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
 
     /*
      * New generic API
      */
 
-    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    default @Nonnull Collection<DataIntegrityCheck> getDataIntegrityChecks()
     {
         return getDataIntegrityChecks( Set.of() );
     }
 
+    @Nonnull
     Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
+    @Nonnull
+    Map<String, DataIntegritySummary> getSummaries( @Nonnull Set<String> checks, long timeout );
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
+    @Nonnull
+    Map<String, DataIntegrityDetails> getDetails( @Nonnull Set<String> checks, long timeout );
 
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
+    void runSummaryChecks( @Nonnull Set<String> checks, JobProgress progress );
 
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
+    void runDetailsChecks( @Nonnull Set<String> checks, JobProgress progress );
+
+    @Nonnull
+    Set<String> getRunningSummaryChecks();
+
+    @Nonnull
+    Set<String> getRunningDetailsChecks();
+
+    @Nonnull
+    Set<String> getCompletedSummaryChecks();
+
+    @Nonnull
+    Set<String> getCompletedDetailsChecks();
+
 }

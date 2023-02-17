@@ -282,14 +282,14 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 
             Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
 
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, null,
+                categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, null,
+                categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, null,
+                categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, null,
+                categoryComboA, null, userApprovalLevels, null ).size() );
 
             categoryOptionA.setStartDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
             categoryOptionA.setEndDate( new DateTime( 2020, 5, 30, 0, 0 ).toDate() );
@@ -304,34 +304,34 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
             return null;
         } );
 
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodJan, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodFeb, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodMay, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodJun, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
 
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
 
         dataSetService.updateDataSet( dataSetA );
 
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodJan, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodFeb, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodMay, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null )
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses(
+            workflowA, periodJun, null, 1, null, categoryComboA, null, userApprovalLevels, null )
             .size() );
     }
 
@@ -432,7 +432,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
         Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
 
         assertEquals( expectedApprovalCount,
-            dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA,
+            dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, null, categoryComboA,
                 null, userApprovalLevels, null ).size() );
 
         dbmsManager.clearSession();

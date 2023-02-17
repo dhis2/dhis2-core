@@ -27,23 +27,17 @@
  */
 package org.hisp.dhis.predictor;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Jim Grace
  */
 @Component
-@AllArgsConstructor
-public class PredictorGroupDeletionHandler extends DeletionHandler
+public class PredictorGroupDeletionHandler extends IdObjectDeletionHandler<PredictorGroup>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Predictor.class, this::deletePredictor );
     }

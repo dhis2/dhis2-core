@@ -29,6 +29,8 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -39,10 +41,10 @@ import org.springframework.stereotype.Component;
  *
  * @author Ameen Mohamed
  */
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
 {
-
     private static final String TRIGRAM_INDEX_CREATE_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
         + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
 
@@ -52,11 +54,6 @@ public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttr
         + " WHERE   indexname like 'in_gin_teavalue_%' and tablename = 'trackedentityattributevalue'";
 
     private final JdbcTemplate jdbcTemplate;
-
-    public JdbcTrackedEntityAttributeTableManager( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

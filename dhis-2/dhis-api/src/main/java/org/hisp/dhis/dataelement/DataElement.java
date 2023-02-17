@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -345,8 +346,10 @@ public class DataElement extends BaseDimensionalItemObject
      */
     public Set<DataSet> getDataSets()
     {
-        return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-            Objects::nonNull ).collect( Collectors.toSet() ) );
+        return dataSetElements.stream()
+            .map( DataSetElement::getDataSet )
+            .filter( Objects::nonNull )
+            .collect( toUnmodifiableSet() );
     }
 
     /**
@@ -430,22 +433,8 @@ public class DataElement extends BaseDimensionalItemObject
      */
     public Period getLatestOpenFuturePeriod()
     {
-        int periods = getOpenFuturePeriods();
-
         PeriodType periodType = getPeriodType();
-
-        if ( periodType != null )
-        {
-            Period period = periodType.createPeriod();
-
-            // Rewind one as 0 open periods implies current period is locked
-
-            period = periodType.getPreviousPeriod( period );
-
-            return periodType.getNextPeriod( period, periods );
-        }
-
-        return null;
+        return periodType == null ? null : periodType.getFuturePeriod( getOpenFuturePeriods() );
     }
 
     /**

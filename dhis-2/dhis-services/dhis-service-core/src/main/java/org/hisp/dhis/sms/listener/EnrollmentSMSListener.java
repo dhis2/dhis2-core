@@ -75,9 +75,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.EnrollmentSMSListener" )
 @Transactional
-public class EnrollmentSMSListener
-    extends
-    CompressionSMSListener
+public class EnrollmentSMSListener extends CompressionSMSListener
 {
     private final TrackedEntityInstanceService teiService;
 

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.artemis.audit.legacy;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.audit.AuditScope;
@@ -46,15 +47,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Luciano Fiandesio
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
+    @Qualifier( "hibernateAwareJsonMapper" )
     private final ObjectMapper objectMapper;
-
-    public DefaultAuditObjectFactory( @Qualifier( "hibernateAwareJsonMapper" ) ObjectMapper objectMapper )
-    {
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public Object create( AuditScope auditScope, AuditType auditType, Object object, String user )

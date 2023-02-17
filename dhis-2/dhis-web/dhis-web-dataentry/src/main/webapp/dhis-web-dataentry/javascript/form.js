@@ -1892,11 +1892,11 @@ function insertDataValues( json )
     	
     	$.each( organisationUnitList, function( idx, item )
         {    		
-    		orgUnitClosed = dhis2.de.validateOrgUnitOpening( organisationUnits[item.uid], period ) ;
+    		orgUnitClosed = dhis2.de.validateOrgUnitOpening( item, period ) ;
     		
     		if( orgUnitClosed )
     		{    			  	        
-    			return;
+    			return false;
     		}            
         } );
     	
@@ -2099,7 +2099,12 @@ function valueFocus( e )
 
     var dataElementName = getDataElementName( dataElementId );
     var optionComboName = getOptionComboName( optionComboId );
-    var organisationUnitName = organisationUnits[dhis2.de.getCurrentOrganisationUnit()].n;
+    var organisationUnitName;
+    if ( dhis2.de.multiOrganisationUnit ) {
+        organisationUnitName = organisationUnitList.filter( ou=>ou.uid === dhis2.de.getCurrentOrganisationUnit() )[0].n;
+    } else {
+        organisationUnitName = organisationUnits[dhis2.de.getCurrentOrganisationUnit()].n;
+    }
 
     $( '#currentOrganisationUnit' ).html( organisationUnitName );
     $( '#currentDataElement' ).html( dataElementName + ' ' + optionComboName );

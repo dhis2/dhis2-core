@@ -82,11 +82,7 @@ public class V2_31_9__Add_user_permissions_for_new_data_viz_app extends BaseJava
             log.error( "Flyway java migration error", ex );
             throw new FlywayException( ex );
         }
-        legacyDataVizRoleIds.removeAll( newDataVizRoleIds ); // in case
-                                                             // permission has
-                                                             // already been
-                                                             // added for some
-                                                             // roles
+        legacyDataVizRoleIds.removeAll( newDataVizRoleIds ); // in case permission has already been added for some roles
         if ( legacyDataVizRoleIds.size() > 0 )
         {
             try ( PreparedStatement ps = context.getConnection().prepareStatement(

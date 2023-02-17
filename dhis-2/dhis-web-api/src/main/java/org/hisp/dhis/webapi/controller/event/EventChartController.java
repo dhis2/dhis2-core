@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
@@ -79,6 +80,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author Jan Henrik Overland
  */
+@OpenApi.Ignore
 @Deprecated
 @Controller
 @RequestMapping( value = EventChartSchemaDescriptor.API_ENDPOINT )
@@ -150,7 +152,7 @@ public class EventChartController
         WebMessageException
     {
         EventChart chart = eventChartService.getEventChart( uid ); // TODO no
-                                                                   // acl?
+                                                                  // acl?
 
         if ( chart == null )
         {

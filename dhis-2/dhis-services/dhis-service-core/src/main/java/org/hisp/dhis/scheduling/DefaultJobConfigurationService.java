@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import java.beans.PropertyDescriptor;
@@ -43,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -65,20 +65,13 @@ import com.google.common.primitives.Primitives;
  * @author Henning Håkonsen
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "jobConfigurationService" )
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-
+    @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" )
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
-
-    public DefaultJobConfigurationService(
-        @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
-    {
-        checkNotNull( jobConfigurationStore );
-
-        this.jobConfigurationStore = jobConfigurationStore;
-    }
 
     @Override
     @Transactional

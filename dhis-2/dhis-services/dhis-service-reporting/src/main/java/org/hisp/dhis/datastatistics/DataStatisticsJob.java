@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -40,9 +39,8 @@ import org.springframework.stereotype.Component;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataStatisticsJob implements Job
 {
     private final DataStatisticsService dataStatisticsService;

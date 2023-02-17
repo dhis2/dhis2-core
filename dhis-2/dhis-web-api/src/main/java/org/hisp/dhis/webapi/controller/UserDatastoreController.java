@@ -45,6 +45,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.render.RenderService;
@@ -68,6 +69,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
+@OpenApi.Tags( { "user", "query" } )
 @Controller
 @RequestMapping( "/userDataStore" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

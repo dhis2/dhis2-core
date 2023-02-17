@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dashboard.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
@@ -35,6 +34,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
@@ -74,6 +75,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dashboard.DashboardService" )
 public class DefaultDashboardService
     implements DashboardService
@@ -86,6 +88,7 @@ public class DefaultDashboardService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" )
     private final HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
 
     private final IdentifiableObjectManager objectManager;
@@ -97,26 +100,6 @@ public class DefaultDashboardService
     private final AppManager appManager;
 
     private final EventVisualizationStore eventVisualizationStore;
-
-    public DefaultDashboardService(
-        @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
-        IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        AppManager appManager, EventVisualizationStore eventVisualizationStore )
-    {
-        checkNotNull( dashboardStore );
-        checkNotNull( objectManager );
-        checkNotNull( userService );
-        checkNotNull( dashboardItemStore );
-        checkNotNull( appManager );
-        checkNotNull( eventVisualizationStore );
-
-        this.dashboardStore = dashboardStore;
-        this.objectManager = objectManager;
-        this.userService = userService;
-        this.dashboardItemStore = dashboardItemStore;
-        this.appManager = appManager;
-        this.eventVisualizationStore = eventVisualizationStore;
-    }
 
     // -------------------------------------------------------------------------
     // DashboardService implementation

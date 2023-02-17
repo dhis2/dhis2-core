@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.system;
 import java.util.Map;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.NoopJobProgress;
@@ -47,6 +48,7 @@ import com.vdurmont.semver4j.Semver;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

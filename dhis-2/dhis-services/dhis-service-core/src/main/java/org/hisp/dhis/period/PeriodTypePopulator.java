@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.period;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
@@ -44,25 +43,13 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
+@RequiredArgsConstructor
 public class PeriodTypePopulator
     extends TransactionContextStartupRoutine
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final PeriodStore periodStore;
 
     private final SessionFactory sessionFactory;
-
-    public PeriodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
-    {
-        checkNotNull( periodStore );
-        checkNotNull( sessionFactory );
-
-        this.periodStore = periodStore;
-        this.sessionFactory = sessionFactory;
-    }
 
     // -------------------------------------------------------------------------
     // Execute

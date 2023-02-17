@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.message;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.util.Collection;
@@ -39,6 +38,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.message.MessageService" )
 public class DefaultMessageService
     implements MessageService
@@ -83,45 +84,21 @@ public class DefaultMessageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MessageConversationStore messageConversationStore;
+    private final MessageConversationStore messageConversationStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
-    private UserSettingService userSettingService;
+    private final UserSettingService userSettingService;
 
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private List<MessageSender> messageSenders;
+    private final List<MessageSender> messageSenders;
 
-    private DhisConfigurationProvider configurationProvider;
-
-    public DefaultMessageService( MessageConversationStore messageConversationStore,
-        CurrentUserService currentUserService, ConfigurationService configurationService,
-        UserSettingService userSettingService, I18nManager i18nManager, SystemSettingManager systemSettingManager,
-        List<MessageSender> messageSenders, DhisConfigurationProvider configurationProvider )
-    {
-        checkNotNull( messageConversationStore );
-        checkNotNull( currentUserService );
-        checkNotNull( configurationService );
-        checkNotNull( userSettingService );
-        checkNotNull( i18nManager );
-        checkNotNull( systemSettingManager );
-        checkNotNull( configurationProvider );
-        checkNotNull( messageSenders );
-
-        this.messageConversationStore = messageConversationStore;
-        this.currentUserService = currentUserService;
-        this.configurationService = configurationService;
-        this.userSettingService = userSettingService;
-        this.i18nManager = i18nManager;
-        this.systemSettingManager = systemSettingManager;
-        this.messageSenders = messageSenders;
-        this.configurationProvider = configurationProvider;
-    }
+    private final DhisConfigurationProvider configurationProvider;
 
     // -------------------------------------------------------------------------
     // MessageService implementation

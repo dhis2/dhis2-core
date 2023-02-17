@@ -33,14 +33,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerAssignValueSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerScheduleMessageSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Zubair Asghar
@@ -49,17 +51,16 @@ import com.google.common.collect.ImmutableMap;
 @Service
 public class DefaultTrackerSideEffectConverterService implements TrackerSideEffectConverterService
 {
-    private final ImmutableMap<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>> TO_SIDE_EFFECT = new ImmutableMap.Builder<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>>()
-        .put( RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect )
-        .put( RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect )
-        .put( RuleActionAssign.class, this::toTrackerAssignSideEffect )
-        .build();
+    private final Map<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>> sideEffectMap = Map.of(
+        RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect,
+        RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect,
+        RuleActionAssign.class, this::toTrackerAssignSideEffect );
 
-    private final ImmutableMap<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>> TO_RULE_EFFECT = new ImmutableMap.Builder<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>>()
-        .put( TrackerAssignValueSideEffect.class, this::toAssignRuleEffect )
-        .put( TrackerSendMessageSideEffect.class, this::toSendMessageRuleEffect )
-        .put( TrackerScheduleMessageSideEffect.class, this::toScheduleMessageRuleEffect )
-        .build();
+    private final Map<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>> ruleEffectMap = Map
+        .of(
+            TrackerAssignValueSideEffect.class, this::toAssignRuleEffect,
+            TrackerSendMessageSideEffect.class, this::toSendMessageRuleEffect,
+            TrackerScheduleMessageSideEffect.class, this::toScheduleMessageRuleEffect );
 
     @Override
     public Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
@@ -109,10 +110,10 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             {
                 RuleAction action = ruleEffect.ruleAction();
 
-                if ( TO_SIDE_EFFECT.containsKey( action.getClass().getSuperclass() ) )
+                if ( sideEffectMap.containsKey( action.getClass().getSuperclass() ) )
                 {
                     trackerSideEffects
-                        .add( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
+                        .add( sideEffectMap.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
                 }
             }
         }
@@ -128,7 +129,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
         {
             if ( trackerSideEffect != null )
             {
-                ruleEffects.add( TO_RULE_EFFECT.get( trackerSideEffect.getClass() ).apply( trackerSideEffect ) );
+                ruleEffects.add( ruleEffectMap.get( trackerSideEffect.getClass() ).apply( trackerSideEffect ) );
             }
         }
 

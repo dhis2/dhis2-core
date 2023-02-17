@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = TrackerOwnershipController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

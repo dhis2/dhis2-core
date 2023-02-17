@@ -61,6 +61,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -146,6 +147,9 @@ class JdbcOwnershipAnalyticsTableManagerTest
     @Mock
     private JdbcOwnershipWriter writer;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     private static final Program programA = createProgram( 'A' );
 
     private static final Program programB = createProgramWithoutRegistration( 'B' );
@@ -163,7 +167,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         target = new JdbcOwnershipAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder,
-            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration );
+            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration, analyticsExportSettings );
 
         tableA = new AnalyticsTable( AnalyticsTableType.OWNERSHIP, target.getFixedColumns(),
             emptyList(), programA );
@@ -278,30 +282,31 @@ class JdbcOwnershipAnalyticsTableManagerTest
         String sql = jdbcInvocations.get( 0 ).getArgument( 0 );
         String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'" );
-        assertEquals( "select tei.uid,o.owndate,o.owndate,ou.uid from (" +
-            "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
-            "from programinstance pi " +
-            "where pi.programid=0 and pi.trackedentityinstanceid is not null " +
-            "and pi.organisationunitid is not null " +
-            "and pi.lastupdated <= 'yyyy-mm-ddThh:mm:ss' " +
-            "union select poh.trackedentityinstanceid, poh.startdate as owndate, poh.organisationunitid " +
-            "from programownershiphistory poh where poh.programid=0 and poh.trackedentityinstanceid is not null " +
-            "and poh.organisationunitid is not null ) o " +
-            "inner join trackedentityinstance tei on o.trackedentityinstanceid=tei.trackedentityinstanceid " +
-            "and tei.deleted is false " +
-            "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
-            "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.owndate",
+        assertEquals( "select tei.uid,a.startdate,a.enddate,ou.uid from (" +
+            "select h.trackedentityinstanceid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid " +
+            "from programownershiphistory h " +
+            "where h.programid=0 " +
+            "union " +
+            "select o.trackedentityinstanceid, '2002-02-02' as startdate, null as enddate, o.organisationunitid " +
+            "from trackedentityprogramowner o " +
+            "where o.programid=0 " +
+            "and exists (select programid from programownershiphistory p " +
+            "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
+            "and p.programid=0)" +
+            ") a " +
+            "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
+            "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid " +
+            "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid " +
+            "order by tei.uid, a.startdate, a.enddate",
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 4, writerInvocations.size() );
+        assertEquals( 3, writerInvocations.size() );
 
         assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
-        assertEquals( "flush", writerInvocations.get( 3 ).getMethod().getName() );
 
         Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
         Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
@@ -317,8 +322,8 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         List<AnalyticsTableColumn> expected = List.of(
             new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-            new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
-            new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
+            new AnalyticsTableColumn( quote( "startdate" ), DATE, "a.startdate" ),
+            new AnalyticsTableColumn( quote( "enddate" ), DATE, "a.enddate" ),
             new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
         assertEquals( expected, target.getFixedColumns() );

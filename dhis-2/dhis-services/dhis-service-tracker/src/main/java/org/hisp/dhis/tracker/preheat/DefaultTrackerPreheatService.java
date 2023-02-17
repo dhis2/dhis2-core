@@ -103,8 +103,6 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
             }
         }
 
-        preheat.createReferenceTree();
-
         return preheat;
     }
 

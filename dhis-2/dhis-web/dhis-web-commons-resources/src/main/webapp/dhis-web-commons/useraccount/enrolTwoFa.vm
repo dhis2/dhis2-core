@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html dir="ltr">
+<head>
+    <title>$encoder.htmlEncode( $applicationTitle )</title>
+    <meta name="referrer" content="no-referrer">
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.ext.js"></script>
+    <script type="text/javascript" src="../javascripts/useraccount/expired.js"></script>
+    <script type="text/javascript" src="../i18nJavaScript.action"></script>
+    <link type="text/css" rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+
+<div id="accountHeader"></div>
+
+<div id="accountContainer">
+
+    <div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+
+    <div id="accountInput">
+
+        <h3><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_title" )</span></h3>
+
+        <div>
+            <b><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_description" )</span></b>
+        </div>
+
+        <div>
+            <img alt="qrCode" src="$image" style="padding: 1rem;">
+        </div>
+
+        <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
+
+            <table>
+                <tr>
+                    <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
+                    <td><input type="text" id="j_username" name="j_username" placeholder="Username" readonly value="$username"></td>
+                </tr>
+                <tr>
+                    <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
+                    <td><input type="password" id="j_password" name="j_password" autocomplete="off"
+                               placeholder="Password" required></td>
+                </tr>
+                <tr>
+                    <td><label id="label_retypePassword" for="retypePassword">$i18n.getString(
+                        'two_factor_code')</label></td>
+                    <td><input type="text" id="2fa_code" name="2fa_code">
+                    <td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><label id="messageSpan" class="error" style="display:none"></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input id="submitButton" type="submit" value="$i18n.getString( 'login' )" style="width:10em">
+                    </td>
+                </tr>
+            </table>
+        </form>
+
+    </div>
+</div>
+</body>
+</html>

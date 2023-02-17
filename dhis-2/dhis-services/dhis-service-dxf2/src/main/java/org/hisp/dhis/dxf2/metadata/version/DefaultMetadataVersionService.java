@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,10 +68,10 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
-public class DefaultMetadataVersionService implements MetadataVersionService
+@RequiredArgsConstructor
+public class DefaultMetadataVersionService
+    implements MetadataVersionService
 {
-
     private final MetadataVersionStore versionStore;
 
     private final MetadataExportService metadataExportService;
@@ -152,8 +152,8 @@ public class DefaultMetadataVersionService implements MetadataVersionService
             return versionStore.getCurrentVersion();
         }
         catch ( Exception ex ) // Will have to catch Exception, as we want to
-                               // throw a deterministic exception from this
-                               // layer
+                              // throw a deterministic exception from this
+                              // layer
         {
             log.error( ex.getMessage(), ex );
             throw new MetadataVersionServiceException( ex.getMessage(), ex );
@@ -375,7 +375,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService
             renderService.toJson( os, metadata );
         }
         catch ( Exception ex ) // We have to catch the "Exception" object as no
-                               // specific exception on the contract.
+                              // specific exception on the contract.
         {
             String message = "Exception occurred while exporting metadata for capturing a metadata version"
                 + ex.getMessage();

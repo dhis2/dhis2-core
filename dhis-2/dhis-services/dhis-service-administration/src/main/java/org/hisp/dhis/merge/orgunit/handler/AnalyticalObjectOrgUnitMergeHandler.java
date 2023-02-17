@@ -30,7 +30,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.AnalyticalObjectService;
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AnalyticalObjectOrgUnitMergeHandler
 {
     private final VisualizationService visualizationService;

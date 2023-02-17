@@ -370,38 +370,6 @@ public class TextUtils
     }
 
     /**
-     * Transforms a collection of Integers into a comma delimited String. If the
-     * given collection of elements are null or is empty, an empty String is
-     * returned.
-     *
-     * @param delimitPrefix whether to prefix the string with a delimiter.
-     * @param delimitSuffix whether to suffix the string with a delimiter.
-     * @param elements the collection of Integers
-     * @return a comma delimited String.
-     */
-    public static String getCommaDelimitedString( Collection<?> elements, boolean delimitPrefix, boolean delimitSuffix )
-    {
-        final StringBuilder builder = new StringBuilder();
-
-        if ( elements != null && !elements.isEmpty() )
-        {
-            if ( delimitPrefix )
-            {
-                builder.append( DELIMITER );
-            }
-
-            builder.append( getCommaDelimitedString( elements ) );
-
-            if ( delimitSuffix )
-            {
-                builder.append( DELIMITER );
-            }
-        }
-
-        return builder.toString();
-    }
-
-    /**
      * Transforms a collection of strings into a comma delimited string, where
      * each component is single-quoted.
      *
@@ -674,32 +642,6 @@ public class TextUtils
         String[] values = value.split( separator );
 
         return new HashSet<>( Arrays.asList( values ) );
-    }
-
-    /**
-     * Replaces the first n matches of the given regular expression starting
-     * from the beginning of the given string.
-     *
-     * @param string the string to replace matches.
-     * @param regex the regular expression to match the string against.
-     * @param replacement the replacement string.
-     * @param occurrences the number of matches to replace.
-     * @return the replaced string.
-     */
-    public static String replaceFirst( String string, final String regex, final String replacement,
-        final int occurrences )
-    {
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = Pattern.compile( regex ).matcher( string );
-        int c = 0;
-
-        while ( matcher.find() && c < occurrences )
-        {
-            matcher.appendReplacement( sb, replacement );
-            c++;
-        }
-
-        return appendTail( matcher, sb );
     }
 
     /**

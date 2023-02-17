@@ -31,8 +31,8 @@ import static org.hisp.dhis.analytics.DataQueryParams.DEFAULT_ORG_UNIT_COL;
 import static org.hisp.dhis.analytics.DataQueryParams.ENROLLMENT_OU_COL;
 import static org.hisp.dhis.analytics.DataQueryParams.REGISTRATION_OU_COL;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * The type of organisation unit field to use for an event (or enrollment)
@@ -41,7 +41,7 @@ import lombok.Getter;
  * @author Jim Grace
  */
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum OrgUnitFieldType
 {
     DEFAULT( DEFAULT_ORG_UNIT_COL, DEFAULT_ORG_UNIT_COL ),

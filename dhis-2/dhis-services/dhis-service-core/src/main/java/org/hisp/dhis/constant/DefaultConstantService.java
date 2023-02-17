@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.constant;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Dang Duy Hieu
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.constant.ConstantService" )
 public class DefaultConstantService
     implements ConstantService
@@ -51,15 +52,8 @@ public class DefaultConstantService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<Constant> constantStore;
-
-    public DefaultConstantService(
-        @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore )
-    {
-        checkNotNull( constantStore );
-
-        this.constantStore = constantStore;
-    }
+    @Qualifier( "org.hisp.dhis.constant.ConstantStore" )
+    private final IdentifiableObjectStore<Constant> constantStore;
 
     // -------------------------------------------------------------------------
     // Constant

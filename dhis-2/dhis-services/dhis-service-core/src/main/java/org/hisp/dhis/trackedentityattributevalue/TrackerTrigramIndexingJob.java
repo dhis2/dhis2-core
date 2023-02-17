@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  * @author Ameen
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component( "trackerTrigramIndexingJob" )
 public class TrackerTrigramIndexingJob implements Job
 {

@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
@@ -39,12 +40,11 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -61,12 +61,11 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-
+@OpenApi.Tags( "metadata" )
 @RestController
 @RequestMapping( "/metadata/sync" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataSyncController
-    extends CrudControllerAdvice
 {
     @Autowired
     private ContextService contextService;
@@ -81,7 +80,7 @@ public class MetadataSyncController
         throws MetadataSyncException,
         BadRequestException,
         MetadataImportConflictException,
-        OperationNotAllowedException
+        ForbiddenException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary = null;
@@ -99,8 +98,7 @@ public class MetadataSyncController
             }
             catch ( MetadataSyncServiceException serviceException )
             {
-                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(),
-                    serviceException );
+                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage() );
             }
 
             try
@@ -131,12 +129,12 @@ public class MetadataSyncController
             }
             catch ( DhisVersionMismatchException versionMismatchException )
             {
-                throw new OperationNotAllowedException(
+                throw new ForbiddenException(
                     "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }
 
-        return new ResponseEntity<MetadataSyncSummary>( metadataSyncSummary, HttpStatus.OK );
+        return new ResponseEntity<>( metadataSyncSummary, HttpStatus.OK );
     }
 
     private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary )

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -60,7 +61,7 @@ public class QueryKey
      */
     public QueryKey add( String property, Object value )
     {
-        String keyComponent = property + VALUE_SEP + value;
+        String keyComponent = property + VALUE_SEP + Objects.toString( value );
         this.keyComponents.add( keyComponent );
         return this;
     }

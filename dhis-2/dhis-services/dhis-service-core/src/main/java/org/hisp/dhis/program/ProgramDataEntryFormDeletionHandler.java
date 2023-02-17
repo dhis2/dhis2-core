@@ -29,7 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ProgramDataEntryFormDeletionHandler extends DeletionHandler
 {

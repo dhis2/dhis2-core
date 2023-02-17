@@ -82,6 +82,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Slf4j
 @Service
 public class DefaultOrgUnitProfileService

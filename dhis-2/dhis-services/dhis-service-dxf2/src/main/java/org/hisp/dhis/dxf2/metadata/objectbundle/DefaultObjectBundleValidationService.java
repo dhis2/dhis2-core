@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,20 +50,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" )
 public class DefaultObjectBundleValidationService
-    implements
-    ObjectBundleValidationService
+    implements ObjectBundleValidationService
 {
     private final ValidationFactory validationFactory;
 
     private final SchemaService schemaService;
-
-    public DefaultObjectBundleValidationService( ValidationFactory validationFactory, SchemaService schemaService )
-    {
-        this.schemaService = schemaService;
-        this.validationFactory = validationFactory;
-    }
 
     @Override
     @Transactional( readOnly = true )

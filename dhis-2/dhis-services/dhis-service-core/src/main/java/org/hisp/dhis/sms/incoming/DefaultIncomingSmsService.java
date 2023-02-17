@@ -55,7 +55,6 @@ public class DefaultIncomingSmsService
 
     public DefaultIncomingSmsService( IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue )
     {
-
         checkNotNull( incomingSmsQueue );
         checkNotNull( incomingSmsStore );
 

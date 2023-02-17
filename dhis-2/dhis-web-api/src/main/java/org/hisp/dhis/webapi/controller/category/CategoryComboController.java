@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-
 import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
 public class CategoryComboController
@@ -65,13 +65,13 @@ public class CategoryComboController
     @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
+        throws NotFoundException
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
 
         if ( categoryCombo == null )
         {
-            throw new WebMessageException( notFound( "CategoryCombo not found for uid: " + pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -83,25 +83,25 @@ public class CategoryComboController
 
     @Override
     protected void preUpdateEntity( CategoryCombo entity, CategoryCombo newEntity )
-        throws Exception
+        throws ConflictException
     {
         checkNoDataValueBecomesInaccessible( entity, newEntity );
     }
 
     @Override
     protected void prePatchEntity( CategoryCombo entity, CategoryCombo newEntity )
-        throws Exception
+        throws ConflictException
     {
         checkNoDataValueBecomesInaccessible( entity, newEntity );
     }
 
     private void checkNoDataValueBecomesInaccessible( CategoryCombo entity, CategoryCombo newEntity )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
             && dataValueService.dataValueExists( entity ) )
         {
-            throw new WebMessageException( conflict( ErrorCode.E1120 ) );
+            throw new ConflictException( ErrorCode.E1120 );
         }
     }
 

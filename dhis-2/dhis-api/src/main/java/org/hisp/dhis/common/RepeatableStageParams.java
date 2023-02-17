@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parameters for repeatable stage values
+ * Parameters for repeatable stage values.
  */
 @Getter
 @Setter
@@ -45,21 +45,16 @@ public class RepeatableStageParams
 
     private int count = 1;
 
-    // related to execution date
+    // Related to execution date
     private Date startDate;
 
-    // related to execution date
+    // Related to execution date
     private Date endDate;
 
     private boolean defaultObject = true;
 
     private String dimension;
 
-    /**
-     * to string
-     *
-     * @return string representation
-     */
     @Override
     public String toString()
     {
@@ -69,8 +64,7 @@ public class RepeatableStageParams
     }
 
     /**
-     *
-     * @return true if value type should be considered as number
+     * Indicates whether value type should be considered as a number.
      */
     public boolean simpleStageValueExpected()
     {

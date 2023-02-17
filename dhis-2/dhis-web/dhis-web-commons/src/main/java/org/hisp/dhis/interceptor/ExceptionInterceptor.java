@@ -163,12 +163,12 @@ public class ExceptionInterceptor
                 if ( EXCEPTION_RESULT_PLAIN_TEXT.equals( exceptionResultName ) )
                 {
                     return EXCEPTION_RESULT_PAGE_JSON_ACCESS_DENIED; // Access
-                                                                     // denied
-                                                                     // as JSON
+                                                                    // denied
+                                                                    // as JSON
                 }
 
                 return EXCEPTION_RESULT_PAGE_ACCESS_DENIED; // Access denied as
-                                                            // nice page
+                                                           // nice page
             }
 
             // -----------------------------------------------------------------

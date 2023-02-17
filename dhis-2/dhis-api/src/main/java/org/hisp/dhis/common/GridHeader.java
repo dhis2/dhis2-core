@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.legend.LegendSet;
@@ -35,7 +36,6 @@ import org.hisp.dhis.option.OptionSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -43,8 +43,8 @@ import com.google.common.collect.ImmutableSet;
 public class GridHeader
     implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES = ImmutableSet.of( Float.class.getName(),
-        Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+    private static final Set<String> NUMERIC_TYPES = Set.of(
+        Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     /**
      * Format header key name.

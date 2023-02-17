@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +38,7 @@ import java.util.Set;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -80,8 +85,29 @@ public interface DataQueryService
      * @return a list of DimensionalObject.
      * @throws IllegalQueryException if the query is illegal.
      */
-    List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate,
-        String userOrgUnit, IdScheme inputIdScheme );
+    default List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
+        Date relativePeriodDate, String userOrgUnit, DisplayProperty displayProperty, IdScheme inputIdScheme )
+    {
+        List<DimensionalObject> list = new ArrayList<>();
+        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
+
+        if ( dimensionParams != null )
+        {
+            for ( String param : dimensionParams )
+            {
+                String dimension = getDimensionFromParam( param );
+                List<String> items = getDimensionItemsFromParam( param );
+
+                if ( dimension != null && items != null )
+                {
+                    list.add( getDimension(
+                        dimension, items, relativePeriodDate, userOrgUnits, false, displayProperty, inputIdScheme ) );
+                }
+            }
+        }
+
+        return list;
+    }
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension
@@ -106,7 +132,8 @@ public interface DataQueryService
      * @throws IllegalQueryException if the query is illegal.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
+        IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension

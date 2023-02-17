@@ -30,7 +30,7 @@ package org.hisp.dhis.split.orgunit.handler;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MetadataOrgUnitSplitHandler
 {
     private final UserService userService;

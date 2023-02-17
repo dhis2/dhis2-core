@@ -34,7 +34,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -115,10 +118,6 @@ public class EventSearchParams
     private OrganisationUnit orgUnit;
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
-
-    private AssignedUserSelectionMode assignedUserSelectionMode;
-
-    private Set<String> assignedUsers = new HashSet<>();
 
     private TrackedEntityInstance trackedEntityInstance;
 
@@ -205,6 +204,9 @@ public class EventSearchParams
     private Date skipChangedBefore;
 
     private Set<String> programInstances;
+
+    @Getter
+    private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -404,25 +406,20 @@ public class EventSearchParams
         return this;
     }
 
-    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    /**
+     * Set assigned user selection mode, assigned users and the current user for
+     * the query. Non-empty assigned users are only allowed with mode PROVIDED
+     * (or null).
+     *
+     * @param mode assigned user mode
+     * @param current current user with which query is made
+     * @param assignedUsers assigned user uids
+     * @return this
+     */
+    public EventSearchParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+        Set<String> assignedUsers )
     {
-        return assignedUserSelectionMode;
-    }
-
-    public EventSearchParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
-    {
-        this.assignedUserSelectionMode = assignedUserSelectionMode;
-        return this;
-    }
-
-    public Set<String> getAssignedUsers()
-    {
-        return assignedUsers;
-    }
-
-    public EventSearchParams setAssignedUsers( Set<String> assignedUsers )
-    {
-        this.assignedUsers = assignedUsers;
+        this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );
         return this;
     }
 
@@ -826,30 +823,6 @@ public class EventSearchParams
     {
         this.programInstances = programInstances;
         return this;
-    }
-
-    public void handleCurrentUserSelectionMode( User currentUser )
-    {
-        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && currentUser != null )
-        {
-            this.assignedUsers = Collections.singleton( currentUser.getUid() );
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-        }
-    }
-
-    public boolean hasAssignedUsers()
-    {
-        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
-    }
-
-    public boolean isIncludeOnlyUnassignedEvents()
-    {
-        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
-    }
-
-    public boolean isIncludeOnlyAssignedEvents()
-    {
-        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
 
     public boolean isIncludeRelationships()

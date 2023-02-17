@@ -32,6 +32,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.hisp.dhis.security.utils.CspUtils;
+
 /**
  * @author Lars Helge Overland
  */
@@ -348,6 +350,11 @@ public enum ConfigurationKey
      * Analytics server-side cache expiration in seconds. (default: 0)
      */
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
+
+    /**
+     * Use unlogged tables during analytics export. (default: off)
+     */
+    ANALYTICS_TABLE_UNLOGGED( "analytics.table.unlogged", Constants.OFF ),
 
     /**
      * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded
@@ -702,10 +709,38 @@ public enum ConfigurationKey
      * other session when a new session is started.
      */
     MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false ),
+
     /**
      * Redis based cache invalidation feature. Enable or disable.
      */
-    REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false );
+    REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false ),
+
+    /**
+     * Content Security Policy feature. Enable or disable the feature.
+     */
+    CSP_ENABLED( "csp.enabled", Constants.ON, true ),
+
+    /**
+     * CSP upgrade insecure connections. Enable or disable the feature.
+     */
+    CSP_UPGRADE_INSECURE_ENABLED( "csp.upgrade.insecure.enabled", Constants.OFF, true ),
+
+    /**
+     * CSP default header value/string. Enable or disable the feature.
+     */
+    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
+
+    /**
+     * Event hooks for system events. Enable or disable the feature.
+     */
+    EVENT_HOOKS_ENABLED( "event_hooks.enabled", Constants.OFF, false ),
+
+    /**
+     * Linked accounts via OpenID mapping. Enable or disable the feature.
+     */
+    LINKED_ACCOUNTS_ENABLED( "linked_accounts.enabled", Constants.OFF, false ),
+
+    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false );
 
     private final String key;
 

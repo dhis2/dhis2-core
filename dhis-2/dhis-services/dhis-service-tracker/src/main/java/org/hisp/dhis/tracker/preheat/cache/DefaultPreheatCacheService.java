@@ -151,8 +151,8 @@ public class DefaultPreheatCacheService implements PreheatCacheService
                     .permitNullValues( false )
                     .entryCapacity( capacity == -1 ? Long.MAX_VALUE : capacity )
                     .resilienceDuration( 30, TimeUnit.SECONDS ) // cope with at
-                                                                // most 30
-                                                                // seconds
+                    // most 30
+                    // seconds
                     // outage before propagating exceptions
                     .build();
 

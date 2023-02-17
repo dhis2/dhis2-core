@@ -37,18 +37,17 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.programrule.ProgramRuleService;
+import org.hisp.dhis.tracker.report.PersistenceReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +68,7 @@ public class DefaultTrackerBundleService
 
     private final CommitService commitService;
 
-    private final TrackerProgramRuleService trackerProgramRuleService;
+    private final ProgramRuleService programRuleService;
 
     private final TrackerObjectDeletionService deletionService;
 
@@ -96,36 +95,32 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        List<RuleEffects> ruleEffects = trackerProgramRuleService
-            .calculateRuleEffects( trackerBundle );
-        trackerBundle.setRuleEffects( ruleEffects );
+        programRuleService.calculateRuleEffects( trackerBundle, trackerBundle.getPreheat() );
 
         return trackerBundle;
     }
 
     @Override
     @Transactional
-    public TrackerBundleReport commit( TrackerBundle bundle )
+    public PersistenceReport commit( TrackerBundle bundle )
     {
-        TrackerBundleReport bundleReport = new TrackerBundleReport();
-
         if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
         {
-            return bundleReport;
+            return PersistenceReport.emptyReport();
         }
 
         Session session = sessionFactory.getCurrentSession();
-        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
-        report.put( TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist( session, bundle ) );
-        report.put( TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist( session, bundle ) );
-        report.put( TrackerType.EVENT,
-            commitService.getEventPersister().persist( session, bundle ) );
-        report.put( TrackerType.RELATIONSHIP,
+        Map<TrackerType, TrackerTypeReport> reportMap = Map.of(
+            TrackerType.TRACKED_ENTITY,
+            commitService.getTrackerPersister().persist( session, bundle ),
+            TrackerType.ENROLLMENT,
+            commitService.getEnrollmentPersister().persist( session, bundle ),
+            TrackerType.EVENT,
+            commitService.getEventPersister().persist( session, bundle ),
+            TrackerType.RELATIONSHIP,
             commitService.getRelationshipPersister().persist( session, bundle ) );
 
-        return bundleReport;
+        return new PersistenceReport( reportMap );
     }
 
     @Override
@@ -148,22 +143,19 @@ public class DefaultTrackerBundleService
 
     @Override
     @Transactional
-    public TrackerBundleReport delete( TrackerBundle bundle )
+    public PersistenceReport delete( TrackerBundle bundle )
     {
-        TrackerBundleReport bundleReport = new TrackerBundleReport();
-
         if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
         {
-            return bundleReport;
+            return PersistenceReport.emptyReport();
         }
 
-        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
-        report.put( TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ) );
-        report.put( TrackerType.EVENT, deletionService.deleteEvents( bundle ) );
-        report.put( TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ) );
-        report.put( TrackerType.TRACKED_ENTITY,
-            deletionService.deleteTrackedEntityInstances( bundle ) );
+        Map<TrackerType, TrackerTypeReport> reportMap = Map.of(
+            TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ),
+            TrackerType.EVENT, deletionService.deleteEvents( bundle ),
+            TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ),
+            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntityInstances( bundle ) );
 
-        return bundleReport;
+        return new PersistenceReport( reportMap );
     }
 }

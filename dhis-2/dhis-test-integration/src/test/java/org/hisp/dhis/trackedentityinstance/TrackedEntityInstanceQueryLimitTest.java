@@ -164,7 +164,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUser( user );
+        params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
@@ -183,7 +183,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUser( user );
+        params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
@@ -199,7 +199,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUser( user );
+        params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
@@ -217,7 +217,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUser( user );
+        params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,

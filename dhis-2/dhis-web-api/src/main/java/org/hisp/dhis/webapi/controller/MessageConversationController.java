@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,10 +45,15 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -88,6 +94,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -105,6 +112,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "messaging" )
 @Controller
 @RequestMapping( value = MessageConversationSchemaDescriptor.API_ENDPOINT )
 public class MessageConversationController
@@ -131,6 +139,9 @@ public class MessageConversationController
     @Autowired
     private FileResourceService fileResourceService;
 
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
+
     @Override
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
         Map<String, String> parameters )
@@ -156,7 +167,8 @@ public class MessageConversationController
     public ResponseEntity<?> getObject( @PathVariable String uid, Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request,
         HttpServletResponse response )
-        throws Exception
+        throws ForbiddenException,
+        NotFoundException
     {
         org.hisp.dhis.message.MessageConversation messageConversation = messageService.getMessageConversation( uid );
 
@@ -244,7 +256,9 @@ public class MessageConversationController
 
     @Override
     public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ConflictException,
+        NotFoundException
     {
         MessageConversation messageConversation = renderService
             .fromXml( request.getInputStream(), MessageConversation.class );
@@ -253,7 +267,9 @@ public class MessageConversationController
 
     @Override
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws ConflictException,
+        IOException,
+        NotFoundException
     {
         MessageConversation messageConversation = renderService
             .fromJson( request.getInputStream(), MessageConversation.class );
@@ -261,7 +277,8 @@ public class MessageConversationController
     }
 
     private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
-        throws WebMessageException
+        throws ConflictException,
+        NotFoundException
     {
         Set<User> usersToMessageConversation = Sets.newHashSet();
         for ( OrganisationUnit ou : messageConversation.getOrganisationUnits() )
@@ -270,8 +287,7 @@ public class MessageConversationController
 
             if ( organisationUnit == null )
             {
-                throw new WebMessageException(
-                    conflict( "Organisation Unit does not exist: " + ou.getUid() ) );
+                throw new ConflictException( "Organisation Unit does not exist: " + ou.getUid() );
             }
 
             usersToMessageConversation.addAll( organisationUnit.getUsers() );
@@ -283,7 +299,7 @@ public class MessageConversationController
 
             if ( user == null )
             {
-                throw new WebMessageException( conflict( "User does not exist: " + u.getUid() ) );
+                throw new ConflictException( "User does not exist: " + u.getUid() );
             }
 
             usersToMessageConversation.add( user );
@@ -295,8 +311,7 @@ public class MessageConversationController
 
             if ( userGroup == null )
             {
-                throw new WebMessageException(
-                    notFound( "User Group does not exist: " + ug.getUid() ) );
+                throw new NotFoundException( UserGroup.class, ug.getUid() );
             }
 
             usersToMessageConversation.addAll( userGroup.getMembers() );
@@ -306,7 +321,8 @@ public class MessageConversationController
     }
 
     private WebMessage postObject( HttpServletRequest request, MessageConversation messageConversation )
-        throws WebMessageException
+        throws ConflictException,
+        NotFoundException
     {
         Set<User> users = Sets.newHashSet( messageConversation.getUsers() );
         messageConversation.getUsers().clear();
@@ -315,7 +331,7 @@ public class MessageConversationController
 
         if ( messageConversation.getUsers().isEmpty() )
         {
-            throw new WebMessageException( conflict( "No recipients selected." ) );
+            throw new ConflictException( "No recipients selected." );
         }
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
@@ -328,15 +344,14 @@ public class MessageConversationController
 
             if ( fileResource == null )
             {
-                throw new WebMessageException(
-                    conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+                throw new ConflictException( "Attachment '" + fr.getUid() + "' not found." );
             }
 
             if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
                 || fileResource.isAssigned() )
             {
-                throw new WebMessageException(
-                    conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+                throw new ConflictException(
+                    "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." );
             }
 
             fileResource.setAssigned( true );
@@ -798,7 +813,10 @@ public class MessageConversationController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_IMPORT')" )
     public WebMessage deleteObject( @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request,
         HttpServletResponse response )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        HttpRequestMethodNotSupportedException
     {
         return super.deleteObject( uid, currentUser, request, response );
     }
@@ -940,7 +958,7 @@ public class MessageConversationController
             throw new WebMessageException( conflict( "Invalid messageattachment." ) );
         }
 
-        fileResourceUtils.configureFileResourceResponse( response, fr );
+        fileResourceUtils.configureFileResourceResponse( response, fr, dhisConfig );
     }
 
     // --------------------------------------------------------------------------

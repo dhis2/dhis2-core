@@ -54,7 +54,7 @@ import com.google.common.collect.Lists;
 @JacksonXmlRootElement( localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DataDimensionItem
 {
-    public static final Set<Class<? extends BaseDimensionalItemObject>> DATA_DIMENSION_CLASSES = Set.of(
+    public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES = Set.of(
         Indicator.class,
         DataElement.class,
         DataElementOperand.class,
@@ -65,7 +65,7 @@ public class DataDimensionItem
         ExpressionDimensionItem.class,
         ValidationRule.class );
 
-    public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = Map
+    public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>> DATA_DIM_TYPE_CLASS_MAP = Map
         .of(
             DataDimensionItemType.INDICATOR, Indicator.class,
             DataDimensionItemType.DATA_ELEMENT, DataElement.class,

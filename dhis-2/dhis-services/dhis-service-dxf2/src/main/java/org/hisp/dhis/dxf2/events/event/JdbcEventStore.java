@@ -96,6 +96,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -423,7 +424,7 @@ public class JdbcEventStore implements EventStore
                     event.setProgram( resultSet.getString( "p_identifier" ) );
                     event.setProgramType( programType );
                     event.setProgramStage( resultSet.getString( "ps_identifier" ) );
-                    event.setOrgUnit( resultSet.getString( "ou_identifier" ) );
+                    event.setOrgUnit( resultSet.getString( "ou_uid" ) );
                     event.setDeleted( resultSet.getBoolean( "psi_deleted" ) );
 
                     if ( programType != ProgramType.WITHOUT_REGISTRATION )
@@ -727,7 +728,7 @@ public class JdbcEventStore implements EventStore
 
                     eventRow.setProgram( resultSet.getString( "p_identifier" ) );
                     eventRow.setProgramStage( resultSet.getString( "ps_identifier" ) );
-                    eventRow.setOrgUnit( resultSet.getString( "ou_identifier" ) );
+                    eventRow.setOrgUnit( resultSet.getString( "ou_uid" ) );
 
                     ProgramType programType = ProgramType.fromValue( resultSet.getString( "p_type" ) );
 
@@ -1345,9 +1346,9 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.hasAssignedUsers() )
+        if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {
-            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUsers() );
+            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUserQueryParam().getAssignedUsers() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid in (" )
@@ -1355,13 +1356,13 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
+        if ( AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode() )
         {
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is null) " );
         }
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode() )
         {
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is not null) " );
@@ -1693,9 +1694,9 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.hasAssignedUsers() )
+        if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {
-            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUsers() );
+            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUserQueryParam().getAssignedUsers() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid in (" )
@@ -1703,13 +1704,13 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
+        if ( AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode() )
         {
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is null) " );
         }
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode() )
         {
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is not null) " );
@@ -2100,12 +2101,9 @@ public class JdbcEventStore implements EventStore
             .addValue( "programInstanceId", programStageInstance.getProgramInstance().getId() )
             .addValue( "programstageid", programStageInstance.getProgramStage()
                 .getId() )
-            .addValue( DUE_DATE.getColumnName(), new Timestamp( programStageInstance.getDueDate()
-                .getTime() ) )
+            .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( programStageInstance.getDueDate() ) )
             .addValue( EXECUTION_DATE.getColumnName(),
-                (programStageInstance.getExecutionDate() != null
-                    ? new Timestamp( programStageInstance.getExecutionDate().getTime() )
-                    : null) )
+                JdbcEventSupport.toTimestamp( programStageInstance.getExecutionDate() ) )
             .addValue( "organisationunitid", programStageInstance.getOrganisationUnit().getId() )
             .addValue( STATUS.getColumnName(), programStageInstance.getStatus().toString() )
             .addValue( COMPLETEDDATE.getColumnName(),

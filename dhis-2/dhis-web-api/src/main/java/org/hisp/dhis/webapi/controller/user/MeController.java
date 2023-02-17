@@ -51,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
@@ -105,6 +106,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( { "user", "query" } )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( "/me" )
@@ -165,6 +167,7 @@ public class MeController
         Sets.newHashSet( UserSettingKey.values() ) );
 
     @GetMapping
+    @OpenApi.Response( MeDto.class )
     public @ResponseBody ResponseEntity<JsonNode> getCurrentUser( @CurrentUser( required = true ) User user,
         @RequestParam( defaultValue = "*" ) List<String> fields )
     {
@@ -232,7 +235,7 @@ public class MeController
 
         merge( currentUser, user );
 
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp( user.getWhatsApp() ) )
         {
             throw new WebMessageException(
                 conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
@@ -430,7 +433,6 @@ public class MeController
     }
 
     private void merge( User currentUser, User user )
-        throws WebMessageException
     {
         currentUser.setFirstName( stringWithDefault( user.getFirstName(), currentUser.getFirstName() ) );
         currentUser.setSurname( stringWithDefault( user.getSurname(), currentUser.getSurname() ) );
@@ -459,10 +461,6 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        // TODO: This needs to be reversed when DHIS2-13333 gets merged.
-        currentUser.setTwoFA( user.isTwoFA() );
-
     }
 
     private void updatePassword( User currentUser, String password )

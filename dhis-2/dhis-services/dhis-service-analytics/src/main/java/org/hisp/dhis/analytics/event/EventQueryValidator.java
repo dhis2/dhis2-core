@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event;
 import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
@@ -47,8 +46,7 @@ public interface EventQueryValidator
      * @throws IllegalQueryException if the query is invalid.
      */
     void validate( EventQueryParams params )
-        throws IllegalQueryException,
-        MaintenanceModeException;
+        throws IllegalQueryException;
 
     /**
      * Validates the given query. Returns null if the query is valid, or an

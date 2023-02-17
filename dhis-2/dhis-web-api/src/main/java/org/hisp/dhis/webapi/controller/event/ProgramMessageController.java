@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -64,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = "/messages" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

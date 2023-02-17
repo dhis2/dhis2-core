@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.report.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
@@ -43,6 +42,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -83,6 +83,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.report.ReportService" )
 public class DefaultReportService
     implements ReportService
@@ -97,6 +98,7 @@ public class DefaultReportService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Qualifier( "org.hisp.dhis.report.ReportStore" )
     private final IdentifiableObjectStore<Report> reportStore;
 
     private final VisualizationGridService visualizationService;
@@ -112,31 +114,6 @@ public class DefaultReportService
     private final DataSource dataSource;
 
     private final SystemSettingManager systemSettingManager;
-
-    public DefaultReportService(
-        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore,
-        VisualizationGridService visualizationService,
-        ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
-        I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( reportStore );
-        checkNotNull( visualizationService );
-        checkNotNull( constantService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( periodService );
-        checkNotNull( i18nManager );
-        checkNotNull( dataSource );
-        checkNotNull( systemSettingManager );
-
-        this.reportStore = reportStore;
-        this.visualizationService = visualizationService;
-        this.constantService = constantService;
-        this.organisationUnitService = organisationUnitService;
-        this.periodService = periodService;
-        this.i18nManager = i18nManager;
-        this.dataSource = dataSource;
-        this.systemSettingManager = systemSettingManager;
-    }
 
     // -------------------------------------------------------------------------
     // ReportService implementation

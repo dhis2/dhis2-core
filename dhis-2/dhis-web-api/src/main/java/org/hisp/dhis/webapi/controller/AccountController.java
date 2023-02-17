@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -94,6 +96,7 @@ import com.google.common.base.Strings;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = "/account" )
 @Slf4j
@@ -556,6 +559,12 @@ public class AccountController
         result.put( "message", "Account was updated." );
 
         return ResponseEntity.ok().cacheControl( noStore() ).body( result );
+    }
+
+    @GetMapping( "/linkedAccounts" )
+    public @ResponseBody List<User> getLinkedAccounts( @CurrentUser User currentUser )
+    {
+        return userService.getLinkedUserAccounts( currentUser );
     }
 
     @GetMapping( "/username" )

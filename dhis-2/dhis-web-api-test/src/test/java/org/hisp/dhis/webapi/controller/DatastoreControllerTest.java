@@ -46,6 +46,7 @@ import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -60,7 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DatastoreControllerTest extends DhisControllerConvenienceTest
 {
-
     /**
      * Only used directly to setup namespace protection as this is by intention
      * not possible using the REST API.
@@ -270,10 +270,14 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     void testGetKeyJsonValueMetaData()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+
         JsonDatastoreValue metaData = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class );
         assertEquals( "pets", metaData.getNamespace() );
         assertEquals( "cat", metaData.getKey() );
         assertTrue( metaData.getValue().isUndefined(), "metadata should not contain the value" );
+        JsonObject access = metaData.getObject( "access" );
+        assertTrue( access.isObject() );
+        assertTrue( access.has( "manage", "write", "read", "update", "delete" ) );
     }
 
     @Test

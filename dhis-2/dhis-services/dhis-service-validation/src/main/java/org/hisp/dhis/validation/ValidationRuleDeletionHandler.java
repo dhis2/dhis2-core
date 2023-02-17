@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
 
 import java.util.Iterator;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ValidationRuleDeletionHandler extends DeletionHandler
 {
     private final ValidationRuleService validationRuleService;

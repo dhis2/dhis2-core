@@ -39,11 +39,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfiguration;
@@ -68,7 +70,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
-
+@OpenApi.Tags( "messaging" )
 @RestController
 @RequestMapping( value = "/gateways" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -107,7 +109,7 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ObjectNode> getGatewayConfiguration( @PathVariable String uid,
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
         throws WebMessageException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );

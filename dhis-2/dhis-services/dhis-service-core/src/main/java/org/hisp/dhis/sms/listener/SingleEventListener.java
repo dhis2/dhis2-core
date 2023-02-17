@@ -58,14 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component( "org.hisp.dhis.sms.listener.SingleEventListener" )
 @Transactional
-public class SingleEventListener
-    extends
-    CommandSMSListener
+public class SingleEventListener extends CommandSMSListener
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SMSCommandService smsCommandService;
 
     private final ProgramInstanceService programInstanceService;

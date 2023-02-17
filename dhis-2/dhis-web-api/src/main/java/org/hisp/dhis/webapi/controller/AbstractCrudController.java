@@ -28,10 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
@@ -41,6 +38,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -56,6 +54,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -68,12 +67,14 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
@@ -95,11 +96,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -161,23 +165,35 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     private TranslationsCheck translationsCheck;
 
+    @Autowired
+    protected EventHookPublisher eventHookPublisher;
+
     // --------------------------------------------------------------------------
     // OLD PATCH
     // --------------------------------------------------------------------------
 
+    @OpenApi.Ignore
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @SuppressWarnings( "java:S1130" )
     public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
-        throws Exception
+        throws NotFoundException,
+        ForbiddenException,
+        BadRequestException,
+        ConflictException,
+        IOException,
+        JsonPatchException
     {
         WebOptions options = new WebOptions( rpParameters );
         List<T> entities = getEntity( pvUid, options );
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         T patchedObject = entities.get( 0 );
@@ -199,14 +215,24 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postPatchEntity( null, patchedObject );
     }
 
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws NotFoundException,
+        ConflictException,
+        ForbiddenException,
+        BadRequestException,
+        IOException,
+        JsonPatchException
+
     {
         WebOptions options = new WebOptions( rpParameters );
 
@@ -214,13 +240,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
-        if ( !getSchema().haveProperty( pvProperty ) )
+        if ( !getSchema().hasProperty( pvProperty ) )
         {
-            throw new WebMessageException(
-                notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+            throw new NotFoundException( "Property " + pvProperty + " does not exist on " + getEntityName() );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -229,23 +254,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( !aclService.canUpdate( currentUser, patchedObject ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         if ( !property.isWritable() )
         {
-            throw new UpdateAccessDeniedException( "This property is read-only." );
+            throw new ForbiddenException( "This property is read-only." );
         }
 
         T object = deserialize( request );
 
         if ( object == null )
         {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
+            throw new BadRequestException( "Unknown payload format." );
         }
 
-        Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( patchedObject, value );
+        try
+        {
+            Object value = property.getGetterMethod().invoke( object );
+            property.getSetterMethod().invoke( patchedObject, value );
+        }
+        catch ( IllegalAccessException | InvocationTargetException ex )
+        {
+            throw new RuntimeException( ex );
+        }
         prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
@@ -257,7 +289,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ImportReport importReport = importService.importMetadata( params );
         if ( importReport.getStatus() != Status.OK )
         {
-            throw new WebMessageException( objectReport( importReport ) );
+            throw new ConflictException( "Import has errors." ).setObjectReport( importReport.getFirstObjectReport() );
         }
 
         postPatchEntity( null, patchedObject );
@@ -277,28 +309,35 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * to support "application/json" after the old patch behavior has been
      * removed.
      */
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( JsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
     public WebMessage patchObject(
-        @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws ForbiddenException,
+        NotFoundException,
+        IOException,
+        JsonPatchException,
+        ConflictException
     {
         WebOptions options = new WebOptions( rpParameters );
         List<T> entities = getEntity( pvUid, options );
 
         if ( entities.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         final T persistedObject = entities.get( 0 );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         manager.resetNonOwnerProperties( persistedObject );
@@ -383,11 +422,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchedObject;
     }
 
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( BulkJsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
@@ -428,30 +470,45 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // POST
     // --------------------------------------------------------------------------
 
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        HttpRequestMethodNotSupportedException,
+        NotFoundException
     {
         return postObject( deserializeJsonEntity( request ) );
     }
 
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        HttpRequestMethodNotSupportedException,
+        NotFoundException
     {
         return postObject( deserializeXmlEntity( request ) );
     }
 
     private WebMessage postObject( T parsed )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException
     {
         User user = currentUserService.getCurrentUser();
 
         if ( !aclService.canCreate( user, getEntityClass() ) )
         {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to create this object." );
         }
 
         parsed.getTranslations().clear();
@@ -491,18 +548,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage setAsFavorite( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
+        throws ConflictException,
+        NotFoundException
     {
         if ( !getSchema().isFavoritable() )
         {
-            return conflict( "Objects of this class cannot be set as favorite" );
+            throw new ConflictException( "Objects of this class cannot be set as favorite" );
         }
 
         List<T> entity = getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         T object = entity.get( 0 );
@@ -515,18 +575,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/subscriber" )
     @ResponseBody
-    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage subscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
+        throws ConflictException,
+        NotFoundException
     {
         if ( !getSchema().isSubscribable() )
         {
-            return conflict( "Objects of this class cannot be subscribed to" );
+            throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
         @SuppressWarnings( "unchecked" )
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -541,22 +604,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // PUT
     // --------------------------------------------------------------------------
 
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    @SuppressWarnings( "java:S1130" )
+    public WebMessage putJsonObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws NotFoundException,
+        ForbiddenException,
+        IOException,
+        ConflictException,
+        HttpRequestMethodNotSupportedException
     {
         List<T> objects = getEntity( pvUid );
 
         if ( objects.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         T parsed = deserializeJsonEntity( request );
@@ -592,23 +663,29 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
+    @OpenApi.Params( MetadataImportParams.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage putXmlObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request,
         HttpServletResponse response )
-        throws Exception
+        throws IOException,
+        ConflictException,
+        NotFoundException,
+        ForbiddenException
     {
         List<T> objects = getEntity( pvUid );
 
         if ( objects.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         T parsed = deserializeXmlEntity( request );
@@ -638,27 +715,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
+    @OpenApi.Param( value = Translation[].class, asProperty = "translations" )
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
     public WebMessage replaceTranslations(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
-        throws Exception
+        throws NotFoundException,
+        ForbiddenException,
+        IOException
     {
         WebOptions options = new WebOptions( rpParameters );
         List<T> entities = getEntity( pvUid, options );
 
         if ( entities.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
@@ -667,10 +747,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         persistedObject.setTranslations( translations );
         List<ObjectReport> objectReports = new ArrayList<>();
-        translationsCheck.run( persistedObject, getEntityClass(), objectReport -> objectReports.add( objectReport ),
+        translationsCheck.run( persistedObject, getEntityClass(), objectReports::add,
             getSchema(), 0 );
 
-        if ( objectReports.size() == 0 )
+        if ( objectReports.isEmpty() )
         {
             manager.update( persistedObject, currentUser );
             return null;
@@ -685,20 +765,25 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
-    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    @SuppressWarnings( "java:S1130" )
+    public WebMessage deleteObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        throws NotFoundException,
+        ForbiddenException,
+        ConflictException,
+        HttpRequestMethodNotSupportedException
     {
         List<T> objects = getEntity( pvUid );
 
         if ( objects.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         if ( !aclService.canDelete( currentUser, objects.get( 0 ) ) )
         {
-            throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to delete this object." );
         }
 
         preDeleteEntity( objects.get( 0 ) );
@@ -718,18 +803,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage removeAsFavorite( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
+        throws NotFoundException,
+        ConflictException
     {
         if ( !getSchema().isFavoritable() )
         {
-            return conflict( "Objects of this class cannot be set as favorite" );
+            throw new ConflictException( "Objects of this class cannot be set as favorite" );
         }
 
         List<T> entity = getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         T object = entity.get( 0 );
@@ -743,18 +831,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     @SuppressWarnings( "unchecked" )
-    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage unsubscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
+        throws NotFoundException,
+        ConflictException
     {
         if ( !getSchema().isSubscribable() )
         {
-            return conflict( "Objects of this class cannot be subscribed to" );
+            throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -770,34 +861,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // Identifiable object collections add, delete
     // --------------------------------------------------------------------------
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     private WebMessage addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
-        throws Exception
+        throws ConflictException,
+        ForbiddenException,
+        NotFoundException,
+        BadRequestException
     {
         preUpdateItems( object, items );
         TypeReport report = collectionService.mergeCollectionItems( object, pvProperty, items );
@@ -806,34 +910,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage replaceCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage replaceCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     private WebMessage replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
-        throws Exception
+        throws ConflictException,
+        ForbiddenException,
+        NotFoundException,
+        BadRequestException
     {
         preUpdateItems( object, items );
         TypeReport report = collectionService.replaceCollectionItems( object, pvProperty,
@@ -847,16 +964,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
-        throws Exception
+        throws NotFoundException,
+        ConflictException,
+        ForbiddenException,
+        BadRequestException
     {
         List<T> objects = getEntity( pvUid );
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         T object = objects.get( 0 );
@@ -870,34 +990,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @OpenApi.Param( IdentifiableObjects.class )
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
-        throws Exception
+        throws IOException,
+        ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     private WebMessage deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
-        throws Exception
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException
     {
         preUpdateItems( object, items );
         TypeReport report = collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
@@ -910,16 +1043,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
-        throws Exception
+        throws NotFoundException,
+        ForbiddenException,
+        ConflictException,
+        BadRequestException
     {
         List<T> objects = getEntity( pvUid );
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            throw new NotFoundException( getEntityClass(), pvUid );
         }
 
         IdentifiableObjects items = new IdentifiableObjects();
@@ -927,23 +1063,27 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
+    @OpenApi.Param( Sharing.class )
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage setSharing( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser,
+    public WebMessage setSharing( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws IOException
+        throws IOException,
+        ForbiddenException,
+        NotFoundException
     {
         T entity = manager.get( getEntityClass(), uid );
 
         if ( entity == null )
         {
-            return notFound( getEntityClass(), uid );
+            throw new NotFoundException( getEntityClass(), uid );
         }
 
         if ( !aclService.canUpdate( currentUser, entity ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         Sharing sharingObject = renderService.fromJson( request.getInputStream(), Sharing.class );
@@ -976,7 +1116,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void preCreateEntity( T entity )
-        throws Exception
+        throws ConflictException
     {
     }
 
@@ -985,7 +1125,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void preUpdateEntity( T entity, T newEntity )
-        throws Exception
+        throws ConflictException
     {
     }
 
@@ -994,7 +1134,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void preDeleteEntity( T entity )
-        throws Exception
+        throws ConflictException
     {
     }
 
@@ -1003,7 +1143,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void prePatchEntity( T entity, T newEntity )
-        throws Exception
+        throws ConflictException
     {
     }
 
@@ -1012,7 +1152,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void preUpdateItems( T entity, IdentifiableObjects items )
-        throws Exception
+        throws ConflictException
     {
     }
 
@@ -1113,12 +1253,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     protected Patch diff( HttpServletRequest request )
         throws IOException,
-        WebMessageException
+        BadRequestException
     {
         ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
         if ( mapper == null )
         {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
+            throw new BadRequestException( "Unknown payload format." );
         }
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }

@@ -1,0 +1,79 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  summary_uid: SkFAjPsMHJc
+  name: categories_same_category_options
+  description: Categories with the same category options
+  section: Categories
+  section_order: 6
+  summary_sql: >-
+    WITH duplicative_categories  AS (
+    SELECT catoptions, COUNT(*) as count
+    FROM ( SELECT categoryid,
+    array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+    FROM categories_categoryoptions group by categoryid) as foo
+    GROUP BY catoptions HAVING COUNT(*) > 1
+    )
+    SELECT COUNT(*) as value,
+     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+    FROM dataelementcategory),0 ) percent
+    FROM duplicative_categories;
+  details_uid: yKInwm9p54H
+  details_sql: >-
+    SELECT x.uid,'(' || b.rank || ') ' || x.name as name  from dataelementcategory x
+    INNER JOIN (
+    SELECT categoryid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+    from categories_categoryoptions GROUP BY categoryid
+    ) a on x.categoryid = a.categoryid
+    INNER JOIN (
+    SELECT catoptions, COUNT(*) as count, DENSE_RANK() OVER (ORDER BY catoptions) as rank
+    FROM ( SELECT categoryid,
+    array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+    FROM categories_categoryoptions group by categoryid) as foo
+    GROUP BY catoptions HAVING COUNT(*) > 1
+    ) b on b.catoptions = a.catoptions
+    ORDER BY b.rank
+  severity: WARNING
+  introduction: >
+    Categories with the exact same category options should be considered
+    to be merged. Categories with the exact same category options
+    may be easily confused by users in analysis. The details view will
+    provide a list of categories which have the exact same category options.
+    For each duplicated category a number in parentheses such as (1) will
+    indicate which categories belong to duplicated groups.
+  details_id_type: categories
+  recommendation: |
+    If category combinations have already been created with duplicative categories,
+    it is recommended that you do not take any action, but rather ensure
+    that users understand that there may be two category combinations which are duplicative.
+
+    If you choose to merge the duplicative category combinations, you would need to 
+    remap all category option combinations from the category combo which you wish to 
+    remove, to the one which you wish to keep. 
+
+    If one of the categories is not in use in any category combination, it should
+    consider to be removed from the system.

@@ -35,14 +35,12 @@ import org.junit.jupiter.api.Test;
 
 class ValueTypeTest
 {
-
     @Test
     void rightInstancesOfEnumsAreConstructedWhenUsed()
     {
-        // arrange
         ValueType posInt = ValueType.INTEGER_POSITIVE;
         ValueType longText = ValueType.LONG_TEXT;
-        // act assert
+
         assertTrue( posInt.isNumeric() );
         assertTrue( longText.isText() );
     }
@@ -50,8 +48,9 @@ class ValueTypeTest
     @Test
     void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
     {
-        // arrange act assert
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.LAST_LAST_ORG_UNIT ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.FIRST_FIRST_ORG_UNIT ) );
         assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
         assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
     }
@@ -59,8 +58,8 @@ class ValueTypeTest
     @Test
     void aggregatableFlagOfTextValueTypeIsFalseWhenCalled()
     {
-        // arrange act assert
         assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
+        assertFalse( ValueType.TEXT.isAggregatable( AggregationType.SUM ) );
         assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.CUSTOM ) );
         assertFalse( ValueType.LETTER.isAggregatable( AggregationType.DEFAULT ) );
     }
@@ -68,7 +67,6 @@ class ValueTypeTest
     @Test
     void aggregatableFlagOfNumericValueTypeIsTrueWhenCalled()
     {
-        // arrange act assert
         assertTrue( ValueType.NUMBER.isAggregatable( AggregationType.COUNT ) );
         assertTrue( ValueType.UNIT_INTERVAL.isAggregatable( AggregationType.AVERAGE ) );
         assertTrue( ValueType.PERCENTAGE.isAggregatable( AggregationType.LAST ) );
@@ -80,7 +78,6 @@ class ValueTypeTest
     @Test
     void aggregatableFlagOfNumericValueTypeIsFalseWhenCalled()
     {
-        // arrange act assert
         assertFalse( ValueType.NUMBER.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.UNIT_INTERVAL.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.PERCENTAGE.isAggregatable( AggregationType.DEFAULT ) );
@@ -92,14 +89,12 @@ class ValueTypeTest
     @Test
     void aggregatableFlagOfFileResourceValueTypeIsTrueWhenCalled()
     {
-        // arrange act assert
         assertTrue( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.COUNT ) );
     }
 
     @Test
     void aggregatableFlagOfFileResourceValueTypeIsFalseWhenCalled()
     {
-        // arrange act assert
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.AVERAGE ) );
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.DEFAULT ) );

@@ -42,13 +42,13 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.partition.PartitionManager" )
+@Service( "org.hisp.dhis.analytics.partition.PartitionManager" )
 @RequiredArgsConstructor
 public class JdbcPartitionManager
     implements PartitionManager

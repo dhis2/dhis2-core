@@ -45,7 +45,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -85,9 +85,9 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
         File file = File.createTempFile( "file-resource", "test" );
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
-        TrackerImportReport trackerImportReport = trackerImportService
+        ImportReport importReport = trackerImportService
             .importTracker( fromJson( "tracker/te_program_with_tea_fileresource_data.json" ) );
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( importReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

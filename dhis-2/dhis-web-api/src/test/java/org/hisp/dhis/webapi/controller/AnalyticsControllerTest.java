@@ -56,6 +56,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,8 @@ class AnalyticsControllerTest
         DataQueryService dataQueryService = new DefaultDataQueryService(
             mock( DimensionalObjectProducer.class ),
             mock( IdentifiableObjectManager.class ),
-            mock( AnalyticsSecurityManager.class ) );
+            mock( AnalyticsSecurityManager.class ),
+            mock( UserSettingService.class ) );
 
         // Controller under test
         AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
@@ -206,7 +208,7 @@ class AnalyticsControllerTest
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 0 ).getStringCellValue(), is( "de1" ) );
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 1 ).getStringCellValue(), is( "ou2" ) );
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 2 ).getStringCellValue(), is( "pe1" ) );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getStringCellValue(), is( "3" ) );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getNumericCellValue(), is( 3.0 ) );
     }
 
     @Test

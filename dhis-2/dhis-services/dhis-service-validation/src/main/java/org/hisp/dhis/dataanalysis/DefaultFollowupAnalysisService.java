@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -58,11 +58,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dataanalysis.FollowupAnalysisService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
-
     private static final int MAX_LIMIT = 10_000;
 
     private final DataAnalysisStore dataAnalysisStore;

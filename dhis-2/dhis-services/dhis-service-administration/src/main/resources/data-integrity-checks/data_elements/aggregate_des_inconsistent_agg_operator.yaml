@@ -1,0 +1,74 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: data_elements_aggregate_aggregation_operator
+  description: Non-numeric data elements which have an aggregation operator other than NONE.
+  section: Data elements (aggregate)
+  section_order: 8
+  summary_uid: kaVLxU71NCX
+  summary_sql: >-
+    with des_aggregation_op as (
+    SELECT uid,name,valuetype,aggregationtype from dataelement
+    where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
+                    'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
+                    'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+                    'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
+    AND aggregationtype != 'NONE' 
+    UNION
+    SELECT uid,name,valuetype,aggregationtype from dataelement
+    where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
+    'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
+    AND aggregationtype = 'NONE' 
+    
+    )
+    SELECT COUNT(*) as value,
+    100*COUNT(*) / NULLIF( ( SELECT COUNT(*) from dataelement), 0 ) as percent
+    from des_aggregation_op;
+  details_uid: BYmPyQUj12q
+  details_sql: >-
+    SELECT uid,name,valuetype || ' (' || aggregationtype || ')' as comment
+    FROM dataelement
+    WHERE valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
+    'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
+    'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+    'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
+    AND aggregationtype != 'NONE'
+    UNION
+    SELECT uid,name,valuetype || ' (' || aggregationtype || ')' as comment from dataelement
+    where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
+    'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
+    AND aggregationtype = 'NONE'
+    ORDER BY name;
+  severity: WARNING
+  introduction: >
+    Data elements which are not numeric (text, dates, etc) should have an aggregation
+    operator set to NONE. Data elements which are able to be aggregated (numbers, integers, etc) 
+    should have an aggregation operator set to something other than NONE, most often SUM.
+  recommendation: >
+    Open the affected data elements in the Maintenance App and change their aggregation type
+    to an appropriate type. Alternatively, these can be altered via the API.
+  details_id_type: dataElements

@@ -30,8 +30,13 @@ package org.hisp.dhis.common;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -48,34 +53,53 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  *
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
 public class MetadataItem
     implements Serializable
 {
+    @JsonProperty
     private String uid;
 
+    @JsonProperty
     private String code;
 
+    @JsonProperty
     private String name;
 
+    @JsonProperty
     private String description;
 
+    @JsonProperty
     private String legendSet;
 
+    @JsonProperty
     private DimensionType dimensionType;
 
+    @JsonProperty
     private DimensionItemType dimensionItemType;
 
+    @JsonProperty
     private ValueType valueType;
 
+    @JsonProperty
     private AggregationType aggregationType;
 
+    @JsonProperty
     private TotalAggregationType totalAggregationType;
 
+    @JsonProperty
+    @JsonSerialize( using = IndicatorTypeSerializer.class )
     private IndicatorType indicatorType;
 
+    @JsonProperty
     private Date startDate;
 
+    @JsonProperty
     private Date endDate;
+
+    @JsonProperty
+    private String expression;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -164,23 +188,23 @@ public class MetadataItem
             DataElement dataElement = (DataElement) dimensionalItemObject;
             this.valueType = dataElement.getValueType().toSimplifiedValueType();
         }
-
-        if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        else if ( dimensionalItemObject instanceof DataElementOperand )
+        {
+            DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
+            this.valueType = operand.getValueType().toSimplifiedValueType();
+        }
+        else if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
             this.valueType = attribute.getValueType().toSimplifiedValueType();
         }
-
-        // TODO introduce start/end date marker interface instead
-
-        if ( dimensionalItemObject instanceof Period )
+        else if ( dimensionalItemObject instanceof Period )
         {
             Period period = (Period) dimensionalItemObject;
             this.startDate = period.getStartDate();
             this.endDate = period.getEndDate();
         }
-
-        if ( dimensionalItemObject instanceof Indicator )
+        else if ( dimensionalItemObject instanceof Indicator )
         {
             Indicator indicator = (Indicator) dimensionalItemObject;
 
@@ -188,6 +212,12 @@ public class MetadataItem
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
+        }
+        else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
+        {
+            ExpressionDimensionItem expressionDimensionItem = (ExpressionDimensionItem) dimensionalItemObject;
+
+            this.expression = expressionDimensionItem.getExpression();
         }
     }
 
@@ -203,153 +233,5 @@ public class MetadataItem
         this.dimensionType = dimensionalObject.getDimensionType();
         this.description = dimensionalObject.getDescription();
         this.aggregationType = dimensionalObject.getAggregationType();
-    }
-
-    // -------------------------------------------------------------------------
-    // Get and set
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    public String getCode()
-    {
-        return code;
-    }
-
-    public void setCode( String code )
-    {
-        this.code = code;
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public String getLegendSet()
-    {
-        return legendSet;
-    }
-
-    public void setLegendSet( String legendSet )
-    {
-        this.legendSet = legendSet;
-    }
-
-    @JsonProperty
-    public DimensionType getDimensionType()
-    {
-        return dimensionType;
-    }
-
-    public void setDimensionType( DimensionType type )
-    {
-        this.dimensionType = type;
-    }
-
-    @JsonProperty
-    public DimensionItemType getDimensionItemType()
-    {
-        return dimensionItemType;
-    }
-
-    public void setDimensionItemType( DimensionItemType dimensionItemType )
-    {
-        this.dimensionItemType = dimensionItemType;
-    }
-
-    @JsonProperty
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
-    }
-
-    @JsonProperty
-    public AggregationType getAggregationType()
-    {
-        return aggregationType;
-    }
-
-    public void setAggregationType( AggregationType itemSpecificType )
-    {
-        this.aggregationType = itemSpecificType;
-    }
-
-    @JsonProperty
-    @JsonSerialize( using = IndicatorTypeSerializer.class )
-    public IndicatorType getIndicatorType()
-    {
-        return indicatorType;
-    }
-
-    public void setIndicatorType( IndicatorType indicatorType )
-    {
-        this.indicatorType = HibernateProxyUtils.unproxy( indicatorType );
-    }
-
-    @JsonProperty
-    public TotalAggregationType getTotalAggregationType()
-    {
-        return totalAggregationType;
-    }
-
-    public void setTotalAggregationType( TotalAggregationType totalAggregationType )
-    {
-        this.totalAggregationType = totalAggregationType;
-    }
-
-    @JsonProperty
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    @JsonProperty
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
     }
 }

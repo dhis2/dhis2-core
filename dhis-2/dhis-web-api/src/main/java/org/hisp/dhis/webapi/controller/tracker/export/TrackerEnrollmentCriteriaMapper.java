@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
@@ -41,7 +42,8 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -83,6 +85,8 @@ public class TrackerEnrollmentCriteriaMapper
 
     @Transactional( readOnly = true )
     public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria criteria )
+        throws BadRequestException,
+        ForbiddenException
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
@@ -115,7 +119,7 @@ public class TrackerEnrollmentCriteriaMapper
         params.setPage( criteria.getPage() );
         params.setPageSize( criteria.getPageSize() );
         params.setTotalPages( criteria.isTotalPages() );
-        params.setSkipPaging( criteria.isSkipPaging() );
+        params.setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) );
         params.setIncludeDeleted( criteria.isIncludeDeleted() );
         params.setUser( user );
         params.setOrder( toOrderParams( criteria.getOrder() ) );
@@ -124,30 +128,35 @@ public class TrackerEnrollmentCriteriaMapper
     }
 
     private static void validateProgram( String id, Program program )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && program == null )
         {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + id );
+            throw new BadRequestException( "Program is specified but does not exist: " + id );
         }
     }
 
     private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
-            throw new IllegalQueryException( "Tracked entity type is specified but does not exist: " + id );
+            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + id );
         }
     }
 
     private void validateTrackedEntityInstance( String id, TrackedEntityInstance trackedEntityInstance )
+        throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntityInstance == null )
         {
-            throw new IllegalQueryException( "Tracked entity instance is specified but does not exist: " + id );
+            throw new BadRequestException( "Tracked entity instance is specified but does not exist: " + id );
         }
     }
 
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+        throws BadRequestException,
+        ForbiddenException
     {
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
@@ -164,12 +173,12 @@ public class TrackerEnrollmentCriteriaMapper
 
                 if ( organisationUnit == null )
                 {
-                    throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnitId );
+                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
                 }
 
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
-                    throw new IllegalQueryException(
+                    throw new ForbiddenException(
                         "Organisation unit is not part of the search scope: " + orgUnitId );
                 }
                 orgUnits.add( organisationUnit );

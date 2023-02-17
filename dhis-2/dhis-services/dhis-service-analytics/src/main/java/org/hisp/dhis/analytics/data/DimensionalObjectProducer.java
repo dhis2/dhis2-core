@@ -148,7 +148,7 @@ public class DimensionalObjectProducer
 
         for ( String uid : items )
         {
-            if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
+            if ( uid.startsWith( KEY_DE_GROUP ) )
             {
                 String groupUid = getUidFromGroupParam( uid );
 
@@ -161,7 +161,7 @@ public class DimensionalObjectProducer
                     dimensionalKeywords.addKeyword( group );
                 }
             }
-            else if ( uid.startsWith( KEY_IN_GROUP ) ) // INDICATOR GROUP
+            else if ( uid.startsWith( KEY_IN_GROUP ) )
             {
                 String groupUid = getUidFromGroupParam( uid );
 
@@ -175,8 +175,8 @@ public class DimensionalObjectProducer
             }
             else
             {
-                DimensionalItemObject dimItemObject = dimensionService.getDataDimensionalItemObject( inputIdScheme,
-                    uid );
+                DimensionalItemObject dimItemObject = dimensionService
+                    .getDataDimensionalItemObject( inputIdScheme, uid );
 
                 if ( dimItemObject != null )
                 {

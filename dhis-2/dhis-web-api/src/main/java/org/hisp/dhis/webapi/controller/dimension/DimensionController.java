@@ -46,12 +46,14 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -78,6 +80,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = DimensionController.RESOURCE_PATH )
 public class DimensionController
@@ -191,7 +194,7 @@ public class DimensionController
     @GetMapping( "/constraints" )
     public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
     {
         List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
@@ -208,14 +211,9 @@ public class DimensionController
     @GetMapping( "/recommendations" )
     public ResponseEntity<JsonRoot> getRecommendedDimensions(
         @RequestParam Set<String> dimension,
-        @RequestParam( defaultValue = "id,displayName" ) List<String> fields )
+        @RequestParam( defaultValue = "id,displayName" ) List<FieldPath> fields )
     {
         DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.defaultPreset().getFields() );
-        }
 
         List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( dimensions, fields );
@@ -226,7 +224,7 @@ public class DimensionController
     @GetMapping( "/dataSet/{uid}" )
     public ResponseEntity<JsonRoot> getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
         throws WebMessageException
     {
         WebMetadata metadata = new WebMetadata();

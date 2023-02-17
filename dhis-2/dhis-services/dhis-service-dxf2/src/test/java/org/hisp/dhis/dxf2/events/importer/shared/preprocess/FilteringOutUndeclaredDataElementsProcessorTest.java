@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,7 +50,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 /**
@@ -76,7 +76,7 @@ class FilteringOutUndeclaredDataElementsProcessorTest
         event.setDataValues( dataValues );
         WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() )
             .programsMap( getProgramMap() )
-            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( ImmutableList.of( event ),
+            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( List.of( event ),
                 Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
             .build();
         preProcessor.process( event, ctx );

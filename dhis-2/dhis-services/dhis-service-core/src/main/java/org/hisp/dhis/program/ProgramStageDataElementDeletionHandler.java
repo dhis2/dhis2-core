@@ -30,24 +30,24 @@ package org.hisp.dhis.program;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-@AllArgsConstructor
-public class ProgramStageDataElementDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class ProgramStageDataElementDeletionHandler extends IdObjectDeletionHandler<ProgramStageDataElement>
 {
     private final ProgramStageDataElementService programStageDataElementService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( ProgramStage.class, this::deleteProgramStage );
         whenDeleting( DataElement.class, this::deleteDataElement );

@@ -42,6 +42,10 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getScheduledDateLabel;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -73,11 +77,9 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -113,7 +115,7 @@ public class DefaultEventAnalyticsService
 
     private static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
 
-    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+    private static final Map<String, String> COLUMN_NAMES = Map.of(
         DATA_X_DIM_ID, "data",
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
@@ -121,7 +123,7 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_EVENT = "Event";
 
-    private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
+    private static final String NAME_TEI = "Tracked entity instance";
 
     private static final String NAME_PROGRAM_INSTANCE = "Program instance";
 
@@ -225,7 +227,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows )
-            ? getMaybeAggregatedEventDataTableLayout( params, columns, rows )
+            ? getAggregatedEventDataTableLayout( params, columns, rows )
             : getAggregatedEventData( params );
     }
 
@@ -240,10 +242,6 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
-        // ---------------------------------------------------------------------
-        // Decide access, add constraints and validate
-        // ---------------------------------------------------------------------
-
         securityManager.decideAccessEventQuery( params );
         params = securityManager.withUserConstraints( params );
 
@@ -272,7 +270,7 @@ public class DefaultEventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    private Grid getMaybeAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
+    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
         List<String> rows )
     {
         params.removeProgramIndicatorItems();
@@ -390,7 +388,7 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            maybeAddValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
+            addValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
@@ -399,8 +397,10 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * return valid grid. Valid grid is first output grid with rows or the basic
-     * one
+     * Returns a valid grid.
+     *
+     * @param grid the {@link Grid}.
+     * @param outputGrid the output {@link Grid}.
      */
     private static Grid getGridWithRows( Grid grid, Grid outputGrid )
     {
@@ -408,15 +408,20 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * add values in output grid. Display objects are not empty if columns and
-     * rows are not epmty
+     * Adds values to the given output grid. Display objects are not empty if
+     * columns and rows are not empty.
+     *
+     * @param rowDimensions the list of row dimensions.
+     * @param grid the {@link Grid}.
+     * @param displayObjects the map of display objects.
+     * @param params the {@link EventQueryParams}.
      */
-    private static void maybeAddValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+    private static void addValuesInOutputGrid( List<String> rowDimensions, Grid grid,
         Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
     {
         if ( !displayObjects.isEmpty() )
         {
-            rowDimensions.forEach( dimension -> outputGrid
+            rowDimensions.forEach( dimension -> grid
                 .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
         }
     }
@@ -492,8 +497,7 @@ public class DefaultEventAnalyticsService
         else if ( eventDimensionalItemObject.hasLegendSet() )
         {
             List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() ))
-                    .get( dimension );
+                .get( DIMENSIONS.getKey() )).get( dimension );
 
             if ( legendOptions.isEmpty() )
             {
@@ -513,8 +517,7 @@ public class DefaultEventAnalyticsService
                 for ( String legend : legendOptions )
                 {
                     MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() ))
-                            .get( legend );
+                        .get( ITEMS.getKey() )).get( legend );
 
                     objects.add( new EventAnalyticsDimensionalItem(
                         new Option( metadataItem.getName(), legend ), parentUid ) );
@@ -550,17 +553,18 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    grid.addHeader( new GridHeader(
-                        item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ),
+                    String displayProperty = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), displayProperty,
                         item.getValueType(), false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
 
             for ( DimensionalObject dimension : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader(
-                    dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),
-                    TEXT, false, true ) );
+                String displayProperty = dimension.getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( dimension.getDimension(), displayProperty, TEXT, false, true ) );
             }
 
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
@@ -587,7 +591,7 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                // Each query might be either an enrollment or event indicator
+                // Query might be either an enrollment or event indicator
 
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
@@ -621,10 +625,10 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        maybeApplyIdScheme( params, grid );
+        applyIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
-        // Meta-data
+        // Meta-ata
         // ---------------------------------------------------------------------
 
         addMetadata( params, grid );
@@ -718,7 +722,7 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_DATE,
-                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
+                getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )
@@ -726,41 +730,27 @@ public class DefaultEventAnalyticsService
                 ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_SCHEDULED_DATE,
-                LabelMapper.getScheduleDateLabel( params.getProgramStage(), NAME_SCHEDULED_DATE ), DATE, false,
-                true ) );
+                getScheduledDateLabel( params.getProgramStage(), NAME_SCHEDULED_DATE ), DATE, false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {
             grid
-                .addHeader( new GridHeader(
-                    ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ), DATE, false,
-                    true ) )
-                .addHeader( new GridHeader(
-                    ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE, false,
-                    true ) )
-                .addHeader( new GridHeader(
-                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) )
-                .addHeader( new GridHeader(
-                    ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, TEXT, false, true ) );
+                .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE,
+                    getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ), DATE, false, true ) )
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE,
+                    getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE, false, true ) )
+                .addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TEI, TEXT, false, true ) )
+                .addHeader( new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, TEXT, false, true ) );
         }
 
         grid
-            .addHeader( new GridHeader(
-                ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );
+            .addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );
 
         return grid;
     }

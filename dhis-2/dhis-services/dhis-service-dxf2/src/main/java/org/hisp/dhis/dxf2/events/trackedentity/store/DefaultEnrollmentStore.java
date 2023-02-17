@@ -32,9 +32,12 @@ import java.util.List;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EnrollmentRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
+import org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -50,6 +53,8 @@ import com.google.common.collect.Multimap;
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
 {
     private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
+
+    private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
     private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +
@@ -93,6 +98,18 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     public Multimap<String, Note> getNotes( List<Long> ids )
     {
         return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), ids );
+    }
+
+    @Override
+    public Multimap<String, Attribute> getAttributes( List<Long> ids, AggregateContext ctx )
+    {
+        ProgramAttributeRowCallbackHandler handler = new ProgramAttributeRowCallbackHandler();
+
+        jdbcTemplate.query( getQuery( GET_ATTRIBUTES, ctx, " pa.programid IN (:programIds)",
+            FILTER_OUT_DELETED_ENROLLMENTS ),
+            createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
+
+        return handler.getItems();
     }
 
     @Override

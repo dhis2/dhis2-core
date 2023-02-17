@@ -49,6 +49,7 @@ import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -56,12 +57,12 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.DefaultTrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerTimingsStats;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.PersistenceReport;
+import org.hisp.dhis.tracker.report.Status;
+import org.hisp.dhis.tracker.report.TimingsStats;
+import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.service.DefaultContextService;
@@ -81,7 +82,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class TrackerImportControllerTest
 {
 
-    private final static String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;
+    private final static String ENDPOINT = TrackerControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
 
@@ -110,7 +111,9 @@ class TrackerImportControllerTest
         final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
             csvEventService, new DefaultContextService(), notifier );
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+        mockMvc = MockMvcBuilders.standaloneSetup( controller )
+            .setControllerAdvice( new CrudControllerAdvice() )
+            .build();
     }
 
     @Test
@@ -150,13 +153,11 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
-            TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
-            new TrackerValidationReport(),
-            new TrackerTimingsStats(),
+        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+            Status.OK,
+            PersistenceReport.emptyReport(),
+            ValidationReport.emptyReport(),
+            new TimingsStats(),
             new HashMap<>() ) );
 
         // Then
@@ -175,7 +176,7 @@ class TrackerImportControllerTest
 
         try
         {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
+            renderService.fromJson( contentAsString, ImportReport.class );
         }
         catch ( Exception e )
         {
@@ -188,13 +189,11 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
-            TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
-            new TrackerValidationReport(),
-            new TrackerTimingsStats(),
+        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+            Status.OK,
+            PersistenceReport.emptyReport(),
+            ValidationReport.emptyReport(),
+            new TimingsStats(),
             new HashMap<>() ) );
 
         // Then
@@ -213,7 +212,7 @@ class TrackerImportControllerTest
 
         try
         {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
+            renderService.fromJson( contentAsString, ImportReport.class );
         }
         catch ( Exception e )
         {
@@ -227,9 +226,9 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            new TrackerValidationReport(),
-            new TrackerTimingsStats() ) );
+        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+            ValidationReport.emptyReport(),
+            new TimingsStats() ) );
 
         // Then
         String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
@@ -247,7 +246,7 @@ class TrackerImportControllerTest
 
         try
         {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
+            renderService.fromJson( contentAsString, ImportReport.class );
         }
         catch ( Exception e )
         {
@@ -261,9 +260,9 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            new TrackerValidationReport(),
-            new TrackerTimingsStats() ) );
+        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+            ValidationReport.emptyReport(),
+            new TimingsStats() ) );
 
         // Then
         String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
@@ -281,7 +280,7 @@ class TrackerImportControllerTest
 
         try
         {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
+            renderService.fromJson( contentAsString, ImportReport.class );
         }
         catch ( Exception e )
         {
@@ -322,20 +321,18 @@ class TrackerImportControllerTest
     {
         String uid = CodeGenerator.generateUid();
 
-        TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted(
-            TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
-            new TrackerValidationReport(),
-            new TrackerTimingsStats(),
+        ImportReport importReport = ImportReport.withImportCompleted(
+            Status.OK,
+            PersistenceReport.emptyReport(),
+            ValidationReport.emptyReport(),
+            new TimingsStats(),
             new HashMap<>() );
 
         // When
         when( notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .thenReturn( trackerImportReport );
+            .thenReturn( importReport );
 
-        when( trackerImportService.buildImportReport( any(), any() ) ).thenReturn( trackerImportReport );
+        when( trackerImportService.buildImportReport( any(), any() ) ).thenReturn( importReport );
 
         // Then
         String contentAsString = mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
@@ -354,7 +351,7 @@ class TrackerImportControllerTest
 
         try
         {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
+            renderService.fromJson( contentAsString, ImportReport.class );
         }
         catch ( Exception e )
         {
@@ -376,7 +373,7 @@ class TrackerImportControllerTest
         mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) ).andExpect( status().isNotFound() )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }

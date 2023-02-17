@@ -29,26 +29,24 @@ package org.hisp.dhis.sms.command;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@AllArgsConstructor
-public class SMSCommandDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class SMSCommandDeletionHandler extends IdObjectDeletionHandler<SMSCommand>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCommand.class );
-
     private final SMSCommandService smsCommandService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( DataSet.class, this::allowDeleteDataSet );
     }

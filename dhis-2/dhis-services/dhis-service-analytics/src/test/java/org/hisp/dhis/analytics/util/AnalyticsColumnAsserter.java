@@ -52,7 +52,6 @@ public class AnalyticsColumnAsserter
         assertThat( expected.getDataType(), is( actual.getDataType() ) );
         assertThat( String.format( "Index type for column %s does not match!", expected.getName() ),
             expected.getIndexType(), is( actual.getIndexType() ) );
-        // assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
     }
 
     public static class Builder

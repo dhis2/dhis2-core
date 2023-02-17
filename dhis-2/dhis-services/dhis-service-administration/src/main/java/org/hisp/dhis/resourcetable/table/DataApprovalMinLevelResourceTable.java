@@ -43,9 +43,12 @@ import com.google.common.collect.Lists;
 public class DataApprovalMinLevelResourceTable
     extends ResourceTable<OrganisationUnitLevel>
 {
-    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects )
+    private final String tableType;
+
+    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -57,15 +60,13 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + "(" +
+        return "create " + tableType + " table " + getTempTableName() + "(" +
             "workflowid bigint not null, " +
             "periodid bigint not null, " +
             "organisationunitid bigint not null, " +
             "attributeoptioncomboid bigint not null, " +
             "minlevel integer not null, " +
             "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
-
-        return sql;
     }
 
     @Override
@@ -73,16 +74,16 @@ public class DataApprovalMinLevelResourceTable
     {
         String sql = "insert into " + getTempTableName() +
             " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) " +
-            "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel "
-            +
+            "select da.workflowid, da.periodid, da.organisationunitid, " +
+            "da.attributeoptioncomboid, dal.level as minlevel " +
             "from dataapproval da " +
-            "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
-            +
+            "inner join _dataapprovalremaplevel dal on " +
+            "dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid " +
             "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid " +
             "where not exists ( " +
             "select 1 from dataapproval da2 " +
-            "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid "
-            +
+            "inner join _dataapprovalremaplevel dal2 on " +
+            "da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid " +
             "where da.workflowid=da2.workflowid " +
             "and da.periodid=da2.periodid " +
             "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +

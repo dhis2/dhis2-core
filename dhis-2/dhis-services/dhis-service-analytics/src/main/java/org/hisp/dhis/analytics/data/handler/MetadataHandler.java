@@ -56,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -96,7 +97,7 @@ public class MetadataHandler
 
             Map<String, String> cocNameMap = getCocNameMap( params );
 
-            metaData.put( ITEMS.getKey(), getDimensionMetadataItemMap( params ) );
+            metaData.put( ITEMS.getKey(), getDimensionMetadataItemMap( params, grid ) );
 
             // -----------------------------------------------------------------
             // Item order elements
@@ -132,19 +133,22 @@ public class MetadataHandler
 
             List<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
+            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
+
             if ( params.isHierarchyMeta() )
             {
-                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(
+                    activeOrgUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
-                Map<Object, List<?>> ancestorMap = organisationUnits.stream()
+                Map<Object, List<?>> ancestorMap = activeOrgUnits.stream()
                     .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
 
                 internalMetaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
                 metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( organisationUnits, roots, true ) );
+                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
             }
 
             grid.setMetaData( copyOf( metaData ) );

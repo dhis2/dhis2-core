@@ -94,7 +94,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -1414,10 +1413,10 @@ class ValidationServiceTest extends IntegrationTestBase
         ValidationRule rule = createValidationRule( "A", equal_to, expressionX, expressionY, ptMonthly );
         validationRuleService.saveValidationRule( rule );
         List<Map<String, String>> leftSideExpected = Lists.newArrayList(
-            ImmutableMap.of( "name", "DataElementA", "value", "10.0" ),
-            ImmutableMap.of( "name", "DataElementB", "value", "20.0" ) );
+            Map.of( "name", "DataElementA", "value", "10.0" ),
+            Map.of( "name", "DataElementB", "value", "20.0" ) );
         List<Map<String, String>> rightSideExpected = Lists
-            .newArrayList( ImmutableMap.of( "name", "DataElementB CategoryOptionX", "value", "20.0" ) );
+            .newArrayList( Map.of( "name", "DataElementB CategoryOptionX", "value", "20.0" ) );
         ValidationRuleExpressionDetails details = validationService.getValidationRuleExpressionDetails(
             validationService.newParamsBuilder( Lists.newArrayList( rule ), sourceA, Lists.newArrayList( periodA ) )
                 .withAttributeOptionCombo( optionCombo ).build() );

@@ -146,13 +146,13 @@ public interface DataApprovalStore
      * @param period Period to look within
      * @param orgUnits Organisation unit to look for (null means all)
      * @param orgUnitLevel level for all orgUnits specified (if any)
+     * @param orgUnitFilter Organisation unit filter for attribute option combos
      * @param attributeCombo Attribute category combo to look within
      * @param attributeOptionCombos Attribute option combos (null means all)
      * @return data approval status objects
      */
     List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
-        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
-        CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels,
-        Map<Integer, DataApprovalLevel> levelMap );
+        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel, OrganisationUnit orgUnitFilter,
+        CategoryCombo attributeCombo, Set<CategoryOptionCombo> attributeOptionCombos,
+        List<DataApprovalLevel> userApprovalLevels, Map<Integer, DataApprovalLevel> levelMap );
 }

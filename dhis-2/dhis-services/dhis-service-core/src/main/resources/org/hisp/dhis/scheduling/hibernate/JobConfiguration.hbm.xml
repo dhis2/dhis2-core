@@ -16,6 +16,10 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230" />
 
+        <property name="queueName" column="queuename" length="50" />
+
+        <property name="queuePosition" column="queueposition" />
+
         <property name="cronExpression" />
         
         <property name="delay" />

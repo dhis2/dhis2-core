@@ -344,6 +344,7 @@ public class EventDataQueryRequest
                 .skipData( criteria.isSkipData() )
                 .completedOnly( criteria.isCompletedOnly() )
                 .hierarchyMeta( criteria.isHierarchyMeta() )
+                .showHierarchy( criteria.isShowHierarchy() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
                 .dataIdScheme( criteria.getDataIdScheme() )

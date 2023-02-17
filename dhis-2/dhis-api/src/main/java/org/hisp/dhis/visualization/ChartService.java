@@ -28,6 +28,7 @@
 package org.hisp.dhis.visualization;
 
 import java.util.Date;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,6 +44,14 @@ import org.jfree.chart.JFreeChart;
  */
 public interface ChartService
 {
+    /**
+     * Supported visualization types.
+     */
+    Set<VisualizationType> SUPPORTED_TYPES = Set.of(
+        VisualizationType.LINE, VisualizationType.COLUMN, VisualizationType.BAR,
+        VisualizationType.AREA, VisualizationType.PIE, VisualizationType.STACKED_COLUMN,
+        VisualizationType.STACKED_BAR, VisualizationType.RADAR, VisualizationType.GAUGE );
+
     /**
      * Generates a JFreeChart.
      *

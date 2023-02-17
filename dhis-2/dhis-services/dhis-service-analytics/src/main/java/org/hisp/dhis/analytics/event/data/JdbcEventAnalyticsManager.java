@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -53,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +69,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -80,7 +84,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -91,12 +94,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging. TODO introduce
@@ -105,7 +107,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
+@Service( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
 public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EventAnalyticsManager
@@ -114,13 +116,11 @@ public class JdbcEventAnalyticsManager
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
-    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService,
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, executionPlanStore );
+        super( jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -151,7 +151,7 @@ public class JdbcEventAnalyticsManager
      */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
-        log.debug( String.format( "Analytics event query SQL: %s", sql ) );
+        log.debug( "Analytics event query SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -215,7 +215,7 @@ public class JdbcEventAnalyticsManager
             sqlClusterFields + "), 4326), 3785), " +
             params.getClusterSize() + ") ";
 
-        log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
+        log.debug( "Analytics event cluster SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -244,7 +244,7 @@ public class JdbcEventAnalyticsManager
 
         try
         {
-            log.debug( "Analytics event count SQL: " + sql );
+            log.debug( "Analytics event count SQL: '{}'", sql );
 
             if ( params.analyzeOnly() )
             {
@@ -276,7 +276,6 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-
         String sql = "select count(psi) as " + COL_COUNT +
             ", ST_Extent(" + getCoalesce( params.getCoordinateFields() ) + ") as " + COL_EXTENT + " ";
 
@@ -284,7 +283,7 @@ public class JdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
+        log.debug( "Analytics event count and extent SQL: '{}'", sql );
 
         Rectangle rectangle = new Rectangle();
 
@@ -330,9 +329,9 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
-                "lastupdatedbydisplayname", "lastupdated", "duedate" );
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>().add(
+            "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
+            "lastupdatedbydisplayname", "lastupdated", "duedate" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -342,8 +341,7 @@ public class JdbcEventAnalyticsManager
         String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
 
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
-            "oucode", "pistatus",
-            "psistatus" );
+            "oucode", "pistatus", "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
 
@@ -410,7 +408,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         sql += hlp.whereAnd() + " "
-            + timeFieldSqlRenderer.renderTimeFieldSql( params );
+            + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -434,22 +432,21 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
+            String sqlSnippet = getOrgUnitDescendantsClause( orgUnitField,
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
-            if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
+            if ( isNotEmpty( sqlSnippet ) )
             {
                 sql += hlp.whereAnd() + " " + sqlSnippet;
             }
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets, categories and category option group
-        // set
+        // Categories, category option group sets, organisation unit group sets
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
+            Set.of( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -459,10 +456,10 @@ public class JdbcEventAnalyticsManager
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
-        dynamicDimensions = params
-            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+        List<DimensionalObject> orgUnitGroupSetDimension = params
+            .getDimensionsAndFilters( Set.of( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
 
-        for ( DimensionalObject dim : dynamicDimensions )
+        for ( DimensionalObject dim : orgUnitGroupSetDimension )
         {
             if ( !dim.isAllItems() )
             {
@@ -486,7 +483,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getStatementForDimensionsAndFilters( params, hlp );
+        sql += getQueryItemsAndFiltersWhereClause( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
@@ -519,16 +516,15 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += hlp.whereAnd() + " pistatus in ("
-                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " pistatus in (" +
+                params.getProgramStatus().stream().map( p -> encode( p.name() ) ).collect( joining( "," ) ) +
+                ") ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += hlp.whereAnd() + " psistatus in ("
-                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-                + ") ";
+            sql += hlp.whereAnd() + " psistatus in (" +
+                params.getEventStatus().stream().map( e -> encode( e.name() ) ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
@@ -573,10 +569,10 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a filter by organisation -
-     * descendant level
+     * Generates a sub query which provides a filter by organisation descendant
+     * level.
      */
-    private String getOrgDescendantsSqlSnippet( OrgUnitField orgUnitField,
+    private String getOrgUnitDescendantsClause( OrgUnitField orgUnitField,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
         Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
@@ -590,12 +586,19 @@ public class JdbcEventAnalyticsManager
             .collect( joining( " and " ) );
     }
 
-    private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
+    /**
+     * Generates an in condition.
+     *
+     * @param orgUnit the org unit identifier.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @return a SQL in condition.
+     */
+    private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
     {
         return organisationUnits.stream()
-            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+            .filter( unit -> isNotEmpty( unit.getUid() ) )
             .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( joining( ",", org + OPEN_IN, ") " ) );
+            .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
 
     /**
@@ -613,11 +616,11 @@ public class JdbcEventAnalyticsManager
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String valueItem = quote( params.getValue().getDimensionItem() );
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String alias = "iax";
-        String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
+        String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
+        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+        String valueItem = quoteAlias( params.getValue().getDimensionItem() );
 
         String sql = "(select ";
 
@@ -626,13 +629,65 @@ public class JdbcEventAnalyticsManager
             sql += col + ",";
         }
 
-        sql += "row_number() over (" +
-            "partition by ou, ao " +
+        sql += "row_number() over (" + partitionByClause + " " +
             "order by " + timeCol + " " + order + ") as pe_rank " +
-            "from " + params.getTableName() + " " + alias + " " +
+            "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
+
+        return sql;
+    }
+
+    /**
+     * Returns the partition by clause for the first or last event sub query. If
+     * the aggregation type of the given parameters specifies "first" or "last"
+     * as the general aggregation type, the partition by clause will use the
+     * dimensions from the analytics query as columns in order to rank events in
+     * all dimensions. In this case, the outer query will perform no aggregation
+     * and simply filter by the top ranked events.
+     * <p>
+     * If the aggregation type specifies another aggregation type (i.e. "sum" or
+     * "average") as the general aggregation type, the partition by clause will
+     * use the "ou" and "ao" columns to rank events in the time dimension only,
+     * and have the outer query perform the aggregation in the other dimensions,
+     * as well as filter by the top ranked events.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @return the partition by clause.
+     */
+    private String getFirstOrLastValuePartitionByClause( EventQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
+        {
+            return getFirstOrLastValuePartitionByColumns( params.getNonPeriodDimensions() );
+        }
+        else
+        {
+            return "partition by " + quoteAliasCommaSeparate( List.of( "ou", "ao" ) );
+        }
+    }
+
+    /**
+     * Returns the partition by clause for the first or last event sub query.
+     * The columns to partition by are based on the given list of dimensions.
+     *
+     * @param dimensions the list of {@link DimensionalObject}.
+     * @return the partition by clause.
+     */
+    private String getFirstOrLastValuePartitionByColumns( List<DimensionalObject> dimensions )
+    {
+        String partitionColumns = dimensions.stream()
+            .map( DimensionalObject::getDimensionName )
+            .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( Collectors.joining( "," ) );
+
+        String sql = "";
+
+        if ( isNotEmpty( partitionColumns ) )
+        {
+            sql += "partition by " + partitionColumns;
+        }
 
         return sql;
     }
@@ -650,7 +705,7 @@ public class JdbcEventAnalyticsManager
 
         String valueItem = params.getValue().getDimensionItem();
 
-        List<String> cols = Lists.newArrayList( "yearly", valueItem );
+        List<String> cols = Lists.newArrayList( "psi", "yearly", valueItem );
 
         cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
 
@@ -685,7 +740,6 @@ public class JdbcEventAnalyticsManager
      */
     private List<String> resolveCoordinateFieldsColumnNames( List<String> coordinateFields, EventQueryParams params )
     {
-        // possible immutable to mutable
         List<String> coors = new ArrayList<>( coordinateFields );
 
         for ( int i = 0; i < coors.size(); ++i )

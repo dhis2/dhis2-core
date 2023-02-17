@@ -46,7 +46,7 @@ public class Line implements Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer value;
+    private Double value;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )

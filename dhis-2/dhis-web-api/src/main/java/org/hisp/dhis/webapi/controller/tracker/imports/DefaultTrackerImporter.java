@@ -35,7 +35,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +61,7 @@ public class DefaultTrackerImporter implements TrackerImporter
     private final TrackerAsyncImporter asyncImporter;
 
     @Override
-    public TrackerImportReport importTracker( TrackerImportRequest request )
+    public ImportReport importTracker( TrackerImportRequest request )
     {
 
         TrackerImportParams params = trackerImportParams( request );

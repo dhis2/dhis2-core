@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DeliveryChannel;
@@ -41,26 +42,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@NoArgsConstructor
 public class DefaultOutboundMessageBatchService
     implements OutboundMessageBatchService
 {
-    // ---------------------------------------------------------------------
-    // Dependencies
-    // ---------------------------------------------------------------------
-
     private Map<DeliveryChannel, MessageSender> messageSenders;
 
     public void setMessageSenders( Map<DeliveryChannel, MessageSender> messageSenders )
     {
         this.messageSenders = messageSenders;
-    }
-
-    // ---------------------------------------------------------------------
-    // Constructors
-    // ---------------------------------------------------------------------
-
-    public DefaultOutboundMessageBatchService()
-    {
     }
 
     // ---------------------------------------------------------------------

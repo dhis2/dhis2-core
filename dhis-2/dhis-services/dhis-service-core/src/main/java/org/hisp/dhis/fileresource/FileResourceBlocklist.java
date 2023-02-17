@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.fileresource;
 
-import org.apache.commons.io.FilenameUtils;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * @author Lars Helge Overland
  */
 public class FileResourceBlocklist
 {
-    private static final ImmutableSet<String> CONTENT_TYPES = ImmutableSet.of(
+    private static final Set<String> CONTENT_TYPES = Set.of(
         // Web
         "text/html",
         "text/css",
@@ -55,7 +55,7 @@ public class FileResourceBlocklist
         "application/x-sh",
         "application/x-csh" );
 
-    private static final ImmutableSet<String> FILE_EXTENSIONS = ImmutableSet.of(
+    private static final Set<String> FILE_EXTENSIONS = Set.of(
         // Web
         "html",
         "htm",

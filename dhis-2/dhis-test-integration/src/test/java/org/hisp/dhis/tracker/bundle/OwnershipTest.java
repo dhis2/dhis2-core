@@ -54,8 +54,8 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
@@ -126,11 +126,11 @@ class OwnershipTest extends TrackerTest
         injectSecurityContext( nonSuperUser );
 
         TrackerImportParams trackerImportParams = fromJson( "tracker/ownership_event.json", nonSuperUser );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         manager.flush();
         TrackerImportParams teiParams = fromJson( "tracker/ownership_tei.json", nonSuperUser );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( importReport );
 
         List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, teis.size() );
@@ -180,7 +180,7 @@ class OwnershipTest extends TrackerTest
         updatedEnrollment.setEnrolledAt( Instant.now() );
         updatedEnrollment.setOccurredAt( Instant.now() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         manager.flush();
         assertNoErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getUpdated() );
@@ -201,7 +201,7 @@ class OwnershipTest extends TrackerTest
         assertEquals( 2, pis.size() );
         pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getDeleted() );
         pis = manager.getAll( ProgramInstance.class );
@@ -217,7 +217,7 @@ class OwnershipTest extends TrackerTest
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
         assertEquals( 2, pis.size() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getDeleted() );
         pis = manager.getAll( ProgramInstance.class );
@@ -240,7 +240,7 @@ class OwnershipTest extends TrackerTest
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
         assertEquals( 2, pis.size() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getDeleted() );
         TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
@@ -251,7 +251,7 @@ class OwnershipTest extends TrackerTest
         enrollmentParams.getEnrollments().get( 0 ).setEnrollment( CodeGenerator.generateUid() );
         updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     @Test
@@ -265,9 +265,9 @@ class OwnershipTest extends TrackerTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
         trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     @Test
@@ -281,9 +281,9 @@ class OwnershipTest extends TrackerTest
         trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     private void compareEnrollmentBasicProperties( ProgramInstance pi, Enrollment enrollment )

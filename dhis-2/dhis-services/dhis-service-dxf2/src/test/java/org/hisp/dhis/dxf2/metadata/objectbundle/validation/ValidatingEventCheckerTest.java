@@ -57,8 +57,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -85,8 +83,7 @@ class ValidatingEventCheckerTest
         // Create a validation factory with a dummy check
         validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
             new ObjectBundleHooks( Collections.emptyList() ),
-            new ValidationRunner(
-                ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( new DummyCheck() ) ) ) );
+            new ValidationRunner( Map.of( CREATE_AND_UPDATE, ListUtils.newList( new DummyCheck() ) ) ) );
     }
 
     @Test

@@ -174,7 +174,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         MapSqlParameterSource paramSource = createIdsParam( ids ).addValue( "userInfoId", ctx.getUserId() );
 
         boolean checkForOwnership = ctx.getQueryParams().isIncludeAllAttributes()
-            || ctx.getParams().isIncludeEnrollments() || ctx.getParams().isIncludeEvents();
+            || ctx.getParams().isIncludeEnrollments() || ctx.getParams().getTeiEnrollmentParams().isIncludeEvents();
 
         String sql;
 

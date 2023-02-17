@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
@@ -40,13 +41,18 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -59,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -83,11 +90,16 @@ public class TrackerEnrollmentsExportController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        throws BadRequestException,
+        ForbiddenException
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
+
+        EnrollmentParams enrollmentParams = map( fields )
+            .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
@@ -109,7 +121,8 @@ public class TrackerEnrollmentsExportController
             Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )
+                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
+                    .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
 
@@ -121,14 +134,16 @@ public class TrackerEnrollmentsExportController
     @GetMapping( value = "{id}" )
     public ResponseEntity<ObjectNode> getEnrollmentById(
         @PathVariable String id,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
+        EnrollmentParams enrollmentParams = map( fields );
 
-        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( id ) );
+        Enrollment enrollment = ENROLLMENT_MAPPER
+            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
         if ( enrollment == null )
         {
-            throw new NotFoundException( "Enrollment", id );
+            throw new NotFoundException( Enrollment.class, id );
         }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }

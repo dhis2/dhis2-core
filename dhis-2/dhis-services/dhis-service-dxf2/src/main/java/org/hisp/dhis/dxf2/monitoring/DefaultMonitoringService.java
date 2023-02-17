@@ -31,7 +31,7 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +58,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.monitoring.MonitoringService" )
 public class DefaultMonitoringService
     implements MonitoringService

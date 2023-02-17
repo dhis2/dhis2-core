@@ -31,27 +31,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class ProgramStageDeletionHandler extends JdbcDeletionHandler
+@RequiredArgsConstructor
+public class ProgramStageDeletionHandler extends IdObjectDeletionHandler<ProgramStage>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramStage.class );
-
     private final ProgramStageService programStageService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Program.class, this::deleteProgram );
         whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );

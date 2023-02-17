@@ -62,6 +62,14 @@ import com.fasterxml.jackson.core.JsonPointer;
 public abstract class JsonPatchOperation
     implements Patch
 {
+    public static final String ADD_OPERATION = "add";
+
+    public static final String REMOVE_OPERATION = "remove";
+
+    public static final String REMOVE_BY_ID_OPERATION = "remove-by-id";
+
+    public static final String REPLACE_OPERATION = "replace";
+
     @JsonProperty
     protected final String op;
 

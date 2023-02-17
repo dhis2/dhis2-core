@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.calendar;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +34,13 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,23 +50,14 @@ import com.google.common.collect.Maps;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.calendar.CalendarService" )
 public class DefaultCalendarService
     implements CalendarService
 {
-    private SystemSettingManager settingManager;
+    private final SystemSettingManager settingManager;
 
-    private Set<Calendar> calendars;
-
-    @Autowired
-    public DefaultCalendarService( SystemSettingManager settingManager, Set<Calendar> calendars )
-    {
-        checkNotNull( settingManager );
-        checkNotNull( calendars );
-
-        this.settingManager = settingManager;
-        this.calendars = calendars;
-    }
+    private final Set<Calendar> calendars;
 
     private Map<String, Calendar> calendarMap = Maps.newHashMap();
 

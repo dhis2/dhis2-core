@@ -41,9 +41,10 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -53,6 +54,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -66,6 +68,7 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupService;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
@@ -87,7 +90,7 @@ import com.csvreader.CsvReader;
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
@@ -101,6 +104,8 @@ public class DefaultCsvImportService
     private final IndicatorGroupService indicatorGroupService;
 
     private final OptionService optionService;
+
+    private final IdentifiableObjectManager manager;
 
     private static final String JSON_GEOM_TEMPL = "{\"type\":\"%s\", \"coordinates\":%s}";
 
@@ -116,7 +121,7 @@ public class DefaultCsvImportService
     {
         CsvReader reader = CsvUtils.getReader( input );
         reader.setSafetySwitch( false ); // Disabled due to large geometry
-                                         // values for org units
+                                        // values for org units
 
         if ( options.isFirstRowIsHeader() )
         {
@@ -174,6 +179,9 @@ public class DefaultCsvImportService
             break;
         case OPTION_GROUP_SET_MEMBERSHIP:
             metadata.setOptionGroupSets( optionGroupSetMembersFromCsv( reader ) );
+            break;
+        case INDICATOR:
+            metadata.setIndicators( indicatorsFromCsv( reader ) );
             break;
         default:
             break;
@@ -358,6 +366,37 @@ public class DefaultCsvImportService
                 CategoryOption object = new CategoryOption();
                 setIdentifiableObject( object, values );
                 object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    private List<Indicator> indicatorsFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<Indicator> list = new ArrayList<>();
+        Map<String, IndicatorType> indicatorTypeMap = new HashMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                Indicator object = new Indicator();
+                setIdentifiableObject( object, values );
+                object.setDescription( getSafe( values, 3, 255 ) );
+                object.setShortName( getSafe( values, 4, object.getName(), 50 ) );
+                object.setDenominator( getSafe( values, 5 ) );
+                object.setDenominatorDescription( getSafe( values, 6, 255 ) );
+                object.setNumerator( getSafe( values, 7 ) );
+                object.setNumeratorDescription( getSafe( values, 8, 255 ) );
+                object.setAnnualized( Boolean.parseBoolean( getSafe( values, 9, Boolean.FALSE.toString(), 40 ) ) );
+                object.setDecimals( NumberUtils.toInt( getSafe( values, 10 ), 0 ) );
+                object.setIndicatorType( indicatorTypeMap.computeIfAbsent( getSafe( values, 11 ),
+                    key -> manager.get( IndicatorType.class, key ) ) );
                 list.add( object );
             }
         }

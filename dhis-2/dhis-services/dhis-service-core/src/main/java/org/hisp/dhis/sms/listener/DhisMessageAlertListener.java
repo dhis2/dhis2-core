@@ -29,7 +29,12 @@ package org.hisp.dhis.sms.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,9 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.DhisMessageAlertListener" )
 @Transactional
-public class DhisMessageAlertListener
-    extends
-    CommandSMSListener
+public class DhisMessageAlertListener extends CommandSMSListener
 {
     private final SMSCommandService smsCommandService;
 

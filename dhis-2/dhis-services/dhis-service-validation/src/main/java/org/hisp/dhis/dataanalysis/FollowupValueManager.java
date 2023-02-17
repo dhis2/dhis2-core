@@ -33,7 +33,7 @@ import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -50,10 +50,9 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FollowupValueManager
 {
-
     private final SessionFactory sessionFactory;
 
     /**

@@ -73,13 +73,16 @@ public class InQueryFilter extends QueryFilter
     public String getSqlFilter()
     {
         List<String> filterItems = getFilterItems( this.getFilter() );
+
         String condition = "";
+
         if ( hasNonMissingValue( filterItems ) )
         {
             condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
                 .filter( Objects::nonNull )
                 .map( this::quoteIfNecessary )
                 .collect( Collectors.joining( ",", " (", ")" ) );
+
             if ( hasMissingValue( filterItems ) )
             {
                 condition = "(" + condition + " or " + field + " is null )";
@@ -99,11 +102,6 @@ public class InQueryFilter extends QueryFilter
     private String quoteIfNecessary( String item )
     {
         return isText ? quote( item ) : item;
-    }
-
-    private String toLowerIfNecessary( String item )
-    {
-        return isText ? item.toLowerCase() : item;
     }
 
     private boolean hasMissingValue( List<String> filterItems )
@@ -136,5 +134,4 @@ public class InQueryFilter extends QueryFilter
     {
         return NV.equals( filterItem );
     }
-
 }

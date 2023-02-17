@@ -40,7 +40,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +58,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultLinkService implements LinkService
 {
     /**
@@ -70,8 +70,7 @@ public class DefaultLinkService implements LinkService
 
     private final ContextService contextService;
 
-    // since classes won't change during runtime, use a map to cache setHref
-    // lookups
+    // Since classes are static, use a map to cache setHref lookups
     private final Map<Class<?>, Method> setterCache = new HashMap<>();
 
     @Override
@@ -84,7 +83,7 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() )
+        if ( !schema.hasApiEndpoint() )
         {
             return;
         }
@@ -197,7 +196,7 @@ public class DefaultLinkService implements LinkService
     {
         schema.setHref( hrefBase + "/schemas/" + schema.getSingular() );
 
-        if ( schema.haveApiEndpoint() )
+        if ( schema.hasApiEndpoint() )
         {
             schema.setApiEndpoint( hrefBase + schema.getRelativeApiEndpoint() );
         }
@@ -209,7 +208,7 @@ public class DefaultLinkService implements LinkService
                 Schema klassSchema = schemaService.getDynamicSchema( property.getKlass() );
                 property.setHref( hrefBase + "/schemas/" + klassSchema.getSingular() );
 
-                if ( klassSchema.haveApiEndpoint() )
+                if ( klassSchema.hasApiEndpoint() )
                 {
                     property.setRelativeApiEndpoint( klassSchema.getRelativeApiEndpoint() );
                     property.setApiEndpoint( hrefBase + klassSchema.getRelativeApiEndpoint() );
@@ -220,7 +219,7 @@ public class DefaultLinkService implements LinkService
                 Schema klassSchema = schemaService.getDynamicSchema( property.getItemKlass() );
                 property.setHref( hrefBase + "/schemas/" + klassSchema.getSingular() );
 
-                if ( klassSchema.haveApiEndpoint() )
+                if ( klassSchema.hasApiEndpoint() )
                 {
                     property.setRelativeApiEndpoint( klassSchema.getRelativeApiEndpoint() );
                     property.setApiEndpoint( hrefBase + klassSchema.getRelativeApiEndpoint() );
@@ -362,7 +361,7 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null
+        if ( !schema.hasApiEndpoint() || schema.getProperty( "id" ) == null
             || schema.getProperty( "id" ).getGetterMethod() == null )
         {
             return;

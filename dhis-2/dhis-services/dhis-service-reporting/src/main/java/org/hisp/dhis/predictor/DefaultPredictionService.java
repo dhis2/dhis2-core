@@ -47,13 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -95,9 +94,9 @@ import com.google.common.collect.Sets;
 @Slf4j
 @Service( "org.hisp.dhis.predictor.PredictionService" )
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultPredictionService
-    implements PredictionService, AnalyticsServiceTarget
+    implements PredictionService
 {
     private final PredictorService predictorService;
 
@@ -115,15 +114,9 @@ public class DefaultPredictionService
 
     private final BatchHandlerFactory batchHandlerFactory;
 
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
     private final CurrentUserService currentUserService;
-
-    @Override
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
-        this.analyticsService = analyticsService;
-    }
 
     // -------------------------------------------------------------------------
     // Prediction business logic
@@ -415,7 +408,8 @@ public class DefaultPredictionService
         for ( Period p : allSamplePeriods )
         {
             if ( aocData.get( p ) != null &&
-                (Boolean) expressionService.getExpressionValue( baseExParams.toBuilder()
+            // Note: getExpressionValue could return null if no data is found
+                Boolean.TRUE == expressionService.getExpressionValue( baseExParams.toBuilder()
                     .expression( skipTest.getExpression() )
                     .parseType( PREDICTOR_SKIP_TEST )
                     .valueMap( aocData.get( p ) )

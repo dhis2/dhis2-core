@@ -98,6 +98,8 @@ public class ProgramIndicator
 
     private String formName;
 
+    private String orgUnitField;
+
     /**
      * Number of decimals to use for indicator value, null implies default.
      */
@@ -157,6 +159,8 @@ public class ProgramIndicator
         case FIRST:
         case LAST:
         case LAST_IN_PERIOD:
+        case MAX_SUM_ORG_UNIT:
+        case MIN_SUM_ORG_UNIT:
             return AggregationType.SUM;
         case FIRST_AVERAGE_ORG_UNIT:
         case LAST_AVERAGE_ORG_UNIT:
@@ -442,5 +446,17 @@ public class ProgramIndicator
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
+    public void setOrgUnitField( String orgUnitField )
+    {
+        this.orgUnitField = orgUnitField;
     }
 }

@@ -38,14 +38,12 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
@@ -110,6 +108,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,7 +119,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
@@ -144,6 +143,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Override
     @SuppressWarnings( "unchecked" )
+    @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata(
         MetadataExportParams params )
     {
@@ -205,6 +205,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ObjectNode getMetadataAsObjectNode( MetadataExportParams params )
     {
         ObjectNode rootNode = fieldFilterService.createObjectNode();
@@ -223,7 +224,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( entry.getValue() ) )
-                .filters( new HashSet<>( params.getFields( entry.getKey() ) ) )
+                .filters( params.getFields( entry.getKey() ) )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 
@@ -240,6 +241,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void getMetadataAsObjectNodeStream( MetadataExportParams params, OutputStream outputStream )
         throws IOException
     {
@@ -276,7 +278,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
                 FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                     .objects( objects )
-                    .filters( new HashSet<>( params.getFields( klass ) ) )
+                    .filters( params.getFields( klass ) )
                     .skipSharing( params.getSkipSharing() )
                     .user( currentUser )
                     .build();
@@ -292,6 +294,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void getMetadataWithDependenciesAsNodeStream( IdentifiableObject object,
         @Nonnull MetadataExportParams params, OutputStream outputStream )
         throws IOException
@@ -314,7 +317,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             {
                 FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                     .objects( new ArrayList<>( metadata.get( klass ) ) )
-                    .filters( Set.of( ":owner" ) )
+                    .filters( ":owner" )
                     .skipSharing( params.getSkipSharing() )
                     .build();
 
@@ -338,6 +341,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object,
         @Nonnull MetadataExportParams params )
     {
@@ -352,7 +356,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( metadata.get( klass ) ) )
-                .filters( Set.of( ":owner" ) )
+                .filters( ":owner" )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 
@@ -369,6 +373,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void validate( MetadataExportParams params )
     {
         if ( params.getUser() == null )
@@ -395,6 +400,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Override
     @SuppressWarnings( "unchecked" )
+    @Transactional( readOnly = true )
     public MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataExportParams params = new MetadataExportParams();
@@ -522,6 +528,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> getMetadataWithDependencies(
         IdentifiableObject object )
     {

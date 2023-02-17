@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,6 +60,9 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @BeforeEach
     void setUp()
@@ -129,6 +133,18 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     {
         JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
             .content( HttpStatus.OK );
+        assertTrue( statuses.isArray() );
+        assertEquals( 1, statuses.size() );
+
+        statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}&ouFilter={ou}", ouId, wfId,
+            ouId ).content( HttpStatus.OK );
+        assertTrue( statuses.isArray() );
+        assertEquals( 1, statuses.size() );
+
+        String aocId = categoryService.getDefaultCategoryOptionCombo().getUid();
+
+        statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}&aoc={ou}", ouId, wfId,
+            aocId ).content( HttpStatus.OK );
         assertTrue( statuses.isArray() );
         assertEquals( 1, statuses.size() );
     }

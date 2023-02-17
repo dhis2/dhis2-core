@@ -42,6 +42,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -75,9 +78,13 @@ import com.google.common.collect.Sets;
  */
 class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
 {
+    private Attribute atA;
 
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -92,6 +99,11 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     protected void setUpTest()
         throws Exception
     {
+        atA = createAttribute( 'A' );
+        atA.setUnique( true );
+        atA.setDataElementAttribute( true );
+        attributeService.addAttribute( atA );
+
         this.userService = _userService;
     }
 
@@ -100,9 +112,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.CODE, dataElementA.getCode() ) );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.UID, dataElementA.getUid() ) );
     }
 
@@ -129,6 +141,39 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
             idObjectManager.getObject( dataElementGroupIdA, DataElementGroup.class.getSimpleName() ) );
         assertEquals( dataElementGroupB,
             idObjectManager.getObject( dataElementGroupIdB, DataElementGroup.class.getSimpleName() ) );
+    }
+
+    @Test
+    void testGetObjectByIdSchemeCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        assertEquals( dataElementA, idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeA" ) );
+        assertEquals( dataElementB, idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeB" ) );
+        assertNull( idObjectManager.getObject( DataElement.class, IdScheme.CODE, "DataElementCodeC" ) );
+    }
+
+    @Test
+    void testGetObjectByIdSchemeAttribute()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        attributeService.addAttributeValue( dataElementA, new AttributeValue( atA, "DEA" ) );
+        attributeService.addAttributeValue( dataElementB, new AttributeValue( atA, "DEB" ) );
+        assertEquals( dataElementA, idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEA" ) );
+        assertEquals( dataElementB, idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEB" ) );
+        assertNull( idObjectManager.getObject( DataElement.class, IdScheme.from( atA ), "DEC" ) );
+    }
+
+    @Test
+    void testGetNonAttributeObjectByIdSchemeAttribute()
+    {
+        assertNull( idObjectManager.getObject(
+            DataElementOperand.class, IdScheme.from( atA ), "nOka5EbgNao.XNTq0nSrSlU" ) );
     }
 
     @Test
@@ -201,7 +246,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( unitB );
         Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>> builder()
             .add( DataElement.class ).add( OrganisationUnit.class ).build();
-        Set<String> uids = ImmutableSet.of( dataElementA.getUid(), unitB.getUid() );
+        Set<String> uids = Set.of( dataElementA.getUid(), unitB.getUid() );
         assertEquals( 2, idObjectManager.getByUid( classes, uids ).size() );
         assertTrue( idObjectManager.getByUid( classes, uids ).contains( dataElementA ) );
         assertTrue( idObjectManager.getByUid( classes, uids ).contains( unitB ) );
@@ -629,7 +674,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetObjects()
+    void testGetObjectsByIdSchemeCode()
     {
         OrganisationUnit unit1 = createOrganisationUnit( 'A' );
         OrganisationUnit unit2 = createOrganisationUnit( 'B' );
@@ -646,7 +691,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetIdMapIdScheme()
+    void testGetIdMapByIdSchemeCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );

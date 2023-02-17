@@ -77,7 +77,7 @@ public enum DataValueImportConflict implements ImportConflictDescriptor
     ORG_UNIT_NOT_VALID_FOR_ATTR_OPTION_COMBO( ErrorCode.E7639, "orgUnit",
         OrganisationUnit.class, CategoryOptionCombo.class ),
     PERIOD_EXPIRED( ErrorCode.E7640, "period", Period.class, DataSet.class ),
-    PERIOD_AFTER_DATA_ELEMENT_PERIODS( ErrorCode.E7641, "period", Period.class, DataElement.class ),
+    PERIOD_AFTER_DATA_ELEMENT_PERIODS( ErrorCode.E7641, "period", Period.class, DataElement.class, DataSet.class ),
     VALUE_ALREADY_APPROVED( ErrorCode.E7642, null,
         OrganisationUnit.class, Period.class, CategoryOptionCombo.class, DataSet.class ),
     PERIOD_NOT_OPEN_FOR_DATA_SET( ErrorCode.E7643, "period", Period.class, DataSet.class ),

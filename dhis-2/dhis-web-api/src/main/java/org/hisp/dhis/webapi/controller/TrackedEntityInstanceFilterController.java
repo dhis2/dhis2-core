@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceFilterSchemaDescriptor;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = TrackedEntityInstanceFilterSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )

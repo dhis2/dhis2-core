@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,6 +49,7 @@ import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.comparator.LockExceptionNameComparator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -87,6 +89,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( LockExceptionController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -117,6 +120,9 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -222,6 +228,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     public WebMessage addLockException( @RequestParam( "ou" ) String organisationUnitId,
         @RequestParam( "pe" ) String pe,
         @RequestParam( "ds" ) String ds )
+        throws ForbiddenException
     {
         User user = userService.getCurrentUser();
 
@@ -236,7 +243,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
         if ( !aclService.canUpdate( user, dataSet ) )
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to update this object" );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object" );
         }
 
         List<String> listOrgUnitIds = new ArrayList<>();
@@ -264,6 +271,11 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
             if ( organisationUnit == null )
             {
                 return conflict( "Can't find OrganisationUnit with id =" + id );
+            }
+            if ( !canCapture( organisationUnit ) )
+            {
+                throw new ForbiddenException(
+                    "You can only add a lock exceptions to your data capture organisation units." );
             }
 
             if ( organisationUnit.getDataSets().contains( dataSet ) )
@@ -319,5 +331,12 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
         {
             dataSetService.deleteLockExceptionCombination( dataSet, period );
         }
+    }
+
+    private boolean canCapture( OrganisationUnit captureTarget )
+    {
+        return currentUserService.currentUserIsSuper()
+            || currentUserService.getCurrentUserOrganisationUnits().stream().anyMatch(
+                ou -> captureTarget.getPath().startsWith( ou.getPath() ) );
     }
 }

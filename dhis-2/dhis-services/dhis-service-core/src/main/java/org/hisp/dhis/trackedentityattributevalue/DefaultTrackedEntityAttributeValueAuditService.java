@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService" )
 public class DefaultTrackedEntityAttributeValueAuditService
     implements TrackedEntityAttributeValueAuditService
@@ -51,20 +52,6 @@ public class DefaultTrackedEntityAttributeValueAuditService
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final CurrentUserService currentUserService;
-
-    public DefaultTrackedEntityAttributeValueAuditService(
-        TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
-        TrackedEntityAttributeService trackedEntityAttributeService,
-        CurrentUserService currentUserService )
-    {
-        checkNotNull( trackedEntityAttributeValueAuditStore );
-        checkNotNull( trackedEntityAttributeService );
-        checkNotNull( currentUserService );
-
-        this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
-        this.currentUserService = currentUserService;
-    }
 
     @Override
     public void addTrackedEntityAttributeValueAudit( TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit )

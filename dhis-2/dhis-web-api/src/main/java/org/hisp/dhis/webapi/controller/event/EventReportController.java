@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -65,6 +66,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Ignore
 @Deprecated
 @Controller
 @RequestMapping( value = EventReportSchemaDescriptor.API_ENDPOINT )
@@ -143,7 +145,6 @@ public class EventReportController
 
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
         report.populateAnalyticalProperties();
 

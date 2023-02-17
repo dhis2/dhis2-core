@@ -35,11 +35,20 @@ import java.util.List;
  */
 public class CombinationGenerator<T>
 {
-    private List<List<T>> objects; // List of object lists
+    /**
+     * List of object lists.
+     */
+    private List<List<T>> objects;
 
-    private int[] indexes; // Current index for each array
+    /**
+     * Current index for each array.
+     */
+    private int[] indexes;
 
-    private int no; // No of arrays
+    /**
+     * Number of arrays.
+     */
+    private int no;
 
     private CombinationGenerator( List<List<T>> objects )
     {
@@ -49,7 +58,8 @@ public class CombinationGenerator<T>
 
         if ( no > 0 )
         {
-            indexes[no - 1]--; // Rewind last index to simplify looping
+            // Rewind last index to simplify looping
+            indexes[no - 1]--;
         }
     }
 
@@ -85,8 +95,8 @@ public class CombinationGenerator<T>
     {
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
-                                                            // position in array
+            // Not at last position in array
+            if ( indexes[i] < objects.get( i ).size() - 1 )
             {
                 return true;
             }
@@ -105,19 +115,19 @@ public class CombinationGenerator<T>
 
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
-                                                            // position in list,
-                                                            // increment index
-                                                            // and break
+            // Not at last position in list, increment index and break
+            if ( indexes[i] < objects.get( i ).size() - 1 )
             {
                 indexes[i]++;
                 current = getCurrent();
                 break;
             }
-            else // At last position in list, reset index to 0 and continue to
-                 // increment next list
+            // At last position in list, reset index to 0 and continue to
+            // increment next list
+            else
             {
-                if ( hasNext() ) // Don't reset if at end
+                // Don't reset if at end
+                if ( hasNext() )
                 {
                     indexes[i] = 0;
                 }

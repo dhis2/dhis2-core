@@ -29,20 +29,18 @@ package org.hisp.dhis.audit;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service
 public class DefaultAuditService implements AuditService
 {
     private final AuditRepository auditRepository;
-
-    public DefaultAuditService( AuditRepository auditRepository )
-    {
-        this.auditRepository = auditRepository;
-    }
 
     @Override
     public long addAudit( Audit audit )

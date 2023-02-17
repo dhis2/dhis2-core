@@ -59,7 +59,7 @@ public class FilterUtils
 
     /**
      * Filters the given collection using the given {@link Filter} retaining
-     * only items which does NOT pass the filter evaluation.
+     * only items which do not pass the filter evaluation.
      *
      * @param <T> type.
      * @param collection the {@link Collection}.

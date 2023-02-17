@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 
@@ -43,7 +44,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,6 +59,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
@@ -161,7 +162,7 @@ public class DataValueSetImportValidator
         register( DataValueSetImportValidator::checkDataValueStoredByIsValid );
         register( DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange );
         register( this::checkDataValueOrgUnitValidForAttrOptionCombo );
-        register( this::checkDataValueTodayNotPastPeriodExpiry );
+        register( this::checkDataValueDataSetIsNotLocked );
         register( DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod );
         register( this::checkDataValueNotAlreadyApproved );
         register( DataValueSetImportValidator::checkDataValuePeriodIsOpenNow );
@@ -381,7 +382,7 @@ public class DataValueSetImportValidator
         String value = ValidationUtils.normalizeBoolean( dataValue.getValue(),
             valueContext.getDataElement().getValueType() );
 
-        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement(), false );
+        String errorKey = ValidationUtils.valueIsValid( value, valueContext.getDataElement(), false );
 
         if ( errorKey != null )
         {
@@ -585,94 +586,103 @@ public class DataValueSetImportValidator
         return aocOrgUnits == null || organisationUnitService.isDescendant( valueContext.getOrgUnit(), aocOrgUnits );
     }
 
-    private void checkDataValueTodayNotPastPeriodExpiry( DataValueEntry dataValue, ImportContext context,
-        DataSetContext dataSetContext, DataValueContext valueContext )
+    private static void checkDataValueTargetDataSets( ImportContext context, DataSetContext dataSetContext,
+        DataValueContext valueContext, boolean strict, Consumer<DataSet> validation )
     {
-        final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
-
-        // Data element is assigned to at least one data set
-        if ( approvalDataSet != null && !context.isForceDataInput() )
+        if ( context.isForceDataInput() )
+            return; // skip this validation
+        List<DataSet> dataSets = context.getTargetDataSets( dataSetContext, valueContext );
+        if ( dataSets.isEmpty() )
         {
-            String key = approvalDataSet.getUid() + valueContext.getPeriod().getUid()
-                + valueContext.getOrgUnit().getUid();
-            if ( context.getDataSetLockedMap().get( key,
-                () -> isLocked( context.getCurrentUser(), approvalDataSet, valueContext.getPeriod(),
-                    valueContext.getOrgUnit(), context.isSkipLockExceptionCheck() ) ) )
+            return; // if there are no data sets data input is valid as well
+        }
+
+        context.stageConflicts();
+        for ( DataSet dataSet : dataSets )
+        {
+            int conflictsBefore = context.getStagedConflictsCount();
+
+            validation.accept( dataSet );
+
+            if ( !strict && conflictsBefore == context.getStagedConflictsCount() )
             {
-                context.addConflict( valueContext.getIndex(),
-                    DataValueImportConflict.PERIOD_EXPIRED, dataValue.getPeriod(), approvalDataSet.getUid() );
+                context.discardConflicts();
+                return; // found a data set that had none of the above issues =>
+                       // OK
             }
         }
+        context.commitConflicts();
+    }
+
+    private void checkDataValueDataSetIsNotLocked( DataValueEntry dataValue, ImportContext context,
+        DataSetContext dataSetContext, DataValueContext valueContext )
+    {
+        checkDataValueTargetDataSets( context, dataSetContext, valueContext, context.isStrictDataSetLocking(),
+            dataSet -> {
+                String key = dataSet.getUid() + valueContext.getPeriod().getUid() + valueContext.getOrgUnit().getUid();
+                if ( context.getDataSetLockedMap().get( key,
+                    () -> isLocked( context.getCurrentUser(), dataSet, valueContext.getPeriod(),
+                        valueContext.getOrgUnit(), context.isSkipLockExceptionCheck() ) ) )
+                {
+                    context.addConflict( valueContext.getIndex(),
+                        DataValueImportConflict.PERIOD_EXPIRED, dataValue.getPeriod(), dataSet.getUid() );
+                }
+            } );
     }
 
     private static void checkDataValueNotAfterLatestOpenFuturePeriod( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
-
-        // Data element is assigned to at least one data set
-        if ( approvalDataSet != null && !context.isForceDataInput() )
-        {
-
-            Period latestFuturePeriod = context.getDataElementLatestFuturePeriodMap().get(
-                valueContext.getDataElement().getUid(), valueContext.getDataElement()::getLatestOpenFuturePeriod );
-
-            if ( valueContext.getPeriod().isAfter( latestFuturePeriod ) && context.isIso8601() )
+        checkDataValueTargetDataSets( context, dataSetContext, valueContext, true, dataSet -> {
+            // is the period within the range of future periods for the dataset?
+            PeriodType periodType = dataSet.getPeriodType();
+            Period latestFuturePeriod = context.getDataSetLatestFuturePeriodMap().get( dataSet.getUid(),
+                () -> periodType.getFuturePeriod( dataSet.getOpenFuturePeriods() ) );
+            if ( context.isIso8601() && valueContext.getPeriod().isAfter( latestFuturePeriod ) )
             {
-                context.addConflict( valueContext.getIndex(),
-                    DataValueImportConflict.PERIOD_AFTER_DATA_ELEMENT_PERIODS,
-                    dataValue.getPeriod(), dataValue.getDataElement(), latestFuturePeriod.getIsoDate() );
+                context.addConflict( valueContext.getIndex(), DataValueImportConflict.PERIOD_AFTER_DATA_ELEMENT_PERIODS,
+                    dataValue.getPeriod(), dataValue.getDataElement(), dataSet.getUid(),
+                    latestFuturePeriod.getIsoDate() );
             }
-        }
+        } );
     }
 
     private void checkDataValueNotAlreadyApproved( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
+        checkDataValueTargetDataSets( context, dataSetContext, valueContext, context.isStrictDataSetApproval(),
+            dataSet -> {
+                // is the dataset not already approved?
+                DataApprovalWorkflow workflow = dataSet.getWorkflow();
+                if ( workflow != null )
+                { // no workflow => approval not used => OK to add data
+                    final String workflowPeriodAoc = workflow.getUid() + valueContext.getPeriod().getUid()
+                        + valueContext.getAttrOptionCombo().getUid();
 
-        // Data element is assigned to at least one data set
-        if ( approvalDataSet != null && !context.isForceDataInput() )
-        {
-            DataApprovalWorkflow workflow = approvalDataSet.getWorkflow();
-
-            if ( workflow != null )
-            {
-                final String workflowPeriodAoc = workflow.getUid() + valueContext.getPeriod().getUid()
-                    + valueContext.getAttrOptionCombo().getUid();
-
-                if ( context.getApprovalMap().get( valueContext.getOrgUnit().getUid() + workflowPeriodAoc, () -> {
-                    DataApproval lowestApproval = DataApproval
-                        .getLowestApproval( new DataApproval( null, workflow, valueContext.getPeriod(),
-                            valueContext.getOrgUnit(), valueContext.getAttrOptionCombo() ) );
-
-                    return lowestApproval != null && context.getLowestApprovalLevelMap().get(
-                        lowestApproval.getDataApprovalLevel().getUid()
-                            + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
-                        () -> approvalService.getDataApproval( lowestApproval ) != null );
-                } ) )
-                {
-                    context.addConflict( valueContext.getIndex(),
-                        DataValueImportConflict.VALUE_ALREADY_APPROVED,
-                        dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
-                        approvalDataSet.getUid() );
+                    if ( context.getApprovalMap().get( valueContext.getOrgUnit().getUid() + workflowPeriodAoc,
+                        () -> approvalService.isApproved( workflow, valueContext.getPeriod(),
+                            valueContext.getOrgUnit(), valueContext.getAttrOptionCombo() ) ) )
+                    {
+                        context.addConflict( valueContext.getIndex(), DataValueImportConflict.VALUE_ALREADY_APPROVED,
+                            dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
+                            dataSet.getUid() );
+                    }
                 }
-            }
-        }
+            } );
     }
 
     private static void checkDataValuePeriodIsOpenNow( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
-
-        if ( approvalDataSet != null && !context.isForceDataInput()
-            && !approvalDataSet.isDataInputPeriodAndDateAllowed( valueContext.getPeriod(), new Date() ) )
-        {
-            context.addConflict( valueContext.getIndex(),
-                DataValueImportConflict.PERIOD_NOT_OPEN_FOR_DATA_SET,
-                dataValue.getPeriod(), approvalDataSet.getUid() );
-        }
+        checkDataValueTargetDataSets( context, dataSetContext, valueContext, context.isStrictDataSetInputPeriods(),
+            dataSet -> {
+                // is data input allowed now? (data of "past" periods cannot be entered any more)
+                if ( !dataSet.isDataInputPeriodAndDateAllowed( valueContext.getPeriod(), new Date() ) )
+                {
+                    context.addConflict( valueContext.getIndex(), DataValueImportConflict.PERIOD_NOT_OPEN_FOR_DATA_SET,
+                        dataValue.getPeriod(), dataSet.getUid() );
+                }
+            } );
     }
 
     private static void checkDataValueConformsToOpenPeriodsOfAssociatedDataSets( DataValueEntry dataValue,
@@ -684,8 +694,8 @@ public class DataValueSetImportValidator
                 () -> valueContext.getDataElement().isDataInputAllowedForPeriodAndDate( valueContext.getPeriod(),
                     new Date() ) ) )
         {
-            context.addConflict( valueContext.getIndex(),
-                DataValueImportConflict.PERIOD_NOT_CONFORM_TO_OPEN_PERIODS, dataValue.getPeriod() );
+            context.addConflict( valueContext.getIndex(), DataValueImportConflict.PERIOD_NOT_CONFORM_TO_OPEN_PERIODS,
+                dataValue.getPeriod() );
         }
     }
 

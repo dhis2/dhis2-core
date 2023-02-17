@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -61,10 +61,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Jan Bernitt
  */
 @Service
-@AllArgsConstructor
-public class DefaultGistService implements GistService, GistBuilder.GistBuilderSupport
+@RequiredArgsConstructor
+public class DefaultGistService
+    implements GistService, GistBuilder.GistBuilderSupport
 {
-
     /**
      * Instead of an actual date value users may use string {@code now} to
      * always get current moment as time for a {@link Date} value.
@@ -105,8 +105,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
         GistBuilder queryBuilder = createFetchBuilder( query, context, access, this );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
-        queryBuilder.transform( rows );
-        return rows;
+        return queryBuilder.transform( rows );
     }
 
     @Override
@@ -134,7 +133,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
         }
-        if ( schema.haveApiEndpoint() )
+        if ( schema.hasApiEndpoint() )
         {
             URI baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
             if ( page > 1 )

@@ -84,7 +84,8 @@ public class DefaultUserSettingService
 
     public DefaultUserSettingService( CacheProvider cacheProvider,
         CurrentUserService currentUserService,
-        UserSettingStore userSettingStore, UserService userService,
+        UserSettingStore userSettingStore,
+        UserService userService,
         SystemSettingManager systemSettingManager )
     {
         checkNotNull( cacheProvider );

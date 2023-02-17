@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.oauth2;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Service;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "defaultClientDetailsUserDetailsService" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultClientDetailsUserDetailsService implements UserDetailsService
 {
     private final DefaultClientDetailsService clientDetailsService;
@@ -52,6 +52,7 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
 
     private final UserService userService;
 
+    @Override
     public UserDetails loadUserByUsername( String username )
     {
         ClientDetails clientDetails = getClientDetails( username );
@@ -70,7 +71,7 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
         user.setCredentialsNonExpired( true );
         user.setAccountExpiry( null );
 
-        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+        return userService.createUserDetails( user );
     }
 
     private ClientDetails getClientDetails( String username )

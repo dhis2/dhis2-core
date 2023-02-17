@@ -31,9 +31,11 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -127,6 +129,16 @@ class CollectionUtilsTest
     }
 
     @Test
+    void testConcat()
+    {
+        List<String> collection1 = List.of( "a", "b", "c" );
+        List<String> collection2 = List.of( "c", "d", "e" );
+        List<String> concat = CollectionUtils.concat( collection1, collection2 );
+
+        assertEquals( List.of( "a", "b", "c", "c", "d", "e" ), concat );
+    }
+
+    @Test
     void testMapToList()
     {
         List<String> collection = Lists.newArrayList( "1", "2", "3" );
@@ -164,5 +176,13 @@ class CollectionUtilsTest
         addIfNotNull( list, "Three" );
 
         assertEquals( 2, list.size() );
+    }
+
+    @Test
+    void testIsEmpty()
+    {
+        assertTrue( isEmpty( List.of() ) );
+        assertTrue( isEmpty( null ) );
+        assertFalse( isEmpty( List.of( "One", "Two" ) ) );
     }
 }

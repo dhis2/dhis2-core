@@ -29,6 +29,8 @@ package org.hisp.dhis.predictor;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -38,20 +40,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ken Haase
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.predictor.PredictorService" )
 public class DefaultPredictorService
     implements PredictorService
 {
     private final PredictorStore predictorStore;
 
+    @Qualifier( "org.hisp.dhis.predictor.PredictorGroupStore" )
     private final IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
-
-    public DefaultPredictorService( PredictorStore predictorStore,
-        @Qualifier( "org.hisp.dhis.predictor.PredictorGroupStore" ) IdentifiableObjectStore<PredictorGroup> predictorGroupStore )
-    {
-        this.predictorStore = predictorStore;
-        this.predictorGroupStore = predictorGroupStore;
-    }
 
     // -------------------------------------------------------------------------
     // Predictor

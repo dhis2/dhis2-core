@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Kristian Nordal
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataelement.DataElementService" )
 public class DefaultDataElementService
     implements DataElementService

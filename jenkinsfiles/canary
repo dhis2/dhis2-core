@@ -25,7 +25,7 @@ pipeline {
             steps {
                 echo "Publishing docker image to dhis2/core-canary"
                 script {
-                    def branch="${GIT_BRANCH}"
+                    def branch="${env.GIT_BRANCH == 'master' ? 'latest' : env.GIT_BRANCH}"
                     def today = new Date()
                     def formatted = "${today.format('yyyyMMdd')}"
                     def source = "dhis2/core-dev:${branch}"
@@ -107,7 +107,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendTimedoutMessage(30)
+                slack.sendTimedoutMessage()
             }
         }
     }

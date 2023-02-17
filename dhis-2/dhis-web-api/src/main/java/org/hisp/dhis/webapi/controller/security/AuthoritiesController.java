@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( { "user", "query" } )
 @RestController
 @RequestMapping( value = "/authorities" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

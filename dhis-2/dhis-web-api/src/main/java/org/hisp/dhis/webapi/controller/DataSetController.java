@@ -61,6 +61,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -77,6 +78,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -112,6 +114,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = DataSetSchemaDescriptor.API_ENDPOINT )
 public class DataSetController
@@ -213,7 +216,7 @@ public class DataSetController
     @GetMapping( "/{uid}/categoryCombos" )
     public ResponseEntity<JsonRoot> getCategoryCombinations(
         @PathVariable( "uid" ) String uid,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields,
         TranslateParams translateParams )
         throws Exception
     {

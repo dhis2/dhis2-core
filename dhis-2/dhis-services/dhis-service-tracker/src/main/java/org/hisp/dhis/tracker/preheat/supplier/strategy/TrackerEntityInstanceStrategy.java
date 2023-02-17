@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -62,18 +61,10 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
             // Fetch all Tracked Entity Instance present in the payload
             List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
 
-            // Get the uids of all the TEIs which are root (a TEI is not root
-            // when is a
-            // property of another object, e.g. enrollment)
-            final List<String> rootEntities = params.getTrackedEntities().stream()
-                .map( TrackedEntity::getTrackedEntity )
-                .collect( Collectors.toList() );
-
             // Add to preheat
             preheat.putTrackedEntities(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntityInstances ),
-                RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
+                    trackedEntityInstances ) );
         }
     }
 }

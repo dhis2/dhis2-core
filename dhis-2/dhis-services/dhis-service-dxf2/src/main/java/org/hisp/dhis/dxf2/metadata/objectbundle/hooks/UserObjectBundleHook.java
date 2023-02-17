@@ -42,13 +42,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -75,9 +76,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
     private final AclService aclService;
 
-    private final SecurityService securityService;
-
     private final UserSettingService userSettingService;
+
+    private final DhisConfigurationProvider dhisConfig;
 
     @Override
     public void validate( User user, ObjectBundle bundle,
@@ -95,7 +96,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         }
 
         boolean usernameExists = userService.getUserByUsername( user.getUsername() ) != null;
-
         if ( (bundle.getImportMode().isCreate() && usernameExists) )
         {
             addReports.accept(
@@ -104,12 +104,19 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         }
 
         User existingUser = userService.getUser( user.getUid() );
-
         if ( bundle.getImportMode().isUpdate() && existingUser != null && user.getUsername() != null &&
             !user.getUsername().equals( existingUser.getUsername() ) )
         {
             addReports.accept(
                 new ErrorReport( User.class, ErrorCode.E4056, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        boolean openIdMappingExists = userService.getUserByOpenId( user.getOpenId() ) != null;
+        if ( (dhisConfig.isDisabled( ConfigurationKey.LINKED_ACCOUNTS_ENABLED ) && openIdMappingExists) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4054, "OIDC mapping value", user.getOpenId() )
                     .setErrorProperty( USERNAME ) );
         }
 
@@ -120,7 +127,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                     .setErrorProperty( USERNAME ) );
         }
 
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp( user.getWhatsApp() ) )
         {
             addReports.accept(
                 new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp" )
@@ -188,7 +195,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             }
         }
 
-        securityService.validate2FAUpdate( persisted.getTwoFA(), user.getTwoFA(), persisted );
+        //        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(),
+        //            persisted );
     }
 
     @Override

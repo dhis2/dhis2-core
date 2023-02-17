@@ -71,8 +71,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Jim Grace
  */
@@ -125,9 +123,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
         constantA = new Constant( "Constant A", 123.456 );
         constantA.setUid( "constant00A" );
 
-        constantMap = new ImmutableMap.Builder<String, Constant>()
-            .put( "constant00A", new Constant( "constant", 123.456 ) )
-            .build();
+        constantMap = Map.of( "constant00A", new Constant( "constant", 123.456 ) );
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
 
@@ -252,7 +248,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( new I18n( null, null ) )
+            .i18nSupplier( () -> new I18n( null, null ) )
             .constantMap( constantMap )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )

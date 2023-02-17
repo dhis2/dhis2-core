@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.relationship;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
@@ -102,13 +103,14 @@ public interface RelationshipService
 
     ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions );
 
-    Relationship getRelationshipByUid( String id );
+    Optional<Relationship> findRelationshipByUid( String id );
 
     // -------------------------------------------------------------------------
     // HELPER METHODS
     // -------------------------------------------------------------------------
 
-    Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user );
+    Optional<Relationship> findRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
+        User user );
 
     ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions );
 }

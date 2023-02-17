@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,7 +40,7 @@ import org.junit.jupiter.api.Test;
 class QueryKeyTest
 {
     @Test
-    void testAsPlainKey()
+    void testAsPlainKeyA()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -46,11 +48,16 @@ class QueryKeyTest
             .add( "filter", "ou" )
             .add( "aggregationType", AggregationType.SUM )
             .add( "skipMeta", true )
+            .add( "locale", Locale.FRENCH )
             .asPlainKey();
 
-        assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true", key );
+        assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true-locale:fr", key );
+    }
 
-        key = new QueryKey()
+    @Test
+    void testAsPlainKeyB()
+    {
+        String key = new QueryKey()
             .add( "dimension", "dx" )
             .add( "filter", "pe" )
             .add( "filter", "ou" )
@@ -62,12 +69,24 @@ class QueryKeyTest
     }
 
     @Test
+    void testAsPlainKeyC()
+    {
+        String key = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "locale", null )
+            .asPlainKey();
+
+        assertEquals( "dimension:dx-locale:null", key );
+    }
+
+    @Test
     void testAsPlainKeyIgnoreNull()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
             .add( "filter", "ou" )
             .addIgnoreNull( "valueType", null )
+            .addIgnoreNull( "locale", null )
             .asPlainKey();
 
         assertEquals( "dimension:dx-filter:ou", key );
@@ -90,6 +109,29 @@ class QueryKeyTest
             .add( "aggregationType", AggregationType.SUM )
             .asPlainKey();
 
+        assertNotEquals( keyA, keyB );
+    }
+
+    @Test
+    void testNoCollisionDueTheExpressionDimensionItem()
+    {
+        // Given
+        // When
+        String keyA = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "filter", "ou" )
+            .add( "aggregationType", AggregationType.SUM )
+            .add( "expressiondimensionitems", "#{fbfJHSPpUQD.pq2XI5kz2BY}/#{fbfJHSPpUQD.PT59n8BQbqM} + 2000" )
+            .asPlainKey();
+
+        String keyB = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "filter", "ou" )
+            .add( "aggregationType", AggregationType.SUM )
+            .add( "expressiondimensionitems", "#{fbfJHSPpUQD.pq2XI5kz2BY}/#{fbfJHSPpUQD.PT59n8BQbqM} + 2100" )
+            .asPlainKey();
+
+        // Then
         assertNotEquals( keyA, keyB );
     }
 }

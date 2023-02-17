@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -50,6 +51,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequestMapping( value = "/deletedObjects" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -69,6 +71,7 @@ public class DeletedObjectController
         this.contextService = contextService;
     }
 
+    @OpenApi.Response( DeletedObject[].class )
     @GetMapping
     @PreAuthorize( "hasRole('ALL')" )
     public RootNode getDeletedObjects( DeletedObjectQuery query )

@@ -129,7 +129,6 @@ public class DefaultDeduplicationService
     public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
-
     {
         String invalidReference = deduplicationHelper.getInvalidReferenceErrors( deduplicationMergeParams );
         if ( invalidReference != null )
@@ -281,6 +280,7 @@ public class DefaultDeduplicationService
         {
             potentialDuplicate.setCreatedByUserName( currentUserService.getCurrentUsername() );
         }
+
         potentialDuplicate.setLastUpdatedByUserName( currentUserService.getCurrentUsername() );
     }
 }

@@ -174,7 +174,7 @@ public class AggregateAnalyticsQueryCriteria
 
     /**
      * Identifier scheme to use for metadata items the query response, can be
-     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:{ID} )
      */
     private IdScheme outputIdScheme;
 
@@ -192,7 +192,7 @@ public class AggregateAnalyticsQueryCriteria
 
     /**
      * Identifier scheme to use for metadata items in the query request, can be
-     * an identifier, code or attributes. (options: UID | CODE | ATTRIBUTE:<ID>)
+     * an identifier, code or attributes. (options: UID | CODE | ATTRIBUTE:{ID})
      * )
      */
     private IdScheme inputIdScheme;

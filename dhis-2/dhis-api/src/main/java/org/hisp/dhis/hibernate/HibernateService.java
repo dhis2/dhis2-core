@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.hibernate;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dbms.DbmsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HibernateService
 {
     private final DbmsManager dbmsManager;

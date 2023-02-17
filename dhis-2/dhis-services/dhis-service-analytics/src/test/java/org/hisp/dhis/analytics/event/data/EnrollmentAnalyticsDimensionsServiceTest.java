@@ -36,7 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -64,7 +65,6 @@ class EnrollmentAnalyticsDimensionsServiceTest
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
         enrollmentAnalyticsDimensionsService = new DefaultEnrollmentAnalyticsDimensionsService( programService );
-
     }
 
     @Test

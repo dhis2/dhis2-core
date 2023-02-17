@@ -32,8 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
@@ -62,6 +61,7 @@ import com.google.common.collect.Lists;
  * @author Zubair Asghar
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
 public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
 {
@@ -74,18 +74,6 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     private final RestTemplate restTemplate;
 
     private final RenderService renderService;
-
-    public DefaultTrackerNotificationWebHookService( @Nonnull ProgramInstanceService programInstanceService,
-        @Nonnull ProgramStageInstanceService programStageInstanceService,
-        @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService,
-        @Nonnull ProgramNotificationTemplateService templateService )
-    {
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.restTemplate = restTemplate;
-        this.renderService = renderService;
-        this.templateService = templateService;
-    }
 
     @Override
     @Transactional

@@ -31,20 +31,24 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
+import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
@@ -72,11 +76,8 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
@@ -142,7 +143,7 @@ public class DhisWebCommonsWebSecurityConfig
         private I18nManager i18nManager;
 
         @Autowired
-        private DhisConfigurationProvider configurationProvider;
+        private DhisConfigurationProvider dhisConfig;
 
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
@@ -155,11 +156,18 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         @Qualifier( "customLdapAuthenticationProvider" )
-        CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+        private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+        @Autowired
+        private CustomAuthFailureHandler customAuthFailureHandler;
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
+        @Autowired
+        private DhisOidcProviderRepository dhisOidcProviderRepository;
+
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
@@ -183,7 +191,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/fonts/**" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" );
+                .antMatchers( "/favicon.ico" )
+                .antMatchers( "/api/publicKeys/**" );
         }
 
         @Override
@@ -198,6 +207,7 @@ public class DhisWebCommonsWebSecurityConfig
                 // Dynamic content
                 .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/enrolTwoFa.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
@@ -247,7 +257,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureHandler( authenticationFailureHandler() )
+                .failureHandler( customAuthFailureHandler )
                 .successHandler( authenticationSuccessHandler() )
                 .permitAll()
                 .and()
@@ -268,10 +278,13 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
+                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                    HeaderWriterFilter.class )
+
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            setHttpHeaders( http );
+            setHttpHeaders( http, dhisConfig );
         }
 
         @Bean
@@ -287,10 +300,10 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
+            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
             {
                 successHandler.setSessionTimeout(
-                    Integer.parseInt( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
             }
 
             return successHandler;
@@ -300,28 +313,10 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( ImmutableMap.of( "/dhis-web-commons-stream/ping.action", "/" ) );
+            mappedRedirectStrategy.setRedirectMap( Map.of( "/dhis-web-commons-stream/ping.action", "/" ) );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
-        }
-
-        @Bean
-        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-        {
-            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
-                i18nManager );
-
-            // Handles the special case when a user failed to login because it
-            // has expired...
-            handler.setExceptionMappings(
-                ImmutableMap.of(
-                    "org.springframework.security.authentication.CredentialsExpiredException",
-                    "/dhis-web-commons/security/expired.action" ) );
-
-            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-
-            return handler;
         }
 
         @Bean
@@ -344,7 +339,7 @@ public class DhisWebCommonsWebSecurityConfig
         {
             ModuleAccessVoter voter = new ModuleAccessVoter();
             voter.setAttributePrefix( "M_" );
-            voter.setAlwaysAccessible( ImmutableSet.of(
+            voter.setAlwaysAccessible( Set.of(
                 "dhis-web-commons-menu",
                 "dhis-web-commons-oust",
                 "dhis-web-commons-ouwt",
@@ -388,11 +383,11 @@ public class DhisWebCommonsWebSecurityConfig
         public LogicalOrAccessDecisionManager accessDecisionManager()
         {
             List<AccessDecisionManager> decisionVoters = Arrays.asList(
-                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
-                new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
-                new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
-                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+                new UnanimousBased( List.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( List.of( actionAccessVoter(), moduleAccessVoter() ) ),
+                new UnanimousBased( List.of( webExpressionVoter() ) ),
+                new UnanimousBased( List.of( externalAccessVoter ) ),
+                new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }

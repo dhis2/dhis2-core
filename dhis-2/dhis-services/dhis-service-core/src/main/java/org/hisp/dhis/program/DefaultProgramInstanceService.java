@@ -38,7 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -64,15 +64,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramInstanceStore programInstanceStore;
 
     private final ProgramStageInstanceStore programStageInstanceStore;

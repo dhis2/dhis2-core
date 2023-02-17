@@ -35,6 +35,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_EN
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -48,7 +49,6 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -113,8 +113,8 @@ public class Wso2Provider extends AbstractOidcProvider
 
         if ( DhisConfigurationProvider.isOn( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT.getKey() ) ) )
         {
-            builder.providerConfigurationMetadata( ImmutableMap
-                .of( "end_session_endpoint", providerBaseUrl + "/oidc/logout" ) );
+            builder.providerConfigurationMetadata(
+                Map.of( "end_session_endpoint", providerBaseUrl + "/oidc/logout" ) );
         }
 
         return builder.build();

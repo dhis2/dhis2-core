@@ -28,6 +28,7 @@
 package org.hisp.dhis.security.oidc.provider;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -42,7 +43,6 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -138,7 +138,7 @@ public class AzureAdProvider extends AbstractOidcProvider
         if ( supportLogout )
         {
             builder.providerConfigurationMetadata(
-                ImmutableMap.of( "end_session_endpoint", tenantUriStart + "/oauth2/v2.0/logout" ) );
+                Map.of( "end_session_endpoint", tenantUriStart + "/oauth2/v2.0/logout" ) );
         }
 
         return builder.build();

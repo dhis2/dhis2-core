@@ -147,7 +147,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             return tei;
         }
         else // TEI is not present. but we do not fail here.
-             // A validation error will be thrown in validation phase
+            // A validation error will be thrown in validation phase
         {
             TrackedEntity tei = new TrackedEntity();
             tei.setTrackedEntity( teiUid );

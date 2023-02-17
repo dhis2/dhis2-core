@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collections;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Ameen Mohamed
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService" )
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService
 {
@@ -60,23 +61,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     private final CurrentUserService currentUserService;
 
     private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
-
-    public DefaultTrackedEntityProgramOwnerService( TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramService programService, OrganisationUnitService orgUnitService, CurrentUserService currentUserService,
-        TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore )
-    {
-        checkNotNull( trackedEntityInstanceService );
-        checkNotNull( programService );
-        checkNotNull( orgUnitService );
-        checkNotNull( currentUserService );
-        checkNotNull( trackedEntityProgramOwnerStore );
-
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programService = programService;
-        this.orgUnitService = orgUnitService;
-        this.currentUserService = currentUserService;
-        this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
-    }
 
     @Override
     @Transactional

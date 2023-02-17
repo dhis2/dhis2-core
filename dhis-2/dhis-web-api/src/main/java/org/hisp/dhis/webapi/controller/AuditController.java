@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -64,6 +65,8 @@ import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -89,8 +92,11 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,6 +109,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( "/audits" )
@@ -127,8 +134,11 @@ public class AuditController
 
     private final FileResourceService fileResourceService;
 
+    private final DhisConfigurationProvider dhisConfig;
+
     @GetMapping( "/files/{uid}" )
-    public void getFileAudit( @PathVariable String uid, HttpServletResponse response )
+    public void getFileAudit( @OpenApi.Param( { UID.class, FileResource.class } ) @PathVariable String uid,
+        HttpServletResponse response )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -152,6 +162,7 @@ public class AuditController
         response.setContentType( fileResource.getContentType() );
         response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
         try
         {
@@ -166,12 +177,12 @@ public class AuditController
 
     @GetMapping( "dataValue" )
     public RootNode getAggregateDataValueAudit(
-        @RequestParam( required = false ) List<String> ds,
-        @RequestParam( required = false ) List<String> de,
-        @RequestParam( required = false ) List<String> pe,
-        @RequestParam( required = false ) List<String> ou,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
+        @OpenApi.Param( { UID[].class, DataSet.class } ) @RequestParam( required = false ) List<String> ds,
+        @OpenApi.Param( { UID[].class, DataElement.class } ) @RequestParam( required = false ) List<String> de,
+        @OpenApi.Param( Period[].class ) @RequestParam( required = false ) List<String> pe,
+        @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam( required = false ) List<String> ou,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String co,
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -244,10 +255,11 @@ public class AuditController
 
     @GetMapping( "trackedEntityDataValue" )
     public RootNode getTrackedEntityDataValueAudit(
-        @RequestParam( required = false ) List<String> de,
-        @RequestParam( required = false ) List<String> ou,
-        @RequestParam( required = false ) List<String> psi,
-        @RequestParam( required = false ) List<String> ps,
+        @OpenApi.Param( { UID[].class, DataElement.class } ) @RequestParam( required = false ) List<String> de,
+        @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam( required = false ) List<String> ou,
+        @OpenApi.Param( { UID[].class,
+            ProgramStageInstance.class } ) @RequestParam( required = false ) List<String> psi,
+        @OpenApi.Param( { UID[].class, ProgramStage.class } ) @RequestParam( required = false ) List<String> ps,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
@@ -256,7 +268,6 @@ public class AuditController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page )
-        throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -325,8 +336,10 @@ public class AuditController
 
     @GetMapping( "trackedEntityAttributeValue" )
     public RootNode getTrackedEntityAttributeValueAudit(
-        @RequestParam( required = false ) List<String> tea,
-        @RequestParam( required = false ) List<String> tei,
+        @OpenApi.Param( { UID[].class,
+            TrackedEntityAttribute.class } ) @RequestParam( required = false ) List<String> tea,
+        @OpenApi.Param( { UID[].class,
+            TrackedEntityInstance.class } ) @RequestParam( required = false ) List<String> tei,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -385,10 +398,10 @@ public class AuditController
 
     @GetMapping( "dataApproval" )
     public RootNode getDataApprovalAudit(
-        @RequestParam( required = false ) List<String> dal,
-        @RequestParam( required = false ) List<String> wf,
-        @RequestParam( required = false ) List<String> ou,
-        @RequestParam( required = false ) List<String> aoc,
+        @OpenApi.Param( { UID[].class, DataApprovalLevel.class } ) @RequestParam( required = false ) List<String> dal,
+        @OpenApi.Param( { UID[].class, DataApprovalWorkflow.class } ) @RequestParam( required = false ) List<String> wf,
+        @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam( required = false ) List<String> ou,
+        @OpenApi.Param( { UID[].class, CategoryOptionCombo.class } ) @RequestParam( required = false ) List<String> aoc,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Boolean skipPaging,
@@ -435,8 +448,9 @@ public class AuditController
 
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
-        @RequestParam( required = false ) List<String> tei,
-        @RequestParam( required = false ) List<String> user,
+        @OpenApi.Param( { UID[].class,
+            TrackedEntityInstance.class } ) @RequestParam( required = false ) List<String> tei,
+        @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,

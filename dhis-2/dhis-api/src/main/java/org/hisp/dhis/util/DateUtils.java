@@ -63,7 +63,6 @@ import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
@@ -141,8 +140,11 @@ public class DateUtils
 
     private static final Pattern DURATION_PATTERN = Pattern.compile( "^(\\d+)(d|h|m|s)$" );
 
-    private static final Map<String, ChronoUnit> TEMPORAL_MAP = ImmutableMap.of(
-        "d", ChronoUnit.DAYS, "h", ChronoUnit.HOURS, "m", ChronoUnit.MINUTES, "s", ChronoUnit.SECONDS );
+    private static final Map<String, ChronoUnit> TEMPORAL_MAP = Map.of(
+        "d", ChronoUnit.DAYS,
+        "h", ChronoUnit.HOURS,
+        "m", ChronoUnit.MINUTES,
+        "s", ChronoUnit.SECONDS );
 
     /**
      * Returns date formatted as ISO 8601

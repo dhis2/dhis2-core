@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
@@ -41,6 +41,7 @@ import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
@@ -60,6 +61,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardController
@@ -144,24 +146,24 @@ public class DashboardController
 
     @Override
     protected void preCreateEntity( final Dashboard dashboard )
-        throws WebMessageException
+        throws ConflictException
     {
         checkPreConditions( dashboard );
     }
 
     @Override
     protected void preUpdateEntity( final Dashboard dashboard, final Dashboard newDashboard )
-        throws WebMessageException
+        throws ConflictException
     {
         checkPreConditions( newDashboard );
     }
 
     private void checkPreConditions( final Dashboard dashboard )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( !hasDashboardItemsTypeSet( dashboard.getItems() ) )
         {
-            throw new WebMessageException( conflict( "Dashboard item does not have any type associated." ) );
+            throw new ConflictException( "Dashboard item does not have any type associated." );
         }
     }
 

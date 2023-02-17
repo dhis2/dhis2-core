@@ -94,7 +94,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -454,11 +453,11 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
             .newParamsBuilder( Lists.newArrayList( ruleX ), orgUnitA, Lists.newArrayList( periodMar ) )
             .withAttributeOptionCombo( defaultCombo ).build();
         List<Map<String, String>> leftSideExpected = Lists.newArrayList(
-            ImmutableMap.of( "name", "IndicatorA", "value", "8.0" ),
-            ImmutableMap.of( "name", "ProgramA AttributeA", "value", "1.0" ) );
+            Map.of( "name", "IndicatorA", "value", "8.0" ),
+            Map.of( "name", "ProgramA AttributeA", "value", "1.0" ) );
         List<Map<String, String>> rightSideExpected = Lists.newArrayList(
-            ImmutableMap.of( "name", "IndicatorA", "value", "8.0" ),
-            ImmutableMap.of( "name", "ProgramA DataElementA", "value", "4.0" ) );
+            Map.of( "name", "IndicatorA", "value", "8.0" ),
+            Map.of( "name", "ProgramA DataElementA", "value", "4.0" ) );
         ValidationRuleExpressionDetails details = validationService.getValidationRuleExpressionDetails( params2 );
         assertEquals( leftSideExpected, details.getLeftSide() );
         assertEquals( rightSideExpected, details.getRightSide() );

@@ -31,13 +31,13 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,15 +45,13 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-@AllArgsConstructor
-public class ProgramNotificationInstanceDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramNotificationInstance>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramNotificationInstance.class );
-
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
         whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );

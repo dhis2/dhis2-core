@@ -2,7 +2,10 @@
   "categoryCombos": [
     {
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdated": "2016-03-17T01:54:04.956+0000",
       "categories": [
         {
@@ -90,7 +93,10 @@
       "code": "Gender",
       "userGroupAccesses": [],
       "lastUpdated": "2016-03-17T01:53:56.098+0000",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "dataDimension": true,
       "dataDimensionType": "DISAGGREGATION"
     }
@@ -171,7 +177,10 @@
       "regression": false,
       "aggregationType": "SUM",
       "hideEmptyRows": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "id": "gyYXi0rXAIc",
       "user": {
         "id": "M5zQapPyTZI"
@@ -222,7 +231,10 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "hideEmptyRows": false,
       "hideLegend": false,
       "regression": false,
@@ -392,11 +404,17 @@
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "organisationUnitGroups": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "hideEmptyRows": false
     },
     {
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "hideEmptyRows": false,
       "hideLegend": false,
       "regression": false,
@@ -561,7 +579,10 @@
       "aggregationType": "AVERAGE",
       "userGroupAccesses": [ ],
       "zeroIsSignificant": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "domainType": "AGGREGATE",
       "user": {
         "id": "M5zQapPyTZI"
@@ -588,13 +609,19 @@
       "userGroupAccesses": [ ],
       "zeroIsSignificant": false,
       "domainType": "AGGREGATE",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "name": "DataElementB",
       "attributeValues": [ ],
       "aggregationType": "AVERAGE"
     },
     {
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "domainType": "AGGREGATE",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -620,7 +647,10 @@
       "aggregationType": "AVERAGE",
       "name": "DataElementD",
       "zeroIsSignificant": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "domainType": "AGGREGATE",
       "categoryCombo": {
         "id": "v7n8H4aj8Cg"
@@ -640,7 +670,10 @@
   ],
   "organisationUnitGroups": [
     {
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "organisationUnits": [
         {
           "id": "uyHni0GvBpD"
@@ -669,7 +702,10 @@
       "timelyDays": 15,
       "name": "DataSetA",
       "indicators": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "version": 1,
       "skipOffline": false,
       "userGroupAccesses": [ ],
@@ -712,7 +748,10 @@
   ],
   "userRoles": [
     {
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "description": "Superuser",
       "lastUpdated": "2016-03-17T01:51:26.775+0000",
       "userGroupAccesses": [ ],
@@ -797,7 +836,10 @@
   "categoryOptions": [
     {
       "organisationUnits": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdated": "2016-03-17T01:53:41.461+0000",
       "shortName": "Female",
       "userGroupAccesses": [ ],
@@ -812,7 +854,10 @@
     },
     {
       "organisationUnits": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdated": "2016-03-17T01:53:34.526+0000",
       "userGroupAccesses": [ ],
       "shortName": "Male",

@@ -48,7 +48,6 @@ public class HibernateProgramStageInstanceFilterStore
     extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter>
     implements ProgramStageInstanceFilterStore
 {
-
     public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {

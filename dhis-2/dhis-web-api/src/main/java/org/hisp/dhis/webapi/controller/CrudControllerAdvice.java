@@ -32,26 +32,27 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -65,23 +66,21 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -89,6 +88,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -101,8 +102,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,11 +119,57 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
+    private final List<Class<?>> enumClasses;
+
+    public CrudControllerAdvice()
+    {
+        this.enumClasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
+    }
+
     @InitBinder
     protected void initBinder( WebDataBinder binder )
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+        this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
+    @ResponseBody
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
+    {
+        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
+        if ( !ex.getErrorReports().isEmpty() )
+        {
+            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
+        }
+        return message;
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
+    @ResponseBody
+    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex )
+    {
+        if ( ex.getObjectReport() != null )
+        {
+            return objectReport( ex.getObjectReport() );
+        }
+        return conflict( ex.getMessage(), ex.getCode() ).setDevMessage( ex.getDevMessage() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ForbiddenException.class )
+    @ResponseBody
+    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.NotFoundException.class )
+    @ResponseBody
+    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode() );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -137,16 +186,83 @@ public class CrudControllerAdvice
         return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
+    @ExceptionHandler( MethodArgumentTypeMismatchException.class )
+    @ResponseBody
+    public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
+        {
+            return badRequest( ex.getMessage() );
+        }
+
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    @ExceptionHandler( TypeMismatchException.class )
+    @ResponseBody
+    public WebMessage handleTypeMismatchException( TypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
+        {
+            return badRequest( ex.getMessage() );
+        }
+
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
+    {
+        String validValues = StringUtils
+            .join( Arrays.stream( requiredType.getEnumConstants() ).map( Objects::toString )
+                .collect( Collectors.toList() ), ", " );
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
+            value, field, validValues );
+        return badRequest( errorMessage );
+    }
+
+    private WebMessage getWebMessage( Object value, String fieldType )
+    {
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}.",
+            value, fieldType );
+        return badRequest( errorMessage );
+    }
+
     @ExceptionHandler( InvalidEnumValueException.class )
     @ResponseBody
     public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
     {
-        String validValues = StringUtils
-            .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
-                .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-            ex.getInvalidValue(), ex.getFieldName(), validValues );
-        return badRequest( errorMessage );
+        return getEnumWebMessage( ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName() );
+    }
+
+    /**
+     * A BindException wraps possible errors happened trying to bind all the
+     * request parameters to a binding object. Errors could be simple conversion
+     * failures (Trying to convert a 'TEXT' to an Integer ) or validation errors
+     * create by hibernate-validator framework. Currently, we are not using such
+     * framework hence only conversion errors can happen.
+     *
+     * Only first error is returned to the client in order to be consistent in
+     * the way BAD_REQUEST responses are displayed.
+     *
+     */
+    @ExceptionHandler( BindException.class )
+    @ResponseBody
+    public WebMessage handleBindException( BindException ex )
+    {
+        FieldError fieldError = ex.getFieldError();
+
+        if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
+        {
+            return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
+        }
+
+        return badRequest( ex.getMessage() );
     }
 
     @ExceptionHandler( Dhis2ClientException.class )
@@ -212,13 +328,6 @@ public class CrudControllerAdvice
         return unauthorized( ex.getMessage() );
     }
 
-    @ExceptionHandler( NotFoundException.class )
-    @ResponseBody
-    public WebMessage notFoundExceptionHandler( NotFoundException ex )
-    {
-        return notFound( ex.getMessage() );
-    }
-
     @ExceptionHandler( ConstraintViolationException.class )
     @ResponseBody
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
@@ -226,11 +335,11 @@ public class CrudControllerAdvice
         return error( getExceptionMessage( ex ) );
     }
 
-    @ExceptionHandler( MaintenanceModeException.class )
+    @ExceptionHandler( PersistenceException.class )
     @ResponseBody
-    public WebMessage maintenanceModeExceptionHandler( MaintenanceModeException ex )
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
     {
-        return serviceUnavailable( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( AccessDeniedException.class )
@@ -296,19 +405,11 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
-        JsonPatchException.class } )
+    @ExceptionHandler( { IllegalArgumentException.class, SchemaPathException.class, JsonPatchException.class } )
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
     {
         return badRequest( exception.getMessage() );
-    }
-
-    @ExceptionHandler( { ConflictException.class } )
-    @ResponseBody
-    public WebMessage handleConflictRequest( Exception exception )
-    {
-        return conflict( exception.getMessage() );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
@@ -341,13 +442,6 @@ public class CrudControllerAdvice
             return conflict( conflictException.getMessage() );
         }
         return conflict( null ).setResponse( conflictException.getMetadataSyncSummary() );
-    }
-
-    @ExceptionHandler( OperationNotAllowedException.class )
-    @ResponseBody
-    public WebMessage handleOperationNotAllowedException( OperationNotAllowedException ex )
-    {
-        return forbidden( ex.getMessage() );
     }
 
     @ExceptionHandler( OAuth2AuthenticationException.class )
@@ -452,7 +546,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )
@@ -465,6 +558,25 @@ public class CrudControllerAdvice
             throws IllegalArgumentException
         {
             setValue( fromText.apply( text ) );
+        }
+    }
+
+    private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
+    {
+        private final Class<T> enumClass;
+
+        private ConvertEnum( Class<T> enumClass )
+        {
+            this.enumClass = enumClass;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
+
+            setValue( enumValue != null ? enumValue : text );
         }
     }
 }

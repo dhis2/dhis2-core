@@ -39,8 +39,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,8 +59,6 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -85,9 +83,8 @@ class AnalyticsServiceProgramDataElementTest extends
         DataQueryParams params = DataQueryParams.newBuilder().withAggregationType( AnalyticsAggregationType.AVERAGE )
             .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
             .withDataElements( newArrayList( pded1 ) ).withIgnoreLimit( true )
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null,
+                DISPLAY_NAME_ORGUNIT, List.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .build();
 
         initMock( params );

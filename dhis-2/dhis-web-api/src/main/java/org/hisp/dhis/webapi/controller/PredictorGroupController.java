@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = PredictorGroupSchemaDescriptor.API_ENDPOINT )
 public class PredictorGroupController

@@ -53,7 +53,6 @@ import org.hisp.dhis.analytics.IndexType;
  */
 public class AnalyticsTableAsserter
 {
-    // the table to check //
     private AnalyticsTable table;
 
     private int columnsSize;

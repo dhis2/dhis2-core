@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -34,21 +36,22 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -56,14 +59,12 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
+@Service( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
 @RequiredArgsConstructor
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
     private final QueryPlanner queryPlanner;
-
-    private final QueryValidator queryValidator;
 
     private final PartitionManager partitionManager;
 
@@ -107,12 +108,6 @@ public class DefaultEventQueryPlanner
             .withTableName( PartitionUtils.getTableName(
                 AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram() ) )
             .build();
-    }
-
-    public void validateMaintenanceMode()
-        throws MaintenanceModeException
-    {
-        queryValidator.validateMaintenanceMode();
     }
 
     // -------------------------------------------------------------------------
@@ -184,6 +179,10 @@ public class DefaultEventQueryPlanner
     }
 
     /**
+     * Groups by query item and set the value property to each item and item
+     * filter if exists and query is for aggregate data. Groups by program
+     * indicator if exists and query is for aggregate data.
+     * <p>
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
      *
@@ -198,10 +197,14 @@ public class DefaultEventQueryPlanner
         {
             for ( QueryItem item : params.getItemsAndItemFilters() )
             {
+                AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull(
+                    params.getAggregationType(), fromAggregationType( item.getAggregationType() ) );
+
                 EventQueryParams.Builder query = new EventQueryParams.Builder( params )
                     .removeItems()
                     .removeItemProgramIndicators()
-                    .withValue( item.getItem() );
+                    .withValue( item.getItem() )
+                    .withAggregationType( aggregationType );
 
                 if ( item.hasProgram() )
                 {
@@ -218,6 +221,7 @@ public class DefaultEventQueryPlanner
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
                     .withProgram( programIndicator.getProgram() )
+                    .withOrgUnitField( new OrgUnitField( programIndicator.getOrgUnitField() ) )
                     .build();
 
                 queries.add( query );

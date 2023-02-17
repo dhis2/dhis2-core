@@ -97,7 +97,7 @@ public class DhisOidcUserService
                         "User is disabled" );
                 }
 
-                CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+                CurrentUserDetails userDetails = userService.createUserDetails( user );
                 return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }

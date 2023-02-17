@@ -72,12 +72,12 @@ public class AxisV2 implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -MAX_VALUE )
-    private Integer maxValue;
+    private Double maxValue;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -MAX_VALUE )
-    private Integer minValue;
+    private Double minValue;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )

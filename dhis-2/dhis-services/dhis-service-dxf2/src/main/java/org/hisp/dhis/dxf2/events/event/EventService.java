@@ -36,6 +36,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -58,10 +59,10 @@ public interface EventService
 
     Grid getEventsGrid( EventSearchParams params );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships );
+    Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
 
     Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, boolean includeRelationships );
+        boolean skipOwnershipCheck, EventParams eventParams );
 
     // TODO remove these 2 methods and move the logic to the front-end
     List<Event> getEventsXml( InputStream inputStream )

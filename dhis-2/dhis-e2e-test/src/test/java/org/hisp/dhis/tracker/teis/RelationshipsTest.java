@@ -82,14 +82,14 @@ public class RelationshipsTest
     {
         return Stream.of(
             Arguments.arguments( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntityInstance", teis.get( 0 ) ), // event
-                                                                                                                    // to
-                                                                                                                    // tei
+            // to
+            // tei
             Arguments.arguments( "HrS7b5Lis6w", "trackedEntityInstance", teis.get( 0 ), "event", events.get( 0 ) ), // tei
-                                                                                                                    // to
-                                                                                                                    // event
+            // to
+            // event
             Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
-                                                                                                      // to
-                                                                                                      // event
+            // to
+            // event
             Arguments.arguments( "WmNgnmedbQK", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
                 teis.get( 1 ) ) ); // tei to tei
     }

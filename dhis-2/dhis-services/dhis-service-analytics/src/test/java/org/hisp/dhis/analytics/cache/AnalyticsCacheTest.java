@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -49,8 +50,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Dusan Bernat
@@ -92,8 +91,7 @@ class AnalyticsCacheTest
             .addValue( "Value22" );
 
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements(
-                Lists.newArrayList( new DataElement( "dataElementA" ), new DataElement( "dataElementB" ) ) )
+            .withDataElements( List.of( new DataElement( "dataElementA" ), new DataElement( "dataElementB" ) ) )
             .build();
 
         // act, assert

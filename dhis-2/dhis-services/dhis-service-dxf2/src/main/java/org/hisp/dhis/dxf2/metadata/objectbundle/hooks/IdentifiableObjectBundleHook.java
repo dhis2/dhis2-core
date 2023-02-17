@@ -37,8 +37,10 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
@@ -67,6 +69,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             baseIdentifiableObject.setCreatedBy( bundle.getUser() );
         }
 
+        if ( baseIdentifiableObject.getSharing().getOwner() == null )
+        {
+            baseIdentifiableObject.getSharing()
+                .setOwner( baseIdentifiableObject.getCreatedBy() );
+        }
+
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
         handleAttributeValues( identifiableObject, bundle, schema );
         handleSkipSharing( identifiableObject, bundle );
@@ -80,15 +88,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getCreatedBy() == null && persistedObject.getCreatedBy() == null )
-        {
-            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
-        }
-        else if ( persistedObject.getCreatedBy() != null )
-        {
-            // CreatedBy field is immutable
-            baseIdentifiableObject.setCreatedBy( persistedObject.getCreatedBy() );
-        }
+        handleCreatedByProperty( object, persistedObject, bundle );
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         handleAttributeValues( object, bundle, schema );
@@ -96,7 +96,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        if ( !schema.havePersistedProperty( "attributeValues" ) )
+        if ( !schema.hasPersistedProperty( "attributeValues" ) )
             return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
@@ -124,6 +124,28 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             attributeValue.setAttribute( attribute );
 
             attributeValue.setValue( attributeValue.getValue().replaceAll( "\\s{2,}", StringUtils.SPACE ) );
+        }
+    }
+
+    /**
+     * Make sure createdBy is immutable unless persistedObject.createdBy is
+     * null.
+     *
+     * @param object object from payload.
+     * @param persistedObject persistedObject.
+     * @param bundle The {@link ObjectBundle} of the importing service.
+     */
+    private void handleCreatedByProperty( IdentifiableObject object, IdentifiableObject persistedObject,
+        ObjectBundle bundle )
+    {
+        if ( persistedObject.getCreatedBy() == null )
+        {
+            object.setCreatedBy( object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser() );
+        }
+        else if ( !IdentifiableObjectUtils.equalByUID( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
+        {
+            object.setCreatedBy( persistedObject.getCreatedBy() );
+            bundle.getPreheat().put( PreheatIdentifier.UID, object.getCreatedBy() );
         }
     }
 

@@ -55,7 +55,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 /**
@@ -154,7 +153,7 @@ public abstract class PeriodType
         new FinancialOctoberPeriodType(),
         new FinancialNovemberPeriodType() );
 
-    public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
+    public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = Map.of(
         PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
         PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
         PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
@@ -645,6 +644,25 @@ public abstract class PeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType
     // -------------------------------------------------------------------------
+
+    /**
+     * Computes future open periods.
+     *
+     * @param periodOffset number of period length shifts into the future
+     *        starting from the last period. This means the current period is at
+     *        offset 1, the one following it at 2 and so on.
+     * @return The future {@link Period} for the given offset
+     */
+    public final Period getFuturePeriod( int periodOffset )
+    {
+        Period period = createPeriod();
+
+        // Rewind one as 0 open periods implies current period is locked
+
+        period = getPreviousPeriod( period );
+
+        return getNextPeriod( period, periodOffset );
+    }
 
     /**
      * Returns a period shifted from the given period. If the offset is

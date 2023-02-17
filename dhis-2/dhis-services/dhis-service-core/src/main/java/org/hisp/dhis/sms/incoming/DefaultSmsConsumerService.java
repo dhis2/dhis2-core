@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.sms.SmsPublisher;
@@ -40,22 +39,12 @@ import org.springframework.stereotype.Service;
  * Zubair <rajazubair.asghar@gmail.com>
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.sms.incoming.SmsConsumerService" )
 public class DefaultSmsConsumerService
     implements SmsConsumerService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SmsPublisher smsPublisher;
-
-    public DefaultSmsConsumerService( SmsPublisher smsPublisher )
-    {
-        checkNotNull( smsPublisher );
-
-        this.smsPublisher = smsPublisher;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

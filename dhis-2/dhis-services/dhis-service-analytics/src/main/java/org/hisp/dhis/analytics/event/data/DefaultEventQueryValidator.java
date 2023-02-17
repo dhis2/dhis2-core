@@ -27,36 +27,41 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.replace;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.feedback.ErrorCode.E7229;
+import static org.hisp.dhis.feedback.ErrorCode.E7234;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
+@Service( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
-    private final QueryValidator queryValidator;
-
     private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
@@ -65,11 +70,8 @@ public class DefaultEventQueryValidator
 
     @Override
     public void validate( EventQueryParams params )
-        throws IllegalQueryException,
-        MaintenanceModeException
+        throws IllegalQueryException
     {
-        queryValidator.validateMaintenanceMode();
-
         ErrorMessage error = validateForErrorMessage( params );
 
         if ( error != null )
@@ -165,11 +167,13 @@ public class DefaultEventQueryValidator
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
 
-            for ( QueryFilter queryFilter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                if ( !queryFilter.getOperator().isNullAllowed() && queryFilter.getFilter().contains( NV ) )
+                error = validateQueryFilter( filter, item.getValueType() );
+
+                if ( error != null )
                 {
-                    error = new ErrorMessage( ErrorCode.E7229, queryFilter.getOperator().getValue() );
+                    return error;
                 }
             }
         }
@@ -177,6 +181,110 @@ public class DefaultEventQueryValidator
         // TODO validate coordinate field
 
         return error;
+    }
+
+    /**
+     * Validates the full {@link QueryFilter} based on the associated item's
+     * {@link ValueType}.
+     *
+     * @param filter the {@link QueryFilter}.
+     * @param valueType the {@link ValueType}.
+     *
+     * @return the validation {@link ErrorMessage}, or null if no error is
+     *         found.
+     */
+    private ErrorMessage validateQueryFilter( QueryFilter filter, ValueType valueType )
+    {
+        String filterValue = trimToEmpty( filter.getFilter() );
+        ErrorMessage errorMessage = null;
+
+        if ( filter.getOperator().isIn() )
+        {
+            // A filter value may contain multiple options, ie.: 1;0;NV.
+            Set<String> filterValues = Set.of( filterValue.split( ";" ) );
+
+            for ( String f : filterValues )
+            {
+                errorMessage = validateFilterValue( IN, valueType, f );
+                if ( errorMessage != null )
+                {
+                    return errorMessage;
+                }
+            }
+        }
+        else
+        {
+            errorMessage = validateFilterValue( filter.getOperator(), valueType, filterValue );
+        }
+
+        return errorMessage;
+    }
+
+    /**
+     * Validates a single filter value based on its {@link ValueType} and
+     * {@link QueryOperator}.
+     *
+     * @param operator the {@link QueryOperator}.
+     * @param valueType the {@link ValueType}.
+     * @param filterValue the filter value.
+     *
+     * @return the validation {@link ErrorMessage}, or null if no error is
+     *         found.
+     */
+    private ErrorMessage validateFilterValue( QueryOperator operator, ValueType valueType, String filterValue )
+    {
+        if ( !operator.isNullAllowed() && filterValue.contains( NV ) )
+        {
+            return new ErrorMessage( E7229, operator.getValue() );
+        }
+        else if ( !filterValue.contains( NV )
+            && !valueIsComparable( convertFilterValue( valueType, filterValue ), valueType ) )
+        {
+            return new ErrorMessage( E7234, filterValue, valueType );
+        }
+
+        return null;
+    }
+
+    /**
+     * Some filter values may require some conversion, so they can be correctly
+     * evaluated and properly validated. This method will provide the conversion
+     * needed for each {@link ValueType} if applicable.
+     *
+     * @param valueType the {@link ValueType}.
+     * @param filterValue the value to be converted.
+     *
+     * @return the converted value or else the filter value provided.
+     */
+    private String convertFilterValue( ValueType valueType, String filterValue )
+    {
+        switch ( valueType )
+        {
+        case TIME:
+        case DATETIME:
+            return replaceDateTimeSeparators( filterValue );
+        default:
+            return filterValue;
+        }
+    }
+
+    /**
+     * Based on the given input, this method will replace the first two ".", by
+     * ":". ie:
+     *
+     * "12.02" -> "12:02", "2023-12-25T12.02.00" -> "2023-12-25T12:02:00"
+     *
+     * This is required because of the URL params uses "." as separator, so it
+     * does not clash with the character ":", used by dimensions. But
+     * internally, the date/time masks requires the separator ":".
+     *
+     * @param dateTime time, or date/time.
+     *
+     * @return the value with the correct separators.
+     */
+    private String replaceDateTimeSeparators( String dateTime )
+    {
+        return replace( dateTime, ".", ":", 2 );
     }
 
     @Override

@@ -63,9 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.SimpleEventSMSListener" )
 @Transactional
-public class SimpleEventSMSListener
-    extends
-    CompressionSMSListener
+public class SimpleEventSMSListener extends CompressionSMSListener
 {
     private final ProgramInstanceService programInstanceService;
 

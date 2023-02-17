@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -37,9 +37,9 @@ import org.springframework.stereotype.Service;
 /**
  * Provide the endpoints for api calls in metadata versioning
  *
- * @author anilkumk.
+ * @author anilkumk
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" )
 @Scope( "prototype" )
 public class DefaultMetadataSystemSettingService

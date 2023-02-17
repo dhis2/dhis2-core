@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
@@ -78,7 +76,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Kristian Nordal
  */
-@Slf4j
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
     extends BaseDimensionalItemObject

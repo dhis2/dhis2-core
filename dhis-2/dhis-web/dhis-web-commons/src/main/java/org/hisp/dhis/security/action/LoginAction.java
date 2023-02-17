@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.action;
 
+import static org.hisp.dhis.webapi.filter.CspFilter.CSP_REQUEST_NONCE_ATTR_NAME;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
-import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -71,6 +72,14 @@ public class LoginAction
     // -------------------------------------------------------------------------
     // Input & Output
     // -------------------------------------------------------------------------
+    private String cspNonce = "";
+
+    public String getCspNonce()
+    {
+        return cspNonce;
+    }
+
+    private Boolean twoFactor = false;
 
     private Boolean failed = false;
 
@@ -84,6 +93,16 @@ public class LoginAction
     public Boolean getFailed()
     {
         return failed;
+    }
+
+    public Boolean getTwoFactor()
+    {
+        return twoFactor;
+    }
+
+    public void setTwoFactor( Boolean twoFactor )
+    {
+        this.twoFactor = twoFactor;
     }
 
     public Boolean getOidcFailure()
@@ -120,6 +139,8 @@ public class LoginAction
     {
         addRegisteredProviders();
 
+        cspNonce = (String) ServletActionContext.getRequest().getSession().getAttribute( CSP_REQUEST_NONCE_ATTR_NAME );
+
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
@@ -144,7 +165,7 @@ public class LoginAction
         {
             DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
 
-            providers.add( ImmutableMap.of(
+            providers.add( Map.of(
                 "id", registrationId,
                 "icon", clientRegistration.getLoginIcon(),
                 "iconPadding", clientRegistration.getLoginIconPadding(),

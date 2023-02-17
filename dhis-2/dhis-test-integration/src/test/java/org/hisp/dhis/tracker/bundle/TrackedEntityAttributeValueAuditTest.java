@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -106,16 +106,16 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
         List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
             .getTrackedEntityAttributeValues( manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+        importReport = trackerImportService.importTracker( trackerImportParams );
+        assertNoErrors( importReport );
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()

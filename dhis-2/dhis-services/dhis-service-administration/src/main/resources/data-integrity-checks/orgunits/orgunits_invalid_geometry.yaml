@@ -1,0 +1,62 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: HJoHTRxcaVv
+name: orgunits_invalid_geometry
+description: Organisation units with invalid geometry.
+section: Organisation units
+section_order: 7
+summary_sql: >-
+  WITH orgunits_invalid_geometry as (
+  SELECT uid,name,ST_IsValidReason(geometry) from organisationunit
+  where ST_IsValid(geometry) = FALSE)
+  SELECT
+  COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF(( SELECT COUNT(*) FROM organisationunit where geometry IS NOT NULL),0)  as percent
+  FROM orgunits_invalid_geometry;
+details_uid: lEmJf83tdNR
+details_sql: >-
+  SELECT uid,name,ST_IsValidReason(geometry) as comment from organisationunit
+  where ST_IsValid(geometry) = FALSE
+  ORDER BY name;
+details_id_type: organisationUnits
+severity: WARNING
+introduction: |
+  DHIS2 uses the PostGIS database extension to manage the geographical information associated
+  with organisation units. There are various reasons why geometries may be considered to be
+  invalid including self-inclusions, self-intersections, and sliver polygons. Please see the
+  PostGIS documentation for a more in-depth discussion on this topic.
+  
+  Invalid geometry is not always a problem and may be able to be ignored, however, it has been observed in certain systems
+  that this can lead to problems in analytics. If you are experiencing issues when generating analytics
+  tables, and see errors related to invalid geometries, you will need to either remove the invalid geometry,
+  or fix it.
+recommendation: >
+  Update the geometry of the affected organisation units to a valid geometry. It may be possible
+  to use the PostGIS function `ST_MakeValid` to automatically fix the problem. However, in other
+  cases the geometry may need to be edited in a GIS tool, and then updated again in DHIS2.
+

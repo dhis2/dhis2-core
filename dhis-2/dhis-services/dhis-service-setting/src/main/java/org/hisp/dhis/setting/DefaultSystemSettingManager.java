@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -66,7 +65,7 @@ import com.google.common.collect.Lists;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-    private static final ImmutableMap<String, SettingKey> NAME_KEY_MAP = ImmutableMap.copyOf( Lists.newArrayList(
+    private static final Map<String, SettingKey> NAME_KEY_MAP = Map.copyOf( Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) ) );
 
     /**
@@ -183,6 +182,7 @@ public class DefaultSystemSettingManager
      * cache hits.
      */
     @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue )
     {
         SerializableOptional value = settingCache.get( key.getName(),

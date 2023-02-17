@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -52,9 +54,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -92,7 +96,9 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -112,6 +118,7 @@ import org.springframework.util.Assert;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -364,11 +371,6 @@ public class DataQueryParams
     protected Date endDate;
 
     /**
-     * The date range for the period dimension, can be empty.
-     */
-    protected List<DateRange> dateRangeList = new ArrayList<>();
-
-    /**
      * The order in which the data values has to be sorted, can be null.
      */
     protected SortOrder order;
@@ -388,6 +390,11 @@ public class DataQueryParams
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
+
+    /**
+     * The database locale for the user making the request, can be null.
+     */
+    protected Locale locale;
 
     // -------------------------------------------------------------------------
     // Event transient properties
@@ -454,7 +461,7 @@ public class DataQueryParams
 
     /**
      * Applies to reporting rates only. Indicates whether only timely reports
-     * should be returned.
+     * should be returned. Used internally for on time reporting rate metrics.
      */
     protected boolean timely;
 
@@ -593,11 +600,11 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
-        params.dateRangeList = this.dateRangeList;
         params.order = this.order;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
+        params.locale = this.locale;
 
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
@@ -638,6 +645,14 @@ public class DataQueryParams
      */
     public String getKey()
     {
+        return getQueryKey().build();
+    }
+
+    /**
+     * Returns a unique {@link QueryKey}.
+     */
+    protected QueryKey getQueryKey()
+    {
         QueryKey key = new QueryKey();
 
         dimensions.forEach( e -> key.add( "dimension",
@@ -673,13 +688,18 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
-            .add( "dateRangeList", dateRangeList.stream()
-                .map( DateRange::toString ).collect( Collectors.joining( ":" ) ) )
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
-            .add( "userOrgUnitType", userOrgUnitType )
-            .addIgnoreNull( "apiVersion", apiVersion ).build();
+            .add( "expressiondimensionitems", getExpressionDimensionItemsExpressions() )
+            .addIgnoreNull( "apiVersion", apiVersion )
+            .addIgnoreNull( "locale", locale );
+    }
+
+    private String getExpressionDimensionItemsExpressions()
+    {
+        return this.getExpressionDimensionItems().stream()
+            .map( edi -> ((ExpressionDimensionItem) edi).getExpression() ).collect( Collectors.joining() );
     }
 
     private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
@@ -691,7 +711,7 @@ public class DataQueryParams
                 .collect( Collectors.joining( ":" ) );
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     // -------------------------------------------------------------------------
@@ -760,7 +780,7 @@ public class DataQueryParams
     public Period getLatestPeriod()
     {
         return getAllPeriods().stream()
-            .map( obj -> (Period) obj )
+            .map( Period.class::cast )
             .min( DescendingPeriodComparator.INSTANCE )
             .orElse( null );
     }
@@ -851,7 +871,7 @@ public class DataQueryParams
     public List<Period> getTypedFilterPeriods()
     {
         return getFilterPeriods().stream()
-            .map( p -> (Period) p )
+            .map( Period.class::cast )
             .collect( Collectors.toList() );
     }
 
@@ -902,8 +922,7 @@ public class DataQueryParams
     {
         return orgUnitLevels.stream()
             .map( l -> new BaseDimensionalObject( PREFIX_ORG_UNIT_LEVEL + l.getLevel(),
-                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(),
-                Lists.newArrayList() ) )
+                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(), List.of() ) )
             .collect( Collectors.toList() );
     }
 
@@ -944,11 +963,17 @@ public class DataQueryParams
 
     /**
      * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
+     * takes place if aggregation type is none, first or last, or if data type
+     * is text.
+     * <p>
+     * Note that the check for {@link DataType#TEXT} is for backwards
+     * compatibility only and text type data elements should have an appropriate
+     * aggregation type.
      */
     public boolean isAggregation()
     {
-        return !(isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType);
+        return !(isAnyAggregationType( AggregationType.NONE, AggregationType.FIRST, AggregationType.LAST ) ||
+            DataType.TEXT == dataType);
     }
 
     /**
@@ -956,7 +981,15 @@ public class DataQueryParams
      */
     public boolean isAggregationType( AggregationType type )
     {
-        return aggregationType != null && aggregationType.isAggregationType( type );
+        return hasAggregationType() && aggregationType.isAggregationType( type );
+    }
+
+    /**
+     * Indicates whether this query has any of the given aggregation types.
+     */
+    public boolean isAnyAggregationType( AggregationType... types )
+    {
+        return hasAggregationType() && Sets.newHashSet( types ).contains( aggregationType.getAggregationType() );
     }
 
     /**
@@ -1160,6 +1193,16 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all dimensions except any period dimension.
+     */
+    public List<DimensionalObject> getNonPeriodDimensions()
+    {
+        List<DimensionalObject> dims = new ArrayList<>( dimensions );
+        dims.remove( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        return List.copyOf( dims );
+    }
+
+    /**
      * Indicates whether all dimensions and filters have value types among the
      * given set of value types.
      */
@@ -1298,8 +1341,8 @@ public class DataQueryParams
      * the number of days in the first period. In these cases, queries should
      * contain periods with the same number of days only. If period is filter,
      * use the sum of days in all periods. If the period is defined by
-     * "startDate" and "endDate" params, these two will be considered (default
-     * option).
+     * "startDate" and "endDate" parameters, these two will be considered
+     * (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1329,7 +1372,7 @@ public class DataQueryParams
             return totalDays;
         }
 
-        // Default to "startDate" and "endDate" URL params
+        // Default to "startDate" and "endDate" URL parameters
         return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
@@ -1440,34 +1483,25 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a nonempty dateRangeList.
+     * Indicates whether this query has a continuous list of dates range or is
+     * empty. It assumes that the datesRange IS SORTED.
      */
-    public boolean hasDateRangeList()
+    public boolean hasContinuousRange( List<DateRange> datesRange )
     {
-        return dateRangeList != null && !dateRangeList.isEmpty();
-    }
-
-    /**
-     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
-     * assumes that the dateRangeList is sorted. It should happen in the
-     * EventQueryParam::replacePeriodsWithDates method.
-     */
-    public boolean hasContinuousDateRangeList()
-    {
-        if ( !hasDateRangeList() )
+        if ( isEmpty( datesRange ) )
         {
             return true;
         }
 
-        if ( dateRangeList.size() == 1 )
+        if ( datesRange.size() == 1 )
         {
             return true;
         }
 
-        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
+        for ( int i = datesRange.size() - 1; i > 0; i-- )
         {
-            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
-                dateRangeList.get( i ).getStartDate() ) > 1;
+            boolean diffAboveOneDay = DateUtils.daysBetween( datesRange.get( i - 1 ).getEndDate(),
+                datesRange.get( i ).getStartDate() ) > 1;
 
             if ( diffAboveOneDay )
             {
@@ -1485,15 +1519,6 @@ public class DataQueryParams
     public boolean startDateAfterEndDate()
     {
         return hasStartEndDate() && startDate.after( endDate );
-    }
-
-    /**
-     * Indicates whether any start date is after the end date, which is invalid.
-     */
-    public boolean startDatesAfterEndDates()
-    {
-        return hasDateRangeList() && dateRangeList.stream()
-            .anyMatch( drl -> drl.getStartDate().after( drl.getEndDate() ) );
     }
 
     /**
@@ -1633,7 +1658,7 @@ public class DataQueryParams
         List<DimensionalItemObject> items = AnalyticsUtils
             .getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
 
-        return items.size() > 0;
+        return isNotEmpty( items );
     }
 
     /**
@@ -1666,6 +1691,42 @@ public class DataQueryParams
             .filter( de -> de.getCategoryCombo().isSkipTotal() )
             .filter( de -> !isAllCategoriesDimensionOrFilterWithItems( de ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "last" {@link AggregationType}".
+     */
+    public boolean isLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is
+     * "first" {@link AggregationType}.
+     */
+    public boolean isFirstPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first" or "last" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first", "last" or "last in period" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastOrLastInPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastOrLastInPeriodAggregationType();
     }
 
     // -------------------------------------------------------------------------
@@ -1770,7 +1831,7 @@ public class DataQueryParams
     private void setPeriodDimensionWithoutOptions()
     {
         removeDimension( PERIOD_DIM_ID );
-        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, List.of() );
     }
 
     /**
@@ -2051,10 +2112,8 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
 
             // Org unit group always at last index, org unit potentially at
-            // first
-
+            // first.
             int ougInx = keys.size() - 1;
-
             String oug = keys.get( ougInx );
 
             ListUtils.removeAll( keys, ougInx );
@@ -2081,7 +2140,7 @@ public class DataQueryParams
             return null;
         }
 
-        Map<MeasureFilter, Double> map = new HashMap<>();
+        Map<MeasureFilter, Double> map = new EnumMap<>( MeasureFilter.class );
 
         String[] criteria = param.split( DimensionalObject.OPTION_SEP );
 
@@ -2176,6 +2235,7 @@ public class DataQueryParams
             .add( "Measure criteria", measureCriteria )
             .add( "Output format", outputFormat )
             .add( "API version", apiVersion )
+            .add( "Locale", locale )
             .toString();
     }
 
@@ -2318,11 +2378,6 @@ public class DataQueryParams
         return endDate;
     }
 
-    public List<DateRange> getDateRangeList()
-    {
-        return dateRangeList;
-    }
-
     public SortOrder getOrder()
     {
         return order;
@@ -2399,9 +2454,7 @@ public class DataQueryParams
 
     public String getValueColumn()
     {
-        return (valueColumn != null)
-            ? valueColumn
-            : VALUE_COLUMN_NAME;
+        return ObjectUtils.firstNonNull( valueColumn, VALUE_COLUMN_NAME );
     }
 
     public String getPeriodType()
@@ -2473,8 +2526,8 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getAllDataDimensionItems()
     {
-        return ImmutableList
-            .copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+        return ImmutableList.copyOf(
+            ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -2609,12 +2662,12 @@ public class DataQueryParams
         Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
-            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
+            .map( ProgramTrackedEntityAttributeDimensionItem.class::cast )
             .filter( a -> a.getProgram() != null )
             .forEach( a -> programs.add( a.getProgram() ) );
 
         getAllProgramDataElements().stream()
-            .map( d -> (ProgramDataElementDimensionItem) d )
+            .map( ProgramDataElementDimensionItem.class::cast )
             .filter( d -> d.getProgram() != null )
             .forEach( d -> programs.add( d.getProgram() ) );
 
@@ -2680,12 +2733,43 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all data elements, data elements of of data element operands and
+     * data elements of program data elements part of the data dimension.
+     */
+    public List<DimensionalItemObject> getDataElementsOperandsProgramDataElements()
+    {
+        final Set<DimensionalItemObject> dataElements = new HashSet<>();
+
+        dataElements.addAll( getDataElements() );
+        dataElements.addAll( getDataElementOperands().stream()
+            .map( DataElementOperand.class::cast )
+            .map( DataElementOperand::getDataElement )
+            .collect( Collectors.toList() ) );
+        dataElements.addAll( getProgramDataElements().stream()
+            .map( ProgramDataElementDimensionItem.class::cast )
+            .map( ProgramDataElementDimensionItem::getDataElement )
+            .collect( Collectors.toList() ) );
+
+        return ImmutableList.copyOf( dataElements );
+    }
+
+    /**
      * Returns all indicators part of the data dimension.
      */
     public List<DimensionalItemObject> getProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE,
             getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all expression dimension items part of the data dimension.
+     */
+    public List<DimensionalItemObject> getExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -2726,7 +2810,7 @@ public class DataQueryParams
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 
-            return singletonList( period );
+            return List.of( period );
         }
 
         return emptyList();
@@ -2805,6 +2889,16 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE,
             getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all expression dimension items part of the data filter.
+     */
+    public List<DimensionalItemObject> getFilterExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -3380,6 +3474,12 @@ public class DataQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withLocale( Locale locale )
+        {
+            this.params.locale = locale;
             return this;
         }
 

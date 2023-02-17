@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.Collection;
@@ -36,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -57,6 +58,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.validation.ValidationRuleService" )
 @Transactional
 public class DefaultValidationRuleService
@@ -68,26 +70,12 @@ public class DefaultValidationRuleService
 
     private final ValidationRuleStore validationRuleStore;
 
+    @Qualifier( "org.hisp.dhis.validation.ValidationRuleGroupStore" )
     private final IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
 
     private final ExpressionService expressionService;
 
     private final IdentifiableObjectManager idObjectManager;
-
-    public DefaultValidationRuleService( ValidationRuleStore validationRuleStore,
-        @Qualifier( "org.hisp.dhis.validation.ValidationRuleGroupStore" ) IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore,
-        ExpressionService expressionService, IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( validationRuleGroupStore );
-        checkNotNull( validationRuleStore );
-        checkNotNull( expressionService );
-        checkNotNull( idObjectManager );
-
-        this.validationRuleStore = validationRuleStore;
-        this.validationRuleGroupStore = validationRuleGroupStore;
-        this.expressionService = expressionService;
-        this.idObjectManager = idObjectManager;
-    }
 
     // -------------------------------------------------------------------------
     // ValidationRule CRUD operations

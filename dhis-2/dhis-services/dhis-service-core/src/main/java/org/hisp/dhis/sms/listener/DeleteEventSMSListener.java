@@ -51,9 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component( "org.hisp.dhis.sms.listener.DeleteEventSMSListener" )
 @Transactional
-public class DeleteEventSMSListener
-    extends
-    CompressionSMSListener
+public class DeleteEventSMSListener extends CompressionSMSListener
 {
     public DeleteEventSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,

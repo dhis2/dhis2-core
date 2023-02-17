@@ -202,16 +202,6 @@ class TextUtilsTest
     }
 
     @Test
-    void testReplaceFirst()
-    {
-        assertEquals( "green;red;blue,orange", TextUtils.replaceFirst( "green,red,blue,orange", ",", ";", 2 ) );
-        assertEquals( "green.red.blue-orange", TextUtils.replaceFirst( "green-red-blue-orange", "-", ".", 2 ) );
-        assertEquals( "llland", TextUtils.replaceFirst( "lalaland", "a", "", 2 ) );
-        assertEquals( "mamamand", TextUtils.replaceFirst( "lalaland", "la", "ma", 3 ) );
-        assertEquals( "lalaland", TextUtils.replaceFirst( "lalaland", "la", "ma", 0 ) );
-    }
-
-    @Test
     void testReplace()
     {
         String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement",

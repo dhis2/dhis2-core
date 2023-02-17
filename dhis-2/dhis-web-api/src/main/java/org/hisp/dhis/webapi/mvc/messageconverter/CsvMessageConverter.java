@@ -67,7 +67,7 @@ public class CsvMessageConverter extends AbstractRootNodeMessageConverter
             return super.supports( clazz );
         }
 
-        String pathInfo = request.getPathInfo();
+        String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
 
         for ( var pathPattern : WebMvcConfig.CSV_PATTERNS )
         {

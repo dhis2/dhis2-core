@@ -33,75 +33,7 @@
 
     <property name="unique" column="isunique" not-null="false" />
 
-    <property name="dataElementAttribute" not-null="true" />
-
-    <property name="dataElementGroupAttribute" not-null="false" />
-
-    <property name="indicatorAttribute" not-null="true" />
-
-    <property name="indicatorGroupAttribute" not-null="false" />
-
-    <property name="dataSetAttribute" not-null="false" />
-
-    <property name="organisationUnitAttribute" not-null="true" />
-
-    <property name="organisationUnitGroupAttribute" not-null="false" />
-
-    <property name="organisationUnitGroupSetAttribute" not-null="false" />
-
-    <property name="userAttribute" not-null="true" />
-
-    <property name="userGroupAttribute" not-null="false" />
-
-    <property name="programAttribute" not-null="false" />
-
-    <property name="programStageAttribute" not-null="false" />
-
-    <property name="trackedEntityTypeAttribute" not-null="false" />
-
-    <property name="trackedEntityAttributeAttribute" not-null="false" />
-
-    <property name="categoryOptionAttribute" not-null="false" />
-
-    <property name="categoryOptionGroupAttribute" not-null="false" />
-
-    <property name="documentAttribute" not-null="false" />
-
-    <property name="optionAttribute" not-null="false" />
-
-    <property name="optionSetAttribute" not-null="false" />
-
-    <property name="constantAttribute" not-null="false" />
-
-    <property name="legendSetAttribute" not-null="false" />
-
-    <property name="programIndicatorAttribute" not-null="false" />
-
-    <property name="sqlViewAttribute" not-null="false" />
-
-    <property name="sectionAttribute" not-null="false" />
-
-    <property name="categoryOptionComboAttribute" not-null="false" />
-
-    <property name="categoryOptionGroupSetAttribute" not-null="false"/>
-
-    <property name="dataElementGroupSetAttribute" not-null="false"/>
-
-    <property name="validationRuleAttribute" not-null="false"/>
-
-    <property name="validationRuleGroupAttribute" not-null="false"/>
-
-    <property name="categoryAttribute" not-null="false"/>
-
-    <property name="visualizationAttribute" not-null="true"/>
-
-    <property name="mapAttribute" not-null="true"/>
-
-    <property name="eventReportAttribute" not-null="true"/>
-
-    <property name="eventChartAttribute" not-null="true"/>
-
-    <property name="relationshipTypeAttribute" not-null="true"/>
+    <property name="objectTypes" column="objecttypes" not-null="true" type="jbSet" />
 
     <property name="sortOrder"/>
 

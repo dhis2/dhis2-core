@@ -31,13 +31,14 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,15 +46,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Transactional
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.document.DocumentService" )
 public class DefaultDocumentService
     implements DocumentService
 {
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    @Autowired
-    private DocumentStore documentStore;
+    private final DocumentStore documentStore;
 
     // -------------------------------------------------------------------------
     // DocumentService implementation

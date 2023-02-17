@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.email;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
@@ -48,6 +48,7 @@ import com.google.common.collect.Sets;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Transactional // TODO do we need transactions at all here?
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.email.EmailService" )
 public class DefaultEmailService
     implements EmailService
@@ -60,23 +61,11 @@ public class DefaultEmailService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MessageSender emailMessageSender;
+    private final MessageSender emailMessageSender;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private SystemSettingManager systemSettingManager;
-
-    public DefaultEmailService( MessageSender emailMessageSender, CurrentUserService currentUserService,
-        SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( emailMessageSender );
-        checkNotNull( currentUserService );
-        checkNotNull( emailMessageSender );
-
-        this.emailMessageSender = emailMessageSender;
-        this.currentUserService = currentUserService;
-        this.systemSettingManager = systemSettingManager;
-    }
+    private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // EmailService implementation

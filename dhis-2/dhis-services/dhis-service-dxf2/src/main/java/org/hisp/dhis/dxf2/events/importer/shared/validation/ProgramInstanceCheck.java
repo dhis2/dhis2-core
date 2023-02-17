@@ -66,7 +66,7 @@ public class ProgramInstanceCheck implements Checker
         List<ProgramInstance> programInstances;
 
         if ( programInstance == null ) // Program Instance should be NOT null,
-                                       // after the pre-processing stage
+                                      // after the pre-processing stage
         {
             if ( program.isRegistration() )
             {

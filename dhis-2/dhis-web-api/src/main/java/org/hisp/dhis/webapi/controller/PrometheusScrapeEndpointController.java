@@ -33,6 +33,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
@@ -45,6 +46,7 @@ import io.prometheus.client.exporter.common.TextFormat;
 /**
  * @author Luciano Fiandesio
  */
+@OpenApi.Tags( "system" )
 @Profile( "!test" )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

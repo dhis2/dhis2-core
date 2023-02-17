@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.analytics;
 
+import java.util.Set;
+
 /**
+ * Enum which represents the aggregation type.
+ *
  * @author Lars Helge Overland
  */
 public enum AggregationType
@@ -37,18 +41,28 @@ public enum AggregationType
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
     LAST( "last", true ), // Sum org unit
     LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
+    LAST_LAST_ORG_UNIT( "last_last_org_unit", true ),
     LAST_IN_PERIOD( "last_analytics_period", true ), // Sum org unit
     LAST_IN_PERIOD_AVERAGE_ORG_UNIT( "last_analytics_period_avg_org_unit", true ),
     FIRST( "first", true ),
     FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
+    FIRST_FIRST_ORG_UNIT( "first_first_org_unit", true ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),
     MIN( "min", true ),
     MAX( "max", true ),
+    MIN_SUM_ORG_UNIT( "min_sum_org_unit", true ),
+    MAX_SUM_ORG_UNIT( "max_sum_org_unit", true ),
     NONE( "none", true ), // Aggregatable for text only
     CUSTOM( "custom", false ),
     DEFAULT( "default", false );
+
+    private static final Set<AggregationType> LAST_TYPES = Set.of(
+        LAST, LAST_AVERAGE_ORG_UNIT, LAST_LAST_ORG_UNIT );
+
+    private static final Set<AggregationType> FIRST_TYPES = Set.of(
+        FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT );
 
     private final String value;
 
@@ -70,14 +84,19 @@ public enum AggregationType
         return value;
     }
 
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-
     public boolean isAggregatable()
     {
         return aggregatable;
+    }
+
+    public boolean isLast()
+    {
+        return LAST_TYPES.contains( this );
+    }
+
+    public boolean isFirst()
+    {
+        return FIRST_TYPES.contains( this );
     }
 
     public static AggregationType fromValue( String value )

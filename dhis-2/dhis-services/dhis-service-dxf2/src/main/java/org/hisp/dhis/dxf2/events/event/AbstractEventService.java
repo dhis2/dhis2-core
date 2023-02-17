@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -290,8 +292,6 @@ public abstract class AbstractEventService implements EventService
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
-        params.handleCurrentUserSelectionMode( user );
-
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
@@ -300,25 +300,26 @@ public abstract class AbstractEventService implements EventService
         Events events = new Events();
         List<Event> eventList = new ArrayList<>();
 
-        if ( params.isPaging() )
+        if ( params.isSkipPaging() )
         {
-            final Pager pager;
-
-            if ( params.isTotalPages() )
-            {
-                eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
-
-                int count = eventStore.getEventCount( params, organisationUnits );
-                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            }
-            else
-            {
-                pager = handleLastPageFlag( params, eventList, organisationUnits );
-            }
-
-            events.setPager( pager );
+            events.setEvents( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+            return events;
         }
 
+        Pager pager;
+        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+        if ( params.isTotalPages() )
+        {
+            int count = eventStore.getEventCount( params, organisationUnits );
+            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+        }
+        else
+        {
+            pager = handleLastPageFlag( params, eventList );
+        }
+
+        events.setPager( pager );
         events.setEvents( eventList );
 
         return events;
@@ -338,14 +339,11 @@ public abstract class AbstractEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( final EventSearchParams params,
-        final List<Event> eventList, final List<OrganisationUnit> organisationUnits )
+    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
     {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
-
-        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
 
         if ( isNotEmpty( eventList ) )
         {
@@ -379,8 +377,6 @@ public abstract class AbstractEventService implements EventService
         }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
-        params.handleCurrentUserSelectionMode( user );
 
         // ---------------------------------------------------------------------
         // If includeAllDataElements is set to true, return all data elements.
@@ -568,15 +564,15 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships )
+    public Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
     {
-        return getEvent( programStageInstance, false, false, includeRelationships );
+        return getEvent( programStageInstance, false, false, eventParams );
     }
 
     @Transactional( readOnly = true )
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, boolean includeRelationships )
+        boolean skipOwnershipCheck, EventParams eventParams )
     {
         if ( programStageInstance == null )
         {
@@ -691,13 +687,14 @@ public abstract class AbstractEventService implements EventService
 
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
-        if ( includeRelationships )
+        if ( eventParams.isIncludeRelationships() )
         {
             event.setRelationships( programStageInstance.getRelationshipItems()
                 .stream()
                 .filter( Objects::nonNull )
-                .map( r -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
+                .map( r -> relationshipService.findRelationship( r.getRelationship(), RelationshipParams.FALSE,
                     user ) )
+                .filter( Optional::isPresent ).map( Optional::get )
                 .collect( Collectors.toSet() ) );
         }
 

@@ -34,6 +34,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -49,21 +57,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataValueDto
 {
     @JsonProperty
+    @OpenApi.Property( { UID.class, DataElement.class } )
     private String dataElement;
 
     @JsonProperty
+    @OpenApi.Property( Period.class )
     private String period;
 
     @JsonProperty
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String orgUnit;
 
     @JsonProperty
+    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
     private String categoryOptionCombo;
 
     @JsonProperty
     private DataValueCategoryDto attribute;
 
     @JsonProperty
+    @OpenApi.Property( { UID.class, DataSet.class } )
     private String dataSet;
 
     @JsonProperty

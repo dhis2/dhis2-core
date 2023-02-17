@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.mapgeneration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +36,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -67,6 +68,7 @@ import org.springframework.util.Assert;
  * @author Kjetil Andresen <kjetand@ifi.uio.no>
  * @author Olai Solheim <olais@ifi.uio.no>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.mapgeneration.MapGenerationService" )
 public class GeoToolsMapGenerationService
     implements MapGenerationService
@@ -84,23 +86,6 @@ public class GeoToolsMapGenerationService
     private final SystemSettingManager systemSettingManager;
 
     private final I18nManager i18nManager;
-
-    public GeoToolsMapGenerationService( OrganisationUnitService organisationUnitService,
-        AnalyticsService analyticsService, CurrentUserService currentUserService,
-        SystemSettingManager systemSettingManager, I18nManager i18nManager )
-    {
-        checkNotNull( organisationUnitService );
-        checkNotNull( analyticsService );
-        checkNotNull( currentUserService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( i18nManager );
-
-        this.organisationUnitService = organisationUnitService;
-        this.analyticsService = analyticsService;
-        this.currentUserService = currentUserService;
-        this.systemSettingManager = systemSettingManager;
-        this.i18nManager = i18nManager;
-    }
 
     // -------------------------------------------------------------------------
     // MapGenerationService implementation
@@ -235,7 +220,7 @@ public class GeoToolsMapGenerationService
         Period period = null;
 
         if ( !mapView.getPeriods().isEmpty() ) // TODO integrate with
-                                               // BaseAnalyticalObject
+                                              // BaseAnalyticalObject
         {
             period = mapView.getPeriods().get( 0 );
         }

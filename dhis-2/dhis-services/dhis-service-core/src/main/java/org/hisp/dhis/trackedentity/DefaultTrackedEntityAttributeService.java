@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryItem;
@@ -62,6 +67,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * @author Abyot Asalefew
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityAttributeService" )
 public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
@@ -96,39 +102,6 @@ public class DefaultTrackedEntityAttributeService
     private final ProgramTrackedEntityAttributeStore programAttributeStore;
 
     private final OrganisationUnitService organisationUnitService;
-
-    public DefaultTrackedEntityAttributeService( TrackedEntityAttributeStore attributeStore,
-        ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
-        FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore,
-        TrackedEntityTypeAttributeStore entityTypeAttributeStore,
-        ProgramTrackedEntityAttributeStore programAttributeStore,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( attributeStore );
-        checkNotNull( programService );
-        checkNotNull( trackedEntityTypeService );
-        checkNotNull( fileResourceService );
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        checkNotNull( trackedEntityAttributeStore );
-        checkNotNull( entityTypeAttributeStore );
-        checkNotNull( programAttributeStore );
-        checkNotNull( organisationUnitService );
-
-        this.attributeStore = attributeStore;
-        this.programService = programService;
-        this.trackedEntityTypeService = trackedEntityTypeService;
-        this.fileResourceService = fileResourceService;
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-        this.trackedEntityAttributeStore = trackedEntityAttributeStore;
-        this.entityTypeAttributeStore = entityTypeAttributeStore;
-        this.programAttributeStore = programAttributeStore;
-        this.organisationUnitService = organisationUnitService;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

@@ -73,7 +73,8 @@ public class ProgramAttributeQuery implements DataItemQuery
         + " trackedentityattribute.name as item_name, trackedentityattribute.shortname as item_shortname,"
         + " trackedentityattribute.valuetype as item_valuetype, trackedentityattribute.code as item_code,"
         + " trackedentityattribute.sharing as item_sharing, cast (null as text) as item_domaintype,"
-        + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type";
+        + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type,"
+        + " cast (null as text) as expression";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 

@@ -35,7 +35,9 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -50,9 +52,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -68,9 +70,11 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -95,12 +99,6 @@ import com.google.common.collect.Lists;
 public class DefaultUserService
     implements UserService
 {
-    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserStore userStore;
 
     private final UserGroupService userGroupService;
@@ -148,14 +146,6 @@ public class DefaultUserService
         this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
         this.aclService = aclService;
     }
-
-    // -------------------------------------------------------------------------
-    // UserService implementation
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // User
-    // -------------------------------------------------------------------------
 
     @Override
     @Transactional
@@ -588,7 +578,7 @@ public class DefaultUserService
         }
 
         // Encode and set password
-        Matcher matcher = this.BCRYPT_PATTERN.matcher( rawPassword );
+        Matcher matcher = UserService.BCRYPT_PATTERN.matcher( rawPassword );
         if ( matcher.matches() )
         {
             throw new IllegalArgumentException( "Raw password look like BCrypt: " + rawPassword );
@@ -622,7 +612,8 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public User getUserByOpenId( String openId )
+    @CheckForNull
+    public User getUserByOpenId( @Nonnull String openId )
     {
         User user = userStore.getUserByOpenId( openId );
 
@@ -723,8 +714,13 @@ public class DefaultUserService
         {
             List<UserRole> roles = userRoleStore.getByUid(
                 userRoles.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+
             roles.forEach( ur -> {
-                if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
+                if ( ur == null )
+                {
+                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3032, user.getUsername() ) );
+                }
+                else if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
                 {
                     errors.add( new ErrorReport( UserRole.class, ErrorCode.E3003, currentUser.getUsername(),
                         ur.getName() ) );
@@ -764,29 +760,71 @@ public class DefaultUserService
         return userStore.getExpiringUserAccounts( inDays );
     }
 
-    @Override
     @Transactional
-    public void set2FA( User user, boolean enable )
+    @Override
+    public void resetTwoFactor( User user )
     {
-        // Do nothing if current state is the same as the requested state
-        if ( user.getTwoFA() == enable )
-        {
-            return;
-        }
+        user.setSecret( null );
+        updateUser( user );
+    }
 
+    @Transactional
+    @Override
+    public void enableTwoFa( User user, String code )
+    {
         if ( user.getSecret() == null )
         {
-            throw new IllegalStateException( "User secret not set!" );
+            throw new IllegalStateException( "User has not asked for a QR code yet, call the /qr endpoint first" );
         }
 
-        if ( !enable )
+        if ( !UserService.hasTwoFactorSecretForApproval( user ) )
         {
-            user.setSecret( null );
+            throw new IllegalStateException(
+                "QR already approved, you must call /disable and then call /qr before you can enable" );
+
         }
 
-        user.setTwoFA( enable );
+        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
+        {
+            throw new IllegalStateException( "Invalid code" );
+        }
 
-        updateUser( user );
+        approveTwoFactorSecret( user );
+    }
+
+    @Transactional
+    @Override
+    public void disableTwoFa( User user, String code )
+    {
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "Two factor is not enabled, enable first" );
+        }
+
+        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
+        {
+            throw new IllegalStateException( "Invalid code" );
+        }
+
+        resetTwoFactor( user );
+    }
+
+    @Override
+    @Transactional
+    public void privilegedTwoFactorDisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
+    {
+        User user = getUser( userUid );
+        if ( user == null )
+        {
+            throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( currentUser.getUid().equals( user.getUid() ) || !canCurrentUserCanModify( currentUser, user, errors ) )
+        {
+            throw new UpdateAccessDeniedException( ErrorCode.E3021.getMessage() );
+        }
+
+        resetTwoFactor( user );
     }
 
     @Override
@@ -838,7 +876,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public CurrentUserDetails validateAndCreateUserDetails( User user, String password )
+    public CurrentUserDetails createUserDetails( User user )
     {
         Objects.requireNonNull( user );
 
@@ -855,11 +893,11 @@ public class DefaultUserService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return createUserDetails( user, password, accountNonLocked, credentialsNonExpired );
+        return createUserDetails( user, accountNonLocked, credentialsNonExpired );
     }
 
     @Override
-    public CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+    public CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired )
     {
         return CurrentUserDetailsImpl.builder()
@@ -875,31 +913,6 @@ public class DefaultUserService
             .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
             .isSuper( user.isSuper() )
             .build();
-    }
-
-    @Override
-    @Transactional
-    public void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors )
-    {
-        User user = getUser( userUid );
-        if ( user == null )
-        {
-            throw new IllegalArgumentException( "User not found" );
-        }
-
-        if ( currentUser.getUid().equals( user.getUid() ) )
-        {
-            // Cannot disable 2FA for yourself with this API endpoint.
-            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
-                user.getName() ) );
-        }
-
-        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
-        {
-            return;
-        }
-
-        set2FA( user, false );
     }
 
     @Override
@@ -925,9 +938,96 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void generateTwoFactorSecret( User user )
+    public void generateTwoFactorOtpSecretForApproval( User user )
     {
-        user.setSecret( Base32.random() );
+        String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
+        user.setSecret( newSecret );
         updateUser( user );
+    }
+
+    @Override
+    @Transactional
+    public void approveTwoFactorSecret( User user )
+    {
+        if ( user.getSecret() != null && UserService.hasTwoFactorSecretForApproval( user ) )
+        {
+            user.setSecret( user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" ) );
+            updateUser( user );
+        }
+    }
+
+    @Override
+    public boolean hasTwoFactorRoleRestriction( User user )
+    {
+        return user.hasAnyRestrictions( Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME ) );
+    }
+
+    @Override
+    @Transactional
+    public void validateTwoFactorUpdate( boolean before, boolean after, User userToModify )
+    {
+        if ( before == after )
+        {
+            return;
+        }
+
+        if ( !before )
+        {
+            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
+        }
+
+        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+        if ( currentUserDetails == null )
+        {
+            throw new UpdateAccessDeniedException( "No current user in session, can not update user." );
+        }
+
+        // Current user can not update their own 2FA settings, must use
+        // /2fa/enable or disable API, even if they are admin.
+        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
+        {
+            throw new UpdateAccessDeniedException( ErrorCode.E3030.getMessage() );
+        }
+
+        // If current user has access to manage this user, they can disable 2FA.
+        User currentUser = getUser( currentUserDetails.getUid() );
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException(
+                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
+                    userToModify ) );
+        }
+
+        if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
+    }
+
+    @Override
+    @Nonnull
+    @Transactional( readOnly = true )
+    public List<User> getLinkedUserAccounts( @Nonnull User actingUser )
+    {
+        return userStore.getLinkedUserAccounts( actingUser );
+    }
+
+    @Override
+    @Transactional
+    public void setActiveLinkedAccounts( @Nonnull User actingUser, @Nonnull String activeUsername )
+    {
+        Instant oneHourAgo = Instant.now().minus( 1, ChronoUnit.HOURS );
+        Instant oneHourInTheFuture = Instant.now().plus( 1, ChronoUnit.HOURS );
+
+        List<User> linkedUserAccounts = getLinkedUserAccounts( actingUser );
+        for ( User user : linkedUserAccounts )
+        {
+            user.setLastLogin( user.getUsername().equals( activeUsername )
+                ? Date.from( oneHourInTheFuture )
+                : Date.from( oneHourAgo ) );
+
+            updateUser( user );
+        }
     }
 }

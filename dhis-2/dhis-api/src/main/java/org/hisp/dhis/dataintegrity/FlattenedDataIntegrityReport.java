@@ -226,7 +226,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
         this.programRuleActionsWithNoSectionId = mapOfRefsByDisplayNameOrUid(
             detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION.getName() ) );
         this.programRuleActionsWithNoStageId = mapOfRefsByDisplayNameOrUid(
-            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE.getName() ) );
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID.getName() ) );
     }
 
     private List<String> listOfDisplayNameOrUid( DataIntegrityDetails details )

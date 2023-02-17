@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.security.acl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -61,19 +62,13 @@ import org.springframework.stereotype.Service;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.security.acl.AclService" )
 public class DefaultAclService implements AclService
 {
     public static final String INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS = "Input object can't be of type Class!";
 
     private final SchemaService schemaService;
-
-    public DefaultAclService( SchemaService schemaService )
-    {
-        checkNotNull( schemaService );
-
-        this.schemaService = schemaService;
-    }
 
     @Override
     public boolean isSupported( String type )

@@ -25,8 +25,7 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
-        DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11"
     }
 
     stages {
@@ -76,31 +75,36 @@ pipeline {
                         values '9.0-jre11', '8.5-jre11'
                     }
                 }
+
                 environment {
                     DOCKER_IMAGE_NAME_BASE_FULL = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
                     DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" // used to test against different Tomcat variants
                 }
+
                 stages {
                     stage('Build Docker image') {
                         steps {
-                            script {
+                            withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
                                     sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild \
+                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                                             -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
                                             -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                                 }
                             }
                         }
                     }
+
                     stage('Run tests') {
                         steps {
                             script {
                                 dir("dhis-2/dhis-e2e-test") {
+                                    sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
                                     sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
                             }
                         }
+
                         post {
                             always {
                                 script {
@@ -109,6 +113,7 @@ pipeline {
                                     }
                                 }
                             }
+
                             failure {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
@@ -141,17 +146,19 @@ pipeline {
 
         stage('Publish images') {
             steps {
-                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    script {
-                        // Docker images are built in a matrix of different base images
-                        // all these images are used for testing but only one is published and endorsed for use in production
-                        // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
-                        sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-                        sh "docker push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-
+                script {
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
                         if (env.GIT_BRANCH == 'master') {
-                            sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME}:latest"
-                            sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                            tag = 'latest'
+                        } else {
+                            tag = env.GIT_BRANCH
+                        }
+
+                        withMaven(options: [artifactsPublisher(disabled: true)]) {
+                            sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
+                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                         }
                     }
                 }
@@ -175,6 +182,52 @@ pipeline {
                 }
             }
         }
+
+        stage('Update IM Play dev instance') {
+            environment {
+                HTTP = "http --check-status"
+                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
+                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+                IMAGE_REPOSITORY = "core-dev"
+                IMAGE_TAG = "latest"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+            }
+            steps {
+                script {
+                    if (env.GIT_BRANCH == 'master') {
+                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                            dir('im-db-manager') {
+                                sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+
+                                dir('scripts') {
+                                    env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
+                                    ).trim()
+
+                                    sh '[ -n "$DATABASE_ID" ]'
+                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
+                                }
+                            }
+
+                            dir('im-manager') {
+                                sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+
+                                dir('scripts') {
+                                    echo 'Creating DHIS2 instance on IM...'
+                                    sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
+                                    timeout(5) {
+                                        waitFor.statusOk("${env.INSTANCE_URL}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -190,7 +243,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendTimedoutMessage(30)
+                slack.sendTimedoutMessage()
             }
         }
     }

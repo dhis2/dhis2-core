@@ -157,8 +157,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray rels = json.getArray( "relationships" );
-        assertFalse( rels.isEmpty(),
-            "relationships are currently returned even if we exclude them using the fields param" );
+        assertFalse( rels.isEmpty() );
         assertEquals( 1, rels.size() );
         assertRelationship( r, rels.getObject( 0 ) );
         assertEventWithinRelationship( from, rels.getObject( 0 ).getObject( "from" ) );
@@ -178,10 +177,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
@@ -198,10 +194,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
@@ -231,10 +224,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "relationships" );
-        assertEquals( 1, relationships.size(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
-        assertTrue( relationships.get( 0 ).isNull(),
-            "other endpoints return an empty relationships array, this one currently returns [null]" );
+        assertEquals( 0, relationships.size() );
     }
 
     @Test
@@ -279,7 +269,7 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdNotFound()
     {
-        assertEquals( "Event not found for uid: Hq3Kc6HK4OZ",
+        assertEquals( "Event with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/events/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );

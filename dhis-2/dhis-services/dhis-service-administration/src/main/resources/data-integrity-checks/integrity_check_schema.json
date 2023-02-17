@@ -1,0 +1,83 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema#",
+  "$id": "https://dhis2.org/metadata-assessment.schema.json",
+  "title": "Metadata Assessment",
+  "description": "A DHIS2 metadata assessment object",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "A short and unique name which will represent the name of the set of queries in DHIS2",
+      "type": "string"
+    },
+    "section" : {
+      "description": "A name which can be used to group related queries.",
+      "type" : "string"
+    },
+    "section_order" : {
+      "description": "A number which can be used to order queries within sections",
+      "type": "integer",
+      "minimum": 1
+    },
+    "summary_uid": {
+      "type": "string",
+      "description": "A DHIS2 uid used to identify the summary query"
+    },
+    "summary_sql": {
+      "description": "An SQL query which should return a single line and consist of four character fields: indicator,value,percent and description",
+      "type": "string"
+    },
+    "details_uid":{
+      "description": "A DHIS2 uid used to identify the details query",
+      "type": "string"
+
+    },
+    "details_sql": {
+      "type" : "string",
+      "description": "A DHIS2 database query which should return all identified objects from this particular issue. Should return at least uid and name"
+    },
+    "details_id_type": {
+      "type": "string",
+      "description": "A short string which identifies the section of the details SQL."
+    },
+    "severity": {
+      "description": "Level of severity of the issue",
+      "type" : "string",
+      "enum": ["INFO",
+        "WARNING",
+        "SEVERE",
+        "CRITICAL"]
+    },
+    "introduction": {
+      "description": "This should field describe the issue the queries are seeking to identify.",
+      "type": "string"
+
+    },
+    "recommendation": {
+      "description": "This field should describe the procedure to rectify the problems",
+      "type": "string"
+    },
+    "is_protected" : {
+      "description": "Flag to indicate whether the query accesses protected tables. These queries cannot be accessed via the API",
+      "type" : "boolean",
+      "default" : false
+    },
+    "is_slow" : {
+      "description": "Flag to indicate whether the query has the potential to take a long time to execute. By default, these will be excluded.",
+      "type" : "boolean",
+      "default" : false
+    }
+  },
+  "required": [
+    "name",
+    "section",
+    "section_order",
+    "summary_uid",
+    "summary_sql",
+    "details_uid",
+    "details_sql",
+    "details_id_type",
+    "severity",
+    "introduction",
+    "recommendation"
+  ]
+}

@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
@@ -58,6 +60,7 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +73,7 @@ import com.google.gson.JsonElement;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 class UserControllerTest extends DhisControllerConvenienceTest
 {
 
@@ -235,7 +239,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testResetToInvite_NoSuchUser()
     {
-        assertEquals( "Object not found for uid: does-not-exist",
+        assertEquals( "User with id does-not-exist could not be found.",
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
@@ -419,6 +423,30 @@ class UserControllerTest extends DhisControllerConvenienceTest
                     .content( HttpStatus.CREATED ) );
     }
 
+    @Test
+    void testPatchUserGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', Set.of() );
+        userGroupA.setUid( "GZSvMCVowAx" );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', Set.of() );
+        userGroupB.setUid( "B6JNeAQ6akX" );
+        manager.save( userGroupB );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body(
+                "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]" ) ) );
+
+        JsonResponse response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 2, response.getArray( "userGroups" ).size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' } ] } ]" ) ) );
+        response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 1, response.getArray( "userGroups" ).size() );
+    }
+
     private String extractTokenFromEmailText( String message )
     {
         int tokenPos = message.indexOf( "?token=" );
@@ -449,7 +477,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAIllegalSameUserLegacy()
+    void testIllegalUpdateNoPermission()
     {
         switchContextToUser( this.peter );
         assertEquals( "You don't have the proper permissions to update this user.",
@@ -458,74 +486,40 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAIllegalSameUser()
+    void testReset2FAPrivilegedWithNonAdminUser()
     {
-        switchContextToUser( this.peter );
-        assertEquals( "You don't have the proper permissions to update this user.",
-            PUT( "/37/users/" + peter.getUid(), "{\"twoFA\":true}" ).error( HttpStatus.FORBIDDEN )
-                .getMessage() );
-    }
-
-    @Test
-    void testDisable2FAFailNotAllowedByExecutingUser()
-    {
-        User superUser = getSuperUser();
-        switchContextToUser( superUser );
-
-        JsonObject user = GET( "/users/{uid}", superUser.getUid() ).content();
-        String userJson = user.toString();
-
-        String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
-
-        assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
-            PUT( "/37/users/" + superUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
-                .getMessage() );
-    }
-
-    @Test
-    void testDisable2FAFailNotAllowedByExecutingUserB()
-    {
-        // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "ALL" ) );
         newUser.setEmail( "valid@email.com" );
-        newUser.setTwoFA( true );
+        String secret = Base32.random();
+        newUser.setSecret( secret );
         userService.addUser( newUser );
 
         switchContextToUser( newUser );
 
-        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
-        String userJson = user.toString();
+        HttpResponse post = POST( "/users/" + newUser.getUid() + "/twoFA/disabled" );
 
-        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+        String message = post.error( HttpStatus.FORBIDDEN )
+            .getMessage();
+        assertEquals( "Not allowed to disable 2FA for current user",
+            message );
 
-        assertEquals(
-            "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API",
-            PUT( "/37/users/" + newUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
-                .getMessage() );
+        User userByUsername = userService.getUserByUsername( newUser.getUsername() );
+        assertEquals( secret, userByUsername.getSecret() );
     }
 
     @Test
-    void testDisable2FAFailNotAllowedByExecutingUserA()
+    void testReset2FAPrivilegedWithAdminUser()
     {
-        // Manually enable 2FA for the new user
-        User newUser = makeUser( "X", List.of( "TEST" ) );
+        User newUser = makeUser( "X", List.of( "ALL" ) );
         newUser.setEmail( "valid@email.com" );
-        newUser.setTwoFA( true );
+        String secret = Base32.random();
+        newUser.setSecret( secret );
         userService.addUser( newUser );
 
-        User superUser = getSuperUser();
-        switchContextToUser( superUser );
+        POST( "/users/" + newUser.getUid() + "/twoFA/disabled" ).content( HttpStatus.OK );
 
-        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
-        String userJson = user.toString();
+        User userByUsername = userService.getUserByUsername( newUser.getUsername() );
 
-        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
-
-        JsonImportSummary summary = PUT( "/37/users/" + newUser.getUid(), twoFAOn ).content( HttpStatus.OK )
-            .as( JsonImportSummary.class );
-        assertEquals( "ImportReport", summary.getResponseType() );
-        assertEquals( "OK", summary.getStatus() );
-        assertEquals( 1, summary.getStats().getUpdated() );
-        assertEquals( newUser.getUid(), summary.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getUid() );
+        assertNull( userByUsername.getSecret() );
     }
 }

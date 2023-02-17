@@ -30,10 +30,12 @@ package org.hisp.dhis.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
 import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
@@ -121,6 +123,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -130,10 +133,6 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramIndicatorStore programIndicatorStore;
 
     private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
@@ -335,7 +334,8 @@ public class DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, null, null );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, DEFAULT_EXPRESSION_PARAMS,
+            DEFAULT_PROGRAM_EXPRESSION_PARAMS );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 
@@ -505,7 +505,7 @@ public class DefaultProgramIndicatorService
             .programIndicatorService( this )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( i18nManager.getI18n() )
+            .i18nSupplier( Suppliers.memoize( i18nManager::getI18n ) )
             .constantMap( expressionService.getConstantMap() )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )

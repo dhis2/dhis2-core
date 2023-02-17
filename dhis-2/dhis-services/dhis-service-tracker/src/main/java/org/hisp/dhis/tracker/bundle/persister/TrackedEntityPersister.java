@@ -121,6 +121,6 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     protected String getUpdatedTrackedEntity( TrackedEntityInstance entity )
     {
         return null; // We don't need to keep track, Tei has already been
-                     // updated
+                    // updated
     }
 }

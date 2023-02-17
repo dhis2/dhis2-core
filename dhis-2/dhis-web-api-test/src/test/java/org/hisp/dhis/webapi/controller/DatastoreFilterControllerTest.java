@@ -279,7 +279,7 @@ class DatastoreFilterControllerTest extends AbstractDatastoreControllerTest
     {
         assertJson(
             "[{'key':'cat'},{'key':'dog'}]",
-            GET( "/dataStore/pets?fields=&headless=true&filter=_:eq:cat&filter=_:eq:dog&rootJunction=or" ) );
+            GET( "/dataStore/pets?fields=&headless=true&filter=_:eq:cat&filter=_:eq:dog&rootJunction=OR" ) );
     }
 
     @Test
@@ -287,6 +287,6 @@ class DatastoreFilterControllerTest extends AbstractDatastoreControllerTest
     {
         assertJson(
             "[{'key':'cat'}]",
-            GET( "/dataStore/pets?fields=&headless=true&filter=_:eq:cat&filter=_:like:at&rootJunction=and" ) );
+            GET( "/dataStore/pets?fields=&headless=true&filter=_:eq:cat&filter=_:like:at&rootJunction=AND" ) );
     }
 }

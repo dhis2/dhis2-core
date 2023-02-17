@@ -36,6 +36,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityI
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.INACTIVE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.LAST_UPDATED_BY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.ORGUNIT_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.POTENTIALDUPLICATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.TYPE_UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATED;
@@ -86,6 +87,7 @@ public class TrackedEntityInstanceRowCallbackHandler
         setUserInfoSnapshot( rs, getColumnName( LAST_UPDATED_BY ), tei::setLastUpdatedByUserInfo );
         tei.setInactive( rs.getBoolean( getColumnName( INACTIVE ) ) );
         tei.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
+        tei.setPotentialDuplicate( rs.getBoolean( getColumnName( POTENTIALDUPLICATE ) ) );
 
         Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) );
         if ( geo.isPresent() )

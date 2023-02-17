@@ -37,21 +37,24 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.*;
+import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -62,14 +65,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -79,6 +75,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
 @Slf4j
@@ -93,6 +90,9 @@ public class AppController
     private AppManager appManager;
 
     @Autowired
+    private AppMenuManager appMenuManager;
+
+    @Autowired
     private RenderService renderService;
 
     @Autowired
@@ -104,9 +104,34 @@ public class AppController
     @Autowired
     private ObjectMapper jsonMapper;
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+    @Autowired
+    private UserService userService;
+
+    @GetMapping( value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON )
+    public @ResponseBody Map<String, List<WebModule>> getWebModules( @RequestParam String username,
+        HttpServletRequest request )
+    {
+        String contextPath = ContextUtils.getContextPath( request );
+
+        return Map.of( "modules", getAccessibleAppMenu( contextPath, username ) );
+    }
+
+    public List<WebModule> getAccessibleAppMenu( String contextPath, String username )
+    {
+        List<WebModule> modules = appMenuManager.getAppMenu( username );
+
+        User user = userService.getUserByUsername( username );
+
+        List<App> apps = appManager
+            .getAccessibleApps( contextPath, user )
+            .stream()
+            .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
+            .collect( Collectors.toList() );
+
+        modules.addAll( apps.stream().map( WebModule::getModule ).collect( Collectors.toList() ) );
+
+        return modules;
+    }
 
     @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
     public ResponseEntity<List<App>> getApps( @RequestParam( required = false ) String key )

@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
@@ -63,6 +64,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( value = SqlViewSchemaDescriptor.API_ENDPOINT )
 public class SqlViewController

@@ -56,11 +56,9 @@ class TestTextPatternMethod
     @Test
     void testValidateRandom()
     {
-        String[] valid = { "RANDOM(#)", "RANDOM(X)", "RANDOM(x)", "RANDOM(Xx#)", "RANDOM(xX#)", "RANDOM(##XXxx)", // 12
-                                                                                                                  // characters
+        String[] valid = { "RANDOM(#)", "RANDOM(X)", "RANDOM(x)", "RANDOM(Xx#)", "RANDOM(xX#)", "RANDOM(##XXxx)", // 12 characters
             "RANDOM(#X#xXx#xX#XX)" };
-        String[] invalid = { "RAND(#)", "RANDOM()", "RANDOM(1)", // 13
-                                                                 // characters
+        String[] invalid = { "RAND(#)", "RANDOM()", "RANDOM(1)", // 13 characters
             "RANDOM(#############)" };
         testSyntax( TextPatternMethod.RANDOM, valid, true );
         testSyntax( TextPatternMethod.RANDOM, invalid, false );
@@ -71,8 +69,7 @@ class TestTextPatternMethod
     {
         String[] valid = { "SEQUENTIAL(#)", // 12 characters
             "SEQUENTIAL(############)" };
-        String[] invalid = { "SEQ(#)", "SEQUENTIAL()", "SEQUENTIAL(1)", "SEQUENTIAL(x)", "SEQUENTIAL(X)", // 13
-                                                                                                          // characters
+        String[] invalid = { "SEQ(#)", "SEQUENTIAL()", "SEQUENTIAL(1)", "SEQUENTIAL(x)", "SEQUENTIAL(X)", // 13 characters
             "SEQUENTIAL(#############)" };
         testSyntax( TextPatternMethod.SEQUENTIAL, valid, true );
         testSyntax( TextPatternMethod.SEQUENTIAL, invalid, false );

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.deletedobject;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,17 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.deletedobject.DeletedObjectService" )
 public class DefaultDeletedObjectService
     implements DeletedObjectService
 {
     private final DeletedObjectStore deletedObjectStore;
-
-    public DefaultDeletedObjectService( DeletedObjectStore deletedObjectStore )
-    {
-        checkNotNull( deletedObjectStore );
-        this.deletedObjectStore = deletedObjectStore;
-    }
 
     @Override
     @Transactional

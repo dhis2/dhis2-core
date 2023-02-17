@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import java.util.Map;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -34,8 +36,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Generates a SQL JOIN to join an enrollment or event with one ore more related
@@ -126,9 +126,8 @@ public class RelationshipTypeJoinGenerator
 
     private static String addRelationshipWhereClause( Long relationshipTypeId, RelationshipEntity relationshipEntity )
     {
-        String sql = new StringSubstitutor(
-            ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipTypeId ).build() )
-                .replace( RELATIONSHIP_JOIN );
+        String sql = new StringSubstitutor( Map.of( "relationshipid", relationshipTypeId ) )
+            .replace( RELATIONSHIP_JOIN );
 
         sql += " AND ";
 

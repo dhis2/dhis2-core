@@ -257,10 +257,8 @@ public class DefaultAppManager
     }
 
     @Override
-    public List<App> getAccessibleApps( String contextPath )
+    public List<App> getAccessibleApps( String contextPath, User user )
     {
-        User user = currentUserService.getCurrentUser();
-
         return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) )
             .collect( Collectors.toList() );
     }

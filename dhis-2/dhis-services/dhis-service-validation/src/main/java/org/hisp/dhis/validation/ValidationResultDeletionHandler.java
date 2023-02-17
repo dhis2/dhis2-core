@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
  * @author Stian Sandvold
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ValidationResultDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ValidationResult.class );

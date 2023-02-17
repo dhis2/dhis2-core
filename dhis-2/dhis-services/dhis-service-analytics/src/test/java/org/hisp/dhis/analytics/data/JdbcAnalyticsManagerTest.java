@@ -111,7 +111,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql( "desc" );
+        assertExpectedLastSql( "desc" );
     }
 
     @Test
@@ -121,7 +121,23 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql( "desc" );
+        assertExpectedLastSql( "desc" );
+    }
+
+    @Test
+    void verifyQueryGeneratedWhenDataElementHasLastLastOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_LAST_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        String subquery = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\",\"daysno\"," +
+            "\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\"," +
+            "row_number() over (partition by ax.\"dx\" order by peenddate desc, pestartdate desc) as pe_rank " +
+            "from analytics as ax where ax.\"pestartdate\" >= '2005-01-31' and ax.\"peenddate\" <= '2015-01-31' " +
+            "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
+
+        assertThat( sql.getValue(), containsString( subquery ) );
     }
 
     @Test
@@ -131,7 +147,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql( "desc" );
+        assertExpectedLastInPeriodSql( "desc" );
     }
 
     @Test
@@ -141,8 +157,32 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql( "desc" );
+        assertExpectedLastInPeriodSql( "desc" );
     }
+
+    @Test
+    void verifyQueryGeneratedWhenDataElementHasMaxSumOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.MAX_SUM_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedMaxMinSumOrgUnitSql( "max" );
+    }
+
+    @Test
+    void verifyQueryGeneratedWhenDataElementHasMinSumOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.MIN_SUM_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedMaxMinSumOrgUnitSql( "min" );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private void mockRowSet()
     {
@@ -152,12 +192,12 @@ class JdbcAnalyticsManagerTest
 
     private DataQueryParams createParams( AggregationType aggregationType )
     {
-
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, aggregationType );
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         Period peA = PeriodType.getPeriodFromIsoString( "201501" );
 
-        return DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
+        return DataQueryParams.newBuilder()
+            .withDataType( DataType.NUMERIC )
             .withTableName( "analytics" )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA ) ) )
@@ -165,30 +205,39 @@ class JdbcAnalyticsManagerTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
-    private void assertExpectedSql( String sortOrder )
-    {
-
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
-            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
-            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
-            + sortOrder + ") as pe_rank "
-            + "from analytics as ax where pestartdate >= '2005-01-31' and pestartdate <= '2015-01-31' "
-            + "and (value is not null or textvalue is not null))";
-
-        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
-    }
-
     private void assertExpectedLastSql( String sortOrder )
     {
-
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
-            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
-            + sortOrder + ") as pe_rank "
-            + "from analytics as ax where pestartdate >= '2015-01-01' and pestartdate <= '2015-01-31' "
-            + "and (value is not null or textvalue is not null))";
+            + "row_number() over (partition by ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\" order by peenddate " +
+            sortOrder + ", pestartdate " + sortOrder + ") as pe_rank "
+            + "from analytics as ax where ax.\"pestartdate\" >= '2005-01-31' and ax.\"peenddate\" <= '2015-01-31' "
+            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
 
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
     }
 
+    private void assertExpectedLastInPeriodSql( String sortOrder )
+    {
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
+            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
+            + "row_number() over (partition by ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\" order by peenddate " +
+            sortOrder + ", pestartdate " + sortOrder + ") as pe_rank "
+            + "from analytics as ax where ax.\"pestartdate\" >= '2015-01-01' and ax.\"peenddate\" <= '2015-01-31' "
+            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
+
+        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
+    }
+
+    private void assertExpectedMaxMinSumOrgUnitSql( String maxOrMin )
+    {
+        String maxMinTypeSql = "(select \"ao\",\"oulevel\",\"co\",\"pe\",\"ou\",\"dx\",\"year\","
+            + maxOrMin + "(\"daysxvalue\") as \"daysxvalue\"," + maxOrMin + "(\"daysno\") as \"daysno\","
+            + maxOrMin + "(\"value\") as \"value\"," + maxOrMin + "(\"textvalue\") as \"textvalue\" "
+            + "from analytics as ax where ax.\"pestartdate\" >= '2015-01-01' and ax.\"peenddate\" <= '2015-01-31' "
+            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null) "
+            + "group by \"ao\",\"oulevel\",\"co\",\"pe\",\"ou\",\"dx\",\"year\")";
+
+        assertThat( sql.getValue(), containsString( maxMinTypeSql ) );
+    }
 }

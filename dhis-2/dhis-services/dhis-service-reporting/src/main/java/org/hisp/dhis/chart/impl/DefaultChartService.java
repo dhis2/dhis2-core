@@ -27,19 +27,22 @@
  */
 package org.hisp.dhis.chart.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.collection.ListUtils.getArray;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
@@ -115,6 +118,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.visualization.ChartService" )
 public class DefaultChartService implements ChartService
 {
@@ -154,28 +158,6 @@ public class DefaultChartService implements ChartService
     private final AnalyticsService analyticsService;
 
     private final EventAnalyticsService eventAnalyticsService;
-
-    public DefaultChartService( PeriodService periodService, DataValueService dataValueService,
-        MinMaxDataElementService minMaxDataElementService, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, AnalyticsService analyticsService,
-        EventAnalyticsService eventAnalyticsService )
-    {
-        checkNotNull( periodService );
-        checkNotNull( dataValueService );
-        checkNotNull( minMaxDataElementService );
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( analyticsService );
-        checkNotNull( eventAnalyticsService );
-
-        this.periodService = periodService;
-        this.dataValueService = dataValueService;
-        this.minMaxDataElementService = minMaxDataElementService;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-        this.analyticsService = analyticsService;
-        this.eventAnalyticsService = eventAnalyticsService;
-    }
 
     // -------------------------------------------------------------------------
     // ChartService implementation

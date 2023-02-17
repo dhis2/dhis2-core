@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.option;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -44,37 +44,19 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.option.OptionService" )
 public class DefaultOptionService
     implements OptionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Qualifier( "org.hisp.dhis.option.OptionSetStore" )
+    private final IdentifiableObjectStore<OptionSet> optionSetStore;
 
-    private IdentifiableObjectStore<OptionSet> optionSetStore;
+    private final OptionStore optionStore;
 
-    private OptionStore optionStore;
+    private final OptionGroupStore optionGroupStore;
 
-    private OptionGroupStore optionGroupStore;
-
-    private OptionGroupSetStore optionGroupSetStore;
-
-    public DefaultOptionService(
-        @Qualifier( "org.hisp.dhis.option.OptionSetStore" ) IdentifiableObjectStore<OptionSet> optionSetStore,
-        OptionStore optionStore,
-        OptionGroupStore optionGroupStore, OptionGroupSetStore optionGroupSetStore )
-    {
-        checkNotNull( optionSetStore );
-        checkNotNull( optionStore );
-        checkNotNull( optionGroupStore );
-        checkNotNull( optionGroupSetStore );
-
-        this.optionSetStore = optionSetStore;
-        this.optionStore = optionStore;
-        this.optionGroupStore = optionGroupStore;
-        this.optionGroupSetStore = optionGroupSetStore;
-    }
+    private final OptionGroupSetStore optionGroupSetStore;
 
     // -------------------------------------------------------------------------
     // OptionService implementation

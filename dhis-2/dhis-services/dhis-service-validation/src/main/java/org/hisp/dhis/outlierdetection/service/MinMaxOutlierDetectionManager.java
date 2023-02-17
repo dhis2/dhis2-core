@@ -32,6 +32,7 @@ import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.calendar.Calendar;
@@ -54,15 +55,11 @@ import org.springframework.stereotype.Repository;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Repository
 public class MinMaxOutlierDetectionManager
 {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-
-    public MinMaxOutlierDetectionManager( NamedParameterJdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     /**
      * Returns a list of outlier data values based on min-max values for the

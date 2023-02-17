@@ -48,10 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityDataValueAuditService
     implements TrackedEntityDataValueAuditService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
 
     private final Predicate<TrackedEntityDataValueAudit> aclFilter;

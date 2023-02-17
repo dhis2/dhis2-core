@@ -51,7 +51,6 @@ import com.google.common.collect.Sets;
  */
 class QueryItemTest
 {
-
     private Option opA;
 
     private Option opB;
@@ -150,8 +149,6 @@ class QueryItemTest
         QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
         // Duplicate
         QueryItem qiB = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
-        // of
-        // 'qiA'
         // Unique
         QueryItem qiC = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null );
         // Unique
@@ -167,20 +164,18 @@ class QueryItemTest
     @Test
     void testGetKeyForSameDataElementInTwoPrograms()
     {
-        // arrange
         QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
         QueryItem qiB = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null );
-        // act, assert
+
         assertNotEquals( qiA.getKey(), qiB.getKey() );
     }
 
     @Test
     void testGetKeyForSameDataElementWithNoPrograms()
     {
-        // arrange
         QueryItem qiA = new QueryItem( deA, (Program) null, null, ValueType.TEXT, AggregationType.NONE, null );
         QueryItem qiB = new QueryItem( deA, (Program) null, null, ValueType.TEXT, AggregationType.NONE, null );
-        // act, assert
+
         assertEquals( qiA.getKey(), qiB.getKey() );
     }
 }

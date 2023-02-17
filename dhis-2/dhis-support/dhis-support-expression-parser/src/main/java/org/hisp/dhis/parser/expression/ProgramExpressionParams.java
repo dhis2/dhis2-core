@@ -44,6 +44,8 @@ import org.hisp.dhis.program.ProgramIndicator;
 @Builder
 public class ProgramExpressionParams
 {
+    public static final ProgramExpressionParams DEFAULT_PROGRAM_EXPRESSION_PARAMS = builder().build();
+
     /**
      * Program indicator
      */

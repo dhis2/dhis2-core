@@ -90,7 +90,7 @@ public class GeoJsonAttributesCheck
         Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
         List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
-        if ( objects.isEmpty() || !schema.havePersistedProperty( "attributeValues" ) )
+        if ( objects.isEmpty() || !schema.hasPersistedProperty( "attributeValues" ) )
         {
             return;
         }

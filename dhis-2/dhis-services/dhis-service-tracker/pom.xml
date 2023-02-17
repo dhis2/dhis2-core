@@ -103,10 +103,6 @@
       <groupId>io.github.classgraph</groupId>
       <artifactId>classgraph</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.scalified</groupId>
-      <artifactId>tree</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.mapstruct</groupId>
