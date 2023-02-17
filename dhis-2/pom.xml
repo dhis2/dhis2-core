@@ -63,6 +63,9 @@
 
     <!-- *Dependencies* -->
 
+    <!-- DHIS2 Expression Parser -->
+    <dhis2-expression-parser.version>1.0.0-SNAPSHOT</dhis2-expression-parser.version>
+
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>2.1.0-SNAPSHOT</dhis2-rule-engine.version>
 
@@ -1052,14 +1055,15 @@
             <artifactId>commons-logging</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>org.hisp.dhis.parser</groupId>
-            <artifactId>dhis-antlr-expression-parser</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <artifactId>expression-parser</artifactId>
+        <groupId>org.hisp.dhis.lib.expression</groupId>
+        <version>${dhis2-expression-parser.version}</version>
       </dependency>
 
       <!-- Spring -->
