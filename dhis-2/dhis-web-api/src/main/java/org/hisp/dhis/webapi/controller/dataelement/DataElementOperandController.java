@@ -101,7 +101,7 @@ public class DataElementOperandController
 
     private final CategoryService dataElementCategoryService;
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
@@ -186,10 +186,15 @@ public class DataElementOperandController
             final long countTotal = isNotEmpty( totalOfItems ) ? totalOfItems.size() : 0;
 
             // fetch the count for the current query from a short-lived cache
-            long cachedCountTotal = paginationCountCache.computeIfAbsent(
-                calculatePaginationCountKey( currentUser, filters, options ),
-                () -> countTotal );
+
+            long cachedCountTotal = !isFilterNullOrBlank( options.get( "filter" ) )
+                ? paginationCountCache.computeIfAbsent(
+                    calculatePaginationCountKey( currentUser, options ),
+                    () -> countTotal )
+                : countTotal;
+
             pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
+
             linkService.generatePagerLinks( pager, DataElementOperand.class );
         }
 
@@ -206,9 +211,14 @@ public class DataElementOperandController
         return rootNode;
     }
 
-    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    private String calculatePaginationCountKey( User currentUser, WebOptions options )
     {
-        return currentUser.getUsername() + "." + "DataElementOperand" + "." + String.join( "|", filters ) + "."
+        return currentUser.getUsername() + "." + "DataElementOperand" + "." + options.get( "filter" ) + "."
             + options.getRootJunction().name();
+    }
+
+    private boolean isFilterNullOrBlank( String filter )
+    {
+        return filter == null || filter.isBlank();
     }
 }
