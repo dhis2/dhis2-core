@@ -101,7 +101,7 @@ public class DataElementOperandController
 
     private final CategoryService dataElementCategoryService;
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
@@ -186,10 +186,16 @@ public class DataElementOperandController
             final long countTotal = isNotEmpty( totalOfItems ) ? totalOfItems.size() : 0;
 
             // fetch the count for the current query from a short-lived cache
-            long cachedCountTotal = paginationCountCache.computeIfAbsent(
+
+            // Line "String deg = CollectionUtils.popStartsWith( filters, "dataElement.dataElementGroups.id:eq:" );"
+            // removes all related dataElementGroups from collection used later by calling calculatePaginationCountKey (param filters).
+            // The key must not be unique and pager does not work properly.
+            long cachedCountTotal = !filters.isEmpty() ? paginationCountCache.computeIfAbsent(
                 calculatePaginationCountKey( currentUser, filters, options ),
-                () -> countTotal );
+                () -> countTotal ) : countTotal;
+
             pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
+
             linkService.generatePagerLinks( pager, DataElementOperand.class );
         }
 
