@@ -97,7 +97,6 @@ class DataIntegrityOrganisationUnitsMultipleRootsControllerTest extends Abstract
     void testOrgUnitsMultipleRootsRuns()
     {
         assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
     }
 
 }

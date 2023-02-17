@@ -20,6 +20,8 @@ For support and discussions visit the [community forum](https://community.dhis2.
 
 For general info visit the [project web page](https://www.dhis2.org/).
 
+For OpenAPI documentation visit the [Stoplight workspace](https://dhis2.stoplight.io/).
+
 For software developer resources visit the [developer portal](https://developers.dhis2.org/).
 
 To contribute to the software read the [contributor guidelines](https://developers.dhis2.org/community/contribute).
