@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.junit.jupiter.api.Test;
 
-public class LimitOffsetTest
+class LimitOffsetTest
 {
     @Test
-    public void testRenderLimit()
+    void testWhenOffSetHasPaging()
     {
         LimitOffset limitOffset = LimitOffset.of(
             AnalyticsPagingParams.builder()
@@ -43,19 +43,34 @@ public class LimitOffsetTest
                 .page( 1 )
                 .pageSize( 1 )
                 .build() );
-        assertEquals( limitOffset.render(), "limit 2 offset 0" );
+        assertEquals( "limit 2 offset 0", limitOffset.render() );
     }
 
     @Test
-    public void testRenderLimitNoPaging()
+    void testWhenOffSetIsUnlimitedAndPagingIsFalse()
     {
         LimitOffset limitOffset = LimitOffset.of(
             AnalyticsPagingParams.builder()
                 .paging( false )
+                .unlimited( true )
                 .page( 1 )
                 .pageSize( 1 )
                 .build() );
-        assertEquals( limitOffset.render(), "" );
+        assertEquals( "", limitOffset.render() );
     }
 
+    @Test
+    void testWhenOffSetIsUnlimitedAndPagingIsTrue()
+    {
+        LimitOffset limitOffset = LimitOffset.of(
+            AnalyticsPagingParams.builder()
+                .paging( true )
+                .unlimited( true )
+                .page( 1 )
+                .pageSize( 1 )
+                .build() );
+
+        // Unlimited takes precedence.
+        assertEquals( "", limitOffset.render() );
+    }
 }

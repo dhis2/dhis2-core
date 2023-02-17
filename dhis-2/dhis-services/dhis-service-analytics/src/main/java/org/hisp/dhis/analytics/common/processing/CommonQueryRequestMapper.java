@@ -139,6 +139,7 @@ public class CommonQueryRequestMapper
                 .paging( request.isPaging() )
                 .page( request.getPage() )
                 .pageSize( request.getPageSize() )
+                .unlimited( request.isIgnoreLimit() )
                 .build() )
             .displayProperty( request.getDisplayProperty() )
             .dataIdScheme( request.getDataIdScheme() )

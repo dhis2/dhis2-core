@@ -40,24 +40,24 @@ public class LimitOffset extends BaseRenderable
 
     private final Integer offset;
 
-    private final boolean isPaging;
+    private final boolean unlimited;
 
     public static LimitOffset of( AnalyticsPagingParams pagingParams )
     {
         return LimitOffset.of(
             pagingParams.getPageSizePlusOne(),
             pagingParams.getOffset(),
-            pagingParams.isPaging() );
+            pagingParams.isUnlimited() );
     }
 
     @Override
     public String render()
     {
-        if ( !isPaging )
+        if ( unlimited )
         {
             return EMPTY;
         }
+
         return "limit " + limit + " offset " + offset;
     }
-
 }

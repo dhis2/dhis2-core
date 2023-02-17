@@ -49,9 +49,11 @@ public class AnalyticsPagingParams implements IdentifiableKey
 
     private final Boolean totalPages;
 
+    private final Boolean unlimited;
+
     public boolean isEmpty()
     {
-        return page == null && pageSize == null && paging == null && totalPages == null;
+        return page == null && pageSize == null && paging == null && totalPages == null && unlimited == null;
     }
 
     public boolean showTotalPages()
@@ -62,6 +64,11 @@ public class AnalyticsPagingParams implements IdentifiableKey
     public boolean isPaging()
     {
         return toBooleanDefaultIfNull( paging, true );
+    }
+
+    public boolean isUnlimited()
+    {
+        return toBooleanDefaultIfNull( unlimited, false );
     }
 
     public int getPageWithDefault()

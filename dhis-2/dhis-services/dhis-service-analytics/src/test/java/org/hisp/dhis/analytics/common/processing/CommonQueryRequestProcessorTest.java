@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class CommonQueryRequestProcessorTest
@@ -45,22 +44,6 @@ class CommonQueryRequestProcessorTest
 
     private final CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
         systemSettingManager );
-
-    @Test
-    @Disabled( "behaviour has changed, this test doesn't make sense anymore" )
-    void testEventDate()
-    {
-        CommonQueryRequest request = new CommonQueryRequest()
-            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
-            .withIncidentDate( "LAST_MONTH" )
-            .withEnrollmentDate( "2021-06-30" )
-            .withLastUpdated( "TODAY" )
-            .withScheduledDate( "YESTERDAY" );
-
-        assertEquals(
-            "pe:IpHINAT79UW.LAST_YEAR:EVENT_DATE;2021-06-30:ENROLLMENT_DATE;YESTERDAY:SCHEDULED_DATE;LAST_MONTH:INCIDENT_DATE;TODAY:LAST_UPDATED",
-            commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ) );
-    }
 
     @Test
     void testPaginationPagingTruePageSizeHigherThanMaxLimit()
@@ -108,26 +91,58 @@ class CommonQueryRequestProcessorTest
     }
 
     @Test
-    void testPagingFalseMaxLimit()
+    void testPagingFalseAndPageSizeGreaterThanMaxLimit()
     {
         when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 100 );
         CommonQueryRequest request = new CommonQueryRequest()
             .withPageSize( 150 )
             .withPaging( false );
         CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
-        assertTrue( processed.isPaging() );
+        assertFalse( processed.isPaging() );
+        assertFalse( processed.isIgnoreLimit() );
         assertEquals( 100, processed.getPageSize() );
     }
 
     @Test
-    void testPagingFalsePaging()
+    void testPagingFalseAndPageSizeLowerThanMaxLimit()
     {
         when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( 100 );
         CommonQueryRequest request = new CommonQueryRequest()
             .withPageSize( 50 )
             .withPaging( false );
         CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertFalse( processed.isPaging() );
+        assertFalse( processed.isIgnoreLimit() );
+        assertEquals( 100, processed.getPageSize() );
+    }
+
+    @Test
+    void testPagingFalseAndNoMaxLimit()
+    {
+        int unlimited = 0;
+
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( unlimited );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPageSize( 50 )
+            .withPaging( false );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+        assertFalse( processed.isPaging() );
+        assertTrue( processed.isIgnoreLimit() );
+        assertEquals( 50, processed.getPageSize() );
+    }
+
+    @Test
+    void testPagingTrueAndNoMaxLimit()
+    {
+        int unlimited = 0;
+
+        when( systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT ) ).thenReturn( unlimited );
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withPageSize( 50 )
+            .withPaging( true );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
         assertTrue( processed.isPaging() );
+        assertFalse( processed.isIgnoreLimit() );
         assertEquals( 50, processed.getPageSize() );
     }
 }

@@ -69,26 +69,29 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     private CommonQueryRequest computePagingParams( CommonQueryRequest commonQueryRequest )
     {
         int maxLimit = systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
+        boolean unlimited = maxLimit == 0;
         boolean ignoreLimit = commonQueryRequest.isIgnoreLimit();
-        boolean hasMaxLimit = maxLimit > 0 && !ignoreLimit;
-        int pageSize = commonQueryRequest.getPageSize();
+        boolean hasMaxLimit = !unlimited && !ignoreLimit;
 
         if ( commonQueryRequest.isPaging() )
         {
-            commonQueryRequest = commonQueryRequest.withPaging( true );
-            if ( hasMaxLimit && pageSize > maxLimit )
+            boolean pageSizeOverMaxLimit = commonQueryRequest.getPageSize() > maxLimit;
+
+            if ( hasMaxLimit && pageSizeOverMaxLimit )
             {
                 return commonQueryRequest.withPageSize( maxLimit );
             }
-            return commonQueryRequest.withPage( pageSize );
-        }
 
-        if ( ignoreLimit || maxLimit == 0 )
+            return commonQueryRequest;
+        }
+        else
         {
-            return commonQueryRequest.withPaging( false );
-        }
+            if ( unlimited )
+            {
+                return commonQueryRequest.withIgnoreLimit( true );
+            }
 
-        return commonQueryRequest.withPaging( true )
-            .withPageSize( Math.min( pageSize, maxLimit ) );
+            return commonQueryRequest.withPageSize( maxLimit );
+        }
     }
 }
