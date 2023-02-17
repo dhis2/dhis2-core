@@ -187,12 +187,11 @@ public class DataElementOperandController
 
             // fetch the count for the current query from a short-lived cache
 
-            // Line "String deg = CollectionUtils.popStartsWith( filters, "dataElement.dataElementGroups.id:eq:" );"
-            // removes all related dataElementGroups from collection used later by calling calculatePaginationCountKey (param filters).
-            // The key must not be unique and pager does not work properly.
-            long cachedCountTotal = !filters.isEmpty() ? paginationCountCache.computeIfAbsent(
-                calculatePaginationCountKey( currentUser, filters, options ),
-                () -> countTotal ) : countTotal;
+            long cachedCountTotal = !isFilterNullOrBlank( options.get( "filter" ) )
+                ? paginationCountCache.computeIfAbsent(
+                    calculatePaginationCountKey( currentUser, options ),
+                    () -> countTotal )
+                : countTotal;
 
             pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
 
@@ -212,9 +211,14 @@ public class DataElementOperandController
         return rootNode;
     }
 
-    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    private String calculatePaginationCountKey( User currentUser, WebOptions options )
     {
-        return currentUser.getUsername() + "." + "DataElementOperand" + "." + String.join( "|", filters ) + "."
+        return currentUser.getUsername() + "." + "DataElementOperand" + "." + options.get( "filter" ) + "."
             + options.getRootJunction().name();
+    }
+
+    private boolean isFilterNullOrBlank( String filter )
+    {
+        return filter == null || filter.isBlank();
     }
 }
