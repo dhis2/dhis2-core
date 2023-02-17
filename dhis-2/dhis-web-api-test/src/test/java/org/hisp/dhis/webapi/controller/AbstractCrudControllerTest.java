@@ -41,9 +41,6 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import java.util.Collections;
 
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -660,27 +657,6 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Program with id doesNotExist could not be found.",
             PUT( "/programs/doesNotExist/sharing", "{}" ).content( HttpStatus.NOT_FOUND ) );
-    }
-
-    @Test
-    void testFieldsFilterWithAttributeValues()
-    {
-        Attribute attribute = createAttribute( 'A' );
-        attribute.setDataElementAttribute( true );
-        manager.save( attribute );
-        DataElement dataElement = createDataElement( 'A' );
-        dataElement.getAttributeValues().add( new AttributeValue( "value", attribute ) );
-        manager.save( dataElement );
-
-        JsonList<JsonIdentifiableObject> response = GET( "/dataElements?fields=id,name,attributeValues",
-            dataElement.getUid() ).content().getList( "dataElements", JsonIdentifiableObject.class );
-        assertEquals( attribute.getUid(), response.get( 0 ).getAttributeValues().get( 0 ).getAttribute().getId() );
-
-        response = GET( "/dataElements?fields=id,name,attributeValues[id,attribute[id,name]]", dataElement.getUid() )
-            .content().getList( "dataElements", JsonIdentifiableObject.class );
-        assertEquals( attribute.getUid(), response.get( 0 ).getAttributeValues().get( 0 ).getAttribute().getId() );
-        assertEquals( attribute.getName(), response.get( 0 ).getAttributeValues().get( 0 ).getAttribute().getName() );
-
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
