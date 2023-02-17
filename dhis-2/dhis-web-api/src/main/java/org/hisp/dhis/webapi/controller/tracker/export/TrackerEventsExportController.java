@@ -111,7 +111,7 @@ public class TrackerEventsExportController
     @Nonnull
     private final FieldFilterService fieldFilterService;
 
-    private final EventFieldsParamMapper eventFieldsParamMapper;
+    private final EventFieldsParamMapper eventsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
@@ -236,7 +236,7 @@ public class TrackerEventsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-        EventParams eventParams = eventFieldsParamMapper.map( fields );
+        EventParams eventParams = eventsMapper.map( fields );
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
             eventParams );
         if ( event == null )

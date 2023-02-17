@@ -101,7 +101,7 @@ public class TrackerTrackedEntitiesExportController
     @Nonnull
     private final CsvEventService<TrackedEntity> csvEventService;
 
-    private final TrackedEntityFieldsParamMapper trackedEntityFieldsParamMapper;
+    private final TrackedEntityFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
@@ -111,7 +111,7 @@ public class TrackerTrackedEntitiesExportController
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = trackedEntityFieldsParamMapper.map( fields,
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -152,7 +152,7 @@ public class TrackerTrackedEntitiesExportController
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         // TODO the filtering does not apply to CSV. Why are we using the mapper here?
-        TrackedEntityInstanceParams trackedEntityInstanceParams = trackedEntityFieldsParamMapper.map( fields,
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -191,7 +191,7 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = trackedEntityFieldsParamMapper.map( fields );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
@@ -206,7 +206,7 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws IOException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = trackedEntityFieldsParamMapper.map( fields );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );

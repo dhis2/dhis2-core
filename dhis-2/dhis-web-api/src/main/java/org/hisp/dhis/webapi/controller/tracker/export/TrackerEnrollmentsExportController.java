@@ -82,7 +82,7 @@ public class TrackerEnrollmentsExportController
 
     private final FieldFilterService fieldFilterService;
 
-    private final EnrollmentFieldsParamMapper enrollmentFieldsParamMapper;
+    private final EnrollmentFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
@@ -95,7 +95,7 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = enrollmentFieldsParamMapper.map( fields )
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
@@ -134,7 +134,7 @@ public class TrackerEnrollmentsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-        EnrollmentParams enrollmentParams = enrollmentFieldsParamMapper.map( fields );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
