@@ -193,7 +193,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             sql += "order by " + getSortColumns( params, ASC ) + getSortColumns( params, DESC );
 
-            sql = TextUtils.removeLastComma( sql ) + " ";
+            sql = TextUtils.removeLastComma( sql ) + " nulls last ";
         }
 
         return sql;
@@ -527,7 +527,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( isNotEmpty( selectColumnNames ) )
             {
-                sql += "group by " + getCommaDelimitedString( selectColumnNames ) + " ";
+                sql += "group by " + getCommaDelimitedString( selectColumnNames ) + " nulls last ";
             }
         }
 

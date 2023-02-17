@@ -415,7 +415,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
+            + "' group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" nulls last limit 200001";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -444,7 +444,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and ax.\"fWIAEtYVEGk\" > '10'"
-            + " group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
+            + " group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" nulls last limit 200001";
         assertThat( sql.getValue(), is( expected ) );
     }
 
