@@ -59,11 +59,13 @@ public class Constant
     public Constant( String name )
     {
         this.name = name;
+        this.shortName = name;
     }
 
     public Constant( String name, double value )
     {
         this.name = name;
+        this.shortName = name;
         this.value = value;
     }
 

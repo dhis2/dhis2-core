@@ -42,6 +42,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -71,6 +72,7 @@ import org.springframework.web.client.HttpClientErrorException;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AggregateDataExchangeService
@@ -199,6 +201,8 @@ public class AggregateDataExchangeService
         catch ( HttpClientErrorException ex )
         {
             String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+
+            log.error( message, ex );
 
             return new ImportSummary( ImportStatus.ERROR, message );
         }
