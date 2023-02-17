@@ -114,6 +114,15 @@ public interface IdentifiableObjectStore<T>
     T getByUidNoAcl( @Nonnull String uid );
 
     /**
+     * Retrieves the object with the given code. Bypasses the ACL system.
+     *
+     * @param code the code.
+     * @return the object with the given code.
+     */
+    @CheckForNull
+    T getByCodeNoAcl( @Nonnull String code );
+
+    /**
      * Retrieves the object with the given name.
      *
      * @param name the name.

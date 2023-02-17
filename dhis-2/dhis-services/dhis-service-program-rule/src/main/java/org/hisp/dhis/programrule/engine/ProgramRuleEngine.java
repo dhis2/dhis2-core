@@ -230,7 +230,7 @@ public class ProgramRuleEngine
 
         Map<String, String> constantMap = constantService.getConstantMap().entrySet()
             .stream()
-            .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
+            .collect( Collectors.toMap( Map.Entry::getKey, v -> Double.toString( v.getValue().getValue() ) ) );
 
         Map<String, List<String>> supplementaryData = supplementaryDataProvider.getSupplementaryData( programRules );
 

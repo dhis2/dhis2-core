@@ -34,12 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
 
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
+import org.hisp.dhis.dataexchange.client.response.Status;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 class Dhis2ClientTest
@@ -112,23 +113,6 @@ class Dhis2ClientTest
     }
 
     @Test
-    void testHandleErrors()
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
-
-        ResponseEntity<?> ok = new ResponseEntity<>( HttpStatus.OK );
-        ResponseEntity<?> unauthorized = new ResponseEntity<>( HttpStatus.UNAUTHORIZED );
-        ResponseEntity<?> forbidden = new ResponseEntity<>( HttpStatus.FORBIDDEN );
-        ResponseEntity<?> notFound = new ResponseEntity<>( HttpStatus.NOT_FOUND );
-
-        client.handleErrors( ok );
-        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( unauthorized ) );
-        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( forbidden ) );
-        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( notFound ) );
-    }
-
-    @Test
     void testAddIfNotDefault()
         throws Exception
     {
@@ -142,5 +126,20 @@ class Dhis2ClientTest
         client.addIfNotDefault( builder, "idScheme", IdScheme.UID );
 
         assertEquals( "https://myserver.org?dataElementIdScheme=code", builder.build().toString() );
+    }
+
+    @Test
+    void testDeserialize()
+    {
+        String json = "{\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
+
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        Dhis2Response response = client.deserialize( json, Dhis2Response.class );
+
+        assertEquals( HttpStatus.CONFLICT, response.getHttpStatus() );
+        assertEquals( Status.ERROR, response.getStatus() );
+        assertEquals( "There was a problem", response.getMessage() );
     }
 }
