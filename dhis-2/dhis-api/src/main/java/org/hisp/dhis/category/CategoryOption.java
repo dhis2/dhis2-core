@@ -91,6 +91,7 @@ public class CategoryOption
     public CategoryOption( String name )
     {
         this.name = name;
+        this.shortName = name;
     }
 
     // -------------------------------------------------------------------------

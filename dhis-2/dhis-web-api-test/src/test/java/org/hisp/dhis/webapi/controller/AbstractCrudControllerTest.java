@@ -123,8 +123,8 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/organisationUnits/", "{'name':'My Unit 2', 'shortName':'OU2', 'openingDate': '2020-01-01'}" ) );
 
         String dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly','organisationUnits':[{'id':'" + ou1
-                + "'},{'id':'" + ou2 + "'}]}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly',"
+                + "'organisationUnits':[{'id':'" + ou1 + "'},{'id':'" + ou2 + "'}]}" ) );
 
         JsonResponse dataSet = GET( "/dataSets/{id}", dsId ).content();
         assertEquals( 2, dataSet.getArray( "organisationUnits" ).size() );
@@ -167,7 +167,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void replaceTranslationsOk()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
         JsonArray translations = GET( "/dataSets/{id}/translations", id )
             .content().getArray( "translations" );
 
@@ -191,7 +191,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void replaceTranslationsWithDuplicateLocales()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
         JsonArray translations = GET( "/dataSets/{id}/translations", id )
             .content().getArray( "translations" );
 
@@ -222,7 +222,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void replaceTranslations_MissingValue()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One or more errors occurred, please see full details in import report.",
@@ -241,7 +241,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void replaceTranslations_MissingProperty()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One or more errors occurred, please see full details in import report.",
@@ -260,7 +260,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void replaceTranslations_MissingLocale()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One or more errors occurred, please see full details in import report.",
@@ -295,7 +295,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         manager.save( userGroupB );
 
         String dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
 
         assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
             "[{'op': 'add', 'path': '/sharing/userGroups/th4S6ovwcr8', 'value': { 'access': 'rw------', 'id': 'th4S6ovwcr8' } }]" ) );
@@ -354,7 +354,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostJsonObject()
     {
-        HttpResponse response = POST( "/constants/", "{'name':'answer', 'value': 42}" );
+        HttpResponse response = POST( "/constants/", "{'name':'answer', 'shortName': 'answer', 'value': 42}" );
         assertWebMessage( "Created", 201, "OK", null, response.content( HttpStatus.CREATED ) );
         assertEquals( "http://localhost/constants/" + assertStatus( HttpStatus.CREATED, response ),
             response.header( "Location" ) );
