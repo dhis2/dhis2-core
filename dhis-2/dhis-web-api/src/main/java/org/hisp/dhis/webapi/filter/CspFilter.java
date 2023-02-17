@@ -67,7 +67,7 @@ public class CspFilter
     public CspFilter( DhisConfigurationProvider dhisConfig, ConfigurationService configurationService )
     {
         this.enabled = dhisConfig.isEnabled( CSP_ENABLED );
-        this.filteredURLs = CspUtils.DEFAULT_FILTERED_URL_PATTERNS;
+        this.filteredURLs = CspUtils.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
         this.configurationService = configurationService;
     }
 
@@ -82,7 +82,7 @@ public class CspFilter
             return;
         }
 
-        if ( addCspIfStaticContentInsideApi( req.getRequestURI() ) )
+        if ( isStaticContentInsideApi( req.getRequestURI() ) )
         {
             chain.doFilter( req, new AddStaticContentCspHeaderResponseWrapper( res, configurationService ) );
             return;
@@ -107,10 +107,10 @@ public class CspFilter
 
     private boolean isRegularApi( String requestURI )
     {
-        return CspUtils.ALL_API.matcher( requestURI ).matches();
+        return CspUtils.EVERYTHING_START_WITH_API.matcher( requestURI ).matches();
     }
 
-    private boolean addCspIfStaticContentInsideApi( String requestURI )
+    private boolean isStaticContentInsideApi( String requestURI )
     {
         for ( Pattern pattern : CspUtils.STATIC_RESOURCES_IN_API_URL_PATTERNS )
         {

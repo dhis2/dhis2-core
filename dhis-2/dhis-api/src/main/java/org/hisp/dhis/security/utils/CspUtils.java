@@ -49,9 +49,8 @@ public class CspUtils
 
     public static final Pattern P_7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
 
-    public static final List<Pattern> DEFAULT_FILTERED_URL_PATTERNS = List.of( P_1, P_2, P_3, P_4, P_5, P_6, P_7 );
-
-    public static final Pattern ALL_API = Pattern.compile( "^/api/[a-zA-Z\\d].+" );
+    public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS = List.of( P_1, P_2, P_3, P_4, P_5, P_6,
+        P_7 );
 
     public static final Pattern STATIC_IN_API_1 = Pattern.compile( "^/api/staticContent/[a-zA-Z\\d].+" );
 
@@ -59,4 +58,6 @@ public class CspUtils
 
     public static final List<Pattern> STATIC_RESOURCES_IN_API_URL_PATTERNS = List.of( STATIC_IN_API_1,
         STATIC_IN_API_2 );
+
+    public static final Pattern EVERYTHING_START_WITH_API = Pattern.compile( "^/api/[a-zA-Z\\d].+" );
 }

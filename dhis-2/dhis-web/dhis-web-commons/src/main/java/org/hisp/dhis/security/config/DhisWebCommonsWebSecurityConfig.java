@@ -179,25 +179,6 @@ public class DhisWebCommonsWebSecurityConfig
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
-        //        @Override
-        //        public void configure( WebSecurity web )
-        //            throws Exception
-        //        {
-        //            super.configure( web );
-        //            web
-        //                .ignoring()
-        //                .antMatchers( "/api/staticContent/**" )
-        //                .antMatchers( "/dhis-web-commons/oidc/**" )
-        //                .antMatchers( "/dhis-web-commons/javascripts/**" )
-        //                .antMatchers( "/dhis-web-commons/css/**" )
-        //                .antMatchers( "/dhis-web-commons/flags/**" )
-        //                .antMatchers( "/dhis-web-commons/fonts/**" )
-        //                .antMatchers( "/api/files/style/external" )
-        //                .antMatchers( "/external-static/**" )
-        //                .antMatchers( "/favicon.ico" )
-        //                .antMatchers( "/api/publicKeys/**" );
-        //        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
