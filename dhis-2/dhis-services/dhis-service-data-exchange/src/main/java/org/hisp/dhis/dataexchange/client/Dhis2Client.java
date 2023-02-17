@@ -284,9 +284,11 @@ public class Dhis2Client
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Failed to read JSON value", ex );
+            String message = format( "Failed to read JSON value: %s", ex.getMessage() );
 
-            throw new UncheckedIOException( format( "Failed to read JSON value: %s", ex.getMessage() ), ex );
+            log.error( message, ex );
+
+            throw new UncheckedIOException( message, ex );
         }
     }
 }
