@@ -505,6 +505,7 @@ class ProgramRuleTest extends TrackerTest
         constant.setValue( 7.8 );
         constant.setUid( "NAgjOfWMXg6" );
         constant.setName( "Gravity" );
+        constant.setShortName( "Gravity" );
         return constant;
     }
 }

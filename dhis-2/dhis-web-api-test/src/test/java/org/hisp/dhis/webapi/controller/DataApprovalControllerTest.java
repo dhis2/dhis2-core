@@ -83,8 +83,9 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
             POST( "/dataApprovalWorkflows/", "{'name':'W1', 'periodType':'Monthly', " + "'dataApprovalLevels':[{'id':'"
                 + level1Id + "'}, {'id':'" + level2Id + "'}]}" ) );
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " + "'workflow': {'id':'" + wfId + "'},"
-                + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId + "'}]" + "}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', "
+                + "'workflow': {'id':'" + wfId + "'}," + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId
+                + "'}]" + "}" ) );
 
         getSuperUser().addOrganisationUnit( manager.get( OrganisationUnit.class, ouId ) );
     }

@@ -11,6 +11,7 @@
   },
   "timelyDays": 15,
   "name": "test1",
+  "shortName": "test1",
   "dataElementDecoration": false,
   "notifyCompletingUser": false,
   "noValueRequiresComment": false,
