@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
@@ -325,7 +324,7 @@ public class ListGrid
     @JsonProperty
     public int getHeight()
     {
-        return isNotEmpty( grid ) ? grid.size() : 0;
+        return grid != null && grid.size() > 0 ? grid.size() : 0;
     }
 
     @Override
@@ -334,7 +333,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        return isNotEmpty( grid ) ? grid.get( 0 ).size() : 0;
+        return grid != null && grid.size() > 0 ? grid.get( 0 ).size() : 0;
     }
 
     @Override
@@ -391,7 +390,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        return isNotEmpty( grid ) ? getVisibleRows().get( 0 ).size() : 0;
+        return grid != null && grid.size() > 0 ? getVisibleRows().get( 0 ).size() : 0;
     }
 
     @Override
@@ -510,7 +509,7 @@ public class ListGrid
 
         List<List<Object>> tempGrid = new ArrayList<>();
 
-        if ( isNotEmpty( headers ) )
+        if ( headers != null && headers.size() > 0 )
         {
             for ( List<Object> row : grid )
             {
@@ -666,7 +665,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        if ( isNotEmpty( headers ) )
+        if ( headers.size() > 0 )
         {
             headers.remove( columnIndex );
         }
@@ -1347,7 +1346,7 @@ public class ListGrid
     {
         StringBuilder builder = new StringBuilder( "[\n" );
 
-        if ( isNotEmpty( headers ) )
+        if ( headers != null && headers.size() > 0 )
         {
             List<String> headerNames = new ArrayList<>();
 
