@@ -69,9 +69,11 @@ public class AnalyticsPagingCriteria extends RequestTypeAware
      */
     public void definePageSize( int maxLimit )
     {
+        final int unlimited = 0;
+
         if ( isPaging() )
         {
-            if ( getPageSize() != null && maxLimit != 0 && getPageSize() > maxLimit )
+            if ( getPageSize() != null && maxLimit != unlimited && getPageSize() > maxLimit )
             {
                 setPageSize( maxLimit );
             }
