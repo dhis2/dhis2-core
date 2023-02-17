@@ -482,13 +482,8 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( "/index.html" ).permitAll()
 
                 .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
-                .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
-                .antMatchers( apiContextPath + "/account/password" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
-                .antMatchers( apiContextPath + "/account" ).permitAll()
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
