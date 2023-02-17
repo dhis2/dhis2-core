@@ -42,10 +42,10 @@ import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -60,12 +60,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class DimensionsServiceCommon
 {
 
-    public static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = EnumSet.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    public static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = EnumSet.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,

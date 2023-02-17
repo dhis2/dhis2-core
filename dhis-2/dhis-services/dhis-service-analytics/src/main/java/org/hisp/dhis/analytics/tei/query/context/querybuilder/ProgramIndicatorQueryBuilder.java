@@ -78,7 +78,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
 {
-    public final static String SUBQUERY_TABLE_ALIAS = "subax";
+    public static final String SUBQUERY_TABLE_ALIAS = "subax";
 
     private final ProgramIndicatorService programIndicatorService;
 

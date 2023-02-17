@@ -75,7 +75,7 @@ public class CommonParamsDelegator
             .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
             .map( DimensionIdentifier::getDimension )
             .filter( DimensionParam::isQueryItem )
-            .map( dimensionParam -> dimensionParam.getQueryItem() )
+            .map( DimensionParam::getQueryItem )
             .filter( QueryItem::hasOptionSet )
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( List::stream )

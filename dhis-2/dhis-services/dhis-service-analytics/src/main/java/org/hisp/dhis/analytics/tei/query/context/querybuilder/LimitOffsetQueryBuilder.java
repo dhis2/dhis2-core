@@ -59,8 +59,8 @@ public class LimitOffsetQueryBuilder implements SqlQueryBuilder
     @Override
     public RenderableSqlQuery buildSqlQuery(
         QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unused,
-        List<AnalyticsSortingParams> unused_ )
+        List<DimensionIdentifier<DimensionParam>> unusedOne,
+        List<AnalyticsSortingParams> unusedTwo )
     {
         AnalyticsPagingParams pagingParams = queryContext.getTeiQueryParams()
             .getCommonParams()

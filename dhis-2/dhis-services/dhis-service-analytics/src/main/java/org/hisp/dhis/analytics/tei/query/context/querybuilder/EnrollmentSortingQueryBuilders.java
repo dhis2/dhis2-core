@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
@@ -35,6 +36,8 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
 
 import java.util.function.BiFunction;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -48,6 +51,7 @@ import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+@NoArgsConstructor( access = PRIVATE )
 public class EnrollmentSortingQueryBuilders
 {
     /**

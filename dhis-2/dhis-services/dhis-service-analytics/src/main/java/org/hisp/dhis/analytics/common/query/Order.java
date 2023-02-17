@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static org.hisp.dhis.webapi.controller.event.mapper.SortDirection.DESC;
+
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -44,10 +46,12 @@ public class Order extends BaseRenderable
     public String render()
     {
         String rendered = order.render();
-        if ( direction == SortDirection.DESC )
+
+        if ( direction == DESC )
         {
             rendered += " desc";
         }
+
         return rendered;
     }
 }

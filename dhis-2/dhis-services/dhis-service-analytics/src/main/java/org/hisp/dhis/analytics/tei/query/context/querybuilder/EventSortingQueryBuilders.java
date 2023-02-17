@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
@@ -38,6 +39,8 @@ import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtil
 
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -51,11 +54,12 @@ import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+@NoArgsConstructor( access = PRIVATE )
 public class EventSortingQueryBuilders
 {
     /**
-     * this method will add to the builder the "order" and "left joins" needed
-     * for the given param
+     * This method will add to the builder the "order" and "left joins" needed
+     * for the given param.
      *
      * @param param the order param
      * @param queryContext the context
@@ -85,7 +89,7 @@ public class EventSortingQueryBuilders
     }
 
     /**
-     * builds the needed left joins for the given param
+     * Builds the needed left joins for the given param.
      *
      * @param param the order param
      * @param enrollmentAlias the alias for the enrollment query

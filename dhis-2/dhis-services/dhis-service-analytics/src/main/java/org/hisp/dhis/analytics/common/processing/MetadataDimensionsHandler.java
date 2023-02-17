@@ -71,7 +71,6 @@ public class MetadataDimensionsHandler
      *
      * @param grid the {@link Grid}.
      * @param commonParams the {@link CommonParams}.
-     *
      * @return the map of {@link MetadataItem}.
      */
     Map<String, List<String>> handle( Grid grid, CommonParams commonParams )
@@ -174,7 +173,6 @@ public class MetadataDimensionsHandler
      *
      * @param itemOptions a list of {@link Option} objects.
      * @param defaultOptionUids a list of default {@link Option} UIDs.
-     *
      * @return a list of UIDs.
      */
     private List<String> getDimensionItemUids( List<Option> itemOptions, List<String> defaultOptionUids )

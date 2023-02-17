@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -45,6 +46,8 @@ import org.junit.jupiter.api.Test;
  */
 class DimensionIdentifierConverterTest
 {
+    private DimensionIdentifierConverter converter = new DimensionIdentifierConverter();
+
     @Test
     void fromStringWithSuccessUsingOffset()
     {
@@ -101,12 +104,10 @@ class DimensionIdentifierConverterTest
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
-            "Program offset should be null" );
+        assertNull( dimensionIdentifier.getProgram().getOffset(), "Program offset should be null" );
         assertEquals( "RaMbOrTys0n", dimensionIdentifier.getProgramStage().getElement().getUid(),
             "Stage uid should be RaMbOrTys0n" );
-        assertEquals( null, dimensionIdentifier.getProgramStage().getOffset(),
-            "Stage offset should be null" );
+        assertNull( dimensionIdentifier.getProgramStage().getOffset(), "Stage offset should be null" );
     }
 
     @Test
@@ -130,8 +131,7 @@ class DimensionIdentifierConverterTest
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
-            "Program offset should be null" );
+        assertNull( dimensionIdentifier.getProgram().getOffset(), "Program offset should be null" );
         assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }
 
@@ -163,17 +163,17 @@ class DimensionIdentifierConverterTest
     {
         // Given
         Program program1 = new Program( "prg-1" );
-        program1.setUid( "lxAQ7Zs9VYR" );
+        program1.setUid( "zxAQ7Zs9VYR" );
 
         Program program2 = new Program( "prg-2" );
-        program2.setUid( "ur1Edk5Oe2n" );
+        program2.setUid( "qr1Edk5Oe2n" );
 
         List<Program> programs = List.of( program1, program2 );
         String fullDimensionId = "non-existing-program.jklm";
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
+            () -> converter.fromString( programs, fullDimensionId ) );
 
         // Then
         assertEquals( "Specified program non-existing-program does not exist", thrown.getMessage(),
@@ -194,7 +194,7 @@ class DimensionIdentifierConverterTest
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
+            () -> converter.fromString( programs, fullDimensionId ) );
 
         // Then
         assertEquals( "Program stage invalid-stage[4] is not defined in program lxAQ7Zs9VYR[1]", thrown.getMessage(),
@@ -215,7 +215,7 @@ class DimensionIdentifierConverterTest
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
+            () -> converter.fromString( programs, fullDimensionId ) );
 
         // Then
         assertEquals( "Specified program non-existing-program[1] does not exist", thrown.getMessage(),
@@ -235,24 +235,21 @@ class DimensionIdentifierConverterTest
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs,
-                "lxAQ7Zs9VYR[1].fghi[4].jklm[2]" ) );
+            () -> converter.fromString( programs, "lxAQ7Zs9VYR[1].fghi[4].jklm[2]" ) );
         // Then
         assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
         thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs,
-                "lxAQ7Zs9VYR[1].jklm[2]" ) );
+            () -> converter.fromString( programs, "lxAQ7Zs9VYR[1].jklm[2]" ) );
         // Then
         assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
         thrown = assertThrows( IllegalArgumentException.class,
-            () -> new DimensionIdentifierConverter().fromString( programs,
-                "jklm[2]" ) );
+            () -> converter.fromString( programs, "jklm[2]" ) );
         // Then
         assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );

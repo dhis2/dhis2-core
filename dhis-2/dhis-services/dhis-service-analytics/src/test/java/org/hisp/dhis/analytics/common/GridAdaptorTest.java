@@ -144,7 +144,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         assertNotNull( grid, "Should not be null: grid" );
         assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
         assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 1, grid.getHeaders().size(), "Should have size of 12: headers" );
+        assertEquals( 1, grid.getHeaders().size(), "Should have size of 1: headers" );
         assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
@@ -231,12 +231,10 @@ class GridAdaptorTest extends DhisConvenienceTest
         TrackedEntityTypeAttribute tetaA = createTrackedEntityTypeAttribute( 'A', TEXT );
         tetaA.setUid( "tetaA-uid" );
         tetaA.getTrackedEntityAttribute().setUid( "teaA-uid" );
-        // tetaA.getTrackedEntityAttribute().setValueType( TEXT );
 
         TrackedEntityTypeAttribute tetaB = createTrackedEntityTypeAttribute( 'B', TEXT );
         tetaB.setUid( "tetaB-uid" );
         tetaB.getTrackedEntityAttribute().setUid( "teaB-uid" );
-        // tetaB.getTrackedEntityAttribute().setValueType( TEXT );
 
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid( "tet-uid" );

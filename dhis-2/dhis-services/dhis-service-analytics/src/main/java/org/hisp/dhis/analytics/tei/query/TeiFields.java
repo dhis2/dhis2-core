@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import lombok.Getter;
@@ -138,7 +139,6 @@ public class TeiFields
      * into a stream of {@link Field}.
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
-     *
      * @return a {@link Stream} of {@link Field}.
      */
     public static Stream<Field> getDimensionFields( @Nonnull TeiQueryParams teiQueryParams )
@@ -152,7 +152,6 @@ public class TeiFields
      * {@link TeiQueryParams}.
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
-     *
      * @return a {@link Stream} of uids.
      */
     private static Stream<String> getAllAttributesUids( @Nonnull TeiQueryParams teiQueryParams )
@@ -174,7 +173,6 @@ public class TeiFields
      * list of {@link Program}.
      *
      * @param programs the list of {@link Program}.
-     *
      * @return a {@link Stream} of {@link TrackedEntityAttribute}.
      */
     public static Stream<TrackedEntityAttribute> getProgramAttributes( @Nonnull List<Program> programs )
@@ -191,14 +189,17 @@ public class TeiFields
      * {@link TrackedEntityType}.
      *
      * @param trackedEntityType the {@link TrackedEntityType}.
-     *
-     * @return a {@link Stream} of {@link TrackedEntityAttribute}.
+     * @return a {@link Stream} of {@link TrackedEntityAttribute}, or empty.
      */
     public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes(
-        @Nonnull TrackedEntityType trackedEntityType )
+        @CheckForNull TrackedEntityType trackedEntityType )
     {
-        // Attributes from this TrackedEntityType.
-        return trackedEntityType.getTrackedEntityAttributes().stream();
+        if ( trackedEntityType != null )
+        {
+            return trackedEntityType.getTrackedEntityAttributes().stream();
+        }
+
+        return Stream.empty();
     }
 
     /**
@@ -242,7 +243,6 @@ public class TeiFields
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
      * @param fields the list of {@link Field}.
-     *
      * @return a {@link Set} of {@link GridHeader}.
      */
     public static Set<GridHeader> getGridHeaders( @Nonnull TeiQueryParams teiQueryParams, @Nonnull List<Field> fields )
@@ -291,7 +291,6 @@ public class TeiFields
      * internal rules.
      *
      * @param item the current QueryItem.
-     *
      * @return the respective item's uid.
      */
     private static String getItemUid( @Nonnull QueryItem item )
@@ -313,7 +312,6 @@ public class TeiFields
      *
      * @param dimensionParam the {@link DimensionParam}.
      * @param commonParams the {@link CommonParams}.
-     *
      * @return the respective {@link GridHeader}.
      */
     private static GridHeader getHeaderForDimensionParam( @Nonnull DimensionParam dimensionParam,
@@ -343,7 +341,6 @@ public class TeiFields
      *
      * @param queryItem the {@link QueryItem}.
      * @param commonParams the {@link CommonParams}.
-     *
      * @return the correct {@link GridHeader} version.
      */
     private static GridHeader getCustomGridHeaderForItem( @Nonnull QueryItem queryItem,
@@ -390,9 +387,7 @@ public class TeiFields
      *
      * @param field the {@link Field}.
      * @param dimensionIdentifiers the list of {@link DimensionIdentifier}.
-     *
      * @return the correct {@link DimensionParam}
-     *
      * @throws IllegalStateException if nothing is found.
      */
     private static DimensionParam findDimensionParamForField( @Nonnull Field field,

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
@@ -99,7 +100,7 @@ public class Field extends BaseRenderable
             rendered = tableAlias + ".";
         }
 
-        if ( quotingNeeded )
+        if ( toBooleanDefaultIfNull( quotingNeeded, false ) )
         {
             rendered = rendered + doubleQuote( name.render() );
         }

@@ -170,6 +170,7 @@ public class RenderableSqlQuery implements Renderable
         {
             renderedParts.put( key, supplier.get() );
         }
+
         return renderedParts.get( key );
     }
 }

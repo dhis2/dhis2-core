@@ -60,24 +60,24 @@ public abstract class SqlQueryBuilderAdaptor implements SqlQueryBuilder
         return builder.build();
     }
 
-    protected Stream<Field> getSelect( QueryContext queryContext )
+    protected Stream<Field> getSelect( QueryContext unused )
     {
         return Stream.empty();
     }
 
-    protected Stream<LeftJoin> getLeftJoin( QueryContext queryContext )
+    protected Stream<LeftJoin> getLeftJoin( QueryContext unused )
     {
         return Stream.empty();
     }
 
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions )
+    protected Stream<GroupableCondition> getWhereClauses( QueryContext unusedOne,
+        List<DimensionIdentifier<DimensionParam>> unusedTwo )
     {
         return Stream.empty();
     }
 
-    protected Stream<IndexedOrder> getOrderClauses( QueryContext queryContext,
-        List<AnalyticsSortingParams> acceptedSortingParams )
+    protected Stream<IndexedOrder> getOrderClauses( QueryContext unused,
+        List<AnalyticsSortingParams> unusedTwo )
     {
         return Stream.empty();
     }

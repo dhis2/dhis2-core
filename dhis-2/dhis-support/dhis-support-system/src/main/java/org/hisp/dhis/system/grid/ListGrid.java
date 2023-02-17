@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
@@ -324,7 +325,7 @@ public class ListGrid
     @JsonProperty
     public int getHeight()
     {
-        return grid != null && grid.size() > 0 ? grid.size() : 0;
+        return isNotEmpty( grid ) ? grid.size() : 0;
     }
 
     @Override
@@ -333,7 +334,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        return grid != null && grid.size() > 0 ? grid.get( 0 ).size() : 0;
+        return isNotEmpty( grid ) ? grid.get( 0 ).size() : 0;
     }
 
     @Override
@@ -390,7 +391,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        return grid != null && grid.size() > 0 ? getVisibleRows().get( 0 ).size() : 0;
+        return isNotEmpty( grid ) ? getVisibleRows().get( 0 ).size() : 0;
     }
 
     @Override
@@ -509,7 +510,7 @@ public class ListGrid
 
         List<List<Object>> tempGrid = new ArrayList<>();
 
-        if ( headers != null && headers.size() > 0 )
+        if ( isNotEmpty( headers ) )
         {
             for ( List<Object> row : grid )
             {
@@ -665,7 +666,7 @@ public class ListGrid
     {
         verifyGridState();
 
-        if ( headers.size() > 0 )
+        if ( isNotEmpty( headers ) )
         {
             headers.remove( columnIndex );
         }
@@ -1153,7 +1154,7 @@ public class ListGrid
     public Grid addNamedRows( SqlRowSet rs )
     {
         String[] cols = headers.stream().map( GridHeader::getName ).toArray( String[]::new );
-        Set<String> headers = new LinkedHashSet<>();
+        Set<String> headersSet = new LinkedHashSet<>();
 
         while ( rs.next() )
         {
@@ -1164,13 +1165,13 @@ public class ListGrid
                 if ( headerExists( cols[i] ) )
                 {
                     addValue( rs.getObject( cols[i] ) );
-                    headers.add( cols[i] );
+                    headersSet.add( cols[i] );
                 }
             }
         }
 
         // Needs to ensure the ordering of columns based on grid headers.
-        repositionColumns( repositionHeaders( new ArrayList<>( headers ) ) );
+        repositionColumns( repositionHeaders( new ArrayList<>( headersSet ) ) );
 
         return this;
     }
@@ -1346,7 +1347,7 @@ public class ListGrid
     {
         StringBuilder builder = new StringBuilder( "[\n" );
 
-        if ( headers != null && headers.size() > 0 )
+        if ( isNotEmpty( headers ) )
         {
             List<String> headerNames = new ArrayList<>();
 

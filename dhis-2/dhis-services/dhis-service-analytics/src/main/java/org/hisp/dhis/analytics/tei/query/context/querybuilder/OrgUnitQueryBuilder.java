@@ -68,7 +68,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
-    private final static BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> RENDERABLE_DI_SUPPLIER = (
+    private static final BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> RENDERABLE_DI_SUPPLIER = (
         uniqueAlias, di ) -> Field.of(
             uniqueAlias,
             () -> di.getDimension().getUid(),

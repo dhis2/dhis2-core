@@ -68,22 +68,6 @@ public class TeiQueryParams implements IdentifiableKey
         commonParams.getPrograms().forEach( program -> key.add( "programs", program.getUid() ) );
         commonParams.getHeaders().forEach( header -> key.addIgnoreNull( "headers", header ) );
 
-        // TODO: Review all missing keys. Some might need to be supported.
-        //            .addIgnoreNull( "organisationUnitMode", organisationUnitMode )
-        //            .addIgnoreNull( "outputType", outputType )
-        //            .addIgnoreNull( "outputIdScheme", outputIdScheme )
-        //            .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
-        //            .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
-        //            .addIgnoreNull( "geometryOnly", geometryOnly )
-        //            .addIgnoreNull( "clusterSize", clusterSize )
-        //            .addIgnoreNull( "coordinateFields", coordinateFields )
-        //            .addIgnoreNull( "bbox", bbox )
-        //            .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
-        //            .addIgnoreNull( "programStatus", programStatus )
-        //            .addIgnoreNull( "includeMetadataDetails", includeMetadataDetails )
-        //            .addIgnoreNull( "dataIdScheme", dataIdScheme )
-        //            eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
-
         return key.build();
     }
 }

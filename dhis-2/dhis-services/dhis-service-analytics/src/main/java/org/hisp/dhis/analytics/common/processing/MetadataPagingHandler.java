@@ -87,7 +87,6 @@ class MetadataPagingHandler
      *
      * @param pagingParams the {@link AnalyticsPagingParams}.
      * @param grid the {@link Grid}.
-     *
      * @return return true if this is the last page, false otherwise.
      */
     private boolean handleLastPageFlag( @Nonnull AnalyticsPagingParams pagingParams, @Nonnull Grid grid )

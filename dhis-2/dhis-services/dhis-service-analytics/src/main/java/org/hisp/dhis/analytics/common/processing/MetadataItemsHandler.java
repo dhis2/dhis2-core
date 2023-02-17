@@ -91,7 +91,6 @@ public class MetadataItemsHandler
      *
      * @param grid the {@link Grid}.
      * @param commonParams the {@link CommonParams}.
-     *
      * @return the map of {@link MetadataItem}.
      */
     Map<String, MetadataItem> handle( Grid grid, CommonParams commonParams )
@@ -156,7 +155,6 @@ public class MetadataItemsHandler
      * @param items the list of {@link QueryItem}.
      * @param optionsPresentInGrid the map of {@link Option} present in the
      *        grid.
-     *
      * @return the set of relevant {@link Option}.
      */
     private Set<Option> getOptionItems( Grid grid, Set<Option> itemOptions, List<QueryItem> items,
@@ -211,7 +209,6 @@ public class MetadataItemsHandler
      * @param programs the list of {@link Program}.
      * @param programStages the list of {@link ProgramStage}.
      * @param includeMetadataDetails whether to include item details.
-     *
      * @return a map of {@link MetadataItem} and its respective key.
      */
     private Map<String, MetadataItem> getDimensionMetadataItemMap( @Nonnull Grid grid,
@@ -394,9 +391,7 @@ public class MetadataItemsHandler
      *
      * @param returnSame the boolean flag.
      * @param object the object to be returned.
-     *
      * @return the given object or null.
-     *
      * @param <T>
      */
     private <T extends Object> T returnSameOrNull( boolean returnSame, T object )

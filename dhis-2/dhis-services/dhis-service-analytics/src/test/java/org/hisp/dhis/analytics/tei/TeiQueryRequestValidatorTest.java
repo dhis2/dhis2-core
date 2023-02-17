@@ -60,10 +60,11 @@ class TeiQueryRequestValidatorTest
             .request( teiQueryRequest ).build();
 
         CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
 
         // Then
         assertDoesNotThrow(
-            () -> new TeiQueryRequestValidator( commonQueryRequestValidator ).validate( queryRequest ) );
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
     }
 
     @Test
@@ -79,10 +80,11 @@ class TeiQueryRequestValidatorTest
             .request( teiQueryRequest ).build();
 
         CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
 
         // When
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> new TeiQueryRequestValidator( commonQueryRequestValidator ).validate( queryRequest ) );
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
 
         // Then
         assertEquals( "Program is not specified", exception.getMessage() );
@@ -102,10 +104,11 @@ class TeiQueryRequestValidatorTest
             .request( teiQueryRequest ).build();
 
         CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
 
         // When
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> new TeiQueryRequestValidator( commonQueryRequestValidator ).validate( queryRequest ) );
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
 
         // Then
         assertEquals( "Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage() );

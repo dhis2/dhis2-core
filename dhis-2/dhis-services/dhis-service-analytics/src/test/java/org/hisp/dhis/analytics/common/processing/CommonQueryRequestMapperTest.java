@@ -73,7 +73,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link CommonQueryRequestMapper}
+ * Unit tests for {@link CommonQueryRequestMapper}.
  */
 @ExtendWith( MockitoExtension.class )
 class CommonQueryRequestMapperTest
@@ -302,6 +302,9 @@ class CommonQueryRequestMapperTest
         List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
 
+        CommonQueryRequestMapper commonQueryRequestMapper = new CommonQueryRequestMapper( dataQueryService,
+            eventDataQueryService, programService, dimensionIdentifierConverter );
+
         // List has only one Program, but the CommonQueryRequest, below, has
         // two.
         List<Program> programs = List.of( program1 );
@@ -318,8 +321,7 @@ class CommonQueryRequestMapperTest
 
         // When
         IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-                dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
+            () -> commonQueryRequestMapper.map( aCommonQueryRequest ) );
 
         // Then
         assertEquals( "Program is specified but does not exist: `[ur1Edk5Oe2n]`", thrown.getMessage(),
@@ -406,6 +408,9 @@ class CommonQueryRequestMapperTest
             .withUserOrgUnit( "PEZNsGbZaVJ" )
             .withDimension( new HashSet<>( asList( nonFullyQualifiedDimension + ":" + queryItem ) ) );
 
+        CommonQueryRequestMapper commonQueryRequestMapper = new CommonQueryRequestMapper( dataQueryService,
+            eventDataQueryService, programService, dimensionIdentifierConverter );
+
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( noPrograms );
@@ -417,8 +422,7 @@ class CommonQueryRequestMapperTest
 
         // When
         IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,
-                dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
+            () -> commonQueryRequestMapper.map( aCommonQueryRequest ) );
 
         // Then
         assertEquals( "Dimension is not a fully qualified: `yLIPuJHRgey`", thrown.getMessage(),

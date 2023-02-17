@@ -148,7 +148,6 @@ public class MetadataParamsHandler
      * its program stage identifier (if one exists).
      *
      * @param item the {@link QueryItem}.
-     *
      * @return the {@link QueryItem} uid with a prefix (if applicable).
      */
     static String getItemUid( @Nonnull QueryItem item )
