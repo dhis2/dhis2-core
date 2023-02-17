@@ -2776,6 +2776,7 @@
     {
       "id": "tMbbjys8mS6",
       "name": "TA org unit group",
+      "shortName": "TA org unit group",
       "code": "TA_OU_GROUP",
       "displayName": "TA org unit group",
       "organisationUnits": [
@@ -2883,6 +2884,7 @@
     {
       "id": "fjvZIRlTBrp",
       "name": "TA category option A",
+      "shortName": "TA_CATOPT_A",
       "code": "TA_CATOPT_A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2021-06-02T15:43:13.212",

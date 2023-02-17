@@ -2091,6 +2091,7 @@
     "created": "2020-12-17T12:50:44.056",
     "lastUpdated": "2020-12-17T12:50:44.082",
     "name": "default",
+    "shortName": "default",
     "id": "xYerKDKCefk",
     "publicAccess": "rwrw----",
     "userGroupAccesses": [],
@@ -2119,6 +2120,7 @@
     "created": "2020-12-17T12:52:27.242",
     "lastUpdated": "2020-12-17T12:52:27.242",
     "name": "TA org unit group",
+    "shortName": "TA org unit group",
     "id": "tMbbjys8mS6",
     "publicAccess": "rw------",
     "lastUpdatedBy": {

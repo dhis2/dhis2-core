@@ -247,6 +247,7 @@
       "created": "2019-01-28T11:01:30.702",
       "lastUpdated": "2019-01-28T11:01:30.780",
       "name": "default",
+      "shortName": "default",
       "id": "xYerKDKCefk",
       "publicAccess": "rwrw----"
     },
@@ -255,6 +256,7 @@
       "created": "2019-01-28T11:01:30.702",
       "lastUpdated": "2019-01-28T11:01:30.780",
       "name": "COAname",
+      "shortName": "COAname",
       "id": "XXXrKDKCefk",
       "publicAccess": "rwrw----"
     }
