@@ -343,7 +343,8 @@ public class JdbcEventAnalyticsManager
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
             "oucode", "pistatus", "psistatus" );
 
-        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
+        List<String> selectCols = getColumnsForSelect(
+            ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) ), params );
 
         return "select " + StringUtils.join( selectCols, "," ) + " ";
     }

@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -101,6 +103,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -145,6 +148,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
 
     private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
+
+    protected static final Pattern uidPattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     @Qualifier( "readOnlyJdbcTemplate" )
     protected final JdbcTemplate jdbcTemplate;
@@ -193,7 +198,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             sql += "order by " + getSortColumns( params, ASC ) + getSortColumns( params, DESC );
 
-            sql = TextUtils.removeLastComma( sql ) + " nulls last ";
+            sql = TextUtils.removeLastComma( sql ) + " ";
         }
 
         return sql;
@@ -220,11 +225,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( DimensionalObject::hasItems )
-                    .map( dim -> toCase( dim, quoteAlias( item.getItem().getUid() ), params.getDisplayProperty() ) )
-                    .orElse( quoteAlias( item.getItem().getUid() ) );
+                    .map( dim -> toCase( dim, quote( item.getItem().getUid() ), params.getDisplayProperty() ) )
+                    .orElse( quote( item.getItem().getUid() ) );
             }
 
-            sql += order == ASC ? " asc," : " desc,";
+            sql += order == ASC ? " asc nulls last," : " desc nulls last,";
         }
 
         return sql;
@@ -911,6 +916,53 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
+     * The method generates a collection of columns. The columns related to
+     * order by command are decorated with nullif db function. The empty columns
+     * ('') are transformed to null columns. Null columns in contrast to empty
+     * ones are sensitive to nulls last attribute of order by command.
+     *
+     * @param columns calculated and analytics table column names
+     * @param params the {@link EventQueryParams} to drive the column
+     *        generation.
+     * @return the {@link List<String>} of column names for select part of sql
+     *         statement.
+     */
+    protected static List<String> getColumnsForSelect( List<String> columns, EventQueryParams params )
+    {
+        List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
+
+        if ( orderByColumns.isEmpty() )
+        {
+            return columns;
+        }
+
+        return columns.stream()
+            .map( col -> {
+                if ( orderByColumns.stream().noneMatch( obc -> col.contains( obc.getItemName() ) ) )
+                {
+                    // no order by column
+                    return col;
+                }
+
+                Matcher matcher = uidPattern.matcher( col );
+                // find first occurence
+                if ( matcher.find() )
+                {
+                    // calculated or uid column
+                    return " nullif(" + col + "::text, '') as \"" + matcher.group() + "\"";
+                }
+                else
+                {
+                    // analytics table columns, alias will be ignored
+                    String[] tokens = col.split( "\\." );
+                    return tokens.length == 2 ? " nullif(" + col + "::text, '') as " + tokens[1]
+                        : " nullif(" + col + "::text, '') as " + col;
+                }
+            } )
+            .collect( toList() );
+    }
+
+    /**
      * Wraps the provided interface around a common exception handling strategy.
      *
      * @param runnable the {@link Runnable} containing the code block to execute
@@ -1235,6 +1287,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
+    }
+
+    /**
+     * The tool for merging of query items relevant for order by DML command
+     *
+     * @param params the {@link EventQueryParams} to drive the query item list
+     *        generation.
+     * @return the distinct {@link List<QueryItem>} relevant for order by DML.
+     */
+    private static List<QueryItem> getDistinctOrderByColumns( EventQueryParams params )
+    {
+        List<QueryItem> orderByAscColumns = new ArrayList<>();
+
+        List<QueryItem> orderByDescColumns = new ArrayList<>();
+
+        if ( params.getAsc() != null && !params.getAsc().isEmpty() )
+        {
+            orderByAscColumns.addAll( params.getAsc() );
+        }
+
+        if ( params.getDesc() != null && !params.getDesc().isEmpty() )
+        {
+            orderByDescColumns.addAll( params.getDesc() );
+        }
+
+        return ListUtils.distinctUnion( orderByAscColumns, orderByDescColumns );
     }
 
     /**
