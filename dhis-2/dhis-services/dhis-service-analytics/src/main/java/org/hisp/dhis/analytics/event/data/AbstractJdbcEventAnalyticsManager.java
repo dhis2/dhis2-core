@@ -432,6 +432,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String column = getColumn( queryItem );
 
+        if ( queryItem.hasProgramStage() && queryItem.getItem().getDimensionItemType() == DATA_ELEMENT )
+        {
+            return ColumnWithNullIfAndAlias.ofColumnAndAlias( column,
+                queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid() );
+        }
+
         return ColumnWithNullIfAndAlias.ofColumnAndAlias( column, queryItem.getItem().getUid() );
     }
 
