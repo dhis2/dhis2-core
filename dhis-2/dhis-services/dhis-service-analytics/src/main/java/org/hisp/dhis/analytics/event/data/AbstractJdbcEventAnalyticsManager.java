@@ -66,8 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -148,8 +146,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
 
     private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
-
-    protected static final Pattern uidPattern = Pattern.compile( "[a-zA-Z0-9]{11}" );
 
     @Qualifier( "readOnlyJdbcTemplate" )
     protected final JdbcTemplate jdbcTemplate;
@@ -422,10 +418,28 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
+        else if ( queryItem.isText() && !isGroupByClause && isInOrderByClause( queryItem, params ) )
+        {
+            return getColumnAndAliasWithNullIfFunction( queryItem );
+        }
         else
         {
             return getColumnAndAlias( queryItem, isGroupByClause, "" );
         }
+    }
+
+    private ColumnAndAlias getColumnAndAliasWithNullIfFunction( QueryItem queryItem )
+    {
+        String column = getColumn( queryItem );
+
+        return ColumnWithNullIfAndAlias.ofColumnAndAlias( column, queryItem.getItem().getUid() );
+    }
+
+    private boolean isInOrderByClause( QueryItem queryItem, EventQueryParams params )
+    {
+        List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
+
+        return orderByColumns.contains( queryItem );
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
@@ -913,53 +927,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         sql += getPagingClause( params, maxLimit );
 
         return sql;
-    }
-
-    /**
-     * The method generates a collection of columns. The columns related to
-     * order by command are decorated with nullif db function. The empty columns
-     * ('') are transformed to null columns. Null columns in contrast to empty
-     * ones are sensitive to nulls last attribute of order by command.
-     *
-     * @param columns calculated and analytics table column names
-     * @param params the {@link EventQueryParams} to drive the column
-     *        generation.
-     * @return the {@link List<String>} of column names for select part of sql
-     *         statement.
-     */
-    protected static List<String> getColumnsForSelect( List<String> columns, EventQueryParams params )
-    {
-        List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
-
-        if ( orderByColumns.isEmpty() )
-        {
-            return columns;
-        }
-
-        return columns.stream()
-            .map( col -> {
-                if ( orderByColumns.stream().noneMatch( obc -> col.contains( obc.getItemName() ) ) )
-                {
-                    // no order by column
-                    return col;
-                }
-
-                Matcher matcher = uidPattern.matcher( col );
-                // find first occurence
-                if ( matcher.find() )
-                {
-                    // calculated or uid column
-                    return " nullif(" + col + "::text, '') as \"" + matcher.group() + "\"";
-                }
-                else
-                {
-                    // analytics table columns, alias will be ignored
-                    String[] tokens = col.split( "\\." );
-                    return tokens.length == 2 ? " nullif(" + col + "::text, '') as " + tokens[1]
-                        : " nullif(" + col + "::text, '') as " + col;
-                }
-            } )
-            .collect( toList() );
     }
 
     /**

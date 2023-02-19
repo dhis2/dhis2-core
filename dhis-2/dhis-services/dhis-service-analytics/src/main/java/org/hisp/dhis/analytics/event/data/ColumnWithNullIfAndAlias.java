@@ -27,51 +27,30 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import java.util.Optional;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
-@Getter
-@RequiredArgsConstructor( access = AccessLevel.PROTECTED )
-class ColumnAndAlias
+final class ColumnWithNullIfAndAlias extends ColumnAndAlias
 {
-    public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
-
-    protected final String column;
-
-    protected final String alias;
-
-    static ColumnAndAlias ofColumn( String column )
+    private ColumnWithNullIfAndAlias( String column, String alias )
     {
-        return ofColumnAndAlias( column, null );
+        super( column, alias );
     }
 
-    static ColumnAndAlias ofColumnAndAlias( String column, String alias )
+    static ColumnWithNullIfAndAlias ofColumnAndAlias( String column, String alias )
     {
-        return new ColumnAndAlias( column, alias );
+        return new ColumnWithNullIfAndAlias( column, alias );
     }
 
+    @Override
     public String asSql()
     {
         if ( StringUtils.isNotEmpty( alias ) )
         {
-            return String.join( " as ", column, getQuotedAlias() );
+            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
         }
         else
         {
             return column;
         }
-    }
-
-    public String getQuotedAlias()
-    {
-        return Optional.ofNullable( alias )
-            .map( AnalyticsSqlUtils::quote )
-            .orElse( null );
     }
 }
