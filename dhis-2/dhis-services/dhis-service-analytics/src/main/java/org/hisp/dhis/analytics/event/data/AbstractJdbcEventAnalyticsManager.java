@@ -1277,7 +1277,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *        generation.
      * @return the distinct {@link List<QueryItem>} relevant for order by DML.
      */
-    private static List<QueryItem> getDistinctOrderByColumns( EventQueryParams params )
+    private List<QueryItem> getDistinctOrderByColumns( EventQueryParams params )
     {
         List<QueryItem> orderByAscColumns = new ArrayList<>();
 

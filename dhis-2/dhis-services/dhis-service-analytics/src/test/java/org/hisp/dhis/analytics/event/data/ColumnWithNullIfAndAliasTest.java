@@ -31,27 +31,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class ColumnWithNullIfAndAliasTest
+class ColumnWithNullIfAndAliasTest
 {
     private static final String COLUMN = "column";
 
     private static final String ALIAS = "alias";
 
     @Test
-    public void testAsSqlReturnsRightInstance()
+    void testAsSqlReturnsRightInstance()
     {
         // given
         // when
         ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
         // then
-        assertEquals( columnAndAlias.getColumn(), COLUMN );
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
 
-        assertEquals( columnAndAlias.getAlias(), ALIAS );
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
     }
 
     @Test
-    public void testAsSqlReturnsRightSqlSnippetWhenCalled()
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
     {
         // given
         // when
