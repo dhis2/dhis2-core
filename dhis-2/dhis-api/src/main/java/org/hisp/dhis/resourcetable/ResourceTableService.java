@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.resourcetable;
 
-import java.util.List;
-
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -118,11 +116,4 @@ public interface ResourceTableService
      * Drop all SQL views.
      */
     void dropAllSqlViews( JobProgress progress );
-
-    /**
-     * Returns all data years available in the system (both from aggregate and
-     * tracker) with 5 years previous and future additions.
-     * [extra_5_previous_years, data_years, extra_5_future_year]
-     */
-    List<Integer> generateDataYears();
 }

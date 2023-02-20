@@ -90,6 +90,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -141,6 +142,9 @@ class JdbcEventAnalyticsTableManagerTest
     @Mock
     private ResourceTableService resourceTableService;
 
+    @Mock
+    private PeriodDataProvider periodDataProvider;
+
     private AnalyticsExportSettings analyticsExportSettings;
 
     private JdbcEventAnalyticsTableManager subject;
@@ -170,7 +174,7 @@ class JdbcEventAnalyticsTableManagerTest
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, mock( DataApprovalLevelService.class ), resourceTableService,
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo,
-            jdbcTemplate, analyticsExportSettings );
+            jdbcTemplate, analyticsExportSettings, periodDataProvider );
     }
 
     @Test
@@ -246,10 +250,10 @@ class JdbcEventAnalyticsTableManagerTest
         addCategoryCombo( program, categoryCombo );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( program ) );
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         when( jdbcTemplate.queryForList(
             getYearQueryForCurrentYear( program, true, availableDataYears ),
@@ -315,10 +319,10 @@ class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         when( jdbcTemplate.queryForList(
             getYearQueryForCurrentYear( program, true, availableDataYears ),
@@ -376,10 +380,10 @@ class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         when( jdbcTemplate.queryForList(
             getYearQueryForCurrentYear( program, true, availableDataYears ),
@@ -421,10 +425,10 @@ class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         when( jdbcTemplate.queryForList(
             getYearQueryForCurrentYear( programA, true, availableDataYears ),
@@ -459,10 +463,10 @@ class JdbcEventAnalyticsTableManagerTest
         programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
@@ -501,10 +505,10 @@ class JdbcEventAnalyticsTableManagerTest
         programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
@@ -535,10 +539,10 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
         int startYear = availableDataYears.get( 0 );
         int latestYear = availableDataYears.get( availableDataYears.size() - 1 );
 
@@ -580,10 +584,10 @@ class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false, availableDataYears ),
@@ -612,13 +616,12 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( resourceTableService.generateDataYears() ).thenReturn( List.of( 2018, 2019 ) );
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false, availableDataYears ),
             Integer.class ) )
@@ -692,10 +695,10 @@ class JdbcEventAnalyticsTableManagerTest
 
         programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
-        when( resourceTableService.generateDataYears() )
+        when( periodDataProvider.getAvailableYears() )
             .thenReturn( List.of( 2018, 2019, now().getYear() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
         int startYear = availableDataYears.get( 0 );
         int latestYear = availableDataYears.get( availableDataYears.size() - 1 );
 

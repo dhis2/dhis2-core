@@ -75,6 +75,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -107,11 +108,12 @@ public class JdbcEventAnalyticsTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
+        PeriodDataProvider periodDataProvider )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
+            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
     }
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
@@ -178,7 +180,7 @@ public class JdbcEventAnalyticsTableManager
         log.info( format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
             databaseInfo.isSpatialSupport() ) );
 
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
 
         return params.isLatestUpdate() ? getLatestAnalyticsTables( params )
             : getRegularAnalyticsTables( params, availableDataYears );
@@ -360,7 +362,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        List<Integer> availableDataYears = resourceTableService.generateDataYears();
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
         Integer firstDataYear = availableDataYears.get( 0 );
         Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
 
