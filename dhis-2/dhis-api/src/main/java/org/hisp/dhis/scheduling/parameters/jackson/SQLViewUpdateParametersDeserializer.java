@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.scheduling.parameters.SQLViewUpdateParameters;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public class SQLViewUpdateParametersDeserializer extends AbstractJobParametersDeserializer<SQLViewUpdateParameters>
+public class SQLViewUpdateParametersDeserializer extends AbstractJobParametersDeserializer<SqlViewUpdateParameters>
 {
     public SQLViewUpdateParametersDeserializer()
     {
-        super( SQLViewUpdateParameters.class, CustomJobParameters.class );
+        super( SqlViewUpdateParameters.class, CustomJobParameters.class );
     }
 
     @JsonDeserialize
-    public static class CustomJobParameters extends SQLViewUpdateParameters
+    public static class CustomJobParameters extends SqlViewUpdateParameters
     {
     }
 }

@@ -49,7 +49,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.SQLViewUpdateParameters;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -329,10 +329,11 @@ public class SqlViewController
         {
             throw new ConflictException( "Update job does not exist: " + jobId );
         }
-        if ( config.getJobType() != JobType.SQL_VIEW_UPDATE )
+        if ( config.getJobType() != JobType.MATERIALIZED_SQL_VIEW_UPDATE )
         {
             throw new ConflictException(
-                format( "Update job must be of type %s but was: %s", JobType.SQL_VIEW_UPDATE, config.getJobType() ) );
+                format( "Update job must be of type %s but was: %s", JobType.MATERIALIZED_SQL_VIEW_UPDATE,
+                    config.getJobType() ) );
         }
     }
 
@@ -355,7 +356,8 @@ public class SqlViewController
     {
         String jobId = entity.getUpdateJobId();
         // OBS! the job is a non-persistent property => clear all possible job configurations
-        for ( JobConfiguration config : jobConfigurationService.getJobConfigurations( JobType.SQL_VIEW_UPDATE ) )
+        for ( JobConfiguration config : jobConfigurationService
+            .getJobConfigurations( JobType.MATERIALIZED_SQL_VIEW_UPDATE ) )
         {
             if ( jobId == null || !jobId.equals( config.getUid() ) )
             {
@@ -371,10 +373,10 @@ public class SqlViewController
 
     private List<String> getSqlViews( JobConfiguration config )
     {
-        SQLViewUpdateParameters params = (SQLViewUpdateParameters) config.getJobParameters();
+        SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.getJobParameters();
         if ( params == null )
         {
-            params = new SQLViewUpdateParameters();
+            params = new SqlViewUpdateParameters();
             config.setJobParameters( params );
         }
         return params.getSqlViews();

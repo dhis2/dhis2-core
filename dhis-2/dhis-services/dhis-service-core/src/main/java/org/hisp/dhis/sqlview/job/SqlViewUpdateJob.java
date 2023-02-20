@@ -38,7 +38,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.SQLViewUpdateParameters;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Component;
@@ -51,21 +51,21 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class SQLViewUpdateJob implements Job
+public class SqlViewUpdateJob implements Job
 {
     private final SqlViewService sqlViewService;
 
     @Override
     public JobType getJobType()
     {
-        return JobType.SQL_VIEW_UPDATE;
+        return JobType.MATERIALIZED_SQL_VIEW_UPDATE;
     }
 
     @Override
     public void execute( JobConfiguration config, JobProgress progress )
     {
         progress.startingProcess( "SQL View update" );
-        SQLViewUpdateParameters params = (SQLViewUpdateParameters) config.getJobParameters();
+        SqlViewUpdateParameters params = (SqlViewUpdateParameters) config.getJobParameters();
         if ( params == null )
         {
             progress.completedProcess( "No views to update" );

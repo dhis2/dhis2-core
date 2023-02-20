@@ -40,7 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SQLViewUpdateParameters implements JobParameters
+public class SqlViewUpdateParameters implements JobParameters
 {
     private List<String> sqlViews = new ArrayList<>();
 

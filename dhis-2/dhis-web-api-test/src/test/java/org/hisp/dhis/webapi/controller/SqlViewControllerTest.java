@@ -97,7 +97,7 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
                 "{'name':'users_exist','type':'MATERIALIZED_VIEW','sqlQuery':'select 1 from userinfo'}" ) );
 
         String jobId = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
-            "{'name':'update-sql','jobType':'SQL_VIEW_UPDATE','cronExpression':'0 0 1 ? * *'}" ) );
+            "{'name':'update-sql','jobType':'MATERIALIZED_SQL_VIEW_UPDATE','cronExpression':'0 0 1 ? * *'}" ) );
 
         String updatePayload = GET( "/sqlViews/" + uid ).content().node()
             .addMember( "updateJobId", "\"" + jobId + "\"" ).getDeclaration();
