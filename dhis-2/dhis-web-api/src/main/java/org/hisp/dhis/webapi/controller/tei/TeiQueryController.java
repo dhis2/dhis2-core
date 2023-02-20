@@ -139,7 +139,6 @@ class TeiQueryController
             .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
             .build();
 
-        commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
         teiQueryRequestValidator.validate( queryRequest );
 
         TeiQueryParams params = mapper.map( queryRequest );

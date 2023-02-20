@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.tei;
 
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7222;
 
 import java.util.Set;
@@ -62,6 +64,13 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
     @Override
     public void validate( QueryRequest<TeiQueryRequest> queryRequest )
     {
+        String trackedEntityType = queryRequest.getRequest().getTrackedEntityType();
+
+        if ( !isValidUid( trackedEntityType ) )
+        {
+            throwIllegalQueryEx( E4014, trackedEntityType, "trackedEntityType" );
+        }
+
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
 
         checkAllowedDimensions( queryRequest );

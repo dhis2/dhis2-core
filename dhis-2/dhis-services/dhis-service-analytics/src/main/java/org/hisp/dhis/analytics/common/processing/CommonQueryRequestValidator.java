@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7136;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
@@ -55,6 +57,14 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
         if ( !commonQueryRequest.hasPrograms() )
         {
             throw new IllegalQueryException( new ErrorMessage( E7136 ) );
+        }
+
+        for ( String programUid : commonQueryRequest.getProgram() )
+        {
+            if ( !isValidUid( programUid ) )
+            {
+                throw new IllegalQueryException( new ErrorMessage( E4014, programUid, "program" ) );
+            }
         }
     }
 }
