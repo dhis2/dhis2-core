@@ -36,6 +36,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
 
@@ -112,5 +113,73 @@ class TeiQueryRequestValidatorTest
 
         // Then
         assertEquals( "Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage() );
+    }
+
+    @Test
+    void testValidateWhenNoTrackedEntityType()
+    {
+        // Given
+        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( null );
+
+        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+            .request( teiQueryRequest ).build();
+
+        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+
+        // When
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
+
+        // Then
+        assertEquals( "Invalid UID `null` for property `trackedEntityType`", exception.getMessage() );
+    }
+
+    @Test
+    void testValidateWhenTrackedEntityTypeIsInvalid()
+    {
+        String teiUid = CodeGenerator.generateUid() + "invalid";
+        // Given
+        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( teiUid );
+
+        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+            .request( teiQueryRequest ).build();
+
+        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+
+        // When
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
+
+        // Then
+        assertEquals( "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage() );
+    }
+
+    @Test
+    void testValidateWhenProgramUidIsInvalid()
+    {
+        String teiUid = CodeGenerator.generateUid();
+        String invalidProgramUid = CodeGenerator.generateUid() + "invalid";
+        String validProgramUid = CodeGenerator.generateUid();
+        // Given
+        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( teiUid );
+
+        CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+        commonQueryRequest.setProgram( Set.of( validProgramUid, invalidProgramUid ) );
+
+        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+            .commonQueryRequest( commonQueryRequest )
+            .request( teiQueryRequest ).build();
+
+        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+
+        // When
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> teiQueryRequestValidator.validate( queryRequest ) );
+
+        // Then
+        assertEquals( "Invalid UID `" + invalidProgramUid + "` for property `program`", exception.getMessage() );
     }
 }
