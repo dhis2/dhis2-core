@@ -109,6 +109,8 @@ public class TeiQuerySecurityManager
         // DimensionalItemObjects from TeiQueryParams -> QueryItems
         objects.addAll( teiQueryParams.getCommonParams()
             .getDimensionIdentifiers().stream()
+            // We don't want to add the org units to the objects since they are
+            // already checked in the queryOrgUnits list
             .filter( Predicate.not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getQueryItem )
