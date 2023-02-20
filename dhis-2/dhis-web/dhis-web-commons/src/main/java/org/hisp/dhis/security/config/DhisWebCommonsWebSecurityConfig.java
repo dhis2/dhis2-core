@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -68,7 +69,6 @@ import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -167,6 +167,9 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
@@ -174,25 +177,6 @@ public class DhisWebCommonsWebSecurityConfig
             auth.authenticationProvider( customLdapAuthenticationProvider );
             auth.authenticationProvider( twoFactorAuthenticationProvider );
             auth.authenticationEventPublisher( authenticationEventPublisher );
-        }
-
-        @Override
-        public void configure( WebSecurity web )
-            throws Exception
-        {
-            super.configure( web );
-            web
-                .ignoring()
-                .antMatchers( "/api/staticContent/**" )
-                .antMatchers( "/dhis-web-commons/oidc/**" )
-                .antMatchers( "/dhis-web-commons/javascripts/**" )
-                .antMatchers( "/dhis-web-commons/css/**" )
-                .antMatchers( "/dhis-web-commons/flags/**" )
-                .antMatchers( "/dhis-web-commons/fonts/**" )
-                .antMatchers( "/api/files/style/external" )
-                .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" )
-                .antMatchers( "/api/publicKeys/**" );
         }
 
         @Override
@@ -204,6 +188,16 @@ public class DhisWebCommonsWebSecurityConfig
                 .accessDecisionManager( accessDecisionManager() )
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
+                .antMatchers( "/api/staticContent/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/javascripts/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/css/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/flags/**" ).permitAll()
+                .antMatchers( "/dhis-web-commons/fonts/**" ).permitAll()
+                .antMatchers( "/api/files/style/external" ).permitAll()
+                .antMatchers( "/external-static/**" ).permitAll()
+                .antMatchers( "/favicon.ico" ).permitAll()
+                .antMatchers( "/api/publicKeys/**" ).permitAll()
                 // Dynamic content
                 .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
@@ -278,7 +272,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
-                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                .addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
