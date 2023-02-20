@@ -56,7 +56,8 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
         setUpTest();
 
         String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID + "', 'name': 'Test Weekly', 'periodType' : 'Weekly'," +
+        String datasetMetadata = "{ 'id':'" + datasetUID
+            + "', 'name': 'Test Weekly', 'shortName': 'Test Weekly', 'periodType' : 'Weekly'," +
             "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
             "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
             "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";
@@ -74,7 +75,8 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
 
         setUpTest();
         String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID + "', 'name': 'Test Monthly 2', 'periodType' : 'Monthly'," +
+        String datasetMetadata = "{ 'id':'" + datasetUID
+            + "', 'name': 'Test Monthly 2', 'shortName': 'Test Monthly 2', 'periodType' : 'Monthly'," +
             "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
             "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
             "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";
@@ -102,7 +104,8 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest extends Abstra
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
         String datasetUID = generateUid();
-        String datasetMetadata = "{ 'id':'" + datasetUID + "', 'name': 'Test Monthly', 'periodType' : 'Monthly'," +
+        String datasetMetadata = "{ 'id':'" + datasetUID
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly'," +
             "'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
             "'dataSetElements' : [{'dataSet' : {'id':'" + datasetUID + "'}, 'id':'" + generateUid() +
             "', 'dataElement': {'id' : '" + dataElementA + "'}}]}";

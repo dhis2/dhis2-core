@@ -1,4 +1,4 @@
 {"dataSets": [
     {
       "id":"sPnR8BCInMV",
-      "attributeValues":[{"value":true,"attribute":{"id":"PtyV6lLcmol","name":"testAttribute"}}],"timelyDays":15,"name":"TestDataSet","periodType":"Monthly","openFuturePeriods":0,"expiryDays":0,"categoryCombo":{"id":"bjDvmb4bfuf"},"indicators":[],"legendSets":[],"organisationUnits":[],"dataSetElements":[]}]}
+      "attributeValues":[{"value":true,"attribute":{"id":"PtyV6lLcmol","name":"testAttribute"}}],"timelyDays":15,"name":"TestDataSet","shortName":"TestDataSet","periodType":"Monthly","openFuturePeriods":0,"expiryDays":0,"categoryCombo":{"id":"bjDvmb4bfuf"},"indicators":[],"legendSets":[],"organisationUnits":[],"dataSetElements":[]}]}
