@@ -269,7 +269,6 @@ public class DefaultResourceTableService
 
         if ( availableDataYears.isEmpty() )
         {
-            availableDataYears = new ArrayList<>();
             availableDataYears.add( now().getYear() );
         }
 
