@@ -36,6 +36,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -409,6 +410,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -501,7 +505,7 @@ public class DhisWebApiWebSecurityConfig
 
             configureMatchers( http );
             configureOAuthAuthorizationServer( http );
-            configureCspFilter( http, dhisConfig, dhisOidcProviderRepository );
+            configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
             configureApiTokenAuthorizationFilter( http );
@@ -573,9 +577,9 @@ public class DhisWebApiWebSecurityConfig
         }
 
         private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
-            DhisOidcProviderRepository dhisOidcProviderRepository )
+            ConfigurationService configurationService )
         {
-            http.addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+            http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                 HeaderWriterFilter.class );
         }
 
