@@ -77,7 +77,10 @@ public class SQLViewUpdateJob implements Job
             SqlView view = sqlViewService.getSqlViewByUid( uid );
             if ( view != null && view.isMaterializedView() )
             {
-                sqlViewService.refreshMaterializedView( view );
+                if ( !sqlViewService.refreshMaterializedView( view ) )
+                {
+                    throw new RuntimeException( "Failed to refresh view" );
+                }
             }
             else
             {
