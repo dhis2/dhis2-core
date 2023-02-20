@@ -85,11 +85,11 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.items.A03MvHHogjR.name", equalTo( "Birth" ) )
             .body( "metaData.items.cejWyOfXge6.name", equalTo( "Gender" ) )
             .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
-            .body( "metaData.dimensions", not( hasKey( "lZGmxYbs97q" ) ) )
-            .body( "metaData.dimensions", not( hasKey( "zDhUuAYrxNC" ) ) )
-            .body( "metaData.dimensions", not( hasKey( "pe" ) ) )
-            .body( "metaData.dimensions", not( hasKey( "w75KJ2mc4zz" ) ) )
-            .body( "metaData.dimensions", not( hasKey( "cejWyOfXge6" ) ) )
+            .body( "metaData.dimensions", hasKey( "lZGmxYbs97q" ) )
+            .body( "metaData.dimensions", hasKey( "zDhUuAYrxNC" ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) )
+            .body( "metaData.dimensions", hasKey( "w75KJ2mc4zz" ) )
+            .body( "metaData.dimensions", hasKey( "cejWyOfXge6" ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 0 ) )
@@ -113,7 +113,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 9, "enrollments", "Enrollments", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 10, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 11, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "zDhUuAYrxNC", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 13, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
     }
 }
