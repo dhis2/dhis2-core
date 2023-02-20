@@ -53,6 +53,6 @@ public class SqlQueryBuilders
     public static boolean isOfType( DimensionIdentifier<DimensionParam> dimensionParamDimensionIdentifier,
         DimensionParamObjectType type )
     {
-        return dimensionParamDimensionIdentifier.getDimension().getDimensionParamObjectType() == type;
+        return dimensionParamDimensionIdentifier.getDimension().isOfType( type );
     }
 }

@@ -75,6 +75,8 @@ public class TeiAnalyticsQueryService
 
     private final ExecutionPlanStore executionPlanStore;
 
+    private final TeiQuerySecurityManager securityManager;
+
     /**
      * This method will create a query, based on the teiParams, and execute it
      * against the underline data provider and return. The results found will be
@@ -88,6 +90,10 @@ public class TeiAnalyticsQueryService
     public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+
+        securityManager.decideAccess( teiQueryParams );
+        securityManager.applyOrganisationUnitConstraint( teiQueryParams );
+        securityManager.applyDimensionConstraints( teiQueryParams );
 
         SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
 
@@ -126,9 +132,7 @@ public class TeiAnalyticsQueryService
      * {@link Grid} object.
      *
      * @param teiQueryParams the {@link TeiQueryParams}.
-     *
      * @return the populated {@link Grid} object.
-     *
      * @throws IllegalArgumentException if the given teiQueryParams is null.
      */
     public Grid getGridExplain( @Nonnull TeiQueryParams teiQueryParams )
