@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper.map;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
@@ -55,11 +54,14 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -106,6 +108,8 @@ public class TrackerEventsExportController
     @NonNull
     private final FieldFilterService fieldFilterService;
 
+    private final EventFieldsParamMapper eventsMapper;
+
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
         TrackerEventCriteria eventCriteria, HttpServletRequest request,
@@ -135,8 +139,9 @@ public class TrackerEventsExportController
                 PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+        FieldFilterParams<org.hisp.dhis.webapi.controller.tracker.view.Event> filterParams = FieldFilterParams
+            .of( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
         return pagingWrapper.withInstances( objectNodes );
 
     }
@@ -222,10 +227,10 @@ public class TrackerEventsExportController
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
         HttpServletRequest request,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-        EventParams eventParams = map( fields );
+        EventParams eventParams = eventsMapper.map( fields );
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
             eventParams );
         if ( event == null )
@@ -234,6 +239,7 @@ public class TrackerEventsExportController
         }
 
         event.setHref( getUri( uid, request ) );
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
+        return ResponseEntity
+            .ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
     }
 }

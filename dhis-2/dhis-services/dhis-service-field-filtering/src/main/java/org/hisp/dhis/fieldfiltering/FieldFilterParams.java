@@ -29,12 +29,10 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import lombok.Builder;
 import lombok.Data;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 
 /**
@@ -49,8 +47,7 @@ public class FieldFilterParams<T>
      */
     private final List<T> objects;
 
-    @Builder.Default
-    private final Set<String> filters = Collections.singleton( "*" );
+    private final String filters;
 
     private User user;
 
@@ -64,7 +61,7 @@ public class FieldFilterParams<T>
         return FieldFilterParams
             .<O> builder()
             .objects( objects )
-            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+            .filters( filters )
             .build();
     }
 
@@ -73,12 +70,24 @@ public class FieldFilterParams<T>
         return FieldFilterParams
             .<O> builder()
             .objects( Collections.singletonList( object ) )
-            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+            .filters( filters )
             .build();
     }
 
-    public FieldFilterParams<T> copyOf()
+    public static class FieldFilterParamsBuilder<T>
     {
-        return new FieldFilterParams<>( objects, filters, user, skipSharing );
+        private String filters = "*";
+
+        public FieldFilterParamsBuilder<T> filters( String filters )
+        {
+            this.filters = filters;
+            return this;
+        }
+
+        public FieldFilterParamsBuilder<T> filters( List<String> filters )
+        {
+            this.filters = String.join( ",", filters );
+            return this;
+        }
     }
 }

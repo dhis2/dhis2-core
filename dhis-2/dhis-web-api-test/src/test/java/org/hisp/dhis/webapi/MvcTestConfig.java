@@ -38,6 +38,7 @@ import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -65,6 +66,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -276,6 +278,12 @@ public class MvcTestConfig implements WebMvcConfigurer
 
         converters.add( mappingJackson2HttpMessageConverter() );
         converters.add( mappingJackson2XmlHttpMessageConverter() );
+    }
+
+    @Override
+    public void addFormatters( FormatterRegistry registry )
+    {
+        registry.addConverter( new FieldPathConverter() );
     }
 
     @Bean
