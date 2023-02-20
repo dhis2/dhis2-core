@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +27,37 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import org.apache.commons.lang3.StringUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * The class responsibility is to generate sql statement with nullif function
- * like nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
- */
-final class ColumnWithNullIfAndAlias extends ColumnAndAlias
+import org.junit.jupiter.api.Test;
+
+public class ColumnWithNullIfAndAliasTest
 {
-    /**
-     * private constructor
-     *
-     * @param column db table column name.
-     * @param alias db table column alias name.
-     */
-    private ColumnWithNullIfAndAlias( String column, String alias )
+    private static final String COLUMN = "column";
+
+    private static final String ALIAS = "alias";
+
+    @Test
+    public void testAsSqlReturnsRightInstance()
     {
-        super( column, alias );
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( columnAndAlias.getColumn(), COLUMN );
+
+        assertEquals( columnAndAlias.getAlias(), ALIAS );
     }
 
-    /**
-     * Builder method to create an instance of this class.
-     *
-     * @param column db table column name.
-     * @param alias db table column alias name.
-     * @return ColumnWithNullIfAndAlias instance.
-     */
-    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
+    @Test
+    public void testAsSqlReturnsRightSqlSnippetWhenCalled()
     {
-        return new ColumnWithNullIfAndAlias( column, alias );
-    }
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-    /**
-     * Generate sql snippet with nullif function.
-     *
-     * @return sql snippet with nullif.
-     */
-    @Override
-    public String asSql()
-    {
-        if ( StringUtils.isNotEmpty( alias ) )
-        {
-            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
-        }
-        else
-        {
-            return column;
-        }
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
     }
 }

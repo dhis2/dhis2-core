@@ -418,7 +418,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
-        else if ( queryItem.isText() && !isGroupByClause && hasOrderByClauseQueryItem( queryItem, params ) )
+        else if ( queryItem.isText() && !isGroupByClause && hasOrderByClauseForQueryItem( queryItem, params ) )
         {
             return getColumnAndAliasWithNullIfFunction( queryItem );
         }
@@ -428,6 +428,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * The method create a ColumnAndAlias object with nullif sql function. toSql
+     * function of class will return f.e. nullif(select 'w75KJ2mc4zz' from...,
+     * '') as 'w75KJ2mc4zz'
+     *
+     * @param queryItem the {@link QueryItem}.
+     * @return the {@link ColumnAndAlias} {@link ColumnWithNullIfAndAlias}
+     */
     private ColumnAndAlias getColumnAndAliasWithNullIfFunction( QueryItem queryItem )
     {
         String column = getColumn( queryItem );
@@ -441,7 +449,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( column, queryItem.getItem().getUid() );
     }
 
-    private boolean hasOrderByClauseQueryItem( QueryItem queryItem, EventQueryParams params )
+    private boolean hasOrderByClauseForQueryItem( QueryItem queryItem, EventQueryParams params )
     {
         List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
 
@@ -1263,7 +1271,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * The tool for merging of query items relevant for order by DML command
+     * Method responsible for merging query items based on sorting parameters
      *
      * @param params the {@link EventQueryParams} to drive the query item list
      *        generation.
