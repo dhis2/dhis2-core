@@ -111,9 +111,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 9, "enrollments", "Enrollments", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "zDhUuAYrxNC", "First name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 10, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "zDhUuAYrxNC", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
     }
 }
