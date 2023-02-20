@@ -25,54 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.scheduling;
+package org.hisp.dhis.db.migration.v40;
 
-import java.util.Date;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
 
-import lombok.Value;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Value
-class SchedulerEntryJob
+/**
+ * Initialises the {@code shortname} column with a unique name based on the
+ * {@code name} column for
+ * <ul>
+ * <li>{@link org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup}</li>
+ * <li>{@link org.hisp.dhis.dataset.DataSet}</li>
+ * <li>{@link org.hisp.dhis.organisationunit.OrganisationUnitGroup}</li>
+ * <li>{@link org.hisp.dhis.category.CategoryOption}</li>
+ * <li>{@link org.hisp.dhis.constant.Constant}</li>
+ * <li>{@link org.hisp.dhis.dataelement.DataElementGroup}</li>
+ * </ul>
+ *
+ * @author Jan Bernitt
+ */
+public class V2_40_16__Unique_non_null_short_names extends BaseJavaMigration
 {
-    @JsonProperty
-    @OpenApi.Property( { SchemaGenerators.UID.class, JobConfiguration.class } )
-    String id;
-
-    @JsonProperty
-    String name;
-
-    @JsonProperty
-    JobType type;
-
-    @JsonProperty
-    String cronExpression;
-
-    @JsonProperty
-    Integer delay;
-
-    @JsonProperty
-    Date nextExecutionTime;
-
-    @JsonProperty
-    JobStatus status;
-
-    static SchedulerEntryJob of( JobConfiguration config )
+    @Override
+    public void migrate( Context context )
+        throws Exception
     {
-        return new SchedulerEntryJob(
-            config.getUid(),
-            config.getName(),
-            config.getJobType(),
-            config.getCronExpression(),
-            config.getDelay(),
-            config.getNextExecutionTime(),
-            config.getJobStatus() );
+        copyUniqueValue( context, "program_attribute_group", "programtrackedentityattributegroupid", "name",
+            "shortname", 50 );
+        copyUniqueValue( context, "dataset", "datasetid", "name", "shortname", 50 );
+        copyUniqueValue( context, "orgunitgroup", "orgunitgroupid", "name", "shortname", 50 );
+        copyUniqueValue( context, "dataelementcategoryoption", "categoryoptionid", "name", "shortname", 50 );
+        copyUniqueValue( context, "constant", "constantid", "name", "shortname", 50 );
+        copyUniqueValue( context, "dataelementgroup", "dataelementgroupid", "name", "shortname", 50 );
     }
 }

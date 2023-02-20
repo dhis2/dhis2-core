@@ -125,7 +125,8 @@ class SharingControllerTest extends DhisControllerConvenienceTest
     void testSuperUserGetPrivateObject()
     {
         String dataSetId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets", "{'name':'test','periodType':'Monthly','sharing':{'public':'--------'}}" ) );
+            POST( "/dataSets",
+                "{'name':'test','shortName':'test','periodType':'Monthly','sharing':{'public':'--------'}}" ) );
         GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.OK );
         switchToNewUser( "A", "test" );
         GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.FORBIDDEN );

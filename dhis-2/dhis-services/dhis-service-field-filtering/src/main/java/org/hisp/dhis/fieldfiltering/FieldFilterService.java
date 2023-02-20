@@ -129,6 +129,36 @@ public class FieldFilterService
         return objectMapper;
     }
 
+    /**
+     * Determines whether given path is included in the resulting ObjectNodes
+     * after applying {@link #toObjectNode(Object, List)}. This obviously
+     * requires that the actual data contains such path when filtered.
+     * <p>
+     * For example given a structure like
+     * <p>
+     * <code>{"event": "relationships": [] }</code>
+     * </p>
+     * and a
+     * <p>
+     * <code>filter="*,first[second[!third]]"</code>
+     * </p>
+     * <p>
+     * both paths<code>first</code> and <code>first.second</code> will result in
+     * true as they will be included in the filtered result. While
+     * <code>first.second.third</code> will result in false.
+     * </p>
+     *
+     * @param rootClass class the filter will be applied on
+     * @param filter field paths to be applied on the class
+     * @param path path to check for inclusion in the filter
+     * @return true if path is included in filter
+     */
+    public boolean filterIncludes( Class<?> rootClass, List<FieldPath> filter, String path )
+    {
+        return fieldPathHelper.apply( filter, rootClass ).stream()
+            .anyMatch( f -> f.toFullPath().equals( path ) );
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -149,7 +179,7 @@ public class FieldFilterService
     public <T> ObjectNode toObjectNode( T object, String filters )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( filters );
-        return toObjectNode( List.of( object ), fieldPaths );
+        return toObjectNode( object, fieldPaths );
     }
 
     public <T> ObjectNode toObjectNode( T object, List<FieldPath> filters )
@@ -197,7 +227,7 @@ public class FieldFilterService
         return objectNodes;
     }
 
-    private <T> void toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
+    private <T> void toObjectNodes( List<T> objects, List<FieldPath> filter, User user,
         boolean isSkipSharing, Consumer<ObjectNode> consumer )
     {
         if ( user == null )
@@ -208,24 +238,24 @@ public class FieldFilterService
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
         Object firstObject = objects.iterator().next();
-        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+        List<FieldPath> paths = fieldPathHelper.apply( filter, HibernateProxyUtils.getRealClass( firstObject ) );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, isSkipSharing );
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( paths, isSkipSharing );
 
         // only set filter provider on a local copy so that we don't affect
         // other object mappers (running across other threads)
         ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
 
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( paths );
 
         for ( Object object : objects )
         {
-            applyAccess( object, fieldPaths, isSkipSharing, user );
-            applySharingDisplayNames( object, fieldPaths, isSkipSharing );
-            applyAttributeValuesAttribute( object, fieldPaths, isSkipSharing );
+            applyAccess( object, paths, isSkipSharing, user );
+            applySharingDisplayNames( object, paths, isSkipSharing );
+            applyAttributeValuesAttribute( object, paths, isSkipSharing );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
-            applyAttributeValueFields( object, objectNode, fieldPaths );
+            applyAttributeValueFields( object, objectNode, paths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             consumer.accept( objectNode );
