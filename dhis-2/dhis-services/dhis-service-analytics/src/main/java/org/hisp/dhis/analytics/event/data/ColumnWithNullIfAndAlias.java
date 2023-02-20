@@ -36,7 +36,7 @@ final class ColumnWithNullIfAndAlias extends ColumnAndAlias
         super( column, alias );
     }
 
-    static ColumnWithNullIfAndAlias ofColumnAndAlias( String column, String alias )
+    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
     {
         return new ColumnWithNullIfAndAlias( column, alias );
     }

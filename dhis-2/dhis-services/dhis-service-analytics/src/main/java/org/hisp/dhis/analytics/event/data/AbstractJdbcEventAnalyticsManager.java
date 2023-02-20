@@ -434,11 +434,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( queryItem.hasProgramStage() && queryItem.getItem().getDimensionItemType() == DATA_ELEMENT )
         {
-            return ColumnWithNullIfAndAlias.ofColumnAndAlias( column,
+            return ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( column,
                 queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid() );
         }
 
-        return ColumnWithNullIfAndAlias.ofColumnAndAlias( column, queryItem.getItem().getUid() );
+        return ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( column, queryItem.getItem().getUid() );
     }
 
     private boolean hasOrderByClauseQueryItem( QueryItem queryItem, EventQueryParams params )
