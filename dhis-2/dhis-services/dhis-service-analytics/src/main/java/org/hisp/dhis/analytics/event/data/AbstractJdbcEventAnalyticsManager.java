@@ -418,7 +418,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
-        else if ( queryItem.isText() && !isGroupByClause && isInOrderByClause( queryItem, params ) )
+        else if ( queryItem.isText() && !isGroupByClause && hasOrderByClauseQueryItem( queryItem, params ) )
         {
             return getColumnAndAliasWithNullIfFunction( queryItem );
         }
@@ -441,7 +441,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return ColumnWithNullIfAndAlias.ofColumnAndAlias( column, queryItem.getItem().getUid() );
     }
 
-    private boolean isInOrderByClause( QueryItem queryItem, EventQueryParams params )
+    private boolean hasOrderByClauseQueryItem( QueryItem queryItem, EventQueryParams params )
     {
         List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
 
