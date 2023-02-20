@@ -60,12 +60,10 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
@@ -78,7 +76,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 
 @OpenApi.Tags( "tracker" )
 @RestController
@@ -95,9 +92,6 @@ public class TrackerEventsExportController
 
     @Nonnull
     private final EventService eventService;
-
-    @Nonnull
-    private final ContextService contextService;
 
     @Nonnull
     private final TrackerEventCriteriaMapper requestToSearchParams;
@@ -120,7 +114,6 @@ public class TrackerEventsExportController
         throws BadRequestException,
         ForbiddenException
     {
-
         EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
@@ -160,13 +153,6 @@ public class TrackerEventsExportController
         BadRequestException,
         ForbiddenException
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
         EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
@@ -175,11 +161,6 @@ public class TrackerEventsExportController
         }
 
         Events events = eventService.getEvents( eventSearchParams );
-
-        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
-        {
-            events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
-        }
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
