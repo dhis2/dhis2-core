@@ -560,7 +560,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( isNotEmpty( selectColumnNames ) )
             {
-                sql += "group by " + getCommaDelimitedString( selectColumnNames );
+                sql += "group by " + getCommaDelimitedString( selectColumnNames ) + " ";
             }
         }
 
