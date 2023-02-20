@@ -62,6 +62,18 @@ public class TeiQueryParams implements IdentifiableKey
 
         key.addIgnoreNull( "teiType", trackedEntityType );
         key.addIgnoreNull( "paging", commonParams.getPagingParams().wrappedKey() );
+        key.addIgnoreNull( "includeMetadataDetails", commonParams.isIncludeMetadataDetails() );
+        key.addIgnoreNull( "displayProperty", commonParams.getDisplayProperty() );
+        key.addIgnoreNull( "userOrgUnit", commonParams.getUserOrgUnit() );
+        key.addIgnoreNull( "ouMode", commonParams.getOuMode() );
+        key.addIgnoreNull( "dataIdScheme", commonParams.getDataIdScheme() );
+        key.addIgnoreNull( "relativePeriodDate", commonParams.getRelativePeriodDate() );
+        key.addIgnoreNull( "skipMeta", commonParams.isSkipMeta() );
+        key.addIgnoreNull( "skipData", commonParams.isSkipData() );
+        key.addIgnoreNull( "skipHeaders", commonParams.isSkipHeaders() );
+        key.addIgnoreNull( "skipRounding", commonParams.isSkipRounding() );
+        key.addIgnoreNull( "hierarchyMeta", commonParams.isHierarchyMeta() );
+        key.addIgnoreNull( "showHierarchy", commonParams.isShowHierarchy() );
 
         commonParams.getOrderParams().forEach( param -> key.add( "ordering", param.wrappedKey() ) );
         commonParams.getDimensionIdentifiers().forEach( dim -> key.add( "dimensionIdentifiers", dim.wrappedKey() ) );
