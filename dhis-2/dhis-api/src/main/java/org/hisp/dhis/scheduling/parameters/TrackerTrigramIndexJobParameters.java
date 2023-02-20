@@ -35,8 +35,11 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -61,6 +64,7 @@ public class TrackerTrigramIndexJobParameters
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
+    @OpenApi.Property( { UID[].class, TrackedEntityAttribute.class } )
     public Set<String> getAttributes()
     {
         return attributes;

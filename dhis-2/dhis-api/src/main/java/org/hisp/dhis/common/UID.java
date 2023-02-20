@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.Optional;
-
-import lombok.Setter;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.NoArgsConstructor;
 
 /**
+ * A "virtual" UID type that is "context-sensitive" and points to a UID of the
+ * current {@code Api.Endpoint}'s
+ * {@link org.hisp.dhis.common.OpenApi.EntityType}.
+ * <p>
+ * In other words by using this type in {@link OpenApi.Param#value()} the
+ * annotated parameter becomes a UID string of the controllers' entity type.
+ *
  * @author Jan Bernitt
  */
-@Setter
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class AggregateDataExchangeJobParameters implements JobParameters
+@NoArgsConstructor
+public final class UID
 {
-    private List<String> dataExchangeIds;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @OpenApi.Property( { UID[].class, AggregateDataExchange.class } )
-    public List<String> getDataExchangeIds()
-    {
-        return dataExchangeIds;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( dataExchangeIds == null || dataExchangeIds.isEmpty() )
-        {
-            return Optional.of( new ErrorReport( getClass(), ErrorCode.E4000, "dataExchangeIds" ) );
-        }
-        return Optional.empty();
-    }
 }

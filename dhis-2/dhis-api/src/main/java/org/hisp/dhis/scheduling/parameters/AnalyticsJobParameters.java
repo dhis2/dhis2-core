@@ -33,7 +33,10 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -94,6 +97,7 @@ public class AnalyticsJobParameters
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "skipPrograms", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "skipProgram", namespace = DxfNamespaces.DXF_2_0 )
+    @OpenApi.Property( { UID[].class, Program.class } )
     public Set<String> getSkipPrograms()
     {
         return skipPrograms;
