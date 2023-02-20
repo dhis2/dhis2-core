@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,37 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
-
-@Getter
-@RequiredArgsConstructor( access = AccessLevel.PROTECTED )
-class ColumnAndAlias
+class ColumnWithNullIfAndAliasTest
 {
-    public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
+    private static final String COLUMN = "column";
 
-    protected final String column;
+    private static final String ALIAS = "alias";
 
-    protected final String alias;
-
-    static ColumnAndAlias ofColumn( String column )
+    @Test
+    void testAsSqlReturnsRightInstance()
     {
-        return ofColumnAndAlias( column, null );
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
+
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
     }
 
-    static ColumnAndAlias ofColumnAndAlias( String column, String alias )
+    @Test
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
     {
-        return new ColumnAndAlias( column, alias );
-    }
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-    public String asSql()
-    {
-        if ( StringUtils.isNotEmpty( alias ) )
-        {
-            return String.join( " as ", column, getQuotedAlias() );
-        }
-        else
-        {
-            return column;
-        }
-    }
-
-    public String getQuotedAlias()
-    {
-        return Optional.ofNullable( alias )
-            .map( AnalyticsSqlUtils::quote )
-            .orElse( null );
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
     }
 }
