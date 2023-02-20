@@ -25,48 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
-
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.domain.Event;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+public class FieldPathConverter implements ConditionalGenericConverter
 {
-    private final FieldFilterService fieldFilterService;
 
-    public EventParams map( List<FieldPath> fields )
+    @Override
+    public boolean matches( TypeDescriptor sourceType, TypeDescriptor targetType )
     {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
+        return targetType.getResolvableType().getGenerics().length == 1 &&
+            FieldPath.class.equals( targetType.getResolvableType().getGeneric( 0 ).resolve() );
     }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes()
     {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
+        return Set.of(
+            new ConvertiblePair( String.class, List.class ),
+            new ConvertiblePair( String[].class, List.class ) );
+    }
+
+    @Override
+    public Object convert( Object source, TypeDescriptor sourceType, TypeDescriptor targetType )
+    {
+        if ( sourceType.isArray() )
         {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
+            /*
+             * @formatter:off
+             *
+             * Undo Spring's splitting of
+             * `fields=attributes[attribute,value],deleted` into
+             * 0 = "attributes[attribute"
+             * 1 = "value]"
+             * 2 = "deleted"
+             * separating nested fields attribute and value.
+             *
+             * @formatter:on
+             */
+            return FieldFilterParser.parse( String.join( ",", (String[]) source ) );
         }
-        return params;
+        return FieldFilterParser.parse( (String) source );
     }
 }

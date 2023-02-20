@@ -30,30 +30,36 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_EVENTS;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getRoots;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class EnrollmentFieldsParamMapper
 {
-    private EnrollmentFieldsParamMapper()
-    {
-    }
+    private final FieldFilterService fieldFilterService;
 
-    public static EnrollmentParams map( List<String> fields )
+    public EnrollmentParams map( List<FieldPath> fields )
     {
-        Map<String, FieldPath> roots = getRoots( fields );
+        Map<String, FieldPath> roots = rootFields( fields );
         EnrollmentParams params = initUsingAllOrNoFields( roots );
-
-        params = withFieldRelationships( roots, params );
-        params = withFieldEvents( roots, params );
-        params = withFieldAttributes( roots, params );
-
+        params = params.withIncludeRelationships(
+            fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_RELATIONSHIPS ) );
+        params = params
+            .withIncludeEvents( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_EVENTS ) );
+        params = params
+            .withIncludeAttributes( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_ATTRIBUTES ) );
         return params;
     }
 
@@ -69,30 +75,5 @@ public class EnrollmentFieldsParamMapper
             }
         }
         return params;
-    }
-
-    private static EnrollmentParams withFieldRelationships( Map<String, FieldPath> roots,
-        EnrollmentParams params )
-    {
-        return roots.containsKey( FIELD_RELATIONSHIPS )
-            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
-            : params;
-    }
-
-    private static EnrollmentParams withFieldEvents(
-        Map<String, FieldPath> roots,
-        EnrollmentParams params )
-    {
-        return roots.containsKey( FIELD_EVENTS )
-            ? params.withIncludeEvents( !roots.get( FIELD_EVENTS ).isExclude() )
-            : params;
-    }
-
-    private static EnrollmentParams withFieldAttributes( Map<String, FieldPath> roots,
-        EnrollmentParams params )
-    {
-        return roots.containsKey( FIELD_ATTRIBUTES )
-            ? params.withIncludeAttributes( !roots.get( FIELD_ATTRIBUTES ).isExclude() )
-            : params;
     }
 }

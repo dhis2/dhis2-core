@@ -36,6 +36,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
+import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -190,6 +191,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     protected void addFormatters( FormatterRegistry registry )
     {
         registry.addConverter( new StringToOrderCriteriaListConverter() );
+        registry.addConverter( new FieldPathConverter() );
     }
 
     @Primary
