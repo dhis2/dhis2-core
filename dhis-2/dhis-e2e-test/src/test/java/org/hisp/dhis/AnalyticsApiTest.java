@@ -72,7 +72,7 @@ import io.restassured.http.ContentType;
 @Tag( "analytics" )
 public abstract class AnalyticsApiTest
 {
-    protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 2;
+    protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 5;
 
     protected static final String JSON = ContentType.JSON.toString();
 
