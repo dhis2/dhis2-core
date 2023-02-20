@@ -66,6 +66,11 @@ public class SQLViewUpdateJob implements Job
     {
         progress.startingProcess( "SQL View update" );
         SQLViewUpdateParameters params = (SQLViewUpdateParameters) config.getJobParameters();
+        if ( params == null )
+        {
+            progress.completedProcess( "No views to update" );
+            return;
+        }
         List<String> sqlViews = params.getSqlViews();
         progress.startingStage( "Updating SQL views", sqlViews.size(), JobProgress.FailurePolicy.SKIP_ITEM );
         progress.runStage( sqlViews, Function.identity(), uid -> {
