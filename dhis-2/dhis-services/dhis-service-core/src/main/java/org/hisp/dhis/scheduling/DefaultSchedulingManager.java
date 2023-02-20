@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -91,11 +92,12 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     private final AsyncTaskExecutor taskExecutor;
 
     public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService, Notifier notifier,
+        MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
         LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
         AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
+        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
+            cacheProvider );
 
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );

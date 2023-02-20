@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.eventhook;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
+import java.util.List;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.user.User;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen
  */
-@ResponseStatus( HttpStatus.NOT_FOUND )
-@OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
-public class NotFoundException extends Exception
+@FunctionalInterface
+public interface EventHookPublisher
 {
-    public static NotFoundException notFoundUid( String uid )
-    {
-        return new NotFoundException( "Object not found for uid: " + uid );
-    }
+    List<? extends Class<?>> BLOCKLIST = List.of( User.class );
 
-    public NotFoundException()
-    {
-        super( "Object not found." );
-    }
-
-    public NotFoundException( String message )
-    {
-        super( message );
-    }
-
-    public NotFoundException( String type, String uid )
-    {
-        super( type + " not found for uid: " + uid );
-    }
+    void publishEvent( Event event );
 }

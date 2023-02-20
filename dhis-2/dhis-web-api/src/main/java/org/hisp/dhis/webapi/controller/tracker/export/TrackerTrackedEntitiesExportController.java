@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper.map;
-import static org.hisp.dhis.webapi.utils.ContextUtils.*;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -53,15 +55,21 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -93,17 +101,18 @@ public class TrackerTrackedEntitiesExportController
     @Nonnull
     private final CsvEventService<TrackedEntity> csvEventService;
 
+    private final TrackedEntityFieldsParamMapper fieldsMapper;
+
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException
     {
-
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields )
-            .withIncludeDeleted( criteria.isIncludeDeleted() );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
+            criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
@@ -135,15 +144,15 @@ public class TrackerTrackedEntitiesExportController
         HttpServletResponse response,
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws IOException,
         BadRequestException,
         ForbiddenException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields )
-            .withIncludeDeleted( criteria.isIncludeDeleted() );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
+            criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
@@ -179,9 +188,9 @@ public class TrackerTrackedEntitiesExportController
     @GetMapping( value = "{id}" )
     public ResponseEntity<ObjectNode> getTrackedEntityInstanceById( @PathVariable String id,
         @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
@@ -193,10 +202,10 @@ public class TrackerTrackedEntitiesExportController
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws IOException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );

@@ -32,7 +32,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.springframework.context.annotation.Primary;

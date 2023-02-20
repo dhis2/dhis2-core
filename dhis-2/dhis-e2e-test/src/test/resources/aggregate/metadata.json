@@ -19,7 +19,6 @@
       "dataDimension": true,
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "UPvKbcqTEY3"
@@ -54,7 +53,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "FYTYL2zIeUe"
@@ -88,7 +86,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "MP15bHaQh2x"
@@ -156,8 +153,7 @@
         }
       ],
       "attributeValues": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "validationRules": [
@@ -186,11 +182,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -217,11 +211,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -251,11 +243,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -282,11 +272,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -313,11 +301,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -344,11 +330,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -375,11 +359,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -406,11 +388,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -437,11 +417,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -468,11 +446,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -499,11 +475,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -530,11 +504,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "indicatorTypes": [
@@ -917,7 +889,6 @@
       },
       "attributeValues": [],
       "indicators": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1780,8 +1751,7 @@
           "id": "tIWGvDkU6lb"
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "indicators": [
@@ -1812,7 +1782,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1842,7 +1811,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [
         {
           "id": "phSksJ6YPO4"
@@ -1876,7 +1844,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1906,7 +1873,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1936,7 +1902,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1966,7 +1931,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1996,7 +1960,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2025,7 +1988,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2054,7 +2016,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2084,7 +2045,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2114,7 +2074,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2144,7 +2103,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2175,7 +2133,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2206,7 +2163,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2236,7 +2192,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2266,7 +2221,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2296,7 +2250,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2326,7 +2279,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [
         {
           "id": "JUG5nRDqRFl"
@@ -2360,7 +2312,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     }
   ],
@@ -2391,7 +2342,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2421,7 +2371,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2452,7 +2401,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2483,7 +2431,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2513,7 +2460,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2544,7 +2490,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2575,7 +2520,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2606,7 +2550,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2637,7 +2580,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2668,7 +2610,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2699,7 +2640,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2730,7 +2670,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2761,7 +2700,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2792,7 +2730,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2823,7 +2760,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2854,7 +2790,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2885,7 +2820,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2915,7 +2849,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2946,7 +2879,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2977,7 +2909,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3008,7 +2939,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3039,7 +2969,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3070,7 +2999,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3101,7 +3029,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3132,7 +3059,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3163,7 +3089,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3194,7 +3119,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3225,7 +3149,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3256,7 +3179,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3287,7 +3209,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3318,7 +3239,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3349,7 +3269,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3380,7 +3299,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3411,7 +3329,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3442,7 +3359,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3473,7 +3389,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3504,7 +3419,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3534,7 +3448,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3564,7 +3477,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3595,7 +3507,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3626,7 +3537,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3657,7 +3567,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3688,7 +3597,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3719,7 +3627,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3750,7 +3657,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3781,7 +3687,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3812,7 +3717,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3843,7 +3747,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3874,7 +3777,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3905,7 +3807,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3936,7 +3837,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3967,7 +3867,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3998,7 +3897,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4029,7 +3927,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4060,7 +3957,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4091,7 +3987,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4121,7 +4016,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4152,7 +4046,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4183,7 +4076,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4214,7 +4106,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4245,7 +4136,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4276,7 +4166,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4307,7 +4196,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4338,7 +4226,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4369,7 +4256,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4400,7 +4286,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4430,7 +4315,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4460,7 +4344,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4490,7 +4373,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4520,7 +4402,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4550,7 +4431,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4580,7 +4460,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4610,7 +4489,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4640,7 +4518,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4670,7 +4547,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     }
@@ -4694,7 +4570,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "Qzfvt1YRb1Y"
@@ -4937,7 +4812,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "NywGy6uMS5r"
@@ -4964,7 +4838,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "S9nIxTMWplW"
@@ -4997,7 +4870,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "yMIgzlV9sES"
@@ -5045,7 +4917,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "Qzfvt1YRb1Y"
@@ -5222,7 +5093,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "OCuA0tI3BCi"
@@ -5265,7 +5135,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "dFaBg0HpoIL"
@@ -5291,7 +5160,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5311,7 +5179,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5331,7 +5198,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5352,7 +5218,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5373,7 +5238,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5393,7 +5257,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5413,7 +5276,6 @@
         }
       },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5434,7 +5296,6 @@
       },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     }
   ],
@@ -5463,7 +5324,6 @@
           "endValue": 100.0,
           "color": "#F2EBEB",
           "displayName": "> 20%",
-          "externalAccess": false,
           "startValue": 20.0,
           "favorite": false,
           "access": {
@@ -5476,9 +5336,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5488,7 +5346,6 @@
           "endValue": 20.0,
           "color": "#EBBFA1",
           "displayName": "10 - 20%",
-          "externalAccess": false,
           "startValue": 10.0,
           "favorite": false,
           "access": {
@@ -5501,9 +5358,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5513,7 +5368,6 @@
           "endValue": 10.0,
           "color": "#A13300",
           "displayName": "< 10%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5526,13 +5380,10 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-15T14:51:58.863",
@@ -5558,7 +5409,6 @@
           "endValue": 40.0,
           "color": "#EBBFA1",
           "displayName": "20 -40%",
-          "externalAccess": false,
           "startValue": 20.0,
           "favorite": false,
           "access": {
@@ -5571,9 +5421,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5583,7 +5431,6 @@
           "endValue": 20.0,
           "color": "#EDDBC4",
           "displayName": "10 - 20%",
-          "externalAccess": false,
           "startValue": 10.0,
           "favorite": false,
           "access": {
@@ -5596,9 +5443,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5608,7 +5453,6 @@
           "endValue": 60.0,
           "color": "#D18C4D",
           "displayName": "40 - 60%",
-          "externalAccess": false,
           "startValue": 40.0,
           "favorite": false,
           "access": {
@@ -5621,9 +5465,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5633,7 +5475,6 @@
           "endValue": 1.0,
           "color": "#F2EBEB",
           "displayName": "0 - 1%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5646,9 +5487,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5658,7 +5497,6 @@
           "endValue": 80.0,
           "color": "#A13300",
           "displayName": "60 - 80%",
-          "externalAccess": false,
           "startValue": 60.0,
           "favorite": false,
           "access": {
@@ -5671,9 +5509,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5683,7 +5519,6 @@
           "endValue": 100.0,
           "color": "#400000",
           "displayName": "80 - 100%",
-          "externalAccess": false,
           "startValue": 80.0,
           "favorite": false,
           "access": {
@@ -5696,9 +5531,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5708,7 +5541,6 @@
           "endValue": 0.0,
           "color": "#ffffff",
           "displayName": "0%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5721,9 +5553,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5733,7 +5563,6 @@
           "endValue": 10.0,
           "color": "#F0E0CD",
           "displayName": "1 - 10%",
-          "externalAccess": false,
           "startValue": 1.0,
           "favorite": false,
           "access": {
@@ -5746,13 +5575,10 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "categoryCombos": [
@@ -5773,7 +5599,6 @@
         }
       },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "mFoasCYViMW"
@@ -5797,7 +5622,6 @@
         }
       },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "mFoasCYViMW"
@@ -5824,7 +5648,6 @@
         }
       },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "Xaol8a2c51w"

@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +59,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
     implements CompleteDataSetRegistrationExchangeStore

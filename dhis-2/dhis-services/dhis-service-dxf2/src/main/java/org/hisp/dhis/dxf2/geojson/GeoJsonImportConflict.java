@@ -80,6 +80,10 @@ public enum GeoJsonImportConflict implements ImportConflictDescriptor
      */
     GEOMETRY_INVALID( ErrorCode.E7707, "geometry" ),
     /**
+     * When the {@code coordinates} of the {@code geometry} is empty.
+     */
+    COORDINATES_EMPTY( ErrorCode.E7712, "coordinates" ),
+    /**
      * When the organisation unit referenced by the feature does not exist
      */
     ORG_UNIT_NOT_FOUND( ErrorCode.E7708, "" ),

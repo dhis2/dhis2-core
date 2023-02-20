@@ -25,35 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.eventhook.handlers;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.eventhook.Event;
+import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.Handler;
+import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 
 /**
- * @author anilkumk.
+ * @author Morten Olav Hansen
  */
-@ResponseStatus( HttpStatus.BAD_REQUEST )
-@OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
-public class BadRequestException extends Exception
+@Slf4j
+public class ConsoleHandler implements Handler
 {
-
-    public BadRequestException( String message )
+    public ConsoleHandler( ConsoleTarget target )
     {
-        super( message );
+
     }
 
-    public BadRequestException( Throwable cause )
+    @Override
+    public void run( EventHook eventHook, Event event, String payload )
     {
-        super( cause );
-    }
-
-    public BadRequestException( String message, Throwable cause )
-    {
-        super( message, cause );
+        log.info( payload );
     }
 }

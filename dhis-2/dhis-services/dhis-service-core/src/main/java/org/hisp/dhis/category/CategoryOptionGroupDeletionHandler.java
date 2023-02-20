@@ -27,23 +27,23 @@
  */
 package org.hisp.dhis.category;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CategoryOptionGroupDeletionHandler
-    extends DeletionHandler
+    extends IdObjectDeletionHandler<CategoryOptionGroup>
 {
     private final CategoryService categoryService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( CategoryOption.class, this::deleteCategoryOption );
     }

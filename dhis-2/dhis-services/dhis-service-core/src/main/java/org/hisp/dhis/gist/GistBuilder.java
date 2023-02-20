@@ -31,8 +31,10 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -256,19 +258,36 @@ final class GistBuilder
         final String id;
     }
 
-    public void transform( List<Object[]> rows )
+    public List<?> transform( List<?> rows )
     {
-        if ( fieldResultTransformers.isEmpty() )
+        if ( fieldResultTransformers.isEmpty() || rows.isEmpty() )
         {
-            return;
+            return rows;
         }
-        for ( Object[] row : rows )
+        @SuppressWarnings( "unchecked" )
+        List<Object> rowsObjects = (List<Object>) rows;
+        for ( int i = 0; i < rowsObjects.size(); i++ )
         {
-            for ( Consumer<Object[]> transformer : fieldResultTransformers )
+            Object rowValue = rowsObjects.get( i );
+            if ( rowValue != null && rowValue.getClass() == Object[].class )
             {
-                transformer.accept( row );
+                Object[] row = (Object[]) rowValue;
+                for ( Consumer<Object[]> transformer : fieldResultTransformers )
+                {
+                    transformer.accept( row );
+                }
+            }
+            else if ( rowValue != null )
+            {
+                Object[] row = new Object[] { rowValue };
+                for ( Consumer<Object[]> transformer : fieldResultTransformers )
+                {
+                    transformer.accept( row );
+                }
+                rowsObjects.set( i, row[0] );
             }
         }
+        return rowsObjects;
     }
 
     private void addTransformer( Consumer<Object[]> transformer )
@@ -290,6 +309,15 @@ final class GistBuilder
             }
         }
         return null;
+    }
+
+    private Map<String, String> attributeValues( Object attributeValues )
+    {
+        @SuppressWarnings( "unchecked" )
+        Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
+        return values == null || values.isEmpty()
+            ? Map.of()
+            : values.stream().collect( toMap( value -> value.getAttribute().getUid(), AttributeValue::getValue ) );
     }
 
     private Object translate( Object value, String property, Object translations )
@@ -422,6 +450,10 @@ final class GistBuilder
             return HQL_NULL;
         }
         Property property = context.resolveMandatory( path );
+        if ( isAttributeValuesProperty( property ) )
+        {
+            addTransformer( row -> row[index] = attributeValues( row[index] ) );
+        }
         if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
             int translationsFieldIndex = getSameParentFieldIndex( path, TRANSLATIONS_PROPERTY );

@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -74,17 +73,14 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -92,6 +88,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -192,33 +190,79 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
     {
-        if ( ex.getRequiredType() == null )
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
         {
-            return handleBadRequest( ex );
+            return badRequest( ex.getMessage() );
         }
 
-        if ( ex.getRequiredType().isEnum() )
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    @ExceptionHandler( TypeMismatchException.class )
+    @ResponseBody
+    public WebMessage handleTypeMismatchException( TypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
         {
-            String validValues = StringUtils
-                .join( Arrays.stream( ex.getRequiredType().getEnumConstants() ).map( Objects::toString )
-                    .collect( Collectors.toList() ), ", " );
-            String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-                ex.getValue(), ex.getName(), validValues );
-            return badRequest( errorMessage );
+            return badRequest( ex.getMessage() );
         }
-        return handleBadRequest( ex );
+
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
+    {
+        String validValues = StringUtils
+            .join( Arrays.stream( requiredType.getEnumConstants() ).map( Objects::toString )
+                .collect( Collectors.toList() ), ", " );
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
+            value, field, validValues );
+        return badRequest( errorMessage );
+    }
+
+    private WebMessage getWebMessage( Object value, String fieldType )
+    {
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}.",
+            value, fieldType );
+        return badRequest( errorMessage );
     }
 
     @ExceptionHandler( InvalidEnumValueException.class )
     @ResponseBody
     public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
     {
-        String validValues = StringUtils
-            .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
-                .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-            ex.getInvalidValue(), ex.getFieldName(), validValues );
-        return badRequest( errorMessage );
+        return getEnumWebMessage( ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName() );
+    }
+
+    /**
+     * A BindException wraps possible errors happened trying to bind all the
+     * request parameters to a binding object. Errors could be simple conversion
+     * failures (Trying to convert a 'TEXT' to an Integer ) or validation errors
+     * create by hibernate-validator framework. Currently, we are not using such
+     * framework hence only conversion errors can happen.
+     *
+     * Only first error is returned to the client in order to be consistent in
+     * the way BAD_REQUEST responses are displayed.
+     *
+     */
+    @ExceptionHandler( BindException.class )
+    @ResponseBody
+    public WebMessage handleBindException( BindException ex )
+    {
+        FieldError fieldError = ex.getFieldError();
+
+        if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
+        {
+            return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
+        }
+
+        return badRequest( ex.getMessage() );
     }
 
     @ExceptionHandler( Dhis2ClientException.class )
@@ -282,13 +326,6 @@ public class CrudControllerAdvice
     public WebMessage notAuthenticatedExceptionHandler( NotAuthenticatedException ex )
     {
         return unauthorized( ex.getMessage() );
-    }
-
-    @ExceptionHandler( NotFoundException.class )
-    @ResponseBody
-    public WebMessage notFoundExceptionHandler( NotFoundException ex )
-    {
-        return notFound( ex.getMessage() );
     }
 
     @ExceptionHandler( ConstraintViolationException.class )
@@ -368,19 +405,11 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
-        JsonPatchException.class } )
+    @ExceptionHandler( { IllegalArgumentException.class, SchemaPathException.class, JsonPatchException.class } )
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
     {
         return badRequest( exception.getMessage() );
-    }
-
-    @ExceptionHandler( { ConflictException.class } )
-    @ResponseBody
-    public WebMessage handleConflictRequest( Exception exception )
-    {
-        return conflict( exception.getMessage() );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
@@ -413,13 +442,6 @@ public class CrudControllerAdvice
             return conflict( conflictException.getMessage() );
         }
         return conflict( null ).setResponse( conflictException.getMetadataSyncSummary() );
-    }
-
-    @ExceptionHandler( OperationNotAllowedException.class )
-    @ResponseBody
-    public WebMessage handleOperationNotAllowedException( OperationNotAllowedException ex )
-    {
-        return forbidden( ex.getMessage() );
     }
 
     @ExceptionHandler( OAuth2AuthenticationException.class )

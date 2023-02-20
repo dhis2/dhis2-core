@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -46,7 +47,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,7 +98,7 @@ public class JobConfigurationController
 
         if ( jobConfiguration == null )
         {
-            throw NotFoundException.notFoundUid( uid );
+            throw new NotFoundException( JobConfiguration.class, uid );
         }
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );

@@ -2236,6 +2236,7 @@ public abstract class DhisConvenienceTest
         attributeGroup.setAutoFields();
 
         attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setShortName( attributeGroup.getName() );
         attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
         attributeGroup.setUniqunessType( UniqunessType.NONE );
 
@@ -2312,6 +2313,7 @@ public abstract class DhisConvenienceTest
         constant.setAutoFields();
 
         constant.setName( "Constant" + uniqueCharacter );
+        constant.setShortName( constant.getName() );
         constant.setValue( value );
 
         return constant;
@@ -2897,11 +2899,13 @@ public abstract class DhisConvenienceTest
     }
 
     protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
-        OrganisationUnit dataViewOrganisationUnits, String... auths )
+        OrganisationUnit dataViewOrganisationUnit, String... auths )
     {
-        User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
-            dataViewOrganisationUnits != null ? newHashSet( dataViewOrganisationUnits ) : newHashSet( orgUnit ),
-            auths );
+        Set<OrganisationUnit> organisationUnits = orgUnit == null ? new HashSet<>() : newHashSet( orgUnit );
+        Set<OrganisationUnit> dataViewOrganisationUnits = dataViewOrganisationUnit != null
+            ? newHashSet( dataViewOrganisationUnit )
+            : new HashSet<>( organisationUnits );
+        User user = _createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
 
         persistUserAndRoles( user );
 

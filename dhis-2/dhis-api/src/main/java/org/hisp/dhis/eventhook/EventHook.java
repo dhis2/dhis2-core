@@ -25,52 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expressiondimensionitem;
+package org.hisp.dhis.eventhook;
 
-import static java.util.Arrays.stream;
-
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Dusan Bernat
+ * @author Morten Olav Hansen
  */
-public interface ExpressionDimensionItemStore
-    extends IdentifiableObjectStore<ExpressionDimensionItem>
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class EventHook
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
-    String ID = ExpressionDimensionItemStore.class.getName();
+    @JsonProperty( required = true )
+    private boolean disabled;
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
+    @JsonProperty
+    private String description;
 
-    /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
-     */
-    List<ExpressionDimensionItem> getAttributes( Class<?> klass );
+    @JsonProperty( required = true )
+    private Source source;
 
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<ExpressionDimensionItem> getMandatoryAttributes( Class<?> klass );
-
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<ExpressionDimensionItem> getUniqueAttributes( Class<?> klass );
+    @JsonProperty( required = true )
+    private List<Target> targets = new ArrayList<>();
 }

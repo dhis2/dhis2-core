@@ -44,6 +44,7 @@ import java.util.function.Function;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -234,5 +235,21 @@ public final class Assertions
             assertStartsWith( expected.substring( 0, paramsStart + 1 ), actual );
             assertContainsOnly( toParameterList.apply( expected ), toParameterList.apply( actual ) );
         }
+    }
+
+    public static void assertErrorReport( List<ErrorReport> actualErrors, ErrorCode expectedErrorCode )
+    {
+        assertErrorReport( actualErrors, expectedErrorCode, "" );
+    }
+
+    public static void assertErrorReport( List<ErrorReport> actualErrors, ErrorCode expectedErrorCode,
+        String expectedMessage )
+    {
+        assertFalse( actualErrors.isEmpty(), expectedMessage + " not found as error report list is empty" );
+
+        assertTrue( actualErrors.stream().anyMatch( er -> er.getMessage().contains( expectedMessage )
+            && er.getErrorCode() == expectedErrorCode ),
+            String.format( "Error report with code %s and and message '%s' not found in %s", expectedErrorCode,
+                expectedMessage, actualErrors ) );
     }
 }

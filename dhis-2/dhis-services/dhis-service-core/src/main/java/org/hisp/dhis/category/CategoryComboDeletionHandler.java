@@ -29,26 +29,23 @@ package org.hisp.dhis.category;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class CategoryComboDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<CategoryCombo>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     private final CategoryService categoryService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenVetoing( Category.class, this::allowDeleteCategory );
         whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );

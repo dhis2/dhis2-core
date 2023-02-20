@@ -182,6 +182,52 @@ pipeline {
                 }
             }
         }
+
+        stage('Update IM Play dev instance') {
+            environment {
+                HTTP = "http --check-status"
+                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
+                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+                IMAGE_REPOSITORY = "core-dev"
+                IMAGE_TAG = "latest"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+            }
+            steps {
+                script {
+                    if (env.GIT_BRANCH == 'master') {
+                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                            dir('im-db-manager') {
+                                sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+
+                                dir('scripts') {
+                                    env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
+                                    ).trim()
+
+                                    sh '[ -n "$DATABASE_ID" ]'
+                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
+                                }
+                            }
+
+                            dir('im-manager') {
+                                sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+
+                                dir('scripts') {
+                                    echo 'Creating DHIS2 instance on IM...'
+                                    sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
+                                    timeout(5) {
+                                        waitFor.statusOk("${env.INSTANCE_URL}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -197,7 +243,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendTimedoutMessage(30)
+                slack.sendTimedoutMessage()
             }
         }
     }

@@ -60,6 +60,7 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -232,6 +233,19 @@ public class Metadata
     public void setAggregateDataExchanges( List<AggregateDataExchange> aggregateDataExchanges )
     {
         setValues( AggregateDataExchange.class, aggregateDataExchanges );
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "eventHooks", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventHook", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventHook> getEventHooks()
+    {
+        return getValues( EventHook.class );
+    }
+
+    public void setEventHooks( List<EventHook> eventHooks )
+    {
+        setValues( EventHook.class, eventHooks );
     }
 
     @JsonProperty
