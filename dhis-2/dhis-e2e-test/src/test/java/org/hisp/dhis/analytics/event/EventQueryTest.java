@@ -57,8 +57,8 @@ public class EventQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
     {
         // Given
-        QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
             .add( "stage=dBwrot7S420" )
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
@@ -176,8 +176,8 @@ public class EventQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefault()
     {
         // Given
-        QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
             .add( "stage=dBwrot7S420" )
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )

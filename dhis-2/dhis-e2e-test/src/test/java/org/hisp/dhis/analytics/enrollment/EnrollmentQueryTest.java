@@ -57,8 +57,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
     {
         // Given
-        final QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU" )
             .add( "stage=A03MvHHogjR" )
             .add( "displayProperty=NAME" )
             .add( "outputType=ENROLLMENT" )
@@ -69,7 +69,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
-        final ApiResponse response = enrollmentsActions.query().get( "IpHINAT79UW", JSON, JSON, params );
+        ApiResponse response = enrollmentsActions.query().get( "IpHINAT79UW", JSON, JSON, params );
 
         // Then
         response.validate()
