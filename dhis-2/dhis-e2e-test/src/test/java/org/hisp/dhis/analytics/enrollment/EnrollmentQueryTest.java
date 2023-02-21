@@ -74,7 +74,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 16 ) ) )
+            .body( "headers", hasSize( equalTo( 17 ) ) )
             .body( "rows", hasSize( equalTo( 100 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 100 ) )
@@ -92,8 +92,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "metaData.dimensions.\"A03MvHHogjR.UXz7xuGCEhU\"", hasSize( equalTo( 0 ) ) )
             .body( "height", equalTo( 100 ) )
-            .body( "width", equalTo( 16 ) )
-            .body( "headerWidth", equalTo( 16 ) );
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) );
 
         // Validate headers
         validateHeader( response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true );
@@ -111,10 +111,12 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 15, "A03MvHHogjR.UXz7xuGCEhU", "MCH Weight (g)", "NUMBER", "java.lang.Double", false,
+        validateHeader( response, 12, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "A03MvHHogjR.UXz7xuGCEhU", "MCH Weight (g)", "NUMBER", "java.lang.Double", false,
             true );
 
         // Validate the first three rows, as samples.
@@ -131,6 +133,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "",
                 "",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "DiszpKrYNg8",
@@ -149,6 +152,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "",
                 "",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "DiszpKrYNg8",
@@ -167,6 +171,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "",
                 "",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "COMPLETED",
                 "DiszpKrYNg8",
