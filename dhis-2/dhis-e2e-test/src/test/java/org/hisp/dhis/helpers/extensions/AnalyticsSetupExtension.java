@@ -32,7 +32,6 @@ import static org.apache.logging.log4j.LogManager.getLogger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.LoginActions;
@@ -42,6 +41,8 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+
+import com.google.gson.JsonObject;
 
 /**
  * This extension is used to prepare/populate the analytics tables, so they can
