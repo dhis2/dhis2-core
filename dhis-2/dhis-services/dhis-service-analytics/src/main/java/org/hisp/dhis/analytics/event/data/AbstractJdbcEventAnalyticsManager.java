@@ -101,6 +101,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -220,11 +221,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( DimensionalObject::hasItems )
-                    .map( dim -> toCase( dim, quoteAlias( item.getItem().getUid() ), params.getDisplayProperty() ) )
-                    .orElse( quoteAlias( item.getItem().getUid() ) );
+                    .map( dim -> toCase( dim, quote( item.getItem().getUid() ), params.getDisplayProperty() ) )
+                    .orElse( quote( item.getItem().getUid() ) );
             }
 
-            sql += order == ASC ? " asc," : " desc,";
+            sql += order == ASC ? " asc nulls last," : " desc nulls last,";
         }
 
         return sql;
@@ -417,10 +418,42 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 columnAndAlias.getColumn(),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
+        else if ( queryItem.isText() && !isGroupByClause && hasOrderByClauseForQueryItem( queryItem, params ) )
+        {
+            return getColumnAndAliasWithNullIfFunction( queryItem );
+        }
         else
         {
             return getColumnAndAlias( queryItem, isGroupByClause, "" );
         }
+    }
+
+    /**
+     * The method create a ColumnAndAlias object with nullif sql function. toSql
+     * function of class will return f.e. nullif(select 'w75KJ2mc4zz' from...,
+     * '') as 'w75KJ2mc4zz'
+     *
+     * @param queryItem the {@link QueryItem}.
+     * @return the {@link ColumnAndAlias} {@link ColumnWithNullIfAndAlias}
+     */
+    private ColumnAndAlias getColumnAndAliasWithNullIfFunction( QueryItem queryItem )
+    {
+        String column = getColumn( queryItem );
+
+        if ( queryItem.hasProgramStage() && queryItem.getItem().getDimensionItemType() == DATA_ELEMENT )
+        {
+            return ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( column,
+                queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid() );
+        }
+
+        return ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( column, queryItem.getItem().getUid() );
+    }
+
+    private boolean hasOrderByClauseForQueryItem( QueryItem queryItem, EventQueryParams params )
+    {
+        List<QueryItem> orderByColumns = getDistinctOrderByColumns( params );
+
+        return orderByColumns.contains( queryItem );
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
@@ -1235,6 +1268,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
+    }
+
+    /**
+     * Method responsible for merging query items based on sorting parameters
+     *
+     * @param params the {@link EventQueryParams} to drive the query item list
+     *        generation.
+     * @return the distinct {@link List<QueryItem>} relevant for order by DML.
+     */
+    private List<QueryItem> getDistinctOrderByColumns( EventQueryParams params )
+    {
+        List<QueryItem> orderByAscColumns = new ArrayList<>();
+
+        List<QueryItem> orderByDescColumns = new ArrayList<>();
+
+        if ( params.getAsc() != null && !params.getAsc().isEmpty() )
+        {
+            orderByAscColumns.addAll( params.getAsc() );
+        }
+
+        if ( params.getDesc() != null && !params.getDesc().isEmpty() )
+        {
+            orderByDescColumns.addAll( params.getDesc() );
+        }
+
+        return ListUtils.distinctUnion( orderByAscColumns, orderByDescColumns );
     }
 
     /**

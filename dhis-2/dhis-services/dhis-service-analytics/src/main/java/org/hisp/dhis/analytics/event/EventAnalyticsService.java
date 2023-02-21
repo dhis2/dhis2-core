@@ -74,6 +74,8 @@ public interface EventAnalyticsService
 
     String ITEM_ORG_UNIT_NAME = "ouname";
 
+    String ITEM_ORG_UNIT_NAME_HIERARCHY = "ounamehierarchy";
+
     String ITEM_ORG_UNIT_CODE = "oucode";
 
     String ITEM_COUNT = "count";
