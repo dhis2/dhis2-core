@@ -594,7 +594,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn()
     {
-        String columnAlias = "concat_ws('/'," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
+        String columnAlias = "concat_ws(' / '," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
             .map( lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel() )
             .collect( Collectors.joining( "," ) ) + ") as ounamehierarchy";
         return new AnalyticsTableColumn( "ounamehierarchy", TEXT, columnAlias );
