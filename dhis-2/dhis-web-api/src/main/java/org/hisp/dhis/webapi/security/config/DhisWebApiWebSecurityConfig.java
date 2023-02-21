@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -742,10 +740,5 @@ public class DhisWebApiWebSecurityConfig
             .httpStrictTransportSecurity()
             .and()
             .frameOptions().sameOrigin();
-
-        if ( dhisConfig.isEnabled( CSP_ENABLED ) )
-        {
-            http.headers().contentSecurityPolicy( dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        }
     }
 }
