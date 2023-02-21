@@ -31,6 +31,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 import java.util.EnumSet;
@@ -263,7 +264,7 @@ public class Attribute
     }
 
     @JsonProperty
-    @Property( access = Property.Access.READ_ONLY )
+    @Property( access = Property.Access.READ_ONLY, required = FALSE )
     public Set<String> getObjectTypes()
     {
         return objectTypes.stream().map( ObjectType::name ).collect( toSet() );
