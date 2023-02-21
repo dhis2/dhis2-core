@@ -66,20 +66,22 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
     {
 
         setupTest();
-        //We should have three cat option combos now. The two we created and default.
+        // We should have three cat option combos now. The two we created and
+        // default.
         JsonResponse response = GET( "/categoryOptionCombos?fields=id,name" ).content();
         JsonList<JsonCategoryOptionCombo> catOptionCombos = response.getList( "categoryOptionCombos",
             JsonCategoryOptionCombo.class );
         assertEquals( 3, catOptionCombos.size() );
 
-        //Delete the category option
+        // Delete the category option
         assertStatus( HttpStatus.OK,
             DELETE( "/categoryOptions/" + categoryOptionSweet ) );
 
         assertStatus( HttpStatus.NOT_FOUND,
             GET( "/categoryOptions/" + categoryOptionSweet ) );
 
-        //The deletion of the category option cascades to the category option combo.
+        // The deletion of the category option cascades to the category option
+        // combo.
         response = GET( "/categoryOptionCombos?fields=id,name" ).content();
         catOptionCombos = response.getList( "categoryOptionCombos", JsonCategoryOptionCombo.class );
         assertEquals( 2, catOptionCombos.size() );

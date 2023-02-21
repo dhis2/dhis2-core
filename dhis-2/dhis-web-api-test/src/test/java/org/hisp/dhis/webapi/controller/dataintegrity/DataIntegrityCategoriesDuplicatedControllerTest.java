@@ -114,7 +114,8 @@ class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegr
     void testInvalidCategoriesDivideByZero()
     {
 
-        // Expect a percentage here, since there should always be the default category
+        // Expect a percentage here, since there should always be the default
+        // category
         assertHasNoDataIntegrityIssues( "categories", check, true );
 
     }

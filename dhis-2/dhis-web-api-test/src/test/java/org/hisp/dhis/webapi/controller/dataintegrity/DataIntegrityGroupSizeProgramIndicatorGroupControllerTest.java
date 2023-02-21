@@ -60,13 +60,13 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
 
         setUpTest();
 
-        //Add a group with one indicator
+        // Add a group with one indicator
         ProgramIndicatorGroup programIndicatorGroupB = new ProgramIndicatorGroup( "Test PI Group B" );
         programIndicatorGroupB.setAutoFields();
         programIndicatorGroupB.addProgramIndicator( testPIb );
         programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupB );
 
-        //Add a group with zero program indicators
+        // Add a group with zero program indicators
         ProgramIndicatorGroup programIndicatorGroupC = new ProgramIndicatorGroup( "Test PI Group C" );
         programIndicatorGroupC.setAutoFields();
         programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupC );
@@ -128,7 +128,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         testPIb.setProgram( programA );
         programIndicatorService.addProgramIndicator( testPIb );
 
-        //Add two indicators to this group
+        // Add two indicators to this group
         programIndicatorGroupA.addProgramIndicator( testPIa );
         programIndicatorGroupA.addProgramIndicator( testPIb );
         programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );

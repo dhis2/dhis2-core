@@ -62,13 +62,13 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
-        //Create an orgunit group
+        // Create an orgunit group
         testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
                     + "'}]}" ) );
 
-        //Add it to a group set
+        // Add it to a group set
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
@@ -86,13 +86,13 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
-        //Create an orgunit group
+        // Create an orgunit group
         testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
                     + "'}]}" ) );
 
-        //Add it to a group set
+        // Add it to a group set
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"

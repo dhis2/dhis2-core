@@ -62,13 +62,13 @@ class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTes
         JsonDataIntegrityCheck slowCheck = checks.get( 0 );
         assertTrue( slowCheck.getIsSlow() );
 
-        //Be sure we start with a clean slate
+        // Be sure we start with a clean slate
         assertStatus( HttpStatus.NO_CONTENT, POST( "/maintenance?cacheClear=true" ) );
 
-        //Trigger the default checks
+        // Trigger the default checks
         assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary" ) );
 
-        //The slow check should not exist
+        // The slow check should not exist
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
             .content()
             .as( JsonDataIntegritySummary.class );
@@ -87,7 +87,7 @@ class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTes
         assertNotNull( summary.getFinishedTime() );
         assertEquals( 0, summary.getPercentage() );
 
-        //Trigger the slow check
+        // Trigger the slow check
         assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary?checks=" + check ) );
 
         summary = GET( "/dataIntegrity/" + check + "/summary" )

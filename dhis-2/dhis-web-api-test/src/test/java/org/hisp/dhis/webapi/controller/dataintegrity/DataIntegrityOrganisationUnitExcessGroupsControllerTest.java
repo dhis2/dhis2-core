@@ -66,7 +66,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
-        //Create an orgunit group
+        // Create an orgunit group
         testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
@@ -77,7 +77,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                 "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
                     + "'}]}" ) );
 
-        //Add it to a group set
+        // Add it to a group set
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +
@@ -100,7 +100,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
-        //Create an orgunit group
+        // Create an orgunit group
         testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
@@ -111,7 +111,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest extends AbstractDa
                 "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
                     + "'}]}" ) );
 
-        //Add it to a group set
+        // Add it to a group set
         assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , " +

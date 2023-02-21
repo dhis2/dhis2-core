@@ -69,7 +69,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
                 "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '" +
                     categoryOptionGroupColor + "'}, {'id' : '" + categoryOptionGroupTaste + "'}]}" ) );
 
-        //Total number of category options is 5 with the default
+        // Total number of category options is 5 with the default
         assertHasDataIntegrityIssues( "categories", check, 20, categoryOptionRed, "Red", null,
             true );
 

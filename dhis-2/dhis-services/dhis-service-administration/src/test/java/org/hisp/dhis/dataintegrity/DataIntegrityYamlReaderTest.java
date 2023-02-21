@@ -66,12 +66,12 @@ class DataIntegrityYamlReaderTest
                 List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
         assertEquals( 63, checks.size() );
 
-        //Names should be unique
+        // Names should be unique
         List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
             .collect( toUnmodifiableList() );
         assertEquals( allNames.size(), Set.copyOf( allNames ).size() );
 
-        //Config checks and Java checks should not have any of the same names
+        // Config checks and Java checks should not have any of the same names
         List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() )
             .map( e -> e.getName().toLowerCase() )
             .collect( toList() );
@@ -79,20 +79,20 @@ class DataIntegrityYamlReaderTest
         nonYamlChecks.retainAll( allNames );
         assertEquals( 0, nonYamlChecks.size() );
 
-        //Assert that all "codes" are unique.
+        // Assert that all "codes" are unique.
         List<String> codeList = checks.stream()
             .map( DataIntegrityCheck::getCode )
             .sorted()
             .collect( toUnmodifiableList() );
         assertEquals( codeList.size(), Set.copyOf( codeList ).size() );
 
-        //Assert that codes consist of upper case letter and numbers only
+        // Assert that codes consist of upper case letter and numbers only
         String regEx = "^[A-Z0-9]+$";
         Predicate<String> IS_NOT_CAPS = Pattern.compile( regEx ).asPredicate().negate();
         List<String> badCodes = codeList.stream().filter( IS_NOT_CAPS ).collect( Collectors.toUnmodifiableList() );
         assertEquals( 0, badCodes.size() );
 
-        //Assert that all checks have details ID and are unique and UIDish
+        // Assert that all checks have details ID and are unique and UIDish
         List<String> detailsIDs = checks.stream()
             .map( DataIntegrityCheck::getDetailsID )
             .collect( toUnmodifiableList() );
@@ -101,7 +101,7 @@ class DataIntegrityYamlReaderTest
         List<String> badDetailsUIDs = detailsIDs.stream().filter( e -> !isValidUid( e ) ).collect( toList() );
         assertEquals( 0, badDetailsUIDs.size() );
 
-        //Assert that all checks have summary ID and are unique and are UIDish
+        // Assert that all checks have summary ID and are unique and are UIDish
         List<String> summaryIDs = checks.stream()
             .map( DataIntegrityCheck::getSummaryID )
             .collect( toUnmodifiableList() );

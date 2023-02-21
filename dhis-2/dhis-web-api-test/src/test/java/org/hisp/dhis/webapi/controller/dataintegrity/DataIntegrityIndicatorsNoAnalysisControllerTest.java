@@ -59,7 +59,7 @@ class DataIntegrityIndicatorsNoAnalysisControllerTest extends AbstractDataIntegr
     {
 
         setUpTest();
-        //Create a visualization with the provided indicator
+        // Create a visualization with the provided indicator
         assertStatus( HttpStatus.CREATED,
             POST( "/visualizations?skipTranslations=true&skipSharing=true",
                 "{'type':'SINGLE_VALUE','columns':[{'dimension':'dx','items':[{'id':'" + indicatorA +

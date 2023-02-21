@@ -96,7 +96,8 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
             .content().as( JsonDataIntegrityDetails.class );
         assertNotNull( details );
 
-        //OBS! The result is based on application scoped map so there might be other values from other tests
+        // OBS! The result is based on application scoped map so there might be
+        // other values from other tests
         assertTrue(
             GET( "/dataIntegrity/details/completed" ).content().stringValues().contains( "categories_no_options" ) );
     }

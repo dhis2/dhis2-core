@@ -85,7 +85,7 @@ class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrit
         assertStatus( HttpStatus.CREATED,
             postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
         dbmsManager.clearSession();
-        //One of the data elements should not have data
+        // One of the data elements should not have data
         assertHasDataIntegrityIssues( detailsIdType, check, 50,
             dataElementA, "ANC1", null, true );
 
