@@ -121,7 +121,7 @@ class BodyConverter
 
         // Set UID for all enrollments and notes
         dataBundle.getEnrollments().stream()
-            .peek( enrollment -> updateEnrollmentReferences( enrollment, enrollment.getTrackedEntity() ) )
+            .map( enrollment -> updateEnrollmentReferences( enrollment, enrollment.getTrackedEntity() ) )
             .forEach( enrollment -> enrollmentHashMap.put( enrollment.getEnrollment(), enrollment ) );
 
         // Extract all events and relationships, and set parent references
@@ -135,13 +135,13 @@ class BodyConverter
 
             enrollment.setNotes( enrollment.getNotes().stream()
                 .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
-                .peek( this::updateNoteReferences )
+                .map( this::updateNoteReferences )
                 .collect( Collectors.toList() ) );
         }
 
         // Set UID for all events and notes
         dataBundle.getEvents().stream()
-            .peek( event -> updateEventReferences( event, event.getEnrollment() ) )
+            .map( event -> updateEventReferences( event, event.getEnrollment() ) )
             .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
         // Extract all relationships
@@ -152,13 +152,13 @@ class BodyConverter
 
             event.setNotes( event.getNotes().stream()
                 .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
-                .peek( this::updateNoteReferences )
+                .map( this::updateNoteReferences )
                 .collect( Collectors.toList() ) );
         }
 
         // Set UID for all relationships
         dataBundle.getRelationships().stream()
-            .peek( this::updateRelationshipReferences )
+            .map( this::updateRelationshipReferences )
             .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 
         return Body.builder()
@@ -180,7 +180,7 @@ class BodyConverter
     private List<Relationship> extractRelationships( TrackedEntity trackedEntity )
     {
         List<Relationship> relationships = trackedEntity.getRelationships().stream()
-            .peek( this::updateRelationshipReferences )
+            .map( this::updateRelationshipReferences )
             .collect( Collectors.toList() );
 
         trackedEntity.setRelationships( new ArrayList<>() );
@@ -198,7 +198,7 @@ class BodyConverter
     private List<Relationship> extractRelationships( Enrollment enrollment )
     {
         List<Relationship> relationships = enrollment.getRelationships().stream()
-            .peek( this::updateRelationshipReferences )
+            .map( this::updateRelationshipReferences )
             .collect( Collectors.toList() );
 
         enrollment.setRelationships( new ArrayList<>() );
@@ -216,7 +216,7 @@ class BodyConverter
     private List<Relationship> extractRelationships( Event event )
     {
         List<Relationship> relationships = event.getRelationships().stream()
-            .peek( this::updateRelationshipReferences )
+            .map( this::updateRelationshipReferences )
             .collect( Collectors.toList() );
 
         event.setRelationships( new ArrayList<>() );
@@ -234,7 +234,7 @@ class BodyConverter
     private List<Event> extractEvents( Enrollment enrollment )
     {
         List<Event> events = enrollment.getEvents().stream()
-            .peek( event -> updateEventReferences( event, enrollment.getEnrollment() ) )
+            .map( event -> updateEventReferences( event, enrollment.getEnrollment() ) )
             .collect( Collectors.toList() );
 
         enrollment.setEvents( new ArrayList<>() );
@@ -252,7 +252,7 @@ class BodyConverter
     private List<Enrollment> extractEnrollments( TrackedEntity trackedEntity )
     {
         List<Enrollment> enrollments = trackedEntity.getEnrollments().stream()
-            .peek( enrollment -> updateEnrollmentReferences( enrollment, trackedEntity.getTrackedEntity() ) )
+            .map( enrollment -> updateEnrollmentReferences( enrollment, trackedEntity.getTrackedEntity() ) )
             .collect( Collectors.toList() );
 
         trackedEntity.setEnrollments( new ArrayList<>() );
@@ -277,9 +277,10 @@ class BodyConverter
      *
      * @param relationship the relationship to update references for
      */
-    private void updateRelationshipReferences( Relationship relationship )
+    private Relationship updateRelationshipReferences( Relationship relationship )
     {
         relationship.setRelationship( updateReference( relationship.getRelationship() ) );
+        return relationship;
     }
 
     /**
@@ -288,11 +289,12 @@ class BodyConverter
      * @param event the event to check and update references for
      * @param enrollment the parent enrollment uid
      */
-    private void updateEventReferences( Event event, String enrollment )
+    private Event updateEventReferences( Event event, String enrollment )
     {
         event.setEvent( updateReference( event.getEvent() ) );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
+        return event;
     }
 
     /**
@@ -301,20 +303,23 @@ class BodyConverter
      * @param enrollment the enrollment to check and update references for
      * @param trackedEntity the parent trackedEntity uid
      */
-    private void updateEnrollmentReferences( Enrollment enrollment, String trackedEntity )
+    private Enrollment updateEnrollmentReferences( Enrollment enrollment, String trackedEntity )
     {
         enrollment.setEnrollment( updateReference( enrollment.getEnrollment() ) );
         enrollment.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity );
+        return enrollment;
     }
 
     /**
      * Updates uid of references in a trackedEntity
      *
      * @param trackedEntity the trackedEntity to check and update references for
+     * @return
      */
-    private void updateTrackedEntityReferences( TrackedEntity trackedEntity )
+    private TrackedEntity updateTrackedEntityReferences( TrackedEntity trackedEntity )
     {
         trackedEntity.setTrackedEntity( updateReference( trackedEntity.getTrackedEntity() ) );
+        return trackedEntity;
     }
 
     /**
@@ -322,8 +327,9 @@ class BodyConverter
      *
      * @param note the note to check and update references for
      */
-    private void updateNoteReferences( Note note )
+    private Note updateNoteReferences( Note note )
     {
         note.setNote( updateReference( note.getNote() ) );
+        return note;
     }
 }

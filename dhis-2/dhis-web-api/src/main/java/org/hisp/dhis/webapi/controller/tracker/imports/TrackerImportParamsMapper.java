@@ -45,6 +45,10 @@ public class TrackerImportParamsMapper
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
+    private TrackerImportParamsMapper()
+    {
+    }
+
     public static TrackerImportParams trackerImportParams( boolean isAsync, String userId, RequestParams request,
         Body params )
     {
