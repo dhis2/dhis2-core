@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.analytics.event.data;
 
-import java.io.Serializable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.util.MultiValueMap;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode
-@Accessors( chain = true )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = HttpBasicAuth.TYPE ),
-    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = ApiTokenAuth.TYPE ),
-} )
-public abstract class Auth
-    implements Serializable
+class ColumnWithNullIfAndAliasTest
 {
-    @JsonProperty
-    protected final String type;
+    private static final String COLUMN = "column";
 
-    @JsonCreator
-    protected Auth( @JsonProperty( "type" ) String type )
+    private static final String ALIAS = "alias";
+
+    @Test
+    void testAsSqlReturnsRightInstance()
     {
-        this.type = type;
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
+
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
     }
 
-    public abstract void apply( MultiValueMap<String, String> headers );
+    @Test
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
+    {
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
+    }
 }

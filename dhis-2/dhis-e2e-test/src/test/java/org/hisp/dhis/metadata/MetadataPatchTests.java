@@ -82,9 +82,11 @@ public class MetadataPatchTests
             "AGGREGATE",
             "TEXT" ) );
 
+        String name = DataGenerator.randomString();
         dataElementGroupId = dataElementGroupActions
             .create( new JsonObjectBuilder()
-                .addProperty( "name", DataGenerator.randomString() )
+                .addProperty( "name", name )
+                .addProperty( "shortName", name )
                 .addArray( "dataElements", new JsonObjectBuilder().addProperty( "id", dataElementId ).build() )
                 .build() );
     }
