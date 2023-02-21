@@ -153,6 +153,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
 
+    private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
+
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
     private static final String NAME_COUNT = "Count";
@@ -748,6 +750,8 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader(
+                new GridHeader( ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );

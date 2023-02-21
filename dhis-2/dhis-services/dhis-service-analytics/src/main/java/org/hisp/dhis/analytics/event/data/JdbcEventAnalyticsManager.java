@@ -341,6 +341,7 @@ public class JdbcEventAnalyticsManager
         String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
 
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
+            "ounamehierarchy",
             "oucode", "pistatus", "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
