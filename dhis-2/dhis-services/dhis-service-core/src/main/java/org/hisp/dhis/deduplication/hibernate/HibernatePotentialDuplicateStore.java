@@ -119,8 +119,7 @@ public class HibernatePotentialDuplicateStore
         countCriteriaQuery
             .select( cb.count( root ) );
 
-        Predicate[] predArray = getQueryPredicates( query, cb, root );
-        countCriteriaQuery.where( predArray );
+        countCriteriaQuery.where( getQueryPredicates( query, cb, root ) );
 
         TypedQuery<Long> relationshipTypedQuery = getSession()
             .createQuery( countCriteriaQuery );
@@ -172,9 +171,7 @@ public class HibernatePotentialDuplicateStore
                     root.get( "duplicate" ).in( query.getTeis() ) ) ) );
         }
 
-        Predicate[] predicates = new Predicate[predicateList.size()];
-        predicateList.toArray( predicates );
-        return predicates;
+        return predicateList.toArray( new Predicate[0] );
     }
 
     private List<DeduplicationStatus> getInStatusValue( DeduplicationStatus status )
