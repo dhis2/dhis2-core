@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.event.data;
 
-import lombok.Getter;
-import lombok.Setter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * This class contains paging criteria that can be used to execute an analytics
- * query.
- */
-@Getter
-@Setter
-public class AnalyticsPagingCriteria extends RequestTypeAware
+import org.junit.jupiter.api.Test;
+
+class ColumnWithNullIfAndAliasTest
 {
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page = 1;
+    private static final String COLUMN = "column";
 
-    /**
-     * The page size.
-     */
-    private Integer pageSize = 50;
+    private static final String ALIAS = "alias";
 
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (paginate).
-     */
-    private boolean paging = true;
-
-    /**
-     * The paging parameter. When set to false we should not count total pages.
-     * The default is true (count total pages).
-     */
-    private boolean totalPages = true;
-
-    /**
-     * Sets the page size, taking the configurable max records limit into
-     * account. Note that a value of 0 represents unlimited records.
-     *
-     * @param maxLimit the max limit as defined in the system setting
-     *        'ANALYTICS_MAX_LIMIT'.
-     */
-    public void definePageSize( int maxLimit )
+    @Test
+    void testAsSqlReturnsRightInstance()
     {
-        final int unlimited = 0;
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-        if ( (isPaging() && getPageSize() != null && maxLimit != unlimited && getPageSize() > maxLimit) || !isPaging() )
-        {
-            setPageSize( maxLimit );
-        }
+        // then
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
+
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
+    }
+
+    @Test
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
+    {
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
     }
 }

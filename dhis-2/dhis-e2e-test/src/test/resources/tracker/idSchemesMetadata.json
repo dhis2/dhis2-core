@@ -542,6 +542,7 @@
     {
       "code": "TA test attribute code",
       "name": "TA test attribute name",
+      "shortName": "TA test attribute name",
       "created": "2022-05-30T09:11:33.613",
       "lastUpdated": "2022-05-30T09:11:57.248",
       "translations": [],
@@ -718,6 +719,7 @@
     {
       "code": "TA_CATOPT_A",
       "name": "TA category option A",
+      "shortName": "TA category option A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2022-05-30T11:40:03.694",
       "translations": [],

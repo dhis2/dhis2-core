@@ -70,6 +70,7 @@ public class OrganisationUnitGroup
     public OrganisationUnitGroup( String name )
     {
         this.name = name;
+        this.shortName = name;
     }
 
     // -------------------------------------------------------------------------

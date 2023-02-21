@@ -25,48 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+/**
+ * The class responsibility is to generate sql statement with nullif function
+ * like nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
+ */
+final class ColumnWithNullIfAndAlias extends ColumnAndAlias
 {
-    private final FieldFilterService fieldFilterService;
-
-    public EventParams map( List<FieldPath> fields )
+    /**
+     * private constructor
+     *
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     */
+    private ColumnWithNullIfAndAlias( String column, String alias )
     {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
+        super( column, alias );
     }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    /**
+     * Builder method to create an instance of this class.
+     *
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     * @return ColumnWithNullIfAndAlias instance.
+     */
+    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
     {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
+        return new ColumnWithNullIfAndAlias( column, alias );
+    }
+
+    /**
+     * Generate sql snippet with nullif function.
+     *
+     * @return sql snippet with nullif.
+     */
+    @Override
+    public String asSql()
+    {
+        if ( StringUtils.isNotEmpty( alias ) )
         {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
+            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
         }
-        return params;
+        else
+        {
+            return column;
+        }
     }
 }

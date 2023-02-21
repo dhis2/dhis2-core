@@ -42,8 +42,8 @@ import org.apache.commons.lang3.StringUtils;
  * FieldFilterParser parses <a href=
  * "https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter">metadata
  * field filters</a>. For example <code>"dataSets[id,name]"</code> will result
- * in two {@link FieldPath}'s for <code>id</code> and <code>name</code> with
- * path <code>dataSet</code>.
+ * in three {@link FieldPath}'s for <code>id</code> and <code>name</code> with
+ * path <code>dataSet</code> and one for <code>dataSets</code>.
  *
  * @author Morten Olav Hansen
  */
