@@ -31,76 +31,74 @@ import static java.time.LocalDate.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.hisp.dhis.resourcetable.DefaultResourceTableService;
-import org.hisp.dhis.resourcetable.ResourceTableStore;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Abyot Asalefew Gizaw
+ * Unit tests for {@link PeriodDataProvider}.
  *
+ * @author Abyot Asalefew Gizaw
  */
 @ExtendWith( MockitoExtension.class )
-class DefaultResourceTableServiceTest
+class PeriodDataProviderTest
 {
-    private DefaultResourceTableService resourceTableService;
+    private PeriodDataProvider periodDataProvider;
 
     @Mock
-    private ResourceTableStore resourceTableStore;
+    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
-        resourceTableService = new DefaultResourceTableService( resourceTableStore, null, null, null, null, null, null,
-            null, null );
+        periodDataProvider = new PeriodDataProvider( jdbcTemplate );
     }
 
     @Test
     void shouldReturnFiveExtraYearsBeforeAndAfterDataYears()
     {
-        int now = now().getYear();
+        int currentYear = now().getYear();
 
-        List<Integer> storedDataYears = Arrays.asList( now - 1, now );
+        List<Integer> storedDataYears = Arrays.asList( currentYear - 1, currentYear );
 
-        when( resourceTableStore.getAvailableDataYears() ).thenReturn( storedDataYears );
+        when( jdbcTemplate.queryForList( anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
+            .thenReturn( storedDataYears );
 
-        List<Integer> dataYears = resourceTableService.generateDataYears();
+        List<Integer> dataYears = periodDataProvider.getAvailableYears();
 
         assertEquals( 12, dataYears.size() );
-
         assertTrue( dataYears.contains( (dataYears.get( storedDataYears.size() - 1 ) + 5) ) );
-
         assertTrue( dataYears.contains( (storedDataYears.get( 0 ) - 5) ) );
-
         assertFalse( dataYears.contains( (storedDataYears.get( 0 ) - 6) ) );
     }
 
     @Test
     void shouldReturnFiveExtraYearsBeforeAndAfterCurrentYearWhenNoDataExists()
     {
-        int now = now().getYear();
+        int currentYear = now().getYear();
 
         List<Integer> storedDataYears = new ArrayList<>();
 
-        when( resourceTableStore.getAvailableDataYears() ).thenReturn( storedDataYears );
+        when( jdbcTemplate.queryForList( anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
+            .thenReturn( storedDataYears );
 
-        List<Integer> dataYears = resourceTableService.generateDataYears();
+        List<Integer> dataYears = periodDataProvider.getAvailableYears();
 
         assertEquals( 11, dataYears.size() );
-
-        assertTrue( dataYears.contains( now + 5 ) );
-
-        assertTrue( dataYears.contains( now - 5 ) );
-
-        assertFalse( dataYears.contains( now - 6 ) );
+        assertTrue( dataYears.contains( currentYear + 5 ) );
+        assertTrue( dataYears.contains( currentYear - 5 ) );
+        assertFalse( dataYears.contains( currentYear - 6 ) );
     }
 }
