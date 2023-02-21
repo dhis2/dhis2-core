@@ -526,7 +526,7 @@ public class DhisWebApiWebSecurityConfig
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
                     .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( strutsLessFormLoginBasicAuthenticationEntryPoint() );
 
                 http
                     .sessionManagement()
@@ -697,6 +697,12 @@ public class DhisWebApiWebSecurityConfig
          */
         @Bean
         public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
+        {
+            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        @Bean
+        public FormLoginBasicAuthenticationEntryPoint strutsLessFormLoginBasicAuthenticationEntryPoint()
         {
             return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
