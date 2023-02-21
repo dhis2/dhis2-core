@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
+package org.hisp.dhis.period;
 
 import static java.time.LocalDate.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;

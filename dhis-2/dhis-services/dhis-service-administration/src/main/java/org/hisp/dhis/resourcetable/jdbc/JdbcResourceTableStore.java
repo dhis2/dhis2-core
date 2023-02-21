@@ -197,22 +197,4 @@ public class JdbcResourceTableStore
 
         jdbcTemplate.batchUpdate( builder.toString(), batchArgs );
     }
-
-    @Override
-    public List<Integer> getAvailableDataYears()
-    {
-        String dueDateOrExecutionDate = "(case when 'SCHEDULE' = psi.status then psi.duedate else psi.executiondate end)";
-
-        String sql = " ( select distinct (extract(year from pe.startdate)) as datayear from period pe ) " +
-            " union " +
-            " ( select distinct (extract(year from pe.enddate)) as datayear from period pe ) " +
-            " union " +
-            " ( select distinct (extract(year from " + dueDateOrExecutionDate + ")) as datayear " +
-            "from programstageinstance psi " +
-            "where " + dueDateOrExecutionDate + " is not null " +
-            "and psi.deleted is false ) " +
-            " order by datayear asc";
-
-        return jdbcTemplate.queryForList( sql, Integer.class );
-    }
 }
