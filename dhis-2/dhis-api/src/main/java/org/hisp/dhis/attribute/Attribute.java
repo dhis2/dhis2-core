@@ -31,6 +31,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -249,9 +250,9 @@ public class Attribute
         return objectTypes.contains( type );
     }
 
-    public void setAttribute( ObjectType type, boolean isAttribute )
+    private void setAttribute( ObjectType type, Boolean isAttribute )
     {
-        if ( isAttribute )
+        if ( isAttribute != null && isAttribute )
         {
             objectTypes.add( type );
         }
@@ -299,7 +300,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.BOOLEAN, required = Property.Value.TRUE )
+    @Property( value = PropertyType.BOOLEAN, required = TRUE, owner = TRUE )
     public boolean isUnique()
     {
         return unique;
@@ -312,7 +313,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE, persisted = TRUE, owner = TRUE )
     public boolean isDataElementAttribute()
     {
         return isAttribute( ObjectType.DATA_ELEMENT );
@@ -325,6 +326,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isDataElementGroupAttribute()
     {
         return isAttribute( ObjectType.DATA_ELEMENT_GROUP );
@@ -337,7 +339,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE, persisted = TRUE, owner = TRUE )
     public boolean isIndicatorAttribute()
     {
         return isAttribute( ObjectType.INDICATOR );
@@ -350,6 +352,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isIndicatorGroupAttribute()
     {
         return isAttribute( ObjectType.INDICATOR_GROUP );
@@ -362,6 +365,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isDataSetAttribute()
     {
         return isAttribute( ObjectType.DATA_SET );
@@ -374,7 +378,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE, persisted = TRUE, owner = TRUE )
     public boolean isOrganisationUnitAttribute()
     {
         return isAttribute( ObjectType.ORGANISATION_UNIT );
@@ -387,6 +391,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isOrganisationUnitGroupAttribute()
     {
         return isAttribute( ObjectType.ORGANISATION_UNIT_GROUP );
@@ -399,6 +404,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isOrganisationUnitGroupSetAttribute()
     {
         return isAttribute( ObjectType.ORGANISATION_UNIT_GROUP_SET );
@@ -411,7 +417,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE, persisted = TRUE, owner = TRUE )
     public boolean isUserAttribute()
     {
         return isAttribute( ObjectType.USER );
@@ -424,6 +430,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isUserGroupAttribute()
     {
         return isAttribute( ObjectType.USER_GROUP );
@@ -436,6 +443,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isProgramAttribute()
     {
         return isAttribute( ObjectType.PROGRAM );
@@ -448,6 +456,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isProgramStageAttribute()
     {
         return isAttribute( ObjectType.PROGRAM_STAGE );
@@ -460,6 +469,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isTrackedEntityTypeAttribute()
     {
         return isAttribute( ObjectType.TRACKED_ENTITY_TYPE );
@@ -472,6 +482,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isTrackedEntityAttributeAttribute()
     {
         return isAttribute( ObjectType.TRACKED_ENTITY_ATTRIBUTE );
@@ -484,6 +495,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isCategoryOptionAttribute()
     {
         return isAttribute( ObjectType.CATEGORY_OPTION );
@@ -496,6 +508,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isCategoryOptionGroupAttribute()
     {
         return isAttribute( ObjectType.CATEGORY_OPTION_GROUP );
@@ -508,6 +521,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isDocumentAttribute()
     {
         return isAttribute( ObjectType.DOCUMENT );
@@ -520,6 +534,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isOptionAttribute()
     {
         return isAttribute( ObjectType.OPTION );
@@ -532,6 +547,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isOptionSetAttribute()
     {
         return isAttribute( ObjectType.OPTION_SET );
@@ -544,6 +560,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isLegendSetAttribute()
     {
         return isAttribute( ObjectType.LEGEND_SET );
@@ -556,6 +573,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isConstantAttribute()
     {
         return isAttribute( ObjectType.CONSTANT );
@@ -568,6 +586,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isProgramIndicatorAttribute()
     {
         return isAttribute( ObjectType.PROGRAM_INDICATOR );
@@ -580,6 +599,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isSqlViewAttribute()
     {
         return isAttribute( ObjectType.SQL_VIEW );
@@ -592,6 +612,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isCategoryOptionComboAttribute()
     {
         return isAttribute( ObjectType.CATEGORY_OPTION_COMBO );
@@ -604,6 +625,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isSectionAttribute()
     {
         return isAttribute( ObjectType.SECTION );
@@ -628,6 +650,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isCategoryOptionGroupSetAttribute()
     {
         return isAttribute( ObjectType.CATEGORY_OPTION_GROUP_SET );
@@ -640,6 +663,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isDataElementGroupSetAttribute()
     {
         return isAttribute( ObjectType.DATA_ELEMENT_GROUP_SET );
@@ -652,6 +676,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isValidationRuleAttribute()
     {
         return isAttribute( ObjectType.VALIDATION_RULE );
@@ -664,6 +689,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isValidationRuleGroupAttribute()
     {
         return isAttribute( ObjectType.VALIDATION_RULE_GROUP );
@@ -676,6 +702,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isCategoryAttribute()
     {
         return isAttribute( ObjectType.CATEGORY );
@@ -688,6 +715,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isVisualizationAttribute()
     {
         return isAttribute( ObjectType.VISUALIZATION );
@@ -700,6 +728,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isMapAttribute()
     {
         return isAttribute( ObjectType.MAP );
@@ -712,6 +741,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isEventReportAttribute()
     {
         return isAttribute( ObjectType.EVENT_REPORT );
@@ -724,6 +754,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isEventChartAttribute()
     {
         return isAttribute( ObjectType.EVENT_CHART );
@@ -736,6 +767,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( persisted = TRUE, owner = TRUE )
     public boolean isRelationshipTypeAttribute()
     {
         return isAttribute( ObjectType.RELATIONSHIP_TYPE );
