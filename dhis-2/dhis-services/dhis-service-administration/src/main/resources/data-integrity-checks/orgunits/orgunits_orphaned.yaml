@@ -1,0 +1,71 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: dXSwsjWqYd8
+name: orgunits_orphaned
+description: Orphaned organisation units.
+section: Organisation units
+section_order: 9
+summary_sql: >-
+  WITH orgunits_orphaned  as (
+  SELECT organisationunitid, children_count
+  FROM (
+  SELECT organisationunitid,parentid
+  from organisationunit WHERE parentid IS NULL ) a
+  LEFT JOIN LATERAL (
+      SELECT COUNT(*) as children_count
+      from organisationunit
+      WHERE a.organisationunitid = parentid ) b on TRUE
+  WHERE children_count = 0
+  )
+  SELECT 
+  COUNT(*) as value,
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0)  as percent
+  from orgunits_orphaned;
+details_uid: wovrWdNIuMb
+details_sql: >-
+  SELECT uid, name from organisationunit where
+  organisationunitid IN (
+      SELECT organisationunitid
+  FROM (
+  SELECT organisationunitid,parentid
+  from organisationunit WHERE parentid IS NULL ) a
+  LEFT JOIN LATERAL (
+      SELECT COUNT(*) as children_count
+      from organisationunit
+      WHERE a.organisationunitid = parentid ) b on TRUE
+  WHERE children_count = 0 );
+details_id_type: organisationUnits
+severity: CRITICAL
+introduction: >
+  Orphaned organisation units are those which have neither parents nor any children.
+  This means that they have no relationship to the main organisation unit hierarchy.
+  These may be created by faulty metadata imports or direct manipulation of the database.
+recommendation: >
+  The orphaned organisation units should be assigned a parent or removed from the system.
+  It is recommended to use the DHIS2 API for this task if possible. If this is not possible,
+  then they may need to be removed through direct SQL on the DHIS2 database.

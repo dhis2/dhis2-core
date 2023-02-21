@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.Serializable;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -58,6 +61,9 @@ public final class DataIntegrityCheck implements Serializable
     private final String name;
 
     @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
     private final String section;
 
     @JsonProperty
@@ -72,7 +78,26 @@ public final class DataIntegrityCheck implements Serializable
     @JsonProperty
     private final String recommendation;
 
+    @JsonProperty
+    private final String issuesIdType;
+
+    @JsonProperty
+    private final boolean isSlow;
+
+    @JsonProperty
+    public String getCode()
+    {
+        return Stream.of( name.split( "_" ) )
+            .map( f -> String.valueOf( f.charAt( 0 ) ).toUpperCase() )
+            .collect( joining() );
+    }
+
+    private final String detailsID;
+
+    private final String summaryID;
+
     private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
     private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
+
 }

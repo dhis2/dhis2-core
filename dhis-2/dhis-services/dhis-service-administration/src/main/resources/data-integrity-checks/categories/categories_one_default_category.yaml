@@ -35,9 +35,13 @@ details_sql: >-
   SELECT uid, name FROM dataelementcategory
   WHERE name = 'default' AND uid != 'GLevLNI9wkl'
   ORDER BY categoryid;
+details_id_type: categories
 severity: SEVERE
 introduction: >
   There should only exist one category with name and code "default".
+section_order: 2
+summary_uid: XiEYmQgK5Dd
+details_uid: cI5G5z5Yk59
 recommendation: >
   Only the category with UID "GLevLNI9wkl" should be named "default" and have code "default".
   Either rename the conflicting category or move all references to category "GLevLNI9wkl"

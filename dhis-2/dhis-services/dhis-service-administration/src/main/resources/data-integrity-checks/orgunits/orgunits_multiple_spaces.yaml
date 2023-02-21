@@ -1,0 +1,54 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: BQymdCGR1sz
+name: orgunits_multiple_spaces
+description: Organisation units should not have multiple spaces in their names or shortnames.
+section: Organisation units
+section_order: 6
+summary_sql: >-
+  WITH orgunits_multiple_spaces as (
+  SELECT uid, name from organisationunit 
+  where name ~('\s{2,}') OR shortname ~('\s{2,}')
+  )
+  SELECT 
+  COUNT(*) as value,
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
+  from orgunits_multiple_spaces;
+details_uid: spwhfsg5Kkn
+details_sql: >-
+  SELECT uid, name, shortname as comment from organisationunit 
+  where name ~('\s{2,}') OR shortname ~('\s{2,}');
+details_id_type: organisationUnits
+severity: WARNING
+introduction: >
+  Names and/or shortnames of organisation units should not contain multiple spaces. They are superfluous
+  and may complicate the location of organisation units when they are searched.
+recommendation: >
+  If the number of affected organisation units is small, the easiest remedy is to correct
+  them directly from the user interface. Another possible option would be to replace
+  all of the multiple spaces using SQL.

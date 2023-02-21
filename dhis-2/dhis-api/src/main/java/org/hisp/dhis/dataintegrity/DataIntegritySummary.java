@@ -49,6 +49,9 @@ public class DataIntegritySummary implements Serializable
     private final DataIntegrityCheck check;
 
     @JsonProperty
+    private final Date startTime;
+
+    @JsonProperty
     private final Date finishedTime;
 
     @JsonProperty

@@ -31,21 +31,23 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReference;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReferences;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.objectReference;
+import static org.hisp.dhis.web.WebClientUtils.objectReferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonDocument.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link DataIntegrityController} API with focus API returning
@@ -131,9 +133,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerT
         ouA.setParent( ouB );
         ouB.getChildren().add( ouA );
         organisationUnitStore.save( ouB );
-        assertContainsOnly(
-            getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ),
-            "A:" + ouIdA, "B:" + ouIdB );
+        assertContainsOnly( List.of( "A:" + ouIdA, "B:" + ouIdB ),
+            getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ) );
     }
 
     @Test
@@ -168,7 +169,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerT
     private String addOrganisationUnitGroup( String name, String... memberIds )
     {
         return assertStatus( HttpStatus.CREATED, POST( "/organisationUnitGroups",
-            "{'name':'" + name + "', 'organisationUnits': " + objectReferences( memberIds ) + "}" ) );
+            "{'name':'" + name + "', 'shortName':'" + name + "', 'organisationUnits': " + objectReferences( memberIds )
+                + "}" ) );
     }
 
     private String addOrganisationUnitGroupSet( String name, String... groupIds )

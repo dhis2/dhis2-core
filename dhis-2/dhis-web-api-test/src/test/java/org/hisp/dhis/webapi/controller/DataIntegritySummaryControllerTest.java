@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link DataIntegrityController} API with focus API returning
@@ -69,5 +73,39 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
         assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
+        assertNotNull( summary.getStartTime() );
+        assertNotNull( summary.getCode() );
+        assertFalse( summary.getStartTime().isAfter( summary.getFinishedTime() ) );
+    }
+
+    @Test
+    void testCompletedChecks()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postSummary( "categories-no-options" );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
+            .as( JsonDataIntegritySummary.class );
+        assertNotNull( summary );
+
+        //OBS! The result is based on application scoped map so there might be other values from other tests
+        assertTrue(
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "categories_no_options" ) );
+    }
+
+    @Test
+    void testRunSummaryCheck_WithBody()
+    {
+        JsonObject trigger = POST( "/dataIntegrity/summary", "['INA']" ).content(); // indicator_no_analysis
+        assertTrue( trigger.isA( JsonWebMessage.class ) );
+
+        // wait for check to complete
+        JsonDataIntegritySummary details = GET( "/dataIntegrity/IN/summary?timeout=1000" )
+            .content().as( JsonDataIntegritySummary.class );
+        assertTrue( details.isObject() );
+
+        assertTrue(
+            GET( "/dataIntegrity/summary/completed" ).content().stringValues().contains( "indicator_no_analysis" ) );
     }
 }

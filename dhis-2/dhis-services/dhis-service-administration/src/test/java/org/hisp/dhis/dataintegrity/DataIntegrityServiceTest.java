@@ -96,6 +96,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -218,7 +219,7 @@ class DataIntegrityServiceTest
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService,
-            mock( CacheProvider.class ), mock( DataIntegrityStore.class ) );
+            mock( CacheProvider.class ), mock( DataIntegrityStore.class ), mock( SchemaService.class ) );
         setUpFixtures();
     }
 
@@ -368,10 +369,10 @@ class DataIntegrityServiceTest
         assertEquals( 2, result.size() );
         DataIntegrityIssue issue0 = result.get( 0 );
         assertEquals( seed + 1, issue0.getId() );
-        assertContainsOnly( issue0.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
+        assertContainsOnly( List.of( issueName( dataSet1 ), issueName( dataSet2 ) ), issue0.getRefs() );
         DataIntegrityIssue issue1 = result.get( 1 );
         assertEquals( seed + 4, issue1.getId() );
-        assertContainsOnly( issue1.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
+        assertContainsOnly( List.of( issueName( dataSet1 ), issueName( dataSet2 ) ), issue1.getRefs() );
     }
 
     @Test
@@ -415,8 +416,7 @@ class DataIntegrityServiceTest
         List<DataIntegrityIssue> issues = subject.getIndicatorsWithIdenticalFormulas();
 
         assertEquals( 1, issues.size() );
-        assertContainsOnly( issues.get( 0 ).getRefs(),
-            issueName( indicatorB ), issueName( indicatorC ) );
+        assertContainsOnly( List.of( issueName( indicatorB ), issueName( indicatorC ) ), issues.get( 0 ).getRefs() );
     }
 
     @Test
@@ -465,7 +465,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programB ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleB ) );
+        assertContainsOnly( List.of( issueName( programRuleB ) ), issue.getRefs() );
     }
 
     @Test
@@ -484,7 +484,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programA ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleVariableA ) );
+        assertContainsOnly( List.of( issueName( programRuleVariableA ) ), issue.getRefs() );
     }
 
     @Test
@@ -503,7 +503,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programRuleA ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleActionA ) );
+        assertContainsOnly( List.of( issueName( programRuleActionA ) ), issue.getRefs() );
     }
 
     @Test
@@ -529,44 +529,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    void testInvalidProgramIndicatorFilter()
-    {
-        ProgramIndicator programIndicator = new ProgramIndicator();
-        programIndicator.setName( "Test-PI" );
-        programIndicator.setFilter( "A{someuid} + 1" );
-
-        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
-        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
-
-        when( expressionService.getExpressionDescription( anyString(), any() ) )
-            .thenThrow( new ParserException( INVALID_EXPRESSION ) );
-
-        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
-
-        assertEquals( 1, issues.size(), 1 );
-        DataIntegrityIssue issue = issues.get( 0 );
-        assertEquals( issueName( programIndicator ), issue.getName() );
-        assertEquals( INVALID_EXPRESSION, issue.getComment() );
-    }
-
-    @Test
-    void testValidProgramIndicatorFilter()
-    {
-        ProgramIndicator programIndicator = new ProgramIndicator();
-        programIndicator.setName( "Test-PI" );
-        programIndicator.setFilter( "1 < 2" );
-
-        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( true );
-        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
-
-        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
-
-        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
-        assertTrue( issues.isEmpty() );
-    }
-
-    @Test
-    public void programIndicatorGetAggregationTypeFallbackReturnsRelatedAggregationType()
+    void programIndicatorGetAggregationTypeFallbackReturnsRelatedAggregationType()
     {
         // arrange
         ProgramIndicator programIndicator = new ProgramIndicator();
@@ -576,6 +539,12 @@ class DataIntegrityServiceTest
         // act
         // assert
         programIndicator.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MAX_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MIN_SUM_ORG_UNIT );
         assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD );
@@ -622,6 +591,43 @@ class DataIntegrityServiceTest
 
         programIndicator.setAggregationType( AggregationType.DEFAULT );
         assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+    }
+
+    @Test
+    void testInvalidProgramIndicatorFilter()
+    {
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setFilter( "A{someuid} + 1" );
+
+        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
+
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
+            .thenThrow( new ParserException( INVALID_EXPRESSION ) );
+
+        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
+
+        assertEquals( 1, issues.size(), 1 );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programIndicator ), issue.getName() );
+        assertEquals( INVALID_EXPRESSION, issue.getComment() );
+    }
+
+    @Test
+    void testValidProgramIndicatorFilter()
+    {
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setFilter( "1 < 2" );
+
+        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( true );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
+
+        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
+
+        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
+        assertTrue( issues.isEmpty() );
     }
 
     private Map<String, DataElement> createRandomDataElements( int quantity, String uidSeed )

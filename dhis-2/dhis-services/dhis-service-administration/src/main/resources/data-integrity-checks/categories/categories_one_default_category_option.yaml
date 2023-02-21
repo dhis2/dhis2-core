@@ -35,9 +35,13 @@ details_sql: >-
   SELECT uid, name FROM dataelementcategoryoption
   WHERE name = 'default' AND uid != 'xYerKDKCefk'
   ORDER BY categoryoptionid;
+details_id_type: categoryOptions
 severity: SEVERE
 introduction: >
   There should only exist one category option with name and code "default".
+section_order: 4
+summary_uid: iDLix1p75AM
+details_uid: Q0GuHB94wjd
 recommendation: >
   Only the category option with UID "xYerKDKCefk" should be named "default" and have code "default".
   Either rename the conflicting category option or move all references to category option "xYerKDKCefk"

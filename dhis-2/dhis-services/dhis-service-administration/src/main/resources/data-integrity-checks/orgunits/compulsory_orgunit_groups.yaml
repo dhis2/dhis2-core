@@ -1,0 +1,84 @@
+# Copyright (c) 2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: lFkN6LopXcz
+name: orgunits_compulsory_group_count
+description: Orgunits that are not in all compulsory orgunit group sets
+section: Organisation units
+section_order: 2
+summary_sql: >-
+    WITH ougs_compulsory_members as (
+    SELECT ou.uid,ou.name,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+    SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+    FROM organisationunit ou
+    LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+    LEFT OUTER JOIN (
+    SELECT orgunitgroupsetid,orgunitgroupid from
+    orgunitgroupsetmembers where orgunitgroupsetid IN (
+    SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+    ) ougs  USING(orgunitgroupid)
+    GROUP BY ou.uid,ou.name
+    ORDER BY name
+    )
+    SELECT COUNT(*),
+    100 * COUNT(*)/NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0) as percent
+    FROM ougs_compulsory_members
+    where has_compulsory IS FALSE;
+details_uid: HnmKIwXFWy5
+details_sql: >-
+    WITH orgunits_not_in_compulsory_groups as (
+    SELECT ou.uid,ou.name,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+    SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+    FROM organisationunit ou
+    LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+    LEFT OUTER JOIN (
+    SELECT orgunitgroupsetid,orgunitgroupid from
+    orgunitgroupsetmembers where orgunitgroupsetid IN (
+    SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+    ) ougs  USING(orgunitgroupid)
+    GROUP BY ou.uid,ou.name
+    ORDER BY name)
+    SELECT uid, name from orgunits_not_in_compulsory_groups
+    where has_compulsory = FALSE
+    ORDER BY name;
+details_id_type: organisationUnits
+severity: SEVERE
+introduction: >
+    If any organisation unit groups have been marked as compulsory, each and every organisation unit should
+    belong to exactly one group within each compulsory organisation unit group set. Assume we have created a 
+    group set called "Ownership" with two groups "Public" and "Private". Each and every organisation
+    unit contained in the hierarchy must belong to either Public or Private (but not both). When organisation 
+    unit are not part of a group set, results in the analytics apps will not be correct if the organisation 
+    unit group set is used for aggregation.
+recommendation: >
+    For each of the organisation units identified in the details query, you should assign the appropriate
+    organisation unit group within the group set. Alternatively, if the group set should not be compulsory, 
+    you should change this attribute.

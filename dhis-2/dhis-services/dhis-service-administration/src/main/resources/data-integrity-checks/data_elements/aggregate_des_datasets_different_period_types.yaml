@@ -1,0 +1,95 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: data_elements_aggregate_with_different_period_types
+  description: Aggregate data elements which belong to datasets with different period types.
+  section: Data elements (aggregate)
+  section_order: 7
+  summary_uid: DnXxP2Nfn6i
+  summary_sql: >-
+    WITH des_different_periodtypes as (
+    SELECT uid,dataelement_name as name,
+    STRING_AGG(dataset_name, ';') as comment from (
+    SELECT e.dataelement_name,
+     e.uid,
+     h.name as dataset_name
+     FROM (
+    SELECT dataelementid,dataelement_name,uid,
+    UNNEST(periodtypes) as periodtypeid FROM (
+    SELECT dataelementid,dataelement_name,uid,
+    array_agg(periodtypeid) as periodtypes
+    FROM(
+    SELECT DISTINCT a.dataelementid,
+    b.periodtypeid,
+    c.name as dataelement_name,
+    c.uid
+    from datasetelement a
+    INNER JOIN dataset b USING(datasetid)
+    INNER JOIN dataelement c USING(dataelementid) ) as c
+    GROUP BY dataelementid,dataelement_name,uid
+    HAVING array_length(array_agg(periodtypeid),1) > 1 ) d ) as e
+    INNER JOIN datasetelement g USING(dataelementid)
+    INNER JOIN dataset h ON g.datasetid = h.datasetid AND e.periodtypeid = h.periodtypeid ) x
+    GROUP BY uid, dataelement_name) 
+    SELECT COUNT(*) as value,
+    100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataelement), 0) as percent
+    FROM des_different_periodtypes;
+  details_uid: N45TSlWpBwu
+  details_sql: >-
+    SELECT uid,dataelement_name as name,
+    STRING_AGG(dataset_name, ';') as comment from (
+    SELECT e.dataelement_name,
+    e.uid,
+    h.name as dataset_name
+    FROM (
+    SELECT dataelementid,dataelement_name,uid,
+    UNNEST(periodtypes) as periodtypeid FROM (
+    SELECT dataelementid,dataelement_name,uid,
+    array_agg(periodtypeid) as periodtypes
+    FROM(
+    SELECT DISTINCT a.dataelementid,
+    b.periodtypeid,
+    c.name as dataelement_name,
+    c.uid
+    from datasetelement a
+    INNER JOIN dataset b USING(datasetid)
+    INNER JOIN dataelement c USING(dataelementid) ) as c
+    GROUP BY dataelementid,dataelement_name,uid
+    HAVING array_length(array_agg(periodtypeid),1) > 1 ) d ) as e
+    INNER JOIN datasetelement g USING(dataelementid)
+    INNER JOIN dataset h ON g.datasetid = h.datasetid AND e.periodtypeid = h.periodtypeid ) x
+    GROUP BY uid, dataelement_name;
+  severity: SEVERE
+  introduction: >
+    Data elements should not belong to datasets with different period types.
+  details_id_type: dataElements
+  recommendation: >
+    If you need to collect data with different period types (e.g. weekly and monthly) you should
+    use different data elements for each period type. In general, it is not recommended to 
+    collect data with different frequencies, since in general, data collected at higher frequencies (e.g. weekly)
+    can be aggregated to data with lower frequencies (e.g yearly).
+

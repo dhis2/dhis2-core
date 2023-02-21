@@ -35,9 +35,13 @@ details_sql: >-
   SELECT uid, name FROM categorycombo
   WHERE name = 'default' AND uid != 'bjDvmb4bfuf'
   ORDER BY categorycomboid;
+details_id_type: categoryCombos
 severity: SEVERE
 introduction: >
   There should only exist one category combo with name and code "default".
+section_order: 3
+summary_uid: rMZ8WxkhBWN
+details_uid: B7m7Vn0Go8z
 recommendation: >
   Only the category combo with UID "bjDvmb4bfuf" should be named "default" and have code "default".
   Either rename the conflicting category combo or move all references to category combo "bjDvmb4bfuf"
