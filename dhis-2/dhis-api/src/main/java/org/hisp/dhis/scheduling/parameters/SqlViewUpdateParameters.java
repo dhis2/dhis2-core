@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
+package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * @author Dang Duy Hieu
- */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView>
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class SqlViewUpdateParameters implements JobParameters
 {
-    String ID = SqlViewStore.class.getName();
+    private List<String> sqlViews = new ArrayList<>();
 
-    String createViewTable( SqlView sqlView );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getSqlViews()
+    {
+        return sqlViews;
+    }
 
-    void dropViewTable( SqlView sqlView );
+    public void setSqlViews( List<String> sqlViews )
+    {
+        this.sqlViews = sqlViews;
+    }
 
-    void populateSqlViewGrid( Grid grid, String sql );
-
-    boolean refreshMaterializedView( SqlView sqlView );
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        return Optional.empty();
+    }
 }
