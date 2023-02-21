@@ -203,7 +203,7 @@ public class DhisWebApiWebSecurityConfig
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -336,7 +336,7 @@ public class DhisWebApiWebSecurityConfig
 
                 .csrf().disable();
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
     }
 
@@ -509,7 +509,7 @@ public class DhisWebApiWebSecurityConfig
             configureApiTokenAuthorizationFilter( http );
             configureOAuthTokenFilters( http );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private void configureMatchers( HttpSecurity http )
@@ -724,10 +724,9 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @param dhisConfig DHIS2 configuration provider
      * @throws Exception
      */
-    public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )
+    public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
         http
