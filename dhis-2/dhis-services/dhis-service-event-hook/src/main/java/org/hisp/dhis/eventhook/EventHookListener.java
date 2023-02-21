@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
@@ -56,7 +59,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventHookListener
@@ -124,7 +126,7 @@ public class EventHookListener
 
         for ( EventHook eh : eventHooks )
         {
-            if ( !eh.isEnabled() )
+            if ( eh.isDisabled() )
             {
                 continue;
             }

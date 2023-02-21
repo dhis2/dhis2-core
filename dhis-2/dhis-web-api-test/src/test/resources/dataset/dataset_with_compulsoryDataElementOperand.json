@@ -1,0 +1,53 @@
+{
+  "validCompleteOnly": false,
+  "skipOffline": false,
+  "compulsoryFieldsCompleteOnly": false,
+  "id": "Tl0gpmhQOmr",
+  "sharing": {
+    "external": false,
+    "users": {},
+    "userGroups": {},
+    "public": "rw------"
+  },
+  "timelyDays": 15,
+  "name": "test1",
+  "dataElementDecoration": false,
+  "notifyCompletingUser": false,
+  "noValueRequiresComment": false,
+  "fieldCombinationRequired": false,
+  "renderHorizontally": false,
+  "renderAsTabs": false,
+  "mobile": false,
+  "openPeriodsAfterCoEndDate": 0,
+  "periodType": "Monthly",
+  "openFuturePeriods": 0,
+  "expiryDays": 0,
+  "categoryCombo": {
+    "id": "bjDvmb4bfuf"
+  },
+  "lastUpdatedBy": {
+    "id": "GOLswS44mh8"
+  },
+  "dataSetElements": [
+    {
+      "dataElement": {
+        "id": "cYeuwXTCPkU"
+      }
+    },
+    {
+      "dataElement": {
+        "id": "fbfJHSPpUQD"
+      }
+    }
+  ],
+  "compulsoryDataElementOperands": [
+    {
+      "dataElement": {
+        "id": "fbfJHSPpUQD"
+      },
+      "categoryOptionCombo": {
+        "id": "pq2XI5kz2BY"
+      }
+    }
+  ]
+}
