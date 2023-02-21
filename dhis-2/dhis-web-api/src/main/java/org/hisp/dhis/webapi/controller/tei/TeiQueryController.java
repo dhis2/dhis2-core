@@ -90,9 +90,6 @@ class TeiQueryController
     private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
 
     @Nonnull
-    private final Validator<CommonQueryRequest> commonQueryRequestValidator;
-
-    @Nonnull
     private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
     @Nonnull
@@ -165,7 +162,6 @@ class TeiQueryController
                 dimensionMapperService.toDimensionResponse(
                     teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType, program ),
                     TeiAnalyticsPrefixStrategy.INSTANCE ),
-                dimensionsCriteria,
-                fields );
+                dimensionsCriteria, fields );
     }
 }

@@ -131,7 +131,7 @@ public class ResourceTableController
         }
         else
         {
-            // Ensure these tables are never skipped, as they are needed for the TEI tables/queries.
+            // Ensure these tables are never skipped. They are required by TEI tables/queries.
             skipTableTypes.remove( EVENT );
             skipTableTypes.remove( ENROLLMENT );
         }

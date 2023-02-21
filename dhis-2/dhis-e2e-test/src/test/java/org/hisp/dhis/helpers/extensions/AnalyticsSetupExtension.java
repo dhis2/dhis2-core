@@ -28,7 +28,6 @@
 package org.hisp.dhis.helpers.extensions;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.logging.log4j.LogManager.getLogger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,8 +77,8 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             watcher.start();
 
             // Invoke the analytics table generation process.
-            ApiResponse response = new ResourceTableActions().post("/analytics",
-                    new QueryParamsBuilder().add("executeTei=true").build()).validateStatus(200);
+            ApiResponse response = new ResourceTableActions().post( "/analytics",
+                new QueryParamsBuilder().add( "executeTei=true" ).build() ).validateStatus( 200 );
 
             String analyticsTaskId = response.extractString( "response.id" );
 
