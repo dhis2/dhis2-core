@@ -500,7 +500,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
-            .add( "desc=ouname,lastupdated" )
+            .add( "desc=lastupdated,ouname" )
             .add( "headers=ouname,lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -523,16 +523,16 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Zimmi CHC",
-                "2015-08-07 15:47:29.205" ) );
+            List.of( "Ngelehun CHC",
+                "2017-05-26 11:46:22.372" ) );
 
         validateRow( response, 1,
-            List.of( "Zimmi CHC",
-                "2015-08-07 15:47:26.127" ) );
+            List.of( "Ngelehun CHC",
+                "2017-01-20 10:41:45.624" ) );
 
         validateRow( response, 2,
-            List.of( "Zimmi CHC",
-                "2015-08-07 15:47:25.12" ) );
+            List.of( "Ngelehun CHC",
+                "2017-01-20 10:40:31.913" ) );
     }
 
     @Test
