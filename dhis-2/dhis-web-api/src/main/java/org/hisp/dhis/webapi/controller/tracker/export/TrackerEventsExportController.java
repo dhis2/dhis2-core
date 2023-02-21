@@ -56,14 +56,12 @@ import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
@@ -76,7 +74,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
@@ -92,9 +89,6 @@ public class TrackerEventsExportController
 
     @NonNull
     private final EventService eventService;
-
-    @NonNull
-    private final ContextService contextService;
 
     @NonNull
     private final RequestToSearchParamsMapper requestToSearchParamsMapper;
@@ -114,7 +108,6 @@ public class TrackerEventsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws WebMessageException
     {
-
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
@@ -151,13 +144,6 @@ public class TrackerEventsExportController
         HttpServletRequest request )
         throws IOException
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
@@ -166,11 +152,6 @@ public class TrackerEventsExportController
         }
 
         Events events = eventService.getEvents( eventSearchParams );
-
-        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
-        {
-            events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
-        }
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
