@@ -2236,6 +2236,7 @@ public abstract class DhisConvenienceTest
         attributeGroup.setAutoFields();
 
         attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setShortName( attributeGroup.getName() );
         attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
         attributeGroup.setUniqunessType( UniqunessType.NONE );
 
@@ -2312,6 +2313,7 @@ public abstract class DhisConvenienceTest
         constant.setAutoFields();
 
         constant.setName( "Constant" + uniqueCharacter );
+        constant.setShortName( constant.getName() );
         constant.setValue( value );
 
         return constant;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.event.data;
 
-import org.hisp.dhis.common.Grid;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
- */
-public interface EnrollmentAnalyticsService
+import org.junit.jupiter.api.Test;
+
+class ColumnWithNullIfAndAliasTest
 {
-    String ITEM_TEI = "tei";
+    private static final String COLUMN = "column";
 
-    String ITEM_PI = "pi";
+    private static final String ALIAS = "alias";
 
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    @Test
+    void testAsSqlReturnsRightInstance()
+    {
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-    String ITEM_INCIDENT_DATE = "incidentdate";
+        // then
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
 
-    String ITEM_STORED_BY = "storedby";
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
+    }
 
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
+    @Test
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
+    {
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_NAME_HIERARCHY = "ounamehierarchy";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_PROGRAM_STATUS = "programstatus";
-
-    /**
-     * Returns a list of enrollments matching the given query.
-     *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
-     */
-    Grid getEnrollments( EventQueryParams params );
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
+    }
 }
