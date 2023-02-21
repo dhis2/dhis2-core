@@ -90,16 +90,15 @@ class BodyConverter
 {
 
     /**
-     * Iterates over the collections of a dataBundle. If any objects in those
+     * Iterates over the collections of a body. If any objects in those
      * collections have objects nested within them, they are extracted. For each
      * object we process, we make sure all references are valid as well.
      *
-     * @param dataBundle containing collections to check and update.
-     * @return a dataBundle with a flattened data structure, and valid uid
-     *         references.
+     * @param body containing collections to check and update.
+     * @return a body with a flattened data structure, and valid uid references.
      */
     @Override
-    public Body convert( Body dataBundle )
+    public Body convert( Body body )
     {
         Map<String, TrackedEntity> trackedEntityMap = new HashMap<>();
         Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
@@ -107,7 +106,7 @@ class BodyConverter
         Map<String, Relationship> relationshipHashMap = new HashMap<>();
 
         // Extract all enrollments and relationships, and set parent reference.
-        for ( TrackedEntity te : dataBundle.getTrackedEntities() )
+        for ( TrackedEntity te : body.getTrackedEntities() )
         {
             updateTrackedEntityReferences( te );
             trackedEntityMap.put( te.getTrackedEntity(), te );
@@ -120,7 +119,7 @@ class BodyConverter
         }
 
         // Set UID for all enrollments and notes
-        dataBundle.getEnrollments().stream()
+        body.getEnrollments().stream()
             .map( enrollment -> updateEnrollmentReferences( enrollment, enrollment.getTrackedEntity() ) )
             .forEach( enrollment -> enrollmentHashMap.put( enrollment.getEnrollment(), enrollment ) );
 
@@ -140,7 +139,7 @@ class BodyConverter
         }
 
         // Set UID for all events and notes
-        dataBundle.getEvents().stream()
+        body.getEvents().stream()
             .map( event -> updateEventReferences( event, event.getEnrollment() ) )
             .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
@@ -157,7 +156,7 @@ class BodyConverter
         }
 
         // Set UID for all relationships
-        dataBundle.getRelationships().stream()
+        body.getRelationships().stream()
             .map( this::updateRelationshipReferences )
             .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 

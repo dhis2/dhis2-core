@@ -74,6 +74,7 @@ public class TrackerImportParamsMapper
             .flushMode( request.getFlushMode() )
             .skipSideEffects( request.isSkipSideEffects() )
             .skipRuleEngine( request.isSkipRuleEngine() )
+            .reportMode( request.getReportMode() )
             .userId( userId )
             .trackedEntities( TRACKED_ENTITY_MAPPER.fromCollection( params.getTrackedEntities(), idSchemeParams ) )
             .enrollments( ENROLLMENT_MAPPER.fromCollection( params.getEnrollments(), idSchemeParams ) )

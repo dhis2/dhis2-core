@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.StringUtils;
 
@@ -39,17 +40,17 @@ public class StringToTrackerIdSchemeParamConverter implements Converter<String, 
     @Override
     public TrackerIdSchemeParam convert( String source )
     {
-        if ( StringUtils.hasText( source ) )
+        if ( !StringUtils.hasText( source ) )
         {
-            String[] splitParam = source.split( ":" );
-            String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
-            if ( attributeUid != null && !CodeGenerator.isValidUid( attributeUid ) )
-            {
-                throw new IllegalArgumentException( "Not valid Uid for " );
-            }
-            return TrackerIdSchemeParam.of( TrackerIdScheme.valueOf( splitParam[0] ), attributeUid );
+            return null;
         }
 
-        return null;
+        String[] splitParam = source.split( ":" );
+        String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
+        if ( attributeUid != null && !CodeGenerator.isValidUid( attributeUid ) && splitParam.length != 2 )
+        {
+            throw new TypeMismatchException( source, TrackerIdSchemeParam.class );
+        }
+        return TrackerIdSchemeParam.of( TrackerIdScheme.valueOf( splitParam[0] ), attributeUid );
     }
 }

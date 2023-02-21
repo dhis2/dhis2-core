@@ -49,7 +49,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RequestParams
+class RequestParams
 {
     /**
      * Should import be imported or just validated.

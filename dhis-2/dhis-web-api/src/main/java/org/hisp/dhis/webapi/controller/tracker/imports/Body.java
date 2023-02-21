@@ -57,7 +57,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonDeserialize( converter = BodyConverter.class )
-public class Body
+class Body
 {
     /**
      * Tracked entities to import.
