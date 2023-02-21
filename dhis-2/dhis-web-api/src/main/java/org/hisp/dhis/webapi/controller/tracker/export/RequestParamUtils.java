@@ -91,7 +91,7 @@ class RequestParamUtils
     private static final String OPERATOR_VALUE_QUERY_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
         DIMENSION_NAME_SEP + "(.)+";
 
-    private static final Pattern OPERATOR_VALUE_QUERY_FILTER_PATTERN = Pattern
+    private static final Pattern OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN = Pattern
         .compile( OPERATOR_VALUE_QUERY_FILTER_REG_EX );
 
     /**
@@ -255,7 +255,7 @@ class RequestParamUtils
      * value, we split at the first delimiter, so it can be any sequence of
      * characters
      */
-    public static QueryFilter pareQueryFilter( String query )
+    public static QueryFilter parseQueryFilter( String query )
         throws BadRequestException
     {
         if ( query == null || query.isEmpty() )
@@ -269,7 +269,7 @@ class RequestParamUtils
         }
         else
         {
-            if ( !OPERATOR_VALUE_QUERY_FILTER_PATTERN
+            if ( !OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN
                 .matcher( query ).matches() )
             {
                 throw new BadRequestException( "Query has invalid format: " + query );

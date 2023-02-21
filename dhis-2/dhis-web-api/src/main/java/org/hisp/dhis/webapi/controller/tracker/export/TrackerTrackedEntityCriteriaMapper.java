@@ -32,9 +32,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.pareQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
 import java.text.MessageFormat;
@@ -123,7 +123,7 @@ public class TrackerTrackedEntityCriteriaMapper
             orgUnits.addAll( user.getOrganisationUnits() );
         }
 
-        QueryFilter queryFilter = pareQueryFilter( criteria.getQuery() );
+        QueryFilter queryFilter = parseQueryFilter( criteria.getQuery() );
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
