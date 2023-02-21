@@ -32,6 +32,7 @@ import static org.apache.logging.log4j.LogManager.getLogger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.LoginActions;
@@ -77,8 +78,8 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             watcher.start();
 
             // Invoke the analytics table generation process.
-            ApiResponse response = new ResourceTableActions().post( "/analytics",
-                new QueryParamsBuilder().add( "executeTei=true" ).build() ).validateStatus( 200 );
+            ApiResponse response = new ResourceTableActions().post( "/analytics", new JsonObject(),
+                new QueryParamsBuilder().add( "executeTei=true" ) ).validateStatus( 200 );
 
             String analyticsTaskId = response.extractString( "response.id" );
 
