@@ -50,6 +50,8 @@ import org.junit.jupiter.api.Test;
 class TrackerImportParamsMapperTest
 {
 
+    private static final String JOB_ID = "hbhJvfjdxgs";
+
     @Test
     void testDefaultParams()
     {
@@ -65,7 +67,7 @@ class TrackerImportParamsMapperTest
                 .validationMode( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getValidationMode(), is( e ) );
         } );
     }
@@ -78,7 +80,7 @@ class TrackerImportParamsMapperTest
                 .importMode( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getImportMode(), is( e ) );
         } );
     }
@@ -91,7 +93,7 @@ class TrackerImportParamsMapperTest
                 .atomicMode( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getAtomicMode(), is( e ) );
         } );
     }
@@ -104,7 +106,7 @@ class TrackerImportParamsMapperTest
                 .flushMode( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getFlushMode(), is( e ) );
         } );
     }
@@ -117,7 +119,7 @@ class TrackerImportParamsMapperTest
                 .importStrategy( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getImportStrategy(), is( e ) );
         } );
     }
@@ -129,7 +131,7 @@ class TrackerImportParamsMapperTest
             .idScheme( TrackerIdSchemeParam.NAME )
             .build();
         TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-            true, "userId", requestParams, Body.builder().build() );
+            true, JOB_ID, "userId", requestParams, Body.builder().build() );
 
         TrackerIdSchemeParam expected = TrackerIdSchemeParam.of( TrackerIdScheme.NAME, null );
         assertEquals( expected, params.getIdSchemes().getIdScheme() );
@@ -148,7 +150,7 @@ class TrackerImportParamsMapperTest
             .idScheme( TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" ) )
             .build();
         TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-            true, "userId", requestParams, Body.builder().build() );
+            true, JOB_ID, "userId", requestParams, Body.builder().build() );
 
         TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" );
         assertEquals( expected, params.getIdSchemes().getIdScheme() );
@@ -168,7 +170,7 @@ class TrackerImportParamsMapperTest
                 .orgUnitIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is( e ) );
         } );
     }
@@ -181,7 +183,7 @@ class TrackerImportParamsMapperTest
                 .programIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( e ) );
         } );
     }
@@ -193,7 +195,7 @@ class TrackerImportParamsMapperTest
             .programIdScheme( TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" ) )
             .build();
         TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-            true, "userId", requestParams, Body.builder().build() );
+            true, JOB_ID, "userId", requestParams, Body.builder().build() );
 
         assertEquals( TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" ), params.getIdSchemes().getProgramIdScheme() );
     }
@@ -206,7 +208,7 @@ class TrackerImportParamsMapperTest
                 .programStageIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getProgramStageIdScheme().getIdScheme(), is( e ) );
         } );
     }
@@ -219,7 +221,7 @@ class TrackerImportParamsMapperTest
                 .dataElementIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getDataElementIdScheme().getIdScheme(), is( e ) );
         } );
     }
@@ -232,7 +234,7 @@ class TrackerImportParamsMapperTest
                 .categoryOptionComboIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(), is( e ) );
         } );
     }
@@ -245,7 +247,7 @@ class TrackerImportParamsMapperTest
                 .categoryOptionIdScheme( TrackerIdSchemeParam.of( e, null ) )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
-                true, "userId", requestParams, Body.builder().build() );
+                true, JOB_ID, "userId", requestParams, Body.builder().build() );
             assertThat( params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(), is( e ) );
         } );
     }

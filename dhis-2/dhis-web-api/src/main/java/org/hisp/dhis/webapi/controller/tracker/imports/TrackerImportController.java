@@ -110,10 +110,10 @@ public class TrackerImportController
     {
         String jobId = CodeGenerator.generateUid();
         TrackerImportParams trackerImportParams = TrackerImportParamsMapper
-            .trackerImportParams( true, currentUser.getUid(), requestParams, body );
+            .trackerImportParams( true, jobId, currentUser.getUid(), requestParams, body );
 
         asyncImporter.importTracker( trackerImportParams,
-            SecurityContextHolder.getContext().getAuthentication(), currentUser.getUid() );
+            SecurityContextHolder.getContext().getAuthentication(), jobId );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
 
@@ -126,8 +126,9 @@ public class TrackerImportController
     public ResponseEntity<ImportReport> syncPostJsonTracker( RequestParams requestParams,
         @CurrentUser User currentUser, @RequestBody Body body )
     {
+        String jobId = CodeGenerator.generateUid();
         TrackerImportParams trackerImportParams = TrackerImportParamsMapper
-            .trackerImportParams( false, currentUser.getUid(), requestParams, body );
+            .trackerImportParams( false, jobId, currentUser.getUid(), requestParams, body );
 
         ImportReport importReport = syncImporter.importTracker( trackerImportParams );
 
@@ -146,7 +147,6 @@ public class TrackerImportController
         throws IOException,
         ParseException
     {
-        String jobId = CodeGenerator.generateUid();
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
@@ -155,11 +155,12 @@ public class TrackerImportController
             .events( events )
             .build();
 
+        String jobId = CodeGenerator.generateUid();
         TrackerImportParams trackerImportParams = TrackerImportParamsMapper
-            .trackerImportParams( true, currentUser.getUid(), importRequest, body );
+            .trackerImportParams( true, jobId, currentUser.getUid(), importRequest, body );
 
         asyncImporter.importTracker( trackerImportParams,
-            SecurityContextHolder.getContext().getAuthentication(), currentUser.getUid() );
+            SecurityContextHolder.getContext().getAuthentication(), jobId );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
 
@@ -186,8 +187,9 @@ public class TrackerImportController
             .events( events )
             .build();
 
+        String jobId = CodeGenerator.generateUid();
         TrackerImportParams trackerImportParams = TrackerImportParamsMapper
-            .trackerImportParams( false, currentUser.getUid(), importRequest, body );
+            .trackerImportParams( false, jobId, currentUser.getUid(), importRequest, body );
 
         ImportReport importReport = syncImporter.importTracker( trackerImportParams );
 

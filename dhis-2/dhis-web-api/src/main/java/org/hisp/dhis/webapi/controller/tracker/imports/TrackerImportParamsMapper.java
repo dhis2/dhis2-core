@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -49,7 +48,8 @@ public class TrackerImportParamsMapper
     {
     }
 
-    public static TrackerImportParams trackerImportParams( boolean isAsync, String userId, RequestParams request,
+    public static TrackerImportParams trackerImportParams( boolean isAsync, String jobId, String userId,
+        RequestParams request,
         Body params )
     {
         TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
@@ -87,7 +87,7 @@ public class TrackerImportParamsMapper
                 JobType.TRACKER_IMPORT_JOB,
                 userId,
                 false );
-            jobConfiguration.setUid( CodeGenerator.generateUid() );
+            jobConfiguration.setUid( jobId );
             paramsBuilder.jobConfiguration( jobConfiguration );
         }
 
