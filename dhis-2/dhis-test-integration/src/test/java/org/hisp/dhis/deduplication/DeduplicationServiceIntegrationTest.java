@@ -92,11 +92,11 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
         criteria.setStatus( DeduplicationStatus.OPEN );
         deduplicationService.getPotentialDuplicates( criteria )
-            .forEach( pd -> assertSame( pd.getStatus(), DeduplicationStatus.OPEN ) );
+            .forEach( pd -> assertSame( DeduplicationStatus.OPEN, pd.getStatus() ) );
 
         criteria.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.getPotentialDuplicates( criteria )
-            .forEach( pd -> assertSame( pd.getStatus(), DeduplicationStatus.INVALID ) );
+            .forEach( pd -> assertSame( DeduplicationStatus.INVALID, pd.getStatus() ) );
 
         criteria.setStatus( DeduplicationStatus.ALL );
         assertEquals( potentialDuplicates.size(), deduplicationService.getPotentialDuplicates( criteria ).size() );
