@@ -28,8 +28,7 @@
 package org.hisp.dhis.sqlview.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
+import static java.lang.String.format;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +46,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -61,14 +59,6 @@ public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
 {
-    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = Map.of(
-        SqlViewType.VIEW, "CREATE VIEW ",
-        SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
-
-    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = Map.of(
-        SqlViewType.VIEW, "DROP VIEW ",
-        SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
-
     private final StatementBuilder statementBuilder;
 
     private final JdbcTemplate readOnlyJdbcTemplate;
@@ -96,42 +86,45 @@ public class HibernateSqlViewStore
     // Implementing methods
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean viewTableExists( String viewTableName )
+    private boolean viewTableExists( SqlViewType type, String viewName )
     {
-        try
-        {
-            jdbcTemplate
-                .queryForRowSet( "select * from " + statementBuilder.columnQuote( viewTableName ) + " limit 1" );
+        String sql = type == SqlViewType.MATERIALIZED_VIEW
+            ? "select count(*) from pg_matviews where schemaname = 'public' and matviewname = :name"
+            : "select count(*) from pg_views where schemaname = 'public' and viewname = :name";
 
-            return true;
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            return false; // View does not exist
-        }
+        Number count = (Number) getSession().createNativeQuery( sql )
+            .setParameter( "name", viewName )
+            .getSingleResult();
+        return count != null && count.intValue() > 0;
     }
 
     @Override
     public String createViewTable( SqlView sqlView )
     {
-        dropViewTable( sqlView );
-
-        final String sql = TYPE_CREATE_PREFIX_MAP.get( sqlView.getType() )
-            + statementBuilder.columnQuote( sqlView.getViewName() ) + " AS " + sqlView.getSqlQuery();
-
-        log.debug( "Create view SQL: " + sql );
-
+        checkIsDatabaseView( sqlView );
         try
         {
-            jdbcTemplate.execute( sql );
-
+            createViewTable( sqlView.getType(), sqlView.getViewName(), sqlView.getSqlQuery() );
             return null;
         }
         catch ( BadSqlGrammarException ex )
         {
             return ex.getCause().getMessage();
         }
+    }
+
+    private void createViewTable( SqlViewType type, String viewName, String viewQuery )
+    {
+        dropViewTable( type, viewName );
+
+        String sql = type == SqlViewType.MATERIALIZED_VIEW
+            ? "CREATE MATERIALIZED VIEW %s AS %s"
+            : "CREATE VIEW %s AS %s";
+        sql = format( sql, statementBuilder.columnQuote( viewName ), viewQuery );
+
+        log.debug( "Create view SQL: " + sql );
+
+        jdbcTemplate.execute( sql );
     }
 
     @Override
@@ -148,40 +141,26 @@ public class HibernateSqlViewStore
     }
 
     @Override
-    public String testSqlGrammar( String sql )
-    {
-        String viewName = SqlView.PREFIX_VIEWNAME + System.currentTimeMillis();
-
-        sql = "CREATE VIEW " + viewName + " AS " + sql;
-
-        log.debug( "Test view SQL: " + sql );
-
-        try
-        {
-            jdbcTemplate.execute( sql );
-
-            jdbcTemplate.execute( "DROP VIEW IF EXISTS " + viewName );
-        }
-        catch ( BadSqlGrammarException | UncategorizedSQLException ex )
-        {
-            return ex.getCause().getMessage();
-        }
-
-        return null;
-    }
-
-    @Override
     public void dropViewTable( SqlView sqlView )
     {
-        String viewName = sqlView.getViewName();
+        checkIsDatabaseView( sqlView );
+        dropViewTable( sqlView.getType(), sqlView.getViewName() );
+    }
 
+    public void dropViewTable( SqlViewType type, String viewName )
+    {
+        if ( !viewTableExists( type, viewName ) )
+        {
+            return;
+        }
+        String sql = type == SqlViewType.MATERIALIZED_VIEW
+            ? "DROP MATERIALIZED VIEW %s"
+            : "DROP VIEW %s";
+        sql = format( sql, statementBuilder.columnQuote( viewName ) );
+
+        log.debug( "Drop view SQL: " + sql );
         try
         {
-            final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS "
-                + statementBuilder.columnQuote( viewName );
-
-            log.debug( "Drop view SQL: " + sql );
-
             jdbcTemplate.update( sql );
         }
         catch ( Exception ex )
@@ -193,6 +172,15 @@ public class HibernateSqlViewStore
     @Override
     public boolean refreshMaterializedView( SqlView sqlView )
     {
+        SqlViewType type = sqlView.getType();
+        if ( type != SqlViewType.MATERIALIZED_VIEW )
+        {
+            throw new IllegalArgumentException( "Cannot refresh a view of type: " + type );
+        }
+        if ( !viewTableExists( type, sqlView.getViewName() ) )
+        {
+            return createViewTable( sqlView ) == null;
+        }
         final String sql = "REFRESH MATERIALIZED VIEW " + sqlView.getViewName();
 
         log.debug( "Refresh materialized view: " + sql );
@@ -208,6 +196,14 @@ public class HibernateSqlViewStore
             log.warn( "Could not refresh materialized view: " + sqlView.getViewName(), ex );
 
             return false;
+        }
+    }
+
+    private void checkIsDatabaseView( SqlView sqlView )
+    {
+        if ( sqlView.isQuery() )
+        {
+            throw new IllegalArgumentException( "Cannot create a view for a QUERY type view." );
         }
     }
 }

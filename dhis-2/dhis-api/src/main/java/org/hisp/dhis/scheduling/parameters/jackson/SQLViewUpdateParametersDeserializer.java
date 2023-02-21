@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 
-/**
- * @author Dang Duy Hieu
- */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView>
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+public class SQLViewUpdateParametersDeserializer extends AbstractJobParametersDeserializer<SqlViewUpdateParameters>
 {
-    String ID = SqlViewStore.class.getName();
+    public SQLViewUpdateParametersDeserializer()
+    {
+        super( SqlViewUpdateParameters.class, CustomJobParameters.class );
+    }
 
-    String createViewTable( SqlView sqlView );
-
-    void dropViewTable( SqlView sqlView );
-
-    void populateSqlViewGrid( Grid grid, String sql );
-
-    boolean refreshMaterializedView( SqlView sqlView );
+    @JsonDeserialize
+    public static class CustomJobParameters extends SqlViewUpdateParameters
+    {
+    }
 }
