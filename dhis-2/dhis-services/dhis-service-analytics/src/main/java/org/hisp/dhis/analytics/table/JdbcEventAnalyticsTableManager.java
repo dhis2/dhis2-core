@@ -413,6 +413,7 @@ public class JdbcEventAnalyticsTableManager
         }
 
         columns.addAll( addOrganisationUnitLevels() );
+        columns.add( getOrganisationUnitNameHierarchyColumn() );
         columns.addAll( addOrganisationUnitGroupSets() );
 
         columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
