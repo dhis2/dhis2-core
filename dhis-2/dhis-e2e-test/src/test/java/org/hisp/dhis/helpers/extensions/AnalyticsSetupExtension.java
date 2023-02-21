@@ -39,6 +39,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.ResourceTableActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -77,8 +78,8 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             watcher.start();
 
             // Invoke the analytics table generation process.
-            ApiResponse response = new ResourceTableActions().post( "/analytics", EMPTY )
-                .validateStatus( 200 );
+            ApiResponse response = new ResourceTableActions().post("/analytics",
+                    new QueryParamsBuilder().add("executeTei=true").build()).validateStatus(200);
 
             String analyticsTaskId = response.extractString( "response.id" );
 
