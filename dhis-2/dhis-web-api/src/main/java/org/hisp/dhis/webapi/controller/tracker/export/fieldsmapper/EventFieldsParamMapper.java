@@ -33,24 +33,27 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.Fields
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dxf2.events.EventParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class EventFieldsParamMapper
 {
-    private EventFieldsParamMapper()
-    {
-    }
+    private final FieldFilterService fieldFilterService;
 
-    public static EventParams map( List<FieldPath> fields )
+    public EventParams map( List<FieldPath> fields )
     {
         Map<String, FieldPath> roots = rootFields( fields );
         EventParams params = initUsingAllOrNoFields( roots );
-
-        params = withFieldRelationships( roots, params );
-
-        return params;
+        return params
+            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
     }
 
     private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
@@ -65,13 +68,5 @@ public class EventFieldsParamMapper
             }
         }
         return params;
-    }
-
-    private static EventParams withFieldRelationships( Map<String, FieldPath> roots,
-        EventParams params )
-    {
-        return roots.containsKey( FIELD_RELATIONSHIPS )
-            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
-            : params;
     }
 }
