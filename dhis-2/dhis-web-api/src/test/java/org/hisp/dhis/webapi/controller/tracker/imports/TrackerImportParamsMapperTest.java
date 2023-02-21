@@ -53,7 +53,7 @@ class TrackerImportParamsMapperTest
     @Test
     void testDefaultParams()
     {
-        final TrackerImportParams params = TrackerImportParamsMapper.build();
+        final TrackerImportParams params = TrackerImportParams.builder().build();
         assertDefaultParams( params );
     }
 
@@ -141,23 +141,25 @@ class TrackerImportParamsMapperTest
         assertEquals( expected, params.getIdSchemes().getCategoryOptionIdScheme() );
     }
 
-    //
-    //    @Test
-    //    void testIdSchemeUsingIdSchemeAttribute()
-    //    {
-    //        TrackerImportParams params = TrackerImportParamsBuilder
-    //            .build( Map.of( "idScheme", Collections.singletonList( "ATTRIBUTE:WSiOAALYocA" ) ) );
-    //
-    //        TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" );
-    //        assertEquals( expected, params.getIdSchemes().getIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getDataElementIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getOrgUnitIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getProgramIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getProgramStageIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getCategoryOptionComboIdScheme() );
-    //        assertEquals( expected, params.getIdSchemes().getCategoryOptionIdScheme() );
-    //    }
-    //
+    @Test
+    void testIdSchemeUsingIdSchemeAttribute()
+    {
+        RequestParams requestParams = RequestParams.builder()
+            .idScheme( TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" ) )
+            .build();
+        TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
+            true, "userId", requestParams, Body.builder().build() );
+
+        TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" );
+        assertEquals( expected, params.getIdSchemes().getIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getDataElementIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getOrgUnitIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getProgramIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getProgramStageIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( expected, params.getIdSchemes().getCategoryOptionIdScheme() );
+    }
+
     @Test
     void testOrgUnitIdentifier()
     {
