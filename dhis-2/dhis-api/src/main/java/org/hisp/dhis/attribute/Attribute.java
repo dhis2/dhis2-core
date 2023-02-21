@@ -262,7 +262,8 @@ public class Attribute
         }
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @Property( access = Property.Access.READ_ONLY )
     public Set<String> getObjectTypes()
     {
         return objectTypes.stream().map( ObjectType::name ).collect( toSet() );
