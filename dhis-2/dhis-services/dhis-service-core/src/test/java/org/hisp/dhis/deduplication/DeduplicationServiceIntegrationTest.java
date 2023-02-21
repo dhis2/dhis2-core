@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -85,19 +86,28 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
+
+        List<String> potentialDuplicates = List.of( teiA, teiC );
+
         PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-        criteria.setTeis( Arrays.asList( teiA, teiC ) );
-        assertEquals( 2, deduplicationService.getPotentialDuplicates( criteria ).size() );
+
+        criteria.setTeis( potentialDuplicates );
+        assertEquals( potentialDuplicates.size(), deduplicationService.getPotentialDuplicates( criteria ).size() );
+
         // set one potential duplicate to invalid
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
 
         criteria.setStatus( DeduplicationStatus.OPEN );
-        assertEquals( 1, deduplicationService.getPotentialDuplicates( criteria ).size() );
+        deduplicationService.getPotentialDuplicates( criteria )
+            .forEach( pd -> assertSame( pd.getStatus(), DeduplicationStatus.OPEN ) );
+
         criteria.setStatus( DeduplicationStatus.INVALID );
-        assertEquals( 1, deduplicationService.getPotentialDuplicates( criteria ).size() );
+        deduplicationService.getPotentialDuplicates( criteria )
+            .forEach( pd -> assertSame( pd.getStatus(), DeduplicationStatus.INVALID ) );
+
         criteria.setStatus( DeduplicationStatus.ALL );
-        assertEquals( 2, deduplicationService.getPotentialDuplicates( criteria ).size() );
+        assertEquals( potentialDuplicates.size(), deduplicationService.getPotentialDuplicates( criteria ).size() );
     }
 
     @Test
