@@ -27,24 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import javax.annotation.Nonnull;
-
-import lombok.RequiredArgsConstructor;
-
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.report.ImportReport;
 import org.mapstruct.factory.Mappers;
-import org.springframework.stereotype.Component;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-@Component
-@RequiredArgsConstructor
-public class DefaultTrackerImporter implements TrackerImporter
+public class TrackerImportParamsMapper
 {
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
@@ -54,56 +45,54 @@ public class DefaultTrackerImporter implements TrackerImporter
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
-    @Nonnull
-    private final TrackerSyncImporter syncImporter;
-
-    @Nonnull
-    private final TrackerAsyncImporter asyncImporter;
-
-    @Override
-    public ImportReport importTracker( TrackerImportRequest request )
+    public static TrackerImportParams trackerImportParams( boolean isAsync, String userId, RequestParams request,
+        Body params )
     {
+        TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
+        TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder()
+            .idScheme( defaultIdSchemeParam )
+            .programIdScheme( getIdSchemeParam( request.getProgramIdScheme(), defaultIdSchemeParam ) )
+            .categoryOptionIdScheme( getIdSchemeParam( request.getCategoryOptionIdScheme(), defaultIdSchemeParam ) )
+            .dataElementIdScheme( getIdSchemeParam( request.getDataElementIdScheme(), defaultIdSchemeParam ) )
+            .orgUnitIdScheme( getIdSchemeParam( request.getOrgUnitIdScheme(), defaultIdSchemeParam ) )
+            .programStageIdScheme( getIdSchemeParam( request.getProgramStageIdScheme(), defaultIdSchemeParam ) )
+            .categoryOptionComboIdScheme(
+                getIdSchemeParam( request.getCategoryOptionComboIdScheme(), defaultIdSchemeParam ) )
+            .build();
 
-        TrackerImportParams params = trackerImportParams( request );
+        TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParams
+            .builder()
+            .validationMode( request.getValidationMode() )
+            .importMode( request.getImportMode() )
+            .idSchemes( idSchemeParams )
+            .importStrategy( request.getImportStrategy() )
+            .atomicMode( request.getAtomicMode() )
+            .flushMode( request.getFlushMode() )
+            .skipSideEffects( request.isSkipSideEffects() )
+            .skipRuleEngine( request.isSkipRuleEngine() )
+            .userId( userId )
+            .trackedEntities( TRACKED_ENTITY_MAPPER.fromCollection( params.getTrackedEntities(), idSchemeParams ) )
+            .enrollments( ENROLLMENT_MAPPER.fromCollection( params.getEnrollments(), idSchemeParams ) )
+            .events( EVENT_MAPPER.fromCollection( params.getEvents(), idSchemeParams ) )
+            .relationships( RELATIONSHIP_MAPPER.fromCollection( params.getRelationships(), idSchemeParams ) );
 
-        if ( request.isAsync() )
-        {
-            return asyncImporter.importTracker( params, request.getAuthentication(),
-                request.getUid() );
-        }
-
-        return syncImporter.importTracker( params, request.getTrackerBundleReportMode() );
-    }
-
-    private TrackerImportParams trackerImportParams( TrackerImportRequest request )
-    {
-        TrackerIdSchemeParams idSchemeParams = TrackerImportParamsBuilder
-            .getTrackerIdentifiers( request.getContextService().getParameterValuesMap() );
-
-        TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
-            .builder( request.getContextService().getParameterValuesMap() )
-            .userId( request.getUserUid() )
-            .trackedEntities(
-                TRACKED_ENTITY_MAPPER.fromCollection( request.getTrackerBundleParams().getTrackedEntities(),
-                    idSchemeParams ) )
-            .enrollments(
-                ENROLLMENT_MAPPER.fromCollection( request.getTrackerBundleParams().getEnrollments(), idSchemeParams ) )
-            .events( EVENT_MAPPER.fromCollection( request.getTrackerBundleParams().getEvents(), idSchemeParams ) )
-            .relationships( RELATIONSHIP_MAPPER.fromCollection( request.getTrackerBundleParams().getRelationships(),
-                idSchemeParams ) );
-
-        if ( !request.isAsync() )
+        if ( !isAsync )
         {
             JobConfiguration jobConfiguration = new JobConfiguration(
                 "",
                 JobType.TRACKER_IMPORT_JOB,
-                request.getUserUid(),
-                request.isAsync() );
-            jobConfiguration.setUid( request.getUid() );
+                userId,
+                false );
+            jobConfiguration.setUid( CodeGenerator.generateUid() );
             paramsBuilder.jobConfiguration( jobConfiguration );
         }
 
         return paramsBuilder.build();
     }
 
+    private static TrackerIdSchemeParam getIdSchemeParam( TrackerIdSchemeParam idScheme,
+        TrackerIdSchemeParam defaultIdSchemeParam )
+    {
+        return idScheme == null ? defaultIdSchemeParam : idScheme;
+    }
 }

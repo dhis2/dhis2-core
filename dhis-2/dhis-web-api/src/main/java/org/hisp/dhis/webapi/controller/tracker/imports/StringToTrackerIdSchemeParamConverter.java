@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.StringUtils;
 
-@RequiredArgsConstructor
-@Getter
-public class InvalidEnumValueException extends Exception
+public class StringToTrackerIdSchemeParamConverter implements Converter<String, TrackerIdSchemeParam>
 {
-    private final String invalidValue;
 
-    private final String fieldName;
+    public TrackerIdSchemeParam convert( String source )
+    {
+        if ( StringUtils.hasText( source ) )
+        {
+            String[] splitParam = source.split( ":" );
+            String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
+            if ( attributeUid != null && !CodeGenerator.isValidUid( attributeUid ) )
+            {
+                throw new IllegalArgumentException( "Not validUid" );
+            }
+            return TrackerIdSchemeParam.of( TrackerIdScheme.valueOf( splitParam[0] ), attributeUid );
+        }
 
-    private final Class<? extends Enum> enumKlass;
+        return null;
+    }
 }

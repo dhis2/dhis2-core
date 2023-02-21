@@ -73,7 +73,6 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -198,7 +197,7 @@ public class CrudControllerAdvice
 
         return (requiredType.isEnum())
             ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
-            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+            : getWebMessage( requiredType.getSimpleName(), ex.getValue(), ex.getName() );
     }
 
     @ExceptionHandler( TypeMismatchException.class )
@@ -213,7 +212,7 @@ public class CrudControllerAdvice
 
         return (requiredType.isEnum())
             ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
-            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+            : getWebMessage( requiredType.getSimpleName(), ex.getValue(), ex.getPropertyName() );
     }
 
     private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
@@ -226,18 +225,12 @@ public class CrudControllerAdvice
         return badRequest( errorMessage );
     }
 
-    private WebMessage getWebMessage( Object value, String fieldType )
+    private WebMessage getWebMessage( String fieldType, Object value, String field )
     {
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}.",
-            value, fieldType );
+        String errorMessage = MessageFormat.format(
+            "Value {0} is not valid for parameter {1}. It should be of type {2}",
+            value, field, fieldType );
         return badRequest( errorMessage );
-    }
-
-    @ExceptionHandler( InvalidEnumValueException.class )
-    @ResponseBody
-    public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
-    {
-        return getEnumWebMessage( ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName() );
     }
 
     /**

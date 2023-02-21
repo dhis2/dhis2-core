@@ -84,9 +84,9 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *
  * @author Luciano Fiandesio
  */
-class TrackerBundleParamsConverter
+class BodyConverter
     extends
-    StdConverter<TrackerBundleParams, TrackerBundleParams>
+    StdConverter<Body, Body>
 {
 
     /**
@@ -99,7 +99,7 @@ class TrackerBundleParamsConverter
      *         references.
      */
     @Override
-    public TrackerBundleParams convert( TrackerBundleParams dataBundle )
+    public Body convert( Body dataBundle )
     {
         Map<String, TrackedEntity> trackedEntityMap = new HashMap<>();
         Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
@@ -161,7 +161,7 @@ class TrackerBundleParamsConverter
             .peek( this::updateRelationshipReferences )
             .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 
-        return TrackerBundleParams.builder()
+        return Body.builder()
             .trackedEntities( new ArrayList<>( trackedEntityMap.values() ) )
             .enrollments( new ArrayList<>( enrollmentHashMap.values() ) )
             .events( new ArrayList<>( eventHashMap.values() ) )
