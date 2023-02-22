@@ -58,6 +58,9 @@ public final class DataIntegrityCheck implements Serializable
     private final String name;
 
     @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
     private final String section;
 
     @JsonProperty
