@@ -169,7 +169,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -207,7 +206,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -280,7 +278,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -318,7 +315,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -356,7 +352,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         }
@@ -467,7 +462,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -505,7 +499,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         }
@@ -2580,8 +2573,7 @@
       },
       "trackedEntityAttribute": {
         "id": "kZeSYCgaHTk"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T14:58:26.465",
@@ -2597,8 +2589,7 @@
       },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2614,8 +2605,7 @@
       },
       "trackedEntityAttribute": {
         "id": "ypGAwVRNtVY"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2631,8 +2621,7 @@
       },
       "trackedEntityAttribute": {
         "id": "aIga5mPOFOJ"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2019-04-25T11:04:29.212",
@@ -2648,8 +2637,7 @@
       },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2019-04-25T11:04:29.212",
@@ -2665,8 +2653,7 @@
       },
       "trackedEntityAttribute": {
         "id": "kZeSYCgaHTk"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2682,8 +2669,7 @@
       },
       "trackedEntityAttribute": {
         "id": "tQb296OHAWQ"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:57:37.358",
@@ -2699,8 +2685,7 @@
       },
       "trackedEntityAttribute": {
         "id": "x5yfLot5VCM"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     }
   ],
   "categoryOptions": [
