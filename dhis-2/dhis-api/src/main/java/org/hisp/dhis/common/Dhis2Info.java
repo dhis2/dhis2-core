@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasummary;
+package org.hisp.dhis.common;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import org.hisp.dhis.common.Dhis2Info;
+import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * DataSummary object to transfer System Statistics
- *
- * @author Joao Antunes
+ * @author Lars Helge Overland
  */
 @Getter
 @Setter
+@Accessors( chain = true )
 @NoArgsConstructor
 @AllArgsConstructor
-@JacksonXmlRootElement
-public class DataSummary
+public class Dhis2Info
 {
     @JsonProperty
-    private Map<String, Long> objectCounts = new HashMap<>();
+    private String version;
 
     @JsonProperty
-    private Map<Integer, Integer> activeUsers = new HashMap<>();
+    private String revision;
 
     @JsonProperty
-    private Map<String, Integer> userInvitations = new HashMap<>();
+    private Date buildTime;
 
     @JsonProperty
-    private Map<Integer, Integer> dataValueCount = new HashMap<>();
+    private String systemId;
 
     @JsonProperty
-    private Map<Integer, Long> eventCount = new HashMap<>();
-
-    @JsonProperty
-    private Dhis2Info system;
+    private Date serverDate;
 }
