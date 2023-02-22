@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
@@ -35,11 +36,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * @author Stian Sandvold
  */
 @Value
+@Builder
+@JsonDeserialize( builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class )
 @AllArgsConstructor( staticName = "of" )
 public class TrackerIdSchemeParam
 {
