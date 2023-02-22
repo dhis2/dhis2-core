@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -205,7 +203,7 @@ public class DhisWebApiWebSecurityConfig
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -338,7 +336,7 @@ public class DhisWebApiWebSecurityConfig
 
                 .csrf().disable();
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
     }
 
@@ -511,7 +509,7 @@ public class DhisWebApiWebSecurityConfig
             configureApiTokenAuthorizationFilter( http );
             configureOAuthTokenFilters( http );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private void configureMatchers( HttpSecurity http )
@@ -726,10 +724,9 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @param dhisConfig DHIS2 configuration provider
      * @throws Exception
      */
-    public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )
+    public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
         http
@@ -742,10 +739,5 @@ public class DhisWebApiWebSecurityConfig
             .httpStrictTransportSecurity()
             .and()
             .frameOptions().sameOrigin();
-
-        if ( dhisConfig.isEnabled( CSP_ENABLED ) )
-        {
-            http.headers().contentSecurityPolicy( dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        }
     }
 }
