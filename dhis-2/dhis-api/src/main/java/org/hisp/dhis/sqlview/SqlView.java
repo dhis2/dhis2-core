@@ -90,6 +90,14 @@ public class SqlView
 
     private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
+    /**
+     * Optional UID of the {@link org.hisp.dhis.scheduling.Job} that is
+     * responsible for updating a {@link SqlViewType#MATERIALIZED_VIEW}.
+     *
+     * This field is only used in the API.
+     */
+    private transient String updateJobId;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -297,5 +305,17 @@ public class SqlView
     public void setCacheStrategy( CacheStrategy cacheStrategy )
     {
         this.cacheStrategy = cacheStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUpdateJobId()
+    {
+        return updateJobId;
+    }
+
+    public void setUpdateJobId( String updateJobId )
+    {
+        this.updateJobId = updateJobId;
     }
 }

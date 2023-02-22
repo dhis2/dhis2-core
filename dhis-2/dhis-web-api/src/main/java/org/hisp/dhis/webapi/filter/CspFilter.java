@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.security.utils.CspUtils.DEFAULT_HEADER_VALUE;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +39,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,14 +60,14 @@ public class CspFilter
 
     private final boolean enabled;
 
-    private final List<Pattern> filteredURLs;
+    private final List<Pattern> externalContentInsideApiPatterns;
 
     ConfigurationService configurationService;
 
     public CspFilter( DhisConfigurationProvider dhisConfig, ConfigurationService configurationService )
     {
         this.enabled = dhisConfig.isEnabled( CSP_ENABLED );
-        this.filteredURLs = CspUtils.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
+        this.externalContentInsideApiPatterns = CspUtils.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
         this.configurationService = configurationService;
     }
 
@@ -84,30 +84,44 @@ public class CspFilter
 
         if ( isStaticContentInsideApi( req.getRequestURI() ) )
         {
-            chain.doFilter( req, new AddStaticContentCspHeaderResponseWrapper( res, configurationService ) );
+            setFrameAncestorsCspRule( res );
+            chain.doFilter( req, res );
             return;
         }
 
         if ( isExternalContentInsideApi( req.getRequestURL().toString() ) )
         {
+            // Add default CSP header for external content
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, DEFAULT_HEADER_VALUE );
             chain.doFilter( req, res );
             return;
         }
 
         if ( isRegularApi( req.getRequestURI() ) )
         {
-            // Remove CSP header from regular API requests
-            chain.doFilter( req, new RemoveCspHeaderResponseWrapper( res ) );
+            chain.doFilter( req, res );
             return;
         }
 
         // Rest must be static content
-        chain.doFilter( req, new AddStaticContentCspHeaderResponseWrapper( res, configurationService ) );
+        setFrameAncestorsCspRule( res );
+        chain.doFilter( req, res );
+    }
+
+    private void setFrameAncestorsCspRule( HttpServletResponse res )
+    {
+        Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+        if ( !corsWhitelist.isEmpty() )
+        {
+            String corsAllowedOrigins = String.join( " ", corsWhitelist );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME,
+                FRAME_ANCESTORS_STATIC_CONTENT_CSP + corsAllowedOrigins );
+        }
     }
 
     private boolean isRegularApi( String requestURI )
     {
-        return CspUtils.EVERYTHING_START_WITH_API.matcher( requestURI ).matches();
+        return CspUtils.EVERYTHING_START_WITH_API.matcher( requestURI ).find();
     }
 
     private boolean isStaticContentInsideApi( String requestURI )
@@ -125,7 +139,7 @@ public class CspFilter
     // Returns false if URI matches one of the regexp patterns in the list
     private boolean isExternalContentInsideApi( String requestURI )
     {
-        for ( Pattern pattern : filteredURLs )
+        for ( Pattern pattern : externalContentInsideApiPatterns )
         {
             if ( pattern.matcher( requestURI ).matches() )
             {
@@ -133,67 +147,5 @@ public class CspFilter
             }
         }
         return false;
-    }
-
-    public static class RemoveCspHeaderResponseWrapper extends HttpServletResponseWrapper
-    {
-        public RemoveCspHeaderResponseWrapper( HttpServletResponse res )
-        {
-            super( res );
-        }
-
-        @Override
-        public void setHeader( String name, String value )
-        {
-            if ( !name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.setHeader( name, value );
-            }
-        }
-
-        @Override
-        public void addHeader( String name, String value )
-        {
-            if ( !name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.addHeader( name, value );
-            }
-        }
-    }
-
-    public static class AddStaticContentCspHeaderResponseWrapper extends HttpServletResponseWrapper
-    {
-        private String cspString = "";
-
-        public AddStaticContentCspHeaderResponseWrapper( HttpServletResponse res,
-            ConfigurationService configurationService )
-        {
-            super( res );
-
-            Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
-            if ( !corsWhitelist.isEmpty() )
-            {
-                String corsAllowedOrigins = String.join( " ", corsWhitelist );
-                this.cspString = FRAME_ANCESTORS_STATIC_CONTENT_CSP + corsAllowedOrigins;
-            }
-        }
-
-        @Override
-        public void setHeader( String name, String value )
-        {
-            if ( !cspString.isEmpty() && name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.setHeader( name, cspString );
-            }
-        }
-
-        @Override
-        public void addHeader( String name, String value )
-        {
-            if ( !cspString.isEmpty() && name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.addHeader( name, cspString );
-            }
-        }
     }
 }
