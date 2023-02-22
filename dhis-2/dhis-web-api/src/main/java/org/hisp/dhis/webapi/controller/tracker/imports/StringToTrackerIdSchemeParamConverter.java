@@ -30,12 +30,12 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.StringUtils;
 
 public class StringToTrackerIdSchemeParamConverter implements Converter<String, TrackerIdSchemeParam>
 {
+    private final static String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
 
     @Override
     public TrackerIdSchemeParam convert( String source )
@@ -47,12 +47,40 @@ public class StringToTrackerIdSchemeParamConverter implements Converter<String, 
 
         String[] splitParam = source.split( ":" );
         String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
+
+        TrackerIdScheme idScheme;
+        try
+        {
+            idScheme = TrackerIdScheme.valueOf( splitParam[0] );
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            throw new IllegalArgumentException( VALID_VALUES );
+        }
+
         boolean isInvalidAttribute = attributeUid != null && !CodeGenerator.isValidUid( attributeUid );
         boolean isInvalidFormat = splitParam.length > 2;
-        if ( isInvalidAttribute || isInvalidFormat )
+
+        boolean attributeIdSchemeHasNoAttributeId = idScheme == TrackerIdScheme.ATTRIBUTE && attributeUid == null;
+        boolean notAttributeIdSchemeHasAttributeId = idScheme != TrackerIdScheme.ATTRIBUTE && attributeUid != null;
+        if ( isInvalidAttribute || isInvalidFormat ||
+            attributeIdSchemeHasNoAttributeId || notAttributeIdSchemeHasAttributeId )
         {
-            throw new TypeMismatchException( source, TrackerIdSchemeParam.class );
+            throw new IllegalArgumentException( VALID_VALUES );
         }
-        return TrackerIdSchemeParam.of( TrackerIdScheme.valueOf( splitParam[0] ), attributeUid );
+
+        switch ( idScheme )
+        {
+        case UID:
+            return TrackerIdSchemeParam.UID;
+        case NAME:
+            return TrackerIdSchemeParam.NAME;
+        case CODE:
+            return TrackerIdSchemeParam.CODE;
+        case ATTRIBUTE:
+            return TrackerIdSchemeParam.ofAttribute( attributeUid );
+        default:
+            throw new IllegalArgumentException( VALID_VALUES );
+        }
     }
 }

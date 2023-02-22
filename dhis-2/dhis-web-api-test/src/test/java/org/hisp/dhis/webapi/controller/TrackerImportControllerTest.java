@@ -55,10 +55,24 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void shouldReturnBadRequestWhenAllValidParametersAndEmptyIdSchemeArePassed()
+    {
+        assertWebMessage( "OK", 200, "OK", "Tracker job added",
+            POST( "/tracker?async=true&reportMode=FULL" +
+                "&importMode=VALIDATE" +
+                "&idScheme=" +
+                "&importStrategy=CREATE_AND_UPDATE" +
+                "&atomicMode=OBJECT" +
+                "&flushMode=AUTO" +
+                "&validationMode=FULL",
+                "{}" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
     void shouldReturnBadRequestWhenInvalidReportModeIsPassedGettingJobReport()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
+            "Value INVALID is not valid for parameter reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
             GET( "/tracker/jobs/AAA/report?reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -66,7 +80,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidReportModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
+            "Value INVALID is not valid for parameter reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
             POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -99,7 +113,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidImportModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid importMode. Valid values are: [COMMIT, VALIDATE]",
+            "Value INVALID is not valid for parameter importMode. Valid values are: [COMMIT, VALIDATE]",
             POST( "/tracker?async=false&importMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -107,7 +121,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidImportStrategyIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid importStrategy. Valid values are: [CREATE, UPDATE, PATCH, CREATE_AND_UPDATE, DELETE]",
+            "Value INVALID is not valid for parameter importStrategy. Valid values are: [CREATE, UPDATE, PATCH, CREATE_AND_UPDATE, DELETE]",
             POST( "/tracker?async=false&importStrategy=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -115,7 +129,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidAtomicModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid atomicMode. Valid values are: [ALL, OBJECT]",
+            "Value INVALID is not valid for parameter atomicMode. Valid values are: [ALL, OBJECT]",
             POST( "/tracker?async=false&atomicMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -123,7 +137,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidFlushModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid flushMode. Valid values are: [OBJECT, AUTO]",
+            "Value INVALID is not valid for parameter flushMode. Valid values are: [OBJECT, AUTO]",
             POST( "/tracker?async=false&flushMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -131,7 +145,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidValidationModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid validationMode. Valid values are: [FULL, FAIL_FAST, SKIP]",
+            "Value INVALID is not valid for parameter validationMode. Valid values are: [FULL, FAIL_FAST, SKIP]",
             POST( "/tracker?async=false&validationMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -44,7 +45,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @Value
 @Builder
 @JsonDeserialize( builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class )
-@AllArgsConstructor( staticName = "of" )
+@AllArgsConstructor( staticName = "of", access = AccessLevel.PRIVATE )
 public class TrackerIdSchemeParam
 {
     public static final TrackerIdSchemeParam UID = TrackerIdSchemeParam.of( TrackerIdScheme.UID, null );

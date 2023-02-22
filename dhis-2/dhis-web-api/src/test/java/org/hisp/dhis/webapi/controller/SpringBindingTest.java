@@ -68,7 +68,8 @@ class SpringBindingTest
             .param( "simpleEnum", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content()
-                .string( containsString( "Value INVALID is not a valid simpleEnum. Valid values are: [YES, NO]" ) ) );
+                .string( containsString(
+                    "Value INVALID is not valid for parameter simpleEnum. Valid values are: [YES, NO]" ) ) );
     }
 
     @Test
@@ -79,7 +80,8 @@ class SpringBindingTest
             .param( "simpleEnumInCriteria", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string(
-                containsString( "Value INVALID is not a valid simpleEnumInCriteria. Valid values are: [YES, NO]" ) ) );
+                containsString(
+                    "Value INVALID is not valid for parameter simpleEnumInCriteria. Valid values are: [YES, NO]" ) ) );
     }
 
     @Test

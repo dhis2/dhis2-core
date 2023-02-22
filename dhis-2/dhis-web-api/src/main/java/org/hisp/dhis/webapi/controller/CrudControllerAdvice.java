@@ -190,14 +190,23 @@ public class CrudControllerAdvice
     public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
     {
         Class<?> requiredType = ex.getRequiredType();
+        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getName() );
+
+        String customErrorMessage;
         if ( requiredType == null )
         {
-            return badRequest( ex.getMessage() );
+            customErrorMessage = ex.getMessage();
+        }
+        else if ( requiredType.isEnum() )
+        {
+            customErrorMessage = getEnumErrorMessage( requiredType );
+        }
+        else
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
         }
 
-        return (requiredType.isEnum())
-            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
-            : getWebMessage( requiredType.getSimpleName(), ex.getValue(), ex.getName() );
+        return badRequest( getFormattedBadRequestMessage( notValidValueMessage, customErrorMessage ) );
     }
 
     @ExceptionHandler( TypeMismatchException.class )
@@ -205,32 +214,51 @@ public class CrudControllerAdvice
     public WebMessage handleTypeMismatchException( TypeMismatchException ex )
     {
         Class<?> requiredType = ex.getRequiredType();
+        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getPropertyName() );
+
+        String customErrorMessage;
         if ( requiredType == null )
         {
-            return badRequest( ex.getMessage() );
+            customErrorMessage = ex.getMessage();
+        }
+        else if ( requiredType.isEnum() )
+        {
+            customErrorMessage = getEnumErrorMessage( requiredType );
+        }
+        else
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
         }
 
-        return (requiredType.isEnum())
-            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
-            : getWebMessage( requiredType.getSimpleName(), ex.getValue(), ex.getPropertyName() );
+        return badRequest( getFormattedBadRequestMessage( notValidValueMessage, customErrorMessage ) );
     }
 
-    private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
+    private String getEnumErrorMessage( Class<?> requiredType )
     {
         String validValues = StringUtils
             .join( Arrays.stream( requiredType.getEnumConstants() ).map( Objects::toString )
                 .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-            value, field, validValues );
-        return badRequest( errorMessage );
+        return MessageFormat.format( "Valid values are: [{0}]", validValues );
     }
 
-    private WebMessage getWebMessage( String fieldType, Object value, String field )
+    private String getGenericFieldErrorMessage( String fieldType )
     {
-        String errorMessage = MessageFormat.format(
-            "Value {0} is not valid for parameter {1}. It should be of type {2}",
-            value, field, fieldType );
-        return badRequest( errorMessage );
+        return MessageFormat.format( "It should be of type {0}", fieldType );
+    }
+
+    private String getNotValidValueMessage( Object value, String field )
+    {
+        return MessageFormat.format( "Value {0} is not valid for parameter {1}.", value, field );
+    }
+
+    private String getFormattedBadRequestMessage( Object value, String field, String customMessage )
+    {
+        return getNotValidValueMessage( value, field ) + " " + customMessage;
+    }
+
+    private String getFormattedBadRequestMessage( String fieldErrorMessage, String customMessage )
+    {
+        return fieldErrorMessage + " " + customMessage;
     }
 
     /**
@@ -253,6 +281,12 @@ public class CrudControllerAdvice
         if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
         {
             return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
+        }
+
+        if ( fieldError != null )
+        {
+            return badRequest( getFormattedBadRequestMessage( fieldError.getRejectedValue(),
+                fieldError.getField(), ex.getMessage() ) );
         }
 
         return badRequest( ex.getMessage() );

@@ -32,10 +32,10 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -165,26 +165,26 @@ class TrackerImportParamsMapperTest
     @Test
     void testOrgUnitIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .orgUnitIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .orgUnitIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
     }
 
     @Test
     void testProgramIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .programIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .programIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
     }
 
@@ -203,53 +203,61 @@ class TrackerImportParamsMapperTest
     @Test
     void testProgramStageIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .programStageIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .programStageIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getProgramStageIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getProgramStageIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
     }
 
     @Test
     void testDataElementIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .dataElementIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .dataElementIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getDataElementIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getDataElementIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
     }
 
     @Test
     void testCategoryOptionComboIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .categoryOptionComboIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .categoryOptionComboIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
     }
 
     @Test
     void testCategoryOptionIdentifier()
     {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+        idSchemeParams().forEach( e -> {
             RequestParams requestParams = RequestParams.builder()
-                .categoryOptionIdScheme( TrackerIdSchemeParam.of( e, null ) )
+                .categoryOptionIdScheme( e )
                 .build();
             TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
                 true, JOB_ID, "userId", requestParams, Body.builder().build() );
-            assertThat( params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(), is( e ) );
+            assertThat( params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(), is( e.getIdScheme() ) );
         } );
+    }
+
+    private List<TrackerIdSchemeParam> idSchemeParams()
+    {
+        return List.of( TrackerIdSchemeParam.UID,
+            TrackerIdSchemeParam.CODE,
+            TrackerIdSchemeParam.NAME,
+            TrackerIdSchemeParam.ofAttribute( "attributeUid" ) );
     }
 
     private void assertDefaultParams( TrackerImportParams params )

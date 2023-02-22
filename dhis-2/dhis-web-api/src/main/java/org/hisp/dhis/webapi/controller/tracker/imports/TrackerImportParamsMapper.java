@@ -52,7 +52,12 @@ public class TrackerImportParamsMapper
         RequestParams request,
         Body params )
     {
-        TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
+        // TODO: If user calls tracker import with empty idScheme /tracker?idScheme=
+        // then StringToTrackerIdSchemeParamConverter will
+        // return a null TrackerIdSchemeParam.
+        // In that case we are setting the defaultIdSchemeParam to UID
+        TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme() == null ? TrackerIdSchemeParam.UID
+            : request.getIdScheme();
         TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder()
             .idScheme( defaultIdSchemeParam )
             .programIdScheme( getIdSchemeParam( request.getProgramIdScheme(), defaultIdSchemeParam ) )
