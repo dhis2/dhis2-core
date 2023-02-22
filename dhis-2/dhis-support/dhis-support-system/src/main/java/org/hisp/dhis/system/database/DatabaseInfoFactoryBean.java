@@ -30,16 +30,10 @@ package org.hisp.dhis.system.database;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Primary
-@Component( "dhisDatabaseInfo" )
-@Lazy
 public class DatabaseInfoFactoryBean
     implements FactoryBean<DatabaseInfo>
 {

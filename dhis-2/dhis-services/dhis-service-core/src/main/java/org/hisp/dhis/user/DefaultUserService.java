@@ -953,6 +953,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean hasTwoFactorRoleRestriction( User user )
     {
         return user.hasAnyRestrictions( Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME ) );

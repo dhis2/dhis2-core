@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +53,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
-public class DataDimensionItem
+public class DataDimensionItem implements Serializable
 {
     public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES = Set.of(
         Indicator.class,

@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 
 import com.google.common.base.MoreObjects;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -69,8 +68,6 @@ public class DatabasePoolUtils
         private String dbPoolType;
 
         private DhisConfigurationProvider dhisConfig;
-
-        private HibernateConfigurationProvider hibernateConfig;
 
         private String jdbcUrl;
 

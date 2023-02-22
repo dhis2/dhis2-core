@@ -210,8 +210,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
-
-        getSession().update( object );
     }
 
     @Override

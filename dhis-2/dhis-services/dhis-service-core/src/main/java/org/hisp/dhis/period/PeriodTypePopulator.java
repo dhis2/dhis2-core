@@ -38,6 +38,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -51,9 +52,17 @@ public class PeriodTypePopulator
 
     private final SessionFactory sessionFactory;
 
+    private final TransactionTemplate transactionTemplate;
+
     // -------------------------------------------------------------------------
     // Execute
     // -------------------------------------------------------------------------
+
+    @Override
+    protected TransactionTemplate getTransactionTemplate()
+    {
+        return this.transactionTemplate;
+    }
 
     @Override
     public void executeInTransaction()

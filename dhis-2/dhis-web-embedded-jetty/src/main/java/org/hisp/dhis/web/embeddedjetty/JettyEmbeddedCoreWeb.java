@@ -40,7 +40,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -120,9 +120,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         dispatcher.addMapping( "/api/*" );
         dispatcher.addMapping( "/uaa/*" );
 
-        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
-            OpenSessionInViewFilter.class );
-        openSessionInViewFilter.setInitParameter( "sessionFactoryBeanName", "sessionFactory" );
+        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openEntityManagerInViewFilter",
+            OpenEntityManagerInViewFilter.class );
+        openSessionInViewFilter.setInitParameter( "entityManagerFactoryBeanName", "entityManagerFactory" );
         openSessionInViewFilter.addMappingForUrlPatterns( null, false, "/*" );
         openSessionInViewFilter.addMappingForServletNames( null, false, "dispatcher" );
 

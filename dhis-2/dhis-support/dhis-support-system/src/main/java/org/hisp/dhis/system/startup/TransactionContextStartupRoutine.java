@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.system.startup;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -38,8 +37,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class TransactionContextStartupRoutine
     extends AbstractStartupRoutine
 {
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+    protected abstract TransactionTemplate getTransactionTemplate();
 
     /**
      * Work performed in this method will run inside a transaction context.
@@ -49,13 +47,12 @@ public abstract class TransactionContextStartupRoutine
     @Override
     public final void execute()
     {
-        transactionTemplate.execute( new TransactionCallback<Object>()
+        getTransactionTemplate().execute( new TransactionCallbackWithoutResult()
         {
             @Override
-            public Object doInTransaction( TransactionStatus status )
+            protected void doInTransactionWithoutResult( TransactionStatus status )
             {
                 executeInTransaction();
-                return null;
             }
         } );
     }

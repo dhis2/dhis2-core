@@ -43,7 +43,7 @@ import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -85,9 +85,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         dispatcher.addMapping( "/api/*" );
         dispatcher.addMapping( "/uaa/*" );
 
-        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
-            OpenSessionInViewFilter.class );
-        openSessionInViewFilter.setInitParameter( "sessionFactoryBeanName", "sessionFactory" );
+        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openEntityManagerInViewFilter",
+            OpenEntityManagerInViewFilter.class );
+        openSessionInViewFilter.setInitParameter( "entityManagerFactoryBeanName", "entityManagerFactory" );
         openSessionInViewFilter.addMappingForUrlPatterns( null, false, "/*" );
         openSessionInViewFilter.addMappingForServletNames( null, false, "dispatcher" );
 

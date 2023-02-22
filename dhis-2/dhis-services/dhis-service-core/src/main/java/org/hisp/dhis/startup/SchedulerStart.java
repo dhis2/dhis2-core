@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
@@ -41,6 +40,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageService;
@@ -60,6 +60,7 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
  * @author Henning Håkonsen
  */
 @Slf4j
+@RequiredArgsConstructor
 public class SchedulerStart extends AbstractStartupRoutine
 {
 
@@ -127,25 +128,6 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final SchedulingManager schedulingManager;
 
     private final MessageService messageService;
-
-    public SchedulerStart( SystemSettingManager systemSettingManager, boolean redisEnabled, String leaderElectionTime,
-        JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager,
-        MessageService messageService )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( jobConfigurationService );
-        checkNotNull( schedulingManager );
-        checkNotNull( messageService );
-        checkNotNull( leaderElectionTime );
-        checkNotNull( redisEnabled );
-
-        this.systemSettingManager = systemSettingManager;
-        this.redisEnabled = redisEnabled;
-        this.leaderElectionTime = leaderElectionTime;
-        this.jobConfigurationService = jobConfigurationService;
-        this.schedulingManager = schedulingManager;
-        this.messageService = messageService;
-    }
 
     @Override
     public void execute()

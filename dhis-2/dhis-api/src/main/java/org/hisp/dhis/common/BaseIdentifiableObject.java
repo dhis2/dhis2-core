@@ -40,7 +40,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -147,7 +146,6 @@ public class BaseIdentifiableObject
      * User who created this object. This field is immutable and must not be
      * updated.
      */
-    @Immutable
     protected User createdBy;
 
     /**

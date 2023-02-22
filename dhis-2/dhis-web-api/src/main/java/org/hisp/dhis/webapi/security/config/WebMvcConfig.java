@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityManagerFactory;
+
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -136,6 +138,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
     @Autowired
     private FieldFilterService fieldFilterService;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
@@ -253,6 +258,11 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
         registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
+        //
+        //        OpenEntityManagerInViewInterceptor interceptor = new OpenEntityManagerInViewInterceptor();
+        //        interceptor.setEntityManagerFactory( entityManagerFactory );
+        //
+        //        registry.addWebRequestInterceptor( interceptor );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

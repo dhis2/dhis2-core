@@ -474,7 +474,7 @@ public class HibernateUserStore
         String hql = ignoreCase ? "from User u where lower(u.username) = lower(:username)"
             : "from User u where u.username = :username";
 
-        TypedQuery<User> typedQuery = sessionFactory.getCurrentSession().createQuery( hql,
+        TypedQuery<User> typedQuery = entityManager.createQuery( hql,
             User.class );
         typedQuery.setParameter( "username", username );
         typedQuery.setHint( QueryHints.CACHEABLE, true );

@@ -43,13 +43,11 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "databaseInfoProvider" )
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {

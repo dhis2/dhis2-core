@@ -27,20 +27,23 @@
  */
 package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@RequiredArgsConstructor
 public class DefaultAdminUserPopulator
     extends TransactionContextStartupRoutine
 {
@@ -96,10 +99,12 @@ public class DefaultAdminUserPopulator
 
     private final UserService userService;
 
-    public DefaultAdminUserPopulator( UserService userService )
+    private final TransactionTemplate transactionTemplate;
+
+    @Override
+    protected TransactionTemplate getTransactionTemplate()
     {
-        checkNotNull( userService );
-        this.userService = userService;
+        return this.transactionTemplate;
     }
 
     @Override

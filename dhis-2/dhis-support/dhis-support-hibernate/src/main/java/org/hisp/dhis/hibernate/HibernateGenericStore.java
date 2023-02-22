@@ -38,7 +38,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
+import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -64,6 +66,7 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -85,6 +88,9 @@ public class HibernateGenericStore<T>
 
     protected SessionFactory sessionFactory;
 
+    @PersistenceContext
+    protected EntityManager entityManager;
+
     protected JdbcTemplate jdbcTemplate;
 
     protected ApplicationEventPublisher publisher;
@@ -93,7 +99,8 @@ public class HibernateGenericStore<T>
 
     protected boolean cacheable;
 
-    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateGenericStore( @Qualifier( "sessionFactory" ) SessionFactory sessionFactory,
+        JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
     {
         checkNotNull( sessionFactory );
@@ -144,7 +151,12 @@ public class HibernateGenericStore<T>
      */
     protected final Session getSession()
     {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap( Session.class );
+    }
+
+    protected final EntityManager getEntityManager()
+    {
+        return entityManager;
     }
 
     protected final StatelessSession getStatelessSession()
@@ -221,7 +233,7 @@ public class HibernateGenericStore<T>
 
     public CriteriaBuilder getCriteriaBuilder()
     {
-        return sessionFactory.getCriteriaBuilder();
+        return entityManager.getCriteriaBuilder();
     }
 
     // ------------------------------------------------------------------------------------------

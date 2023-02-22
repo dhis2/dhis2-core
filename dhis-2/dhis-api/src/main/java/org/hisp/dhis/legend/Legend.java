@@ -27,10 +27,29 @@
  */
 package org.hisp.dhis.legend;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,18 +59,43 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Jan Henrik Overland
  */
 @JacksonXmlRootElement( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
+@Entity
+@Table( name = "maplegend", indexes = { @Index( name = "maplegend_startvalue", columnList = "startValue" ),
+    @Index( name = "maplegend_endvalue", columnList = "endvalue" ) } )
 public class Legend
     extends BaseIdentifiableObject implements EmbeddedObject
 {
+
+    @Id
+    @Column( name = "maplegendid" )
+    @GeneratedValue( strategy = GenerationType.AUTO )
+    private long id;
+
+    @Column( name = "uid", length = 11, nullable = false, unique = true )
+    protected String uid;
+
+    @Column( name = "startValue", nullable = false )
     private Double startValue;
 
+    @Column( name = "endvalue", nullable = false )
     private Double endValue;
 
+    @Column( name = "name", length = 230, nullable = false )
+    private String name;
+
+    @Column
     private String color;
 
+    @Column
     private String image;
 
+    @ManyToOne
+    @JoinColumn( name = "maplegendsetid", referencedColumnName = "maplegendsetid", foreignKey = @ForeignKey( name = "fk_maplegend_maplegendsetid" ) )
     private LegendSet legendSet;
+
+    @Column( name = "translations" )
+    @Type( type = "jblTranslations" )
+    protected Set<Translation> translations = new HashSet<>();
 
     public Legend()
     {
@@ -128,5 +172,37 @@ public class Legend
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @Override
+    @JsonProperty( value = "id" )
+    @JacksonXmlProperty( localName = "id", isAttribute = true )
+    @Description( "The Unique Identifier for this Object." )
+    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.FALSE )
+    @PropertyRange( min = 11, max = 11 )
+    public String getUid()
+    {
+        return uid;
+    }
+
+    @Override
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The name of this Object. Required and unique." )
+    @PropertyRange( min = 1 )
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
     }
 }

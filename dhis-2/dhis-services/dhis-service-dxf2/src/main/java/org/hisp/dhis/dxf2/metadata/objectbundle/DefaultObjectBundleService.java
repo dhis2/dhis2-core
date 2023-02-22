@@ -34,11 +34,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -75,7 +77,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final SchemaService schemaService;
 
-    private final SessionFactory sessionFactory;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final IdentifiableObjectManager manager;
 
@@ -125,7 +128,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         }
 
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
-        Session session = sessionFactory.getCurrentSession();
+        Session session = entityManager.unwrap( Session.class );
 
         List<ObjectBundleHook<?>> commitHooks = objectBundleHooks.getCommitHooks( klasses );
         commitHooks.forEach( hook -> hook.preCommit( bundle ) );

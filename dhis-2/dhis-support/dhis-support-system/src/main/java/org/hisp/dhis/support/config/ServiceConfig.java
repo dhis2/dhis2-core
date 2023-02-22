@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.support.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.database.DatabaseInfoFactoryBean;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.database.HibernateDatabaseInfoProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -48,5 +54,18 @@ public class ServiceConfig
     public UriComponentsBuilder uriComponentsBuilder()
     {
         return UriComponentsBuilder.newInstance();
+    }
+
+    @Bean
+    public DatabaseInfoProvider databaseInfoProvider( DhisConfigurationProvider config, JdbcTemplate jdbcTemplate,
+        Environment environment )
+    {
+        return new HibernateDatabaseInfoProvider( config, jdbcTemplate, environment );
+    }
+
+    @Bean
+    public DatabaseInfoFactoryBean databaseInfo( DatabaseInfoProvider databaseInfoProvider )
+    {
+        return new DatabaseInfoFactoryBean( databaseInfoProvider );
     }
 }

@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -49,7 +51,6 @@ import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,13 +66,13 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
     private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
-    private final SessionFactory sessionFactory;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final QueryCacheManager queryCacheManager;
 
     private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
 
-    @Autowired
     public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
         List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory,
         QueryCacheManager queryCacheManager )
@@ -84,7 +85,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         this.currentUserService = currentUserService;
         this.queryPlanner = queryPlanner;
         this.hibernateGenericStores = hibernateGenericStores;
-        this.sessionFactory = sessionFactory;
         this.queryCacheManager = queryCacheManager;
     }
 
@@ -113,7 +113,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
             query = queryPlan.getPersistedQuery();
         }
 
-        CriteriaBuilder builder = sessionFactory.getCriteriaBuilder();
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<T> criteriaQuery = builder.createQuery( klass );
         Root<T> root = criteriaQuery.from( klass );
@@ -128,7 +128,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
             criteriaQuery.where( predicate );
 
-            TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
+            TypedQuery<T> typedQuery = entityManager.createQuery( criteriaQuery );
 
             typedQuery.setFirstResult( query.getFirstResult() );
             typedQuery.setMaxResults( query.getMaxResults() );
@@ -152,7 +152,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 .collect( Collectors.toList() ) );
         }
 
-        TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
+        TypedQuery<T> typedQuery = entityManager.createQuery( criteriaQuery );
 
         typedQuery.setFirstResult( query.getFirstResult() );
         typedQuery.setMaxResults( query.getMaxResults() );
@@ -192,7 +192,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
             query = queryPlan.getPersistedQuery();
         }
 
-        CriteriaBuilder builder = sessionFactory.getCriteriaBuilder();
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Long> criteriaQuery = builder.createQuery( Long.class );
         Root<T> root = criteriaQuery.from( klass );
@@ -215,7 +215,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 .collect( Collectors.toList() ) );
         }
 
-        TypedQuery<Long> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
+        TypedQuery<Long> typedQuery = entityManager.createQuery( criteriaQuery );
 
         return typedQuery.getSingleResult();
     }

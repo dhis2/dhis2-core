@@ -42,6 +42,7 @@ import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.security.spring2fa.DefaultTwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
@@ -149,7 +150,7 @@ public class DhisWebCommonsWebSecurityConfig
         private ExternalAccessVoter externalAccessVoter;
 
         @Autowired
-        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+        private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
         @Autowired
         private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;

@@ -29,16 +29,13 @@ package org.hisp.dhis.config;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
-
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
@@ -53,14 +50,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -70,7 +67,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
-@RequiredArgsConstructor
 public class HibernateConfig
 {
     @Bean( "hibernateConfigurationProvider" )
@@ -82,103 +78,86 @@ public class HibernateConfig
     }
 
     @Bean
-    public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation()
+    {
+        return new PersistenceExceptionTranslationPostProcessor();
+    }
+
+    @Bean( "jpaTransactionManager" )
+    @DependsOn( "entityManagerFactory" )
+    public JpaTransactionManager jpaTransactionManager( @Qualifier( "entityManagerFactory" ) EntityManagerFactory emf )
+    {
+        return new JpaTransactionManager( emf );
+    }
+
+    @Bean( "transactionTemplate" )
+    @DependsOn( "jpaTransactionManager" )
+    public TransactionTemplate transactionTemplate(
+        @Qualifier( "jpaTransactionManager" ) JpaTransactionManager transactionManager )
     {
         return new TransactionTemplate( transactionManager );
     }
 
     @Bean
-    public DefaultHibernateCacheManager cacheManager( SessionFactory sessionFactory )
+    public DefaultHibernateCacheManager cacheManager( @Qualifier( "entityManagerFactory" ) EntityManagerFactory emf )
     {
         DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory( sessionFactory );
-        return cacheManager;
-    }
-
-    @Bean
-    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, SessionFactory sessionFactory,
-        DefaultHibernateCacheManager cacheManager )
-    {
-        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-        hibernateDbmsManager.setCacheManager( cacheManager );
-        hibernateDbmsManager.setSessionFactory( sessionFactory );
-        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
-        return hibernateDbmsManager;
-    }
-
-    @Bean
-    @DependsOn( "entityManagerFactoryBean" )
-    public PlatformTransactionManager jpaTransactionManager( LocalContainerEntityManagerFactoryBean sessionFactory )
-    {
-        JpaTransactionManager txManager = new JpaTransactionManager();
-        txManager.setEntityManagerFactory( sessionFactory.getObject() );
-        return txManager;
-    }
-
-    @Bean
-    public TransactionTemplate transactionTemplate( PlatformTransactionManager transactionManager )
-    {
-        return new TransactionTemplate( transactionManager );
-    }
-
-    @Bean
-    @DependsOn( "entityManagerFactoryBean" )
-    public DefaultHibernateCacheManager cacheManager( LocalContainerEntityManagerFactoryBean entityManagerFactory )
-    {
-        DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory( entityManagerFactory.getObject().unwrap( SessionFactory.class ) );
+        cacheManager.setSessionFactory( emf.unwrap( SessionFactory.class ) );
 
         return cacheManager;
     }
 
     @Bean
-    @DependsOn( "entityManagerFactoryBean" )
-    public EntityManager entityManager( LocalContainerEntityManagerFactoryBean entityManagerFactory )
-    {
-        return entityManagerFactory.getObject().createEntityManager();
-    }
-
-    @Bean
-    @DependsOn( "entityManagerFactoryBean" )
     public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate,
-        LocalContainerEntityManagerFactoryBean entityManagerFactory,
+        EntityManagerFactory entityManagerFactory,
         DefaultHibernateCacheManager cacheManager )
     {
         HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
         hibernateDbmsManager.setCacheManager( cacheManager );
-        hibernateDbmsManager.setSessionFactory( entityManagerFactory.getObject().unwrap( SessionFactory.class ) );
+        hibernateDbmsManager.setSessionFactory( entityManagerFactory.unwrap( SessionFactory.class ) );
         hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
         return hibernateDbmsManager;
     }
 
-    @Bean
-    @DependsOn( "entityManagerFactoryBean" )
-    public SessionFactory hibernateSessionFactory(
-        @Qualifier( "entityManagerFactoryBean" ) LocalContainerEntityManagerFactoryBean entityManagerFactory )
+    @Bean( "sessionFactory" )
+    @Primary
+    public SessionFactory sessionFactory( @Qualifier( "entityManagerFactory" ) EntityManagerFactory entityManager )
     {
-        return entityManagerFactory.getObject().unwrap( SessionFactory.class );
+        return entityManager.unwrap( SessionFactory.class );
     }
 
-    @Bean( "entityManagerFactoryBean" )
+    @Bean( "entityManagerFactory" )
     @DependsOn( { "flyway" } )
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean( DhisConfigurationProvider config,
+    public EntityManagerFactory entityManagerFactoryBean( DhisConfigurationProvider config,
         DataSource dataSource )
         throws IOException
     {
-        Map<String, Object> properties = new Hashtable<>();
-        properties.put( "javax.persistence.schema-generation.database.action", "none" );
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setDatabasePlatform( config.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
+        adapter.setGenerateDdl( false );
+        adapter.setShowSql( false );
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter( adapter );
+        factory.setPersistenceUnitName( "dhis" );
+        factory.setPersistenceProvider( new org.hibernate.jpa.HibernatePersistenceProvider() );
         factory.setDataSource( dataSource );
         factory.setPackagesToScan( "org.hisp.dhis" );
         factory.setSharedCacheMode( SharedCacheMode.ENABLE_SELECTIVE );
         factory.setValidationMode( ValidationMode.NONE );
-        factory.setJpaPropertyMap( properties );
+        factory.setJpaProperties( getAdditionalProperties( config ) );
         factory.setMappingResources( loadResources() );
         factory.afterPropertiesSet();
-        return factory;
+        return factory.getObject();
+    }
+
+    private Properties getAdditionalProperties( DhisConfigurationProvider config )
+    {
+        Properties additionalProperties = new Properties();
+        additionalProperties.put( "hibernate.current_session_context_class",
+            "org.springframework.orm.hibernate5.SpringSessionContext" );
+        additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
+
+        return additionalProperties;
     }
 
     private String[] loadResources()
@@ -186,7 +165,7 @@ public class HibernateConfig
         try
         {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resources = resolver.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
+            Resource[] resources = resolver.getResources( "classpath*:org/hisp/dhis/**/*.hbm.xml" );
             //            Resource[] resources =  classLoader.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
 
             List<String> list = new ArrayList<>();

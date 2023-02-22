@@ -35,8 +35,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.persistence.EntityManagerFactory;
+
 import org.hibernate.MappingException;
-import org.hibernate.SessionFactory;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.Column;
@@ -71,15 +72,15 @@ import org.hisp.dhis.schema.Property;
  */
 public class HibernatePropertyIntrospector implements PropertyIntrospector
 {
-    private final SessionFactory sessionFactory;
+    private final EntityManagerFactory entityManagerFactory;
 
     private final Map<String, String> roleToRole = new ConcurrentHashMap<>();
 
     private final AtomicBoolean roleToRoleComputing = new AtomicBoolean( false );
 
-    public HibernatePropertyIntrospector( SessionFactory sessionFactory )
+    public HibernatePropertyIntrospector( EntityManagerFactory entityManager )
     {
-        this.sessionFactory = sessionFactory;
+        this.entityManagerFactory = entityManager;
     }
 
     private void updateJoinTables()
@@ -93,7 +94,9 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
 
         Map<String, List<String>> joinTableToRoles = new HashMap<>();
 
-        SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
+        SessionFactoryImplementor sessionFactoryImplementor = entityManagerFactory
+            .unwrap( SessionFactoryImplementor.class );
+
         MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
         for ( CollectionPersister collectionPersister : metamodelImplementor.collectionPersisters().values() )
@@ -164,7 +167,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
 
     private MetamodelImplementor getMetamodelImplementor()
     {
-        return ((SessionFactoryImplementor) sessionFactory).getMetamodel();
+        return entityManagerFactory.unwrap( SessionFactoryImplementor.class ).getMetamodel();
     }
 
     private Property createProperty( Class<?> klass, org.hibernate.mapping.Property hibernateProperty,

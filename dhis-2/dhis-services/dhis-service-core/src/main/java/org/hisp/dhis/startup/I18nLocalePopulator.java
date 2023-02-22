@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Locale;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Populates default I18nLocales if none exists.
@@ -44,21 +44,23 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class I18nLocalePopulator
     extends TransactionContextStartupRoutine
 {
     private final I18nLocaleService localeService;
 
-    public I18nLocalePopulator( I18nLocaleService localeService )
-    {
-        checkNotNull( localeService );
-
-        this.localeService = localeService;
-    }
+    private final TransactionTemplate transactionTemplate;
 
     private static final Set<String> DEFAULT_LOCALES = Set.of(
         "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it",
         "km", "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh" );
+
+    @Override
+    protected TransactionTemplate getTransactionTemplate()
+    {
+        return this.transactionTemplate;
+    }
 
     @Override
     public void executeInTransaction()
