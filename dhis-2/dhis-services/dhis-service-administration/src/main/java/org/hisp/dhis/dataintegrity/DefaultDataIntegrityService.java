@@ -42,7 +42,6 @@ import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssu
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -561,9 +560,11 @@ public class DefaultDataIntegrityService
     {
         String name = type.getName();
         I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
-        BinaryOperator<String> info = ( property, defaultValue ) -> i18n
-            .getString( format( "data_integrity.%s.%s", name, property ), defaultValue );
-
+        BinaryOperator<String> info = ( property, defaultValue ) -> {
+            String key = format( "data_integrity.%s.%s", name, property );
+            String value = i18n.getString( key );
+            return key == value ? defaultValue : value;
+        };
         try
         {
             Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema( issueIdType );
@@ -975,7 +976,7 @@ public class DefaultDataIntegrityService
         {
             running.addAll( checks );
             progress.startingProcess( "Data Integrity check" );
-            progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
+            progress.startingStage( stageDesc, checks.size() );
             progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
                 DataIntegrityCheck::getDescription,
                 check -> {
@@ -1067,9 +1068,14 @@ public class DefaultDataIntegrityService
 
             // YAML based checks
             I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
+            BinaryOperator<String> info = ( property, defaultValue ) -> {
+                String key = format( "data_integrity.%s", property );
+                String value = i18n.getString( key );
+                return key == value ? defaultValue : value;
+            };
             readDataIntegrityYaml( "data-integrity-checks.yaml",
                 check -> checksByName.put( check.getName(), check ),
-                ( property, defaultValue ) -> i18n.getString( format( "data_integrity.%s", property ), defaultValue ),
+                info,
                 sql -> check -> dataIntegrityStore.querySummary( check, sql ),
                 sql -> check -> dataIntegrityStore.queryDetails( check, sql ) );
         }

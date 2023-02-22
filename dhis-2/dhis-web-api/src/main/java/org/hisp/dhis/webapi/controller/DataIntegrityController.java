@@ -42,7 +42,6 @@ import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
@@ -69,7 +68,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( "/dataIntegrity" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
