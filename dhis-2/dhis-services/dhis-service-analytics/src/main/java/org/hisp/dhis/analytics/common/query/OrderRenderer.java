@@ -28,16 +28,18 @@
 package org.hisp.dhis.analytics.common.query;
 
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.commons.collection.CollectionUtils;
-
 /**
- * renders the root order by clause, respecting the order of the indexed orders.
+ * Renders the root "order by" clause, respecting the order of the indexed
+ * orders.
  */
 @RequiredArgsConstructor( staticName = "of" )
 public class OrderRenderer implements Renderable
@@ -47,12 +49,13 @@ public class OrderRenderer implements Renderable
     @Override
     public String render()
     {
-        return RenderableUtils.join(
-            CollectionUtils.emptyIfNull( indexedOrders ).stream()
+        String orderBy = RenderableUtils.join(
+            emptyIfNull( indexedOrders ).stream()
                 .sorted( comparing( IndexedOrder::getIndex ) )
                 .map( IndexedOrder::getRenderable )
-                .collect( Collectors.toList() ),
+                .collect( toList() ),
             ", ", "order by " );
 
+        return isNotBlank( orderBy ) ? orderBy.concat( " nulls last" ) : EMPTY;
     }
 }

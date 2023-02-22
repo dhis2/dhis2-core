@@ -63,7 +63,6 @@ public class SqlQueryCreatorService
 
         for ( SqlQueryBuilder provider : providers )
         {
-
             List<DimensionIdentifier<DimensionParam>> acceptedDimensions = teiQueryParams.getCommonParams()
                 .getDimensionIdentifiers().stream()
                 .filter( provider.getDimensionFilters().stream().reduce( x -> true, Predicate::and ) )
@@ -93,6 +92,7 @@ public class SqlQueryCreatorService
         {
             sqlQueryContextBuilder.mainTable( contribution.getMainTable() );
         }
+
         if ( contribution.getLimitOffset() != null )
         {
             sqlQueryContextBuilder.limitOffset( contribution.getLimitOffset() );
