@@ -183,7 +183,6 @@ public class DefaultSchemaService
         register( new ExternalFileResourceSchemaDescriptor() );
         register( new OptionGroupSchemaDescriptor() );
         register( new OptionGroupSetSchemaDescriptor() );
-        register( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() );
         register( new DataInputPeriodSchemaDescriptor() );
         register( new ReportingRateSchemaDescriptor() );
         register( new UserAccessSchemaDescriptor() );
