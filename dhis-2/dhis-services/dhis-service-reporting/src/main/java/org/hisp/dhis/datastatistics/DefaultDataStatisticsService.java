@@ -277,13 +277,11 @@ public class DefaultDataStatisticsService
     {
         SystemInfo system = systemService.getSystemInfo();
 
-        Dhis2Info dhis2 = new Dhis2Info()
+        return new Dhis2Info()
             .setVersion( system.getVersion() )
             .setRevision( system.getRevision() )
             .setBuildTime( system.getBuildTime() )
             .setSystemId( system.getSystemId() )
             .setServerDate( system.getServerDate() );
-
-        return dhis2;
     }
 }
