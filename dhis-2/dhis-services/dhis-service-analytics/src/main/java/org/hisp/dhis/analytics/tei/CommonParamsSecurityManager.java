@@ -28,6 +28,9 @@
 package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.emptyList;
+import static java.util.function.Predicate.not;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
@@ -36,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,8 +47,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilder;
 import org.hisp.dhis.category.Category;
@@ -61,11 +65,21 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
+/**
+ * This class is responsible for checking that the current user has access to
+ * the given {@link CommonParams}. It will check that the user has access to the
+ * given org units, programs, programStages and all dimensionalObjects in the
+ * query.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TeiQuerySecurityManager
+public class CommonParamsSecurityManager
 {
+    private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES = List.of(
+        PROGRAM_ATTRIBUTE,
+        DATA_ELEMENT );
+
     private final AnalyticsSecurityManager securityManager;
 
     private final CurrentUserService currentUserService;
@@ -74,15 +88,15 @@ public class TeiQuerySecurityManager
 
     /**
      * Checks that the current user has access to the given
-     * {@link TeiQueryParams}. It will check that the user has access to the
-     * given org units, programs, programStages and all dimensionalObjects in
-     * the query.
+     * {@link CommonParams}. It will check that the user has access to the given
+     * org units, programs, programStages and all dimensionalObjects in the
+     * query.
      *
-     * @param teiQueryParams the {@link TeiQueryParams} to check.
+     * @param commonParams the {@link CommonParams} to check.
      */
-    void decideAccess( TeiQueryParams teiQueryParams )
+    void decideAccess( CommonParams commonParams, List<IdentifiableObject> extraObjects )
     {
-        List<OrganisationUnit> queryOrgUnits = teiQueryParams.getCommonParams()
+        List<OrganisationUnit> queryOrgUnits = commonParams
             .getDimensionIdentifiers().stream()
             .filter( OrgUnitQueryBuilder::isOu )
             .map( DimensionIdentifier::getDimension )
@@ -94,12 +108,15 @@ public class TeiQuerySecurityManager
             .collect( Collectors.toList() );
 
         Set<IdentifiableObject> objects = new HashSet<>();
+        objects.addAll( extraObjects );
 
         // DimensionalObjects from TeiQueryParams
-        objects.addAll( teiQueryParams.getCommonParams()
+        objects.addAll( commonParams
             .getDimensionIdentifiers().stream()
-            .filter( Predicate.not( OrgUnitQueryBuilder::isOu ) )
+            .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
+            .filter( not( CommonParamsSecurityManager::isAttribute ) )
             .map( DimensionParam::getDimensionalObject )
             .filter( Objects::nonNull )
             .map( DimensionalObject::getItems )
@@ -107,22 +124,24 @@ public class TeiQuerySecurityManager
             .collect( Collectors.toSet() ) );
 
         // DimensionalItemObjects from TeiQueryParams -> QueryItems
-        objects.addAll( teiQueryParams.getCommonParams()
+        objects.addAll( commonParams
             .getDimensionIdentifiers().stream()
             // We don't want to add the org units to the objects since they are
             // already checked in the queryOrgUnits list
-            .filter( Predicate.not( OrgUnitQueryBuilder::isOu ) )
+            .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
+            .filter( not( CommonParamsSecurityManager::isAttribute ) )
             .map( DimensionParam::getQueryItem )
             .filter( Objects::nonNull )
             .map( QueryItem::getItem )
             .collect( Collectors.toSet() ) );
 
         // Programs
-        objects.addAll( teiQueryParams.getCommonParams().getPrograms() );
+        objects.addAll( commonParams.getPrograms() );
 
         // Program Stages
-        objects.addAll( teiQueryParams.getCommonParams()
+        objects.addAll( commonParams
             .getDimensionIdentifiers().stream()
             .filter( DimensionIdentifier::hasProgramStage )
             .map( DimensionIdentifier::getProgramStage )
@@ -133,14 +152,19 @@ public class TeiQuerySecurityManager
         securityManager.decideAccessEventAnalyticsAuthority();
     }
 
+    private static boolean isAttribute( DimensionParam dimensionParam )
+    {
+        return SECURITY_CHECK_SKIP_TYPES.contains( dimensionParam.getDimensionParamObjectType() );
+    }
+
     /**
-     * Transforms the given {@link TeiQueryParams}, checking that all OrgUnits
+     * Transforms the given {@link CommonParams}, checking that all OrgUnits
      * specified in the query are accessible to the current user, based on
      * user's DataViewOrganisationUnits.
      *
-     * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param commonParams the {@link CommonParams}.
      */
-    void applyOrganisationUnitConstraint( TeiQueryParams teiQueryParams )
+    void applyOrganisationUnitConstraint( CommonParams commonParams )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -157,7 +181,7 @@ public class TeiQuerySecurityManager
         // Check if request already has organisation units specified
         // ---------------------------------------------------------------------
 
-        boolean hasOrgUnit = teiQueryParams.getCommonParams()
+        boolean hasOrgUnit = commonParams
             .getDimensionIdentifiers().stream()
             .anyMatch( OrgUnitQueryBuilder::isOu );
 
@@ -169,7 +193,7 @@ public class TeiQuerySecurityManager
         // -----------------------------------------------------------------
         // Apply constraint as filter, and remove potential all-dimension
         // -----------------------------------------------------------------
-        List<DimensionIdentifier<DimensionParam>> orgUnitDimensions = teiQueryParams.getCommonParams()
+        List<DimensionIdentifier<DimensionParam>> orgUnitDimensions = commonParams
             .getDimensionIdentifiers().stream()
             .filter( OrgUnitQueryBuilder::isOu )
             .collect( Collectors.toList() );
@@ -197,13 +221,13 @@ public class TeiQuerySecurityManager
     }
 
     /**
-     * Transforms the given {@link TeiQueryParams}, checking that all
+     * Transforms the given {@link CommonParams}, checking that all
      * DimensionalObjects specified in the query are readable to the current
      * user
      *
-     * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param commonParams the {@link CommonParams}.
      */
-    void applyDimensionConstraints( TeiQueryParams teiQueryParams )
+    void applyDimensionConstraints( CommonParams commonParams )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -216,7 +240,7 @@ public class TeiQuerySecurityManager
             return;
         }
 
-        List<DimensionalObject> dimensionalObjects = teiQueryParams.getCommonParams()
+        List<DimensionalObject> dimensionalObjects = commonParams
             .getDimensionIdentifiers().stream()
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getDimensionalObject )
@@ -226,7 +250,7 @@ public class TeiQuerySecurityManager
         // Categories the user is constrained to
         Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
             : getCategoriesWithoutRestrictions(
-                teiQueryParams.getCommonParams().getPrograms(),
+                commonParams.getPrograms(),
                 dimensionalObjects );
 
         // union of user and category constraints
@@ -246,7 +270,7 @@ public class TeiQuerySecurityManager
             // Check if dimension constraint already is specified with items
             // -----------------------------------------------------------------
 
-            if ( hasDimensionOrFilterWithItems( teiQueryParams, dimension.getUid() ) )
+            if ( hasDimensionOrFilterWithItems( commonParams, dimension.getUid() ) )
             {
                 continue;
             }
@@ -274,9 +298,18 @@ public class TeiQuerySecurityManager
         }
     }
 
-    private boolean hasDimensionOrFilterWithItems( TeiQueryParams teiQueryParams, String dimensionUid )
+    /**
+     * Returns true if the given dimensionUid in the {@link CommonParams} has a
+     * dimension or filter with items. False otherwise.
+     *
+     * @param commonParams the {@link CommonParams}.
+     * @param dimensionUid the dimension uid.
+     * @return true if the given dimensionUid in the {@link CommonParams} has a
+     *         dimension or filter
+     */
+    private boolean hasDimensionOrFilterWithItems( CommonParams commonParams, String dimensionUid )
     {
-        return teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
+        return commonParams.getDimensionIdentifiers().stream()
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getDimensionalObject )
             .filter( Objects::nonNull )

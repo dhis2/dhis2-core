@@ -757,14 +757,6 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        // TODO: [CPL] This is a temporary fix, waiting for a proper fix in master branch
-        // TODO: Remove this when the fix is merged
-        if ( sharing.getOwner().equals( user.getUid() ) )
-        {
-            return true;
-        }
-        // TODO: End of temporary fix
-
         if ( sharing.getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             for ( UserGroupAccess userGroupAccess : sharing.getUserGroups().values() )

@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXIS
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,7 +76,7 @@ public class TeiAnalyticsQueryService
 
     private final ExecutionPlanStore executionPlanStore;
 
-    private final TeiQuerySecurityManager securityManager;
+    private final CommonParamsSecurityManager securityManager;
 
     /**
      * This method will create a query, based on the teiParams, and execute it
@@ -91,9 +92,10 @@ public class TeiAnalyticsQueryService
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
 
-        securityManager.decideAccess( teiQueryParams );
-        securityManager.applyOrganisationUnitConstraint( teiQueryParams );
-        securityManager.applyDimensionConstraints( teiQueryParams );
+        securityManager.decideAccess( teiQueryParams.getCommonParams(),
+            Collections.singletonList( teiQueryParams.getTrackedEntityType() ) );
+        securityManager.applyOrganisationUnitConstraint( teiQueryParams.getCommonParams() );
+        securityManager.applyDimensionConstraints( teiQueryParams.getCommonParams() );
 
         SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
 
