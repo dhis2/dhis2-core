@@ -77,6 +77,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -214,7 +215,7 @@ public class DataSetController
     @GetMapping( "/{uid}/categoryCombos" )
     public ResponseEntity<JsonRoot> getCategoryCombinations(
         @PathVariable( "uid" ) String uid,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields,
         TranslateParams translateParams )
         throws Exception
     {
