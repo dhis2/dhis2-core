@@ -87,6 +87,15 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void shouldReturnBadRequestWhenInvalidFormatForAttributeIdSchemeIsPassed()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value ATTRIBUTE:abcdefghilm:invalid is not valid for parameter idScheme. It should be of type TrackerIdSchemeParam",
+            POST( "/tracker?async=false&idScheme=ATTRIBUTE:abcdefghilm:invalid", "{}" )
+                .content( HttpStatus.BAD_REQUEST ) );
+    }
+
+    @Test
     void shouldReturnBadRequestWhenInvalidImportModeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",

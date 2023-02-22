@@ -133,7 +133,7 @@ class TrackerImportParamsMapperTest
         TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(
             true, JOB_ID, "userId", requestParams, Body.builder().build() );
 
-        TrackerIdSchemeParam expected = TrackerIdSchemeParam.of( TrackerIdScheme.NAME, null );
+        TrackerIdSchemeParam expected = TrackerIdSchemeParam.NAME;
         assertEquals( expected, params.getIdSchemes().getIdScheme() );
         assertEquals( expected, params.getIdSchemes().getDataElementIdScheme() );
         assertEquals( expected, params.getIdSchemes().getOrgUnitIdScheme() );

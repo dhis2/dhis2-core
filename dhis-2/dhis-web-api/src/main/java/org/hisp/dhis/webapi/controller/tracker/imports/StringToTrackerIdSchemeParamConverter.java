@@ -47,7 +47,9 @@ public class StringToTrackerIdSchemeParamConverter implements Converter<String, 
 
         String[] splitParam = source.split( ":" );
         String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
-        if ( attributeUid != null && !CodeGenerator.isValidUid( attributeUid ) && splitParam.length != 2 )
+        boolean isInvalidAttribute = attributeUid != null && !CodeGenerator.isValidUid( attributeUid );
+        boolean isInvalidFormat = splitParam.length > 2;
+        if ( isInvalidAttribute || isInvalidFormat )
         {
             throw new TypeMismatchException( source, TrackerIdSchemeParam.class );
         }
