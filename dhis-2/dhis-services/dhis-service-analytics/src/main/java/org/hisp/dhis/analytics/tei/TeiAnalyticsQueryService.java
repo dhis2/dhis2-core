@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.springframework.util.Assert.notNull;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,21 +83,20 @@ public class TeiAnalyticsQueryService
      * against the underline data provider and return. The results found will be
      * added to the {@link Grid} object returned.
      *
-     * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param queryParams the {@link TeiQueryParams}.
      * @return the populated {@link Grid} object.
      * @throws IllegalArgumentException if the given
      *         teiQueryParams/commonQueryRequest is null.
      */
-    public Grid getGrid( @Nonnull TeiQueryParams teiQueryParams )
+    public Grid getGrid( @Nonnull TeiQueryParams queryParams )
     {
-        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+        notNull( queryParams, "The 'queryParams' must not be null" );
 
-        securityManager.decideAccess( teiQueryParams.getCommonParams(),
-            Collections.singletonList( teiQueryParams.getTrackedEntityType() ) );
-        securityManager.applyOrganisationUnitConstraint( teiQueryParams.getCommonParams() );
-        securityManager.applyDimensionConstraints( teiQueryParams.getCommonParams() );
+        securityManager.decideAccess( queryParams.getCommonParams(), singleton( queryParams.getTrackedEntityType() ) );
+        securityManager.applyOrganisationUnitConstraint( queryParams.getCommonParams() );
+        securityManager.applyDimensionConstraints( queryParams.getCommonParams() );
 
-        SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
+        SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
 
         Optional<SqlQueryResult> result = Optional.empty();
         long rowsCount = 0;
@@ -106,7 +105,7 @@ public class TeiAnalyticsQueryService
         {
             result = Optional.of( queryExecutor.find( queryCreator.createForSelect() ) );
 
-            AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
+            AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
             if ( pagingParams.showTotalPages() )
             {
@@ -125,7 +124,7 @@ public class TeiAnalyticsQueryService
 
         List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
 
-        return gridAdaptor.createGrid( result, rowsCount, teiQueryParams, fields );
+        return gridAdaptor.createGrid( result, rowsCount, queryParams, fields );
     }
 
     /**
@@ -133,26 +132,26 @@ public class TeiAnalyticsQueryService
      * Postgres tool. The result of the analysis will be returned inside a
      * {@link Grid} object.
      *
-     * @param teiQueryParams the {@link TeiQueryParams}.
+     * @param queryParams the {@link TeiQueryParams}.
      * @return the populated {@link Grid} object.
-     * @throws IllegalArgumentException if the given teiQueryParams is null.
+     * @throws IllegalArgumentException if the given queryParams is null.
      */
-    public Grid getGridExplain( @Nonnull TeiQueryParams teiQueryParams )
+    public Grid getGridExplain( @Nonnull TeiQueryParams queryParams )
     {
-        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+        notNull( queryParams, "The 'queryParams' must not be null" );
 
         String explainId = randomUUID().toString();
 
         Grid grid = new ListGrid();
 
-        SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams );
+        SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
 
         try
         {
             executionPlanStore.addExecutionPlan( explainId,
                 sqlQueryCreator.createForSelect().getStatement() );
 
-            AnalyticsPagingParams pagingParams = teiQueryParams.getCommonParams().getPagingParams();
+            AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
             if ( pagingParams.showTotalPages() )
             {
@@ -171,7 +170,6 @@ public class TeiAnalyticsQueryService
             log.warn( E7131.getMessage(), ex );
             throw new QueryRuntimeException( E7131 );
         }
-
         return grid;
     }
 }

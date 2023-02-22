@@ -94,7 +94,7 @@ public class CommonParamsSecurityManager
      *
      * @param commonParams the {@link CommonParams} to check.
      */
-    void decideAccess( CommonParams commonParams, List<IdentifiableObject> extraObjects )
+    void decideAccess( CommonParams commonParams, Collection<IdentifiableObject> extraObjects )
     {
         List<OrganisationUnit> queryOrgUnits = commonParams
             .getDimensionIdentifiers().stream()
