@@ -518,6 +518,7 @@ public class DefaultDataIntegrityService
         String name = type.getName();
         checksByName.put( name, DataIntegrityCheck.builder()
             .name( name )
+            .displayName( name )
             .severity( DataIntegritySeverity.WARNING )
             .section( "Legacy" )
             .description( name.replace( '_', ' ' ) )
