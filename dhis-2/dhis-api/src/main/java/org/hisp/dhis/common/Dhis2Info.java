@@ -29,7 +29,6 @@ package org.hisp.dhis.common;
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,7 +43,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @Accessors( chain = true )
 @NoArgsConstructor
-@AllArgsConstructor
 public class Dhis2Info
 {
     @JsonProperty
