@@ -161,7 +161,7 @@ public class TranslateAction
                     if ( !ArrayUtils.isEmpty( paramValues ) && StringUtils.isNotEmpty( paramValues[0] ) )
                     {
                         listObjectTranslation
-                            .removeIf( o -> o.getProperty().equals( p ) && o.getLocale().equalsIgnoreCase( loc ) );
+                            .removeIf( o -> o.getProperty().equals( p.getProperty() ) && o.getLocale().equalsIgnoreCase( loc ) );
 
                         listObjectTranslation.add( new Translation( loc, p.getProperty(), paramValues[0] ) );
                     }
