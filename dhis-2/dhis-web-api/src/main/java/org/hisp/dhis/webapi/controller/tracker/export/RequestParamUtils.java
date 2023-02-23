@@ -216,18 +216,20 @@ class RequestParamUtils
      * The identifier is passed to given map function which translates the
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
      * then added to this QueryItem.
+     *
+     * @throws BadRequestException given invalid query item
      */
     public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
         throws BadRequestException
     {
-        int identifierPath = fullPath.indexOf( DIMENSION_NAME_SEP );
+        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP );
 
-        if ( identifierPath == -1 || fullPath.length() - 1 == identifierPath )
+        if ( identifierIndex == -1 || fullPath.length() - 1 == identifierIndex )
         {
             return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierPath ) );
+        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
 
         if ( !OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN
             .matcher( fullPath ).matches() )
@@ -251,9 +253,11 @@ class RequestParamUtils
     /**
      * Creates a QueryFilter from the given query string. Query is on format
      * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
-     * QueryOperator is used as operator if not specified. To get the filter
-     * value, we split at the first delimiter, so it can be any sequence of
+     * QueryOperator is used as operator if not specified. We split the query at
+     * the first delimiter, so the filter value can be any sequence of
      * characters
+     *
+     * @throws BadRequestException given invalid query string
      */
     public static QueryFilter parseQueryFilter( String query )
         throws BadRequestException
@@ -267,18 +271,15 @@ class RequestParamUtils
         {
             return new QueryFilter( QueryOperator.EQ, query );
         }
-        else
+
+        if ( !OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN
+            .matcher( query ).matches() )
         {
-            if ( !OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN
-                .matcher( query ).matches() )
-            {
-                throw new BadRequestException( "Query has invalid format: " + query );
-            }
-
-            String[] operatorValueSplit = query.split( DIMENSION_NAME_SEP, 2 );
-
-            return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+            throw new BadRequestException( "Query has invalid format: " + query );
         }
-    }
 
+        String[] operatorValueSplit = query.split( DIMENSION_NAME_SEP, 2 );
+
+        return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+    }
 }

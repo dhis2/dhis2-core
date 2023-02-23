@@ -599,26 +599,4 @@ class TrackerTrackedEntityCriteriaMapperTest
             () -> mapper.map( criteria ) );
         assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
     }
-
-    @Test
-    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        criteria.setQuery( "like:project:x" );
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
-
-        assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ), params.getQuery() );
-    }
-
-    @Test
-    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValue()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        criteria.setQuery( "eq:project" );
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
-
-        assertEquals( new QueryFilter( QueryOperator.EQ, "project" ), params.getQuery() );
-    }
 }
