@@ -38,9 +38,6 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.GridAdaptor;
@@ -56,6 +53,9 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service responsible exclusively for querying. Methods present on this class
@@ -85,8 +85,7 @@ public class TeiAnalyticsQueryService
      *
      * @param queryParams the {@link TeiQueryParams}.
      * @return the populated {@link Grid} object.
-     * @throws IllegalArgumentException if the given
-     *         teiQueryParams/commonQueryRequest is null.
+     * @throws IllegalArgumentException if the given queryParams is null.
      */
     public Grid getGrid( @Nonnull TeiQueryParams queryParams )
     {
@@ -140,14 +139,14 @@ public class TeiAnalyticsQueryService
     {
         notNull( queryParams, "The 'queryParams' must not be null" );
 
-        String explainId = randomUUID().toString();
-
         Grid grid = new ListGrid();
-
-        SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
 
         try
         {
+            String explainId = randomUUID().toString();
+
+            SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
+
             executionPlanStore.addExecutionPlan( explainId,
                 sqlQueryCreator.createForSelect().getStatement() );
 
@@ -170,6 +169,7 @@ public class TeiAnalyticsQueryService
             log.warn( E7131.getMessage(), ex );
             throw new QueryRuntimeException( E7131 );
         }
+
         return grid;
     }
 }

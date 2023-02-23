@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -36,7 +38,6 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -47,9 +48,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -65,6 +63,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * This class provides methods responsible for extracting collections from
@@ -143,29 +144,28 @@ public class TeiFields
      */
     public static Stream<Field> getDimensionFields( @Nonnull TeiQueryParams teiQueryParams )
     {
-        return getAllAttributesUids( teiQueryParams )
-            .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
-    }
+        Set<String> programAttributesUids = teiQueryParams.getCommonParams().getPrograms().stream()
+            .map( Program::getProgramAttributes )
+            .flatMap( List::stream )
+            .map( ProgramTrackedEntityAttribute::getUid ).collect( toSet() );
 
-    /**
-     * Retrieves all uids from all attributes found in the given
-     * {@link TeiQueryParams}.
-     *
-     * @param teiQueryParams the {@link TeiQueryParams}.
-     * @return a {@link Stream} of uids.
-     */
-    private static Stream<String> getAllAttributesUids( @Nonnull TeiQueryParams teiQueryParams )
-    {
-        Stream<TrackedEntityAttribute> trackedEntityAttributesFromType = getTrackedEntityAttributes(
-            teiQueryParams.getTrackedEntityType() );
+        Stream<Field> programAttributes = teiQueryParams.getCommonParams().getPrograms().stream()
+            .map( Program::getProgramAttributes )
+            .flatMap( List::stream )
+            .map( programAttr -> Field.of( TEI_ALIAS,
+                () -> programAttr.getAttribute().getUid(),
+                programAttr.getAttribute().getUid(),
+                String.join( ".", programAttr.getProgram().getUid(), programAttr.getAttribute().getUid() ) ) );
 
-        Stream<TrackedEntityAttribute> programAttributes = getProgramAttributes(
-            teiQueryParams.getCommonParams().getPrograms() );
+        Stream<Field> trackedEntityAttributesFromType = getTrackedEntityAttributes(
+            teiQueryParams.getTrackedEntityType() )
+                .filter( programTrackedEntityAttribute -> programAttributesUids
+                    .contains( programTrackedEntityAttribute.getUid() ) )
+                .map( BaseIdentifiableObject::getUid )
+                .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr, attr ) );
 
         // TET and program attribute uids.
-        return Stream.concat( trackedEntityAttributesFromType, programAttributes )
-            .map( BaseIdentifiableObject::getUid )
-            .distinct(); // Removes overlapping uids.
+        return Stream.concat( trackedEntityAttributesFromType, programAttributes );
     }
 
     /**
@@ -209,7 +209,7 @@ public class TeiFields
      */
     public static Stream<Field> getStaticFields()
     {
-        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
+        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a, EMPTY ) );
     }
 
     /**
@@ -220,7 +220,7 @@ public class TeiFields
     private static Stream<Field> getDynamicFields()
     {
         return Stream.of( Dynamic.values() )
-            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias ) );
+            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias, EMPTY ) );
     }
 
     /**
@@ -277,9 +277,9 @@ public class TeiFields
         Set<GridHeader> headers = new LinkedHashSet<>();
 
         fields.forEach( field -> {
-            if ( headersMap.containsKey( field.getFieldAlias() ) )
+            if ( headersMap.containsKey( field.getDimensionIdentifier() ) )
             {
-                headers.add( headersMap.get( field.getFieldAlias() ) );
+                headers.add( headersMap.get( field.getDimensionIdentifier() ) );
             }
         } );
 
@@ -293,7 +293,8 @@ public class TeiFields
      * @param item the current QueryItem.
      * @return the respective item's uid.
      */
-    private static String getItemUid( @Nonnull QueryItem item )
+    private static String getItemUid( @Nonnull
+    QueryItem item )
     {
         String uid = item.getItemId();
 
@@ -394,7 +395,7 @@ public class TeiFields
         @Nonnull List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
-            .filter( di -> di.getDimension().getUid().equals( field.getFieldAlias() ) )
+            .filter( di -> di.toString().equals( field.getDimensionIdentifier() ) )
             .map( DimensionIdentifier::getDimension )
             .findFirst()
             .orElseThrow( IllegalStateException::new );

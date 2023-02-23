@@ -71,7 +71,7 @@ class HeaderParamsHandlerTest
         String column = "oucode";
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( CommonParams.builder().build() ).build();
-        List<Field> fields = List.of( ofUnquoted( "ev", ofFieldName( "anyName" ), column ) );
+        List<Field> fields = List.of( ofUnquoted( "ev", ofFieldName( "anyName" ), column, "" ) );
 
         // When
         headerParamsHandler.handle( grid, teiQueryParams, fields );
@@ -103,9 +103,9 @@ class HeaderParamsHandlerTest
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( stubCommonParamsWithHeaders() ).build();
         List<Field> fields = List.of(
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated" ) );
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode", "" ),
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname", "" ),
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated", "" ) );
 
         // When
         headerParamsHandler.handle( grid, teiQueryParams, fields );
@@ -127,9 +127,9 @@ class HeaderParamsHandlerTest
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( commonParams ).build();
         List<Field> fields = List.of(
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated" ) );
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode", "" ),
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname", "" ),
+            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated", "" ) );
 
         // When
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,

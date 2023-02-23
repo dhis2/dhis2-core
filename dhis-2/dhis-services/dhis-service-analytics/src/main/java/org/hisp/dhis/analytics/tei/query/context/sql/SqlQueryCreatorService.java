@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -66,12 +67,12 @@ public class SqlQueryCreatorService
             List<DimensionIdentifier<DimensionParam>> acceptedDimensions = teiQueryParams.getCommonParams()
                 .getDimensionIdentifiers().stream()
                 .filter( provider.getDimensionFilters().stream().reduce( x -> true, Predicate::and ) )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
             List<AnalyticsSortingParams> acceptedSortingParams = teiQueryParams.getCommonParams().getOrderParams()
                 .stream()
                 .filter( provider.getSortingFilters().stream().reduce( x -> true, Predicate::and ) )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
             renderableSqlQuery = mergeQueries( renderableSqlQuery,
                 provider.buildSqlQuery( queryContext, acceptedDimensions, acceptedSortingParams ) );

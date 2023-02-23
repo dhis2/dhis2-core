@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
@@ -39,12 +40,7 @@ import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isO
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
@@ -69,6 +65,10 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Service;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * a {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
@@ -108,7 +108,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
             builder.selectField( Field.ofUnquoted(
                 StringUtils.EMPTY,
                 () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')",
-                assignedAlias ) );
+                assignedAlias, param.getDimensionIdentifier().toString() ) );
 
             if ( param.getProgramIndicator().getAnalyticsType() == AnalyticsType.ENROLLMENT )
             {
@@ -152,7 +152,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
                                     item.getValues(),
                                     NUMERIC,
                                     sqlQueryContext ) )
-                                .collect( Collectors.toList() ) ) ) );
+                                .collect( toList() ) ) ) );
             }
 
             if ( param.isOrder() )
@@ -175,7 +175,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
                 .map( this::asDimensionParamProgramIndicatorQuery ),
             acceptedSortingParams.stream()
                 .map( this::asDimensionParamProgramIndicatorQuery ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     private static String enrollmentProgramIndicatorSelect( ElementWithOffset<Program> program,
@@ -270,6 +270,5 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
         {
             return sortDirection != null;
         }
-
     }
 }

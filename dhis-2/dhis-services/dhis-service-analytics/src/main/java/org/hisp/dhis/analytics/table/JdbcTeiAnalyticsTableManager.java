@@ -74,6 +74,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -103,11 +104,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
         JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService,
-        TrackedEntityAttributeService trackedEntityAttributeService, AnalyticsExportSettings settings )
+        TrackedEntityAttributeService trackedEntityAttributeService, AnalyticsExportSettings settings,
+        PeriodDataProvider periodDataProvider )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService,
-            tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate, settings );
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate, settings, periodDataProvider );
 
         notNull( trackedEntityAttributeService, "trackedEntityAttributeService cannot be null" );
         this.trackedEntityAttributeService = trackedEntityAttributeService;

@@ -104,13 +104,13 @@ public class PeriodCondition extends AbstractCondition
         return AndCondition.of(
             List.of(
                 BinaryConditionRenderer.of(
-                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
+                    Field.of( TEI_ALIAS, timeField::getField, EMPTY, EMPTY ),
                     QueryOperator.GE,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getLeft() ),
                         DATE, queryContext ) ),
                 BinaryConditionRenderer.of(
-                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
+                    Field.of( TEI_ALIAS, timeField::getField, EMPTY, EMPTY ),
                     QueryOperator.LT,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getRight() ),
@@ -134,13 +134,13 @@ public class PeriodCondition extends AbstractCondition
         return AndCondition.of(
             List.of(
                 BinaryConditionRenderer.of(
-                    Field.of( alias, timeField::getField, null ),
+                    Field.of( alias, timeField::getField, EMPTY, EMPTY ),
                     QueryOperator.GE,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getLeft() ),
                         DATE, queryContext ) ),
                 BinaryConditionRenderer.of(
-                    Field.of( alias, timeField::getField, null ),
+                    Field.of( alias, timeField::getField, EMPTY, EMPTY ),
                     QueryOperator.LT,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getRight() ),

@@ -127,7 +127,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
 
-        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
+        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode", "" ) );
 
         when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
         when( resultSet.getMetaData() ).thenReturn( metaData );
@@ -193,7 +193,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
 
-        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
+        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode", "" ) );
 
         long anyCount = 0;
 

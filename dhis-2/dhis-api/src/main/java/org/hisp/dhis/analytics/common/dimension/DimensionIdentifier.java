@@ -27,18 +27,22 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.With;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.analytics.common.IdentifiableKey;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.With;
 
 /**
  * Class to identify a dimension in analytics TEI cross program. A dimension can
@@ -120,23 +124,23 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 
     public String getKey()
     {
-        StringBuilder key = new StringBuilder();
+        List<String> keys = new ArrayList<>();
 
         if ( program != null && program.isPresent() )
         {
-            key.append( program.getElement().getUid() );
+            keys.add( program.getElement().getUid() );
         }
 
         if ( programStage != null && programStage.isPresent() )
         {
-            key.append( programStage.getElement().getUid() );
+            keys.add( programStage.getElement().getUid() );
         }
 
         if ( dimension != null )
         {
-            key.append( dimension.getUid() );
+            keys.add( dimension.getUid() );
         }
 
-        return key.toString();
+        return keys.stream().collect( joining( "." ) );
     }
 }

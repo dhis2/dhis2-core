@@ -36,9 +36,9 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.List;
 
-import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.UidObject;
+
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierConverterSupport
@@ -144,14 +144,17 @@ public class DimensionIdentifierConverterSupport
         ElementWithOffset<? extends UidObject> programStage, UidObject dimension )
     {
         String string = "";
+
         if ( program.isPresent() )
         {
             string += program + DIMENSION_IDENTIFIER_SEP;
         }
+
         if ( programStage.isPresent() )
         {
             string += programStage + DIMENSION_IDENTIFIER_SEP;
         }
+
         return string + dimension.getUid();
     }
 }

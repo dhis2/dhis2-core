@@ -72,7 +72,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
         uniqueAlias, di ) -> Field.of(
             uniqueAlias,
             () -> di.getDimension().getUid(),
-            doubleQuote( RenderableDimensionIdentifier.of( di ).render() ) );
+            doubleQuote( RenderableDimensionIdentifier.of( di ).render() ), di.getDimension().getUid() );
 
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
@@ -128,7 +128,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
                 IndexedOrder.of(
                     param.getIndex(),
                     Order.of(
-                        Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY ),
+                        Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY, param.getOrderBy().getDimension().getUid() ),
                         param.getSortDirection() ) ) );
         }
     }

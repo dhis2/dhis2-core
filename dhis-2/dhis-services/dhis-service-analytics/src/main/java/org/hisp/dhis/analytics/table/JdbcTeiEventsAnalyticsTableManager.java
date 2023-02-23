@@ -47,8 +47,6 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.notNull;
@@ -73,6 +71,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -95,11 +94,12 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, AnalyticsExportSettings settings )
+        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, AnalyticsExportSettings settings,
+        PeriodDataProvider periodDataProvider )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, settings );
+            databaseInfo, jdbcTemplate, settings, periodDataProvider );
 
         notNull( trackedEntityTypeService, "trackedEntityTypeService cannot be null" );
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -200,8 +200,12 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 AND + getDateLinkedToStatus() + ") >= '" + getMediumDateString( params.getFromDate() ) + "'" );
         }
 
-        sql.append( " ) as temp where temp.supportedyear >= " + FIRST_YEAR_SUPPORTED +
-            " and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED );
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+        Integer firstDataYear = availableDataYears.get( 0 );
+        Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
+
+        sql.append( " ) as temp where temp.supportedyear >= " + firstDataYear +
+            " and temp.supportedyear <= " + latestDataYear );
 
         return jdbcTemplate.queryForList( sql.toString(), Integer.class );
     }

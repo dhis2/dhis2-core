@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.query;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
 
 import java.util.List;
@@ -45,14 +46,14 @@ public class Select extends BaseRenderable
     public static Select of( String... fields )
     {
         return of( stream( fields )
-            .map( s -> Field.of( "", () -> s, "" ) )
+            .map( s -> Field.of( EMPTY, () -> s, EMPTY, EMPTY ) )
             .collect( toList() ) );
     }
 
     public static Select ofUnquoted( String... fields )
     {
         return of( stream( fields )
-            .map( s -> Field.ofUnquoted( "", () -> s, "" ) )
+            .map( s -> Field.ofUnquoted( "", () -> s, EMPTY, EMPTY ) )
             .collect( toList() ) );
     }
 
