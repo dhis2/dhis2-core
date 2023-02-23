@@ -130,7 +130,7 @@ public class Field extends BaseRenderable
 
     public String getDimensionIdentifier()
     {
-        return firstNonBlank( dimensionIdentifier.getKey(), fieldAlias );
+        return firstNonBlank( fieldAlias, dimensionIdentifier.getKey() );
     }
 
     @Override
