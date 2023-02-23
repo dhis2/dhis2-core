@@ -77,7 +77,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.30.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.1</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
 
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.15.0</flyway-core.version>
+    <flyway-core.version>9.15.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
