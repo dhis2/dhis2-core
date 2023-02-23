@@ -57,7 +57,6 @@ import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -73,7 +72,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -109,8 +107,8 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
-        TrackerEventCriteria eventCriteria, HttpServletRequest request,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        TrackerEventCriteria eventCriteria,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException
     {
@@ -123,11 +121,6 @@ public class TrackerEventsExportController
 
         Events events = eventService.getEvents( eventSearchParams );
 
-        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
-        {
-            events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
-        }
-
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
         if ( eventCriteria.isPagingRequest() )
@@ -136,11 +129,9 @@ public class TrackerEventsExportController
                 PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
         }
 
-        FieldFilterParams<org.hisp.dhis.webapi.controller.tracker.view.Event> filterParams = FieldFilterParams
-            .of( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
+        List<ObjectNode> objectNodes = fieldFilterService
+            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
         return pagingWrapper.withInstances( objectNodes );
-
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
@@ -183,37 +174,9 @@ public class TrackerEventsExportController
             CollectionUtils.isEmpty( eventSearchParams.getProgramInstances() );
     }
 
-    private String getUri( String eventUid, HttpServletRequest request )
-    {
-        return UriComponentsBuilder.fromUriString( ContextUtils.getRootPath( request ) )
-            .pathSegment( RESOURCE_PATH, EVENTS, eventUid )
-            .build()
-            .toString();
-    }
-
-    protected boolean hasHref( List<String> fields, Boolean skipEventId )
-    {
-        return (skipEventId == null || !skipEventId) && fieldsContainsHref( fields );
-    }
-
-    private boolean fieldsContainsHref( List<String> fields )
-    {
-        for ( String field : fields )
-        {
-            // For now assume href/access if * or preset is requested
-            if ( field.contains( "href" ) || field.equals( "*" ) || field.startsWith( ":" ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
-        HttpServletRequest request,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
@@ -225,7 +188,6 @@ public class TrackerEventsExportController
             throw new NotFoundException( Event.class, uid );
         }
 
-        event.setHref( getUri( uid, request ) );
         return ResponseEntity
             .ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
     }
