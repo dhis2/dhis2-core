@@ -46,14 +46,14 @@ public class Select extends BaseRenderable
     public static Select of( String... fields )
     {
         return of( stream( fields )
-            .map( s -> Field.of( EMPTY, () -> s, EMPTY, EMPTY ) )
+            .map( s -> Field.of( EMPTY, () -> s, EMPTY ) )
             .collect( toList() ) );
     }
 
     public static Select ofUnquoted( String... fields )
     {
         return of( stream( fields )
-            .map( s -> Field.ofUnquoted( "", () -> s, EMPTY, EMPTY ) )
+            .map( s -> Field.ofUnquoted( "", () -> s, EMPTY ) )
             .collect( toList() ) );
     }
 

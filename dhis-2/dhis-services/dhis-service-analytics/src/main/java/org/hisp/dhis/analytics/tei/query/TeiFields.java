@@ -49,6 +49,9 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -63,9 +66,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * This class provides methods responsible for extracting collections from
@@ -154,7 +154,6 @@ public class TeiFields
             .flatMap( List::stream )
             .map( programAttr -> Field.of( TEI_ALIAS,
                 () -> programAttr.getAttribute().getUid(),
-                programAttr.getAttribute().getUid(),
                 String.join( ".", programAttr.getProgram().getUid(), programAttr.getAttribute().getUid() ) ) );
 
         Stream<Field> trackedEntityAttributesFromType = getTrackedEntityAttributes(
@@ -162,7 +161,7 @@ public class TeiFields
                 .filter( programTrackedEntityAttribute -> programAttributesUids
                     .contains( programTrackedEntityAttribute.getUid() ) )
                 .map( BaseIdentifiableObject::getUid )
-                .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr, attr ) );
+                .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
 
         // TET and program attribute uids.
         return Stream.concat( trackedEntityAttributesFromType, programAttributes );
@@ -209,7 +208,7 @@ public class TeiFields
      */
     public static Stream<Field> getStaticFields()
     {
-        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a, EMPTY ) );
+        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
     /**
@@ -220,7 +219,7 @@ public class TeiFields
     private static Stream<Field> getDynamicFields()
     {
         return Stream.of( Dynamic.values() )
-            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias, EMPTY ) );
+            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias ) );
     }
 
     /**
@@ -293,8 +292,7 @@ public class TeiFields
      * @param item the current QueryItem.
      * @return the respective item's uid.
      */
-    private static String getItemUid( @Nonnull
-    QueryItem item )
+    private static String getItemUid( @Nonnull QueryItem item )
     {
         String uid = item.getItemId();
 

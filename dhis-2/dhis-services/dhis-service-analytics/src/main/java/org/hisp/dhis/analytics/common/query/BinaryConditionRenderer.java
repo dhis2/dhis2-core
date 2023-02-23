@@ -46,12 +46,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * This class is responsible for rendering a binary condition.
@@ -68,7 +68,7 @@ public class BinaryConditionRenderer extends BaseRenderable
     public static BinaryConditionRenderer fieldsEqual( String leftAlias, String left, String rightAlias, String right )
     {
         return BinaryConditionRenderer.of(
-            Field.of( leftAlias, () -> left, EMPTY, EMPTY ), EQ, Field.of( rightAlias, () -> right, EMPTY, EMPTY ) );
+            Field.of( leftAlias, () -> left, EMPTY ), EQ, Field.of( rightAlias, () -> right, EMPTY ) );
     }
 
     public static BinaryConditionRenderer of( String field, QueryOperator queryOperator, List<String> values,

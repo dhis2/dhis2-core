@@ -38,6 +38,9 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.GridAdaptor;
@@ -53,9 +56,6 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service responsible exclusively for querying. Methods present on this class

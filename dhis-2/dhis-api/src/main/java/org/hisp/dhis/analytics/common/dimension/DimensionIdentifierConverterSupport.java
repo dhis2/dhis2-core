@@ -35,10 +35,11 @@ import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyEl
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.List;
-
-import org.hisp.dhis.common.UidObject;
+import java.util.Objects;
 
 import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.UidObject;
 
 @NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierConverterSupport
@@ -145,16 +146,21 @@ public class DimensionIdentifierConverterSupport
     {
         String string = "";
 
-        if ( program.isPresent() )
+        if ( Objects.nonNull( program ) && program.isPresent() )
         {
             string += program + DIMENSION_IDENTIFIER_SEP;
         }
 
-        if ( programStage.isPresent() )
+        if ( Objects.nonNull( programStage ) && programStage.isPresent() )
         {
             string += programStage + DIMENSION_IDENTIFIER_SEP;
         }
 
-        return string + dimension.getUid();
+        if ( Objects.nonNull( dimension ) )
+        {
+            string += dimension.getUid();
+        }
+
+        return string;
     }
 }

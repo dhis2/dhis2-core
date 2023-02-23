@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -52,8 +54,6 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
-
-import lombok.Getter;
 
 /**
  * this query builder is responsible for building the sql query for the tei
@@ -139,7 +139,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
         // in both cases the column for the select is the same.
         String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
         return IndexedOrder.of( param.getIndex(),
-            Order.of( Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY, EMPTY ), param.getSortDirection() ) );
+            Order.of( Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY ), param.getSortDirection() ) );
     }
 
     private static boolean isTeiOrder( AnalyticsSortingParams analyticsSortingParams )

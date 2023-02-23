@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
-
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class RenderableDataValue extends BaseRenderable
@@ -48,7 +47,7 @@ public class RenderableDataValue extends BaseRenderable
     @Override
     public String render()
     {
-        return "(" + Field.of( alias, () -> "eventdatavalues", EMPTY, EMPTY ).render()
+        return "(" + Field.of( alias, () -> "eventdatavalues", EMPTY ).render()
             + " -> '" + dataValue + "' ->> 'value')::" + valueTypeMapping.name();
     }
 }

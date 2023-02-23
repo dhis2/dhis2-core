@@ -42,6 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
@@ -65,10 +69,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Service;
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * a {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
@@ -108,7 +108,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
             builder.selectField( Field.ofUnquoted(
                 StringUtils.EMPTY,
                 () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')",
-                assignedAlias, param.getDimensionIdentifier().toString() ) );
+                assignedAlias, param.getDimensionIdentifier() ) );
 
             if ( param.getProgramIndicator().getAnalyticsType() == AnalyticsType.ENROLLMENT )
             {

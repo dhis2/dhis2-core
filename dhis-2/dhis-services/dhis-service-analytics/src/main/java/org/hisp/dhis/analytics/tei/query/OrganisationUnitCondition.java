@@ -36,7 +36,6 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
@@ -118,7 +117,7 @@ public class OrganisationUnitCondition extends AbstractCondition
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( ENR_ALIAS, () -> OU_FIELD, EMPTY, EMPTY ),
+                Field.of( ENR_ALIAS, () -> OU_FIELD, EMPTY ),
                 IN,
                 item.getValues(),
                 STRING,
@@ -151,7 +150,7 @@ public class OrganisationUnitCondition extends AbstractCondition
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( EVT_ALIAS, () -> OU_FIELD, EMPTY, EMPTY ).render(),
+                Field.of( EVT_ALIAS, () -> OU_FIELD, EMPTY ).render(),
                 IN,
                 item.getValues(),
                 STRING,
