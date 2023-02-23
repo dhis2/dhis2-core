@@ -85,7 +85,7 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().build();
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( trackedEntityInstances, hasSize( 4 ) );

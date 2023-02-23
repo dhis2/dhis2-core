@@ -36,23 +36,29 @@ import java.util.EnumSet;
  */
 public class EventParams extends Params
 {
-    public static final EventParams TRUE = new EventParams(
-        EnumSet.of( RELATIONSHIPS ) );
-
-    public static final EventParams FALSE = new EventParams( EnumSet.noneOf( Param.class ) );
+    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIPS );
 
     private EventParams( EnumSet<Param> paramsSet )
     {
         super( paramsSet );
     }
 
-    public EventParams with( Param param, boolean isIncluded )
+    public static ParamsBuilder<EventParams> builder()
     {
-        return new EventParams( inclusion( param, isIncluded ) );
-    }
+        return new ParamsBuilder<>()
+        {
+            @Override
+            public ParamsBuilder<EventParams> all()
+            {
+                this.params = EnumSet.copyOf( ALL );
+                return this;
+            }
 
-    public EventParams with( EnumSet<Param> param, boolean isIncluded )
-    {
-        return new EventParams( inclusion( param, isIncluded ) );
+            @Override
+            public EventParams build()
+            {
+                return new EventParams( this.params );
+            }
+        };
     }
 }

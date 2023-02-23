@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
-import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS;
 import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
@@ -68,6 +68,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -558,10 +559,10 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "*" ) )
         {
-            return TrackedEntityInstanceParams.TRUE;
+            return TrackedEntityInstanceParams.builder().all().build();
         }
 
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        Params.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder().empty();
 
         if ( joined.contains( "relationships" ) )
         {
@@ -575,7 +576,7 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "events" ) )
         {
-            params = params.with( EVENTS, true );
+            params = params.with( ENROLLMENTS_EVENTS, true );
         }
 
         if ( joined.contains( "programOwners" ) )
@@ -583,7 +584,7 @@ public class TrackedEntityInstanceController
             params = params.with( PROGRAM_OWNERS, true );
         }
 
-        return params;
+        return params.build();
     }
 
     private void validateFileResource( FileResource fileResource, TrackedEntityAttributeValue value )

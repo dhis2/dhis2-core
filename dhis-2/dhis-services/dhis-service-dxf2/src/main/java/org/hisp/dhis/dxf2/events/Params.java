@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events;
 
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,32 +40,62 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public abstract class Params
 {
-    protected final EnumSet<Param> paramsSet;
+    protected final EnumSet<Param> params;
 
     public boolean hasIncluded( Param param )
     {
-        return paramsSet.contains( param );
+        return params.contains( param );
     }
 
-    EnumSet<Param> inclusion( Param param, boolean isIncluded )
+    public static class ParamsBuilder<T extends Params>
     {
-        return isIncluded ? include( EnumSet.of( param ) ) : exclude( EnumSet.of( param ) );
-    }
+        protected EnumSet<Param> params;
 
-    EnumSet<Param> inclusion( EnumSet<Param> params, boolean isIncluded )
-    {
-        return isIncluded ? include( params ) : exclude( params );
-    }
+        public ParamsBuilder<T> empty()
+        {
+            this.params = EnumSet.noneOf( Param.class );
+            return this;
+        }
 
-    EnumSet<Param> include( EnumSet<Param> params )
-    {
-        return Stream.concat( paramsSet.stream(), params.stream() )
-            .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
-    }
+        public ParamsBuilder<T> all()
+        {
+            return this;
+        }
 
-    EnumSet<Param> exclude( EnumSet<Param> params )
-    {
-        return paramsSet.stream().filter( p -> !params.contains( p ) )
-            .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
+        public ParamsBuilder<T> with( Param param, boolean isIncluded )
+        {
+            this.params = isIncluded ? include( EnumSet.of( param ) ) : exclude( EnumSet.of( param ) );
+            return this;
+        }
+
+        public ParamsBuilder<T> with( EnumSet<Param> params, boolean isIncluded )
+        {
+            this.params = isIncluded ? include( params ) : exclude( params );
+            return this;
+        }
+
+        public ParamsBuilder<T> with( Map<Param, Boolean> paramsToInclusion )
+        {
+            paramsToInclusion.forEach(
+                ( key, value ) -> this.params = value ? include( EnumSet.of( key ) ) : exclude( EnumSet.of( key ) ) );
+            return this;
+        }
+
+        EnumSet<Param> include( EnumSet<Param> params )
+        {
+            return Stream.concat( this.params.stream(), params.stream() )
+                .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
+        }
+
+        EnumSet<Param> exclude( EnumSet<Param> params )
+        {
+            return this.params.stream().filter( p -> !params.contains( p ) )
+                .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
+        }
+
+        public T build()
+        {
+            return null;
+        }
     }
 }

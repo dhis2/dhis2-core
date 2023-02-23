@@ -266,7 +266,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -296,7 +296,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -327,7 +327,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
-            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
+            () -> eventService.getEvent( programStageInstance, EventParams.builder().empty().build() ) );
     }
 
     /**
@@ -356,7 +356,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
-            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
+            () -> eventService.getEvent( programStageInstance, EventParams.builder().empty().build() ) );
     }
 
     /**
@@ -384,7 +384,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
-            () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
+            () -> eventService.getEvent( programStageInstance, EventParams.builder().empty().build() ) );
     }
 
     /**
@@ -411,7 +411,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }

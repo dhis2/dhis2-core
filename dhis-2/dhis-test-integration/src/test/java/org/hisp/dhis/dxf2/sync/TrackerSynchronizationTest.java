@@ -110,7 +110,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-        params = TrackedEntityInstanceParams.TRUE;
+        params = TrackedEntityInstanceParams.builder().all().build();
     }
 
     @Test

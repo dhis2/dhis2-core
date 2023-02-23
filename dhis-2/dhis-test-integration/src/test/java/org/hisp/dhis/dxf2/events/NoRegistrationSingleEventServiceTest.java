@@ -133,7 +133,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( importSummary.getReference() );
         assertNotNull( programStageInstance );
-        assertNotNull( eventService.getEvent( programStageInstance, EventParams.FALSE ) );
+        assertNotNull( eventService.getEvent( programStageInstance, EventParams.builder().empty().build() ) );
     }
 
     @Test
@@ -156,7 +156,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         assertNotNull( importSummary.getReference() );
         event = eventService
             .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ),
-                EventParams.FALSE );
+                EventParams.builder().empty().build() );
         assertNotNull( event );
         assertEquals( 1, event.getDataValues().size() );
     }

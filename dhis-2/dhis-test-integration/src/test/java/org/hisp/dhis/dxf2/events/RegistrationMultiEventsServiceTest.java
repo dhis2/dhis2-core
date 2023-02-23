@@ -241,7 +241,7 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         Enrollment retrievedEnrlollment = enrollmentService
-            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment(), EnrollmentParams.FALSE );
+            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment(), EnrollmentParams.builder().empty().build() );
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
         params.setOrgUnit( organisationUnitA );
@@ -251,7 +251,7 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         assertNotNull( retrievedEvent );
         enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
         assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment(),
-            EnrollmentParams.FALSE.FALSE ) );
+            EnrollmentParams.builder().empty().build() ) );
         assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
     }
 
@@ -305,7 +305,8 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         enrollment.setIncidentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        enrollment = enrollmentService.getEnrollment( importSummary.getReference(), EnrollmentParams.FALSE );
+        enrollment = enrollmentService.getEnrollment( importSummary.getReference(),
+            EnrollmentParams.builder().empty().build() );
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
         event.setEnrollment( enrollment.getEnrollment() );
@@ -316,7 +317,8 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         enrollmentService.updateEnrollment( enrollment, null );
         importSummary = enrollmentService.updateEnrollment( enrollment, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment(), EnrollmentParams.FALSE );
+        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment(),
+            EnrollmentParams.builder().empty().build() );
         assertEquals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
         event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
@@ -325,7 +327,8 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
         enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
-        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment(), EnrollmentParams.FALSE );
+        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment(),
+            EnrollmentParams.builder().empty().build() );
         assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
         event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );

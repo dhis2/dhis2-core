@@ -186,7 +186,8 @@ public class EnrollmentController
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map(
-                    enrollmentId -> enrollmentService.getEnrollment( enrollmentId, EnrollmentParams.FALSE ) )
+                    enrollmentId -> enrollmentService.getEnrollment( enrollmentId,
+                        EnrollmentParams.builder().empty().build() ) )
                 .collect( Collectors.toList() )
                 : null;
         }
@@ -413,7 +414,7 @@ public class EnrollmentController
     private Enrollment getEnrollment( String id )
         throws NotFoundException
     {
-        Enrollment enrollment = enrollmentService.getEnrollment( id, EnrollmentParams.FALSE );
+        Enrollment enrollment = enrollmentService.getEnrollment( id, EnrollmentParams.builder().empty().build() );
 
         if ( enrollment == null )
         {

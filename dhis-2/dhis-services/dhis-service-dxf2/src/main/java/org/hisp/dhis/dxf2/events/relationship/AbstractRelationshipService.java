@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.relationship;
 
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_FROM;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_TO;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
@@ -499,8 +501,8 @@ public abstract class AbstractRelationshipService
         relationship.setRelationshipType( dao.getRelationshipType().getUid() );
         relationship.setRelationshipName( dao.getRelationshipType().getName() );
 
-        relationship.setFrom( includeRelationshipItem( dao.getFrom(), !params.isIncludeFrom() ) );
-        relationship.setTo( includeRelationshipItem( dao.getTo(), !params.isIncludeTo() ) );
+        relationship.setFrom( includeRelationshipItem( dao.getFrom(), !params.hasIncluded( RELATIONSHIP_FROM ) ) );
+        relationship.setTo( includeRelationshipItem( dao.getTo(), !params.hasIncluded( RELATIONSHIP_TO ) ) );
 
         relationship.setBidirectional( dao.getRelationshipType().isBidirectional() );
 
@@ -513,7 +515,7 @@ public abstract class AbstractRelationshipService
 
     private Optional<Relationship> getRelationship( org.hisp.dhis.relationship.Relationship dao, User user )
     {
-        return findRelationship( dao, RelationshipParams.TRUE, user );
+        return findRelationship( dao, RelationshipParams.builder().all().build(), user );
     }
 
     private org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem includeRelationshipItem( RelationshipItem dao,
@@ -534,7 +536,8 @@ public abstract class AbstractRelationshipService
             else
             {
                 tei = trackedEntityInstanceService
-                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.FALSE );
+                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(),
+                        TrackedEntityInstanceParams.builder().empty().build() );
             }
 
             relationshipItem.setTrackedEntityInstance( tei );
@@ -553,7 +556,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(),
-                    EnrollmentParams.FALSE );
+                    EnrollmentParams.builder().empty().build() );
             }
 
             relationshipItem.setEnrollment( enrollment );
@@ -570,7 +573,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.FALSE );
+                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.builder().empty().build() );
             }
 
             relationshipItem.setEvent( event );

@@ -160,7 +160,7 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
     {
         List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances(
             queryParams.setSynchronizationQuery( true ),
-            TrackedEntityInstanceParams.TRUE, true, true );
+            TrackedEntityInstanceParams.builder().all().build(), true, true );
 
         if ( log.isDebugEnabled() )
         {

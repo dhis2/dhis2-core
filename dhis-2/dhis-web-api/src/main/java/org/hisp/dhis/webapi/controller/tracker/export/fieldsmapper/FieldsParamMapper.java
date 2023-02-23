@@ -45,12 +45,6 @@ class FieldsParamMapper
     {
     }
 
-    static final String FIELD_RELATIONSHIPS = "relationships";
-
-    static final String FIELD_EVENTS = "events";
-
-    static final String FIELD_ATTRIBUTES = "attributes";
-
     static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();

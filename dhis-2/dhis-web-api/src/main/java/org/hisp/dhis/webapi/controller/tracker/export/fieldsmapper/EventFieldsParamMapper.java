@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static org.hisp.dhis.dxf2.events.EventParams.ALL;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.Param;
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -50,27 +53,28 @@ public class EventFieldsParamMapper
 
     public EventParams map( List<FieldPath> fields )
     {
-        EventParams params = initUsingAllOrNoFields( rootFields( fields ) );
+        Params.ParamsBuilder<EventParams> params = initUsingAllOrNoFields( rootFields( fields ) );
+        Map<Param, Boolean> paramsToInclusion = new HashMap<>();
 
-        for ( Param p : Param.values() )
+        for ( Param p : ALL )
         {
-            params = params.with( p,
+            paramsToInclusion.put( p,
                 fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) );
         }
-        return params;
+
+        return params.with( paramsToInclusion ).build();
     }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    private static Params.ParamsBuilder<EventParams> initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
-        EventParams params = EventParams.FALSE;
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
             FieldPath p = roots.get( FieldPreset.ALL );
             if ( p.isRoot() && !p.isExclude() )
             {
-                params = EventParams.TRUE;
+                return EventParams.builder().all();
             }
         }
-        return params;
+        return EventParams.builder().empty();
     }
 }

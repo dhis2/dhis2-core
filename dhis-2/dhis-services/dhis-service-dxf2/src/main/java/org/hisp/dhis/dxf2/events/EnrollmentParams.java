@@ -42,38 +42,44 @@ import java.util.stream.Collectors;
  */
 public class EnrollmentParams extends Params
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams(
-        EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
-            EVENTS,
-            EVENTS_RELATIONSHIPS ) );
-
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnumSet.noneOf( Param.class ) );
+    public static final EnumSet<Param> ALL = EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
+        EVENTS,
+        EVENTS_RELATIONSHIPS );
 
     private EnrollmentParams( EnumSet<Param> paramsSet )
     {
         super( paramsSet );
     }
 
-    public EnrollmentParams with( Param param, boolean isIncluded )
-    {
-        return new EnrollmentParams( inclusion( param, isIncluded ) );
-    }
-
-    public EnrollmentParams with( EnumSet<Param> param, boolean isIncluded )
-    {
-        return new EnrollmentParams( inclusion( param, isIncluded ) );
-    }
-
     public EventParams getEventParams()
     {
-        return EventParams.FALSE
+        return EventParams.builder().empty()
             .with(
-                this.paramsSet.stream()
+                this.params.stream()
                     .filter(
                         p -> p.getPrefix().isPresent() && p.getPrefix().get() == EVENTS )
                     .map( p -> fromFieldPath( p.getField() ) )
                     .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) ),
                 true )
-            .with( DELETED, this.paramsSet.contains( DELETED ) );
+            .with( DELETED, this.params.contains( DELETED ) ).build();
+    }
+
+    public static ParamsBuilder<EnrollmentParams> builder()
+    {
+        return new ParamsBuilder<>()
+        {
+            @Override
+            public ParamsBuilder<EnrollmentParams> all()
+            {
+                this.params = EnumSet.copyOf( ALL );
+                return this;
+            }
+
+            @Override
+            public EnrollmentParams build()
+            {
+                return new EnrollmentParams( this.params );
+            }
+        };
     }
 }

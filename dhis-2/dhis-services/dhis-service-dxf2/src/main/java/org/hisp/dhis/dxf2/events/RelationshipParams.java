@@ -27,44 +27,36 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-public class RelationshipParams
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_FROM;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_TO;
+
+import java.util.EnumSet;
+
+public class RelationshipParams extends Params
 {
-    public static final RelationshipParams TRUE = new RelationshipParams( true, true );
+    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIP_FROM, RELATIONSHIP_TO );
 
-    public static final RelationshipParams FALSE = new RelationshipParams( false, false );
-
-    private boolean includeFrom;
-
-    private boolean includeTo;
-
-    @SuppressWarnings( "unused" )
-    private RelationshipParams()
+    public RelationshipParams( EnumSet<Param> paramsSet )
     {
+        super( paramsSet );
     }
 
-    public RelationshipParams( boolean includeFrom, boolean includeTo )
+    public static ParamsBuilder<RelationshipParams> builder()
     {
-        this.includeFrom = includeFrom;
-        this.includeTo = includeTo;
-    }
+        return new ParamsBuilder<>()
+        {
+            @Override
+            public ParamsBuilder<RelationshipParams> all()
+            {
+                this.params = EnumSet.copyOf( ALL );
+                return this;
+            }
 
-    public boolean isIncludeFrom()
-    {
-        return includeFrom;
-    }
-
-    public void setIncludeFrom( boolean includeFrom )
-    {
-        this.includeFrom = includeFrom;
-    }
-
-    public boolean isIncludeTo()
-    {
-        return includeTo;
-    }
-
-    public void setIncludeTo( boolean includeTo )
-    {
-        this.includeTo = includeTo;
+            @Override
+            public RelationshipParams build()
+            {
+                return new RelationshipParams( this.params );
+            }
+        };
     }
 }

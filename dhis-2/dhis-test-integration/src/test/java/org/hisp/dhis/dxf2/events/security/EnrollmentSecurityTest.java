@@ -275,7 +275,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference(),
-            EnrollmentParams.FALSE );
+            EnrollmentParams.builder().empty().build() );
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
     }
@@ -294,7 +294,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference(),
-            EnrollmentParams.FALSE );
+            EnrollmentParams.builder().empty().build() );
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
     }
@@ -340,7 +340,8 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( importSummary.getReference(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( importSummary.getReference(),
+                EnrollmentParams.builder().empty().build() ) );
     }
 
     /**
@@ -357,7 +358,8 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( importSummary.getReference(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( importSummary.getReference(),
+                EnrollmentParams.builder().empty().build() ) );
     }
 
     /**
@@ -374,7 +376,8 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( importSummary.getReference(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( importSummary.getReference(),
+                EnrollmentParams.builder().empty().build() ) );
     }
 
     @Test

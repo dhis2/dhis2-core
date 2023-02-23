@@ -48,35 +48,45 @@ import java.util.stream.Collectors;
  */
 public class TrackedEntityInstanceParams extends Params
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams(
-        EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
-            ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
-            ENROLLMENTS_EVENTS_RELATIONSHIPS,
-            EVENTS,
-            EVENTS_RELATIONSHIPS ) );
-
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams(
-        EnumSet.noneOf( Param.class ) );
+    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
+        ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
+        ENROLLMENTS_EVENTS_RELATIONSHIPS,
+        EVENTS,
+        EVENTS_RELATIONSHIPS );
 
     private TrackedEntityInstanceParams( EnumSet<Param> paramsSet )
     {
         super( paramsSet );
     }
 
-    public TrackedEntityInstanceParams with( Param param, boolean isIncluded )
-    {
-        return new TrackedEntityInstanceParams( inclusion( param, isIncluded ) );
-    }
-
     public EnrollmentParams getEnrollmentParams()
     {
-        return EnrollmentParams.FALSE
-            .with( this.paramsSet.stream()
+        return EnrollmentParams.builder().empty()
+            .with( this.params.stream()
                 .filter(
                     p -> p.getPrefix().isPresent() && p.getPrefix().get() == ENROLLMENTS )
                 .map( p -> fromFieldPath( p.getField() ) )
                 .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) ),
                 true )
-            .with( DELETED, this.paramsSet.contains( DELETED ) );
+            .with( DELETED, this.params.contains( DELETED ) ).build();
+    }
+
+    public static ParamsBuilder<TrackedEntityInstanceParams> builder()
+    {
+        return new ParamsBuilder<>()
+        {
+            @Override
+            public ParamsBuilder<TrackedEntityInstanceParams> all()
+            {
+                this.params = EnumSet.copyOf( ALL );
+                return this;
+            }
+
+            @Override
+            public TrackedEntityInstanceParams build()
+            {
+                return new TrackedEntityInstanceParams( this.params );
+            }
+        };
     }
 }

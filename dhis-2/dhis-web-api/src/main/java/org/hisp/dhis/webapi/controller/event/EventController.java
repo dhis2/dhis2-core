@@ -729,7 +729,7 @@ public class EventController
         throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
-            EventParams.TRUE );
+            EventParams.builder().all().build() );
 
         if ( event == null )
         {
@@ -748,7 +748,7 @@ public class EventController
         throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
-            EventParams.TRUE );
+            EventParams.builder().all().build() );
 
         if ( event == null )
         {

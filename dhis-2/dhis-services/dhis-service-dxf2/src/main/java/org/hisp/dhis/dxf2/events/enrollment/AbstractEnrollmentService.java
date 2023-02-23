@@ -283,7 +283,8 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
+                enrollments
+                    .add( getEnrollment( user, programInstance, EnrollmentParams.builder().empty().build(), true ) );
             }
         }
 
@@ -375,7 +376,7 @@ public abstract class AbstractEnrollmentService
                 {
                     Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
-                        RelationshipParams.FALSE, user );
+                        RelationshipParams.builder().empty().build(), user );
                     relationship.ifPresent( r -> enrollment.getRelationships().add( r ) );
                 }
             }

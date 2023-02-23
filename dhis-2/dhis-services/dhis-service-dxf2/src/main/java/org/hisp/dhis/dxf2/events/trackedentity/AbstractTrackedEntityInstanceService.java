@@ -281,7 +281,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     public TrackedEntityInstance getTrackedEntityInstance(
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
     {
-        return getTrackedEntityInstance( daoTrackedEntityInstance, TrackedEntityInstanceParams.TRUE );
+        return getTrackedEntityInstance( daoTrackedEntityInstance,
+            TrackedEntityInstanceParams.builder().all().build() );
     }
 
     @Override
@@ -1653,7 +1654,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 {
                     Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
-                        RelationshipParams.FALSE, user );
+                        RelationshipParams.builder().empty().build(), user );
                     relationship.ifPresent( r -> trackedEntityInstance.getRelationships().add( r ) );
                 }
             }

@@ -28,14 +28,17 @@
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
 import static org.hisp.dhis.dxf2.events.Param.DELETED;
+import static org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams.ALL;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.Param;
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -56,28 +59,29 @@ public class TrackedEntityFieldsParamMapper
 
     public TrackedEntityInstanceParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        TrackedEntityInstanceParams params = initUsingAllOrNoFields( rootFields( fields ) );
+        Params.ParamsBuilder<TrackedEntityInstanceParams> params = initUsingAllOrNoFields( rootFields( fields ) );
+        Map<Param, Boolean> paramsToInclusion = new HashMap<>();
 
-        for ( Param p : Param.values() )
+        for ( Param p : ALL )
         {
-            params = params.with( p,
+            paramsToInclusion.put( p,
                 fieldFilterService.filterIncludes( TrackedEntity.class, fields, p.getFieldPath() ) );
         }
-        return params.with( DELETED, includeDeleted );
+
+        return params.with( paramsToInclusion ).with( DELETED, includeDeleted ).build();
     }
 
-    private static TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    private static Params.ParamsBuilder<TrackedEntityInstanceParams> initUsingAllOrNoFields(
+        Map<String, FieldPath> roots )
     {
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
             FieldPath p = roots.get( FieldPreset.ALL );
             if ( p.isRoot() && !p.isExclude() )
             {
-                params = TrackedEntityInstanceParams.TRUE;
+                return TrackedEntityInstanceParams.builder().all();
             }
         }
-        return params;
+        return TrackedEntityInstanceParams.builder().empty();
     }
 }

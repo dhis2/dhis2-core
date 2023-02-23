@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static org.hisp.dhis.dxf2.events.EnrollmentParams.ALL;
 import static org.hisp.dhis.dxf2.events.Param.DELETED;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.Param;
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -56,27 +59,28 @@ public class EnrollmentFieldsParamMapper
 
     public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        EnrollmentParams params = initUsingAllOrNoFields( rootFields( fields ) );
+        Params.ParamsBuilder<EnrollmentParams> params = initUsingAllOrNoFields( rootFields( fields ) );
+        Map<Param, Boolean> paramsToInclusion = new HashMap<>();
 
-        for ( Param p : Param.values() )
+        for ( Param p : ALL )
         {
-            params = params.with( p,
+            paramsToInclusion.put( p,
                 fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) );
         }
-        return params.with( DELETED, includeDeleted );
+
+        return params.with( paramsToInclusion ).with( DELETED, includeDeleted ).build();
     }
 
-    private static EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    private static Params.ParamsBuilder<EnrollmentParams> initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
-        EnrollmentParams params = EnrollmentParams.FALSE;
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
             FieldPath p = roots.get( FieldPreset.ALL );
             if ( p.isRoot() && !p.isExclude() )
             {
-                params = EnrollmentParams.TRUE;
+                return EnrollmentParams.builder().all();
             }
         }
-        return params;
+        return EnrollmentParams.builder().empty();
     }
 }

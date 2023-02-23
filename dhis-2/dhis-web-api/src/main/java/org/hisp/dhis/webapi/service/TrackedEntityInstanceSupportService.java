@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.service;
 
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
-import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS;
 import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
@@ -41,6 +41,7 @@ import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.dxf2.events.Param;
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -152,10 +153,10 @@ public class TrackedEntityInstanceSupportService
 
         if ( joined.contains( "*" ) )
         {
-            return TrackedEntityInstanceParams.TRUE;
+            return TrackedEntityInstanceParams.builder().all().build();
         }
 
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        Params.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder().empty();
 
         if ( joined.contains( "relationships" ) )
         {
@@ -169,7 +170,7 @@ public class TrackedEntityInstanceSupportService
 
         if ( joined.contains( "events" ) )
         {
-            params = params.with( EVENTS, true );
+            params = params.with( ENROLLMENTS_EVENTS, true );
         }
 
         if ( joined.contains( "programOwners" ) )
@@ -177,7 +178,7 @@ public class TrackedEntityInstanceSupportService
             params = params.with( PROGRAM_OWNERS, true );
         }
 
-        return params;
+        return params.build();
     }
 
 }
