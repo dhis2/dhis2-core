@@ -40,6 +40,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -76,6 +78,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 @OpenApi.Tags( "data" )
 @Controller
+@RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( DataStatisticsController.RESOURCE_PATH )
 public class DataStatisticsController
@@ -87,14 +90,6 @@ public class DataStatisticsController
     private final DataStatisticsService dataStatisticsService;
 
     private final FieldFilterService fieldFilterService;
-
-    public DataStatisticsController( CurrentUserService currentUserService, DataStatisticsService dataStatisticsService,
-        FieldFilterService fieldFilterService )
-    {
-        this.currentUserService = currentUserService;
-        this.dataStatisticsService = dataStatisticsService;
-        this.fieldFilterService = fieldFilterService;
-    }
 
     @PostMapping
     @ResponseStatus( HttpStatus.CREATED )
