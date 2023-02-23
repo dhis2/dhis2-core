@@ -35,7 +35,7 @@ import org.springframework.util.StringUtils;
 
 public class StringToTrackerIdSchemeParamConverter implements Converter<String, TrackerIdSchemeParam>
 {
-    private final static String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
+    private static final String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
 
     @Override
     public TrackerIdSchemeParam convert( String source )
