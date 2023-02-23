@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrollmentS
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EventSortingQueryBuilders.handleEventOrder;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -52,7 +51,6 @@ import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.common.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.tei.query.OrganisationUnitCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
@@ -69,10 +67,7 @@ import org.springframework.stereotype.Service;
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
     private static final BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> RENDERABLE_DI_SUPPLIER = (
-        uniqueAlias, di ) -> Field.of(
-            uniqueAlias,
-            () -> di.getDimension().getUid(),
-            doubleQuote( RenderableDimensionIdentifier.of( di ).render() ), di );
+        uniqueAlias, di ) -> Field.of( uniqueAlias, () -> di.getDimension().getUid(), di );
 
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
@@ -128,7 +123,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
                 IndexedOrder.of(
                     param.getIndex(),
                     Order.of(
-                        Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY, param.getOrderBy() ),
+                        Field.ofUnquoted( TEI_ALIAS, () -> column, param.getOrderBy() ),
                         param.getSortDirection() ) ) );
         }
     }

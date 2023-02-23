@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.analytics.common.query.Field.ofFieldName;
+import static org.hisp.dhis.analytics.common.query.Field.of;
 import static org.hisp.dhis.common.QueryOperator.*;
 import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -303,8 +303,8 @@ class BinaryConditionRendererTest
     {
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
         QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
-        String render = BinaryConditionRenderer
-            .of( ofFieldName( "field" ), operator, values, valueTypeMapping, queryContext )
+        String render = BinaryConditionRenderer.of(
+            of( "field" ), operator, values, valueTypeMapping, queryContext )
             .render();
         assertEquals( expectedSql, render );
         queryContextConsumers.forEach(
@@ -328,7 +328,7 @@ class BinaryConditionRendererTest
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
         QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
         List<String> values = List.of( "v1", "v2" );
-        BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( ofFieldName( "field" ),
+        BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of( of( "field" ),
             QueryOperator.EW,
             values, ValueTypeMapping.STRING, queryContext );
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,

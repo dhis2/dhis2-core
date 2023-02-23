@@ -60,7 +60,7 @@ public class TeiAttributeCondition extends BaseRenderable
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofFieldName( dimensionIdentifier.getDimension().getUid() ),
+                Field.of( dimensionIdentifier.getDimension().getUid() ),
                 item.getOperator(),
                 item.getValues(),
                 valueTypeMapping,

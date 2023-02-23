@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.analytics.common.query.Field.ofFieldName;
+import static org.hisp.dhis.analytics.common.query.Field.of;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -71,7 +71,7 @@ class HeaderParamsHandlerTest
         String column = "oucode";
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( CommonParams.builder().build() ).build();
-        List<Field> fields = List.of( ofUnquoted( "ev", ofFieldName( "anyName" ), column ) );
+        List<Field> fields = List.of( ofUnquoted( "ev", of( "anyName" ), column ) );
 
         // When
         headerParamsHandler.handle( grid, teiQueryParams, fields );
@@ -103,9 +103,9 @@ class HeaderParamsHandlerTest
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( stubCommonParamsWithHeaders() ).build();
         List<Field> fields = List.of(
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated" ) );
+            ofUnquoted( "ev", of( "anyName" ), "oucode" ),
+            ofUnquoted( "ev", of( "anyName" ), "ouname" ),
+            ofUnquoted( "ev", of( "anyName" ), "lastupdated" ) );
 
         // When
         headerParamsHandler.handle( grid, teiQueryParams, fields );
@@ -127,9 +127,9 @@ class HeaderParamsHandlerTest
         Grid grid = new ListGrid();
         TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams( commonParams ).build();
         List<Field> fields = List.of(
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "oucode" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "ouname" ),
-            ofUnquoted( "ev", ofFieldName( "anyName" ), "lastupdated" ) );
+            ofUnquoted( "ev", of( "anyName" ), "oucode" ),
+            ofUnquoted( "ev", of( "anyName" ), "ouname" ),
+            ofUnquoted( "ev", of( "anyName" ), "lastupdated" ) );
 
         // When
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,

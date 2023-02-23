@@ -51,6 +51,9 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -65,9 +68,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * This class provides methods responsible for extracting collections from

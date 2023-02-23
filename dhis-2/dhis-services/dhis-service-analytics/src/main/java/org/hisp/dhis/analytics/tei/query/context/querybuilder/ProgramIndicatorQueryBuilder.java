@@ -38,11 +38,11 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -67,7 +67,6 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Service;
 
 /**
@@ -91,33 +90,105 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
         .of( d -> isOfType( d.getOrderBy(), PROGRAM_INDICATOR ) );
 
     @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext sqlQueryContext,
+    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
         List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
         List<AnalyticsSortingParams> acceptedSortingParams )
     {
-        AtomicInteger counter = sqlQueryContext.getSequence();
+        List<ProgramIndicatorDimensionIdentifier> allDimensionIdentifiers = Stream
+            .concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
+                .map( AnalyticsSortingParams::getOrderBy ) )
+            .map( ProgramIndicatorDimensionIdentifier::of )
+            .distinct()
+            .collect( toList() );
 
         RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-        for ( ProgramIndicatorDimensionParam param : getProgramIndicatorDimensionParams( acceptedDimensions,
-            acceptedSortingParams ) )
+        buildLeftJoins( allDimensionIdentifiers, builder, queryContext.getSequence() );
+
+        buildConditions( queryContext, acceptedDimensions, builder );
+
+        buildOrder( acceptedSortingParams, builder );
+
+        return builder.build();
+    }
+
+    private static void buildOrder( List<AnalyticsSortingParams> acceptedSortingParams,
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder )
+    {
+        for ( AnalyticsSortingParams param : acceptedSortingParams )
         {
-            String assignedAlias = doubleQuote(
-                param.getDimensionIdentifier().toString() + "_" + counter.incrementAndGet() );
+            String assignedAlias = doubleQuote( param.getOrderBy().toString() );
+            builder.orderClause(
+                IndexedOrder.of(
+                    param.getIndex(),
+                    Order.of( () -> assignedAlias, param.getSortDirection() ) ) );
+        }
+    }
+
+    private static void buildConditions( QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder )
+    {
+        for ( DimensionIdentifier<DimensionParam> dimensionIdentifier : acceptedDimensions )
+        {
+            String assignedAlias = doubleQuote( dimensionIdentifier.toString() );
+            if ( SqlQueryBuilders.hasRestrictions( dimensionIdentifier ) )
+            {
+                builder.groupableCondition(
+                    GroupableCondition.of(
+                        dimensionIdentifier.getGroupId(),
+                        AndCondition.of(
+                            dimensionIdentifier.getDimension().getItems().stream()
+                                .map( item -> BinaryConditionRenderer.of(
+                                    () -> assignedAlias + ".value",
+                                    item.getOperator(),
+                                    item.getValues(),
+                                    NUMERIC,
+                                    queryContext ) )
+                                .collect( toList() ) ) ) );
+            }
+        }
+    }
+
+    private void buildLeftJoins( List<ProgramIndicatorDimensionIdentifier> allDimensionIdentifiers,
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder, AtomicInteger counter )
+    {
+        for ( ProgramIndicatorDimensionIdentifier param : allDimensionIdentifiers )
+        {
+            String assignedAlias = doubleQuote( param.getDimensionIdentifier().toString() );
+
+            ProgramIndicator programIndicator = (ProgramIndicator) param.getDimensionIdentifier().getDimension()
+                .getQueryItem().getItem();
+
+            String expression = programIndicatorService.getAnalyticsSql(
+                programIndicator.getExpression(),
+                DataType.NUMERIC,
+                programIndicator,
+                null,
+                null,
+                SUBQUERY_TABLE_ALIAS );
+
+            String filter = programIndicatorService.getAnalyticsSql(
+                programIndicator.getFilter(),
+                DataType.BOOLEAN,
+                programIndicator,
+                null,
+                null,
+                SUBQUERY_TABLE_ALIAS );
 
             builder.selectField( Field.ofUnquoted(
                 StringUtils.EMPTY,
                 () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')",
-                assignedAlias, param.getDimensionIdentifier() ) );
+                param.getDimensionIdentifier() ) );
 
-            if ( param.getProgramIndicator().getAnalyticsType() == AnalyticsType.ENROLLMENT )
+            if ( programIndicator.getAnalyticsType() == AnalyticsType.ENROLLMENT )
             {
                 builder.leftJoin(
                     LeftJoin.of(
                         () -> "(" + enrollmentProgramIndicatorSelect(
                             param.getDimensionIdentifier().getProgram(),
-                            param.getProgramIndicatorExpressionSql(),
-                            param.getProgramIndicatorFilterSql(), true ) + ") as " + assignedAlias,
+                            expression,
+                            filter, true ) + ") as " + assignedAlias,
                         fieldsEqual( TEI_ALIAS, TEI_UID, assignedAlias, TEI_UID ) ) );
             }
             else
@@ -127,55 +198,18 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
                     LeftJoin.of(
                         () -> "(" + enrollmentProgramIndicatorSelect(
                             param.getDimensionIdentifier().getProgram(),
-                            param.getProgramIndicatorExpressionSql(),
-                            param.getProgramIndicatorFilterSql(), false ) + ") as " + enrollmentAlias,
+                            expression,
+                            filter, false ) + ") as " + enrollmentAlias,
                         fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
                     .leftJoin(
                         LeftJoin.of(
                             () -> "(" + eventProgramIndicatorSelect(
                                 param.getDimensionIdentifier().getProgram(),
-                                param.getProgramIndicatorExpressionSql(),
-                                param.getProgramIndicatorFilterSql() ) + ") as " + assignedAlias,
+                                expression,
+                                filter ) + ") as " + assignedAlias,
                             fieldsEqual( enrollmentAlias, PI_UID, assignedAlias, PI_UID ) ) );
             }
-
-            if ( param.hasRestrictions() )
-            {
-                builder.groupableCondition(
-                    GroupableCondition.of(
-                        param.getDimensionIdentifier().getGroupId(),
-                        AndCondition.of(
-                            param.getDimensionIdentifier().getDimension().getItems().stream()
-                                .map( item -> BinaryConditionRenderer.of(
-                                    () -> assignedAlias + ".value",
-                                    item.getOperator(),
-                                    item.getValues(),
-                                    NUMERIC,
-                                    sqlQueryContext ) )
-                                .collect( toList() ) ) ) );
-            }
-
-            if ( param.isOrder() )
-            {
-                builder.orderClause(
-                    IndexedOrder.of(
-                        param.getOrderIndex(),
-                        Order.of( () -> assignedAlias, param.getSortDirection() ) ) );
-            }
         }
-        return builder.build();
-    }
-
-    private List<ProgramIndicatorDimensionParam> getProgramIndicatorDimensionParams(
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        return Stream.concat(
-            acceptedDimensions.stream()
-                .map( this::asDimensionParamProgramIndicatorQuery ),
-            acceptedSortingParams.stream()
-                .map( this::asDimensionParamProgramIndicatorQuery ) )
-            .collect( toList() );
     }
 
     private static String enrollmentProgramIndicatorSelect( ElementWithOffset<Program> program,
@@ -201,74 +235,34 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
             " where innermost_evt.rn = 1";
     }
 
-    private ProgramIndicatorDimensionParam asDimensionParamProgramIndicatorQuery(
-        DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return asDimensionParamProgramIndicatorQuery( dimensionIdentifier, null, null );
-    }
-
-    private ProgramIndicatorDimensionParam asDimensionParamProgramIndicatorQuery(
-        AnalyticsSortingParams analyticsSortingParams )
-    {
-        return asDimensionParamProgramIndicatorQuery( analyticsSortingParams.getOrderBy(),
-            analyticsSortingParams.getSortDirection(), analyticsSortingParams.getIndex() );
-    }
-
-    private ProgramIndicatorDimensionParam asDimensionParamProgramIndicatorQuery(
-        DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        SortDirection sortDirection,
-        Long sortIndex )
-    {
-        ProgramIndicator programIndicator = (ProgramIndicator) dimensionIdentifier.getDimension().getQueryItem()
-            .getItem();
-
-        return ProgramIndicatorDimensionParam.of(
-            dimensionIdentifier,
-            programIndicator,
-            // PI Expression
-            programIndicatorService.getAnalyticsSql(
-                programIndicator.getExpression(),
-                DataType.NUMERIC,
-                programIndicator,
-                null,
-                null,
-                SUBQUERY_TABLE_ALIAS ),
-            // PI Filter
-            programIndicatorService.getAnalyticsSql(
-                programIndicator.getFilter(),
-                DataType.BOOLEAN,
-                programIndicator,
-                null,
-                null,
-                SUBQUERY_TABLE_ALIAS ),
-            sortDirection,
-            sortIndex );
-    }
-
-    @Data
+    @Getter
     @RequiredArgsConstructor( staticName = "of" )
-    static class ProgramIndicatorDimensionParam
+    static class ProgramIndicatorDimensionIdentifier
     {
         private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-        private final ProgramIndicator programIndicator;
-
-        private final String programIndicatorExpressionSql;
-
-        private final String programIndicatorFilterSql;
-
-        private final SortDirection sortDirection;
-
-        private final Long orderIndex;
-
-        boolean hasRestrictions()
+        @Override
+        public boolean equals( Object o )
         {
-            return SqlQueryBuilders.hasRestrictions( dimensionIdentifier );
+            if ( this == o )
+                return true;
+            if ( o == null || getClass() != o.getClass() )
+                return false;
+            ProgramIndicatorDimensionIdentifier that = (ProgramIndicatorDimensionIdentifier) o;
+            return Objects.equals( dimensionIdentifier.getProgram(), that.getDimensionIdentifier().getProgram() ) &&
+                Objects.equals( dimensionIdentifier.getProgramStage(), that.getDimensionIdentifier().getProgramStage() )
+                &&
+                Objects.equals( dimensionIdentifier.getDimension().getQueryItem(),
+                    that.getDimensionIdentifier().getDimension().getQueryItem() );
         }
 
-        boolean isOrder()
+        @Override
+        public int hashCode()
         {
-            return sortDirection != null;
+            return Objects.hash(
+                dimensionIdentifier.getProgram(),
+                dimensionIdentifier.getProgramStage(),
+                dimensionIdentifier.getDimension().getQueryItem() );
         }
     }
 }

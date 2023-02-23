@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +44,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
  * This class represents a {@link Renderable} field. It's mainly used for SQL
  * query rendering and headers display.
  */
-@RequiredArgsConstructor( staticName = "of" )
+@RequiredArgsConstructor( staticName = "of", access = AccessLevel.PRIVATE )
 public class Field extends BaseRenderable
 {
     private final String tableAlias;
@@ -64,22 +65,6 @@ public class Field extends BaseRenderable
      * @param tableAlias the table alias.
      * @param name the {@link Renderable} name of the field.
      * @param fieldAlias the alias of the field.
-     * @param dimensionIdentifier the dimension identifier associated with this
-     *        field.
-     * @return a new {@link Field} instance.
-     */
-    public static Field of( String tableAlias, Renderable name, String fieldAlias,
-        DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return of( tableAlias, name, fieldAlias, dimensionIdentifier, true );
-    }
-
-    /**
-     * Static constructor for a field which double quote "name" when rendered.
-     *
-     * @param tableAlias the table alias.
-     * @param name the {@link Renderable} name of the field.
-     * @param fieldAlias the alias of the field.
      * @return a new {@link Field} instance.
      */
     public static Field of( String tableAlias, Renderable name, String fieldAlias )
@@ -88,20 +73,16 @@ public class Field extends BaseRenderable
     }
 
     /**
-     * Static constructor for a field which will not double quote "name" when
-     * rendered.
+     * Static constructor for a field which double quote "name" when rendered.
      *
      * @param tableAlias the table alias.
      * @param name the {@link Renderable} name of the field.
-     * @param fieldAlias the alias of the field.
-     * @param dimensionIdentifier the dimension identifier associated with this
-     *        field.
      * @return a new {@link Field} instance.
      */
-    public static Field ofUnquoted( String tableAlias, Renderable name, String fieldAlias,
+    public static Field of( String tableAlias, Renderable name,
         DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
-        return of( tableAlias, name, fieldAlias, dimensionIdentifier, false );
+        return of( tableAlias, name, EMPTY, dimensionIdentifier, true );
     }
 
     /**
@@ -119,14 +100,29 @@ public class Field extends BaseRenderable
     }
 
     /**
+     * Static constructor for a field which will not double quote "name" when
+     * rendered.
+     *
+     * @param tableAlias the table alias.
+     * @param name the {@link Renderable} name of the field.
+     * @param dimensionIdentifier the alias of the field.
+     * @return a new {@link Field} instance.
+     */
+    public static Field ofUnquoted( String tableAlias, Renderable name,
+        DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return of( tableAlias, name, EMPTY, dimensionIdentifier, false );
+    }
+
+    /**
      * Simplest field renderer that takes into consideration only the name.
      *
      * @param name the {@link Renderable} name of the field.
      * @return a new {@link Field} instance.
      */
-    public static Field ofFieldName( String name )
+    public static Field of( String name )
     {
-        return of( EMPTY, () -> name, EMPTY, DimensionIdentifier.EMPTY );
+        return of( EMPTY, () -> name, EMPTY, DimensionIdentifier.EMPTY, true );
     }
 
     public String getDimensionIdentifier()
