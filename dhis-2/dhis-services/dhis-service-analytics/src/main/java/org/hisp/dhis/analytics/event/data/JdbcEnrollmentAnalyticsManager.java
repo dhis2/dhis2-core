@@ -101,7 +101,7 @@ public class JdbcEnrollmentAnalyticsManager
     private static final List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
-        "ouname", "oucode", "enrollmentstatus" );
+        "ouname", "ounamehierarchy", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,

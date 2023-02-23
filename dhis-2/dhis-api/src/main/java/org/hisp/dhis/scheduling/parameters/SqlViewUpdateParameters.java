@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.scheduling.parameters;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * @author Viet Nguyen
- */
-@Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
-public class HibernateProgramTrackedEntityAttributeGroupStore
-    extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-    implements ProgramTrackedEntityAttributeGroupStore
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class SqlViewUpdateParameters implements JobParameters
 {
-    public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    private List<String> sqlViews = new ArrayList<>();
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getSqlViews()
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttributeGroup.class, currentUserService,
-            aclService, true );
+        return sqlViews;
+    }
+
+    public void setSqlViews( List<String> sqlViews )
+    {
+        this.sqlViews = sqlViews;
+    }
+
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        return Optional.empty();
     }
 }

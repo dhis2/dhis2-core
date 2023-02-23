@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import java.beans.PropertyDescriptor;
@@ -134,6 +135,15 @@ public class DefaultJobConfigurationService
     public List<JobConfiguration> getAllJobConfigurations()
     {
         return jobConfigurationStore.getAll();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<JobConfiguration> getJobConfigurations( JobType type )
+    {
+        return jobConfigurationStore.getAll().stream()
+            .filter( config -> config.getJobType() == type )
+            .collect( toUnmodifiableList() );
     }
 
     @Override

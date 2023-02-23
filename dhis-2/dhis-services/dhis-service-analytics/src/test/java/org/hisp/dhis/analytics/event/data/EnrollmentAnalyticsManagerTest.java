@@ -115,7 +115,7 @@ class EnrollmentAnalyticsManagerTest extends
 
     private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,"
         + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-        + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
+        + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
