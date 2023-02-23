@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Viet Nguyen
+ * @author Lars Helge Overland
  */
-public interface ProgramTrackedEntityAttributeGroupStore
-    extends IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class Dhis2Info
 {
+    @JsonProperty
+    private String version;
+
+    @JsonProperty
+    private String revision;
+
+    @JsonProperty
+    private Date buildTime;
+
+    @JsonProperty
+    private String systemId;
+
+    @JsonProperty
+    private Date serverDate;
 }

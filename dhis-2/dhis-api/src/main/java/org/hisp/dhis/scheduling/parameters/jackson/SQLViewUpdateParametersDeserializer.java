@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-/**
- * @author Viet Nguyen
- */
-public class ProgramTrackedEntityAttributeGroupSchemaDescriptor implements SchemaDescriptor
+public class SQLViewUpdateParametersDeserializer extends AbstractJobParametersDeserializer<SqlViewUpdateParameters>
 {
-    public static final String SINGULAR = "programTrackedEntityAttributeGroup";
-
-    public static final String PLURAL = "programTrackedEntityAttributeGroups";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public SQLViewUpdateParametersDeserializer()
     {
-        Schema schema = new Schema( ProgramTrackedEntityAttributeGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
+        super( SqlViewUpdateParameters.class, CustomJobParameters.class );
+    }
 
-        schema.add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE,
-            Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE" ) ) );
-
-        return schema;
+    @JsonDeserialize
+    public static class CustomJobParameters extends SqlViewUpdateParameters
+    {
     }
 }

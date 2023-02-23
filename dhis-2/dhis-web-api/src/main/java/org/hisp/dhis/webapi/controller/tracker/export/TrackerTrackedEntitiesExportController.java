@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -83,6 +84,16 @@ public class TrackerTrackedEntitiesExportController
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
     private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+
+    /**
+     * Fields we need to fetch from the DB to fulfill requests for CSV. CSV
+     * cannot be filtered using the {@link FieldFilterService} so
+     * <code>fields</code> query parameter is ignored when CSV is requested.
+     * Make sure this is kept in sync with the columns we promise to return in
+     * the CSV. See {@link org.hisp.dhis.webapi.controller.tracker.export.csv}.
+     */
+    private static final List<FieldPath> CSV_FIELDS = FieldFilterParser.parse(
+        "trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,storedBy,createdBy,updatedBy,attributes" );
 
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
@@ -143,15 +154,13 @@ public class TrackerTrackedEntitiesExportController
     public void getCsvTrackedEntities( TrackerTrackedEntityCriteria criteria,
         HttpServletResponse response,
         HttpServletRequest request,
-        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
         throws IOException,
         BadRequestException,
         ForbiddenException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -201,11 +210,10 @@ public class TrackerTrackedEntitiesExportController
     public void getCsvTrackedEntityInstanceById( @PathVariable String id,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( required = false ) String program )
         throws IOException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
