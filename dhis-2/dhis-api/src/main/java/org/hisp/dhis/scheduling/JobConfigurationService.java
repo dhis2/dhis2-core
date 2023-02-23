@@ -95,6 +95,14 @@ public interface JobConfigurationService
     List<JobConfiguration> getAllJobConfigurations();
 
     /**
+     * Get all job configurations for a specific {@link JobType}.
+     *
+     * @param type to select
+     * @return all configuration for the given {@link JobType}
+     */
+    List<JobConfiguration> getJobConfigurations( JobType type );
+
+    /**
      * Get a map of parameter classes with appropriate properties This can be
      * used for a frontend app or for other appropriate applications which needs
      * information about the jobs in the system.

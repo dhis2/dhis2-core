@@ -25,30 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.deduplication;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Viet Nguyen
- */
-@Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
-public class HibernateProgramTrackedEntityAttributeGroupStore
-    extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-    implements ProgramTrackedEntityAttributeGroupStore
+import lombok.Data;
+
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+@Data
+public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter
 {
-    public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttributeGroup.class, currentUserService,
-            aclService, true );
-    }
+    private List<String> teis = new ArrayList<>();
+
+    private DeduplicationStatus status = DeduplicationStatus.OPEN;
 }

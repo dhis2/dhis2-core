@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.scheduling.parameters;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import lombok.Data;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import com.google.common.base.MoreObjects;
-
-@Data
-public class PotentialDuplicateQuery
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class SqlViewUpdateParameters implements JobParameters
 {
-    public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
+    private List<String> sqlViews = new ArrayList<>();
 
-    private Boolean skipPaging;
-
-    private Boolean paging;
-
-    private int page = 1;
-
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-
-    private int total;
-
-    private List<String> teis;
-
-    private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-    public PotentialDuplicateQuery()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getSqlViews()
     {
+        return sqlViews;
     }
 
-    public boolean isSkipPaging()
+    public void setSqlViews( List<String> sqlViews )
     {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
-
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
-
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
+        this.sqlViews = sqlViews;
     }
 
     @Override
-    public String toString()
+    public Optional<ErrorReport> validate()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .toString();
+        return Optional.empty();
     }
 }
