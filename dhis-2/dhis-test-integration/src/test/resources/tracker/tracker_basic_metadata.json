@@ -434,8 +434,7 @@
           "translations": [],
           "displayInList": false,
           "displayName": "Tracker Program Name",
-          "favorites": [],
-          "programTrackedEntityAttributeGroups": []
+          "favorites": []
         },
         {
           "externalAccess": false,
@@ -470,13 +469,11 @@
           "translations": [],
           "displayInList": false,
           "displayName": "Gender",
-          "favorites": [],
-          "programTrackedEntityAttributeGroups": []
+          "favorites": []
         },
         {
           "displayName": "Tracker Program Address",
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "name": "Tracker Program Address",
           "displayInList": false,

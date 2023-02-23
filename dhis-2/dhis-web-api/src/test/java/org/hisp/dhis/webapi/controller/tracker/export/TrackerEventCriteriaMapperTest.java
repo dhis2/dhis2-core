@@ -389,7 +389,7 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
-    void testMappingEnrollmentOcurredAtDates()
+    void testMappingEnrollmentOccurredAtDates()
         throws BadRequestException,
         ForbiddenException
     {

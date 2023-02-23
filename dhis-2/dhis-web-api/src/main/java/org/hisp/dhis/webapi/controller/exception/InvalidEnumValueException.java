@@ -38,5 +38,5 @@ public class InvalidEnumValueException extends Exception
 
     private final String fieldName;
 
-    private final Class<? extends Enum> enumKlass;
+    private final Class<? extends Enum<?>> enumKlass;
 }
