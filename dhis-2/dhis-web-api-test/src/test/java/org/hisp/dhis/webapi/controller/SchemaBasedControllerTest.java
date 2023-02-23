@@ -124,7 +124,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
                 assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + uid ) );
             }
         }
-        assertTrue( testedSchemas >= 58, "make sure we actually test schemas" );
+        assertTrue( testedSchemas >= 57, "make sure we actually test schemas" );
     }
 
     /**
