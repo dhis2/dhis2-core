@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_EVENTS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
@@ -38,6 +36,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -52,15 +51,19 @@ public class EnrollmentFieldsParamMapper
 
     public EnrollmentParams map( List<FieldPath> fields )
     {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EnrollmentParams params = initUsingAllOrNoFields( roots );
-        params = params.withIncludeRelationships(
-            fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_RELATIONSHIPS ) );
-        params = params
-            .withIncludeEvents( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_EVENTS ) );
-        params = params
-            .withIncludeAttributes( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_ATTRIBUTES ) );
-        return params;
+        return map( fields, false );
+    }
+
+    public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
+    {
+        EnrollmentParams params = initUsingAllOrNoFields( rootFields( fields ) );
+
+        for ( Param p : Param.values() )
+        {
+            params = params.with( p,
+                fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) );
+        }
+        return params.with( DELETED, includeDeleted );
     }
 
     private static EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )

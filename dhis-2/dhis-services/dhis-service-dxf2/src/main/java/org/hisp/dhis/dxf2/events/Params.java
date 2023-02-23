@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,44 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import lombok.Value;
-import lombok.With;
+import java.util.EnumSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.AllArgsConstructor;
 
 /**
- * @author Luca Camnbi
- *
- *         Class used to define inclusion in {@link EnrollmentParams} of
- *         {@link EventParams} properties
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@With
-@Value
-public class EnrollmentEventsParams
+@AllArgsConstructor
+public abstract class Params
 {
-    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
+    protected final EnumSet<Param> paramsSet;
 
-    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
+    public boolean hasIncluded( Param param )
+    {
+        return paramsSet.contains( param );
+    }
 
-    private boolean includeEvents;
+    EnumSet<Param> inclusion( Param param, boolean isIncluded )
+    {
+        return isIncluded ? include( EnumSet.of( param ) ) : exclude( EnumSet.of( param ) );
+    }
 
-    private EventParams eventParams;
+    EnumSet<Param> inclusion( EnumSet<Param> params, boolean isIncluded )
+    {
+        return isIncluded ? include( params ) : exclude( params );
+    }
+
+    EnumSet<Param> include( EnumSet<Param> params )
+    {
+        return Stream.concat( paramsSet.stream(), params.stream() )
+            .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
+    }
+
+    EnumSet<Param> exclude( EnumSet<Param> params )
+    {
+        return paramsSet.stream().filter( p -> !params.contains( p ) )
+            .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
+    }
 }

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -174,7 +177,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         MapSqlParameterSource paramSource = createIdsParam( ids ).addValue( "userInfoId", ctx.getUserId() );
 
         boolean checkForOwnership = ctx.getQueryParams().isIncludeAllAttributes()
-            || ctx.getParams().isIncludeEnrollments() || ctx.getParams().getTeiEnrollmentParams().isIncludeEvents();
+            || ctx.getParams().hasIncluded( ENROLLMENTS ) || ctx.getParams().hasIncluded( EVENTS );
 
         String sql;
 

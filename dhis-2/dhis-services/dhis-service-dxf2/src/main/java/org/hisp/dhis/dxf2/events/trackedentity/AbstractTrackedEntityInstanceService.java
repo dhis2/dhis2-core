@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -1638,14 +1642,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             trackedEntityInstance.setCoordinates( GeoUtils.getCoordinatesFromGeometry( geometry ) );
         }
 
-        if ( params.isIncludeRelationships() )
+        if ( params.hasIncluded( RELATIONSHIPS ) )
         {
             for ( RelationshipItem relationshipItem : daoTrackedEntityInstance.getRelationshipItems() )
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
 
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                    && (params.hasIncluded( DELETED ) || !daoRelationship.isDeleted()) )
                 {
                     Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
@@ -1655,12 +1659,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             }
         }
 
-        if ( params.isIncludeEnrollments() )
+        if ( params.hasIncluded( ENROLLMENTS ) )
         {
             for ( ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances() )
             {
                 if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
-                    && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
+                    && (params.hasIncluded( DELETED ) || !programInstance.isDeleted()) )
                 {
                     trackedEntityInstance.getEnrollments()
                         .add( enrollmentService.getEnrollment( user, programInstance,
@@ -1669,7 +1673,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             }
         }
 
-        if ( params.isIncludeProgramOwners() )
+        if ( params.hasIncluded( PROGRAM_OWNERS ) )
         {
             for ( TrackedEntityProgramOwner programOwner : daoTrackedEntityInstance.getProgramOwners() )
             {
@@ -1678,12 +1682,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         }
 
-        Set<TrackedEntityAttribute> readableAttributesCopy = filterOutSkipSyncAttributesIfApplies( params,
-            trackedEntityInstance, readableAttributes );
-
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {
-            if ( readableAttributesCopy.contains( attributeValue.getAttribute() ) )
+            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
             {
                 Attribute attribute = new Attribute();
 
@@ -1702,37 +1703,5 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
 
         return trackedEntityInstance;
-    }
-
-    private Set<TrackedEntityAttribute> filterOutSkipSyncAttributesIfApplies( TrackedEntityInstanceParams params,
-        TrackedEntityInstance trackedEntityInstance, Set<TrackedEntityAttribute> readableAttributes )
-    {
-        Set<TrackedEntityAttribute> readableAttributesCopy;
-
-        if ( params.isDataSynchronizationQuery() )
-        {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram )
-                .collect( Collectors.toList() );
-
-            readableAttributesCopy = readableAttributes.stream().filter( att -> !att.getSkipSynchronization() )
-                .collect( Collectors.toSet() );
-
-            IdSchemes idSchemes = new IdSchemes();
-            for ( String programUid : programs )
-            {
-                Program program = getProgram( idSchemes, programUid );
-                if ( program != null )
-                {
-                    readableAttributesCopy.addAll( program.getTrackedEntityAttributes().stream()
-                        .filter( att -> !att.getSkipSynchronization() ).collect( Collectors.toSet() ) );
-                }
-            }
-        }
-        else
-        {
-            readableAttributesCopy = new HashSet<>( readableAttributes );
-        }
-
-        return readableAttributesCopy;
     }
 }

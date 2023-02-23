@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +121,7 @@ public abstract class AbstractStore
             String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL, getRelationshipEntityColumn(),
                 getRelationshipEntityColumn() ) );
 
-        if ( !ctx.getParams().isIncludeDeleted() )
+        if ( !ctx.getParams().hasIncluded( DELETED ) )
         {
             getRelationshipsHavingIdSQL.append( " AND r.deleted is false" );
         }

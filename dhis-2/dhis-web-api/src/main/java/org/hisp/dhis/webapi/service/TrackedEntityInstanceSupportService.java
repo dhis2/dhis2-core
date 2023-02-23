@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.util.List;
@@ -36,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -114,7 +119,7 @@ public class TrackedEntityInstanceSupportService
                     unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
 
-            if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
+            if ( trackedEntityInstanceParams.hasIncluded( Param.PROGRAM_OWNERS ) )
             {
                 List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream()
                     .filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
@@ -154,22 +159,22 @@ public class TrackedEntityInstanceSupportService
 
         if ( joined.contains( "relationships" ) )
         {
-            params = params.withIncludeRelationships( true );
+            params = params.with( RELATIONSHIPS, true );
         }
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withTeiEnrollmentParams( params.getTeiEnrollmentParams().withIncludeEnrollments( true ) );
+            params = params.with( ENROLLMENTS, true );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withTeiEnrollmentParams( params.getTeiEnrollmentParams().withIncludeEvents( true ) );
+            params = params.with( EVENTS, true );
         }
 
         if ( joined.contains( "programOwners" ) )
         {
-            params = params.withIncludeProgramOwners( true );
+            params = params.with( PROGRAM_OWNERS, true );
         }
 
         return params;

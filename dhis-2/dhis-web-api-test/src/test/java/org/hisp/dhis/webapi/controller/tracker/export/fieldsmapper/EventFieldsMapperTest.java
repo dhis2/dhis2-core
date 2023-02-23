@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -66,6 +67,6 @@ class EventFieldsMapperTest extends DhisControllerConvenienceTest
     {
         EventParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
-        assertEquals( expectRelationships, params.isIncludeRelationships() );
+        assertEquals( expectRelationships, params.hasIncluded( RELATIONSHIPS ) );
     }
 }

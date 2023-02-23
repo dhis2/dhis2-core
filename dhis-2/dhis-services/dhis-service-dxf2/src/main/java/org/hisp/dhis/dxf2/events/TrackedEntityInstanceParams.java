@@ -27,95 +27,56 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import lombok.Value;
-import lombok.With;
+import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
+
+import java.util.EnumSet;
+import java.util.stream.Collectors;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@With
-@Value
-public class TrackedEntityInstanceParams
+public class TrackedEntityInstanceParams extends Params
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true,
-        TrackedEntityInstanceEnrollmentParams.TRUE,
-        true,
-        true, false, false );
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams(
+        EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
+            ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
+            ENROLLMENTS_EVENTS_RELATIONSHIPS,
+            EVENTS,
+            EVENTS_RELATIONSHIPS ) );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
-        TrackedEntityInstanceEnrollmentParams.FALSE, false,
-        false, false, false );
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams(
+        EnumSet.noneOf( Param.class ) );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
-        TrackedEntityInstanceEnrollmentParams.TRUE,
-        true, true, true, true );
-
-    private boolean includeRelationships;
-
-    private TrackedEntityInstanceEnrollmentParams teiEnrollmentParams;
-
-    private boolean includeProgramOwners;
-
-    private boolean includeAttributes;
-
-    private boolean includeDeleted;
-
-    private boolean dataSynchronizationQuery;
-
-    public boolean isIncludeRelationships()
+    private TrackedEntityInstanceParams( EnumSet<Param> paramsSet )
     {
-        return includeRelationships;
+        super( paramsSet );
     }
 
-    public boolean isIncludeEnrollments()
+    public TrackedEntityInstanceParams with( Param param, boolean isIncluded )
     {
-        return teiEnrollmentParams.isIncludeEnrollments();
-    }
-
-    public boolean isIncludeProgramOwners()
-    {
-        return includeProgramOwners;
-    }
-
-    public boolean isIncludeAttributes()
-    {
-        return includeAttributes;
-    }
-
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    public boolean isDataSynchronizationQuery()
-    {
-        return dataSynchronizationQuery;
+        return new TrackedEntityInstanceParams( inclusion( param, isIncluded ) );
     }
 
     public EnrollmentParams getEnrollmentParams()
     {
-        return this.teiEnrollmentParams.getEnrollmentParams();
-    }
-
-    public TrackedEntityInstanceParams withEnrollmentParams( EnrollmentParams enrollmentParams )
-    {
-        return this.withTeiEnrollmentParams( getTeiEnrollmentParams().withEnrollmentParams( enrollmentParams ) );
-    }
-
-    public EventParams getEventParams()
-    {
-        return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
-    }
-
-    public TrackedEntityInstanceParams withEventParams( EventParams eventParams )
-    {
-        EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
-
-        EnrollmentEventsParams eventParamsToUpdate = enrollmentParams
-            .getEnrollmentEventsParams()
-            .withEventParams( eventParams );
-
-        return withTeiEnrollmentParams( this.teiEnrollmentParams.withEnrollmentParams( enrollmentParams
-            .withEnrollmentEventsParams( eventParamsToUpdate ) ) );
+        return EnrollmentParams.FALSE
+            .with( this.paramsSet.stream()
+                .filter(
+                    p -> p.getPrefix().isPresent() && p.getPrefix().get() == ENROLLMENTS )
+                .map( p -> fromFieldPath( p.getField() ) )
+                .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) ),
+                true )
+            .with( DELETED, this.paramsSet.contains( DELETED ) );
     }
 }

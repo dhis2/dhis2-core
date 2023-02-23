@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,10 +65,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
         // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
         TrackedEntityInstanceParams params = map( fields );
 
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
+        assertTrue( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -68,10 +76,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "relationships" );
 
-        assertTrue( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertTrue( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -79,10 +87,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "programOwners" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -90,10 +98,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "!relationships" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -101,10 +109,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "*,!relationships" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -112,10 +120,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "*,!programOwners" );
 
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertTrue( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -123,10 +131,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "programOwners[orgUnit],relationships[from[trackedEntity],to[*]]" );
 
-        assertTrue( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
+        assertTrue( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -134,12 +142,12 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "enrollments[!uid,!relationships],relationships[relationship]" );
 
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.getEnrollmentParams().isIncludeAttributes() );
-        assertFalse( params.getEnrollmentParams().isIncludeRelationships() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertTrue( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_ATTRIBUTES ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -147,10 +155,24 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "enrollments[events,relationships]" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
+    }
+
+    @Test
+    void mapNestedFieldsMatchesInnerParamsFields()
+    {
+        TrackedEntityInstanceParams params = map( "enrollments[events[relationships],relationships]" );
+
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.getEnrollmentParams().hasIncluded( EVENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertTrue( params.getEnrollmentParams().hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS_RELATIONSHIPS ) );
+        assertTrue( params.getEnrollmentParams().getEventParams().hasIncluded( RELATIONSHIPS ) );
     }
 
     @Test
@@ -159,17 +181,17 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
         // is order independent
         TrackedEntityInstanceParams params = map( "relationships,!relationships" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
 
         params = map( "!relationships,relationships" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS ) );
+        assertFalse( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     @Test
@@ -177,10 +199,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( "enrollments,enrollments[!status]" );
 
-        assertFalse( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.hasIncluded( RELATIONSHIPS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS ) );
+        assertTrue( params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertFalse( params.hasIncluded( PROGRAM_OWNERS ) );
     }
 
     static Stream<Arguments> mapEnrollmentsAndEvents()
@@ -215,8 +237,8 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstanceParams params = map( fields );
 
-        assertEquals( expectEvents, params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertEquals( expectEnrollments, params.isIncludeEnrollments() );
+        assertEquals( expectEvents, params.hasIncluded( ENROLLMENTS_EVENTS ) );
+        assertEquals( expectEnrollments, params.hasIncluded( ENROLLMENTS ) );
     }
 
     static Stream<Arguments> shouldSetCorrectRelationshipsWhenMixedRelationshipFields()
@@ -244,9 +266,9 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
 
         TrackedEntityInstanceParams params = map( fields );
 
-        assertEquals( expectTeiRelationship, params.isIncludeRelationships() );
-        assertEquals( expectEnrollmentRelationship, params.getEnrollmentParams().isIncludeRelationships() );
-        assertEquals( expectEventRelationships, params.getEventParams().isIncludeRelationships() );
+        assertEquals( expectTeiRelationship, params.hasIncluded( RELATIONSHIPS ) );
+        assertEquals( expectEnrollmentRelationship, params.hasIncluded( ENROLLMENTS_RELATIONSHIPS ) );
+        assertEquals( expectEventRelationships, params.hasIncluded( ENROLLMENTS_EVENTS_RELATIONSHIPS ) );
     }
 
     private TrackedEntityInstanceParams map( String fields )

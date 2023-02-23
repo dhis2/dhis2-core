@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
@@ -36,10 +35,7 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
-import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
+import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -53,10 +49,6 @@ public class TrackedEntityFieldsParamMapper
 {
     private final FieldFilterService fieldFilterService;
 
-    private static final String FIELD_PROGRAM_OWNERS = "programOwners";
-
-    private static final String FIELD_ENROLLMENTS = "enrollments";
-
     public TrackedEntityInstanceParams map( List<FieldPath> fields )
     {
         return map( fields, false );
@@ -64,32 +56,14 @@ public class TrackedEntityFieldsParamMapper
 
     public TrackedEntityInstanceParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        Map<String, FieldPath> roots = rootFields( fields );
+        TrackedEntityInstanceParams params = initUsingAllOrNoFields( rootFields( fields ) );
 
-        TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
-        params = params.withIncludeRelationships(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_RELATIONSHIPS ) );
-        params = params.withIncludeProgramOwners(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_PROGRAM_OWNERS ) );
-        params = params.withIncludeAttributes(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ATTRIBUTES ) );
-
-        EventParams eventParams = new EventParams(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.events.relationships" ) );
-        EnrollmentEventsParams enrollmentEventsParams = new EnrollmentEventsParams(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.events" ),
-            eventParams );
-        EnrollmentParams enrollmentParams = new EnrollmentParams(
-            enrollmentEventsParams,
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.relationships" ),
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.attributes" ),
-            includeDeleted,
-            false );
-        TrackedEntityInstanceEnrollmentParams teiEnrollmentParams = new TrackedEntityInstanceEnrollmentParams(
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ENROLLMENTS ),
-            enrollmentParams );
-        params = params.withTeiEnrollmentParams( teiEnrollmentParams );
-        return params;
+        for ( Param p : Param.values() )
+        {
+            params = params.with( p,
+                fieldFilterService.filterIncludes( TrackedEntity.class, fields, p.getFieldPath() ) );
+        }
+        return params.with( DELETED, includeDeleted );
     }
 
     private static TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )

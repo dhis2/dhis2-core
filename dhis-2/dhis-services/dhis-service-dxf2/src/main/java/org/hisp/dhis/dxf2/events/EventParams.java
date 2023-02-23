@@ -27,16 +27,32 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import lombok.Value;
-import lombok.With;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 
-@With
-@Value
-public class EventParams
+import java.util.EnumSet;
+
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public class EventParams extends Params
 {
-    public static final EventParams TRUE = new EventParams( true );
+    public static final EventParams TRUE = new EventParams(
+        EnumSet.of( RELATIONSHIPS ) );
 
-    public static final EventParams FALSE = new EventParams( false );
+    public static final EventParams FALSE = new EventParams( EnumSet.noneOf( Param.class ) );
 
-    private boolean includeRelationships;
+    private EventParams( EnumSet<Param> paramsSet )
+    {
+        super( paramsSet );
+    }
+
+    public EventParams with( Param param, boolean isIncluded )
+    {
+        return new EventParams( inclusion( param, isIncluded ) );
+    }
+
+    public EventParams with( EnumSet<Param> param, boolean isIncluded )
+    {
+        return new EventParams( inclusion( param, isIncluded ) );
+    }
 }

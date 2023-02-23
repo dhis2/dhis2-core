@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
@@ -35,6 +40,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -72,6 +78,17 @@ class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest
             arguments( "relationships,relationships[!from]", false, false, true ) );
     }
 
+    @Test
+    void mapNestedFieldsMatchesInnerParamsFields()
+    {
+        EnrollmentParams params = mapper
+            .map( FieldFilterParser.parse( "events[relationships]" ) );
+
+        assertTrue( params.hasIncluded( EVENTS ) );
+        assertTrue( params.hasIncluded( EVENTS_RELATIONSHIPS ) );
+        assertTrue( params.getEventParams().hasIncluded( RELATIONSHIPS ) );
+    }
+
     @MethodSource
     @ParameterizedTest
     void getEnrollmentParamsMultipleCases( String fields, boolean expectAttributes,
@@ -79,8 +96,8 @@ class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest
     {
         EnrollmentParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
-        assertEquals( expectAttributes, params.isIncludeAttributes() );
-        assertEquals( expectEvents, params.isIncludeEvents() );
-        assertEquals( expectRelationships, params.isIncludeRelationships() );
+        assertEquals( expectAttributes, params.hasIncluded( ATTRIBUTES ) );
+        assertEquals( expectEvents, params.hasIncluded( EVENTS ) );
+        assertEquals( expectRelationships, params.hasIncluded( RELATIONSHIPS ) );
     }
 }

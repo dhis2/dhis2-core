@@ -61,7 +61,7 @@ public interface EventService
 
     Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+    Event getEvent( ProgramStageInstance programStageInstance,
         boolean skipOwnershipCheck, EventParams eventParams );
 
     // TODO remove these 2 methods and move the logic to the front-end

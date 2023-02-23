@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.util.List;
@@ -115,7 +116,7 @@ class TrackedEntitiesSupportService
                     unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
 
-            if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
+            if ( trackedEntityInstanceParams.hasIncluded( PROGRAM_OWNERS ) )
             {
                 List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream()
                     .filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );

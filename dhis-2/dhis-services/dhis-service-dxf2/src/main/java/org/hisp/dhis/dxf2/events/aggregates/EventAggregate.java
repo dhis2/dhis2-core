@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -89,7 +91,7 @@ public class EventAggregate
          * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getEventParams().isIncludeRelationships(),
+            ctx.getEventParams().hasIncluded( Param.RELATIONSHIPS ),
             () -> eventStore.getRelationships( eventIds, ctx ), getPool() );
 
         /*
@@ -112,7 +114,7 @@ public class EventAggregate
 
             for ( Event event : events.values() )
             {
-                if ( ctx.getParams().isIncludeRelationships() )
+                if ( ctx.getEventParams().hasIncluded( RELATIONSHIPS ) )
                 {
                     event.setRelationships( new HashSet<>( relationships.get( event.getEvent() ) ) );
                 }

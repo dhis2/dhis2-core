@@ -27,59 +27,53 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import lombok.Value;
-import lombok.With;
+import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
 
-@With
-@Value
-public class EnrollmentParams
+import java.util.EnumSet;
+import java.util.stream.Collectors;
+
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public class EnrollmentParams extends Params
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false,
-        false );
+    public static final EnrollmentParams TRUE = new EnrollmentParams(
+        EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
+            EVENTS,
+            EVENTS_RELATIONSHIPS ) );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false, false );
+    public static final EnrollmentParams FALSE = new EnrollmentParams( EnumSet.noneOf( Param.class ) );
 
-    private EnrollmentEventsParams enrollmentEventsParams;
-
-    private boolean includeRelationships;
-
-    private boolean includeAttributes;
-
-    private boolean includeDeleted;
-
-    private boolean dataSynchronizationQuery;
-
-    public boolean isIncludeRelationships()
+    private EnrollmentParams( EnumSet<Param> paramsSet )
     {
-        return includeRelationships;
+        super( paramsSet );
     }
 
-    public boolean isIncludeEvents()
+    public EnrollmentParams with( Param param, boolean isIncluded )
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        return new EnrollmentParams( inclusion( param, isIncluded ) );
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    public EnrollmentParams with( EnumSet<Param> param, boolean isIncluded )
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted,
-                this.dataSynchronizationQuery );
+        return new EnrollmentParams( inclusion( param, isIncluded ) );
     }
 
-    public boolean isIncludeAttributes()
+    public EventParams getEventParams()
     {
-        return includeAttributes;
-    }
-
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    public boolean isDataSynchronizationQuery()
-    {
-        return dataSynchronizationQuery;
+        return EventParams.FALSE
+            .with(
+                this.paramsSet.stream()
+                    .filter(
+                        p -> p.getPrefix().isPresent() && p.getPrefix().get() == EVENTS )
+                    .map( p -> fromFieldPath( p.getField() ) )
+                    .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) ),
+                true )
+            .with( DELETED, this.paramsSet.contains( DELETED ) );
     }
 }

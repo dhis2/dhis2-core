@@ -28,6 +28,11 @@
 package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
+import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_RELATIONSHIPS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
@@ -86,18 +91,18 @@ public class EnrollmentAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeEvents(),
+            ctx.getEnrollmentParams().hasIncluded( EVENTS ),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeRelationships(),
+            ctx.getEnrollmentParams().hasIncluded( RELATIONSHIPS ),
             () -> enrollmentStore.getRelationships( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ), getPool() );
 
         final CompletableFuture<Multimap<String, Attribute>> attributesAsync = conditionalAsyncFetch(
-            ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes(),
+            ctx.getEnrollmentParams().hasIncluded( ATTRIBUTES ),
             () -> enrollmentStore.getAttributes( enrollmentIds, ctx ), getPool() );
 
         return allOf( eventAsync, notesAsync, relationshipAsync, attributesAsync ).thenApplyAsync( fn -> {
@@ -109,15 +114,15 @@ public class EnrollmentAggregate
 
             for ( Enrollment enrollment : enrollments.values() )
             {
-                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeEvents() )
+                if ( ctx.getEnrollmentParams().hasIncluded( EVENTS ) )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships() )
+                if ( ctx.getEnrollmentParams().hasIncluded( ENROLLMENTS_RELATIONSHIPS ) )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes() )
+                if ( ctx.getEnrollmentParams().hasIncluded( ENROLLMENTS_ATTRIBUTES ) )
                 {
                     enrollment.setAttributes( new ArrayList<>( attributes.get( enrollment.getEnrollment() ) ) );
                 }

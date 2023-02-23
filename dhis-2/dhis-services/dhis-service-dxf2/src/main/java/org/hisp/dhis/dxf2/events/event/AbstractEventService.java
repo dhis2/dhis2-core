@@ -32,6 +32,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -566,12 +567,12 @@ public abstract class AbstractEventService implements EventService
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
     {
-        return getEvent( programStageInstance, false, false, eventParams );
+        return getEvent( programStageInstance, false, eventParams );
     }
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+    public Event getEvent( ProgramStageInstance programStageInstance,
         boolean skipOwnershipCheck, EventParams eventParams )
     {
         if ( programStageInstance == null )
@@ -649,19 +650,7 @@ public abstract class AbstractEventService implements EventService
         }
 
         Collection<EventDataValue> dataValues;
-        if ( !isSynchronizationQuery )
-        {
-            dataValues = programStageInstance.getEventDataValues();
-        }
-        else
-        {
-            Set<String> dataElementsToSync = programStageInstance.getProgramStage().getProgramStageDataElements()
-                .stream().filter( psde -> !psde.getSkipSynchronization() ).map( psde -> psde.getDataElement().getUid() )
-                .collect( Collectors.toSet() );
-
-            dataValues = programStageInstance.getEventDataValues().stream()
-                .filter( dv -> dataElementsToSync.contains( dv.getDataElement() ) ).collect( Collectors.toSet() );
-        }
+        dataValues = programStageInstance.getEventDataValues();
 
         for ( EventDataValue dataValue : dataValues )
         {
@@ -687,7 +676,7 @@ public abstract class AbstractEventService implements EventService
 
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
-        if ( eventParams.isIncludeRelationships() )
+        if ( eventParams.hasIncluded( RELATIONSHIPS ) )
         {
             event.setRelationships( programStageInstance.getRelationshipItems()
                 .stream()

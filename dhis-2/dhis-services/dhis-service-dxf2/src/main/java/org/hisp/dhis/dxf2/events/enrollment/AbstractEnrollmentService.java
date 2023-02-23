@@ -32,6 +32,10 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
+import static org.hisp.dhis.dxf2.events.Param.DELETED;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -347,27 +351,27 @@ public abstract class AbstractEnrollmentService
 
         enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
 
-        if ( params.isIncludeEvents() )
+        if ( params.hasIncluded( EVENTS ) )
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
+                if ( (params.hasIncluded( DELETED ) || !programStageInstance.isDeleted())
                     && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
                     enrollment.getEvents().add(
-                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
-                            params.getEnrollmentEventsParams().getEventParams() ) );
+                        eventService.getEvent( programStageInstance, true,
+                            params.getEventParams() ) );
                 }
             }
         }
 
-        if ( params.isIncludeRelationships() )
+        if ( params.hasIncluded( RELATIONSHIPS ) )
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                    && (params.hasIncluded( DELETED ) || !daoRelationship.isDeleted()) )
                 {
                     Optional<Relationship> relationship = relationshipService.findRelationship(
                         relationshipItem.getRelationship(),
@@ -377,7 +381,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        if ( params.isIncludeAttributes() )
+        if ( params.hasIncluded( ATTRIBUTES ) )
         {
             Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
                 .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );

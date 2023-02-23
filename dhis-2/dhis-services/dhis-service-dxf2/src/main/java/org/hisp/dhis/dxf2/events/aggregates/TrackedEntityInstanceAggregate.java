@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -138,6 +142,8 @@ public class TrackedEntityInstanceAggregate
             }
         } );
 
+        EnrollmentParams enrollmentParams = params.getEnrollmentParams();
+
         /*
          * Create a context with information which will be used to fetch the
          * entities. Use a superUser context if the user is null.
@@ -158,6 +164,8 @@ public class TrackedEntityInstanceAggregate
                 .programStages( Collections.emptyList() )
                 .relationshipTypes( Collections.emptyList() ) )
             .params( params )
+            .enrollmentParams( enrollmentParams )
+            .eventParams( enrollmentParams.getEventParams() )
             .queryParams( queryParams )
             .build();
 
@@ -166,7 +174,8 @@ public class TrackedEntityInstanceAggregate
          * (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids, ctx ),
+            ctx.getParams().hasIncluded( RELATIONSHIPS ),
+            () -> trackedEntityInstanceStore.getRelationships( ids, ctx ),
             getPool() );
 
         /*
@@ -174,14 +183,15 @@ public class TrackedEntityInstanceAggregate
          * if isIncludeEnrollments = true)
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeEnrollments(),
+            ctx.getParams().hasIncluded( ENROLLMENTS ),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntityInstance id
          */
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ),
+            ctx.getParams().hasIncluded( PROGRAM_OWNERS ),
+            () -> trackedEntityInstanceStore.getProgramOwners( ids ),
             getPool() );
 
         /*
@@ -286,7 +296,7 @@ public class TrackedEntityInstanceAggregate
         // Add all tet attributes. Conditionally filter out the ones marked for
         // skipSynchronization in case this is a dataSynchronization query
         Set<String> allowedAttributeUids = trackedEntityTypeAttributes.stream()
-            .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
+            .filter( att -> (!ctx.getQueryParams().isSynchronizationQuery() || !att.getSkipSynchronization()) )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
@@ -295,7 +305,7 @@ public class TrackedEntityInstanceAggregate
             if ( programs.contains( program.getUid() ) || ctx.isSuperUser() )
             {
                 allowedAttributeUids.addAll( teaByProgram.get( program ).stream()
-                    .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
+                    .filter( att -> (!ctx.getQueryParams().isSynchronizationQuery() || !att.getSkipSynchronization()) )
                     .map( BaseIdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) );
             }

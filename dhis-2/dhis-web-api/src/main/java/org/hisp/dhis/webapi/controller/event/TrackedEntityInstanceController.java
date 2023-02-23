@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
+import static org.hisp.dhis.dxf2.events.Param.EVENTS;
+import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
+import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
@@ -561,24 +565,22 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "relationships" ) )
         {
-            params = params.withIncludeRelationships( true );
+            params = params.with( RELATIONSHIPS, true );
         }
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withTeiEnrollmentParams(
-                params.getTeiEnrollmentParams().withIncludeEnrollments( true ) );
+            params = params.with( ENROLLMENTS, true );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withTeiEnrollmentParams(
-                params.getTeiEnrollmentParams().withIncludeEvents( true ) );
+            params = params.with( EVENTS, true );
         }
 
         if ( joined.contains( "programOwners" ) )
         {
-            params = params.withIncludeProgramOwners( true );
+            params = params.with( PROGRAM_OWNERS, true );
         }
 
         return params;

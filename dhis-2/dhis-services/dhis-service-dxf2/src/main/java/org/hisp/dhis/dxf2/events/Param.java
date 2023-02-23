@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.dxf2.events;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+import java.util.Arrays;
+import java.util.Optional;
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.Param;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public enum Param
 {
-    private final FieldFilterService fieldFilterService;
+    ATTRIBUTES( null, "attributes" ),
+    RELATIONSHIPS( null, "relationships" ),
+    PROGRAM_OWNERS( null, "programOwners" ),
+    DELETED( null, "deleted" ),
+    ENROLLMENTS( null, "enrollments" ),
+    EVENTS( null, "events" ),
+    EVENTS_RELATIONSHIPS( EVENTS, RELATIONSHIPS.getFieldPath() ),
+    ENROLLMENTS_EVENTS( ENROLLMENTS, EVENTS.getFieldPath() ),
+    ENROLLMENTS_RELATIONSHIPS( ENROLLMENTS, RELATIONSHIPS.getFieldPath() ),
+    ENROLLMENTS_ATTRIBUTES( ENROLLMENTS, ATTRIBUTES.getFieldPath() ),
+    ENROLLMENTS_EVENTS_RELATIONSHIPS( ENROLLMENTS, EVENTS_RELATIONSHIPS.getFieldPath() );
 
-    public EventParams map( List<FieldPath> fields )
+    private final Optional<Param> prefix;
+
+    private final String field;
+
+    Param( Param prefix, String field )
     {
-        EventParams params = initUsingAllOrNoFields( rootFields( fields ) );
-
-        for ( Param p : Param.values() )
-        {
-            params = params.with( p,
-                fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) );
-        }
-        return params;
+        this.prefix = null == prefix ? Optional.empty() : Optional.of( prefix );
+        this.field = field;
     }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    Optional<Param> getPrefix()
     {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
-        }
-        return params;
+        return this.prefix;
+    }
+
+    String getField()
+    {
+        return this.field;
+    }
+
+    public String getFieldPath()
+    {
+        return this.prefix.isPresent() ? String.join( ".", this.getPrefix().get().getField(),
+            this.field ) : this.field;
+    }
+
+    static Param fromFieldPath( String fieldPath )
+    {
+        return Arrays.stream( values() ).filter( p -> p.getFieldPath().equals( fieldPath ) ).findFirst().orElse( null );
     }
 }
