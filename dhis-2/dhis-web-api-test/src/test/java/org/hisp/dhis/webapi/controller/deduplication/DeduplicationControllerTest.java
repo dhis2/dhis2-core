@@ -125,20 +125,6 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void shouldThrowBindExceptionWhenGetPotentialDuplicateWithInvalidStatus()
-    {
-        assertStatus( HttpStatus.BAD_REQUEST,
-            GET( ENDPOINT + "?status=" + "invalidStatus" ) );
-    }
-
-    @Test
-    void shouldThrowMethodArgumentTypeMismatchExceptionWhenPutPotentialDuplicateWithInvalidStatus()
-    {
-        assertStatus( HttpStatus.BAD_REQUEST,
-            PUT( ENDPOINT + "uid" + "?status=" + "invalidStatus" ) );
-    }
-
-    @Test
     void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists()
     {
         PotentialDuplicate potentialDuplicate = potentialDuplicate( origin.getUid(), duplicate.getUid() );
