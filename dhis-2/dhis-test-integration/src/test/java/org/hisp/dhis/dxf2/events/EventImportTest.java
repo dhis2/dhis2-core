@@ -73,7 +73,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -105,7 +104,7 @@ import com.google.gson.JsonObject;
  */
 class EventImportTest extends TransactionalIntegrationTest
 {
-    private static final String DUE_DATE = "2022-12-12";
+    private static final String DUE_DATE = "2022-12-12T10:25:40.000";
 
     @Autowired
     private EventService eventService;
@@ -305,10 +304,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
 
-        final SimpleDateFormat format = new SimpleDateFormat();
-        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-
-        assertEquals( DUE_DATE, format.format( psi.getDueDate() ) );
+        assertEquals( DUE_DATE, DateUtils.getIso8601NoTz( psi.getDueDate() ) );
     }
 
     /**
