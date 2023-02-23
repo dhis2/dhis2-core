@@ -25,53 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.event.data;
 
-import org.hisp.dhis.common.Grid;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
+ * The class responsibility is to generate sql statement with nullif function
+ * like nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
  */
-public interface EnrollmentAnalyticsService
+final class ColumnWithNullIfAndAlias extends ColumnAndAlias
 {
-    String ITEM_TEI = "tei";
-
-    String ITEM_PI = "pi";
-
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
-    String ITEM_INCIDENT_DATE = "incidentdate";
-
-    String ITEM_STORED_BY = "storedby";
-
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
-
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_NAME_HIERARCHY = "ounamehierarchy";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_PROGRAM_STATUS = "programstatus";
+    /**
+     * private constructor
+     *
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     */
+    private ColumnWithNullIfAndAlias( String column, String alias )
+    {
+        super( column, alias );
+    }
 
     /**
-     * Returns a list of enrollments matching the given query.
+     * Builder method to create an instance of this class.
      *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     * @return ColumnWithNullIfAndAlias instance.
      */
-    Grid getEnrollments( EventQueryParams params );
+    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
+    {
+        return new ColumnWithNullIfAndAlias( column, alias );
+    }
+
+    /**
+     * Generate sql snippet with nullif function.
+     *
+     * @return sql snippet with nullif.
+     */
+    @Override
+    public String asSql()
+    {
+        if ( StringUtils.isNotEmpty( alias ) )
+        {
+            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
+        }
+        else
+        {
+            return column;
+        }
+    }
 }
