@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
@@ -39,18 +39,17 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -66,6 +65,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * This class provides methods responsible for extracting collections from
@@ -147,7 +149,7 @@ public class TeiFields
         Set<String> programAttributesUids = teiQueryParams.getCommonParams().getPrograms().stream()
             .map( Program::getProgramAttributes )
             .flatMap( List::stream )
-            .map( ProgramTrackedEntityAttribute::getUid ).collect( toSet() );
+            .map( programAttr -> programAttr.getAttribute().getUid() ).collect( toSet() );
 
         Stream<Field> programAttributes = teiQueryParams.getCommonParams().getPrograms().stream()
             .map( Program::getProgramAttributes )
@@ -158,7 +160,7 @@ public class TeiFields
 
         Stream<Field> trackedEntityAttributesFromType = getTrackedEntityAttributes(
             teiQueryParams.getTrackedEntityType() )
-                .filter( programTrackedEntityAttribute -> programAttributesUids
+                .filter( programTrackedEntityAttribute -> !programAttributesUids
                     .contains( programTrackedEntityAttribute.getUid() ) )
                 .map( BaseIdentifiableObject::getUid )
                 .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
@@ -253,10 +255,12 @@ public class TeiFields
             .forEach( f -> headersMap.put( f.getAlias(),
                 new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
-        getDimensionFields( teiQueryParams )
+        // Adding dimension headers.
+        fields.stream()
             .map( field -> findDimensionParamForField( field,
                 teiQueryParams.getCommonParams().getDimensionIdentifiers() ) )
-            .map( dimensionParam -> getHeaderForDimensionParam( dimensionParam, teiQueryParams.getCommonParams() ) )
+            .filter( Objects::nonNull )
+            .map( dimIdentifier -> getHeaderForDimensionParam( dimIdentifier, teiQueryParams.getCommonParams() ) )
             .forEach( g -> headersMap.put( g.getName(), g ) );
 
         return reorder( headersMap, fields );
@@ -289,19 +293,26 @@ public class TeiFields
      * Based on the given item this method returns the correct UID based on
      * internal rules.
      *
-     * @param item the current QueryItem.
+     * @param dimIdentifier the current {@link DimensionIdentifier}.
      * @return the respective item's uid.
      */
-    private static String getItemUid( @Nonnull QueryItem item )
+    private static String getItemUid( @Nonnull DimensionIdentifier<DimensionParam> dimIdentifier )
     {
-        String uid = item.getItemId();
+        List<String> uids = new ArrayList<>();
 
-        if ( item.hasProgramStage() )
+        if ( dimIdentifier.hasProgram() )
         {
-            uid = joinWith( ".", item.getProgramStage().getUid(), uid );
+            uids.add( dimIdentifier.getProgram().getElement().getUid() );
         }
 
-        return uid;
+        if ( dimIdentifier.hasProgramStage() )
+        {
+            uids.add( dimIdentifier.getProgramStage().getElement().getUid() );
+        }
+
+        uids.add( dimIdentifier.getDimension().getUid() );
+
+        return uids.stream().collect( joining( "." ) );
     }
 
     /**
@@ -309,18 +320,19 @@ public class TeiFields
      * on the given {@link CommonParams}. The last is needed because of
      * particular cases where we need a custom version of the header.
      *
-     * @param dimensionParam the {@link DimensionParam}.
+     * @param dimIdentifier the {@link DimensionIdentifier}.
      * @param commonParams the {@link CommonParams}.
      * @return the respective {@link GridHeader}.
      */
-    private static GridHeader getHeaderForDimensionParam( @Nonnull DimensionParam dimensionParam,
+    private static GridHeader getHeaderForDimensionParam( @Nonnull DimensionIdentifier<DimensionParam> dimIdentifier,
         @Nonnull CommonParams commonParams )
     {
+        DimensionParam dimensionParam = dimIdentifier.getDimension();
         QueryItem item = dimensionParam.getQueryItem();
 
         if ( item != null )
         {
-            return getCustomGridHeaderForItem( item, commonParams );
+            return getCustomGridHeaderForItem( item, commonParams, dimIdentifier );
         }
         else
         {
@@ -343,7 +355,7 @@ public class TeiFields
      * @return the correct {@link GridHeader} version.
      */
     private static GridHeader getCustomGridHeaderForItem( @Nonnull QueryItem queryItem,
-        @Nonnull CommonParams commonParams )
+        @Nonnull CommonParams commonParams, @Nonnull DimensionIdentifier<DimensionParam> dimIdentifier )
     {
         /*
          * If the request contains a query item of value type ORGANISATION_UNIT
@@ -371,7 +383,7 @@ public class TeiFields
         }
         else
         {
-            String itemUid = getItemUid( queryItem );
+            String itemUid = getItemUid( dimIdentifier );
             String column = queryItem.getItem().getDisplayProperty( commonParams.getDisplayProperty() );
 
             return new GridHeader( itemUid, column, queryItem.getValueType(), false, true, queryItem.getOptionSet(),
@@ -386,16 +398,15 @@ public class TeiFields
      *
      * @param field the {@link Field}.
      * @param dimensionIdentifiers the list of {@link DimensionIdentifier}.
-     * @return the correct {@link DimensionParam}
+     * @return the correct {@link DimensionIdentifier}
      * @throws IllegalStateException if nothing is found.
      */
-    private static DimensionParam findDimensionParamForField( @Nonnull Field field,
+    private static DimensionIdentifier findDimensionParamForField( @Nonnull Field field,
         @Nonnull List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
-            .filter( di -> di.toString().equals( field.getDimensionIdentifier() ) )
-            .map( DimensionIdentifier::getDimension )
+            .filter( di -> di.getKey().equals( field.getDimensionIdentifier() ) )
             .findFirst()
-            .orElseThrow( IllegalStateException::new );
+            .orElse( null );
     }
 }

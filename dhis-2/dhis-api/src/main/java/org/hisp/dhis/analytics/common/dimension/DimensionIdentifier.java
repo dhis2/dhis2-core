@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -87,6 +92,11 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
         return TEI;
     }
 
+    public boolean isEmpty()
+    {
+        return isBlank( getKey() );
+    }
+
     public boolean isEnrollmentDimension()
     {
         return hasProgram() && !hasProgramStage();
@@ -120,8 +130,26 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
         EVENT
     }
 
+    @Override
     public String getKey()
     {
-        return toString();
+        List<String> keys = new ArrayList<>();
+
+        if ( program != null && program.isPresent() )
+        {
+            keys.add( program.getElement().getUid() );
+        }
+
+        if ( programStage != null && programStage.isPresent() )
+        {
+            keys.add( programStage.getElement().getUid() );
+        }
+
+        if ( dimension != null )
+        {
+            keys.add( dimension.getUid() );
+        }
+
+        return keys.stream().collect( joining( "." ) );
     }
 }

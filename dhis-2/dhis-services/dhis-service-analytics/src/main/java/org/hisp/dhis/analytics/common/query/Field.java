@@ -53,6 +53,7 @@ public class Field extends BaseRenderable
     @Getter
     private final String fieldAlias;
 
+    @Getter
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final Boolean quotingNeeded;
@@ -130,7 +131,7 @@ public class Field extends BaseRenderable
 
     public String getDimensionIdentifier()
     {
-        return firstNonBlank( fieldAlias, dimensionIdentifier.getKey() );
+        return firstNonBlank( dimensionIdentifier.getKey(), fieldAlias );
     }
 
     @Override
