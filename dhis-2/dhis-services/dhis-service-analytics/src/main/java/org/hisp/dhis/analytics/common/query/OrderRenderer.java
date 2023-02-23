@@ -29,13 +29,12 @@ package org.hisp.dhis.analytics.common.query;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Renders the root "order by" clause, respecting the order of the indexed
@@ -49,13 +48,11 @@ public class OrderRenderer implements Renderable
     @Override
     public String render()
     {
-        String orderBy = RenderableUtils.join(
-            emptyIfNull( indexedOrders ).stream()
+        return RenderableUtils.join(
+            CollectionUtils.emptyIfNull( indexedOrders ).stream()
                 .sorted( comparing( IndexedOrder::getIndex ) )
                 .map( IndexedOrder::getRenderable )
                 .collect( toList() ),
             ", ", "order by " );
-
-        return isNotBlank( orderBy ) ? orderBy.concat( " nulls last" ) : EMPTY;
     }
 }

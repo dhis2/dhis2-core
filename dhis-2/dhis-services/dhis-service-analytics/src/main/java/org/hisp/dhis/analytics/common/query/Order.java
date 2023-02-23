@@ -52,6 +52,6 @@ public class Order extends BaseRenderable
             rendered += " desc";
         }
 
-        return rendered;
+        return rendered + " nulls last";
     }
 }
