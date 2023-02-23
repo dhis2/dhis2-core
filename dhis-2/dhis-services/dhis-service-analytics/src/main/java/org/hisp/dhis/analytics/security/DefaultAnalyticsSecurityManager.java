@@ -77,7 +77,7 @@ import org.springframework.stereotype.Service;
 public class DefaultAnalyticsSecurityManager
     implements AnalyticsSecurityManager
 {
-    private static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
+    public static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
 
     private final DataApprovalLevelService approvalLevelService;
 
@@ -104,6 +104,15 @@ public class DefaultAnalyticsSecurityManager
         decideAccessDataReadObjects( params, user );
     }
 
+    @Override
+    public void decideAccess( List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects )
+    {
+        User user = currentUserService.getCurrentUser();
+
+        decideAccessDataViewOrganisationUnits( queryOrgUnits, user );
+        decideAccessDataReadObjects( readObjects, user );
+    }
+
     /**
      * Checks whether the given user has data view access to organisation units.
      *
@@ -114,8 +123,19 @@ public class DefaultAnalyticsSecurityManager
     private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        List<OrganisationUnit> queryOrgUnits = params.getAllTypedOrganisationUnits();
+        decideAccessDataViewOrganisationUnits( params.getAllTypedOrganisationUnits(), user );
+    }
 
+    /**
+     * Checks whether the given user has data view access to organisation units.
+     *
+     * @param queryOrgUnits the organisation units to check.
+     * @param user the user to check.
+     * @throws IllegalQueryException if user does not have access.
+     */
+    private void decideAccessDataViewOrganisationUnits( List<OrganisationUnit> queryOrgUnits, User user )
+        throws IllegalQueryException
+    {
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
         {
             return; // Allow if no
@@ -166,7 +186,20 @@ public class DefaultAnalyticsSecurityManager
         {
             objects.add( params.getProgramStage() );
         }
+        decideAccessDataReadObjects( objects, user );
+    }
 
+    /**
+     * Checks whether the given user has data read access to all programs,
+     * program stages, data sets and category options in the request.
+     *
+     * @param objects the objects to check.
+     * @param user the user to check.
+     * @throws IllegalQueryException if user does not have access.
+     */
+    void decideAccessDataReadObjects( Set<IdentifiableObject> objects, User user )
+        throws IllegalQueryException
+    {
         for ( IdentifiableObject object : objects )
         {
             if ( !aclService.canDataRead( user, object ) )
@@ -181,16 +214,17 @@ public class DefaultAnalyticsSecurityManager
     public void decideAccessEventQuery( EventQueryParams params )
     {
         decideAccess( params );
-        decideAccessEventAnalyticsAuthority( params );
+        decideAccessEventAnalyticsAuthority();
     }
 
     /**
      * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
      * authority.
      *
-     * @param params the {@link {@link DataQueryParams}.
+     * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    @Override
+    public void decideAccessEventAnalyticsAuthority()
     {
         User user = currentUserService.getCurrentUser();
 
@@ -344,9 +378,15 @@ public class DefaultAnalyticsSecurityManager
             return;
         }
 
+        // DimensionalObjects from the params
+        List<DimensionalObject> dimensionalObjects = Stream.concat(
+            params.getDimensions().stream(),
+            params.getFilters().stream() )
+            .collect( Collectors.toList() );
+
         // Categories the user is constrained to
         Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
-            : getCategoriesWithoutRestrictions( params );
+            : getCategoriesWithoutRestrictions( params.getProgram(), dimensionalObjects );
 
         // union of user and category constraints
         Set<DimensionalObject> dimensionConstraints = Stream.concat(

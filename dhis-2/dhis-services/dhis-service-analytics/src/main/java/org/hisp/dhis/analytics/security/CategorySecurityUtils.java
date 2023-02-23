@@ -29,14 +29,13 @@ package org.hisp.dhis.analytics.security;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DimensionType;
@@ -51,23 +50,41 @@ public class CategorySecurityUtils
      * user, an empty set is returned. If the user is not super user, the
      * categories of the program category combo are returned if present.
      *
-     * @param params the data query parameters.
+     * @param program the program to get the categories from
+     * @param dimensionalObjects the dimensional objects
      * @return the categories the user is constrained to.
      */
-    static Collection<Category> getCategoriesWithoutRestrictions( DataQueryParams params )
+    public static Collection<Category> getCategoriesWithoutRestrictions( Program program,
+        List<DimensionalObject> dimensionalObjects )
     {
-        return Optional.of( params )
-            .map( DataQueryParams::getProgram )
+        List<Program> programs = Optional.ofNullable( program )
+            .map( Collections::singletonList )
+            .orElse( Collections.emptyList() );
+        return getCategoriesWithoutRestrictions( programs, dimensionalObjects );
+    }
+
+    /**
+     * Returns the categories the user is constrained to. If the user is super
+     * user, an empty set is returned. If the user is not super user, the
+     * categories of the program category combo are returned if present.
+     *
+     * @param programs the programs to get the categories from
+     * @param dimensionalObjects the dimensional objects
+     * @return the categories the user is constrained to.
+     */
+    public static Collection<Category> getCategoriesWithoutRestrictions( List<Program> programs,
+        List<DimensionalObject> dimensionalObjects )
+    {
+        return programs.stream()
             .filter( Program::hasNonDefaultCategoryCombo )
             .map( Program::getCategoryCombo )
             .map( CategoryCombo::getCategories )
-            .orElse( Collections.emptyList() )
-            .stream()
+            .flatMap( Collection::stream )
             /*
              * If the user has selected a category option, we do not want to
              * apply any constraints
              */
-            .filter( category -> !hasUserSelectedCategoryOption( category, params ) )
+            .filter( category -> !hasUserSelectedCategoryOption( category, dimensionalObjects ) )
             .collect( Collectors.toList() );
     }
 
@@ -75,18 +92,15 @@ public class CategorySecurityUtils
      * Returns true if the user has selected a category option for the given
      * category.
      *
-     * @param category the category
-     * @param params the data query parameters.
+     * @param category the category to check
+     * @param dimensionalObjects the dimensional objects
      * @return true if the user has selected a category option for the given
      *         category.
      */
-    private static boolean hasUserSelectedCategoryOption( Category category, DataQueryParams params )
+    private static boolean hasUserSelectedCategoryOption( Category category,
+        List<DimensionalObject> dimensionalObjects )
     {
-        Stream<DimensionalObject> dimensionalObjects = Stream.concat(
-            params.getDimensions().stream(),
-            params.getFilters().stream() );
-
-        return dimensionalObjects
+        return dimensionalObjects.stream()
             .anyMatch( dimensionalObject -> hasUserConstraints( dimensionalObject, category ) );
     }
 
@@ -94,8 +108,8 @@ public class CategorySecurityUtils
      * Returns true if the given dimensionalObject contains any constraint on
      * the given Category
      *
-     * @param dimensionalObject the dimensional object
-     * @param category the category
+     * @param dimensionalObject the dimensional object to check
+     * @param category the category to check
      * @return true if the given dimensionalObject contains any constraint on
      *         the given Category
      */

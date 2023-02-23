@@ -38,9 +38,9 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A test for {@link CategorySecurityUtils} This class is a test for the method
- * {@link CategorySecurityUtils#getCategoriesWithoutRestrictions(DataQueryParams)}
+ * {@link CategorySecurityUtils#getCategoriesWithoutRestrictions(List, List)}
  * which is used to get the categories that are not restricted by the user.
  */
 class CategorySecurityUtilsTest
@@ -123,10 +123,15 @@ class CategorySecurityUtilsTest
         EventQueryParams params = paramBuilder.build();
 
         // the actual tested method
-        List<String> actual = getCategoriesWithoutRestrictions( params )
-            .stream()
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+        List<String> actual = getCategoriesWithoutRestrictions(
+            params.getProgram(),
+            Stream.concat(
+                params.getDimensions().stream(),
+                params.getFilters().stream() )
+                .collect( Collectors.toList() ) )
+                    .stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() );
 
         assertThat( expected, containsInAnyOrder( actual.toArray() ) );
         assertThat( actual, hasSize( expected.size() ) );
