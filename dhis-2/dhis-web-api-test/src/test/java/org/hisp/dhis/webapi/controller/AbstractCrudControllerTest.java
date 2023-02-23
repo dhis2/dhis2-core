@@ -781,6 +781,24 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
     }
 
+    @Test
+    void testFieldFilterWithAttribute()
+    {
+        Attribute attribute = createAttribute( 'A' );
+        attribute.setDataElementAttribute( true );
+        manager.save( attribute );
+
+        JsonList<JsonIdentifiableObject> response = GET(
+            "/attributes?fields=id,name&filter=dataElementAttribute:eq:true" )
+                .content().getList( "attributes", JsonIdentifiableObject.class );
+        assertEquals( attribute.getUid(), response.get( 0 ).getId() );
+
+        response = GET(
+            "/attributes?fields=id,name&filter=userAttribute:eq:true" )
+                .content().getList( "attributes", JsonIdentifiableObject.class );
+        assertEquals( 0, response.size() );
+    }
+
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
     {
         JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId, userId ).content()
