@@ -150,6 +150,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -740,7 +741,7 @@ public class DefaultExpressionService
             .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
             .statementBuilder( statementBuilder )
-            .i18n( i18nManager.getI18n() )
+            .i18nSupplier( Suppliers.memoize( i18nManager::getI18n ) )
             .constantMap( getConstantMap() )
             .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( params.getParseType() ) )
             .itemMethod( itemMethod )

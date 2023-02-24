@@ -114,6 +114,11 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
         return programIndicatorService.getAnalyticsSql( expression, NUMERIC, programIndicator, startDate, endDate );
     }
 
+    private Object describe( String expression )
+    {
+        return programIndicatorService.getExpressionDescription( expression );
+    }
+
     // -------------------------------------------------------------------------
     // Program variables tests (in alphabetical order)
     // -------------------------------------------------------------------------
@@ -280,5 +285,15 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
         assertEquals(
             "coalesce(\"TEAttribute\"::text,'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
             getSqlEnrollment( "A{TEAttribute} + V{zero_pos_value_count}" ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Get description
+    // -------------------------------------------------------------------------
+
+    @Test
+    void testOrgUnitCountDescription()
+    {
+        assertEquals( "Organisation unit count", describe( "V{org_unit_count}" ) );
     }
 }
