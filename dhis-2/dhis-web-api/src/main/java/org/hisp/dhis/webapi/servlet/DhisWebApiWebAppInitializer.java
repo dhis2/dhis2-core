@@ -51,8 +51,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-@Order( 10 )
 @Slf4j
+@Order( 10 )
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
 {
     @Override
@@ -84,6 +84,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
         dispatcher.addMapping( "/uaa/*" );
+
+        context.addFilter( "webMetricsFilter", new DelegatingFilterProxy( "webMetricsFilter" ) )
+            .addMappingForUrlPatterns( null, false, "/*" );
 
         FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
             OpenSessionInViewFilter.class );
