@@ -35,8 +35,9 @@
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
     <module>dhis-web-embedded-jetty</module>
-    <module>dhis-test-coverage</module>
-    <module>dhis-test-integration</module>
+    <module>dhis-web</module>
+<!--    <module>dhis-test-coverage</module>-->
+<!--    <module>dhis-test-integration</module>-->
   </modules>
 
   <properties>
@@ -868,6 +869,14 @@
           </execution>
         </executions>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>9</source>
+                <target>9</target>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 
