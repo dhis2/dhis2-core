@@ -37,27 +37,53 @@ import java.util.Set;
 public enum ImageFileDimension
 {
     // Icon sizes. Default size for DHIS2 icons are 48. Android uses 40.
-    ICON_40( "40x40" ),
-    ICON_48( "48x48" ),
+    ICON_40( "40x40", 40, 40 ),
+    ICON_48( "48x48", 48, 48 ),
 
     // Picture sizes, primarily such as profile pictures.
-    SMALL( "small" ),
-    MEDIUM( "medium" ),
-    LARGE( "large" ),
+    SMALL( "small", 256, 256 ),
+    MEDIUM( "medium", 512, 512 ),
+    LARGE( "large", 1024, 1024 ),
 
     // Original size, meaning no resizing / default.
-    ORIGINAL( "" );
+    ORIGINAL( "", -1, -1 );
 
     private final String dimension;
 
-    ImageFileDimension( String dimension )
+    private final int height;
+
+    private final int width;
+
+    ImageFileDimension( String dimension, int height, int width )
     {
         this.dimension = dimension;
+        this.height = height;
+        this.width = width;
     }
 
     public String getDimension()
     {
         return this.dimension;
+    }
+
+    public int getHeight()
+    {
+        return height;
+    }
+
+    public int getWidth()
+    {
+        return width;
+    }
+
+    public static Set<ImageFileDimension> getPictureDimensions()
+    {
+        return Set.of( SMALL, MEDIUM, LARGE, ORIGINAL );
+    }
+
+    public static Set<ImageFileDimension> getIconDimensions()
+    {
+        return Set.of( ICON_40, ICON_48, ORIGINAL );
     }
 
     public static Optional<ImageFileDimension> from( String dimension )
@@ -71,15 +97,5 @@ public enum ImageFileDimension
         }
 
         return Optional.empty();
-    }
-
-    public static Set<ImageFileDimension> getPictureDimensions()
-    {
-        return Set.of( SMALL, MEDIUM, LARGE, ORIGINAL );
-    }
-
-    public static Set<ImageFileDimension> getIconDimensions()
-    {
-        return Set.of( ICON_40, ICON_48, ORIGINAL );
     }
 }
