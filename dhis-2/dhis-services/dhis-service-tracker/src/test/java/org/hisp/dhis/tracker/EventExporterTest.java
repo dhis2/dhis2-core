@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.junit.Assert.assertEquals;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -102,5 +107,59 @@ public class EventExporterTest
 
         assertNotNull( events );
         assertEquals( 1, events.getEvents().size() );
+    }
+
+    @Test
+    public void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateStart( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        Events events = eventService.getEvents( params );
+
+        assertNotNull( events );
+        assertIsEmpty( events.getEvents() );
+    }
+
+    @Test
+    public void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateStart( parseDate( "2018-02-28T13:05:00.000" ) );
+
+        Events events = eventService.getEvents( params );
+
+        assertNotNull( events );
+        assertContainsOnly( Arrays.asList( "D9PbzJY8bJM", "D9PbzJY8bJO" ),
+            events.getEvents().stream().map( Event::getEvent ).toArray( String[]::new ) );
+    }
+
+    @Test
+    public void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateEnd( parseDate( "2018-02-28T13:05:00.000" ) );
+
+        Events events = eventService.getEvents( params );
+
+        assertNotNull( events );
+        assertIsEmpty( events.getEvents() );
+    }
+
+    @Test
+    public void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateEnd( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        Events events = eventService.getEvents( params );
+
+        assertNotNull( events );
+        assertContainsOnly( Arrays.asList( "D9PbzJY8bJM", "D9PbzJY8bJO" ),
+            events.getEvents().stream().map( Event::getEvent ).toArray( String[]::new ) );
     }
 }
