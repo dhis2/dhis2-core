@@ -117,7 +117,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                 psi.setDeleted( rs.getBoolean( "deleted" ) );
                 psi.setProgramStage( getProgramStage( importOptions, rs.getLong( "programstageid" ) ) );
                 psi.setOrganisationUnit( getOu( rs ) );
-                psi.setDueDate( rs.getDate( "duedate" ) );
+                psi.setDueDate( rs.getTimestamp( "duedate" ) );
                 psi.setExecutionDate( rs.getDate( "executiondate" ) );
                 psi.setCompletedDate( rs.getDate( "completeddate" ) );
                 psi.setAttributeOptionCombo( getCatOptionCombo( rs ) );

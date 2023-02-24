@@ -1262,6 +1262,24 @@ public class JdbcEventStore implements EventStore
                 .append( " (pi.incidentdate >= :enrollmentOccurredAfter ) " );
         }
 
+        if ( params.getDueDateStart() != null )
+        {
+            mapSqlParameterSource.addValue( "startDueDate", params.getDueDateStart(), Types.TIMESTAMP );
+
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (psi.duedate is not null and psi.duedate >= :startDueDate ) " );
+        }
+
+        if ( params.getDueDateEnd() != null )
+        {
+            mapSqlParameterSource.addValue( "endDueDate", params.getDueDateEnd(), Types.TIMESTAMP );
+
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (psi.duedate is not null and psi.duedate <= :endDueDate ) " );
+        }
+
         if ( params.getFollowUp() != null )
         {
             fromBuilder.append( hlp.whereAnd() )

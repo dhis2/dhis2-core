@@ -811,6 +811,54 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateStart( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> events = eventsFunction.apply( params );
+
+        assertIsEmpty( events );
+    }
+
+    @Test
+    void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateStart( parseDate( "2018-02-28T13:05:00.000" ) );
+
+        List<String> events = eventsFunction.apply( params );
+
+        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+    }
+
+    @Test
+    void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateEnd( parseDate( "2018-02-28T13:05:00.000" ) );
+
+        List<String> events = eventsFunction.apply( params );
+
+        assertIsEmpty( events );
+    }
+
+    @Test
+    void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setDueDateEnd( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> events = eventsFunction.apply( params );
+
+        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+    }
+
+    @Test
     void shouldSortEntitiesRespectingOrderWhenOrderAndAttributeOrderSupplied()
     {
         EventSearchParams params = new EventSearchParams();

@@ -50,11 +50,16 @@ public class Dhis2Response
     private Status status;
 
     @JsonProperty
-    private HttpStatus httpStatus;
+    private Integer httpStatusCode;
 
     @JsonProperty
     private ErrorCode errorCode;
 
     @JsonProperty
     private String message;
+
+    public HttpStatus getHttpStatus()
+    {
+        return httpStatusCode != null ? HttpStatus.valueOf( httpStatusCode ) : null;
+    }
 }
