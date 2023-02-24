@@ -42,9 +42,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.CommonParams;
@@ -64,6 +61,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for checking that the current user has access to
@@ -171,7 +171,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if current user has data view organisation units
         // ---------------------------------------------------------------------
-
         if ( user == null || !user.hasDataViewOrganisationUnit() )
         {
             return;
@@ -180,7 +179,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if request already has organisation units specified
         // ---------------------------------------------------------------------
-
         boolean hasOrgUnit = commonParams
             .getDimensionIdentifiers().stream()
             .anyMatch( OrgUnitQueryBuilder::isOu );
@@ -234,7 +232,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if current user has dimension constraints
         // ---------------------------------------------------------------------
-
         if ( user == null )
         {
             return;
@@ -269,7 +266,6 @@ public class CommonParamsSecurityManager
             // -----------------------------------------------------------------
             // Check if dimension constraint already is specified with items
             // -----------------------------------------------------------------
-
             if ( hasDimensionOrFilterWithItems( commonParams, dimension.getUid() ) )
             {
                 continue;
@@ -281,7 +277,6 @@ public class CommonParamsSecurityManager
             // -----------------------------------------------------------------
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
-
             if ( canReadItems.isEmpty() )
             {
                 throwIllegalQueryEx( ErrorCode.E7123, dimension.getDimension() );

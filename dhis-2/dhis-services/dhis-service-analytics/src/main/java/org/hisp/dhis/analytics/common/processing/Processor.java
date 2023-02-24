@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import javax.annotation.Nonnull;
+
 /**
  * Interface responsible for processing and/or transforming the internals of
  * objects of the given type.
@@ -38,8 +40,9 @@ public interface Processor<T>
     /**
      * Processes the given object based on the implementation logic/rules.
      *
-     * @param object to be processed
-     * @return T
+     * @param object to be processed.
+     * @return the processed T.
      */
-    T process( T object );
+    @Nonnull
+    T process( @Nonnull T object );
 }

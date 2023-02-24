@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import javax.annotation.Nonnull;
-
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.Pager;
@@ -89,7 +87,7 @@ class MetadataPagingHandler
      * @param grid the {@link Grid}.
      * @return return true if this is the last page, false otherwise.
      */
-    private boolean handleLastPageFlag( @Nonnull AnalyticsPagingParams pagingParams, @Nonnull Grid grid )
+    private boolean handleLastPageFlag(   AnalyticsPagingParams pagingParams,   Grid grid )
     {
         boolean isLastPage = grid.getHeight() > 0 && grid.getHeight() < pagingParams.getPageSizePlusOne();
 
@@ -105,7 +103,7 @@ class MetadataPagingHandler
      * @param pagingParams the {@link AnalyticsPagingParams}.
      * @param grid the {@link Grid}.
      */
-    private void removeLastRow( @Nonnull AnalyticsPagingParams pagingParams, @Nonnull Grid grid )
+    private void removeLastRow(   AnalyticsPagingParams pagingParams,   Grid grid )
     {
         boolean hasNextPageRow = grid.getHeight() == pagingParams.getPageSizePlusOne();
 

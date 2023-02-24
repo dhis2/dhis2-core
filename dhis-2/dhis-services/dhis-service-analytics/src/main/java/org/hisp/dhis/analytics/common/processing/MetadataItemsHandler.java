@@ -46,7 +46,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.calendar.Calendar;
@@ -186,9 +185,9 @@ public class MetadataItemsHandler
      * @param includeItemDetails whether to include metadata item details.
      * @param displayProperty the {@link DisplayProperty}.
      */
-    private void addItemToMap( @Nonnull Map<String, MetadataItem> metadataItemMap, @Nonnull QueryItem item,
+    private void addItemToMap(   Map<String, MetadataItem> metadataItemMap,   QueryItem item,
         boolean includeItemDetails,
-        @Nonnull DisplayProperty displayProperty )
+          DisplayProperty displayProperty )
     {
         MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
             returnSameOrNull( includeItemDetails, item.getItem() ) );
@@ -211,8 +210,8 @@ public class MetadataItemsHandler
      * @param includeMetadataDetails whether to include item details.
      * @return a map of {@link MetadataItem} and its respective key.
      */
-    private Map<String, MetadataItem> getDimensionMetadataItemMap( @Nonnull Grid grid,
-        List<DimensionalObject> dimensionsAndFilters, @Nonnull DisplayProperty displayProperty,
+    private Map<String, MetadataItem> getDimensionMetadataItemMap(   Grid grid,
+        List<DimensionalObject> dimensionsAndFilters,   DisplayProperty displayProperty,
         @CheckForNull List<Program> programs,
         @CheckForNull Set<ProgramStage> programStages, boolean includeMetadataDetails )
     {
@@ -262,8 +261,8 @@ public class MetadataItemsHandler
      * @param displayProperty the {@link DisplayProperty}.
      * @param includeMetadataDetails whether to include option item details.
      */
-    private void putDimensionItemsIntoMap( @Nonnull Map<String, MetadataItem> metadataItemMap, @Nonnull Grid grid,
-        @Nonnull List<DimensionalObject> dimensionsAndFilters, @Nonnull DisplayProperty displayProperty,
+    private void putDimensionItemsIntoMap(   Map<String, MetadataItem> metadataItemMap,   Grid grid,
+          List<DimensionalObject> dimensionsAndFilters,   DisplayProperty displayProperty,
         boolean includeMetadataDetails )
     {
         List<OrganisationUnit> organisationUnits = new ArrayList<>();
@@ -373,9 +372,9 @@ public class MetadataItemsHandler
      * @param displayProperty the {@link DisplayProperty}.
      * @param includeMetadataDetails whether to include option item details.
      */
-    private void putItemOptionsIntoMap( @Nonnull Map<String, MetadataItem> metadataItemMap,
+    private void putItemOptionsIntoMap(   Map<String, MetadataItem> metadataItemMap,
         @CheckForNull Set<Option> itemOptions,
-        @Nonnull DisplayProperty displayProperty, boolean includeMetadataDetails )
+          DisplayProperty displayProperty, boolean includeMetadataDetails )
     {
         if ( isNotEmpty( itemOptions ) )
         {

@@ -80,7 +80,7 @@ public class GridAdaptor
      *         least one null element, or if the queryResult is null.
      */
     public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
-        @Nonnull TeiQueryParams teiQueryParams, List<Field> fields )
+          TeiQueryParams teiQueryParams, List<Field> fields )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
 

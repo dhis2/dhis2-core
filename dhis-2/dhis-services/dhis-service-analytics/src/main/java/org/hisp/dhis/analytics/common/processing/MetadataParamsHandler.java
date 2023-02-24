@@ -42,8 +42,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
@@ -150,7 +148,7 @@ public class MetadataParamsHandler
      * @param item the {@link QueryItem}.
      * @return the {@link QueryItem} uid with a prefix (if applicable).
      */
-    static String getItemUid( @Nonnull QueryItem item )
+    static String getItemUid(   QueryItem item )
     {
         String uid = item.getItem().getUid();
 

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import javax.annotation.Nonnull;
+
 /**
  * Simple interface that enables validation capabilities.
  *
@@ -34,5 +36,5 @@ package org.hisp.dhis.analytics.common.processing;
  */
 public interface Validator<T>
 {
-    void validate( T object );
+    void validate( @Nonnull T object );
 }

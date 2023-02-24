@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -44,6 +45,7 @@ public interface Query
      *
      * @return the full query statement
      */
+    @Nonnull
     String getStatement();
 
     /**
@@ -51,5 +53,6 @@ public interface Query
      *
      * @return a map of params
      */
+    @Nonnull
     Map<String, Object> getParams();
 }

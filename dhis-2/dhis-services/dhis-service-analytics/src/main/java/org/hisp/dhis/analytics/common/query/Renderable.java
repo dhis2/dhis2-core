@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import javax.annotation.Nonnull;
+
 public interface Renderable
 {
+    @Nonnull
     String render();
 }

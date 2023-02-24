@@ -43,9 +43,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
@@ -69,8 +66,11 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.stereotype.Service;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
- * a {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
+ * A {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
  * generate a subquery for each program indicator dimension.
  */
 @Service

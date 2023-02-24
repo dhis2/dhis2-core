@@ -31,8 +31,6 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -60,7 +58,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public SqlQueryResult find( @Nonnull SqlQuery query )
+    public SqlQueryResult find(   SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
@@ -74,7 +72,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public long count( @Nonnull SqlQuery query )
+    public long count(   SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 

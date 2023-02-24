@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Processor class for CommonQueryRequest objects.
@@ -49,8 +49,8 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
      * method will process/compute existing values in the request object, and
      * populated all necessary attributes of this same object.
      *
-     * @param commonQueryRequest
-     * @return the processed {@link CommonQueryRequest}
+     * @param commonQueryRequest the {@link CommonQueryRequest} to process.
+     * @return the processed {@link CommonQueryRequest}.
      */
     @Override
     public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )

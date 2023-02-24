@@ -37,8 +37,6 @@ import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtil
 
 import java.util.function.BiFunction;
 
-import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -47,25 +45,26 @@ import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery.RenderableSqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor( access = PRIVATE )
 public class EnrollmentSortingQueryBuilders
 {
     /**
-     * this method will add to the builder the "order" and "left joins" needed
-     * for the given param
+     * This method will add to the builder the "order" and "left joins" needed
+     * for the given param.
      *
-     * @param param the order param
-     * @param queryContext the context
-     * @param builder the builder
+     * @param param the {@link AnalyticsSortingParams}.
+     * @param queryContext the {@link QueryContext}.
+     * @param builder the {@link RenderableSqlQueryBuilder}.
+     * @param renderableSupplier the supplied {@link BiFunction}.
      */
-    public static void handleEnrollmentOrder(
-        AnalyticsSortingParams param,
-        QueryContext queryContext,
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder,
+    public static void handleEnrollmentOrder( AnalyticsSortingParams param, QueryContext queryContext,
+        RenderableSqlQueryBuilder builder,
         BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> renderableSupplier )
     {
         int sequence = queryContext.getSequence().getAndIncrement();

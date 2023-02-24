@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.tei;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.PrefixedDimension;
 
 /**
@@ -43,6 +45,7 @@ public interface TeiAnalyticsDimensionsService
      * @param trackedEntityTypeId the uid of a tracked entity type
      * @return list of dimensions
      */
-    List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId,
-        Set<String> programUids );
+    @Nonnull
+    List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( @Nonnull String trackedEntityTypeId,
+                                                                     @Nonnull Set<String> programUids );
 }
