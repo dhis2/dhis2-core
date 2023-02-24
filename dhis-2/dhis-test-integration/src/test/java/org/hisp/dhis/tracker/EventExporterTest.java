@@ -866,8 +866,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
         params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
-        params.addOrders( List.of( new OrderParam( "dueDate", OrderParam.SortDirection.DESC ),
-            new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+        params.addOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
 
@@ -879,7 +878,7 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
-    void shouldSortEntitiesRespectingOrderWhenOrderAndDataElementOrderSupplied()
+    void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
@@ -895,6 +894,24 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+
+        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
     private DataElement dataElement( String uid )
