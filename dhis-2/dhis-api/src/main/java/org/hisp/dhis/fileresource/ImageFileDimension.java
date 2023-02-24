@@ -28,18 +28,27 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
+ * @author Stian Sandvold
  */
 public enum ImageFileDimension
 {
+    // Icon sizes. Default size for DHIS2 icons are 48. Android uses 40.
+    ICON_40( "40x40" ),
+    ICON_48( "48x48" ),
+
+    // Picture sizes, primarily such as profile pictures.
     SMALL( "small" ),
     MEDIUM( "medium" ),
     LARGE( "large" ),
+
+    // Original size, meaning no resizing / default.
     ORIGINAL( "" );
 
-    private String dimension;
+    private final String dimension;
 
     ImageFileDimension( String dimension )
     {
@@ -62,5 +71,15 @@ public enum ImageFileDimension
         }
 
         return Optional.empty();
+    }
+
+    public static Set<ImageFileDimension> getPictureDimensions()
+    {
+        return Set.of( SMALL, MEDIUM, LARGE, ORIGINAL );
+    }
+
+    public static Set<ImageFileDimension> getIconDimensions()
+    {
+        return Set.of( ICON_40, ICON_48, ORIGINAL );
     }
 }
