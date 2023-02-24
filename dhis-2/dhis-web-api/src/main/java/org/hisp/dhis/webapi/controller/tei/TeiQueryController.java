@@ -52,6 +52,7 @@ import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryRequestMapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
@@ -70,6 +71,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * tracker entity instances objects. Methods in this controller should not
  * change any state.
  */
+@OpenApi.Tags( "analytics" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( TeiQueryController.TRACKED_ENTITIES )
@@ -79,9 +81,6 @@ class TeiQueryController
 
     @Nonnull
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
-
-    @Nonnull
-    private final Processor<TeiQueryRequest> teiQueryRequestProcessor;
 
     @Nonnull
     private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
