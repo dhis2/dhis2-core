@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.option;
 
-import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
@@ -105,6 +105,7 @@ class OptionServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testSaveGet()
+        throws ConflictException
     {
         long idA = optionService.saveOptionSet( optionSetA );
         long idB = optionService.saveOptionSet( optionSetB );
@@ -131,8 +132,9 @@ class OptionServiceTest extends TransactionalIntegrationTest
             createOption( 'B' ), createOption( ',' ) );
         optionSet.setValueType( ValueType.MULTI_TEXT );
 
-        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E1118,
+        ConflictException ex = assertThrows( ConflictException.class,
             () -> optionService.saveOptionSet( optionSet ) );
+        assertEquals( ErrorCode.E1118, ex.getCode() );
     }
 
     @Test
@@ -145,12 +147,14 @@ class OptionServiceTest extends TransactionalIntegrationTest
         assertDoesNotThrow( () -> optionService.saveOptionSet( optionSet ) );
         optionSet.addOption( createOption( ',' ) );
 
-        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E1118,
+        ConflictException ex = assertThrows( ConflictException.class,
             () -> optionService.updateOptionSet( optionSet ) );
+        assertEquals( ErrorCode.E1118, ex.getCode() );
     }
 
     @Test
     void testGetList()
+        throws ConflictException
     {
         long idA = optionService.saveOptionSet( optionSetA );
         List<Option> options = optionService.getOptions( idA, "OptA", 10 );
