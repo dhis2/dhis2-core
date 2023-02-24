@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class EventParams extends Params
 {
-    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIPS );
+    public static final Set<Param> ALL = EnumSet.of( RELATIONSHIPS );
 
     private EventParams( Set<Param> paramsSet )
     {
