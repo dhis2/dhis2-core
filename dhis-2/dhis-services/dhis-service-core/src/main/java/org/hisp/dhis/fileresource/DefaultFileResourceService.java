@@ -122,7 +122,7 @@ public class DefaultFileResourceService
         sessionFactory.getCurrentSession().flush();
 
         if ( FileResource.isImage( fileResource.getContentType() ) &&
-            FileResourceDomain.isDomainForMultipleImages( fileResource.getDomain() ) )
+            fileResource.getDomain().hasImageDimensions() )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 

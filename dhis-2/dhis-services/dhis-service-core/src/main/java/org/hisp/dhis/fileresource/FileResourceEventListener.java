@@ -131,7 +131,7 @@ public class FileResourceEventListener
         }
 
         if ( FileResource.isImage( deleteFileEvent.getContentType() ) &&
-            FileResourceDomain.isDomainForMultipleImages( deleteFileEvent.getDomain() ) )
+            deleteFileEvent.getDomain().hasImageDimensions() )
         {
             String storageKey = deleteFileEvent.getStorageKey();
 
