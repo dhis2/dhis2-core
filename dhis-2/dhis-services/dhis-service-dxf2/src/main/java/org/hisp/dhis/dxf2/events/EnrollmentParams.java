@@ -52,6 +52,11 @@ public class EnrollmentParams extends Params
         super( paramsSet );
     }
 
+    /**
+     * Create a {@link EventParams} instance filtering by the prefix
+     * {@link Param#EVENTS}. We need to set the {@link Param#DELETED} because we
+     * only have a generic includeDeleted from the request
+     */
     public EventParams getEventParams()
     {
         return EventParams.builder().empty()

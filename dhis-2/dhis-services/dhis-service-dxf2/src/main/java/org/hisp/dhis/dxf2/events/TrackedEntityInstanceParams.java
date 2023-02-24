@@ -60,6 +60,11 @@ public class TrackedEntityInstanceParams extends Params
         super( paramsSet );
     }
 
+    /**
+     * Create a {@link EnrollmentParams} instance filtering by the prefix
+     * {@link Param#ENROLLMENTS}. We need to set the {@link Param#DELETED}
+     * because we only have a generic includeDeleted from the request
+     */
     public EnrollmentParams getEnrollmentParams()
     {
         return EnrollmentParams.builder().empty()

@@ -37,6 +37,11 @@ import lombok.AllArgsConstructor;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
+ *
+ *         Abstract Params class to store a {@link Param} set which maps to the
+ *         set of fields in a request. It includes a builder to initialize an
+ *         empty or all (*) params list and to create a new Params instance in
+ *         case the params list has mutated
  */
 @AllArgsConstructor
 public abstract class Params
@@ -69,7 +74,7 @@ public abstract class Params
             return this;
         }
 
-        public ParamsBuilder<T> with( EnumSet<Param> params, boolean isIncluded )
+        public ParamsBuilder<T> with( Set<Param> params, boolean isIncluded )
         {
             this.params = isIncluded ? include( params ) : exclude( params );
             return this;
@@ -83,13 +88,13 @@ public abstract class Params
             return this;
         }
 
-        EnumSet<Param> include( EnumSet<Param> params )
+        EnumSet<Param> include( Set<Param> params )
         {
             return Stream.concat( this.params.stream(), params.stream() )
                 .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
         }
 
-        EnumSet<Param> exclude( EnumSet<Param> params )
+        EnumSet<Param> exclude( Set<Param> params )
         {
             return this.params.stream().filter( p -> !params.contains( p ) )
                 .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) );
