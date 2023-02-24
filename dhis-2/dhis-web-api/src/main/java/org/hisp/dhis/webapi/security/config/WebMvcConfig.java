@@ -44,6 +44,7 @@ import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.controller.tracker.imports.StringToTrackerIdSchemeParamConverter;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -223,6 +224,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         registry.addConverter( new StringToOrderCriteriaListConverter() );
         registry.addConverter( new FieldPathConverter() );
+        registry.addConverter( new StringToTrackerIdSchemeParamConverter() );
     }
 
     @Primary

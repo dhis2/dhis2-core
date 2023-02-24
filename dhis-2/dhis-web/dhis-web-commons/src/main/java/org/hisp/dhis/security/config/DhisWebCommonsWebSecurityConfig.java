@@ -96,6 +96,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 public class DhisWebCommonsWebSecurityConfig
 {
+    public static final Map<String, String> IGNORED_REDIRECTS_AFTER_LOGIN_MAP = Map.of(
+        "/dhis-web-commons-stream/ping.action", "/",
+        "/api/files/style/external", "/" );
+
     /**
      * This configuration class is responsible for setting up the session
      * management.
@@ -307,9 +311,7 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            Map<String, String> redirectMap = Map.of( "/dhis-web-commons-stream/ping.action", "/",
-                "/api/files/style/external", "/" );
-            mappedRedirectStrategy.setRedirectMap( redirectMap );
+            mappedRedirectStrategy.setRedirectMap( IGNORED_REDIRECTS_AFTER_LOGIN_MAP );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
