@@ -126,7 +126,7 @@ public class DefaultOptionService
             }
             if ( option.getCode() == null )
             {
-                throw new ConflictException( ErrorCode.E4000, "code" );
+                throw new IllegalQueryException( ErrorCode.E4000, "code" );
             }
             ErrorMessage error = validateOption( optionSet, option );
             if ( error != null )
