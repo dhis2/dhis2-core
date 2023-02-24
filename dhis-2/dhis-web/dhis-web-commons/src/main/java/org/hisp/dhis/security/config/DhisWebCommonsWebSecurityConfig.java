@@ -307,7 +307,9 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( Map.of( "/dhis-web-commons-stream/ping.action", "/" ) );
+            Map<String, String> redirectMap = Map.of( "/dhis-web-commons-stream/ping.action", "/",
+                "/api/files/style/external", "/" );
+            mappedRedirectStrategy.setRedirectMap( redirectMap );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
