@@ -86,6 +86,7 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void validateOptionSet( OptionSet optionSet )
         throws ConflictException
     {
