@@ -102,6 +102,7 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void validateOptionSet( OptionSet optionSet )
         throws IllegalQueryException
     {
@@ -111,9 +112,21 @@ public class DefaultOptionService
         }
         for ( Option option : optionSet.getOptions() )
         {
-            if ( option.getId() != 0L && option.getCode() == null )
+            if ( option.getCode() == null )
             {
-                option = optionStore.get( option.getId() );
+                String uid = option.getUid();
+                if ( uid != null )
+                {
+                    option = optionStore.getByUid( uid );
+                    if ( option == null )
+                    {
+                        throw new IllegalQueryException( ErrorCode.E1113, Option.class.getSimpleName(), uid );
+                    }
+                }
+            }
+            if ( option.getCode() == null )
+            {
+                throw new ConflictException( ErrorCode.E4000, "code" );
             }
             ErrorMessage error = validateOption( optionSet, option );
             if ( error != null )
