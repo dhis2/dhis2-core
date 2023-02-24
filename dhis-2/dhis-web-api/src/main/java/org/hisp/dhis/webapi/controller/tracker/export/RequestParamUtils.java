@@ -30,7 +30,9 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,22 +70,12 @@ class RequestParamUtils
     private static final String OPERATOR_GROUP = EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
         .collect( Collectors.joining( "|" ) );
 
-    /**
-     * RegEx to search and validate
-     * {identifier}:{operator}:{value}[:{operator}:{value}] for attributes
-     * filters. It is operator case-insensitive using (?i) and has ?! for lookup
-     * to include until another operator:value definition. This will allow to
-     * define a filter value with any character
-     */
-    private static final String OPERATOR_VALUE_ITEM_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
-        DIMENSION_NAME_SEP + "(.(?i)(?!" + OPERATOR_GROUP + "))+";
+    private static final String QUERY_FILTER_OPERATOR_SPLIT_REGEX = DIMENSION_NAME_SEP + "(?i)("
+        + OPERATOR_GROUP
+        + ")" + DIMENSION_NAME_SEP;
 
-    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN = Pattern
-        .compile(
-            "(.*)" + DIMENSION_NAME_SEP + OPERATOR_VALUE_ITEM_FILTER_REG_EX );
-
-    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_PATTERN = Pattern
-        .compile( OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+    private static final Pattern QUERY_FILTER_OPERATOR_PATTERN = Pattern
+        .compile( QUERY_FILTER_OPERATOR_SPLIT_REGEX );
 
     /**
      * RegEx to validate {operator}:{value} in a query filter
@@ -100,8 +92,8 @@ class RequestParamUtils
      *
      * @param func function to be called if arg is not empty
      * @param arg arg to be checked
-     * @return result of func
      * @param <T> base identifiable object to be returned from func
+     * @return result of func
      */
     static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
     {
@@ -210,8 +202,7 @@ class RequestParamUtils
      * Creates a QueryItem with QueryFilters from the given item string.
      * Expected item format is
      * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed, and it is
-     * validated by a regular expression.
+     * is mandatory. Multiple operator:value pairs are allowed.
      * <p>
      * The identifier is passed to given map function which translates the
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
@@ -231,20 +222,30 @@ class RequestParamUtils
 
         QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
 
-        if ( !OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN
-            .matcher( fullPath ).matches() )
+        String[] split = fullPath
+            .split( QUERY_FILTER_OPERATOR_SPLIT_REGEX );
+
+        LinkedList<String> values = new LinkedList<>( Arrays.asList( split ).subList( 1, split.length ) );
+
+        LinkedList<String> operators = new LinkedList<>();
+
+        Matcher operatorMatcher = QUERY_FILTER_OPERATOR_PATTERN.matcher( fullPath );
+
+        while ( operatorMatcher.find() )
+        {
+            operators.add( operatorMatcher.group() );
+        }
+
+        if ( operators.size() == 0 || values.size() == 0 || operators.size() != values.size() )
         {
             throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
         }
 
-        Matcher matcher = OPERATOR_VALUE_ITEM_FILTER_PATTERN.matcher( fullPath );
-
-        while ( matcher.find() )
+        for ( int i = 0; i < operators.size(); i++ )
         {
-            String[] operatorValueSplit = matcher.group().split( DIMENSION_NAME_SEP, 2 );
+            queryItem.addFilter( new QueryFilter(
+                QueryOperator.fromString( operators.get( i ).replace( DIMENSION_NAME_SEP, "" ) ), values.get( i ) ) );
 
-            queryItem.getFilters()
-                .add( new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] ) );
         }
 
         return queryItem;

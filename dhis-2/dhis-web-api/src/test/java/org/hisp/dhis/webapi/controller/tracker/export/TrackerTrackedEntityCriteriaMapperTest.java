@@ -592,6 +592,22 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
+    void shouldCreateAttributeFiltersWhenFilterHasMultipleValuesAndValueHasDelimiterAndOperator()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setFilter( Set.of( TEA_2_UID + ":like:kaleno:eq:2" ) );
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "kaleno" ),
+            new QueryFilter( QueryOperator.EQ, "2" ) ), actualFilters );
+    }
+
+    @Test
     void shouldThrowBadRequestWhenFilterHasOperatorInWrongFormat()
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":lke:value" ) );
