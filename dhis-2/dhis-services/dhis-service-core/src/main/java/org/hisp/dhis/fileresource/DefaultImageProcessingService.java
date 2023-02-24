@@ -52,26 +52,22 @@ import org.springframework.stereotype.Service;
 @Service( "org.hisp.dhis.fileresource.ImageProcessingService" )
 public class DefaultImageProcessingService implements ImageProcessingService
 {
-    private static final Map<ImageFileDimension, ImageSize> IMAGE_FILE_SIZES = Map.of(
-        ImageFileDimension.SMALL, new ImageSize( 256, 256 ),
-        ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ),
-        ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) );
 
     @Override
     public Map<ImageFileDimension, File> createImages( FileResource fileResource, File file )
     {
+        Map<ImageFileDimension, File> images = new EnumMap<>( ImageFileDimension.class );
+
         if ( !isInputValid( fileResource, file ) )
         {
-            return new EnumMap<>( ImageFileDimension.class );
+            return images;
         }
-
-        Map<ImageFileDimension, File> images = new EnumMap<>( ImageFileDimension.class );
 
         try
         {
             BufferedImage image = ImageIO.read( file );
 
-            for ( ImageFileDimension dimension : ImageFileDimension.values() )
+            for ( ImageFileDimension dimension : fileResource.getDomain().getImageDimensions() )
             {
                 if ( ImageFileDimension.ORIGINAL == dimension )
                 {
@@ -79,9 +75,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
                     continue;
                 }
 
-                ImageSize size = IMAGE_FILE_SIZES.get( dimension );
-
-                BufferedImage resizedImage = resize( image, size );
+                BufferedImage resizedImage = resize( image, dimension.getHeight(), dimension.getWidth() );
 
                 File tempFile = new File( file.getPath() + dimension.getDimension() );
 
@@ -100,10 +94,9 @@ public class DefaultImageProcessingService implements ImageProcessingService
         return images;
     }
 
-    private BufferedImage resize( BufferedImage image, ImageSize dimensions )
+    private BufferedImage resize( BufferedImage image, int height, int width )
     {
-        return Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_TO_WIDTH, dimensions.width,
-            dimensions.height );
+        return Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_TO_WIDTH, width, height );
     }
 
     private boolean isInputValid( FileResource fileResource, File file )
@@ -129,18 +122,5 @@ public class DefaultImageProcessingService implements ImageProcessingService
             }
         }
         return false;
-    }
-
-    private static class ImageSize
-    {
-        int width;
-
-        int height;
-
-        ImageSize( int width, int height )
-        {
-            this.width = width;
-            this.height = height;
-        }
     }
 }
