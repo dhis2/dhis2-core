@@ -31,21 +31,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 /**
  * Provides basic methods to transform input fields into {@link FieldPath }
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-class FieldsParamMapper
+interface FieldsParamMapper<T extends Params>
 {
-    private FieldsParamMapper()
-    {
-    }
-
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    default Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();
         for ( FieldPath p : fieldPaths )
@@ -57,4 +55,19 @@ class FieldsParamMapper
         }
         return roots;
     }
+
+    default Params.ParamsBuilder<T> initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                return getParamsBuilder().all();
+            }
+        }
+        return getParamsBuilder().empty();
+    }
+
+    Params.ParamsBuilder<T> getParamsBuilder();
 }

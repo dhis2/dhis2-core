@@ -29,26 +29,22 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
 import static org.hisp.dhis.dxf2.events.EnrollmentParams.ALL;
 import static org.hisp.dhis.dxf2.events.Param.DELETED;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class EnrollmentFieldsParamMapper
+@AllArgsConstructor
+public class EnrollmentFieldsParamMapper implements FieldsParamMapper<EnrollmentParams>
 {
     private final FieldFilterService fieldFilterService;
 
@@ -59,28 +55,15 @@ public class EnrollmentFieldsParamMapper
 
     public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        Params.ParamsBuilder<EnrollmentParams> params = initUsingAllOrNoFields( rootFields( fields ) );
-        Map<Param, Boolean> paramsToInclusion = new HashMap<>();
-
-        for ( Param p : ALL )
-        {
-            paramsToInclusion.put( p,
-                fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) );
-        }
-
-        return params.with( paramsToInclusion ).with( DELETED, includeDeleted ).build();
+        return initUsingAllOrNoFields( rootFields( fields ) )
+            .with( ALL.stream().collect( Collectors.toMap( p -> p,
+                p -> fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) ) ) )
+            .with( DELETED, includeDeleted ).build();
     }
 
-    private static Params.ParamsBuilder<EnrollmentParams> initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    @Override
+    public Params.ParamsBuilder<EnrollmentParams> getParamsBuilder()
     {
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                return EnrollmentParams.builder().all();
-            }
-        }
-        return EnrollmentParams.builder().empty();
+        return EnrollmentParams.builder();
     }
 }

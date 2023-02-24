@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
-import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_ATTRIBUTES;
-import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.EVENTS;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
@@ -118,11 +116,11 @@ public class EnrollmentAggregate
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getEnrollmentParams().hasIncluded( ENROLLMENTS_RELATIONSHIPS ) )
+                if ( ctx.getEnrollmentParams().hasIncluded( RELATIONSHIPS ) )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getEnrollmentParams().hasIncluded( ENROLLMENTS_ATTRIBUTES ) )
+                if ( ctx.getEnrollmentParams().hasIncluded( ATTRIBUTES ) )
                 {
                     enrollment.setAttributes( new ArrayList<>( attributes.get( enrollment.getEnrollment() ) ) );
                 }

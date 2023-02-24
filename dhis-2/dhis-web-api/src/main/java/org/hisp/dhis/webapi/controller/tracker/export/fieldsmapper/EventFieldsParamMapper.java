@@ -28,53 +28,34 @@
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
 import static org.hisp.dhis.dxf2.events.EventParams.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.Param;
 import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+@AllArgsConstructor
+public class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
 {
     private final FieldFilterService fieldFilterService;
 
     public EventParams map( List<FieldPath> fields )
     {
-        Params.ParamsBuilder<EventParams> params = initUsingAllOrNoFields( rootFields( fields ) );
-        Map<Param, Boolean> paramsToInclusion = new HashMap<>();
-
-        for ( Param p : ALL )
-        {
-            paramsToInclusion.put( p,
-                fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) );
-        }
-
-        return params.with( paramsToInclusion ).build();
+        return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( Collectors.toMap( p -> p,
+            p -> fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) ) ) ).build();
     }
 
-    private static Params.ParamsBuilder<EventParams> initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    @Override
+    public Params.ParamsBuilder<EventParams> getParamsBuilder()
     {
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                return EventParams.builder().all();
-            }
-        }
-        return EventParams.builder().empty();
+        return EventParams.builder();
     }
 }

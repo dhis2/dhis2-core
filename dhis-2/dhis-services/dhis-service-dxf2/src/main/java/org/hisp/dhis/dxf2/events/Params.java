@@ -77,7 +77,8 @@ public abstract class Params
         public ParamsBuilder<T> with( Map<Param, Boolean> paramsToInclusion )
         {
             paramsToInclusion.forEach(
-                ( key, value ) -> this.params = value ? include( EnumSet.of( key ) ) : exclude( EnumSet.of( key ) ) );
+                ( key, value ) -> this.params = Boolean.TRUE.equals( value ) ? include( EnumSet.of( key ) )
+                    : exclude( EnumSet.of( key ) ) );
             return this;
         }
 
