@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -67,8 +64,6 @@ public class ProgramTrackedEntityAttribute
     private Boolean renderOptionsAsRadio = false;
 
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
-
-    private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
     private Boolean searchable = false;
 
@@ -116,31 +111,6 @@ public class ProgramTrackedEntityAttribute
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addGroup( ProgramTrackedEntityAttributeGroup group )
-    {
-        groups.add( group );
-        group.getAttributes().add( this );
-    }
-
-    public void removeGroup( ProgramTrackedEntityAttributeGroup group )
-    {
-        groups.remove( group );
-        group.getAttributes().remove( this );
-    }
-
-    public void updateProgramTrackedEntityAttributeGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
-    {
-        for ( ProgramTrackedEntityAttributeGroup group : new HashSet<>( groups ) )
-        {
-            if ( !updates.contains( group ) )
-            {
-                removeGroup( group );
-            }
-        }
-
-        updates.forEach( this::addGroup );
-    }
-
     @Override
     public String getName()
     {
@@ -175,7 +145,6 @@ public class ProgramTrackedEntityAttribute
             ", allowFutureDate=" + allowFutureDate +
             ", renderOptionsAsRadio=" + renderOptionsAsRadio +
             ", renderType=" + renderType +
-            ", groups=" + groups +
             ", searchable=" + searchable +
             ", id=" + id +
             ", uid='" + uid + '\'' +
@@ -264,19 +233,6 @@ public class ProgramTrackedEntityAttribute
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
-    }
-
-    @JsonProperty( "programTrackedEntityAttributeGroups" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "programTrackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramTrackedEntityAttributeGroup> getGroups()
-    {
-        return this.groups;
-    }
-
-    public void setGroups( Set<ProgramTrackedEntityAttributeGroup> groups )
-    {
-        this.groups = groups;
     }
 
     @JsonProperty

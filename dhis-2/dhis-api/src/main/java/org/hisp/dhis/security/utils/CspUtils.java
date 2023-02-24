@@ -59,5 +59,5 @@ public class CspUtils
     public static final List<Pattern> STATIC_RESOURCES_IN_API_URL_PATTERNS = List.of( STATIC_IN_API_1,
         STATIC_IN_API_2 );
 
-    public static final Pattern EVERYTHING_START_WITH_API = Pattern.compile( "^/api/[a-zA-Z\\d].+" );
+    public static final Pattern EVERYTHING_START_WITH_API = Pattern.compile( "/api/" );
 }
