@@ -45,10 +45,29 @@ import org.junit.jupiter.api.Test;
 /**
  * Test class for PeriodCriteriaUtils
  */
-public class PeriodCriteriaUtilsTest
+class PeriodCriteriaUtilsTest
 {
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forNoRelativePeriod()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forRelativePeriod()
+    {
+        // given
+        EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithPeriod(
+            RelativePeriodEnum.LAST_5_YEARS.name() );
+
+        // when
+        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
+            RelativePeriodEnum.LAST_5_YEARS );
+
+        // then
+        assertTrue( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
+        assertTrue( eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
+        assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
+            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
+        assertEquals( "eventdate", eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
+    }
+
+    @Test
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forNoRelativePeriod()
     {
         // given
         EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithPeriod(
@@ -63,29 +82,11 @@ public class PeriodCriteriaUtilsTest
         assertTrue( eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
         assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
             PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().get(), "eventdate" );
+        assertEquals( "eventdate", eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
     }
 
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forRelativePeriod()
-    {
-        // given
-        EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithPeriod(
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS.name() );
-
-        // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
-
-        // then
-        assertTrue( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
-        assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertNull( eventsAnalyticsQueryCriteria.getDesc() );
-    }
-
-    @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forStartAndEndDate()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forStartAndEndDate()
     {
         // given
         EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithDateRange(
@@ -101,7 +102,7 @@ public class PeriodCriteriaUtilsTest
     }
 
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forEventDate()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forEventDate()
     {
         // given
         EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithEventDate();
@@ -116,7 +117,7 @@ public class PeriodCriteriaUtilsTest
     }
 
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forRelativePeriod()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forRelativePeriod()
     {
         // given
         EnrollmentAnalyticsQueryCriteria enrollmentsAnalyticsQueryCriteria = configureEnrollmentAnalyticsQueryCriteriaWithPeriod(
@@ -131,13 +132,11 @@ public class PeriodCriteriaUtilsTest
         assertTrue( enrollmentsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
         assertEquals( enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
             PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( enrollmentsAnalyticsQueryCriteria.getDesc().stream().findFirst().get(), "enrollmentdate" );
+        assertEquals( "enrollmentdate", enrollmentsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
     }
 
-    /////
-
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forNoRelativePeriod()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forNoRelativePeriod()
     {
         // given
         EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria = configureEnrollmentAnalyticsQueryCriteriaWithPeriod(
@@ -152,11 +151,11 @@ public class PeriodCriteriaUtilsTest
         assertTrue( enrollmentAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
         assertEquals( enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
             PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( enrollmentAnalyticsQueryCriteria.getDesc().stream().findFirst().get(), "enrollmentdate" );
+        assertEquals( "enrollmentdate", enrollmentAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
     }
 
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forStartAndEndDate()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forStartAndEndDate()
     {
         // given
         EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria = configureEnrollmentsAnalyticsQueryCriteriaWithDateRange(
@@ -172,7 +171,7 @@ public class PeriodCriteriaUtilsTest
     }
 
     @Test
-    public void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forEventDate()
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forEventDate()
     {
         // given
         EnrollmentAnalyticsQueryCriteria enrollmentsAnalyticsQueryCriteria = configureEnrollmentAnalyticsQueryCriteriaWithEventDate();

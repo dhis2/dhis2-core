@@ -41,6 +41,12 @@ import org.hisp.dhis.period.RelativePeriodEnum;
  */
 public class PeriodCriteriaUtils
 {
+
+    private PeriodCriteriaUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     /**
      * Define default period dimension with sort order if not present in the
      * query parameters
