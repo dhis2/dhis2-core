@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -166,7 +168,8 @@ public interface UserStore
      * @param openId open ID.
      * @return the User or null if there is no match.
      */
-    User getUserByOpenId( String openId );
+    @CheckForNull
+    User getUserByOpenId( @Nonnull String openId );
 
     /**
      * Retrieves the User associated with the User with the given LDAP ID.
@@ -193,4 +196,6 @@ public interface UserStore
     User getUserByUuid( UUID uuid );
 
     List<User> getHasAuthority( String authority );
+
+    List<User> getLinkedUserAccounts( User currentUser );
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -43,6 +44,16 @@ import org.junit.jupiter.api.Test;
  */
 class AttributeControllerTest extends DhisControllerIntegrationTest
 {
+
+    @Test
+    void testGistList()
+    {
+        String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{"
+            + "'name':'" + ObjectType.DATA_ELEMENT + "', "
+            + "'valueType':'INTEGER', " + "'" + ObjectType.DATA_ELEMENT.getPropertyName() + "':true}" ) );
+        JsonObject attr = GET( "/attributes/{id}/gist", uid ).content();
+        assertTrue( attr.getBoolean( "dataElementAttribute" ).booleanValue() );
+    }
 
     /**
      * Tests that each type only sets the property the type relates to

@@ -40,11 +40,11 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -80,7 +80,7 @@ public class MetadataSyncController
         throws MetadataSyncException,
         BadRequestException,
         MetadataImportConflictException,
-        OperationNotAllowedException
+        ForbiddenException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary = null;
@@ -98,8 +98,7 @@ public class MetadataSyncController
             }
             catch ( MetadataSyncServiceException serviceException )
             {
-                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(),
-                    serviceException );
+                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage() );
             }
 
             try
@@ -130,7 +129,7 @@ public class MetadataSyncController
             }
             catch ( DhisVersionMismatchException versionMismatchException )
             {
-                throw new OperationNotAllowedException(
+                throw new ForbiddenException(
                     "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }

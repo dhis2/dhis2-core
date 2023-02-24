@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,6 +129,36 @@ public class FieldFilterService
         return objectMapper;
     }
 
+    /**
+     * Determines whether given path is included in the resulting ObjectNodes
+     * after applying {@link #toObjectNode(Object, List)}. This obviously
+     * requires that the actual data contains such path when filtered.
+     * <p>
+     * For example given a structure like
+     * <p>
+     * <code>{"event": "relationships": [] }</code>
+     * </p>
+     * and a
+     * <p>
+     * <code>filter="*,first[second[!third]]"</code>
+     * </p>
+     * <p>
+     * both paths<code>first</code> and <code>first.second</code> will result in
+     * true as they will be included in the filtered result. While
+     * <code>first.second.third</code> will result in false.
+     * </p>
+     *
+     * @param rootClass class the filter will be applied on
+     * @param filter field paths to be applied on the class
+     * @param path path to check for inclusion in the filter
+     * @return true if path is included in filter
+     */
+    public boolean filterIncludes( Class<?> rootClass, List<FieldPath> filter, String path )
+    {
+        return fieldPathHelper.apply( filter, rootClass ).stream()
+            .anyMatch( f -> f.toFullPath().equals( path ) );
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -148,7 +179,7 @@ public class FieldFilterService
     public <T> ObjectNode toObjectNode( T object, String filters )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( filters );
-        return toObjectNode( List.of( object ), fieldPaths );
+        return toObjectNode( object, fieldPaths );
     }
 
     public <T> ObjectNode toObjectNode( T object, List<FieldPath> filters )
@@ -191,6 +222,14 @@ public class FieldFilterService
             return objectNodes;
         }
 
+        toObjectNodes( objects, fieldPaths, user, isSkipSharing, objectNodes::add );
+
+        return objectNodes;
+    }
+
+    private <T> void toObjectNodes( List<T> objects, List<FieldPath> filter, User user,
+        boolean isSkipSharing, Consumer<ObjectNode> consumer )
+    {
         if ( user == null )
         {
             user = currentUserService.getCurrentUser();
@@ -199,29 +238,28 @@ public class FieldFilterService
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
         Object firstObject = objects.iterator().next();
-        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+        List<FieldPath> paths = fieldPathHelper.apply( filter, HibernateProxyUtils.getRealClass( firstObject ) );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, isSkipSharing );
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( paths, isSkipSharing );
 
         // only set filter provider on a local copy so that we don't affect
         // other object mappers (running across other threads)
         ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
 
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( paths );
 
         for ( Object object : objects )
         {
-            applyAccess( object, fieldPaths, isSkipSharing, user );
-            applySharingDisplayNames( object, fieldPaths, isSkipSharing );
-            applyAttributeValuesAttribute( object, fieldPaths, isSkipSharing );
+            applyAccess( object, paths, isSkipSharing, user );
+            applySharingDisplayNames( object, paths, isSkipSharing );
+            applyAttributeValuesAttribute( object, paths, isSkipSharing );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyAttributeValueFields( object, objectNode, paths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
-            objectNodes.add( objectNode );
+            consumer.accept( objectNode );
         }
-
-        return objectNodes;
     }
 
     /**
@@ -229,7 +267,8 @@ public class FieldFilterService
      *
      * @param params Filter params to apply
      * @param generator Pre-created json generator
-     * @throws IOException
+     * @throws IOException if there is either an underlying I/O problem or
+     *         encoding issue on writing to the generator
      */
     public void toObjectNodesStream( FieldFilterParams<?> params, JsonGenerator generator )
         throws IOException
@@ -238,38 +277,24 @@ public class FieldFilterService
         {
             return;
         }
-
-        if ( params.getUser() == null )
-        {
-            params.setUser( currentUserService.getCurrentUser() );
-        }
-
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
 
-        // In case we get a proxied object in we can't just use o.getClass(), we
-        // need to figure out the real class name by using HibernateProxyUtils.
-        Object firstObject = params.getObjects().iterator().next();
-        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
-
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
-
-        // only set filter provider on a local copy so that we don't affect
-        // other object mappers (running across other threads)
-        ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
-
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
-
-        for ( Object object : params.getObjects() )
+        try
         {
-            applyAccess( object, fieldPaths, params.isSkipSharing(), params.getUser() );
-            applySharingDisplayNames( object, fieldPaths, params.isSkipSharing() );
-            applyAttributeValuesAttribute( object, fieldPaths, params.isSkipSharing() );
-
-            ObjectNode objectNode = objectMapper.valueToTree( object );
-            applyAttributeValueFields( object, objectNode, fieldPaths );
-            applyTransformers( objectNode, null, "", fieldTransformers );
-
-            generator.writeObject( objectNode );
+            toObjectNodes( params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing(), n -> {
+                try
+                {
+                    generator.writeObject( n );
+                }
+                catch ( IOException e )
+                {
+                    throw new UncheckedIOException( e );
+                }
+            } );
+        }
+        catch ( UncheckedIOException e )
+        {
+            throw e.getCause();
         }
     }
 

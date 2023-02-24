@@ -47,26 +47,15 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class WebhookHandler implements Handler
 {
-    private final RestTemplate restTemplate;
-
     private final WebhookTarget webhookTarget;
+
+    private final RestTemplate restTemplate;
 
     public WebhookHandler( WebhookTarget target )
     {
         this.webhookTarget = target;
         this.restTemplate = new RestTemplate();
-        configure( target );
-    }
-
-    private void configure( WebhookTarget target )
-    {
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setConnectionRequestTimeout( 1_000 );
-        requestFactory.setConnectTimeout( 5_000 );
-        requestFactory.setReadTimeout( 10_000 );
-        requestFactory.setBufferRequestBody( true );
-
-        restTemplate.setRequestFactory( requestFactory );
+        configure( this.restTemplate );
     }
 
     @Override
@@ -85,14 +74,27 @@ public class WebhookHandler implements Handler
 
         try
         {
-            ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
-                String.class );
-            log.info( "EventHook '" + eventHook.getUid() + "' returned status ('" + response.getStatusCode().name()
-                + "')" + ", body: " + response.getBody() );
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                webhookTarget.getUrl(), httpEntity, String.class );
+
+            log.info( "EventHook '{}' response status '{}' and body: {}",
+                eventHook.getUid(), response.getStatusCode().name(), response.getBody() );
         }
         catch ( RestClientException ex )
         {
             log.error( ex.getMessage() );
         }
+    }
+
+    private void configure( RestTemplate template )
+    {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
+        requestFactory.setConnectionRequestTimeout( 1_000 );
+        requestFactory.setConnectTimeout( 5_000 );
+        requestFactory.setReadTimeout( 10_000 );
+        requestFactory.setBufferRequestBody( true );
+
+        template.setRequestFactory( requestFactory );
     }
 }

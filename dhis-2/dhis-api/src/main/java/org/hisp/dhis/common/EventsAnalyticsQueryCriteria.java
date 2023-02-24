@@ -309,4 +309,5 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria
      * flag to enable enhanced OR conditions on queryItem dimensions/filters
      */
     private boolean enhancedConditions;
+
 }

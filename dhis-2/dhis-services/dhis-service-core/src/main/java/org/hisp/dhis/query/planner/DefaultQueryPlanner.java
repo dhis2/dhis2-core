@@ -37,6 +37,7 @@ import javax.persistence.criteria.Root;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
@@ -242,7 +243,8 @@ public class DefaultQueryPlanner implements QueryPlanner
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
+                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias()
+                    && !Attribute.ObjectType.isValidType( restriction.getQueryPath().getPath() ) )
                 {
                     pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     pQuery.getCriterions().add( criterion );
@@ -290,7 +292,8 @@ public class DefaultQueryPlanner implements QueryPlanner
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias( 1 ) )
+                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias( 1 )
+                    && !Attribute.ObjectType.isValidType( restriction.getQueryPath().getPath() ) )
                 {
                     criteriaJunction.getAliases()
                         .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );

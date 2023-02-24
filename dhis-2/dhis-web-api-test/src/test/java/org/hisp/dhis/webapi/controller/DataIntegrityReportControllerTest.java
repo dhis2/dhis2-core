@@ -169,7 +169,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerT
     private String addOrganisationUnitGroup( String name, String... memberIds )
     {
         return assertStatus( HttpStatus.CREATED, POST( "/organisationUnitGroups",
-            "{'name':'" + name + "', 'organisationUnits': " + objectReferences( memberIds ) + "}" ) );
+            "{'name':'" + name + "', 'shortName':'" + name + "', 'organisationUnits': " + objectReferences( memberIds )
+                + "}" ) );
     }
 
     private String addOrganisationUnitGroupSet( String name, String... groupIds )

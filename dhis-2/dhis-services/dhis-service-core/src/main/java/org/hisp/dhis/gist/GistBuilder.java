@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
@@ -63,6 +64,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -135,6 +137,8 @@ final class GistBuilder
     private static final String SHARING_PROPERTY = "sharing";
 
     private static final String ATTRIBUTES_PROPERTY = "attributeValues";
+
+    private static final String OBJECT_TYPES = "objectTypes";
 
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
         GistBuilderSupport support )
@@ -213,6 +217,13 @@ final class GistBuilder
         if ( isAccessProperty( p ) && !existsSameParentField( query, f, SHARING_PROPERTY ) )
         {
             return query.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
+        }
+
+        // flags on Attribute map to/from objectTypes set
+        if ( query.getElementType() == Attribute.class && isAttributeFlagProperty( p )
+            && !existsSameParentField( query, f, OBJECT_TYPES ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), OBJECT_TYPES ) );
         }
 
         return addFromTransformationSupportFields( query, f );
@@ -318,6 +329,13 @@ final class GistBuilder
         return values == null || values.isEmpty()
             ? Map.of()
             : values.stream().collect( toMap( value -> value.getAttribute().getUid(), AttributeValue::getValue ) );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private boolean isObjectTypeAttribute( String name, Object objectTypes )
+    {
+        Set<String> set = (Set<String>) objectTypes;
+        return set != null && set.contains( name );
     }
 
     private Object translate( Object value, String property, Object translations )
@@ -453,6 +471,16 @@ final class GistBuilder
         if ( isAttributeValuesProperty( property ) )
         {
             addTransformer( row -> row[index] = attributeValues( row[index] ) );
+        }
+        if ( query.getElementType() == Attribute.class && isAttributeFlagProperty( property ) )
+        {
+            int objectTypesFieldIndex = getSameParentFieldIndex( path, OBJECT_TYPES );
+            String name = stream( ObjectType.values() )
+                .filter( type -> type.getPropertyName().equals( property.getName() ) )
+                .map( ObjectType::name )
+                .findFirst().orElse( "" );
+            addTransformer( row -> row[index] = isObjectTypeAttribute( name, row[objectTypesFieldIndex] ) );
+            return HQL_NULL;
         }
         if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
