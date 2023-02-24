@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events;
 
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,7 +41,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public abstract class Params
 {
-    protected final EnumSet<Param> params;
+    protected final Set<Param> params;
 
     public boolean hasIncluded( Param param )
     {
@@ -49,7 +50,7 @@ public abstract class Params
 
     public static class ParamsBuilder<T extends Params>
     {
-        protected EnumSet<Param> params;
+        protected Set<Param> params;
 
         public ParamsBuilder<T> empty()
         {

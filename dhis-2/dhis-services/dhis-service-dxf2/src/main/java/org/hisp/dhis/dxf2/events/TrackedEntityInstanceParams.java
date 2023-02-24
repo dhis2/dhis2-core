@@ -41,6 +41,7 @@ import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,13 +49,13 @@ import java.util.stream.Collectors;
  */
 public class TrackedEntityInstanceParams extends Params
 {
-    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
+    public static final Set<Param> ALL = EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
         ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
         ENROLLMENTS_EVENTS_RELATIONSHIPS,
         EVENTS,
         EVENTS_RELATIONSHIPS );
 
-    private TrackedEntityInstanceParams( EnumSet<Param> paramsSet )
+    private TrackedEntityInstanceParams( Set<Param> paramsSet )
     {
         super( paramsSet );
     }

@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
@@ -38,7 +39,7 @@ public class EventParams extends Params
 {
     public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIPS );
 
-    private EventParams( EnumSet<Param> paramsSet )
+    private EventParams( Set<Param> paramsSet )
     {
         super( paramsSet );
     }

@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,11 +43,11 @@ import java.util.stream.Collectors;
  */
 public class EnrollmentParams extends Params
 {
-    public static final EnumSet<Param> ALL = EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
+    public static final Set<Param> ALL = EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
         EVENTS,
         EVENTS_RELATIONSHIPS );
 
-    private EnrollmentParams( EnumSet<Param> paramsSet )
+    private EnrollmentParams( Set<Param> paramsSet )
     {
         super( paramsSet );
     }

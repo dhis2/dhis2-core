@@ -31,12 +31,13 @@ import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_FROM;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_TO;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 public class RelationshipParams extends Params
 {
-    public static final EnumSet<Param> ALL = EnumSet.of( RELATIONSHIP_FROM, RELATIONSHIP_TO );
+    public static final Set<Param> ALL = EnumSet.of( RELATIONSHIP_FROM, RELATIONSHIP_TO );
 
-    public RelationshipParams( EnumSet<Param> paramsSet )
+    public RelationshipParams( Set<Param> paramsSet )
     {
         super( paramsSet );
     }
