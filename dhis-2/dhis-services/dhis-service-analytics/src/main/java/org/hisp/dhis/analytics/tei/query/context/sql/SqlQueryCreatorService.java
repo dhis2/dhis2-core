@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -74,8 +75,13 @@ public class SqlQueryCreatorService
                 .filter( provider.getSortingFilters().stream().reduce( x -> true, Predicate::and ) )
                 .collect( toList() );
 
-            renderableSqlQuery = mergeQueries( renderableSqlQuery,
-                provider.buildSqlQuery( queryContext, acceptedDimensions, acceptedSortingParams ) );
+            if ( provider.alwaysRun() ||
+                !CollectionUtils.isEmpty( acceptedDimensions ) ||
+                !CollectionUtils.isEmpty( acceptedSortingParams ) )
+            {
+                renderableSqlQuery = mergeQueries( renderableSqlQuery,
+                    provider.buildSqlQuery( queryContext, acceptedDimensions, acceptedSortingParams ) );
+            }
         }
 
         return SqlQueryCreator.of( queryContext, renderableSqlQuery );

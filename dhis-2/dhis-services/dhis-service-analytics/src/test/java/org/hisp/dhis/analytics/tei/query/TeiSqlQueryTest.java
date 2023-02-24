@@ -121,7 +121,9 @@ class TeiSqlQueryTest extends DhisConvenienceTest
         String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams ).createForSelect().getStatement();
 
         // then
-        assertTrue( sql.contains( "(\"abc_0\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT desc" ) );
+        assertTrue( sql.contains( " order by \"prabcdefghA[0].pgabcdefghS[0].abc\" desc nulls last" ) );
+        assertTrue( sql.contains(
+            "(\"prabcdefghA[0].pgabcdefghS[0]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[0].pgabcdefghS[0].abc\"" ) );
     }
 
     private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )

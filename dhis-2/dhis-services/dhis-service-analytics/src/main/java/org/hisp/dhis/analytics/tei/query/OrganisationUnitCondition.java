@@ -29,17 +29,21 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
@@ -49,27 +53,12 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
  * Provides methods responsible for generating SQL statements on top of
  * organization units, for events, enrollments and teis.
  */
-public class OrganisationUnitCondition extends AbstractCondition
+@RequiredArgsConstructor( staticName = "of" )
+public class OrganisationUnitCondition extends BaseRenderable
 {
-    private static final String OU_FIELD = "ou";
-
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
-
-    private OrganisationUnitCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        super( dimensionIdentifier, queryContext );
-        this.queryContext = queryContext;
-        this.dimensionIdentifier = dimensionIdentifier;
-    }
-
-    public static OrganisationUnitCondition of(
-        DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext )
-    {
-        return new OrganisationUnitCondition( dimensionIdentifier, queryContext );
-    }
 
     /**
      * Renders the org. unit SQL conditions for a given enrollment. The SQL
@@ -79,15 +68,17 @@ public class OrganisationUnitCondition extends AbstractCondition
      *
      * @return the SQL statement
      */
+    @Nonnull
     @Override
-    protected Renderable getTeiCondition()
+    public String render()
     {
         List<Renderable> orgUnitConditions = new ArrayList<>();
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( OU_FIELD ),
+                Field.of( doubleQuote( dimensionIdentifier.getPrefix() ),
+                    () -> dimensionIdentifier.getDimension().getUid(), EMPTY ),
                 IN,
                 item.getValues(),
                 STRING,
@@ -95,69 +86,7 @@ public class OrganisationUnitCondition extends AbstractCondition
             orgUnitConditions.add( condition );
         }
 
-        return AndCondition.of( orgUnitConditions );
+        return AndCondition.of( orgUnitConditions ).render();
     }
 
-    /**
-     * Renders the org. unit SQL conditions for a given enrollment. The SQL
-     * output will look like:
-     *
-     * exists (select 1 from analytics_tei_enrollments_t2d3uj69rab enr where
-     * enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid and
-     * enr.programuid = :1 and enr.ou in (:2) order by enr.enrollmentdate desc
-     * limit 1 offset 0)
-     *
-     * @return the SQL statement
-     */
-    @Override
-    protected Renderable getEnrollmentCondition()
-    {
-        List<Renderable> orgUnitConditions = new ArrayList<>();
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( ENR_ALIAS, () -> OU_FIELD, EMPTY ),
-                IN,
-                item.getValues(),
-                STRING,
-                queryContext );
-            orgUnitConditions.add( condition );
-        }
-
-        return AndCondition.of( orgUnitConditions );
-    }
-
-    /**
-     * Renders the org. unit SQL conditions for a given event. The SQL output
-     * will look like:
-     *
-     * exists (select 1 from analytics_tei_enrollments_t2d3uj69rab enr where
-     * enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid and
-     * enr.programuid = :1 and exists (select 1 from
-     * analytics_tei_events_t2d3uj69rab evt where evt.programinstanceuid =
-     * enr.programinstanceuid and evt.programstageuid = :2 and enr.ou in (:3)
-     * order by executiondate desc limit 1 offset 0) order by enr.enrollmentdate
-     * desc limit 1 offset 0)
-     *
-     * @return the SQL statement
-     */
-    @Override
-    protected Renderable getEventCondition()
-    {
-        List<Renderable> orgUnitConditions = new ArrayList<>();
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( EVT_ALIAS, () -> OU_FIELD, EMPTY ).render(),
-                IN,
-                item.getValues(),
-                STRING,
-                queryContext );
-            orgUnitConditions.add( condition );
-        }
-
-        return AndCondition.of( orgUnitConditions );
-    }
 }

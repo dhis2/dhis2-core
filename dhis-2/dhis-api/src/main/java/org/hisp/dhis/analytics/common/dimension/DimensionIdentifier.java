@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.DIMENSION_SEPARATOR;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.IdentifiableKey;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
@@ -77,6 +79,19 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
         ElementWithOffset<ProgramStage> programStage, D ofObject )
     {
         return DimensionIdentifier.of( program, programStage, ofObject, null );
+    }
+
+    public String getPrefix()
+    {
+        if ( isEnrollmentDimension() )
+        {
+            return getProgram().toString();
+        }
+        if ( isEventDimension() )
+        {
+            return getProgram().toString() + DIMENSION_SEPARATOR + getProgramStage().toString();
+        }
+        return StringUtils.EMPTY;
     }
 
     public DimensionIdentifierType getDimensionIdentifierType()

@@ -57,6 +57,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -252,6 +253,7 @@ public class TeiFields
                 teiQueryParams.getCommonParams().getDimensionIdentifiers() ) )
             .filter( Objects::nonNull )
             .map( dimIdentifier -> getHeaderForDimensionParam( dimIdentifier, teiQueryParams.getCommonParams() ) )
+            .filter( Objects::nonNull )
             .forEach( g -> headersMap.put( g.getName(), g ) );
 
         return reorder( headersMap, fields );
@@ -324,10 +326,16 @@ public class TeiFields
     {
         DimensionParam dimensionParam = dimIdentifier.getDimension();
         QueryItem item = dimensionParam.getQueryItem();
+        DimensionalObject dimensionalObject = dimensionParam.getDimensionalObject();
 
         if ( item != null )
         {
             return getCustomGridHeaderForItem( item, commonParams, dimIdentifier );
+        }
+
+        if ( dimensionalObject != null )
+        {
+            return getCustomGridHeaderForDimensionalObject( dimensionalObject, commonParams, dimIdentifier );
         }
         else
         {
@@ -345,6 +353,12 @@ public class TeiFields
 
             return new GridHeader( uid, name, valueType, false, true );
         }
+    }
+
+    private static GridHeader getCustomGridHeaderForDimensionalObject( DimensionalObject dimensionalObject,
+        CommonParams commonParams, DimensionIdentifier<DimensionParam> dimIdentifier )
+    {
+        return null;
     }
 
     /**

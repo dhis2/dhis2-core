@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
-
-import lombok.Getter;
 
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
@@ -50,12 +46,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class LimitOffsetQueryBuilder implements SqlQueryBuilder
 {
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = Collections.emptyList();
-
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = Collections.emptyList();
-
     @Override
     public RenderableSqlQuery buildSqlQuery(
         QueryContext queryContext,
@@ -69,5 +59,11 @@ public class LimitOffsetQueryBuilder implements SqlQueryBuilder
         return RenderableSqlQuery.builder()
             .limitOffset( LimitOffset.of( pagingParams ) )
             .build();
+    }
+
+    @Override
+    public boolean alwaysRun()
+    {
+        return true;
     }
 }

@@ -28,18 +28,18 @@
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrollmentSortingQueryBuilders.handleEnrollmentOrder;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EventSortingQueryBuilders.handleEventOrder;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import lombok.Getter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -62,9 +62,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
-    private static final BiFunction<String, DimensionIdentifier<DimensionParam>, Field> RENDERABLE_DI_SUPPLIER = (
-        uniqueAlias, di ) -> Field.of( uniqueAlias, () -> di.getDimension().getUid(), di );
-
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
         .of( OrgUnitQueryBuilder::isOuFilter );
@@ -79,6 +76,16 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
     {
         RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
+        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
+            .map( AnalyticsSortingParams::getOrderBy ) )
+            .filter( dimensionIdentifier -> dimensionIdentifier.isEventDimension()
+                || dimensionIdentifier.isEnrollmentDimension() )
+            .map( dimensionIdentifier -> Field.ofUnquoted(
+                doubleQuote( dimensionIdentifier.getPrefix() ),
+                () -> dimensionIdentifier.getDimension().getUid(),
+                dimensionIdentifier.toString() ) )
+            .forEach( builder::selectField );
+
         acceptedDimensions
             .stream()
             .map( dimId -> GroupableCondition.of(
@@ -86,54 +93,24 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
                 OrganisationUnitCondition.of( dimId, queryContext ) ) )
             .forEach( builder::groupableCondition );
 
-        acceptedSortingParams.forEach( param -> handle( queryContext, builder, param ) );
+        acceptedSortingParams
+            .forEach( sortingParam -> builder.orderClause(
+                IndexedOrder.of(
+                    sortingParam.getIndex(),
+                    Order.of(
+                        Field.of(
+                            StringUtils.isEmpty( sortingParam.getOrderBy().getPrefix() ) ? TEI_ALIAS
+                                : doubleQuote( sortingParam.getOrderBy().getPrefix() ),
+                            () -> sortingParam.getOrderBy().getDimension().getUid(),
+                            StringUtils.EMPTY ),
+                        sortingParam.getSortDirection() ) ) ) );
 
         return builder.build();
-    }
-
-    private static void handle( QueryContext queryContext, RenderableSqlQuery.RenderableSqlQueryBuilder builder,
-        AnalyticsSortingParams param )
-    {
-        if ( param.getOrderBy().isEventDimension() )
-        {
-            handleEventOrder(
-                param,
-                queryContext,
-                builder,
-                RENDERABLE_DI_SUPPLIER );
-        }
-        else if ( param.getOrderBy().isEnrollmentDimension() )
-        {
-            handleEnrollmentOrder(
-                param,
-                queryContext,
-                builder,
-                RENDERABLE_DI_SUPPLIER );
-        }
-        else
-        {
-            String column = param.getOrderBy().getDimension().getUid();
-            builder.orderClause(
-                IndexedOrder.of(
-                    param.getIndex(),
-                    Order.of( Field.of( column ), param.getSortDirection() ) ) );
-        }
     }
 
     private static boolean isOuOrder( AnalyticsSortingParams analyticsSortingParams )
     {
         return isOu( analyticsSortingParams.getOrderBy() );
-    }
-
-    protected Stream<GroupableCondition> where( QueryContext ctx )
-    {
-        return ctx.getTeiQueryParams()
-            .getCommonParams().getDimensionIdentifiers()
-            .stream()
-            .filter( OrgUnitQueryBuilder::isOuFilter )
-            .map( dimId -> GroupableCondition.of(
-                dimId.getGroupId(),
-                OrganisationUnitCondition.of( dimId, ctx ) ) );
     }
 
     private static boolean isOuFilter( DimensionIdentifier<DimensionParam> dimensionIdentifier )

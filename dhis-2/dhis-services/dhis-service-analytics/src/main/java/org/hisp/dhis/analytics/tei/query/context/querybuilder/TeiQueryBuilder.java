@@ -61,6 +61,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
 {
+
+    @Override
+    public boolean alwaysRun()
+    {
+        return true;
+    }
+
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List.of(
         SqlQueryBuilders::isNotPeriodDimension,
