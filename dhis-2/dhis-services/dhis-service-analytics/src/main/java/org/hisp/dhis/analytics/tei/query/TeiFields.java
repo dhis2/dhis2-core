@@ -48,6 +48,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -62,9 +65,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * This class provides methods responsible for extracting collections from
@@ -261,7 +261,7 @@ public class TeiFields
      * Based on the given map of {@link GridHeader}, it will return a set of
      * headers, reordering the headers respecting the given fields ordering.
      * Only elements inside the given map are returned. The rest is ignored.
-     * 
+     *
      * This is needed because the "fields" should drive the headers ordering.
      * The "fields" represent the columns selected from the DB, hence headers
      * should reflect the same order of columns.

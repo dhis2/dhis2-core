@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -41,8 +43,6 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.stereotype.Service;
-
-import lombok.Getter;
 
 /**
  * This class is responsible for adding the "is enrolled in program" filter to

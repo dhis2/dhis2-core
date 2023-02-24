@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Processor class for CommonQueryRequest objects.

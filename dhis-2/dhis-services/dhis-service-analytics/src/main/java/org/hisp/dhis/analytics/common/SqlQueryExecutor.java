@@ -58,7 +58,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public SqlQueryResult find(   SqlQuery query )
+    public SqlQueryResult find( SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
@@ -72,7 +72,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override
-    public long count(   SqlQuery query )
+    public long count( SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 

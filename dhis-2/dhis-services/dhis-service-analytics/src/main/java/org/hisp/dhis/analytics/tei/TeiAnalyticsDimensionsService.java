@@ -47,5 +47,5 @@ public interface TeiAnalyticsDimensionsService
      */
     @Nonnull
     List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( @Nonnull String trackedEntityTypeId,
-                                                                     @Nonnull Set<String> programUids );
+        @Nonnull Set<String> programUids );
 }

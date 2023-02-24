@@ -34,13 +34,13 @@ import static org.hisp.dhis.feedback.ErrorCode.E7222;
 
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for validation rules on top of analytics tracker entity

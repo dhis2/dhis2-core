@@ -37,6 +37,8 @@ import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtil
 
 import java.util.function.BiFunction;
 
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -48,8 +50,6 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery.RenderableSqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-import lombok.NoArgsConstructor;
 
 @NoArgsConstructor( access = PRIVATE )
 public class EnrollmentSortingQueryBuilders

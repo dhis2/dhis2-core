@@ -87,7 +87,7 @@ class MetadataPagingHandler
      * @param grid the {@link Grid}.
      * @return return true if this is the last page, false otherwise.
      */
-    private boolean handleLastPageFlag(   AnalyticsPagingParams pagingParams,   Grid grid )
+    private boolean handleLastPageFlag( AnalyticsPagingParams pagingParams, Grid grid )
     {
         boolean isLastPage = grid.getHeight() > 0 && grid.getHeight() < pagingParams.getPageSizePlusOne();
 
@@ -103,7 +103,7 @@ class MetadataPagingHandler
      * @param pagingParams the {@link AnalyticsPagingParams}.
      * @param grid the {@link Grid}.
      */
-    private void removeLastRow(   AnalyticsPagingParams pagingParams,   Grid grid )
+    private void removeLastRow( AnalyticsPagingParams pagingParams, Grid grid )
     {
         boolean hasNextPageRow = grid.getHeight() == pagingParams.getPageSizePlusOne();
 

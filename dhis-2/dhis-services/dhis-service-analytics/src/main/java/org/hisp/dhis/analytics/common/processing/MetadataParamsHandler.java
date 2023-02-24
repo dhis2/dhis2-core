@@ -148,7 +148,7 @@ public class MetadataParamsHandler
      * @param item the {@link QueryItem}.
      * @return the {@link QueryItem} uid with a prefix (if applicable).
      */
-    static String getItemUid(   QueryItem item )
+    static String getItemUid( QueryItem item )
     {
         String uid = item.getItem().getUid();
 

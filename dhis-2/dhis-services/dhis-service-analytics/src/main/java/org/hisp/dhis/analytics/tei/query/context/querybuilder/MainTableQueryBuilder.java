@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -41,8 +43,6 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.springframework.stereotype.Service;
-
-import lombok.Getter;
 
 /**
  * This class is responsible for building the SQL statement for the main TEI

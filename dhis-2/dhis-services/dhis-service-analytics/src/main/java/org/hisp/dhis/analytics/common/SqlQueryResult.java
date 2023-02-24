@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
-
-import javax.annotation.Nonnull;
 
 /**
  * @see org.hisp.dhis.analytics.common.QueryResult

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -53,11 +55,9 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
-
 /**
- * This builder is responsible for building the SQL query for the TEI
- * table. It will generate the relevant SQL parts related to
+ * This builder is responsible for building the SQL query for the TEI table. It
+ * will generate the relevant SQL parts related to
  * dimensions/filters/sortingParameters having one the following structure: -
  * {teiField} - {programUid}.{programAttribute}
  */

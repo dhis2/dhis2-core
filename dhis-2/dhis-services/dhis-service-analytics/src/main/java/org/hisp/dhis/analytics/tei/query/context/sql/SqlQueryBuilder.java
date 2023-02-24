@@ -49,18 +49,15 @@ public interface SqlQueryBuilder
      * @param dimensions the list of {@link DimensionIdentifier}.
      * @param sortingParams the list of {@link AnalyticsSortingParams}.
      */
-    RenderableSqlQuery buildSqlQuery( @Nonnull
-    QueryContext queryContext,
-        @Nonnull
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        @Nonnull
-        List<AnalyticsSortingParams> acceptedSortingParams );
+    RenderableSqlQuery buildSqlQuery( @Nonnull QueryContext queryContext,
+        @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        @Nonnull List<AnalyticsSortingParams> acceptedSortingParams );
 
     /**
      * Provides the list of {@link Predicate} functions for
      * {@link DimensionIdentifier}. They act as filters and are used to build
      * the final {@link RenderableSqlQuery} query.
-     * 
+     *
      * @return the list of filter dimensions or empty.
      */
     @Nonnull
