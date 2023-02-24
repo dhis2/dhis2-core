@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
@@ -42,10 +41,10 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.common.query.Order;
-import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
@@ -66,7 +65,7 @@ public class EnrollmentSortingQueryBuilders
         AnalyticsSortingParams param,
         QueryContext queryContext,
         RenderableSqlQuery.RenderableSqlQueryBuilder builder,
-        BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> renderableSupplier )
+        BiFunction<String, DimensionIdentifier<DimensionParam>, Field> renderableSupplier )
     {
         int sequence = queryContext.getSequence().getAndIncrement();
 
@@ -74,7 +73,6 @@ public class EnrollmentSortingQueryBuilders
 
         DimensionParam sortingDimension = di.getDimension();
         String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
-        String enrollmentAlias = ENR_ALIAS + "_" + sequence;
         TrackedEntityType trackedEntityType = queryContext.getTeiQueryParams().getTrackedEntityType();
         SqlParameterManager sqlParameterManager = queryContext.getSqlParameterManager();
 
@@ -83,13 +81,15 @@ public class EnrollmentSortingQueryBuilders
                 () -> "(" + enrollmentSelect(
                     param.getOrderBy().getProgram(),
                     trackedEntityType,
-                    sqlParameterManager ) + ") " + enrollmentAlias,
-                fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) );
+                    sqlParameterManager ) + ") " + uniqueAlias,
+                fieldsEqual( TEI_ALIAS, TEI_UID, uniqueAlias, TEI_UID ) ) );
+
+        Field field = renderableSupplier.apply( uniqueAlias, di );
+
+        builder.selectField( field );
 
         builder.orderClause( IndexedOrder.of(
             param.getIndex(),
-            Order.of(
-                renderableSupplier.apply( uniqueAlias, di ),
-                param.getSortDirection() ) ) );
+            Order.of( Field.of( field.getDimensionIdentifier() ), param.getSortDirection() ) ) );
     }
 }

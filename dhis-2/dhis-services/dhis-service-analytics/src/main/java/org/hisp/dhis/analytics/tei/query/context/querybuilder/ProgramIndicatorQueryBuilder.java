@@ -117,11 +117,11 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
     {
         for ( AnalyticsSortingParams param : acceptedSortingParams )
         {
-            String assignedAlias = doubleQuote( param.getOrderBy().toString() );
+            String assignedAlias = param.getOrderBy().toString();
             builder.orderClause(
                 IndexedOrder.of(
                     param.getIndex(),
-                    Order.of( () -> assignedAlias, param.getSortDirection() ) ) );
+                    Order.of( Field.of( assignedAlias ), param.getSortDirection() ) ) );
         }
     }
 

@@ -34,7 +34,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -51,10 +50,8 @@ public class Field extends BaseRenderable
 
     private final Renderable name;
 
-    @Getter
     private final String fieldAlias;
 
-    @Getter
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final Boolean quotingNeeded;
@@ -123,6 +120,17 @@ public class Field extends BaseRenderable
     public static Field of( String name )
     {
         return of( EMPTY, () -> name, EMPTY, DimensionIdentifier.EMPTY, true );
+    }
+
+    /**
+     * Simplest field renderer that takes into consideration only the name.
+     *
+     * @param name the {@link Renderable} name of the field.
+     * @return a new {@link Field} instance.
+     */
+    public static Field ofUnquoted( Renderable name, String alias )
+    {
+        return of( EMPTY, name, alias, DimensionIdentifier.EMPTY, false );
     }
 
     public String getDimensionIdentifier()
