@@ -78,18 +78,17 @@ public final class Assertions
                 () -> String.format( "Expected %s or actual %s contains unexpected duplicates", expected, actual ) ) );
     }
 
+    /**
+     * Asserts that two maps contain all the same entries.
+     *
+     * @param <K> the map key type.
+     * @param <V> the map value type.
+     * @param expected the expected map.
+     * @param actual the actual map.
+     */
     public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
     {
-        for ( Map.Entry<K, V> e : expected.entrySet() )
-        {
-            assertEquals( e.getValue(), actual.get( e.getKey() ),
-                String.format( "Expected value not found in %s", actual ) );
-        }
-        for ( Map.Entry<K, V> e : actual.entrySet() )
-        {
-            assertEquals( e.getValue(), expected.get( e.getKey() ),
-                String.format( "Did not expect value in %s", actual ) );
-        }
+        assertContainsOnly( expected.entrySet(), actual.entrySet() );
     }
 
     /**
