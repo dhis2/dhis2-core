@@ -575,4 +575,29 @@ class TrackerTrackedEntityCriteriaMapperTest
             () -> mapper.map( criteria ) );
         assertEquals( "Invalid order property: invalid", e.getMessage() );
     }
+
+    @Test
+    void shouldCreateAttributeFiltersWhenFilterHasMultipleValuesAndValueHasDelimiter()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setFilter( Set.of( TEA_2_UID + ":like:project:x:eq:2" ) );
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "project:x" ),
+            new QueryFilter( QueryOperator.EQ, "2" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenFilterHasOperatorInWrongFormat()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":lke:value" ) );
+        BadRequestException exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
+    }
 }

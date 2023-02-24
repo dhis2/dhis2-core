@@ -108,6 +108,12 @@ public abstract class SmsGatewayConfig
         this.isDefault = isDefault;
     }
 
+    @JsonProperty
+    public String getId()
+    {
+        return uid;
+    }
+
     public String getUid()
     {
         return uid;
