@@ -34,24 +34,28 @@ import java.util.Set;
  */
 public enum FileResourceDomain
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar" ),
-    ORG_UNIT( "organisationUnit" );
+    DATA_VALUE( "dataValue", ImageFileDimension.getPictureDimensions() ),
+    PUSH_ANALYSIS( "pushAnalysis", Set.of() ),
+    DOCUMENT( "document", Set.of() ),
+    MESSAGE_ATTACHMENT( "messageAttachment", Set.of() ),
+    USER_AVATAR( "userAvatar", ImageFileDimension.getPictureDimensions() ),
+    ORG_UNIT( "organisationUnit", ImageFileDimension.getPictureDimensions() );
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain
      */
-    private String containerName;
+    private final String containerName;
 
-    public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = Set.of(
-        DATA_VALUE, USER_AVATAR, ORG_UNIT );
+    /**
+     * If not empty, any images will be copied and resized into the specified
+     * image dimensions.
+     */
+    private final Set<ImageFileDimension> imageDimensions;
 
-    FileResourceDomain( String containerName )
+    FileResourceDomain( String containerName, Set<ImageFileDimension> imageDimensions )
     {
         this.containerName = containerName;
+        this.imageDimensions = imageDimensions;
     }
 
     public String getContainerName()
@@ -59,8 +63,13 @@ public enum FileResourceDomain
         return containerName;
     }
 
-    public static boolean isDomainForMultipleImages( FileResourceDomain domain )
+    public Set<ImageFileDimension> getImageDimensions()
     {
-        return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains( domain );
+        return imageDimensions;
+    }
+
+    public boolean hasImageDimensions()
+    {
+        return !imageDimensions.isEmpty();
     }
 }
