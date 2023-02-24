@@ -38,8 +38,6 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.Processor;
@@ -65,6 +63,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Controller class responsible exclusively for querying operations on top of
@@ -126,12 +126,10 @@ class TeiQueryController
     }
 
     private Grid getGrid( String trackedEntityType, TeiQueryRequest teiQueryRequest,
-        CommonQueryRequest commonQueryRequest,
-        Function<TeiQueryParams, Grid> executor )
+        CommonQueryRequest commonQueryRequest, Function<TeiQueryParams, Grid> executor )
     {
         QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( teiQueryRequestProcessor.process(
-                teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
+            .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
             .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
             .build();
 
