@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentityinstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -71,6 +72,8 @@ class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
             () -> instanceService.validate( params ) );
+
+        assertFalse( true, "testing redirectTestOutputToFile when running tests" );
         assertEquals( "Either Program or Tracked entity type should be specified", exception.getMessage() );
     }
 

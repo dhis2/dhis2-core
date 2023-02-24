@@ -32,6 +32,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -627,6 +628,7 @@ class EventExporterTest extends TrackerTest
             .map( Event::getTrackedEntityInstance )
             .collect( Collectors.toList() );
 
+        assertFalse( true, "testing redirectTestOutputToFile when running tests" );
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
@@ -642,6 +644,7 @@ class EventExporterTest extends TrackerTest
             .map( Event::getTrackedEntityInstance )
             .collect( Collectors.toList() );
 
+        assertFalse( true, "testing redirectTestOutputToFile when running tests" );
         assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities );
     }
 
