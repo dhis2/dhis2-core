@@ -34,18 +34,23 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -57,7 +62,7 @@ import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
+import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -104,64 +109,76 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public int getCountByQuery( PotentialDuplicateQuery query )
+    public int getCountPotentialDuplicates( PotentialDuplicateCriteria query )
     {
-        String queryString = "select count(*) from PotentialDuplicate pr where pr.status in (:status)";
+        CriteriaBuilder cb = getCriteriaBuilder();
 
-        return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
-            Query<Long> hibernateQuery = getTypedQuery(
-                queryString + " and ( pr.original in (:uids) or pr.duplicate in (:uids) )" );
+        CriteriaQuery<Long> countCriteriaQuery = cb.createQuery( Long.class );
+        Root<PotentialDuplicate> root = countCriteriaQuery.from( PotentialDuplicate.class );
 
-            hibernateQuery.setParameterList( "uids", teis );
+        countCriteriaQuery
+            .select( cb.count( root ) );
 
-            setStatusParameter( query.getStatus(), hibernateQuery );
+        countCriteriaQuery.where( getQueryPredicates( query, cb, root ) );
 
-            return hibernateQuery.getSingleResult().intValue();
-        } ).orElseGet( () -> {
+        TypedQuery<Long> relationshipTypedQuery = getSession()
+            .createQuery( countCriteriaQuery );
 
-            Query<Long> hibernateQuery = getTypedQuery( queryString );
-
-            setStatusParameter( query.getStatus(), hibernateQuery );
-
-            return hibernateQuery.getSingleResult().intValue();
-        } );
+        return relationshipTypedQuery.getSingleResult().intValue();
     }
 
     @Override
-    public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
+    public List<PotentialDuplicate> getPotentialDuplicates( PotentialDuplicateCriteria criteria )
     {
-        String queryString = "from PotentialDuplicate pr where pr.status in (:status)";
+        CriteriaBuilder cb = getCriteriaBuilder();
 
-        return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                queryString + " and ( pr.original in (:uids) or pr.duplicate in (:uids) )" );
+        CriteriaQuery<PotentialDuplicate> cq = cb
+            .createQuery( PotentialDuplicate.class );
 
-            hibernateQuery.setParameterList( "uids", teis );
+        Root<PotentialDuplicate> root = cq.from( PotentialDuplicate.class );
 
-            setStatusParameter( query.getStatus(), hibernateQuery );
+        cq.where( getQueryPredicates( criteria, cb, root ) );
 
-            return hibernateQuery.getResultList();
-        } ).orElseGet( () -> {
+        cq.orderBy( criteria.getOrder().stream().map( order -> order.getDirection()
+            .isAscending() ? cb.asc( root.get( order.getField() ) )
+                : cb.desc( root.get( order.getField() ) ) )
+            .collect( Collectors.toList() ) );
 
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( queryString );
+        TypedQuery<PotentialDuplicate> relationshipTypedQuery = getSession()
+            .createQuery( cq );
 
-            setStatusParameter( query.getStatus(), hibernateQuery );
+        if ( criteria.isPagingRequest() )
+        {
+            relationshipTypedQuery.setFirstResult( criteria.getFirstResult() );
+            relationshipTypedQuery.setMaxResults( criteria.getPageSize() );
+        }
 
-            return hibernateQuery.getResultList();
-        } );
+        return relationshipTypedQuery.getResultList();
     }
 
-    private void setStatusParameter( DeduplicationStatus status, Query<?> hibernateQuery )
+    private Predicate[] getQueryPredicates( PotentialDuplicateCriteria query, CriteriaBuilder builder,
+        Root<PotentialDuplicate> root )
     {
-        if ( status == DeduplicationStatus.ALL )
+        List<Predicate> predicateList = new ArrayList<>();
+
+        predicateList.add( root.get( "status" ).in( getInStatusValue( query.getStatus() ) ) );
+
+        if ( !query.getTeis().isEmpty() )
         {
-            hibernateQuery.setParameterList( "status", Arrays.stream( DeduplicationStatus.values() )
-                .filter( s -> s != DeduplicationStatus.ALL ).collect( Collectors.toSet() ) );
+            predicateList.add( builder.and(
+                builder.or(
+                    root.get( "original" ).in( query.getTeis() ),
+                    root.get( "duplicate" ).in( query.getTeis() ) ) ) );
         }
-        else
-        {
-            hibernateQuery.setParameterList( "status", Collections.singletonList( status ) );
-        }
+
+        return predicateList.toArray( new Predicate[0] );
+    }
+
+    private List<DeduplicationStatus> getInStatusValue( DeduplicationStatus status )
+    {
+        return status == DeduplicationStatus.ALL ? Arrays.stream( DeduplicationStatus.values() )
+            .filter( s -> s != DeduplicationStatus.ALL ).collect( Collectors.toList() )
+            : Collections.singletonList( status );
     }
 
     @Override

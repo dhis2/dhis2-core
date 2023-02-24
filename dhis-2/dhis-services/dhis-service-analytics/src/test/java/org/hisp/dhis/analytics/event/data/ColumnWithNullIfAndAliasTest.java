@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics.event.data;
 
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Viet Nguyen
- */
-public class ProgramTrackedEntityAttributeGroupSchemaDescriptor implements SchemaDescriptor
+class ColumnWithNullIfAndAliasTest
 {
-    public static final String SINGULAR = "programTrackedEntityAttributeGroup";
+    private static final String COLUMN = "column";
 
-    public static final String PLURAL = "programTrackedEntityAttributeGroups";
+    private static final String ALIAS = "alias";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @Test
+    void testAsSqlReturnsRightInstance()
     {
-        Schema schema = new Schema( ProgramTrackedEntityAttributeGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
 
-        schema.add( new Authority( AuthorityType.CREATE,
-            Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE,
-            Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE" ) ) );
+        // then
+        assertEquals( COLUMN, columnAndAlias.getColumn() );
 
-        return schema;
+        assertEquals( ALIAS, columnAndAlias.getAlias() );
+    }
+
+    @Test
+    void testAsSqlReturnsRightSqlSnippetWhenCalled()
+    {
+        // given
+        // when
+        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+
+        // then
+        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
     }
 }

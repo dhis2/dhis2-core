@@ -595,7 +595,7 @@ public class JdbcAnalyticsManager
 
         if ( params.isAggregation() )
         {
-            sql = "group by " + getCommaDelimitedQuotedDimensionColumns( params.getDimensions() );
+            sql = "group by " + getCommaDelimitedQuotedDimensionColumns( params.getDimensions() ) + " ";
         }
 
         return sql;

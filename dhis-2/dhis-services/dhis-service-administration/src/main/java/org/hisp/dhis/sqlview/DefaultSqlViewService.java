@@ -119,36 +119,42 @@ public class DefaultSqlViewService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<SqlView> getAllSqlViews()
     {
         return sqlViewStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<SqlView> getAllSqlViewsNoAcl()
     {
         return sqlViewStore.getAllNoAcl();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SqlView getSqlView( long viewId )
     {
         return sqlViewStore.get( viewId );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SqlView getSqlViewByUid( String uid )
     {
         return sqlViewStore.getByUid( uid );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SqlView getSqlView( String viewName )
     {
         return sqlViewStore.getByName( viewName );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int getSqlViewCount()
     {
         return sqlViewStore.getCount();
@@ -159,12 +165,6 @@ public class DefaultSqlViewService
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean viewTableExists( String viewTableName )
-    {
-        return sqlViewStore.viewTableExists( viewTableName );
-    }
-
-    @Override
     public String createViewTable( SqlView sqlView )
     {
         validateSqlView( sqlView, null, null );
@@ -173,6 +173,7 @@ public class DefaultSqlViewService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
         List<String> filters, List<String> fields )
     {
@@ -414,12 +415,6 @@ public class DefaultSqlViewService
 
             throw new IllegalQueryException( error );
         }
-    }
-
-    @Override
-    public String testSqlGrammar( String sql )
-    {
-        return sqlViewStore.testSqlGrammar( sql );
     }
 
     @Override

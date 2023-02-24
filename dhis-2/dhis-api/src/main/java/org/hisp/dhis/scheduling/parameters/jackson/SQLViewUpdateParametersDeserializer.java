@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 
-@RequiredArgsConstructor
-@Getter
-public class InvalidEnumValueException extends Exception
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+public class SQLViewUpdateParametersDeserializer extends AbstractJobParametersDeserializer<SqlViewUpdateParameters>
 {
-    private final String invalidValue;
+    public SQLViewUpdateParametersDeserializer()
+    {
+        super( SqlViewUpdateParameters.class, CustomJobParameters.class );
+    }
 
-    private final String fieldName;
-
-    private final Class<? extends Enum> enumKlass;
+    @JsonDeserialize
+    public static class CustomJobParameters extends SqlViewUpdateParameters
+    {
+    }
 }

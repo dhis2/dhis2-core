@@ -25,30 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.analytics.event.data;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author Viet Nguyen
+ * The class responsibility is to generate sql statement with nullif function
+ * like nullif(ax.\"w75KJ2mc4zz\",'') as \"w75KJ2mc4zz\"
  */
-@Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
-public class HibernateProgramTrackedEntityAttributeGroupStore
-    extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-    implements ProgramTrackedEntityAttributeGroupStore
+final class ColumnWithNullIfAndAlias extends ColumnAndAlias
 {
-    public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    /**
+     * private constructor
+     *
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     */
+    private ColumnWithNullIfAndAlias( String column, String alias )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttributeGroup.class, currentUserService,
-            aclService, true );
+        super( column, alias );
+    }
+
+    /**
+     * Builder method to create an instance of this class.
+     *
+     * @param column db table column name.
+     * @param alias db table column alias name.
+     * @return ColumnWithNullIfAndAlias instance.
+     */
+    static ColumnWithNullIfAndAlias ofColumnWithNullIfAndAlias( String column, String alias )
+    {
+        return new ColumnWithNullIfAndAlias( column, alias );
+    }
+
+    /**
+     * Generate sql snippet with nullif function.
+     *
+     * @return sql snippet with nullif.
+     */
+    @Override
+    public String asSql()
+    {
+        if ( StringUtils.isNotEmpty( alias ) )
+        {
+            return String.join( " as ", "nullif(" + column + ",'')", getQuotedAlias() );
+        }
+        else
+        {
+            return column;
+        }
     }
 }

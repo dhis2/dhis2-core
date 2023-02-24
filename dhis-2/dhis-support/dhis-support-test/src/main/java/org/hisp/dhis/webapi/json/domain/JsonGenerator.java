@@ -111,7 +111,8 @@ public class JsonGenerator
         }
         for ( JsonProperty property : schema.getRequiredProperties() )
         {
-            if ( property.getPropertyType() == PropertyType.REFERENCE && property.getRelativeApiEndpoint() == null )
+            if ( property.getPropertyType() == PropertyType.REFERENCE && property.getRelativeApiEndpoint() == null
+                || !property.isWritable() )
             {
                 continue;
             }

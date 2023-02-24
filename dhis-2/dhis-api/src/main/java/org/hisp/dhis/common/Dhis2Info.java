@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.common;
+
+import java.util.Date;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-enum TrackerImportParamKey
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class Dhis2Info
 {
-    REPORT_MODE( "reportMode" ),
-    VALIDATION_MODE_KEY( "validationMode" ),
-    IMPORT_MODE_KEY( "importMode" ),
-    IMPORT_STRATEGY_KEY( "importStrategy" ),
-    ATOMIC_MODE_KEY( "atomicMode" ),
-    FLUSH_MODE_KEY( "flushMode" ),
-    SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
-    SKIP_SIDE_EFFECTS( "skipSideEffects" ),
-    ID_SCHEME_KEY( "idScheme" ),
-    ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
-    PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
-    PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
-    DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
-    CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
-    CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
+    @JsonProperty
+    private String version;
 
-    @Getter
-    private final String key;
+    @JsonProperty
+    private String revision;
 
-    TrackerImportParamKey( String key )
-    {
-        this.key = key;
-    }
+    @JsonProperty
+    private Date buildTime;
+
+    @JsonProperty
+    private String systemId;
+
+    @JsonProperty
+    private Date serverDate;
 }
