@@ -878,6 +878,25 @@ class EventExporterTest extends TrackerTest
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenOrderAndDataElementOrderSupplied()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+
+        params.addOrders( List.of( new OrderParam( "dueDate", OrderParam.SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ),
+            new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
     private DataElement dataElement( String uid )
     {
         return dataElementService.getDataElement( uid );
