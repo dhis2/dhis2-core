@@ -51,6 +51,9 @@ class OptionServiceTest extends TransactionalIntegrationTest
     @Autowired
     private OptionService optionService;
 
+    @Autowired
+    private OptionStore optionStore;
+
     private List<Option> options = new ArrayList<>();
 
     private OptionSet optionSetA = new OptionSet( "OptionSetA", ValueType.TEXT );
@@ -132,6 +135,8 @@ class OptionServiceTest extends TransactionalIntegrationTest
             createOption( 'B' ), createOption( ',' ) );
         optionSet.setValueType( ValueType.MULTI_TEXT );
 
+        optionSet.getOptions().forEach( optionStore::save );
+
         ConflictException ex = assertThrows( ConflictException.class,
             () -> optionService.saveOptionSet( optionSet ) );
         assertEquals( ErrorCode.E1118, ex.getCode() );
@@ -143,6 +148,8 @@ class OptionServiceTest extends TransactionalIntegrationTest
         OptionSet optionSet = createOptionSet( 'A',
             createOption( 'B' ), createOption( 'C' ) );
         optionSet.setValueType( ValueType.MULTI_TEXT );
+
+        optionSet.getOptions().forEach( optionStore::save );
 
         assertDoesNotThrow( () -> optionService.saveOptionSet( optionSet ) );
         optionSet.addOption( createOption( ',' ) );

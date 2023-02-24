@@ -95,14 +95,21 @@ public class DefaultOptionService
         }
         for ( Option option : optionSet.getOptions() )
         {
-            if ( option.getId() == 0L || option.getCode() == null )
+            if ( option.getCode() == null )
             {
                 String uid = option.getUid();
-                option = optionStore.getByUid( uid );
-                if ( option == null )
+                if ( uid != null )
                 {
-                    throw new ConflictException( ErrorCode.E1113, Option.class.getSimpleName(), uid );
+                    option = optionStore.getByUid( uid );
+                    if ( option == null )
+                    {
+                        throw new ConflictException( ErrorCode.E1113, Option.class.getSimpleName(), uid );
+                    }
                 }
+            }
+            if ( option.getCode() == null )
+            {
+                throw new ConflictException( ErrorCode.E4000, "code" );
             }
             ErrorMessage error = validateOption( optionSet, option );
             if ( error != null )
