@@ -379,6 +379,7 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
@@ -405,6 +406,7 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->

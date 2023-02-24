@@ -76,7 +76,7 @@ jobs:
         if: failure()
         with:
           name: integration-test-logs
-          path: "**/target/test.log"
+          path: "**/target/surefire-reports/**.txt"
           if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
       - name: Report coverage to codecov
@@ -127,7 +127,7 @@ jobs:
         if: failure()
         with:
           name: integration-h2-test-logs
-          path: "**/target/test.log"
+          path: "**/target/surefire-reports/**.txt"
           if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
       - name: Report coverage to codecov

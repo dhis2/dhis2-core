@@ -4,16 +4,13 @@
      dhis-support-test , please do :) -->
 <Configuration status="warn">
     <Properties>
-        <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="layout">%d{HH:mm:ss.SSS} %-5level %c [%t] %msg%n</Property>
     </Properties>
 
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="${layout}"/>
         </Console>
-        <File name="file" fileName="target/test.log">
-            <PatternLayout pattern="${layout}"/>
-        </File>
     </Appenders>
 
     <Loggers>
@@ -22,9 +19,6 @@
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
             packages use a logger like shown below. -->
             <AppenderRef ref="console" level="error"/>
-            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher so we have more
-             information when debugging failed tests. -->
-            <AppenderRef ref="file" level="warn"/>
         </Root>
 
         <!-- A few examples of loggers that might be useful to debug integration test issues.
