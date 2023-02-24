@@ -52,7 +52,7 @@ public class TrackerImportParamsMapper
         RequestParams request,
         Body params )
     {
-        // TODO: If user calls tracker import with empty idScheme /tracker?idScheme=
+        // If user calls tracker import with empty idScheme /tracker?idScheme=
         // then StringToTrackerIdSchemeParamConverter will
         // return a null TrackerIdSchemeParam.
         // In that case we are setting the defaultIdSchemeParam to UID
