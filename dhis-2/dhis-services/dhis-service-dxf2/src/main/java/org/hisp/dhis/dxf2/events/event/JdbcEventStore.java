@@ -1931,16 +1931,7 @@ public class JdbcEventStore implements EventStore
             }
             else if ( params.getGridOrders().contains( order ) )
             {
-                Set<QueryItem> items = params.getDataElements();
-
-                for ( QueryItem item : items )
-                {
-                    if ( order.getField().equals( item.getItemId() ) )
-                    {
-                        orderFields.add( order.getField() + " " + order.getDirection() );
-                        break;
-                    }
-                }
+                orderFields.add( getDataElementsOrder( params.getDataElements(), order ) );
             }
         }
 
@@ -1952,6 +1943,19 @@ public class JdbcEventStore implements EventStore
         {
             return "order by psi_lastupdated desc ";
         }
+    }
+
+    private String getDataElementsOrder( Set<QueryItem> dataElements, OrderParam order )
+    {
+        for ( QueryItem item : dataElements )
+        {
+            if ( order.getField().equals( item.getItemId() ) )
+            {
+                return order.getField() + " " + order.getDirection();
+            }
+        }
+
+        return "";
     }
 
     private String getAttributeValueQuery()
