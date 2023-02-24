@@ -1917,21 +1917,6 @@ public class JdbcEventStore implements EventStore
     {
         ArrayList<String> orderFields = new ArrayList<>();
 
-        for ( OrderParam order : params.getGridOrders() )
-        {
-
-            Set<QueryItem> items = params.getDataElements();
-
-            for ( QueryItem item : items )
-            {
-                if ( order.getField().equals( item.getItemId() ) )
-                {
-                    orderFields.add( order.getField() + " " + order.getDirection() );
-                    break;
-                }
-            }
-        }
-
         for ( OrderParam order : params.getOrders() )
         {
             if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
@@ -1943,6 +1928,19 @@ public class JdbcEventStore implements EventStore
             else if ( params.getAttributeOrders().contains( order ) )
             {
                 orderFields.add( order.getField() + "_value " + order.getDirection() );
+            }
+            else if ( params.getGridOrders().contains( order ) )
+            {
+                Set<QueryItem> items = params.getDataElements();
+
+                for ( QueryItem item : items )
+                {
+                    if ( order.getField().equals( item.getItemId() ) )
+                    {
+                        orderFields.add( order.getField() + " " + order.getDirection() );
+                        break;
+                    }
+                }
             }
         }
 
