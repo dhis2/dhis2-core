@@ -51,6 +51,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -83,6 +84,9 @@ class JdbcAnalyticsTableManagerTest
     @Mock
     private AnalyticsExportSettings analyticsExportSettings;
 
+    @Mock
+    private PeriodDataProvider periodDataProvider;
+
     private AnalyticsTableManager subject;
 
     @BeforeEach
@@ -92,7 +96,8 @@ class JdbcAnalyticsTableManagerTest
             mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
-            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate, analyticsExportSettings );
+            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate, analyticsExportSettings,
+            periodDataProvider );
     }
 
     @Test

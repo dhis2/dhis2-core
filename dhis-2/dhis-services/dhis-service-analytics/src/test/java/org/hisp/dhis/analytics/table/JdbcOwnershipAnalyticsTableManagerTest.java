@@ -74,6 +74,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -150,6 +151,9 @@ class JdbcOwnershipAnalyticsTableManagerTest
     @Mock
     private AnalyticsExportSettings analyticsExportSettings;
 
+    @Mock
+    private PeriodDataProvider periodDataProvider;
+
     private static final Program programA = createProgram( 'A' );
 
     private static final Program programB = createProgramWithoutRegistration( 'B' );
@@ -167,7 +171,8 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         target = new JdbcOwnershipAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder,
-            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration, analyticsExportSettings );
+            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration, analyticsExportSettings,
+            periodDataProvider );
 
         tableA = new AnalyticsTable( AnalyticsTableType.OWNERSHIP, target.getFixedColumns(),
             emptyList(), programA );

@@ -150,7 +150,7 @@ class TranslatablePropertyIntrospectorTest
         assertFalse( propertyMap.get( "shortName" ).isTranslatable() );
     }
 
-    private Property createProperty( Class klass, String name )
+    private Property createProperty( Class<?> klass, String name )
     {
         Property property = new Property( klass );
         property.setName( name );

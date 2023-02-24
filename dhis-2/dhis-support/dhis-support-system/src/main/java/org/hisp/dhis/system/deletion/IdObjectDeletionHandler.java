@@ -54,9 +54,10 @@ public abstract class IdObjectDeletionHandler<T extends IdentifiableObject> exte
         this.idObjectManager = idObjectManager;
     }
 
+    @SuppressWarnings( "unchecked" )
     protected IdObjectDeletionHandler()
     {
-        this.klass = (Class) (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+        this.klass = (Class<T>) (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
         this.VETO = new DeletionVeto( klass );
     }
 
