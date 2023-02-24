@@ -32,8 +32,6 @@ import static org.springframework.util.Assert.notNull;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -80,7 +78,7 @@ public class GridAdaptor
      *         least one null element, or if the queryResult is null.
      */
     public Grid createGrid( Optional<SqlQueryResult> sqlQueryResult, long rowsCount,
-        @Nonnull TeiQueryParams teiQueryParams, List<Field> fields )
+        TeiQueryParams teiQueryParams, List<Field> fields )
     {
         notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
 

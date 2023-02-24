@@ -44,8 +44,8 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.springframework.stereotype.Service;
 
 /**
- * this class is responsible for building the limit and offset part of the main
- * sql
+ * This class is responsible for building the limit and offset part of the main
+ * SQL.
  */
 @Service
 public class LimitOffsetQueryBuilder implements SqlQueryBuilder

@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.common;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 /**
  * Encapsulates the internals of a query, exposing methods that provide
  * executable statements.
@@ -44,6 +46,7 @@ public interface Query
      *
      * @return the full query statement
      */
+    @Nonnull
     String getStatement();
 
     /**
@@ -51,5 +54,6 @@ public interface Query
      *
      * @return a map of params
      */
+    @Nonnull
     Map<String, Object> getParams();
 }

@@ -58,7 +58,6 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
      *
      * @param queryRequest the {@link QueryRequest} of type
      *        {@link TeiQueryRequest}.
-     *
      * @throws IllegalQueryException if some invalid state is found.
      */
     @Override
@@ -81,7 +80,6 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
      *
      * @param queryRequest the {@link QueryRequest} of
      *        type{@link TeiQueryRequest}.
-     *
      * @throws IllegalQueryException if some invalid state is found.
      */
     private void checkAllowedDimensions( QueryRequest<TeiQueryRequest> queryRequest )

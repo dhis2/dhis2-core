@@ -49,8 +49,8 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
      * method will process/compute existing values in the request object, and
      * populated all necessary attributes of this same object.
      *
-     * @param commonQueryRequest
-     * @return the processed {@link CommonQueryRequest}
+     * @param commonQueryRequest the {@link CommonQueryRequest} to process.
+     * @return the processed {@link CommonQueryRequest}.
      */
     @Override
     public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )

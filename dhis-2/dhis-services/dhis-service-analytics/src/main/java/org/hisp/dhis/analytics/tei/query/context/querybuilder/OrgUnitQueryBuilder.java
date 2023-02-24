@@ -58,7 +58,6 @@ import org.springframework.stereotype.Service;
  * A {@link SqlQueryBuilder} that builds a {@link RenderableSqlQuery} for
  * {@link DimensionParam} of type
  * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
- *
  */
 @Service
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
@@ -92,9 +91,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
         return builder.build();
     }
 
-    private static void handle(
-        QueryContext queryContext,
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder,
+    private static void handle( QueryContext queryContext, RenderableSqlQuery.RenderableSqlQueryBuilder builder,
         AnalyticsSortingParams param )
     {
         if ( param.getOrderBy().isEventDimension() )

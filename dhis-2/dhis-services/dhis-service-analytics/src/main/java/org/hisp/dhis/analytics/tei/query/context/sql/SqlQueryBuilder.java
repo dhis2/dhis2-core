@@ -30,20 +30,46 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 
 /**
- * A query builder for SQL queries.
+ * Provides the required methods to build {@link RenderableSqlQuery} objects.
  */
 public interface SqlQueryBuilder
 {
-    RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams );
+    @Nonnull
+    /**
+     * Builds a {@link RenderableSqlQuery} based on the given arguments.
+     *
+     * @param queryContext the {@link QueryContext}.
+     * @param dimensions the list of {@link DimensionIdentifier}.
+     * @param sortingParams the list of {@link AnalyticsSortingParams}.
+     */
+    RenderableSqlQuery buildSqlQuery( @Nonnull QueryContext queryContext,
+        @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        @Nonnull List<AnalyticsSortingParams> acceptedSortingParams );
 
+    /**
+     * Provides the list of {@link Predicate} functions for
+     * {@link DimensionIdentifier}. They act as filters and are used to build
+     * the final {@link RenderableSqlQuery} query.
+     *
+     * @return the list of filter dimensions or empty.
+     */
+    @Nonnull
     List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters();
 
+    /**
+     * Provides the list of {@link Predicate} functions for
+     * {@link DimensionIdentifier}. They are used for sorting and are part of
+     * the final {@link RenderableSqlQuery} query.
+     *
+     * @return the list of sorting dimensions or empty.
+     */
+    @Nonnull
     List<Predicate<AnalyticsSortingParams>> getSortingFilters();
 }

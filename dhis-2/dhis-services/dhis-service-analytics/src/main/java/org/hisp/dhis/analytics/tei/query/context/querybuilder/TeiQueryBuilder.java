@@ -53,8 +53,8 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 /**
- * this query builder is responsible for building the sql query for the tei
- * table it will generate relevant SQL parts related to
+ * This builder is responsible for building the SQL query for the TEI table. It
+ * will generate the relevant SQL parts related to
  * dimensions/filters/sortingParameters having one the following structure: -
  * {teiField} - {programUid}.{programAttribute}
  */
@@ -74,9 +74,10 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
     protected Stream<Field> getSelect( QueryContext queryContext )
     {
         return Stream.concat(
-            // static fields + 'enrollment' dynamic column
+            // Static fields + 'enrollment' dynamic column.
             TeiFields.getStaticAndDynamicFields(),
-            // Tei/Program attributes
+
+            // Tei/Program attributes.
             TeiFields.getDimensionFields( queryContext.getTeiQueryParams() ) );
     }
 
@@ -114,9 +115,9 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
     private static boolean isTei( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
         return
-        // will match all dimensionIdentifiers like {dimensionUid}
+        // Will match all dimensionIdentifiers like {dimensionUid}.
         dimensionIdentifier.getDimensionIdentifierType() == TEI ||
-        // will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
+        // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
         // e.g. {programUid}.{attributeUid}
             isOfType( dimensionIdentifier, PROGRAM_ATTRIBUTE );
     }
@@ -131,7 +132,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
 
     private IndexedOrder toIndexedOrder( AnalyticsSortingParams param )
     {
-        // Here we can assume that param is either a static dimension or
+        // Here, we can assume that param is either a static dimension or
         // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
         // in both cases the column for the select is the same.
         String column = param.getOrderBy().getDimension().getUid();

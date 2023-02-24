@@ -171,7 +171,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if current user has data view organisation units
         // ---------------------------------------------------------------------
-
         if ( user == null || !user.hasDataViewOrganisationUnit() )
         {
             return;
@@ -180,7 +179,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if request already has organisation units specified
         // ---------------------------------------------------------------------
-
         boolean hasOrgUnit = commonParams
             .getDimensionIdentifiers().stream()
             .anyMatch( OrgUnitQueryBuilder::isOu );
@@ -234,7 +232,6 @@ public class CommonParamsSecurityManager
         // ---------------------------------------------------------------------
         // Check if current user has dimension constraints
         // ---------------------------------------------------------------------
-
         if ( user == null )
         {
             return;
@@ -269,7 +266,6 @@ public class CommonParamsSecurityManager
             // -----------------------------------------------------------------
             // Check if dimension constraint already is specified with items
             // -----------------------------------------------------------------
-
             if ( hasDimensionOrFilterWithItems( commonParams, dimension.getUid() ) )
             {
                 continue;
@@ -281,7 +277,6 @@ public class CommonParamsSecurityManager
             // -----------------------------------------------------------------
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
-
             if ( canReadItems.isEmpty() )
             {
                 throwIllegalQueryEx( ErrorCode.E7123, dimension.getDimension() );

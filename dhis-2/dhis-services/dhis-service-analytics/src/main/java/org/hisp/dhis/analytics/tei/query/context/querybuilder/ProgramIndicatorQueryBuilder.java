@@ -70,7 +70,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.stereotype.Service;
 
 /**
- * a {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
+ * A {@link SqlQueryBuilder} for {@link ProgramIndicator} dimensions. It will
  * generate a subquery for each program indicator dimension.
  */
 @Service

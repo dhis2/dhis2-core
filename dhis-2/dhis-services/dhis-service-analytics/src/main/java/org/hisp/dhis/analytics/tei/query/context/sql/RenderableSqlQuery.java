@@ -56,7 +56,7 @@ import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.common.query.Where;
 
 /**
- * this class is responsible for rendering the sql query. each instance of this
+ * This class is responsible for rendering the SQL query. each instance of this
  * class will only render each "part" once, and then cache the result. This way
  * we can reuse the same instance of this class for rendering the count query,
  * without affecting the parameters of the original query.

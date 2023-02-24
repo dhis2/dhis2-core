@@ -44,8 +44,8 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.springframework.stereotype.Service;
 
 /**
- * this class is responsible for adding period conditions to the sql query By
- * design, Period conditions are grouped together in their own single group.
+ * This class is responsible for adding period conditions to the SQL query. By
+ * design, "Period" conditions are grouped together in their own single group.
  * This means that the period conditions are not combined with other conditions
  * and are rendered as a single group of "OR" conditions.
  */

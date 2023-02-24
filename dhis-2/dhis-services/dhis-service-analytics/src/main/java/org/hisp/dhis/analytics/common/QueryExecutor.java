@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import javax.annotation.Nonnull;
+
 /**
  * Responsible for providing methods able to execute queries on the respective
  * data source, based on the implementation provided.
@@ -45,7 +47,8 @@ public interface QueryExecutor<T extends Query, E extends QueryResult>
      * @return the result of the execution represented by a {@link QueryResult}
      *         object.
      */
-    E find( T query );
+    @Nonnull
+    E find( @Nonnull T query );
 
     /**
      * Executes a read/retrieve operation based on the given query.
@@ -53,5 +56,5 @@ public interface QueryExecutor<T extends Query, E extends QueryResult>
      * @param query
      * @return the number of results found.
      */
-    long count( T query );
+    long count( @Nonnull T query );
 }

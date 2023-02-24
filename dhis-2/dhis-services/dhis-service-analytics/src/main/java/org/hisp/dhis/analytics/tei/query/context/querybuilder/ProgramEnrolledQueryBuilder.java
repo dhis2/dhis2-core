@@ -45,7 +45,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.stereotype.Service;
 
 /**
- * this class is responsible for adding the "is enrolled in program" filter to
+ * This class is responsible for adding the "is enrolled in program" filter to
  * the sql query. The generated conditions are "ungrouped", since each one needs
  * to be a separate "AND" condition.
  */

@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery.RenderableSqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
@@ -61,14 +61,15 @@ public class EventSortingQueryBuilders
      * This method will add to the builder the "order" and "left joins" needed
      * for the given param.
      *
-     * @param param the order param
-     * @param queryContext the context
-     * @param builder the builder
+     * @param param the {@link AnalyticsSortingParams}.
+     * @param queryContext the {@link QueryContext}.
+     * @param builder the {@link RenderableSqlQueryBuilder}.
+     * @param renderableSupplier the supplied {@link BiFunction}.
      */
     public static void handleEventOrder(
         AnalyticsSortingParams param,
         QueryContext queryContext,
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder,
+        RenderableSqlQueryBuilder builder,
         BiFunction<String, DimensionIdentifier<DimensionParam>, Field> renderableSupplier )
     {
         int sequence = queryContext.getSequence().getAndIncrement();

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -42,6 +44,7 @@ public class SqlQueryResult implements QueryResult<SqlRowSet, SqlRowSetMetaData>
     /**
      * Represents the query result.
      */
+    @Nonnull
     private final SqlRowSet result;
 
     /**

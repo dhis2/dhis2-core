@@ -32,8 +32,6 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +53,7 @@ public class SqlQuery implements Query
      * @throws IllegalArgumentException if statement or params are
      *         null/empty/blank
      */
-    public SqlQuery( String statement, @Nonnull Map<String, Object> params )
+    public SqlQuery( String statement, Map<String, Object> params )
     {
         hasText( statement, "The 'statement' must not be null/empty/blank" );
         notNull( params, "The 'params' must not be null" );
