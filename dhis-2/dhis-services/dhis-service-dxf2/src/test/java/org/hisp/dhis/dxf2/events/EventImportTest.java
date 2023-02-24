@@ -108,7 +108,7 @@ import com.google.common.collect.Sets;
 public class EventImportTest
     extends TransactionalIntegrationTest
 {
-    private static final String DUE_DATE = "2022-12-12T10:25:40.000";
+    private static final String DUE_DATE = "2021-02-28T13:05:00";
 
     @Autowired
     private EventService eventService;
@@ -521,7 +521,7 @@ public class EventImportTest
 
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
 
-        assertEquals( DUE_DATE, DateUtils.getIso8601NoTz( psi.getDueDate() ) );
+        assertEquals( DUE_DATE, DateUtils.getLongDateString( psi.getDueDate() ) );
     }
 
     @Test
