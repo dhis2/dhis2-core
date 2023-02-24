@@ -152,6 +152,22 @@ class RequestParamUtilsTest
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 
+    @Test
+    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
+        throws BadRequestException
+    {
+        assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ),
+            RequestParamUtils.parseQueryFilter( "like:project:x" ) );
+    }
+
+    @Test
+    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValue()
+        throws BadRequestException
+    {
+        assertEquals( new QueryFilter( QueryOperator.EQ, "project" ),
+            RequestParamUtils.parseQueryFilter( "eq:project" ) );
+    }
+
     private TrackedEntityAttribute trackedEntityAttribute( String uid )
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
