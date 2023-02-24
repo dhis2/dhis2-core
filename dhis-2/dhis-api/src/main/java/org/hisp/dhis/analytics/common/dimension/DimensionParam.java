@@ -31,7 +31,8 @@ import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.STATIC_DIMENSION;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
@@ -199,7 +200,7 @@ public class DimensionParam implements UidObject
             return byForeignType( queryItem.getItem().getDimensionItemType() );
         }
 
-        return STATIC_DIMENSION;
+        return staticDimension.getDimensionParamObjectType();
     }
 
     public boolean isOfType( DimensionParamObjectType type )
@@ -261,25 +262,30 @@ public class DimensionParam implements UidObject
     @RequiredArgsConstructor
     enum StaticDimension
     {
-        OUNAME( TEXT ),
-        ENROLLMENTDATE( DATETIME ),
-        ENDDATE( DATETIME ),
-        INCIDENTDATE( DATETIME ),
-        EXECUTIONDATE( DATETIME ),
-        LASTUPDATED( DATETIME ),
-        CREATED( DATETIME );
+        OUNAME( TEXT, ORGANISATION_UNIT ),
+        ENROLLMENTDATE( DATETIME, STATIC ),
+        ENDDATE( DATETIME, STATIC ),
+        INCIDENTDATE( DATETIME, STATIC ),
+        EXECUTIONDATE( DATETIME, STATIC ),
+        LASTUPDATED( DATETIME, STATIC ),
+        CREATED( DATETIME, STATIC );
 
         private final ValueType valueType;
 
         @Getter
         private final String columnName;
 
-        StaticDimension( ValueType valueType )
+        @Getter
+        private final DimensionParamObjectType dimensionParamObjectType;
+
+        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType )
         {
             this.valueType = valueType;
 
             // By default, columnName is its own "name" in lowercase.
             this.columnName = lowerCase( name() );
+
+            this.dimensionParamObjectType = dimensionParamObjectType;
         }
 
         static Optional<StaticDimension> of( String value )

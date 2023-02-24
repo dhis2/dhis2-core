@@ -331,8 +331,16 @@ public class TeiFields
         }
         else
         {
-            String uid = dimensionParam.getUid();
+            String uid = dimIdentifier.toString();
             String name = dimensionParam.getName();
+            if ( dimIdentifier.hasProgramStage() )
+            {
+                name = "Event " + name;
+            }
+            else if ( dimIdentifier.hasProgram() )
+            {
+                name = "Enrollment " + name;
+            }
             ValueType valueType = dimensionParam.getValueType();
 
             return new GridHeader( uid, name, valueType, false, true );

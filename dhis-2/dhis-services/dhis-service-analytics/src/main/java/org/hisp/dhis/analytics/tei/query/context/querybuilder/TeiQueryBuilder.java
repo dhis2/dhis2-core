@@ -29,11 +29,8 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -138,9 +135,9 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
         // Here, we can assume that param is either a static dimension or
         // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
         // in both cases the column for the select is the same.
-        String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
+        String column = param.getOrderBy().getDimension().getUid();
         return IndexedOrder.of( param.getIndex(),
-            Order.of( Field.ofUnquoted( TEI_ALIAS, () -> column, EMPTY ), param.getSortDirection() ) );
+            Order.of( Field.of( column ), param.getSortDirection() ) );
     }
 
     private static boolean isTeiOrder( AnalyticsSortingParams analyticsSortingParams )

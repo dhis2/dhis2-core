@@ -40,6 +40,7 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
@@ -84,10 +85,12 @@ public class DataElementQueryBuilder implements SqlQueryBuilder
                 analyticsSortingParams,
                 queryContext,
                 builder,
-                ( uniqueAlias, dimensionIdentifier ) -> RenderableDataValue.of(
-                    uniqueAlias,
-                    dimensionIdentifier.getDimension().getUid(),
-                    fromValueType( dimensionIdentifier.getDimension().getValueType() ) ) ) );
+                ( uniqueAlias, dimensionIdentifier ) -> Field.ofUnquoted(
+                    RenderableDataValue.of(
+                        uniqueAlias,
+                        dimensionIdentifier.getDimension().getUid(),
+                        fromValueType( dimensionIdentifier.getDimension().getValueType() ) ),
+                    dimensionIdentifier.toString() ) ) );
 
         return builder.build();
     }

@@ -28,8 +28,6 @@
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrollmentSortingQueryBuilders.handleEnrollmentOrder;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.EventSortingQueryBuilders.handleEventOrder;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
@@ -50,7 +48,6 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
-import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.OrganisationUnitCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
@@ -65,7 +62,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
-    private static final BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> RENDERABLE_DI_SUPPLIER = (
+    private static final BiFunction<String, DimensionIdentifier<DimensionParam>, Field> RENDERABLE_DI_SUPPLIER = (
         uniqueAlias, di ) -> Field.of( uniqueAlias, () -> di.getDimension().getUid(), di );
 
     @Getter
@@ -115,13 +112,11 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
         }
         else
         {
-            String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
+            String column = param.getOrderBy().getDimension().getUid();
             builder.orderClause(
                 IndexedOrder.of(
                     param.getIndex(),
-                    Order.of(
-                        Field.ofUnquoted( TEI_ALIAS, () -> column, param.getOrderBy() ),
-                        param.getSortDirection() ) ) );
+                    Order.of( Field.of( column ), param.getSortDirection() ) ) );
         }
     }
 

@@ -45,10 +45,10 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.common.query.Order;
-import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery.RenderableSqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
@@ -66,9 +66,11 @@ public class EventSortingQueryBuilders
      * @param builder the {@link RenderableSqlQueryBuilder}.
      * @param renderableSupplier the supplied {@link BiFunction}.
      */
-    public static void handleEventOrder( AnalyticsSortingParams param, QueryContext queryContext,
+    public static void handleEventOrder(
+        AnalyticsSortingParams param,
+        QueryContext queryContext,
         RenderableSqlQueryBuilder builder,
-        BiFunction<String, DimensionIdentifier<DimensionParam>, Renderable> renderableSupplier )
+        BiFunction<String, DimensionIdentifier<DimensionParam>, Field> renderableSupplier )
     {
         int sequence = queryContext.getSequence().getAndIncrement();
 
@@ -81,10 +83,12 @@ public class EventSortingQueryBuilders
         toLeftJoin( param, enrollmentAlias, uniqueAlias, queryContext )
             .forEach( builder::leftJoin );
 
+        Field field = renderableSupplier.apply( uniqueAlias, di );
+
+        builder.selectField( field );
+
         builder.orderClause( IndexedOrder.of( param.getIndex(),
-            Order.of(
-                renderableSupplier.apply( uniqueAlias, di ),
-                param.getSortDirection() ) ) );
+            Order.of( Field.of( field.getDimensionIdentifier() ), param.getSortDirection() ) ) );
     }
 
     /**
