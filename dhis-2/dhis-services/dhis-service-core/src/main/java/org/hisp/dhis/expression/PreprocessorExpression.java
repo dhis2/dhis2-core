@@ -76,7 +76,7 @@ public abstract class PreprocessorExpression
      *
      * @param expression the expression to parse for preprocessing.
      */
-    public PreprocessorExpression( String expression )
+    protected PreprocessorExpression( String expression )
     {
         this.expression = expression;
 
