@@ -70,6 +70,8 @@ public abstract class PreprocessorExpression
 
     public static final String PREPROCESSOR_SEPARATOR = " --> ";
 
+    public static final int PREPROCESSOR_SEPARATOR_LENGTH = PREPROCESSOR_SEPARATOR.length();
+
     /**
      * Accepts an expression with a preprocessor prefix. Parses it into the
      * prefix (also broken down into parts) and the main expression.
@@ -80,17 +82,17 @@ public abstract class PreprocessorExpression
     {
         this.expression = expression;
 
-        String[] split = expression.split( PREPROCESSOR_SEPARATOR, 2 );
+        int mainSplit = expression.indexOf( PREPROCESSOR_SEPARATOR );
 
-        if ( split.length != 2 )
+        if ( mainSplit < 0 )
         {
             throw new ParserException(
                 format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
         }
 
-        prefix = split[0];
+        prefix = expression.substring( 0, mainSplit );
         parts = List.of( prefix.split( " " ) );
-        main = split[1];
+        main = expression.substring( mainSplit + PREPROCESSOR_SEPARATOR_LENGTH );
     }
 
     /**
