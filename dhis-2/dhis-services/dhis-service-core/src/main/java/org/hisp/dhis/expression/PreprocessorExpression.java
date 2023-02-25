@@ -94,8 +94,8 @@ public abstract class PreprocessorExpression
     }
 
     /**
-     * Validates a variable name which must start with a '?' and contains after
-     * that only word characters [a-zA-Z_0-9].
+     * Validates that variable name starts with a '?', followed by a letter, and
+     * optionally followed by more letters or numbers.
      *
      * @param variable the variable name to validate.
      * @param expression the full expression.
