@@ -70,12 +70,10 @@ class RequestParamUtils
     private static final String OPERATOR_GROUP = EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
         .collect( Collectors.joining( "|" ) );
 
-    private static final String QUERY_FILTER_OPERATOR_SPLIT_REGEX = DIMENSION_NAME_SEP + "(?i)("
-        + OPERATOR_GROUP
-        + ")" + DIMENSION_NAME_SEP;
-
     private static final Pattern QUERY_FILTER_OPERATOR_PATTERN = Pattern
-        .compile( QUERY_FILTER_OPERATOR_SPLIT_REGEX );
+        .compile( DIMENSION_NAME_SEP + "(?i)("
+            + OPERATOR_GROUP
+            + ")" + DIMENSION_NAME_SEP );
 
     /**
      * RegEx to validate {operator}:{value} in a query filter
@@ -222,21 +220,21 @@ class RequestParamUtils
 
         QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
 
-        String[] split = fullPath
-            .split( QUERY_FILTER_OPERATOR_SPLIT_REGEX );
+        String[] split = QUERY_FILTER_OPERATOR_PATTERN
+            .split( fullPath );
 
         LinkedList<String> values = new LinkedList<>( Arrays.asList( split ).subList( 1, split.length ) );
 
-        LinkedList<String> operators = new LinkedList<>();
-
         Matcher operatorMatcher = QUERY_FILTER_OPERATOR_PATTERN.matcher( fullPath );
+
+        LinkedList<String> operators = new LinkedList<>();
 
         while ( operatorMatcher.find() )
         {
-            operators.add( operatorMatcher.group() );
+            operators.add( operatorMatcher.group().replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        if ( operators.size() == 0 || values.size() == 0 || operators.size() != values.size() )
+        if ( values.isEmpty() || operators.isEmpty() || operators.size() != values.size() )
         {
             throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
         }
@@ -244,8 +242,7 @@ class RequestParamUtils
         for ( int i = 0; i < operators.size(); i++ )
         {
             queryItem.addFilter( new QueryFilter(
-                QueryOperator.fromString( operators.get( i ).replace( DIMENSION_NAME_SEP, "" ) ), values.get( i ) ) );
-
+                QueryOperator.fromString( operators.get( i ) ), values.get( i ) ) );
         }
 
         return queryItem;
