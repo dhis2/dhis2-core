@@ -38,10 +38,10 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jim Grace
  */
-class PredictorPreprosserExpressionTest
+class PredictorPreprocessorExpressionTest
 {
     @Test
-    void testPredictorPreprosserExpression()
+    void testPredictorPreprossorExpression()
     {
         PredictorPreprocessorExpression ppe = new PredictorPreprocessorExpression(
             "forEach ?de in :DEG:G1234567890 --> #{?de.A1234567890}" );
