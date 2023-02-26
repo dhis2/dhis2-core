@@ -38,11 +38,11 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.PredictorPreprocessorExpression;
 import org.springframework.stereotype.Component;
@@ -119,18 +119,26 @@ public class PredictionPreprocessor
 
     /**
      * Clones a predictor for a particular data element.
+     * <p>
+     * Note: The .toBuilder().build() pattern makes a shallow clone. In the
+     * first attempt at writing this method, SerializationUtils.clone() was used
+     * to make a deep clone, but that didn't work because some nested objects
+     * were Hibernate proxies and the resulting objects triggered unable to
+     * initialize proxy exceptions.
      */
     private Predictor clonePredictor( Predictor predictor, PredictorPreprocessorExpression preEx,
         DataElement dataElement )
     {
-        Predictor clone = SerializationUtils.clone( predictor );
+        Predictor clone = predictor.toBuilder().build();
 
         clone.setOutput( dataElement );
 
-        String mainEpression = preEx.getMain();
+        String mainExpression = preEx.getMain();
         String variable = preEx.getVariable();
-        String cloneExpression = mainEpression.replace( variable, dataElement.getUid() );
-        clone.getGenerator().setExpression( cloneExpression );
+        String clonedExpression = mainExpression.replace( variable, dataElement.getUid() );
+        Expression clonedGenerator = new Expression( clonedExpression, clone.getGenerator().getDescription(),
+            clone.getGenerator().getMissingValueStrategy() );
+        clone.setGenerator( clonedGenerator );
 
         return clone;
     }
