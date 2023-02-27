@@ -339,7 +339,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -387,7 +388,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .with( ENROLLMENTS_EVENTS, true ).build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -411,7 +413,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .with(
                 ENROLLMENTS_EVENTS,
                 true )
@@ -447,7 +450,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -500,7 +504,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .with(
                 ENROLLMENTS_EVENTS,
                 true )
@@ -558,7 +563,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -599,7 +605,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( ENROLLMENTS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( ENROLLMENTS, true )
             .with(
                 ENROLLMENTS_EVENTS,
                 true )
@@ -630,7 +637,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( RELATIONSHIPS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( RELATIONSHIPS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -658,7 +666,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( RELATIONSHIPS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( RELATIONSHIPS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -703,7 +712,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( RELATIONSHIPS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( RELATIONSHIPS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
@@ -738,7 +748,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty().with( PROGRAM_OWNERS, true )
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.builder().empty()
+            .with( PROGRAM_OWNERS, true )
             .build();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService

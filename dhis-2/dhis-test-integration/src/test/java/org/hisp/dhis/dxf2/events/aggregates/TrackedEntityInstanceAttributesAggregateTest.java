@@ -150,7 +150,8 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, TrackedEntityInstanceParams.builder().all().build(), false, true );
+            .getTrackedEntityInstances( queryParams, TrackedEntityInstanceParams.builder().all().build(), false,
+                true );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
         assertThat( trackedEntityInstances.get( 0 ).getProgramOwners(), hasSize( 2 ) );
     }

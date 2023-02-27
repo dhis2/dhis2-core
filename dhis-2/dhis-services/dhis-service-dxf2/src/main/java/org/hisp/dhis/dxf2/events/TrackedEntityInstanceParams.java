@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackedEntityInstanceParams extends Params
+public class TrackedEntityInstanceParams extends AbstractParams
 {
     public static final Set<Param> ALL = EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
         ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
@@ -61,7 +61,7 @@ public class TrackedEntityInstanceParams extends Params
     }
 
     /**
-     * Create a {@link EnrollmentParams} instance filtering by the prefix
+     * Create {@link EnrollmentParams} filtering by the prefix
      * {@link Param#ENROLLMENTS}. We need to set the {@link Param#DELETED}
      * because we only have a generic includeDeleted from the request
      */
@@ -77,22 +77,24 @@ public class TrackedEntityInstanceParams extends Params
             .with( DELETED, this.params.contains( DELETED ) ).build();
     }
 
-    public static ParamsBuilder<TrackedEntityInstanceParams> builder()
+    public static Builder builder()
     {
-        return new ParamsBuilder<>()
-        {
-            @Override
-            public ParamsBuilder<TrackedEntityInstanceParams> all()
-            {
-                this.params = EnumSet.copyOf( ALL );
-                return this;
-            }
+        return new Builder();
+    }
 
-            @Override
-            public TrackedEntityInstanceParams build()
-            {
-                return new TrackedEntityInstanceParams( this.params );
-            }
-        };
+    public static class Builder extends ParamsBuilder<TrackedEntityInstanceParams>
+    {
+        @Override
+        public Builder all()
+        {
+            this.params = EnumSet.copyOf( ALL );
+            return this;
+        }
+
+        @Override
+        public TrackedEntityInstanceParams build()
+        {
+            return new TrackedEntityInstanceParams( this.params );
+        }
     }
 }

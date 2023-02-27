@@ -266,7 +266,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
+        Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -296,7 +297,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
+        Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -411,7 +413,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.builder().empty().build() );
+        Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.builder().empty().build() );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }

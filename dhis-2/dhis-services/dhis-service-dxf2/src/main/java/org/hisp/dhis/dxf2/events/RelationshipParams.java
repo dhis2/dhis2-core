@@ -33,7 +33,7 @@ import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIP_TO;
 import java.util.EnumSet;
 import java.util.Set;
 
-public class RelationshipParams extends Params
+public class RelationshipParams extends AbstractParams
 {
     public static final Set<Param> ALL = EnumSet.of( RELATIONSHIP_FROM, RELATIONSHIP_TO );
 
@@ -42,22 +42,24 @@ public class RelationshipParams extends Params
         super( paramsSet );
     }
 
-    public static ParamsBuilder<RelationshipParams> builder()
+    public static Builder builder()
     {
-        return new ParamsBuilder<>()
-        {
-            @Override
-            public ParamsBuilder<RelationshipParams> all()
-            {
-                this.params = EnumSet.copyOf( ALL );
-                return this;
-            }
+        return new Builder();
+    }
 
-            @Override
-            public RelationshipParams build()
-            {
-                return new RelationshipParams( this.params );
-            }
-        };
+    public static class Builder extends ParamsBuilder<RelationshipParams>
+    {
+        @Override
+        public Builder all()
+        {
+            this.params = EnumSet.copyOf( ALL );
+            return this;
+        }
+
+        @Override
+        public RelationshipParams build()
+        {
+            return new RelationshipParams( this.params );
+        }
     }
 }

@@ -68,7 +68,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.Params;
+import org.hisp.dhis.dxf2.events.AbstractParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -562,7 +562,8 @@ public class TrackedEntityInstanceController
             return TrackedEntityInstanceParams.builder().all().build();
         }
 
-        Params.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder().empty();
+        AbstractParams.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder()
+            .empty();
 
         if ( joined.contains( "relationships" ) )
         {

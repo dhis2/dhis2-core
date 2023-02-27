@@ -414,7 +414,8 @@ public class EnrollmentController
     private Enrollment getEnrollment( String id )
         throws NotFoundException
     {
-        Enrollment enrollment = enrollmentService.getEnrollment( id, EnrollmentParams.builder().empty().build() );
+        Enrollment enrollment = enrollmentService.getEnrollment( id,
+            EnrollmentParams.builder().empty().build() );
 
         if ( enrollment == null )
         {

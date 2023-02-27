@@ -573,7 +573,8 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.builder().empty().build() );
+                event = eventService.getEvent( dao.getProgramStageInstance(),
+                    EventParams.builder().empty().build() );
             }
 
             relationshipItem.setEvent( event );

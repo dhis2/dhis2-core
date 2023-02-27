@@ -40,8 +40,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.dxf2.events.AbstractParams;
 import org.hisp.dhis.dxf2.events.Param;
-import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -156,7 +156,8 @@ public class TrackedEntityInstanceSupportService
             return TrackedEntityInstanceParams.builder().all().build();
         }
 
-        Params.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder().empty();
+        AbstractParams.ParamsBuilder<TrackedEntityInstanceParams> params = TrackedEntityInstanceParams.builder()
+            .empty();
 
         if ( joined.contains( "relationships" ) )
         {

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class EnrollmentParams extends Params
+public class EnrollmentParams extends AbstractParams
 {
     public static final Set<Param> ALL = EnumSet.of( ATTRIBUTES, RELATIONSHIPS, DELETED,
         EVENTS,
@@ -53,9 +53,9 @@ public class EnrollmentParams extends Params
     }
 
     /**
-     * Create a {@link EventParams} instance filtering by the prefix
-     * {@link Param#EVENTS}. We need to set the {@link Param#DELETED} because we
-     * only have a generic includeDeleted from the request
+     * Create {@link EventParams} filtering by the prefix {@link Param#EVENTS}.
+     * We need to set the {@link Param#DELETED} because we only have a generic
+     * includeDeleted from the request
      */
     public EventParams getEventParams()
     {
@@ -70,22 +70,24 @@ public class EnrollmentParams extends Params
             .with( DELETED, this.params.contains( DELETED ) ).build();
     }
 
-    public static ParamsBuilder<EnrollmentParams> builder()
+    public static Builder builder()
     {
-        return new ParamsBuilder<>()
-        {
-            @Override
-            public ParamsBuilder<EnrollmentParams> all()
-            {
-                this.params = EnumSet.copyOf( ALL );
-                return this;
-            }
+        return new Builder();
+    }
 
-            @Override
-            public EnrollmentParams build()
-            {
-                return new EnrollmentParams( this.params );
-            }
-        };
+    public static class Builder extends ParamsBuilder<EnrollmentParams>
+    {
+        @Override
+        public Builder all()
+        {
+            this.params = EnumSet.copyOf( ALL );
+            return this;
+        }
+
+        @Override
+        public EnrollmentParams build()
+        {
+            return new EnrollmentParams( this.params );
+        }
     }
 }

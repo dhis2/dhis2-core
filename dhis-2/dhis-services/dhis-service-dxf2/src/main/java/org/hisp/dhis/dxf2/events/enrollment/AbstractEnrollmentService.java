@@ -284,7 +284,8 @@ public abstract class AbstractEnrollmentService
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 enrollments
-                    .add( getEnrollment( user, programInstance, EnrollmentParams.builder().empty().build(), true ) );
+                    .add( getEnrollment( user, programInstance, EnrollmentParams.builder().empty().build(),
+                        true ) );
             }
         }
 

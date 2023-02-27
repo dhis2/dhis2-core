@@ -241,7 +241,8 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         Enrollment retrievedEnrlollment = enrollmentService
-            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment(), EnrollmentParams.builder().empty().build() );
+            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment(),
+                EnrollmentParams.builder().empty().build() );
         EventSearchParams params = new EventSearchParams();
         params.setProgram( programA );
         params.setOrgUnit( organisationUnitA );

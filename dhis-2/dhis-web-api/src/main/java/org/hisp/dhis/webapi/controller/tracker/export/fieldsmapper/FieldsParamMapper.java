@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.Params;
+import org.hisp.dhis.dxf2.events.AbstractParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -41,8 +41,15 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-interface FieldsParamMapper<T extends Params>
+interface FieldsParamMapper<T extends AbstractParams>
 {
+    T map( List<FieldPath> fields );
+
+    default T map( List<FieldPath> fields, boolean includeDeleted )
+    {
+        return getParamsBuilder().empty().build();
+    };
+
     default Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();
@@ -56,7 +63,7 @@ interface FieldsParamMapper<T extends Params>
         return roots;
     }
 
-    default Params.ParamsBuilder<T> initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    default AbstractParams.ParamsBuilder<T> initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
@@ -69,5 +76,5 @@ interface FieldsParamMapper<T extends Params>
         return getParamsBuilder().empty();
     }
 
-    Params.ParamsBuilder<T> getParamsBuilder();
+    AbstractParams.ParamsBuilder<T> getParamsBuilder();
 }

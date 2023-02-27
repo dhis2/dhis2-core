@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -47,6 +46,7 @@ public class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
 {
     private final FieldFilterService fieldFilterService;
 
+    @Override
     public EventParams map( List<FieldPath> fields )
     {
         return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( Collectors.toMap( p -> p,
@@ -54,7 +54,7 @@ public class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
     }
 
     @Override
-    public Params.ParamsBuilder<EventParams> getParamsBuilder()
+    public EventParams.Builder getParamsBuilder()
     {
         return EventParams.builder();
     }

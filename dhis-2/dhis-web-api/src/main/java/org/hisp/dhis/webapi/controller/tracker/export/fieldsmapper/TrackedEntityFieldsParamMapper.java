@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -48,11 +47,13 @@ public class TrackedEntityFieldsParamMapper implements FieldsParamMapper<Tracked
 {
     private final FieldFilterService fieldFilterService;
 
+    @Override
     public TrackedEntityInstanceParams map( List<FieldPath> fields )
     {
         return map( fields, false );
     }
 
+    @Override
     public TrackedEntityInstanceParams map( List<FieldPath> fields, boolean includeDeleted )
     {
         return initUsingAllOrNoFields( rootFields( fields ) )
@@ -62,7 +63,7 @@ public class TrackedEntityFieldsParamMapper implements FieldsParamMapper<Tracked
     }
 
     @Override
-    public Params.ParamsBuilder<TrackedEntityInstanceParams> getParamsBuilder()
+    public TrackedEntityInstanceParams.Builder getParamsBuilder()
     {
         return TrackedEntityInstanceParams.builder();
     }

@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.Params;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
@@ -48,11 +47,13 @@ public class EnrollmentFieldsParamMapper implements FieldsParamMapper<Enrollment
 {
     private final FieldFilterService fieldFilterService;
 
+    @Override
     public EnrollmentParams map( List<FieldPath> fields )
     {
         return map( fields, false );
     }
 
+    @Override
     public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
     {
         return initUsingAllOrNoFields( rootFields( fields ) )
@@ -62,7 +63,7 @@ public class EnrollmentFieldsParamMapper implements FieldsParamMapper<Enrollment
     }
 
     @Override
-    public Params.ParamsBuilder<EnrollmentParams> getParamsBuilder()
+    public EnrollmentParams.Builder getParamsBuilder()
     {
         return EnrollmentParams.builder();
     }

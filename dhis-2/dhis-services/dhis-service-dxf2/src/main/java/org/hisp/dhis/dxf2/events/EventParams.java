@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class EventParams extends Params
+public class EventParams extends AbstractParams
 {
     public static final Set<Param> ALL = EnumSet.of( RELATIONSHIPS );
 
@@ -44,22 +44,24 @@ public class EventParams extends Params
         super( paramsSet );
     }
 
-    public static ParamsBuilder<EventParams> builder()
+    public static Builder builder()
     {
-        return new ParamsBuilder<>()
-        {
-            @Override
-            public ParamsBuilder<EventParams> all()
-            {
-                this.params = EnumSet.copyOf( ALL );
-                return this;
-            }
+        return new Builder();
+    }
 
-            @Override
-            public EventParams build()
-            {
-                return new EventParams( this.params );
-            }
-        };
+    public static class Builder extends ParamsBuilder<EventParams>
+    {
+        @Override
+        public Builder all()
+        {
+            this.params = EnumSet.copyOf( ALL );
+            return this;
+        }
+
+        @Override
+        public EventParams build()
+        {
+            return new EventParams( this.params );
+        }
     }
 }

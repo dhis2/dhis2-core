@@ -40,11 +40,11 @@ import lombok.AllArgsConstructor;
  *
  *         Abstract Params class to store a {@link Param} set which maps to the
  *         set of fields in a request. It includes a builder to initialize an
- *         empty or all (*) params list and to create a new Params instance in
- *         case the params list has mutated
+ *         empty or all (*) params list and to create a new Params
+ *         implementation instance in case the params list has mutated
  */
 @AllArgsConstructor
-public abstract class Params
+public abstract class AbstractParams
 {
     protected final Set<Param> params;
 
@@ -53,7 +53,7 @@ public abstract class Params
         return params.contains( param );
     }
 
-    public static class ParamsBuilder<T extends Params>
+    public static class ParamsBuilder<T extends AbstractParams>
     {
         protected Set<Param> params;
 
