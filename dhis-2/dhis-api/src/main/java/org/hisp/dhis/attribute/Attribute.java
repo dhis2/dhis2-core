@@ -268,7 +268,7 @@ public class Attribute
         }
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @Property( access = Property.Access.READ_ONLY, required = FALSE )
     public Set<String> getObjectTypes()
     {
