@@ -43,8 +43,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -341,13 +339,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                         {
                             DataElement dataElement = dataElementWithOptionSet.get( dv.getDataElement() );
 
-                            OptionSet optionSet = dataElement.getOptionSet();
-
-                            Option option = optionSet.getOptionByCode( dv.getValue() );
+                            String value = Optional.ofNullable( dataElement.getOptionSet() )
+                                .map( op -> op.getOptionByCode( dv.getValue() ).getName() )
+                                .orElse( dv.getValue() );
 
                             return RuleDataValue.create(
                                 ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
-                                psi.getProgramStage().getUid(), dv.getDataElement(), option.getName() );
+                                psi.getProgramStage().getUid(), dv.getDataElement(), value );
                         }
                     }
 
