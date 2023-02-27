@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.analytics.analyze;
 
+import static org.hisp.dhis.analytics.analyze.RequestExecutionPlanStore.Execution.EXECUTION_TIME;
+import static org.hisp.dhis.analytics.analyze.RequestExecutionPlanStore.Execution.EXPLAIN_QUERY;
+import static org.hisp.dhis.analytics.analyze.RequestExecutionPlanStore.Execution.PLAN;
+import static org.hisp.dhis.analytics.analyze.RequestExecutionPlanStore.Execution.PLANNING_TIME;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +45,12 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
@@ -62,94 +70,42 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
     @Nonnull
     private final JdbcTemplate jdbcTemplate;
 
+    @Nonnull
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Nonnull
     private final ScheduledExecutorService executorService;
 
     public RequestExecutionPlanStore( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
         this.executorService = Executors.newScheduledThreadPool( 10 );
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
+    }
+
+    @Override
+    public void addExecutionPlan( String key, SqlQuery sqlQuery )
+    {
+        SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( EXPLAIN_QUERY.value() + sqlQuery.getStatement(),
+            new MapSqlParameterSource().addValues( sqlQuery.getParams() ) );
+
+        JsonNode root = getJsonFromRowSet( rowSet );
+
+        ExecutionPlan executionPlan = getExecutionPlan( sqlQuery.getStatement(), root );
+
+        storeExecutionPlan( key, executionPlan );
     }
 
     @Override
     public void addExecutionPlan( String key, String sql )
     {
-        ExecutionPlan executionPlan = new ExecutionPlan();
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( EXPLAIN_QUERY.value() + sql );
 
-        executionPlan.setQuery( sql );
+        JsonNode root = getJsonFromRowSet( rowSet );
 
-        JsonNode root = getExecutionPlan( sql );
+        ExecutionPlan executionPlan = getExecutionPlan( sql, root );
 
-        if ( root != null && root.get( 0 ) != null && root.get( 0 ).get( "Plan" ) != null )
-        {
-            JsonNode plan = root.get( 0 ).get( "Plan" );
-
-            executionPlan.setPlan( plan );
-
-            double execTime = root.get( 0 ).get( "Execution Time" ) != null
-                ? root.get( 0 ).get( "Execution Time" ).asDouble()
-                : 0.0;
-
-            double planTime = root.get( 0 ).get( "Planning Time" ) != null
-                ? root.get( 0 ).get( "Planning Time" ).asDouble()
-                : 0.0;
-
-            executionPlan.setExecutionTime( execTime );
-
-            executionPlan.setPlanningTime( planTime );
-
-            executionPlan.setTimeInMillis( Precision.round( execTime + planTime, 3 ) );
-        }
-
-        synchronized ( this )
-        {
-            if ( executionPlanMap.containsKey( key ) )
-            {
-                List<ExecutionPlan> oldList = executionPlanMap.get( key );
-
-                List<ExecutionPlan> newList = new ArrayList<>( oldList );
-
-                newList.add( executionPlan );
-
-                executionPlanMap.replace( key, newList );
-            }
-            else
-            {
-                executionPlanMap.put( key, List.of( executionPlan ) );
-            }
-        }
-    }
-
-    private JsonNode getExecutionPlan( String sql )
-    {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        try
-        {
-            SqlRowSet rowSet = jdbcTemplate.queryForRowSet( "EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " + sql );
-
-            if ( rowSet.next() )
-            {
-                String json = rowSet.getString( 1 );
-
-                return objectMapper.readTree( json );
-            }
-        }
-        catch ( Exception e )
-        {
-            try
-            {
-                return objectMapper.readTree( "{ \"error\": " + "\"" + e.getMessage() + "\"}" );
-            }
-            catch ( JsonProcessingException ex )
-            {
-                log.error( ex.getMessage(), ex );
-
-                return null;
-            }
-        }
-
-        return null;
+        storeExecutionPlan( key, executionPlan );
     }
 
     @Override
@@ -167,5 +123,120 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
     public void removeExecutionPlans( String key )
     {
         executorService.schedule( () -> executionPlanMap.remove( key ), 2, TimeUnit.SECONDS );
+    }
+
+    /**
+     * Creates an {@link ExecutionPlan} object based on the given input
+     * parameters.
+     *
+     * @param sql the SQL statement of the plan.
+     * @param jsonNode the root {@JsonNode} of the execution plan.
+     * @return the {@link ExecutionPlan}.
+     */
+    private ExecutionPlan getExecutionPlan( String sql, JsonNode jsonNode )
+    {
+        ExecutionPlan executionPlan = new ExecutionPlan();
+        executionPlan.setQuery( sql );
+
+        if ( jsonNode != null && jsonNode.get( 0 ) != null && jsonNode.get( 0 ).get( PLAN.value() ) != null )
+        {
+            JsonNode plan = jsonNode.get( 0 ).get( PLAN.value() );
+            executionPlan.setPlan( plan );
+
+            double execTime = jsonNode.get( 0 ).get( EXECUTION_TIME.value() ) != null
+                ? jsonNode.get( 0 ).get( EXECUTION_TIME.value() ).asDouble()
+                : 0.0;
+
+            double planTime = jsonNode.get( 0 ).get( PLANNING_TIME.value() ) != null
+                ? jsonNode.get( 0 ).get( PLANNING_TIME.value() ).asDouble()
+                : 0.0;
+
+            executionPlan.setExecutionTime( execTime );
+            executionPlan.setPlanningTime( planTime );
+            executionPlan.setTimeInMillis( Precision.round( execTime + planTime, 3 ) );
+        }
+
+        return executionPlan;
+    }
+
+    /**
+     * It stores, in the current execution plan map, the given
+     * {@link ExecutionPlan} object for the associated "key".
+     *
+     * @param key the unique key associated with the given
+     *        {@link ExecutionPlan}.
+     * @param executionPlan the {@link ExecutionPlan}.
+     */
+    private synchronized void storeExecutionPlan( String key, ExecutionPlan executionPlan )
+    {
+        if ( executionPlanMap.containsKey( key ) )
+        {
+            List<ExecutionPlan> oldList = executionPlanMap.get( key );
+
+            List<ExecutionPlan> newList = new ArrayList<>( oldList );
+            newList.add( executionPlan );
+
+            executionPlanMap.replace( key, newList );
+        }
+        else
+        {
+            executionPlanMap.put( key, List.of( executionPlan ) );
+        }
+    }
+
+    /**
+     * This method extracts the root {@link JsonNode} object from the given
+     * {@link SqlRowSet}. If something goes wrong it returns null the exception
+     * carried on by the JSON object, if any.
+     *
+     * @param rowSet the {@link SqlRowSet}.
+     * @return the root {@link JsonNode} object.
+     */
+    private JsonNode getJsonFromRowSet( SqlRowSet rowSet )
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try
+        {
+            if ( rowSet.next() )
+            {
+                String json = rowSet.getString( 1 );
+
+                return objectMapper.readTree( json );
+            }
+        }
+        catch ( Exception e )
+        {
+            try
+            {
+                return objectMapper.readTree( "{ \"error\": " + "\"" + e.getMessage() + "\"}" );
+            }
+            catch ( JsonProcessingException ex )
+            {
+                log.error( ex.getMessage(), ex );
+            }
+        }
+
+        return null;
+    }
+
+    enum Execution
+    {
+        EXECUTION_TIME( "Execution Time" ),
+        PLANNING_TIME( "Planning Time" ),
+        EXPLAIN_QUERY( "EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " ),
+        PLAN( "Plan" );
+
+        private String value;
+
+        Execution( String value )
+        {
+            this.value = value;
+        }
+
+        public String value()
+        {
+            return value;
+        }
     }
 }

@@ -148,14 +148,14 @@ public class TeiAnalyticsQueryService
             SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
 
             executionPlanStore.addExecutionPlan( explainId,
-                sqlQueryCreator.createForSelect().getStatement() );
+                sqlQueryCreator.createForSelect() );
 
             AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
             if ( pagingParams.showTotalPages() )
             {
                 executionPlanStore.addExecutionPlan( explainId,
-                    sqlQueryCreator.createForCount().getStatement() );
+                    sqlQueryCreator.createForCount() );
             }
 
             grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( explainId ) );
