@@ -220,7 +220,8 @@ class GistPlanner
                     .filter( getPresetFilter( path ) )
                     .sorted( GistPlanner::propertyTypeOrder )
                     .forEach( p -> {
-                        if ( !explicit.contains( p.key() ) && !explicit.contains( "-" + p.key() )
+                        if ( !explicit.contains( p.key() )
+                            && !explicit.contains( "-" + p.key() )
                             && !explicit.contains( "!" + p.key() ) )
                         {
                             if ( canRead.test( p ) )

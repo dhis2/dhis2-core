@@ -72,15 +72,19 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
         dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'set1', 'organisationUnits': [{'id':'" + orgUnitId + "'}], 'periodType':'Daily'}" ) );
+            "{'name':'set1', 'shortName':'set1', 'organisationUnits': [{'id':'" + orgUnitId
+                + "'}], 'periodType':'Daily'}" ) );
     }
 
     protected final void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
     {
         for ( int i = 0; i < count; i++ )
         {
-            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{'name':'" + namePrefix + i
-                + "', 'organisationUnits': [{'id':'" + organisationUnitId + "'}], 'periodType':'Daily'}" ) );
+            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{"
+                + "'name':'" + namePrefix + i + "', "
+                + "'shortName':'" + namePrefix + i + "', "
+                + "'organisationUnits': [{'id':'" + organisationUnitId + "'}], "
+                + "'periodType':'Daily'}" ) );
         }
     }
 
@@ -88,8 +92,11 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
     {
         for ( String name : names )
         {
-            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{'name':'" + name
-                + "', 'organisationUnits': [{'id':'" + organisationUnitId + "'}], 'periodType':'Daily'}" ) );
+            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{"
+                + "'name':'" + name + "', "
+                + "'shortName':'" + name + "', "
+                + "'organisationUnits': [{'id':'" + organisationUnitId + "'}], "
+                + "'periodType':'Daily'}" ) );
         }
     }
 

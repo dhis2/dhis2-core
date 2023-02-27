@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.util.Arrays;
 
@@ -38,6 +41,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -58,8 +63,8 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", everyItem( equalTo( status ) ) );
+            .body( "potentialDuplicates", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "potentialDuplicates.status", everyItem( equalTo( status ) ) );
     }
 
     @Test
@@ -71,8 +76,8 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status",
+            .body( "potentialDuplicates", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "potentialDuplicates.status",
                 allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
     }
 
@@ -112,64 +117,53 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
     }
 
     @Test
-    public void shouldGetDuplicatesByTei()
+    public void shouldGetAllTeiPotentialDuplicatesWhenPaginationIsNotRequested()
     {
-        String teiA = createTei();
-        String teiB = createTei();
-        String teiC = createTei();
-        String teiD = createTei();
+        String tei = createTei();
 
-        String potentialDuplicateAToB = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), tei );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
 
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiC, teiA, "INVALID" );
-
-        potentialDuplicatesActions.postPotentialDuplicate( teiD, teiA, "OPEN" )
+        potentialDuplicatesActions.get( new QueryParamsBuilder().add( "teis=" + tei ).add( "skipPaging=true" ) )
             .validate()
-            .statusCode( 200 );
+            .body( "potentialDuplicates", hasSize( equalTo( 3 ) ) )
+            .body( "potentialDuplicates.status", allOf( hasItem( "OPEN" ) ) );
+    }
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 2 ) );
+    @Test
+    public void shouldGetSortedPotentialDuplicatesWhenOrderAndPagingIsRequested()
+    {
+        String tei = createTei();
+        String firstDuplicate = createTei();
+        String secondDuplicate = createTei();
 
-        potentialDuplicatesActions
-            .get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 2 ) );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, firstDuplicate );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, secondDuplicate );
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 1 ) );
+        JsonObject response = potentialDuplicatesActions.get( new QueryParamsBuilder().add( "teis=" + tei )
+            .add( "order=created:DESC" ).add( "pageSize=2" ).add( "page=1" ) ).getBody();
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 2 ) );
+        assertThat( response, matchesJSON( new JsonObjectBuilder()
+            .addArray( "potentialDuplicates",
+                new JsonObjectBuilder().addProperty( "original", tei ).addProperty( "duplicate", secondDuplicate )
+                    .build(),
+                new JsonObjectBuilder().addProperty( "original", tei ).addProperty( "duplicate", firstDuplicate )
+                    .build() )
+            .build() ) );
+    }
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 0 ) );
+    @Test
+    public void shouldGetBadRequestWhenWrongOrderField()
+    {
+        String tei = createTei();
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 3 ) );
-
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicateAToB ).validate()
-            .statusCode( 200 );
-
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 1 ) );
-
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB, "status=MERGED" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 1 ) );
+        assertThat( potentialDuplicatesActions
+            .get( new QueryParamsBuilder().add( "teis=" + tei ).add( "order=creatd:DESC" ) ).statusCode(),
+            equalTo( 400 ) );
     }
 }

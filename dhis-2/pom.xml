@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.46</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.3</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -72,12 +72,12 @@
     <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.1</spring-security.version>
+    <spring-security.version>5.8.2</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.30.1</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.1</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
 
@@ -90,16 +90,16 @@
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.2.RELEASE</lettuce.version>
+    <lettuce.version>6.2.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.14.1</flyway-core.version>
+    <flyway-core.version>9.15.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
-    <postgresql-driver.version>42.5.3</postgresql-driver.version>
+    <postgresql-driver.version>42.5.4</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.8.1</datasource-proxy.version>
 
@@ -133,18 +133,17 @@
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.3</poi.version>
     <itext.version>2.1.7</itext.version>
-    <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
     <batik-transcoder.version>1.16</batik-transcoder.version>
     <fop.version>2.8</fop.version>
     <mapstruct.version>1.5.3.Final</mapstruct.version>
-    <geotools.version>28.1</geotools.version>
+    <geotools.version>28.2</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.28.0</artemis.version>
-    <netty-all.version>4.1.88.Final</netty-all.version>
+    <netty-all.version>4.1.89.Final</netty-all.version>
     <classgraph.version>4.8.154</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -153,7 +152,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
-    <jsoup.version>1.15.3</jsoup.version>
+    <jsoup.version>1.15.4</jsoup.version>
     <jetty.version>10.0.13</jetty.version>
 
     <!-- Div. utils -->
@@ -166,13 +165,11 @@
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.2</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
-    <validation-api.version>2.0.1.Final</validation-api.version>
-    <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <commons-text.version>1.10.0</commons-text.version>
-    <commons-fileupload.version>1.4</commons-fileupload.version>
+    <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.7</commons-validator.version>
     <commons-io.version>2.11.0</commons-io.version>
@@ -185,10 +182,10 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.10.3</micrometer.version>
+    <micrometer.version>1.10.4</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.19.0</log4j.version>
+    <log4j.version>2.20.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -206,22 +203,22 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.0.0-M8</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M9</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.0.0-M8</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
+    <maven-failsafe-plugin.version>3.0.0-M9</maven-failsafe-plugin.version>
+    <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.2.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.1.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.14.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.0.2</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.7.3.0</spotbugs-maven-plugin.version>
+    <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
+    <dependency-check-maven.version>8.1.0</dependency-check-maven.version>
+    <spotbugs-maven-plugin.version>4.7.3.2</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
-    <dhis-antlr-expression-parser.version>1.0.32</dhis-antlr-expression-parser.version>
+    <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.8.9</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
@@ -688,7 +685,6 @@
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
@@ -714,6 +710,7 @@
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
@@ -833,7 +830,6 @@
                 <RestrictImports>
                   <reason>Use javax.annotation.Nonnull and javax.annotation.CheckForNull instead</reason>
                   <bannedImports>
-                    <bannedImport>javax.validation.constraints.NotNull</bannedImport>
                     <bannedImport>lombok.NonNull</bannedImport>
                   </bannedImports>
                 </RestrictImports>
@@ -1054,10 +1050,6 @@
           <exclusion>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.hisp.dhis.parser</groupId>
-            <artifactId>dhis-antlr-expression-parser</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
@@ -1621,17 +1613,6 @@
         <version>${hibernate.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hibernate.validator</groupId>
-        <artifactId>hibernate-validator</artifactId>
-        <version>${hibernate-validator.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-ehcache</artifactId>
         <version>${hibernate.version}</version>
@@ -1738,13 +1719,6 @@
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
         <version>${jclouds.version}</version>
-      </dependency>
-
-      <!-- ExpressionParser -->
-      <dependency>
-        <groupId>org.antlr</groupId>
-        <artifactId>antlr4-runtime</artifactId>
-        <version>${antlr.version}</version>
       </dependency>
 
       <!-- Reporting -->
@@ -2392,12 +2366,6 @@
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>${validation-api.version}</version>
       </dependency>
 
     </dependencies>

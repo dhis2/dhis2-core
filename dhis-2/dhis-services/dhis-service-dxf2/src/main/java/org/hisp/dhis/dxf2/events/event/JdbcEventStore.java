@@ -1259,6 +1259,24 @@ public class JdbcEventStore implements EventStore
                 .append( " (pi.incidentdate >= :enrollmentOccurredAfter ) " );
         }
 
+        if ( params.getDueDateStart() != null )
+        {
+            mapSqlParameterSource.addValue( "startDueDate", params.getDueDateStart(), Types.TIMESTAMP );
+
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (psi.duedate is not null and psi.duedate >= :startDueDate ) " );
+        }
+
+        if ( params.getDueDateEnd() != null )
+        {
+            mapSqlParameterSource.addValue( "endDueDate", params.getDueDateEnd(), Types.TIMESTAMP );
+
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (psi.duedate is not null and psi.duedate <= :endDueDate ) " );
+        }
+
         if ( params.getFollowUp() != null )
         {
             fromBuilder.append( hlp.whereAnd() )
@@ -2101,12 +2119,9 @@ public class JdbcEventStore implements EventStore
             .addValue( "programInstanceId", programStageInstance.getProgramInstance().getId() )
             .addValue( "programstageid", programStageInstance.getProgramStage()
                 .getId() )
-            .addValue( DUE_DATE.getColumnName(), new Timestamp( programStageInstance.getDueDate()
-                .getTime() ) )
+            .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( programStageInstance.getDueDate() ) )
             .addValue( EXECUTION_DATE.getColumnName(),
-                (programStageInstance.getExecutionDate() != null
-                    ? new Timestamp( programStageInstance.getExecutionDate().getTime() )
-                    : null) )
+                JdbcEventSupport.toTimestamp( programStageInstance.getExecutionDate() ) )
             .addValue( "organisationunitid", programStageInstance.getOrganisationUnit().getId() )
             .addValue( STATUS.getColumnName(), programStageInstance.getStatus().toString() )
             .addValue( COMPLETEDDATE.getColumnName(),

@@ -183,7 +183,6 @@ public class DefaultSchemaService
         register( new ExternalFileResourceSchemaDescriptor() );
         register( new OptionGroupSchemaDescriptor() );
         register( new OptionGroupSetSchemaDescriptor() );
-        register( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() );
         register( new DataInputPeriodSchemaDescriptor() );
         register( new ReportingRateSchemaDescriptor() );
         register( new UserAccessSchemaDescriptor() );
@@ -215,6 +214,7 @@ public class DefaultSchemaService
         register( new OutlierAnalysisSchemaDescriptor() );
         register( new ItemConfigSchemaDescriptor() );
         register( new LayoutSchemaDescriptor() );
+        register( new RouteSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -314,12 +314,6 @@ public class DefaultSchemaService
             return null;
         }
 
-        if ( klass.getName().contains( "Proxy" ) )
-        {
-            log.error( "Error, can't use Hibernate proxy class names!!!" );
-            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
-        }
-
         if ( classSchemaMap.containsKey( klass ) )
         {
             return classSchemaMap.get( klass );
@@ -340,12 +334,6 @@ public class DefaultSchemaService
         {
             log.error( "getDynamicSchema() Error, input class should not be null!" );
             return null;
-        }
-
-        if ( klass.getName().contains( "Proxy" ) )
-        {
-            log.error( "Error, can't use Hibernate proxy class names!!!" );
-            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
         Schema schema = getSchema( klass );

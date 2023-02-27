@@ -37,12 +37,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -67,19 +64,7 @@ public abstract class VectorFunction
             visitor.visitExpr( ctx.expr().get( i ) );
         }
 
-        // ItemIds in the last (or only) expr are from sampled periods.
-
-        ExpressionInfo info = visitor.getInfo();
-
-        Set<DimensionalItemId> savedItemIds = info.getItemIds();
-        info.setItemIds( info.getSampleItemIds() );
-
-        Object result = visitor.visitExpr( ctx.expr().get( ctx.expr().size() - 1 ) );
-
-        info.setSampleItemIds( info.getItemIds() );
-        info.setItemIds( savedItemIds );
-
-        return castDouble( result );
+        return visitor.visitSamples( ctx.expr().get( ctx.expr().size() - 1 ) );
     }
 
     @Override
@@ -98,7 +83,22 @@ public abstract class VectorFunction
 
         ExprContext lastExpr = ctx.expr().get( ctx.expr().size() - 1 );
 
-        List<Double> values = getSampleValues( lastExpr, visitor );
+        return compute( lastExpr, visitor, args );
+    }
+
+    /**
+     * Computes a vector (aggregation) function. This is exposed to enable other
+     * functions to call an aggregation function if needed for their
+     * calculation.
+     *
+     * @param expr the expression as argument to the vector function
+     * @param visitor the tree visitor
+     * @param args any other function args (if any)
+     * @return the vector function value
+     */
+    public Object compute( ExprContext expr, CommonExpressionVisitor visitor, List<Double> args )
+    {
+        List<Double> values = getSampleValues( expr, visitor );
 
         return vectorHandleNulls( aggregate( values, args ), visitor );
     }

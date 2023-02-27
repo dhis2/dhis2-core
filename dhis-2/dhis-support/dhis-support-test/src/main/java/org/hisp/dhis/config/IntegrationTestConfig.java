@@ -30,8 +30,6 @@ package org.hisp.dhis.config;
 import java.util.Map;
 import java.util.Properties;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -46,7 +44,6 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Slf4j
 @Configuration
 @ComponentScan( "org.hisp.dhis" )
 public class IntegrationTestConfig
@@ -61,13 +58,17 @@ public class IntegrationTestConfig
         .parse( "postgis/postgis" )
         .asCompatibleSubstituteFor( "postgres" );
 
-    private static final String POSTGIS_VERSION = "10-2.5-alpine";
+    /**
+     * Refers to the {@code postgis/postgis:10-2.5-alpine} image which contains
+     * PostgreSQL 10 and PostGIS 2.5.
+     */
+    private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
 
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
     static
     {
-        POSTGRES_CONTAINER = new PostgreSQLContainer<>( POSTGIS_IMAGE_NAME.withTag( POSTGIS_VERSION ) )
+        POSTGRES_CONTAINER = new PostgreSQLContainer<>( POSTGIS_IMAGE_NAME.withTag( POSTGRES_POSTGIS_VERSION ) )
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_USERNAME )
             .withPassword( POSTGRES_PASSWORD )

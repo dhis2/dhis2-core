@@ -1150,6 +1150,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         CategoryOption categoryOption = new CategoryOption();
         categoryOption.setAutoFields();
         categoryOption.setName( "coA" );
+        categoryOption.setShortName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setCreatedBy( user1 );
         categoryOption.getSharing().setOwner( user1 );
