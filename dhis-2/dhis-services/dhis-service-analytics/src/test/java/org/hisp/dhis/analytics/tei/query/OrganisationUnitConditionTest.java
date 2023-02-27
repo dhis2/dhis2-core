@@ -72,7 +72,7 @@ class OrganisationUnitConditionTest
         String render = organisationUnitCondition.render();
 
         // Then
-        assertEquals( "\"ou\" in (:1)", render );
+        assertEquals( "t_1.\"ou\" in (:1)", render );
         assertEquals( ous, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
@@ -95,7 +95,7 @@ class OrganisationUnitConditionTest
         String render = organisationUnitCondition.render();
 
         // Then
-        assertEquals( "\"ou\" = :1", render );
+        assertEquals( "t_1.\"ou\" = :1", render );
         assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 

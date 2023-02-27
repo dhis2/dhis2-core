@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -58,13 +58,13 @@ public class PeriodCondition extends BaseRenderable
 
     private final TimeField timeField;
 
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+    private final String prefix;
 
     private PeriodCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
         QueryContext queryContext )
     {
-        this.dimensionIdentifier = dimensionIdentifier;
         this.queryContext = queryContext;
+        this.prefix = getPrefix( dimensionIdentifier );
 
         Date minDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
             .map( Period.class::cast )
@@ -101,21 +101,21 @@ public class PeriodCondition extends BaseRenderable
     @Override
     public String render()
     {
-        return getCondition( doubleQuote( dimensionIdentifier.getPrefix() ) ).render();
+        return getCondition().render();
     }
 
-    private AndCondition getCondition( String alias )
+    private AndCondition getCondition()
     {
         return AndCondition.of(
             List.of(
                 BinaryConditionRenderer.of(
-                    Field.of( alias, timeField::getField, EMPTY ),
+                    Field.of( prefix, timeField::getField, EMPTY ),
                     QueryOperator.GE,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getLeft() ),
                         DATE, queryContext ) ),
                 BinaryConditionRenderer.of(
-                    Field.of( alias, timeField::getField, EMPTY ),
+                    Field.of( prefix, timeField::getField, EMPTY ),
                     QueryOperator.LT,
                     ConstantValuesRenderer.of(
                         getMediumDateString( interval.getRight() ),
