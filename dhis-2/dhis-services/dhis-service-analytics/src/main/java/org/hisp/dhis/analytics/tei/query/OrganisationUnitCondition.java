@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.ArrayList;
@@ -77,8 +75,7 @@ public class OrganisationUnitCondition extends BaseRenderable
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( doubleQuote( dimensionIdentifier.getPrefix() ),
-                    () -> dimensionIdentifier.getDimension().getUid(), EMPTY ),
+                Field.ofDimensionIdentifier( dimensionIdentifier ),
                 IN,
                 item.getValues(),
                 STRING,

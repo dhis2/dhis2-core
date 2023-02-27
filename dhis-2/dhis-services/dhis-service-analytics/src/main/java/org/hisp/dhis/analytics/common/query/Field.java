@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
 import lombok.AccessLevel;
@@ -67,6 +68,11 @@ public class Field extends BaseRenderable
     public static Field of( String tableAlias, Renderable name, String fieldAlias )
     {
         return of( tableAlias, name, fieldAlias, DimensionIdentifier.EMPTY, true );
+    }
+
+    public static Field ofDimensionIdentifier( DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return of( getPrefix( dimensionIdentifier ), () -> dimensionIdentifier.getDimension().getUid(), EMPTY );
     }
 
     /**

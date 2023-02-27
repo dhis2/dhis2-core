@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import lombok.experimental.UtilityClass;
 

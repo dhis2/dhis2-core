@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
@@ -39,7 +38,6 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -81,7 +79,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
             .filter( dimensionIdentifier -> dimensionIdentifier.isEventDimension()
                 || dimensionIdentifier.isEnrollmentDimension() )
             .map( dimensionIdentifier -> Field.ofUnquoted(
-                doubleQuote( dimensionIdentifier.getPrefix() ),
+                getPrefix( dimensionIdentifier ),
                 () -> dimensionIdentifier.getDimension().getUid(),
                 dimensionIdentifier.toString() ) )
             .forEach( builder::selectField );
@@ -98,11 +96,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
                 IndexedOrder.of(
                     sortingParam.getIndex(),
                     Order.of(
-                        Field.of(
-                            StringUtils.isEmpty( sortingParam.getOrderBy().getPrefix() ) ? TEI_ALIAS
-                                : doubleQuote( sortingParam.getOrderBy().getPrefix() ),
-                            () -> sortingParam.getOrderBy().getDimension().getUid(),
-                            StringUtils.EMPTY ),
+                        Field.ofDimensionIdentifier( sortingParam.getOrderBy() ),
                         sortingParam.getSortDirection() ) ) ) );
 
         return builder.build();

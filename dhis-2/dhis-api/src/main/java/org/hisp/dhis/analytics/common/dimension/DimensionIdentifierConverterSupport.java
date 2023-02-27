@@ -32,13 +32,17 @@ import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UidObject;
 
 @NoArgsConstructor( access = PRIVATE )
@@ -162,5 +166,19 @@ public class DimensionIdentifierConverterSupport
         }
 
         return string;
+    }
+
+    public static String getPrefix( DimensionIdentifier<DimensionParam> dimensionIdentifier )
+    {
+        return getPrefix( dimensionIdentifier, true );
+    }
+
+    public static String getPrefix( DimensionIdentifier<DimensionParam> dimensionIdentifier, boolean quote )
+    {
+        return Optional.of( dimensionIdentifier )
+            .map( DimensionIdentifier::getPrefix )
+            .filter( StringUtils::isNotBlank )
+            .map( s -> quote ? doubleQuote( s ) : s )
+            .orElse( TEI_ALIAS );
     }
 }
