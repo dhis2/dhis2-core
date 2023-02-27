@@ -76,7 +76,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
     /**
      * The event date should have a format like:
      * "IpHINAT79UW.A03MvHHogjR.LAST_YEAR"
-     * 
+     *
      * @param eventDate the date to validate.
      * @throws IllegalQueryException if the format is invalid.
      */

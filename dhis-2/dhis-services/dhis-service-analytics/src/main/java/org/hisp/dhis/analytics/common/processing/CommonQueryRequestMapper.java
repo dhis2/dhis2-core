@@ -59,6 +59,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
@@ -82,8 +84,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for mapping the input request parameters into the
