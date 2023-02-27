@@ -68,7 +68,8 @@ class SpringBindingTest
             .param( "simpleEnum", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content()
-                .string( containsString( "Value INVALID is not a valid simpleEnum. Valid values are: [YES, NO]" ) ) );
+                .string( containsString(
+                    "Value INVALID is not valid for parameter simpleEnum. Valid values are: [YES, NO]" ) ) );
     }
 
     @Test
@@ -79,7 +80,8 @@ class SpringBindingTest
             .param( "simpleEnumInCriteria", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string(
-                containsString( "Value INVALID is not a valid simpleEnumInCriteria. Valid values are: [YES, NO]" ) ) );
+                containsString(
+                    "Value INVALID is not valid for parameter simpleEnumInCriteria. Valid values are: [YES, NO]" ) ) );
     }
 
     @Test
@@ -89,7 +91,8 @@ class SpringBindingTest
         mockMvc.perform( get( ENDPOINT + "/criteria" )
             .param( "doubleNumber", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString( "Value INVALID is not a valid Double." ) ) );
+            .andExpect( content().string( containsString(
+                "Value INVALID is not valid for parameter doubleNumber. It should be of type Double" ) ) );
     }
 
     @Test
@@ -99,7 +102,8 @@ class SpringBindingTest
         mockMvc.perform( get( ENDPOINT + "/criteria" )
             .param( "integerNumber", "10.5" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString( "Value 10.5 is not a valid Integer." ) ) );
+            .andExpect( content().string( containsString(
+                "Value 10.5 is not valid for parameter integerNumber. It should be of type Integer" ) ) );
     }
 
     @Test
@@ -109,7 +113,8 @@ class SpringBindingTest
         mockMvc.perform( get( ENDPOINT + "/criteria" )
             .param( "date", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString( "Value INVALID is not a valid Date." ) ) );
+            .andExpect( content().string(
+                containsString( "Value INVALID is not valid for parameter date. It should be of type Date" ) ) );
     }
 
     @Test
@@ -119,7 +124,8 @@ class SpringBindingTest
         mockMvc.perform( get( ENDPOINT + "/criteria" )
             .param( "booleanValue", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString( "Value INVALID is not a valid Boolean." ) ) );
+            .andExpect( content().string( containsString(
+                "Value INVALID is not valid for parameter booleanValue. It should be of type Boolean" ) ) );
     }
 
     @Controller

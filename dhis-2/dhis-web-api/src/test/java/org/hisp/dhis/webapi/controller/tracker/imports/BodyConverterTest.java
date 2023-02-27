@@ -54,7 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerBundleParamsConverterTest
+class BodyConverterTest
 {
 
     private final BeanRandomizer rnd = BeanRandomizer.create( Map.of( TrackedEntity.class, Set.of( "enrollments" ),
@@ -85,10 +85,10 @@ class TrackerBundleParamsConverterTest
         enrollments.add( enrollment2 );
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
         trackedEntity.setRelationships( relationships1 );
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        Body build = Body.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) ).build();
         String jsonPayload = toJson( build );
-        TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
+        Body b2 = this.objectMapper.readValue( jsonPayload, Body.class );
         assertThat( b2.getTrackedEntities(), hasSize( 1 ) );
         assertThat( b2.getEnrollments(), hasSize( 2 ) );
         assertThat( b2.getEvents(), hasSize( 10 ) );
@@ -112,10 +112,10 @@ class TrackerBundleParamsConverterTest
         enrollments.add( enrollment2 );
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
         trackedEntity.setRelationships( relationships1 );
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        Body build = Body.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) ).build();
         String jsonPayload = toJson( build );
-        TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
+        Body b2 = this.objectMapper.readValue( jsonPayload, Body.class );
         assertThat( b2.getTrackedEntities().get( 0 ).getEnrollments(), hasSize( 0 ) );
         assertThat( b2.getTrackedEntities().get( 0 ).getRelationships(), hasSize( 0 ) );
         assertThat( b2.getEnrollments().get( 0 ).getEvents(), hasSize( 0 ) );
@@ -140,10 +140,10 @@ class TrackerBundleParamsConverterTest
         enrollments.add( enrollment2 );
         TrackedEntity trackedEntity = createTrackedEntity( null, enrollments );
         trackedEntity.setRelationships( relationships1 );
-        TrackerBundleParams build = TrackerBundleParams.builder()
+        Body build = Body.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) ).build();
         String jsonPayload = toJson( build );
-        TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
+        Body b2 = this.objectMapper.readValue( jsonPayload, Body.class );
         // TEI has uid
         assertThat( b2.getTrackedEntities().get( 0 ).getTrackedEntity(), is( notNullValue() ) );
         // Also check parent uid is set
@@ -169,7 +169,7 @@ class TrackerBundleParamsConverterTest
         return trackedEntity;
     }
 
-    private String toJson( TrackerBundleParams bundle )
+    private String toJson( Body bundle )
         throws JsonProcessingException
     {
         return this.objectMapper.writeValueAsString( bundle );
