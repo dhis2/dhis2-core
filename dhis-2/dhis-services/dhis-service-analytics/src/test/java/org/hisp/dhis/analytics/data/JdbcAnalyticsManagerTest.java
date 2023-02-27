@@ -231,12 +231,12 @@ class JdbcAnalyticsManagerTest
 
     private void assertExpectedMaxMinSumOrgUnitSql( String maxOrMin )
     {
-        String maxMinTypeSql = "(select \"ao\",\"oulevel\",\"co\",\"pe\",\"ou\",\"dx\",\"year\","
+        String maxMinTypeSql = "(select ax.\"ou\",ax.\"dx\",ax.\"pe\","
             + maxOrMin + "(\"daysxvalue\") as \"daysxvalue\"," + maxOrMin + "(\"daysno\") as \"daysno\","
             + maxOrMin + "(\"value\") as \"value\"," + maxOrMin + "(\"textvalue\") as \"textvalue\" "
-            + "from analytics as ax where ax.\"pestartdate\" >= '2015-01-01' and ax.\"peenddate\" <= '2015-01-31' "
-            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null) "
-            + "group by \"ao\",\"oulevel\",\"co\",\"pe\",\"ou\",\"dx\",\"year\")";
+            + "from analytics as ax "
+            + "where ax.\"dx\" in ('deabcdefghA') and ax.\"pe\" in ('201501') and ( ax.\"ou\" in ('ouabcdefghA') ) "
+            + "group by ax.\"ou\",ax.\"dx\",ax.\"pe\")";
 
         assertThat( sql.getValue(), containsString( maxMinTypeSql ) );
     }
