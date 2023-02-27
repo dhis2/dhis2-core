@@ -213,11 +213,20 @@ public class AnalyticsSqlUtils
         return StringUtils.repeat( ")", open );
     }
 
-    public static String getCoalesce( List<String> fields )
+    /**
+     * The method creates the coalesce function for coordinates fallback.
+     *
+     * @param fields Collection of coordinate fields.
+     * @param defaultColumnName Default coordinate field
+     * @return Example:
+     *         ST_AsGeoJSON(coalesce(ax."psigeometry",ax."pigeometry",ax."ougeometry").
+     *         or default coordinate field.
+     */
+    public static String getCoalesce( List<String> fields, String defaultColumnName )
     {
         if ( fields == null )
         {
-            return StringUtils.EMPTY;
+            return defaultColumnName;
         }
 
         String args = fields.stream()
@@ -225,7 +234,7 @@ public class AnalyticsSqlUtils
             .map( AnalyticsSqlUtils::quoteAlias )
             .collect( Collectors.joining( "," ) );
 
-        return args.isEmpty() ? "null"
+        return args.isEmpty() ? defaultColumnName
             : "coalesce(" + args + ")";
     }
 }
