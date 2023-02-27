@@ -76,8 +76,26 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         annotationConfigWebApplicationContext.register( WebMvcConfig.class );
 
         context.addListener( new ContextLoaderListener( annotationConfigWebApplicationContext ) );
+        context.addListener( new StartupListener() );
 
-        DispatcherServlet servlet = new DispatcherServlet( annotationConfigWebApplicationContext );
+        setupServlets( context, annotationConfigWebApplicationContext );
+    }
+
+    private DhisConfigurationProvider getConfig()
+    {
+        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+        locationManager.init();
+
+        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
+        configProvider.init();
+
+        return configProvider;
+    }
+
+    public static void setupServlets( ServletContext context,
+        AnnotationConfigWebApplicationContext webApplicationContext )
+    {
+        DispatcherServlet servlet = new DispatcherServlet( webApplicationContext );
 
         ServletRegistration.Dynamic dispatcher = context.addServlet( "dispatcher", servlet );
         dispatcher.setAsyncSupported( true );
@@ -106,17 +124,5 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
 
         context.addFilter( "AppOverrideFilter", new DelegatingFilterProxy( "appOverrideFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
-
-        context.addListener( new StartupListener() );
-    }
-
-    private DhisConfigurationProvider getConfig()
-    {
-        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-        locationManager.init();
-        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
-        configProvider.init();
-
-        return configProvider;
     }
 }
