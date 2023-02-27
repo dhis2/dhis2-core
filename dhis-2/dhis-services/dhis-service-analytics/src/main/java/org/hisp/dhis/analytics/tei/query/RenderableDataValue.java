@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
+import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
@@ -44,10 +46,24 @@ public class RenderableDataValue extends BaseRenderable
 
     private final ValueTypeMapping valueTypeMapping;
 
+    private final String asAlias;
+
+    public static RenderableDataValue of( String alias, String dataValue, ValueTypeMapping valueTypeMapping )
+    {
+        return RenderableDataValue.of( alias, dataValue, valueTypeMapping, null );
+    }
+
     @Override
     public String render()
     {
-        return "(" + Field.of( alias, () -> "eventdatavalues", EMPTY ).render()
+        String rendered = "(" + Field.of( alias, () -> "eventdatavalues", EMPTY ).render()
             + " -> '" + dataValue + "' ->> 'value')::" + valueTypeMapping.name();
+
+        if ( Objects.nonNull( asAlias ) )
+        {
+            rendered += " as " + asAlias;
+        }
+
+        return rendered;
     }
 }

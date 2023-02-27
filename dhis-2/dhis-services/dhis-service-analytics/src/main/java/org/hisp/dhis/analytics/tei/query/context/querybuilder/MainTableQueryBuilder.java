@@ -29,11 +29,7 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
-
-import lombok.Getter;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -51,12 +47,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class MainTableQueryBuilder implements SqlQueryBuilder
 {
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = Collections.emptyList();
-
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = Collections.emptyList();
-
     @Override
     public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
         List<DimensionIdentifier<DimensionParam>> unused,
@@ -65,5 +55,11 @@ public class MainTableQueryBuilder implements SqlQueryBuilder
         return RenderableSqlQuery.builder()
             .mainTable( Table.ofStrings( queryContext.getMainTableName(), TEI_ALIAS ) )
             .build();
+    }
+
+    @Override
+    public boolean alwaysRun()
+    {
+        return true;
     }
 }

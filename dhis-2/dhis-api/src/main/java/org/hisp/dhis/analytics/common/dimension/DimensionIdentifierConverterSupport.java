@@ -44,7 +44,7 @@ import org.hisp.dhis.common.UidObject;
 @NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierConverterSupport
 {
-    private static final Character DIMENSION_SEPARATOR = '.';
+    public static final Character DIMENSION_SEPARATOR = '.';
 
     /**
      * Will parse the given argument into a {@link DimensionIdentifier} object.

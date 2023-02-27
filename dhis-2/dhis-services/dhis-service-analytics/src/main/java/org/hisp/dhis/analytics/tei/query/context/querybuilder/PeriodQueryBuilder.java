@@ -27,20 +27,30 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import java.util.Collections;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import lombok.Getter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
+import org.hisp.dhis.analytics.common.query.IndexedOrder;
+import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.PeriodCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
+import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Service;
 
 /**
@@ -59,14 +69,68 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor
         .of( d -> d.getDimension().isPeriodDimension() );
 
     @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = Collections.emptyList();
+    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
+        sortingParams -> sortingParams.getOrderBy().getDimension().isPeriodDimension() );
 
     @Override
-    protected Stream<GroupableCondition> getWhereClauses( QueryContext ctx,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions )
+    public RenderableSqlQuery buildSqlQuery( QueryContext ctx,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        List<AnalyticsSortingParams> acceptedSortingParams )
     {
-        return acceptedDimensions.stream()
+        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+
+        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
+            .map( AnalyticsSortingParams::getOrderBy ) )
+            .map( dimensionIdentifier -> {
+
+                String field = Optional.of( dimensionIdentifier )
+                    .map( DimensionIdentifier::getDimension )
+                    .map( DimensionParam::getDimensionalObject )
+                    .map( d -> d.getItems().get( 0 ) )
+                    .map( Period.class::cast )
+                    .map( Period::getDateField )
+                    .map( TimeField::valueOf )
+                    .map( TimeField::getField )
+                    .orElseGet( () -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName() );
+
+                return Field.ofUnquoted(
+                    doubleQuote( dimensionIdentifier.getPrefix() ),
+                    () -> field,
+                    doubleQuote(
+                        StringUtils.isNotBlank( dimensionIdentifier.getPrefix() )
+                            ? dimensionIdentifier.getPrefix() + DIMENSION_SEPARATOR + field
+                            : field ) );
+            } )
+            .forEach( builder::selectField );
+
+        acceptedDimensions.stream()
             .map( dimensionParamDimensionIdentifier -> PeriodCondition.of( dimensionParamDimensionIdentifier, ctx ) )
-            .map( periodCondition -> GroupableCondition.of( PERIOD_CONDITION_GROUP, periodCondition ) );
+            .map( periodCondition -> GroupableCondition.of( PERIOD_CONDITION_GROUP, periodCondition ) )
+            .forEach( builder::groupableCondition );
+
+        acceptedSortingParams
+            .forEach( sortingParam -> {
+                DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
+                String fieldName = Optional.of( dimensionIdentifier )
+                    .map( DimensionIdentifier::getDimension )
+                    .map( DimensionParam::getDimensionalObject )
+                    .map( d -> d.getItems().get( 0 ) )
+                    .map( Period.class::cast )
+                    .map( Period::getDateField )
+                    .map( TimeField::valueOf )
+                    .map( TimeField::getField )
+                    .orElseGet( () -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName() );
+
+                Field field = Field.ofUnquoted(
+                    doubleQuote( sortingParam.getOrderBy().getPrefix() ),
+                    () -> fieldName, StringUtils.EMPTY );
+                builder.orderClause(
+                    IndexedOrder.of(
+                        sortingParam.getIndex(),
+                        Order.of( field,
+                            sortingParam.getSortDirection() ) ) );
+            } );
+
+        return builder.build();
     }
 }

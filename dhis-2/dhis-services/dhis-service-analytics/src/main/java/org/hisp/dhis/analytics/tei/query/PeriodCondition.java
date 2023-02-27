@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -43,16 +41,16 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.DateUtils;
 
-public class PeriodCondition extends AbstractCondition
+public class PeriodCondition extends BaseRenderable
 {
     private final QueryContext queryContext;
 
@@ -60,10 +58,12 @@ public class PeriodCondition extends AbstractCondition
 
     private final TimeField timeField;
 
+    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+
     private PeriodCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
         QueryContext queryContext )
     {
-        super( dimensionIdentifier, queryContext );
+        this.dimensionIdentifier = dimensionIdentifier;
         this.queryContext = queryContext;
 
         Date minDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
@@ -99,34 +99,9 @@ public class PeriodCondition extends AbstractCondition
     }
 
     @Override
-    protected Renderable getTeiCondition()
+    public String render()
     {
-        return AndCondition.of(
-            List.of(
-                BinaryConditionRenderer.of(
-                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
-                    QueryOperator.GE,
-                    ConstantValuesRenderer.of(
-                        getMediumDateString( interval.getLeft() ),
-                        DATE, queryContext ) ),
-                BinaryConditionRenderer.of(
-                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
-                    QueryOperator.LT,
-                    ConstantValuesRenderer.of(
-                        getMediumDateString( interval.getRight() ),
-                        DATE, queryContext ) ) ) );
-    }
-
-    @Override
-    protected Renderable getEnrollmentCondition()
-    {
-        return getCondition( ENR_ALIAS );
-    }
-
-    @Override
-    protected Renderable getEventCondition()
-    {
-        return getCondition( EVT_ALIAS );
+        return getCondition( doubleQuote( dimensionIdentifier.getPrefix() ) ).render();
     }
 
     private AndCondition getCondition( String alias )

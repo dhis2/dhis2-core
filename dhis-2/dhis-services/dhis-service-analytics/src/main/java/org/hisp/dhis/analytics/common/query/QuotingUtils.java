@@ -29,27 +29,23 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
-import java.util.Optional;
-
 import lombok.experimental.UtilityClass;
+
+import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class QuotingUtils
 {
     private static final Character DOUBLE_QUOTE = '\"';
 
-    private static final Character SINGLE_QUOTE = '\'';
-
-    public static String quote( String value )
-    {
-        return SINGLE_QUOTE + value + SINGLE_QUOTE;
-    }
-
     public static String doubleQuote( String value )
     {
-        value = Optional.ofNullable( value )
-            .map( String::trim )
-            .orElse( EMPTY );
+        if ( StringUtils.isBlank( value ) )
+        {
+            return EMPTY;
+        }
+
+        value = value.trim();
 
         if ( value.startsWith( "\"" ) && value.endsWith( "\"" ) )
         {

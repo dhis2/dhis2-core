@@ -120,21 +120,8 @@ class OrganisationUnitConditionTest
         String statement = organisationUnitCondition.render();
 
         // Then
-        assertEquals(
-            "exists (select 1 from (select * from (select *, row_number() over " +
-                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
-                "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" = :3)",
-            statement );
-        assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "1" ) );
-        assertEquals( dimensionIdentifier.getProgramStage().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "2" ) );
-        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "3" ) );
+        assertEquals( "\"Z8z5uu61HAb.tO8L1aBitDm\".\"ou\" = :1", statement );
+        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -159,20 +146,9 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals(
-            "exists (select 1 from (select * from (select *, row_number() over " +
-                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
-                "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.\"ou\" in (:3))",
+            "\"Z8z5uu61HAb.tO8L1aBitDm\".\"ou\" in (:1)",
             statement );
-        assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "1" ) );
-        assertEquals( dimensionIdentifier.getProgramStage().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "2" ) );
-        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "3" ) );
+        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -197,16 +173,8 @@ class OrganisationUnitConditionTest
         String statement = organisationUnitCondition.render();
 
         // Then
-        assertEquals(
-            "exists (select 1 from (select * from (select *, row_number() over " +
-                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr where enr.\"ou\" = :2)",
-            statement );
-        assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "1" ) );
-        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "2" ) );
+        assertEquals( "\"Z8z5uu61HAb\".\"ou\" = :1", statement );
+        assertEquals( ous.get( 0 ), queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     @Test
@@ -231,16 +199,8 @@ class OrganisationUnitConditionTest
         String statement = organisationUnitCondition.render();
 
         // Then
-        assertEquals(
-            "exists (select 1 from (select * from (select *, row_number() over " +
-                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
-                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
-                "enr where enr.\"ou\" in (:2))",
-            statement );
-        assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
-            queryContext.getParametersPlaceHolder().get( "1" ) );
-        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "2" ) );
+        assertEquals( "\"Z8z5uu61HAb\".\"ou\" in (:1)", statement );
+        assertEquals( ous, queryContext.getParametersPlaceHolder().get( "1" ) );
     }
 
     private TrackedEntityType stubTrackedEntityType( String uid )

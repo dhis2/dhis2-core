@@ -29,24 +29,30 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
+import org.hisp.dhis.analytics.common.query.IndexedOrder;
+import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 /**
@@ -71,26 +77,32 @@ public class DataElementQueryBuilder implements SqlQueryBuilder
     {
         RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
+        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
+            .map( AnalyticsSortingParams::getOrderBy ) )
+            .map( dimensionIdentifier -> Field.ofUnquoted(
+                StringUtils.EMPTY,
+                RenderableDataValue.of(
+                    doubleQuote( dimensionIdentifier.getPrefix() ),
+                    dimensionIdentifier.getDimension().getUid(),
+                    fromValueType( dimensionIdentifier.getDimension().getValueType() ) ),
+                dimensionIdentifier.toString() ) )
+            .forEach( builder::selectField );
+
         acceptedDimensions
             .stream()
+            .filter( SqlQueryBuilders::hasRestrictions )
             .map( dimId -> GroupableCondition.of(
                 dimId.getGroupId(),
-                DataElementCondition.of(
-                    dimId,
-                    queryContext ) ) )
+                DataElementCondition.of( queryContext, dimId ) ) )
             .forEach( builder::groupableCondition );
 
         acceptedSortingParams
-            .forEach( analyticsSortingParams -> EventSortingQueryBuilders.handleEventOrder(
-                analyticsSortingParams,
-                queryContext,
-                builder,
-                ( uniqueAlias, dimensionIdentifier ) -> Field.ofUnquoted(
-                    RenderableDataValue.of(
-                        uniqueAlias,
-                        dimensionIdentifier.getDimension().getUid(),
-                        fromValueType( dimensionIdentifier.getDimension().getValueType() ) ),
-                    dimensionIdentifier.toString() ) ) );
+            .forEach( analyticsSortingParams -> builder.orderClause(
+                IndexedOrder.of(
+                    analyticsSortingParams.getIndex(),
+                    Order.of(
+                        Field.of( analyticsSortingParams.getOrderBy().toString() ),
+                        analyticsSortingParams.getSortDirection() ) ) ) );
 
         return builder.build();
     }

@@ -27,14 +27,9 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -52,11 +47,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor
 {
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = Collections.emptyList();
-
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = Collections.emptyList();
 
     @Override
     protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
@@ -71,5 +61,11 @@ public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor
     private static GroupableCondition asUngroupedEnrolledInProgramCondition( String programUid )
     {
         return GroupableCondition.ofUngroupedCondition( EnrolledInProgramCondition.of( programUid ) );
+    }
+
+    @Override
+    public boolean alwaysRun()
+    {
+        return true;
     }
 }

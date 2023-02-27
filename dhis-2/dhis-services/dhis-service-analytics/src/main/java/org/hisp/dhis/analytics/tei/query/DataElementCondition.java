@@ -27,63 +27,43 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
-public class DataElementCondition extends AbstractCondition
+@RequiredArgsConstructor( staticName = "of" )
+public class DataElementCondition extends BaseRenderable
 {
     private final QueryContext queryContext;
 
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    private DataElementCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        super( dimensionIdentifier, queryContext );
-        this.queryContext = queryContext;
-        this.dimensionIdentifier = dimensionIdentifier;
-    }
-
-    public static DataElementCondition of(
-        DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        return new DataElementCondition( dimensionIdentifier, queryContext );
-    }
-
     @Override
-    protected Renderable getTeiCondition()
-    {
-        throw new UnsupportedOperationException( "Not supported for data element condition" );
-    }
-
-    @Override
-    protected Renderable getEnrollmentCondition()
-    {
-        throw new UnsupportedOperationException( "Not supported for data element condition" );
-    }
-
-    @Override
-    protected Renderable getEventCondition()
+    public String render()
     {
         ValueTypeMapping valueTypeMapping = ValueTypeMapping
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
 
         DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
-        String doUid = dimensionIdentifier.getDimension().getUid();
+
+        RenderableDataValue dataValue = RenderableDataValue.of(
+            doubleQuote( dimensionIdentifier.getPrefix() ),
+            dimensionIdentifier.getDimension().getUid(),
+            valueTypeMapping );
 
         return BinaryConditionRenderer.of(
-            RenderableDataValue.of( EVT_ALIAS, doUid, valueTypeMapping ),
+            dataValue,
             item.getOperator(),
             item.getValues(),
             valueTypeMapping,
-            queryContext );
+            queryContext ).render();
     }
 }

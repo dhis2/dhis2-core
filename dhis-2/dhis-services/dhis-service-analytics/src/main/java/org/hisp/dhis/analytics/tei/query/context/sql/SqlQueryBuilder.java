@@ -61,7 +61,10 @@ public interface SqlQueryBuilder
      * @return the list of filter dimensions or empty.
      */
     @Nonnull
-    List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters();
+    default List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters()
+    {
+        return List.of( unused -> false );
+    }
 
     /**
      * Provides the list of {@link Predicate} functions for
@@ -71,5 +74,13 @@ public interface SqlQueryBuilder
      * @return the list of sorting dimensions or empty.
      */
     @Nonnull
-    List<Predicate<AnalyticsSortingParams>> getSortingFilters();
+    default List<Predicate<AnalyticsSortingParams>> getSortingFilters()
+    {
+        return List.of( unused -> false );
+    }
+
+    default boolean alwaysRun()
+    {
+        return false;
+    }
 }

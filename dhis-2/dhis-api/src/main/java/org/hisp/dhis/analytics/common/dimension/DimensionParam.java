@@ -32,7 +32,6 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
@@ -241,7 +240,8 @@ public class DimensionParam implements UidObject
 
     public boolean isPeriodDimension()
     {
-        return isDimensionalObject() && dimensionalObject.getDimensionType() == PERIOD;
+        return isDimensionalObject() && dimensionalObject.getDimensionType() == PERIOD ||
+            isStaticDimension() && staticDimension.getDimensionParamObjectType() == DimensionParamObjectType.PERIOD;
     }
 
     public String getName()
@@ -260,15 +260,15 @@ public class DimensionParam implements UidObject
     }
 
     @RequiredArgsConstructor
-    enum StaticDimension
+    public enum StaticDimension
     {
         OUNAME( TEXT, ORGANISATION_UNIT ),
-        ENROLLMENTDATE( DATETIME, STATIC ),
-        ENDDATE( DATETIME, STATIC ),
-        INCIDENTDATE( DATETIME, STATIC ),
-        EXECUTIONDATE( DATETIME, STATIC ),
-        LASTUPDATED( DATETIME, STATIC ),
-        CREATED( DATETIME, STATIC );
+        ENROLLMENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
+        ENDDATE( DATETIME, DimensionParamObjectType.PERIOD ),
+        INCIDENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
+        EXECUTIONDATE( DATETIME, DimensionParamObjectType.PERIOD ),
+        LASTUPDATED( DATETIME, DimensionParamObjectType.PERIOD ),
+        CREATED( DATETIME, DimensionParamObjectType.PERIOD );
 
         private final ValueType valueType;
 
