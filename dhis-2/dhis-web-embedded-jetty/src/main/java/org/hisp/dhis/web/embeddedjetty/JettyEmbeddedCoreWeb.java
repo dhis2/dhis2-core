@@ -120,6 +120,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         dispatcher.addMapping( "/api/*" );
         dispatcher.addMapping( "/uaa/*" );
 
+        context.addFilter( "webMetricsFilter", new DelegatingFilterProxy( "webMetricsFilter" ) )
+            .addMappingForUrlPatterns( null, false, "/api/*" );
+
         FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
             OpenSessionInViewFilter.class );
         openSessionInViewFilter.setInitParameter( "sessionFactoryBeanName", "sessionFactory" );
