@@ -35,6 +35,10 @@ pipeline {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
+                    env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
+                    git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty'
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
@@ -188,6 +192,10 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+
+            script {
+                git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+            }
         }
 
         failure {
