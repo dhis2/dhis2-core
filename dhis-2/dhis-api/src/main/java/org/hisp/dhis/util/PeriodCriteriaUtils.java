@@ -106,6 +106,7 @@ public class PeriodCriteriaUtils
             || (criteria.getStartDate() != null && criteria.getEndDate() != null)
             || !StringUtils.isBlank( criteria.getIncidentDate() )
             || !StringUtils.isBlank( criteria.getLastUpdated() )
+            || !StringUtils.isBlank( criteria.getScheduledDate() )
             || criteria.getRelativePeriodDate() != null;
     }
 
