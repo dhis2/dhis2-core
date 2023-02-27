@@ -1,0 +1,166 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.dxf2.events;
+
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * @author <luca@dhis2.org>
+ */
+class EnrollmentImportTest extends TransactionalIntegrationTest
+{
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private UserService _userService;
+
+    private TrackedEntityInstance trackedEntityInstance;
+
+    private OrganisationUnit organisationUnitA;
+
+    private Program program;
+
+    private ProgramInstance programInstance;
+
+    private User user;
+
+    @Override
+    protected void setUpTest()
+        throws Exception
+    {
+        userService = _userService;
+
+        organisationUnitA = createOrganisationUnit( 'A' );
+        manager.save( organisationUnitA );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        trackedEntityInstance = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        manager.save( trackedEntityInstance );
+
+        program = createProgram( 'A', new HashSet<>(), organisationUnitA );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        manager.save( program );
+
+        programInstance = new ProgramInstance();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setProgram( program );
+        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setStoredBy( "test" );
+        programInstance.setName( "test" );
+        programInstance.enrollTrackedEntityInstance( trackedEntityInstance, program );
+        manager.save( programInstance );
+
+        user = createAndAddAdminUser( AUTHORITY_ALL );
+    }
+
+    @Test
+    void shouldSetCreatedByUserInfoWhenCreateEnrollments()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+
+        Enrollment enrollment = createEnrollment( organisationUnitA.getUid(), program.getUid(),
+            trackedEntityInstance.getUid() );
+        enrollment.setEnrollment( enrollmentUid );
+
+        ImportSummaries importSummaries = enrollmentService.addEnrollments( List.of( enrollment ),
+            new ImportOptions().setUser( user ),
+            null );
+
+        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
+            () -> assertNotNull(
+                enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
+                    .getCreatedByUserInfo() ) );
+    }
+
+    @Test
+    void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
+    {
+        Enrollment enrollment = createEnrollment( organisationUnitA.getUid(), program.getUid(),
+            trackedEntityInstance.getUid() );
+        enrollment.setEnrollment( programInstance.getUid() );
+
+        ImportSummaries importSummaries = enrollmentService.updateEnrollments( List.of( enrollment ),
+            new ImportOptions().setUser( user ),
+            true );
+
+        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
+            () -> assertNotNull(
+                enrollmentService.getEnrollment( programInstance.getUid(), EnrollmentParams.FALSE )
+                    .getLastUpdatedByUserInfo() ) );
+    }
+
+    private Enrollment createEnrollment( String orgUnit, String program, String trackedEntity )
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setOrgUnit( orgUnit );
+        enrollment.setProgram( program );
+        enrollment.setTrackedEntityInstance( trackedEntity );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        return enrollment;
+    }
+}
