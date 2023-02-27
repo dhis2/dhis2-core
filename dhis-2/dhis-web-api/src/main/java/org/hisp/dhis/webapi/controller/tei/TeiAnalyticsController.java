@@ -38,8 +38,6 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.Processor;
@@ -66,6 +64,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Controller class responsible exclusively for querying operations on top of
  * tracker entity instances objects. Methods in this controller should not
@@ -74,8 +74,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @OpenApi.Tags( "analytics" )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( TeiQueryController.TRACKED_ENTITIES )
-class TeiQueryController
+@RequestMapping( TeiAnalyticsController.TRACKED_ENTITIES )
+class TeiAnalyticsController
 {
     static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 

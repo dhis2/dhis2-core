@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.apache.commons.lang3.StringUtils.countMatches;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7136;
@@ -64,6 +66,48 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
             if ( !isValidUid( programUid ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( E4014, programUid, "program" ) );
+            }
+        }
+
+        validateEnrollmentDate( commonQueryRequest.getEnrollmentDate() );
+        validateEventDate( commonQueryRequest.getEventDate() );
+    }
+
+    /**
+     * The event date should have a format like:
+     * "IpHINAT79UW.A03MvHHogjR.LAST_YEAR"
+     * 
+     * @param eventDate the date to validate.
+     * @throws IllegalQueryException if the format is invalid.
+     */
+    private void validateEventDate( String eventDate )
+    {
+        if ( isNotBlank( eventDate ) )
+        {
+            boolean invalidPeriodValue = countMatches( eventDate, "." ) != 2;
+
+            if ( invalidPeriodValue )
+            {
+                throw new IllegalQueryException( new ErrorMessage( E4014, eventDate, "eventDate" ) );
+            }
+        }
+    }
+
+    /**
+     * The event date should have a format like: "IpHINAT79UW.LAST_YEAR"
+     *
+     * @param enrollmentDate the date to validate.
+     * @throws IllegalQueryException if the format is invalid.
+     */
+    private void validateEnrollmentDate( String enrollmentDate )
+    {
+        if ( isNotBlank( enrollmentDate ) )
+        {
+            boolean invalidPeriodValue = countMatches( enrollmentDate, "." ) != 1;
+
+            if ( invalidPeriodValue )
+            {
+                throw new IllegalQueryException( new ErrorMessage( E4014, enrollmentDate, "enrollmentDate" ) );
             }
         }
     }
