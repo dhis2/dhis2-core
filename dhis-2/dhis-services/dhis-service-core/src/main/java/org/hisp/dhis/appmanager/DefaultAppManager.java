@@ -177,6 +177,14 @@ public class DefaultAppManager
     }
 
     @Override
+    public List<App> getAppsByPluginType( String pluginType, Collection<App> apps )
+    {
+        return apps.stream()
+            .filter( app -> app.getPluginType() == pluginType )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
     public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
     {
         return apps
@@ -199,6 +207,10 @@ public class DefaultAppManager
         else if ( "shortName".equalsIgnoreCase( key ) )
         {
             apps.retainAll( getAppsByShortName( value, apps, operator ) );
+        }
+        else if ( "pluginType".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( getAppsByPluginType( value, apps ) );
         }
         else if ( "bundled".equalsIgnoreCase( key ) )
         {

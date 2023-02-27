@@ -124,6 +124,13 @@ public interface AppManager
     List<App> getAppsByShortName( String shortName, Collection<App> apps, String operator );
 
     /**
+     * Returns a list of all installed apps with pluginType equal the given Type
+     *
+     * @return list of installed apps with given pluginType
+     */
+    List<App> getAppsByPluginType( String pluginType, Collection<App> apps );
+
+    /**
      * Returns a list of all installed apps which are either bundled or not
      * bundled operator. Currently supports eq.
      *
