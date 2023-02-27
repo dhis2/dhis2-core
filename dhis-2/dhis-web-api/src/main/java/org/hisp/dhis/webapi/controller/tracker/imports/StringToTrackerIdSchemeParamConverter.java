@@ -27,22 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import java.beans.PropertyEditorSupport;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.StringUtils;
 
-public class StringToTrackerIdSchemeParamConverter implements Converter<String, TrackerIdSchemeParam>
+public class StringToTrackerIdSchemeParamConverter extends PropertyEditorSupport
 {
     private static final String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
 
     @Override
-    public TrackerIdSchemeParam convert( String source )
+    public void setAsText( String source )
     {
         if ( !StringUtils.hasText( source ) )
         {
-            return null;
+            throw new IllegalArgumentException( VALID_VALUES );
         }
 
         String[] splitParam = source.split( ":" );
@@ -72,13 +73,17 @@ public class StringToTrackerIdSchemeParamConverter implements Converter<String, 
         switch ( idScheme )
         {
         case UID:
-            return TrackerIdSchemeParam.UID;
+            setValue( TrackerIdSchemeParam.UID );
+            break;
         case NAME:
-            return TrackerIdSchemeParam.NAME;
+            setValue( TrackerIdSchemeParam.NAME );
+            break;
         case CODE:
-            return TrackerIdSchemeParam.CODE;
+            setValue( TrackerIdSchemeParam.CODE );
+            break;
         case ATTRIBUTE:
-            return TrackerIdSchemeParam.ofAttribute( attributeUid );
+            setValue( TrackerIdSchemeParam.ofAttribute( attributeUid ) );
+            break;
         default:
             throw new IllegalArgumentException( VALID_VALUES );
         }

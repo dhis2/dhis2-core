@@ -55,17 +55,12 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void shouldReturnBadRequestWhenAllValidParametersAndEmptyIdSchemeArePassed()
+    void shouldReturnBadRequestWhenEmptyIdSchemeArePassed()
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true&reportMode=FULL" +
-                "&importMode=VALIDATE" +
-                "&idScheme=" +
-                "&importStrategy=CREATE_AND_UPDATE" +
-                "&atomicMode=OBJECT" +
-                "&flushMode=AUTO" +
-                "&validationMode=FULL",
-                "{}" ).content( HttpStatus.OK ) );
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "idScheme cannot be empty. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
+            POST( "/tracker?async=false&idScheme=", "{}" )
+                .content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
@@ -88,7 +83,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidIdSchemeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not valid for parameter idScheme. It should be of type TrackerIdSchemeParam",
+            "Value INVALID is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
             POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -96,7 +91,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidAttributeIdSchemeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value ATTRIBUTE:abc is not valid for parameter idScheme. It should be of type TrackerIdSchemeParam",
+            "Value ATTRIBUTE:abc is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
             POST( "/tracker?async=false&idScheme=ATTRIBUTE:abc", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -104,7 +99,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidFormatForAttributeIdSchemeIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value ATTRIBUTE:abcdefghilm:invalid is not valid for parameter idScheme. It should be of type TrackerIdSchemeParam",
+            "Value ATTRIBUTE:abcdefghilm:invalid is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
             POST( "/tracker?async=false&idScheme=ATTRIBUTE:abcdefghilm:invalid", "{}" )
                 .content( HttpStatus.BAD_REQUEST ) );
     }
