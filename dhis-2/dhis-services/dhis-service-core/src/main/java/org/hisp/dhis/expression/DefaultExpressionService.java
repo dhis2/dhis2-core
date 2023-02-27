@@ -58,6 +58,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX_DATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NORM_DIST_CUM;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NORM_DIST_DEN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANCESTOR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_DATASET;
@@ -138,6 +140,8 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.function.FunctionAggregationType;
 import org.hisp.dhis.parser.expression.function.FunctionMaxDate;
 import org.hisp.dhis.parser.expression.function.FunctionMinDate;
+import org.hisp.dhis.parser.expression.function.FunctionNormDistCum;
+import org.hisp.dhis.parser.expression.function.FunctionNormDistDen;
 import org.hisp.dhis.parser.expression.function.FunctionYearToDate;
 import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
@@ -224,6 +228,8 @@ public class DefaultExpressionService
         .put( MEDIAN, new VectorMedian() )
         .put( MIN, new VectorMin() )
         .put( MIN_DATE, new FunctionMinDate() )
+        .put( NORM_DIST_CUM, new FunctionNormDistCum() )
+        .put( NORM_DIST_DEN, new FunctionNormDistDen() )
         .put( PERCENTILE_CONT, new VectorPercentileCont() )
         .put( STDDEV, new VectorStddevSamp() )
         .put( STDDEV_POP, new VectorStddevPop() )
