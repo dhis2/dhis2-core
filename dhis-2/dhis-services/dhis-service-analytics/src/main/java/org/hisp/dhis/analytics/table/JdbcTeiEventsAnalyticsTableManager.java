@@ -112,6 +112,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "programstageuid" ), CHARACTER_11, NULL, "ps.uid" ),
         new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+        new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+        new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "status" ), VARCHAR_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psilongitude" ), DOUBLE,
