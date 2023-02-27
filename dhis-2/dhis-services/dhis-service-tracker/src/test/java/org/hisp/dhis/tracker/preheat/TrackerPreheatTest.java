@@ -56,7 +56,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -202,8 +201,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setAttributeValues( Collections.singleton( attributeValue ) );
 
         preheat.put(
-            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( attribute.getUid() )
-                .build(),
+            TrackerIdSchemeParam.ofAttribute( attribute.getUid() ),
             de1 );
 
         assertEquals( 1, preheat.getAll( DataElement.class ).size() );
@@ -292,16 +290,11 @@ class TrackerPreheatTest extends DhisConvenienceTest
         Attribute attribute = new Attribute();
         attribute.setAutoFields();
         attribute.setName( "best" );
-        preheat.put( TrackerIdSchemeParam.builder()
-            .idScheme( TrackerIdScheme.NAME )
-            .build(), attribute );
+        preheat.put( TrackerIdSchemeParam.NAME, attribute );
 
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setAttributeValues( Collections.singleton( new AttributeValue( "value1", attribute ) ) );
-        preheat.put( TrackerIdSchemeParam.builder()
-            .idScheme( TrackerIdScheme.ATTRIBUTE )
-            .attributeUid( attribute.getUid() )
-            .build(), de1 );
+        preheat.put( TrackerIdSchemeParam.ofAttribute( attribute.getUid() ), de1 );
 
         assertEquals( attribute, preheat.get( Attribute.class, MetadataIdentifier.ofName( "best" ) ) );
         assertEquals( de1,
