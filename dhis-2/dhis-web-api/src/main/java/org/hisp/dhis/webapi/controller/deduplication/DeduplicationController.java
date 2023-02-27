@@ -94,7 +94,7 @@ public class DeduplicationController
     public PagingWrapper<ObjectNode> getPotentialDuplicates(
         PotentialDuplicateCriteria potentialDuplicateCriteria,
         HttpServletResponse response,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<Stringgit> fields )
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
 
