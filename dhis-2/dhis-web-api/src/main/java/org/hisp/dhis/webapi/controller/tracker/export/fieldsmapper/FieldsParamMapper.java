@@ -48,7 +48,7 @@ interface FieldsParamMapper<T extends AbstractParams>
     default T map( List<FieldPath> fields, boolean includeDeleted )
     {
         return getParamsBuilder().empty().build();
-    };
+    }
 
     default Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
