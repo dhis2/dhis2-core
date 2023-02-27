@@ -204,7 +204,7 @@ pipeline {
                     if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                             dir('im-db-manager') {
-                                sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                                git.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
 
                                 dir('scripts') {
                                     env.DATABASE_ID = sh(
@@ -218,7 +218,7 @@ pipeline {
                             }
 
                             dir('im-manager') {
-                                sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+                                git.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
                                 dir('scripts') {
                                     echo 'Creating DHIS2 instance on IM...'
