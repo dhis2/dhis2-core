@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.util;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.HashSet;
+
+import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
@@ -39,13 +42,9 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 /**
  * Helper class for period criteria
  */
+@NoArgsConstructor( access = PRIVATE )
 public class PeriodCriteriaUtils
 {
-
-    private PeriodCriteriaUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
 
     /**
      * Define default period dimension with sort order if not present in the
@@ -108,6 +107,7 @@ public class PeriodCriteriaUtils
             || (criteria.getStartDate() != null && criteria.getEndDate() != null)
             || !StringUtils.isBlank( criteria.getIncidentDate() )
             || !StringUtils.isBlank( criteria.getLastUpdated() )
+            || !StringUtils.isBlank( criteria.getScheduledDate() )
             || criteria.getRelativePeriodDate() != null;
     }
 
