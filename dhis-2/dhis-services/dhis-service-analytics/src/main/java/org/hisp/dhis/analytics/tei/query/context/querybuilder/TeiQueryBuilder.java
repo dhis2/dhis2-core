@@ -81,8 +81,8 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
     protected Stream<Field> getSelect( QueryContext queryContext )
     {
         return Stream.concat(
-            // Static fields + 'enrollment' dynamic column.
-            TeiFields.getStaticAndDynamicFields(),
+            // Static fields column.
+            TeiFields.getStaticFields(),
 
             // Tei/Program attributes.
             TeiFields.getDimensionFields( queryContext.getTeiQueryParams() ) );

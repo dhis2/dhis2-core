@@ -30,14 +30,10 @@ package org.hisp.dhis.analytics.tei.query;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
-import static org.hisp.dhis.common.ValueType.DATETIME;
-import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
-import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,9 +43,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -74,61 +67,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  */
 public class TeiFields
 {
-    private interface HeaderProvider
-    {
-        String getAlias();
-
-        String getFullName();
-
-        ValueType getType();
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    private enum Dynamic implements HeaderProvider
-    {
-        ENROLLMENTS( "(select json_agg(json_build_object('programUid', p_0.uid," +
-            " 'programInstanceUid', pi_0.uid, 'enrollmentDate', pi_0.enrollmentdate," +
-            " 'incidentDate', pi_0.incidentdate,'endDate', pi_0.enddate, 'events'," +
-            " (select json_agg(json_build_object('programStageUid', ps_0.uid," +
-            " 'programStageInstanceUid', psi_0.uid, 'executionDate', psi_0.executiondate," +
-            " 'dueDate', psi_0.duedate, 'eventDataValues', psi_0.eventdatavalues))" +
-            " from programstageinstance psi_0, programstage ps_0" +
-            " where psi_0.programinstanceid = pi_0.programinstanceid" +
-            " and ps_0.programstageid = psi_0.programstageid)))" +
-            " from programinstance pi_0, program p_0" +
-            " where pi_0.trackedentityinstanceid = " + TEI_ALIAS + ".trackedentityinstanceid" +
-            " and p_0.programid = pi_0.programid)", "enrollments", "Enrollments", TEXT );
-
-        private final String query;
-
-        private final String alias;
-
-        private final String fullName;
-
-        private final ValueType type;
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    private enum Static implements HeaderProvider
-    {
-        TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
-        LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
-        CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by (display name)", TEXT ),
-        LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by (display name)", TEXT ),
-        GEOMETRY( "geometry", "Geometry", TEXT ),
-        LONGITUDE( "longitude", "Longitude", NUMBER ),
-        LATITUDE( "latitude", "Latitude", NUMBER ),
-        ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
-        ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
-
-        private final String alias;
-
-        private final String fullName;
-
-        private final ValueType type;
-    }
 
     /**
      * Retrieves all object attributes from the given param encapsulating them
@@ -202,28 +140,8 @@ public class TeiFields
      */
     public static Stream<Field> getStaticFields()
     {
-        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
-    }
-
-    /**
-     * Retrieves only dynamic fields.
-     *
-     * @return the {@link Stream} of {@link Field}.
-     */
-    private static Stream<Field> getDynamicFields()
-    {
-        return Stream.of( Dynamic.values() )
-            .map( dynamic -> Field.ofUnquoted( EMPTY, () -> dynamic.query, dynamic.alias ) );
-    }
-
-    /**
-     * Retrieves all static plus dynamic fields.
-     *
-     * @return the {@link Stream} of {@link Field}.
-     */
-    public static Stream<Field> getStaticAndDynamicFields()
-    {
-        return Stream.concat( getStaticFields(), getDynamicFields() );
+        return Stream.of( TeiStaticField.values() ).map( v -> v.getAlias() )
+            .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
     /**
@@ -243,7 +161,7 @@ public class TeiFields
         Map<String, GridHeader> headersMap = new HashMap<>();
 
         // Adding static and dynamic headers.
-        Stream.concat( stream( Static.values() ), stream( Dynamic.values() ) )
+        stream( TeiStaticField.values() )
             .forEach( f -> headersMap.put( f.getAlias(),
                 new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
@@ -339,19 +257,20 @@ public class TeiFields
         }
         else
         {
-            String uid = dimIdentifier.toString();
-            String name = dimensionParam.getName();
+            // It is a static dimension here
+            DimensionParam.StaticDimension dimension = dimIdentifier.getDimension().getStaticDimension();
+            String fullName = dimension.getFullName();
             if ( dimIdentifier.hasProgramStage() )
             {
-                name = "Event " + name;
+                fullName = "Event " + fullName;
             }
             else if ( dimIdentifier.hasProgram() )
             {
-                name = "Enrollment " + name;
+                fullName = "Enrollment " + fullName;
             }
             ValueType valueType = dimensionParam.getValueType();
 
-            return new GridHeader( uid, name, valueType, false, true );
+            return new GridHeader( dimIdentifier.getDimension().getUid(), fullName, valueType, false, true );
         }
     }
 
@@ -418,7 +337,7 @@ public class TeiFields
      * @return the correct {@link DimensionIdentifier}
      * @throws IllegalStateException if nothing is found.
      */
-    private static DimensionIdentifier findDimensionParamForField( Field field,
+    private static DimensionIdentifier<DimensionParam> findDimensionParamForField( Field field,
         List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
