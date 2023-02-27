@@ -629,7 +629,7 @@ public class CrudControllerAdvice
             if ( enumValue == null )
             {
                 throw new IllegalArgumentException(
-                    MessageFormat.format( " Cannot convert {0} to {1}", text, enumClass.toString() ) );
+                    MessageFormat.format( " Cannot convert {0} to {1}", text, enumClass ) );
             }
 
             setValue( enumValue );
