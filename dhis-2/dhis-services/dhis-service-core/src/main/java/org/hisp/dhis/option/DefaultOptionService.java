@@ -33,8 +33,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,6 +69,7 @@ public class DefaultOptionService
     @Override
     @Transactional
     public long saveOptionSet( OptionSet optionSet )
+        throws ConflictException
     {
         validateOptionSet( optionSet );
         optionSetStore.save( optionSet );
@@ -78,14 +79,16 @@ public class DefaultOptionService
     @Override
     @Transactional
     public void updateOptionSet( OptionSet optionSet )
+        throws ConflictException
     {
         validateOptionSet( optionSet );
         optionSetStore.update( optionSet );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void validateOptionSet( OptionSet optionSet )
-        throws IllegalQueryException
+        throws ConflictException
     {
         if ( optionSet.getValueType() != ValueType.MULTI_TEXT )
         {
@@ -93,14 +96,26 @@ public class DefaultOptionService
         }
         for ( Option option : optionSet.getOptions() )
         {
-            if ( option.getId() != 0L && option.getCode() == null )
+            if ( option.getCode() == null )
             {
-                option = optionStore.get( option.getId() );
+                String uid = option.getUid();
+                if ( uid != null )
+                {
+                    option = optionStore.getByUid( uid );
+                    if ( option == null )
+                    {
+                        throw new ConflictException( ErrorCode.E1113, Option.class.getSimpleName(), uid );
+                    }
+                }
+            }
+            if ( option.getCode() == null )
+            {
+                throw new ConflictException( ErrorCode.E4000, "code" );
             }
             ErrorMessage error = validateOption( optionSet, option );
             if ( error != null )
             {
-                throw new IllegalQueryException( error );
+                throw new ConflictException( error );
             }
         }
     }
