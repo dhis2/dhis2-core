@@ -67,6 +67,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Service;
 
 /**
@@ -205,6 +206,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
                         LeftJoin.of(
                             () -> "(" + eventProgramIndicatorSelect(
                                 param.getDimensionIdentifier().getProgram(),
+                                param.getDimensionIdentifier().getProgramStage(),
                                 expression,
                                 filter ) + ") as " + assignedAlias,
                             fieldsEqual( enrollmentAlias, PI_UID, assignedAlias, PI_UID ) ) );
@@ -225,13 +227,18 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
     }
 
     static String eventProgramIndicatorSelect( ElementWithOffset<Program> program,
-        String expression, String filter )
+        ElementWithOffset<ProgramStage> programStage, String expression, String filter )
     {
+        String condition = SUBQUERY_TABLE_ALIAS + ".ps = '" + programStage.getElement().getUid() + "'";
+        if ( StringUtils.isNotBlank( filter ) )
+        {
+            condition = condition + " and " + filter;
+        }
         return "select innermost_evt.*" +
             " from (select pi as " + PI_UID + ", " + expression + " as value, " +
             " row_number() over (partition by pi order by executiondate desc) as rn " +
             " from analytics_event_" + program.getElement().getUid() + " as " + SUBQUERY_TABLE_ALIAS +
-            " where " + filter + ") innermost_evt" +
+            " where " + condition + ") innermost_evt" +
             " where innermost_evt.rn = 1";
     }
 
