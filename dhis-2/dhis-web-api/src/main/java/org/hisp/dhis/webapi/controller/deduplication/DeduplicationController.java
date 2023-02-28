@@ -48,6 +48,7 @@ import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -94,7 +95,7 @@ public class DeduplicationController
     public PagingWrapper<ObjectNode> getPotentialDuplicates(
         PotentialDuplicateCriteria potentialDuplicateCriteria,
         HttpServletResponse response,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<Stringgit> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "potentialDuplicates" );
 
