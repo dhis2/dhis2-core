@@ -40,6 +40,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -50,12 +52,13 @@ import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -67,23 +70,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
 @OpenApi.Tags( "data" )
 @Controller
+@RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( DataStatisticsController.RESOURCE_PATH )
 public class DataStatisticsController
 {
     public static final String RESOURCE_PATH = "/dataStatistics";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private DataStatisticsService dataStatisticsService;
+    private final DataStatisticsService dataStatisticsService;
+
+    private final FieldFilterService fieldFilterService;
 
     @PostMapping
     @ResponseStatus( HttpStatus.CREATED )
@@ -121,8 +127,9 @@ public class DataStatisticsController
     }
 
     @GetMapping
-    public @ResponseBody List<AggregatedStatistics> getReports( @RequestParam Date startDate,
-        @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response )
+    public @ResponseBody List<ObjectNode> getReports( @RequestParam Date startDate,
+        @RequestParam Date endDate, @RequestParam EventInterval interval,
+        @RequestParam( defaultValue = "*" ) List<String> fields, HttpServletResponse response )
         throws WebMessageException
     {
         if ( startDate.after( endDate ) )
@@ -136,7 +143,10 @@ public class DataStatisticsController
         endDate = DateUtils.calculateDateFrom( endDate, -1, MILLISECOND );
 
         setNoStore( response );
-        return dataStatisticsService.getReports( startDate, endDate, interval );
+
+        List<AggregatedStatistics> reports = dataStatisticsService.getReports( startDate, endDate, interval );
+
+        return fieldFilterService.toObjectNodes( FieldFilterParams.of( reports, fields ) );
     }
 
     @GetMapping( "/favorites" )

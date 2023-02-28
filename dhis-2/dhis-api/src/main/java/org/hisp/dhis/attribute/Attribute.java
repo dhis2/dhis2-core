@@ -188,6 +188,11 @@ public class Attribute
             return stream( values() ).filter( t -> t.type == type ).findFirst().orElse( null );
         }
 
+        public static boolean isValidType( String type )
+        {
+            return stream( values() ).anyMatch( t -> t.getPropertyName().equals( type ) );
+        }
+
         public String getPropertyName()
         {
             return CaseFormat.UPPER_UNDERSCORE.converterTo( CaseFormat.LOWER_CAMEL )
@@ -263,7 +268,7 @@ public class Attribute
         }
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @Property( access = Property.Access.READ_ONLY, required = FALSE )
     public Set<String> getObjectTypes()
     {

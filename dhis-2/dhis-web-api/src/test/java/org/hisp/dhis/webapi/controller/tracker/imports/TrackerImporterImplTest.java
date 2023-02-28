@@ -73,9 +73,10 @@ class TrackerImporterImplTest
                 JobType.TRACKER_IMPORT_JOB,
                 "userId",
                 false ) )
+            .reportMode( TrackerBundleReportMode.FULL )
             .build();
 
-        syncImporter.importTracker( params, TrackerBundleReportMode.FULL );
+        syncImporter.importTracker( params );
 
         verify( trackerImportService ).importTracker( params );
         verify( trackerImportService ).buildImportReport( any(), eq( TrackerBundleReportMode.FULL ) );
