@@ -98,10 +98,10 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a list of uids for the given collection of IdentifiableObjects.
+     * Returns a list of UIDs for the given collection of IdentifiableObjects.
      *
      * @param objects the list of IdentifiableObjects.
-     * @return a list of uids.
+     * @return a list of UIDs.
      */
     public static <T extends IdentifiableObject> List<String> getUids( Collection<T> objects )
     {
@@ -109,6 +109,20 @@ public class IdentifiableObjectUtils
             .filter( o -> o != null )
             .map( o -> o.getUid() )
             .collect( Collectors.toList() ) : null;
+    }
+
+    /**
+     * Returns a set of UIDs for the given collection of IdentifiableObjects.
+     *
+     * @param objects the list of IdentifiableObjects.
+     * @return a set of UIDs.
+     */
+    public static <T extends IdentifiableObject> Set<String> getUidsAsSet( Collection<T> objects )
+    {
+        return objects != null ? objects.stream()
+            .filter( o -> o != null )
+            .map( o -> o.getUid() )
+            .collect( Collectors.toSet() ) : null;
     }
 
     /**
