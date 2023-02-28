@@ -36,14 +36,18 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.ValueType;
 
+/**
+ * This enum represents the TEI static fields. It is used to generate the query
+ * and to provide the header information.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum TeiStaticField implements TeiHeaderProvider
 {
     TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
     LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
-    CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by (display name)", TEXT ),
-    LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by (display name)", TEXT ),
+    CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by", TEXT ),
+    LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by", TEXT ),
     GEOMETRY( "geometry", "Geometry", TEXT ),
     LONGITUDE( "longitude", "Longitude", NUMBER ),
     LATITUDE( "latitude", "Latitude", NUMBER ),
