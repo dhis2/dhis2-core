@@ -42,12 +42,14 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -152,6 +154,8 @@ public class MetadataImportParams
      * Specify whether the first row is header in CSV import
      */
     private boolean firstRowIsHeader = true;
+
+    private MetadataChangelog metadataChangelog;
 
     /**
      * Job id to use for threaded imports.
@@ -420,6 +424,18 @@ public class MetadataImportParams
         this.firstRowIsHeader = firstRowIsHeader;
     }
 
+    @OpenApi.Ignore
+    @JsonIgnore
+    public MetadataChangelog getMetadataChangelog()
+    {
+        return metadataChangelog;
+    }
+
+    public void setMetadataChangelog( MetadataChangelog metadataChangelog )
+    {
+        this.metadataChangelog = metadataChangelog;
+    }
+
     public boolean hasJobId()
     {
         return id != null;
@@ -492,6 +508,11 @@ public class MetadataImportParams
 
         setObjects( objectMap );
         return this;
+    }
+
+    public boolean hasMetadataChangelog()
+    {
+        return metadataChangelog != null;
     }
 
     public ObjectBundleParams toObjectBundleParams()

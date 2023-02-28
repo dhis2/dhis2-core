@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -87,6 +88,8 @@ public class DefaultMetadataImportService implements MetadataImportService
     private final AclService aclService;
 
     private final Notifier notifier;
+
+    private final MetadataChangelogService metadataChangelogService;
 
     @Override
     @Transactional
@@ -123,6 +126,11 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         postCreateBundle( bundle, bundleParams );
+
+        if ( params.hasMetadataChangelog() )
+        {
+            metadataChangelogService.saveMetadataChangelog( params.getMetadataChangelog() );
+        }
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport );
@@ -162,6 +170,11 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
         {
             return importReport;
+        }
+
+        if ( params.hasMetadataChangelog() )
+        {
+            metadataChangelogService.updateMetadataChangelog( params.getMetadataChangelog().setSuccess( true ) );
         }
 
         importReport.clean();

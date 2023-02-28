@@ -35,12 +35,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -188,6 +190,48 @@ public class DefaultRenderService
         return rootNode.get( "system" );
     }
 
+    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadataWithChangelog(
+        InputStream inputStream,
+        RenderFormat format, Consumer<MetadataChangelog> addChangelog )
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+
+        ObjectMapper mapper;
+
+        if ( RenderFormat.JSON == format )
+        {
+            mapper = jsonMapper;
+        }
+        else if ( RenderFormat.XML == format )
+        {
+            throw new IllegalArgumentException( "XML format is not supported." );
+        }
+        else
+        {
+            return map;
+        }
+
+        JsonNode rootNode = mapper.readTree( inputStream );
+        Iterator<String> fieldNames = rootNode.fieldNames();
+
+        while ( fieldNames.hasNext() )
+        {
+            String fieldName = fieldNames.next();
+
+            if ( fieldName.equals( MetadataChangelog.JSON_OBJECT_NAME ) )
+            {
+                addChangelog.accept( mapper.treeToValue( rootNode.get( fieldName ), MetadataChangelog.class ) );
+            }
+            else
+            {
+                addObjectToMap( fieldName, mapper, rootNode, map );
+            }
+        }
+
+        return map;
+    }
+
     @Override
     @SuppressWarnings( "unchecked" )
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream,
@@ -216,33 +260,7 @@ public class DefaultRenderService
 
         while ( fieldNames.hasNext() )
         {
-            String fieldName = fieldNames.next();
-            JsonNode node = rootNode.get( fieldName );
-            Schema schema = schemaService.getSchemaByPluralName( fieldName );
-
-            if ( schema == null || !schema.isIdentifiableObject() )
-            {
-                log.info( "Skipping unknown property '" + fieldName + "'." );
-                continue;
-            }
-
-            if ( !schema.isMetadata() )
-            {
-                log.debug( "Skipping non-metadata property `" + fieldName + "`." );
-                continue;
-            }
-
-            List<IdentifiableObject> collection = new ArrayList<>();
-
-            for ( JsonNode item : node )
-            {
-                IdentifiableObject value = mapper.treeToValue( item,
-                    (Class<? extends IdentifiableObject>) schema.getKlass() );
-                if ( value != null )
-                    collection.add( value );
-            }
-
-            map.put( (Class<? extends IdentifiableObject>) schema.getKlass(), collection );
+            addObjectToMap( fieldNames.next(), mapper, rootNode, map );
         }
 
         return map;
@@ -274,5 +292,37 @@ public class DefaultRenderService
         }
 
         return metadataVersions;
+    }
+
+    private void addObjectToMap( String fieldName, ObjectMapper mapper, JsonNode rootNode,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map )
+        throws JsonProcessingException
+    {
+        JsonNode node = rootNode.get( fieldName );
+        Schema schema = schemaService.getSchemaByPluralName( fieldName );
+
+        if ( schema == null || !schema.isIdentifiableObject() )
+        {
+            log.info( "Skipping unknown property '" + fieldName + "'." );
+            return;
+        }
+
+        if ( !schema.isMetadata() )
+        {
+            log.debug( "Skipping non-metadata property `" + fieldName + "`." );
+            return;
+        }
+
+        List<IdentifiableObject> collection = new ArrayList<>();
+
+        for ( JsonNode item : node )
+        {
+            IdentifiableObject value = mapper.treeToValue( item,
+                (Class<? extends IdentifiableObject>) schema.getKlass() );
+            if ( value != null )
+                collection.add( value );
+        }
+
+        map.put( (Class<? extends IdentifiableObject>) schema.getKlass(), collection );
     }
 }

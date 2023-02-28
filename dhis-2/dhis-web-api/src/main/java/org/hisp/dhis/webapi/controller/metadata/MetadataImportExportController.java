@@ -149,7 +149,8 @@ public class MetadataImportExportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
-            .fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
+            .fromMetadataWithChangelog( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ),
+                RenderFormat.JSON, changelog -> params.setMetadataChangelog( changelog ) );
         params.setObjects( objects );
 
         if ( params.hasJobId() )
