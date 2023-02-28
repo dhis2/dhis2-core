@@ -32,34 +32,29 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import java.util.Iterator;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class DataElementDeletionHandler extends JdbcDeletionHandler
+@RequiredArgsConstructor
+public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElement>
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataElement.class );
-
-    private final IdentifiableObjectManager idObjectManager;
-
     private final CategoryService categoryService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
         whenDeleting( DataSet.class, this::deleteDataSet );

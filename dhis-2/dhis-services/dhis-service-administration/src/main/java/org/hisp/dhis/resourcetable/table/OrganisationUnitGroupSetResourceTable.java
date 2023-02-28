@@ -97,16 +97,18 @@ public class OrganisationUnitGroupSetResourceTable
                 sql += "(" +
                     "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                    + groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on " +
+                    "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                    groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                    + groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on " +
+                    "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                    groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + quote( groupSet.getUid() ) + ", ";
             }
@@ -117,10 +119,11 @@ public class OrganisationUnitGroupSetResourceTable
                 for ( int i = organisationUnitLevels; i > 0; i-- )
                 {
                     sql += "(select oug.name from orgunitgroup oug " +
-                        "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel"
-                        + i + " " +
-                        "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                        + groupSet.getId() + " " +
+                        "inner join orgunitgroupmembers ougm on " +
+                        "ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel" + i + " " +
+                        "inner join orgunitgroupsetmembers ougsm on " +
+                        "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                        groupSet.getId() + " " +
                         "limit 1),";
                 }
 
@@ -137,10 +140,11 @@ public class OrganisationUnitGroupSetResourceTable
                 for ( int i = organisationUnitLevels; i > 0; i-- )
                 {
                     sql += "(select oug.uid from orgunitgroup oug " +
-                        "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel"
-                        + i + " " +
-                        "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                        + groupSet.getId() + " " +
+                        "inner join orgunitgroupmembers ougm on " +
+                        "ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel" + i + " " +
+                        "inner join orgunitgroupsetmembers ougsm on " +
+                        "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
+                        groupSet.getId() + " " +
                         "limit 1),";
                 }
 

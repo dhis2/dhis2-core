@@ -178,11 +178,12 @@ public enum ErrorCode
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
     E3028( "User must have a secret" ),
-    E3029( "User must call /qr endpoint before you can call enable" ),
+    E3029( "User must call the /qrCode endpoint first" ),
     E3030(
         "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" ),
     E3031( "Two factor authentication is not enabled" ),
     E3032( "User `{0}` does not have access to user role" ),
+    E3040( "Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
@@ -252,6 +253,13 @@ public enum ErrorCode
     E4060( "Object could not be deleted: {0}" ),
     E4061(
         "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
+    E4062( "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `{0}`" ),
+    E4063( "Assigned users cannot be empty when assigned user mode is set to PROVIDED" ),
+    E4064( "Organisation unit cannot be empty with `{0}` org unit mode" ),
+    E4065( "Data item UID is missing in filter" ),
+    E4066( "No data element found for item: `{0}`" ),
+    E4067( "Attribute UID is missing in filter" ),
+    E4068( "No tracked entity attribute found for attribute: `{0}`" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -279,6 +287,7 @@ public enum ErrorCode
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found" ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
+    E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one program instance" ),
@@ -488,7 +497,8 @@ public enum ErrorCode
     E7708( "GeoJSON target organisation unit does not exist" ),
     E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
     E7710( "User is not allowed to update the target organisation unit" ),
-    E7711( "Organisation unit cannot be uniquely identified by its name" );
+    E7711( "Organisation unit cannot be uniquely identified by its name" ),
+    E7712( "GeoJSON geometry coordinates must be non empty but was: `{0}`" );
 
     private String message;
 

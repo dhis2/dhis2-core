@@ -53,6 +53,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.resourcetable.table.CategoryOptionComboNameResourceTable;
 import org.hisp.dhis.resourcetable.table.CategoryOptionComboResourceTable;
@@ -101,6 +102,8 @@ public class DefaultResourceTableService
     private final StatementBuilder statementBuilder;
 
     private final AnalyticsExportSettings analyticsExportSettings;
+
+    private final PeriodDataProvider periodDataProvider;
 
     @Override
     @Transactional
@@ -174,14 +177,14 @@ public class DefaultResourceTableService
     }
 
     @Override
+    @Transactional
     public void generateDatePeriodTable()
     {
-        resourceTableStore
-            .generateResourceTable( new DatePeriodResourceTable( null, analyticsExportSettings.getTableType() ) );
+        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( periodDataProvider.getAvailableYears(),
+            analyticsExportSettings.getTableType() ) );
     }
 
     @Override
-    @Transactional
     public void generatePeriodTable()
     {
         resourceTableStore

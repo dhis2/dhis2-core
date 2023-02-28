@@ -340,7 +340,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         dimensionParams.add( DimensionalObject.ORGUNIT_DIM_ID + DIMENSION_NAME_SEP + ouA.getDimensionItem() + OPTION_SEP
             + ouB.getDimensionItem() );
         List<DimensionalObject> dimensionalObject = dataQueryService.getDimensionalObjects( dimensionParams, null, null,
-            IdScheme.UID );
+            null, IdScheme.UID );
         DimensionalObject dxObject = dimensionalObject.get( 0 );
         DimensionalObject ouObject = dimensionalObject.get( 1 );
         List<DimensionalItemObject> dxItems = List.of( deA, deB, rrA );
@@ -363,7 +363,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
             + rrA.getDimensionItem() + OPTION_SEP + rrB.getDimensionItem() + OPTION_SEP + rrC.getDimensionItem() );
         dimensionParams.add( DimensionalObject.ORGUNIT_DIM_ID + DIMENSION_NAME_SEP + ouA.getDimensionItem() );
         List<DimensionalObject> dimensionalObject = dataQueryService.getDimensionalObjects( dimensionParams, null, null,
-            IdScheme.UID );
+            null, IdScheme.UID );
         DimensionalObject dxObject = dimensionalObject.get( 0 );
         DimensionalObject ouObject = dimensionalObject.get( 1 );
         List<DimensionalItemObject> dxItems = List.of( deA, rrA, rrB, rrC );
@@ -384,7 +384,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( deA, deB, deC, rrA, rrB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -397,7 +397,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( deA, deB, deC );
         List<String> itemCodes = List.of( deA.getCode(), deB.getCode(), deC.getCode() );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemCodes,
-            (Date) null, null, false, IdScheme.CODE );
+            (Date) null, null, false, null, IdScheme.CODE );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -411,7 +411,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<String> itemAttributeValues = List.of( deA.getAttributeValueString( atA ),
             deB.getAttributeValueString( atA ), deC.getAttributeValueString( atA ) );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemAttributeValues,
-            (Date) null, null, false, IdScheme.from( atA ) );
+            (Date) null, null, false, null, IdScheme.from( atA ) );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -424,7 +424,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( ouGroupA, ouGroupB, ouGroupC );
         List<String> itemCodes = List.of( ouGroupA.getCode(), ouGroupB.getCode(), ouGroupC.getCode() );
         DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, (Date) null, null,
-            false, IdScheme.CODE );
+            false, null, IdScheme.CODE );
         assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
         assertContainsOnly( items, actual.getItems() );
@@ -439,7 +439,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( opA, opB, opC );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -452,7 +452,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( ouA, ouB, ouC );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
@@ -465,7 +465,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         String ouGroupAUid = OrganisationUnit.KEY_ORGUNIT_GROUP + ouGroupA.getUid();
         List<String> itemUids = List.of( ouGroupAUid );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName() );
@@ -478,7 +478,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         String deGroupAId = DataQueryParams.KEY_DE_GROUP + deGroupA.getUid();
         List<String> itemUids = List.of( deGroupAId );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -491,7 +491,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         String inGroupAId = DataQueryParams.KEY_IN_GROUP + inGroupA.getUid();
         List<String> itemUids = List.of( inGroupAId );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName() );
@@ -504,7 +504,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<String> itemUids = List.of( "199501", "1999", RelativePeriodEnum.LAST_4_QUARTERS.toString(),
             RelativePeriodEnum.THIS_YEAR.toString() );
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.PERIOD_DIM_ID, itemUids,
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName() );
@@ -515,7 +515,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
     void testGetDimensionPeriodAndStartEndDates()
     {
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.PERIOD_DIM_ID, List.of(),
-            (Date) null, null, false, IdScheme.UID );
+            (Date) null, null, false, null, IdScheme.UID );
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName() );
@@ -528,7 +528,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( ouGroupA, ouGroupB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
         DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getUid(), itemUids, (Date) null, null,
-            false, IdScheme.UID );
+            false, null, IdScheme.UID );
         assertEquals( ouGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
         assertEquals( ouGroupSetA.getName(), actual.getDimensionDisplayName() );
@@ -541,7 +541,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
         List<DimensionalItemObject> items = List.of( deGroupA, deGroupB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
         DimensionalObject actual = dataQueryService.getDimension( deGroupSetA.getUid(), itemUids, (Date) null, null,
-            false, IdScheme.UID );
+            false, null, IdScheme.UID );
         assertEquals( deGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.DATA_ELEMENT_GROUP_SET, actual.getDimensionType() );
         assertEquals( deGroupSetA.getName(), actual.getDimensionDisplayName() );
@@ -923,7 +923,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
                 "20210101:INCIDENT_DATE",
                 "20210101_20210201:LAST_UPDATED",
                 "2021-02-01_2021-03-01:SCHEDULED_DATE" ),
-            (Date) null, null, true, null );
+            (Date) null, null, true, null, null );
 
         assertThat( dimension.getItems(), hasSize( 5 ) );
         assertThat( dimension.getItems().stream()

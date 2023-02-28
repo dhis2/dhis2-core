@@ -62,7 +62,7 @@ import io.lettuce.core.resource.DefaultClientResources;
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class RedisCacheInvalidationConfiguration
 {
-    public static final List<Class> EXCLUDE_LIST = List.of( JobConfiguration.class );
+    public static final List<Class<?>> EXCLUDE_LIST = List.of( JobConfiguration.class );
 
     public static final String CHANNEL_NAME = "dhis2_cache_invalidation";
 

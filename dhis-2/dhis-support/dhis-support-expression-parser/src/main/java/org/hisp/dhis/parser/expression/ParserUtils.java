@@ -39,6 +39,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.GEQ;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.GREATEST;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.GT;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.IF;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.IS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.IS_NOT_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.IS_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.LEAST;
@@ -67,6 +68,7 @@ import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
 import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
 import org.hisp.dhis.parser.expression.function.FunctionGreatest;
 import org.hisp.dhis.parser.expression.function.FunctionIf;
+import org.hisp.dhis.parser.expression.function.FunctionIs;
 import org.hisp.dhis.parser.expression.function.FunctionIsNotNull;
 import org.hisp.dhis.parser.expression.function.FunctionIsNull;
 import org.hisp.dhis.parser.expression.function.FunctionLeast;
@@ -144,6 +146,7 @@ public class ParserUtils
         .put( FIRST_NON_NULL, new FunctionFirstNonNull() )
         .put( GREATEST, new FunctionGreatest() )
         .put( IF, new FunctionIf() )
+        .put( IS, new FunctionIs() )
         .put( IS_NOT_NULL, new FunctionIsNotNull() )
         .put( IS_NULL, new FunctionIsNull() )
         .put( LEAST, new FunctionLeast() )

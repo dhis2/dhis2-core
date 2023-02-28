@@ -54,7 +54,8 @@ class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityInte
         String defaultCatCombo = getDefaultCatCombo();
         String datasetA = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets",
-                "{ 'name': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '" + defaultCatCombo + "'}}" ) );
+                "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                    + defaultCatCombo + "'}}" ) );
 
         assertHasDataIntegrityIssues( "dataSets", check, 100, datasetA, "Test", null, true );
     }
@@ -71,7 +72,8 @@ class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityInte
 
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets",
-                "{ 'name': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '" + defaultCatCombo + "'}, " +
+                "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                    + defaultCatCombo + "'}, " +
                     " 'dataSetElements': [{ 'dataSet': { 'id': '" + dataSetUID + "'}, 'dataElement': { 'id': '"
                     + dataElementA + "'}}]}" ) );
 

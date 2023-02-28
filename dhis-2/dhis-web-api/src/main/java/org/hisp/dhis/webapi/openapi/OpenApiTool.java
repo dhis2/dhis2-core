@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
@@ -133,7 +134,10 @@ public class OpenApiTool implements ToolProvider
         ApiAnalyse.Scope scope = new ApiAnalyse.Scope( classes, paths, tags );
         if ( !group )
         {
-            return generateDocument( filename, out, err, scope );
+            BiFunction<Api, OpenApiGenerator.Configuration, String> generator = filename.endsWith( ".json" )
+                ? ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config )
+                : ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config );
+            return generateDocument( filename, out, err, scope, generator );
         }
         AtomicInteger errorCode = generateGroupedDocuments( filename, out, err, scope );
         return errorCode.get() < 0 ? -1 : 0;
@@ -144,20 +148,28 @@ public class OpenApiTool implements ToolProvider
     {
         String dir = to.endsWith( "/" )
             ? to.substring( 0, to.length() - 1 )
-            : to.replace( ".json", "" );
+            : to.replace( ".json", "" ).replace( ".yaml", "" );
+        String fileExtension = to.endsWith( ".yaml" ) ? ".yaml" : ".json";
         AtomicInteger errorCode = new AtomicInteger( 0 );
         Map<String, Set<Class<?>>> byTag = new TreeMap<>();
         scope.getControllers().stream()
             .filter( cls -> !cls.isAnnotationPresent( OpenApi.Ignore.class ) )
             .forEach( cls -> byTag.computeIfAbsent( getMainTag( cls ), key -> new HashSet<>() )
                 .add( cls ) );
-        byTag.forEach( ( tag, classes ) -> errorCode.addAndGet(
-            generateDocument( dir + "/openapi-" + tag + ".json", out, err,
-                new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ) ) ) );
+        BiFunction<Api, OpenApiGenerator.Configuration, String> generator = to.endsWith( ".yaml" )
+            ? ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config )
+            : ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config );
+        byTag.forEach( ( tag, classes ) -> {
+            String filename = dir + "/openapi-" + tag + fileExtension;
+            errorCode.addAndGet(
+                generateDocument( filename, out, err,
+                    new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ), generator ) );
+        } );
         return errorCode;
     }
 
-    private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope )
+    private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope,
+        BiFunction<Api, OpenApiGenerator.Configuration, String> generator )
     {
         try
         {
@@ -171,7 +183,7 @@ public class OpenApiTool implements ToolProvider
             OpenApiGenerator.Configuration config = OpenApiGenerator.Configuration.DEFAULT.toBuilder()
                 .title( "DHIS2 API - " + title )
                 .build();
-            String doc = OpenApiGenerator.generate( api, JsonGenerator.Format.PRETTY_PRINT, config );
+            String doc = generator.apply( api, config );
             Path output = Files.writeString( file, doc );
             out.printf( "  %-30s [%3d controllers, %3d schemas]%n",
                 output.getFileName(), api.getControllers().size(), api.getSchemas().size() );

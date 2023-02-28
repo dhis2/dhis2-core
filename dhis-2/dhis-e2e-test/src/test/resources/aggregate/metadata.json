@@ -7,18 +7,18 @@
       "shortName": "TA Age (malaria)",
       "id": "mFoasCYViMW",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
-      "dataDimension": true,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
+      "dataDimension": true,
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "UPvKbcqTEY3"
@@ -38,21 +38,21 @@
       "shortName": "TA Foci classification",
       "id": "Xaol8a2c51w",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
+        }
+      },
       "dataDimension": true,
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "FYTYL2zIeUe"
@@ -72,20 +72,20 @@
       "shortName": "TA Sex",
       "id": "FRwO58KwwJt",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
       "dataDimension": false,
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "MP15bHaQh2x"
@@ -102,17 +102,18 @@
       "lastUpdated": "2019-08-26T14:24:46.905",
       "name": "TA Malaria: elimination",
       "id": "y4UWjeyKIwS",
-      "publicAccess": "--------",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "validationRules": [
         {
           "id": "Rv0j1oszqz0"
@@ -152,8 +153,7 @@
         }
       ],
       "attributeValues": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "validationRules": [
@@ -163,7 +163,9 @@
       "name": "TA Foci with response = Sum of Foci responses (MDA, IRS, LLIN, larviciding)",
       "id": "p5591gkdyU4",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "equal_to",
       "periodType": "Monthly",
       "instruction": "Foci with response = Sum of Foci responded with MDA, Foci responded with IRS, Foci responded with LLIN/hummock and Foci responded with larviciding",
@@ -180,11 +182,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -192,7 +192,9 @@
       "name": "TA Malaria cases classified <= Malaria cases investigated",
       "id": "ohyQDfDlUGD",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Malaria cases classified] should be less than or equal to the number of [Malaria cases investigated]. Both numbers can be zeros.",
@@ -209,11 +211,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -221,7 +221,9 @@
       "name": "TA Malaria cases classified as local <= Malaria cases investigated",
       "id": "FpKUc2oBEsL",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Malaria cases classified as local] should be less than or equal to the number of [Malaria cases investigated]. Both numbers can be zeros.",
@@ -241,11 +243,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -253,7 +253,9 @@
       "name": "TA Malaria deaths <= Malaria inpatients",
       "id": "w4eiMkqdRF7",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Malaria deaths] should be less than or equal to the number of [Malaria inpatients]. Both numbers can be zeros.",
@@ -270,11 +272,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -282,7 +282,9 @@
       "name": "TA Malaria foci classified <= Malaria foci investigated",
       "id": "D1WPu8y1Aag",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Malaria foci classified] should be less than or equal to the number of [Malaria foci investigated]. Both numbers can be zeros.",
@@ -299,11 +301,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -311,7 +311,9 @@
       "name": "TA Malaria foci classified = Sum of (Active, Residual (non-active) and cleared-up)",
       "id": "bUi38Jyql60",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "equal_to",
       "periodType": "Monthly",
       "instruction": "Malaria foci classified should be equal to the  sum of (Active, Residual (non-active) and cleared-up)",
@@ -328,11 +330,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -340,7 +340,9 @@
       "name": "TA Malaria foci investigated <= Malaria foci identified (new)",
       "id": "CUh5R5llms0",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Malaria foci investigated] should be less than or equal to the number of [Malaria foci identified (new)]. Both numbers can be zeros.",
@@ -357,11 +359,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -369,7 +369,9 @@
       "name": "TA Number of ACT treatment courses receive <= Number 1st-line treatment courses received (inlc. ACTs)",
       "id": "s7pJpP0oejw",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Number of ACT treatment courses receive] should be less than or equal to the number of [Number 1st-line treatment courses received (inlc. ACTs)]. Both numbers can be zeros.",
@@ -386,11 +388,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -398,7 +398,9 @@
       "name": "TA Positive (Micr) <= Tested (Micr)",
       "id": "wuTietFyjIc",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Positive (Micr)] should be less than or equal to the number of [Tested (Micr)]. Both numbers can be zeros.",
@@ -415,11 +417,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -427,7 +427,9 @@
       "name": "TA Positive (Micr) = Sum of species (Pf, Pv, Mixed, Other species)",
       "id": "Kejj3gJ2GD0",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "equal_to",
       "periodType": "Monthly",
       "instruction": "[Positive (Micr)] should be equal the sum of [P. falciparum (Micr)] + [P. vivax (Micr)] + [Mixed (Micr)] +[Other (Micr)]",
@@ -444,11 +446,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -456,7 +456,9 @@
       "name": "TA Positive (RDT) <= Tested (RDT)",
       "id": "VPgf5jXAgnV",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "less_than_or_equal_to",
       "periodType": "Monthly",
       "instruction": "[Positive (RDT)] should be less than or equal to the number of [Tested (RDT)]. Both numbers can be zeros.",
@@ -473,11 +475,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-23T17:27:25.585",
@@ -485,7 +485,9 @@
       "name": "TA Positive (RDT) = Sum of species (RDT)",
       "id": "Rv0j1oszqz0",
       "importance": "MEDIUM",
-      "publicAccess": "rw------",
+      "sharing" : {
+        "public": "rw------"
+      },
       "operator": "equal_to",
       "periodType": "Monthly",
       "instruction": "[Positive (RDT)] should be equal the number of [P. falciparum (RDT)]. Both numbers can be zeros.",
@@ -502,11 +504,9 @@
         "missingValueStrategy": "NEVER_SKIP",
         "slidingWindow": false
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "organisationUnitLevels": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "indicatorTypes": [
@@ -766,7 +766,6 @@
       "shortName": "Malaria annual data",
       "validCompleteOnly": false,
       "dataElementDecoration": false,
-      "publicAccess": "--------",
       "notifyCompletingUser": false,
       "noValueRequiresComment": false,
       "skipOffline": false,
@@ -879,17 +878,17 @@
           "id": "YuQRtpLP10I"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "indicators": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -901,7 +900,6 @@
       "shortName": "TA Malaria elimination",
       "validCompleteOnly": false,
       "dataElementDecoration": false,
-      "publicAccess": "--------",
       "notifyCompletingUser": false,
       "noValueRequiresComment": false,
       "skipOffline": false,
@@ -1663,17 +1661,17 @@
           "id": "YuQRtpLP10I"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "indicators": [],
-      "userAccesses": [],
       "legendSets": []
     }
   ],
@@ -1684,14 +1682,15 @@
       "lastUpdated": "2019-08-26T14:24:46.361",
       "name": "TA Malaria",
       "id": "YKVsWm3b47n",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "indicators": [
         {
@@ -1752,8 +1751,7 @@
           "id": "tIWGvDkU6lb"
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "indicators": [
@@ -1764,7 +1762,6 @@
       "created": "2016-03-11T02:30:42.934",
       "name": "TA MAL - % of malaria tested cases by RDT",
       "shortName": "% of malaria tested cases by RDT",
-      "publicAccess": "--------",
       "description": "Number of suspected cases tested with RDT divided by total number of suspected cases tested with either microscopy or RDT multiplied by 100 ",
       "denominatorDescription": "Cases tested with microscopy + Cases tested with RDT",
       "numeratorDescription": "Cases tested with RDT",
@@ -1775,15 +1772,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1793,7 +1791,6 @@
       "created": "2016-03-11T07:38:58.093",
       "name": "TA MAL - Annual blood examination rate (ABER)",
       "shortName": "ABER",
-      "publicAccess": "--------",
       "description": "The number of parasitological test conducted for malaria per 100 population per year",
       "denominatorDescription": "Population at risk",
       "numeratorDescription": "Cases tested with microscopy + Cases tested with RDT",
@@ -1804,15 +1801,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [
         {
           "id": "phSksJ6YPO4"
@@ -1826,7 +1824,6 @@
       "created": "2016-03-11T10:01:11.759",
       "name": "TA MAL - Foci classified (%)",
       "shortName": "TA Foci classified (%)",
-      "publicAccess": "--------",
       "description": "Number of foci investigated and classified divided by total number of foci in the registry multiplied by 100 (in a year)",
       "denominatorDescription": "New foci identified",
       "numeratorDescription": "Foci classified",
@@ -1837,15 +1834,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1855,7 +1853,6 @@
       "created": "2018-01-16T09:49:51.357",
       "name": "TA MAL - Foci identified (new+old) in past 5 years (including current calendar year)",
       "shortName": "TA Foci identified, new and old (list of foci)",
-      "publicAccess": "--------",
       "description": "Number of malaria foci identified (new+old) identified in the past 5 years (including current calendar year)",
       "denominatorDescription": "1",
       "numeratorDescription": "Foci identified (new+old) in past 5 years (including current calendar year)",
@@ -1866,15 +1863,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1884,7 +1882,6 @@
       "created": "2016-03-11T10:00:02.294",
       "name": "TA MAL - Foci investigated (%)",
       "shortName": "TA Foci investigated (%)",
-      "publicAccess": "--------",
       "description": "Number of foci investigated divided by total number of foci in the registry multiplied by 100 (in a year)",
       "denominatorDescription": "Malaria foci identified (new)",
       "numeratorDescription": "Foci investigated",
@@ -1895,15 +1892,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1913,7 +1911,6 @@
       "created": "2018-01-16T09:49:51.357",
       "name": "TA MAL - Malaria cases classified as local",
       "shortName": "TA Malaria local",
-      "publicAccess": "--------",
       "description": "Number of cases confirmed as malaria that are investigated and classified as either indigenous or introduced",
       "denominatorDescription": "1",
       "numeratorDescription": "Malaria cases classified as local",
@@ -1924,15 +1921,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1942,7 +1940,6 @@
       "created": "2016-03-11T11:44:48.836",
       "name": "TA MAL - Malaria cases confirmed (number)",
       "shortName": "TA Malaria confirmed",
-      "publicAccess": "--------",
       "description": "Number of malaria cases confirmed as positive with microscopy and/or RDT",
       "denominatorDescription": "1",
       "numeratorDescription": "Total malaria confirmed cases",
@@ -1953,15 +1950,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1971,7 +1969,6 @@
       "created": "2018-01-16T09:52:47.098",
       "name": "TA MAL - Malaria confirmed MEDIAN (threshold)",
       "shortName": "TA Malaria confirmed threshold",
-      "publicAccess": "--------",
       "denominatorDescription": "1",
       "numeratorDescription": "Malaria confirmed MEDIAN (threshold)",
       "numerator": "#{nwzSeTAxCGV.HllvX50cXC0}",
@@ -1981,15 +1978,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -1999,7 +1997,6 @@
       "created": "2018-01-16T09:52:47.098",
       "name": "TA MAL - Malaria confirmed MEDIAN+2 STD (threshold)",
       "shortName": "TA Malaria confirmed threshold 2",
-      "publicAccess": "--------",
       "denominatorDescription": "1",
       "numeratorDescription": "Malaria confirmed MEDIAN+2 STD (threshold)",
       "numerator": "#{LhcXjWs6lm7.HllvX50cXC0}",
@@ -2009,15 +2006,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2027,7 +2025,6 @@
       "created": "2016-03-11T08:32:41.526",
       "name": "TA MAL - Percentage of foci with zero local cases",
       "shortName": "TA % of foci with zero local cases",
-      "publicAccess": "--------",
       "description": "Note: The designation “presumed case” is reserved for",
       "denominatorDescription": "New foci identified",
       "numeratorDescription": "Foci classified as endemic or active (with confirmed local cases for at least the past 2 years)",
@@ -2038,15 +2035,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2056,7 +2054,6 @@
       "created": "2017-01-23T18:22:06.206",
       "name": "TA MAL - Percentage of malaria cases classified",
       "shortName": "TA % of malaria cases classified",
-      "publicAccess": "--------",
       "description": "situations in which a diagnostic test cannot be performed in a timely",
       "denominatorDescription": "Total malaria confirmed cases (Micr+RDT)",
       "numeratorDescription": "Malaria cases classified",
@@ -2067,15 +2064,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2085,7 +2083,6 @@
       "created": "2016-03-10T16:48:34.747",
       "name": "TA MAL - Percentage of malaria cases investigated",
       "shortName": "TA % of malaria cases investigated",
-      "publicAccess": "--------",
       "description": "Number of positive cases detected through PCD and investigated by total number of cases detected through PCD multiplied by 00 ",
       "denominatorDescription": "Total positives",
       "numeratorDescription": "Malaria cases investigated",
@@ -2096,15 +2093,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2114,7 +2112,6 @@
       "created": "2016-03-10T16:31:36.543",
       "name": "TA MAL - Percentage of P. falciparum",
       "shortName": "TA % P. falciparum",
-      "publicAccess": "--------",
       "description": "Percentage of positive cases due to P. falciparum parasite ((number of cases due to P. falciparum only + mix infection with P. falciparum/ all positive cases)x100)",
       "denominatorDescription": "Confirmed malaria cases",
       "numeratorDescription": "Sum (Pf+mixed Micr+RDT)",
@@ -2126,15 +2123,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2144,7 +2142,6 @@
       "created": "2016-03-10T16:37:12.227",
       "name": "TA MAL - Percentage of P. vivax",
       "shortName": "TA % P. vivax",
-      "publicAccess": "--------",
       "description": "Percentage of positive cases due to P. vivax parasite ((number of cases due to P. vivax only + mix infection with P. vivax/ all positive cases)x100)",
       "denominatorDescription": "Confirmed malaria cases",
       "numeratorDescription": "P. vivax (microscopy) + P. vivax (RDT)",
@@ -2156,15 +2153,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2174,7 +2172,6 @@
       "created": "2017-01-26T18:59:03.853",
       "name": "TA MAL - Reporting completeness - DTH (%)",
       "shortName": "TA Mortality reporting completeness (%)",
-      "publicAccess": "--------",
       "description": "Number of malaria deaths reported by health facilities (public, private and NGO) divided by total number of health facilities expected to report ",
       "denominatorDescription": "Number of Health Facility reports expected to report Deaths",
       "numeratorDescription": "Number of Health Facility reports received Deaths",
@@ -2185,15 +2182,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2203,7 +2201,6 @@
       "created": "2017-01-26T18:58:15.137",
       "name": "TA MAL - Reporting completeness - IPD (%)",
       "shortName": "TA Inpatient reporting completeness (%)",
-      "publicAccess": "--------",
       "description": "Number of inpatient  malaria cases reported by health facilities (public, private and NGO) divided by total number of health facilities expected to report ",
       "denominatorDescription": "Number of Health Facility reports expected to report Inpatient",
       "numeratorDescription": "Number of Health Facility reports received Inpatient",
@@ -2214,15 +2211,16 @@
         "id": "kHy61PbChXr"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2232,7 +2230,6 @@
       "created": "2017-01-26T18:57:20.323",
       "name": "TA MAL - Reporting completeness - OPD (%)",
       "shortName": "TA OPD reporting completeness (%)",
-      "publicAccess": "--------",
       "description": "Number of outpatient  malaria cases reported by health facilities (public, private, NGO and community) divided by total number of health facilities expected to report ",
       "denominatorDescription": "Number of Health Facility reports expected to report Outpatient",
       "numeratorDescription": "Number of Health Facility reports received Outpatient",
@@ -2243,15 +2240,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2261,7 +2259,6 @@
       "created": "2016-03-10T16:15:05.258",
       "name": "TA MAL - Slide positivity rate (microscopy)",
       "shortName": "TA PR (Mic)",
-      "publicAccess": "--------",
       "description": "Number of malaria microscopy positive cases divided by total microcopy tests multiplied by 100",
       "denominatorDescription": "Cases tested with microscopy",
       "numeratorDescription": "Cases positive with microscopy",
@@ -2272,15 +2269,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [
         {
           "id": "JUG5nRDqRFl"
@@ -2294,7 +2292,6 @@
       "created": "2016-03-10T16:17:16.995",
       "name": "TA MAL - Test positivity rate (RDT)",
       "shortName": "TPR (RDT)",
-      "publicAccess": "--------",
       "description": "Number of malaria RDT positive cases divided by total RDT tests multiplied by 100",
       "denominatorDescription": "Tested (RDT)",
       "numeratorDescription": "Cases positive with RDT",
@@ -2305,15 +2302,16 @@
         "id": "hmSnCXmLYwt"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     }
   ],
@@ -2327,7 +2325,6 @@
       "shortName": "TA External funding",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "External funding",
       "zeroIsSignificant": true,
@@ -2335,15 +2332,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2356,7 +2354,6 @@
       "shortName": "TA Funding need (USD)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Funding need (USD)",
       "zeroIsSignificant": true,
@@ -2364,15 +2361,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2385,7 +2383,6 @@
       "shortName": "TA All-cause admissions",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Admissions or hospitalization in health facility for all health conditions excluding admission of pregnant women for delivery",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "All-cause admissions",
@@ -2394,15 +2391,16 @@
         "id": "BwnnrV1AkNj"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2415,7 +2413,6 @@
       "shortName": "TA All-cause outpatient",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Outpatient consultations or visits for all  health conditions in in health facility excluding antenatal care (ANC) for pregnant women",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "All-cause outpatient",
@@ -2424,15 +2421,16 @@
         "id": "BwnnrV1AkNj"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2445,7 +2443,6 @@
       "shortName": "TA Domestic funding",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Domestic funding",
       "zeroIsSignificant": true,
@@ -2453,15 +2450,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2474,7 +2472,6 @@
       "shortName": "TA Population with malaria disagg",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Total population for a given level.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Population (total)",
@@ -2483,15 +2480,16 @@
         "id": "BwnnrV1AkNj"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2504,7 +2502,6 @@
       "shortName": "TA1st-line treatment courses received (incl. ACTs)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of full treatment course of 1st-line antimalarial medicine including ACTs received",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number 1st-line treatment courses received (incl. ACTs)",
@@ -2513,15 +2510,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2534,7 +2532,6 @@
       "shortName": "TA ACTs courses received",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of ACT full treatment courses received.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of ACTs courses received",
@@ -2543,15 +2540,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2564,7 +2562,6 @@
       "shortName": "TA Case treated with any antimalarial (inlc. ACTs)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of malaria cases treated with any antimalarial medicine including ACTs",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of cases treated with any antimalarial medicine (incl. ACT)",
@@ -2573,15 +2570,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2594,7 +2592,6 @@
       "shortName": "TA Foci identified, new and old (list of foci)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of malaria foci identified (new+old) identified in the past 5 years (including current calendar year)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Total foci (new+old) identified in the past 5 years (including current calendar year)",
@@ -2603,15 +2600,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2624,7 +2622,6 @@
       "shortName": "TA Foci responded intervention combo",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received a response with combination of interventions including treatment, LLINs/IRS or larval control targeting the population resident in the foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci responded with environmental",
@@ -2633,15 +2630,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2654,7 +2652,6 @@
       "shortName": "TA Foci responded with IRS",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received a response with IRS targeting the population resident in the foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci responded with IRS",
@@ -2663,15 +2660,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2684,7 +2682,6 @@
       "shortName": "TA Foci responded with larviciding",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received a response with larval control (larviciding) targeting the population resident in the foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci responded with larviciding",
@@ -2693,15 +2690,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2714,7 +2712,6 @@
       "shortName": "TA Foci responded with LLIN/hammock",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received a response with LLIN/Hummock targeting the population resident in the foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci responded with LLIN/hummock",
@@ -2723,15 +2720,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2744,7 +2742,6 @@
       "shortName": "TA Foci responded with MDA",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that recieved a response with mass drug administration targetting the population resident in the foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci responded with MDA",
@@ -2753,15 +2750,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2774,7 +2772,6 @@
       "shortName": "TA Foci with response",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received  response with either treatment, mass drug administration, LLINs or IRS, or larval control following foci investigation",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of foci with response",
@@ -2783,15 +2780,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2804,7 +2802,6 @@
       "shortName": "TA Malaria admissions",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Admissions or hospitalization in health facility confirmed as malaria excluding admissions of pregnant women for delivery",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria admissions",
@@ -2813,15 +2810,16 @@
         "id": "BwnnrV1AkNj"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2834,7 +2832,6 @@
       "shortName": "TA BR57-Malaria inpatients (pregnant women)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria inpatients (pregnant women)",
       "zeroIsSignificant": true,
@@ -2842,15 +2839,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2863,7 +2861,6 @@
       "shortName": "TA LLINs distributed",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of long-lasting insecticidal nets (LLINs) recieved",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of LLINs distributed",
@@ -2872,15 +2869,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2893,7 +2891,6 @@
       "shortName": "TA Cases classified",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases confirmed as malaria that are investigated and classified as either imported, indigenous, introduced or induced",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases classified",
@@ -2902,15 +2899,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2923,7 +2921,6 @@
       "shortName": "TA Imported cases",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases confirmed as malaria that are investigated and classified as imported from another country. In countries with subnational elimination programme, cases imported from other administrative areas may be termed as domestically imported.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as imported",
@@ -2932,15 +2929,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2953,7 +2951,6 @@
       "shortName": "TA Malaria classified as indigenous",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases classified as indigenous, a case contracted locally, without strong evidence of a direct link to an imported case",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as indigenous",
@@ -2962,15 +2959,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -2983,7 +2981,6 @@
       "shortName": "TA Malaria cases classified - induced",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases classified as induced, not due to mosquito-borne transmission. i.e. a case whose origin can be traced to a blood transfusion or other form of parenteral inoculation of the parasite but not to transmission by a natural mosquito-borne inoculation.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as induced",
@@ -2992,15 +2989,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3013,7 +3011,6 @@
       "shortName": "TA Malaria classified - introduced",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases classified as introduced, a case contracted locally, with strong epidemiological evidence linking it directly to a known imported case (first generation from an imported case, i.e. the mosquito was infected by a patient classified as an imported case).",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as introduced",
@@ -3022,15 +3019,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3043,7 +3041,6 @@
       "shortName": "TA Local cases",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases confirmed as malaria that are investigated and classified as either indigenous or introduced",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as local",
@@ -3052,15 +3049,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3073,7 +3071,6 @@
       "shortName": "TA Malaria classified as recrudescent",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases classified as indigenous with recurrence of asexual parasitaemia of the same genotype(s) that caused the original illness, due to incomplete clearance of asexual parasites after antimalarial treatment. Recrudescence is different from reinfection with a parasite of the same or different genotype(s) and relapse in P. vivax and P. ovale infections.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as recrudescent",
@@ -3082,15 +3079,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3103,7 +3101,6 @@
       "shortName": "TA Malaria classified as relapsing",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases classfied as indigenous with recurrence of asexual parasitaemia in P. vivax or P. ovale infections arising from hypnozoites (that persist in the liver and mature to form hepatic schizonts).",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria cases classified as relapsing",
@@ -3112,15 +3109,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3133,7 +3131,6 @@
       "shortName": "TA Cases investigated",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of cases confirmed as malaria (in passive case detection) investigated in a given village or area",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases investigated",
@@ -3142,15 +3139,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3163,7 +3161,6 @@
       "shortName": "TA Cases investigated within 4 days of diagnosis",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of confirmed malaria cases investiated within (N2)*,the number of days after confirmation, defined in the national guideline",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases investigated within timeframe of the guideline",
@@ -3172,15 +3169,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3193,7 +3191,6 @@
       "shortName": "TA Cases notified within 24 hours of diagnosis",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of confirmed malaria cases notified to national level within  (N1) timeframe after confirmation, defined in the national guideline",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases notified within 24hrs",
@@ -3202,15 +3199,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3223,7 +3221,6 @@
       "shortName": "TA Positive (RDT)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as positive with RDT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Positive (RDT)",
@@ -3232,15 +3229,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3253,7 +3251,6 @@
       "shortName": "TA Cases positive in reactive ACD",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of positive cases with either microscopy or RDT through active case detection (ACD) in a community",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases positive in ACD (reactive ACD as part of foci investigation)",
@@ -3262,15 +3259,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3283,7 +3281,6 @@
       "shortName": "TA Positive (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Positive (micr)",
@@ -3292,15 +3289,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3313,7 +3311,6 @@
       "shortName": "TA Tested (RDT)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Suspected cases tested with malaria rapid diagnostic test (RDT)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Tested (RDT)",
@@ -3322,15 +3319,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3343,7 +3341,6 @@
       "shortName": "TA Cases tested in reactive ACD",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of suspected malaria cases tested with either microscopy or RDT through active case detection (ACD) in a community",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases tested in ACD (reactive ACD as part of foci investigation)",
@@ -3352,15 +3349,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3373,7 +3371,6 @@
       "shortName": "TA Tested (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Suspected cases tested with malaria microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Tested (micr)",
@@ -3382,15 +3379,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3403,7 +3401,6 @@
       "shortName": "TA Cases with symptoms diagnosed within 24 hours",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of suspected cases tested with either microscopy or RDT within 24 hours of onset of malaria symptoms such as fever, headache, vomiting, chills, etc",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria cases with symptoms diagnosed within 24hrs",
@@ -3412,15 +3409,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3433,7 +3431,6 @@
       "shortName": "TA Malaria confirmed threshold 2",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria confirmed MEDIAN (threshold)",
       "zeroIsSignificant": false,
@@ -3441,15 +3438,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3462,7 +3460,6 @@
       "shortName": "TA Malaria confirmed threshold",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria confirmed MEDIAN+2 STD (threshold)",
       "zeroIsSignificant": false,
@@ -3470,15 +3467,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3491,7 +3489,6 @@
       "shortName": "TA Malaria deaths",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Deaths in health facility due to malaria",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Malaria deaths",
@@ -3500,15 +3497,16 @@
         "id": "BwnnrV1AkNj"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3521,7 +3519,6 @@
       "shortName": "TA Foci classified",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that are investiged and classified as either active, non-active or cleared-up foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria foci classified",
@@ -3530,15 +3527,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3551,7 +3549,6 @@
       "shortName": "TA Foci classified as endemic or active",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci with ongoing transmission, i.e. a foci with locally acquired case(s) detected within the current calendar year.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria Foci classified as active (with ongoing transmission, locally acquired case(s) detected within the current transmission calendar year )",
@@ -3560,15 +3557,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3581,7 +3579,6 @@
       "shortName": "TA Foci classified as cleared-up",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci with no local transmission for more than 3 years and are no longer considered residual non-active. i.e. foci with absence of locally-acquired case(s) for more than 3 years, where only imported or/and relapsing/recrudescent cases or/and induced cases may occur in the current calendar year.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria Foci classified as cleared-up (no local transmission for >3 years, no longer considered residual non-active)",
@@ -3590,15 +3587,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3611,7 +3609,6 @@
       "shortName": "TA Foci classified as new active",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci where transmission has been interrupted recently (1-3 years ago), i.e. a foci  where the last locally acquired case(s) was detected in the previous calendar year or up to 3 years earlier.",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria Foci classified as residual non-active (Transmission interrupted recently, 1-3 years ago)",
@@ -3620,15 +3617,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3641,7 +3639,6 @@
       "shortName": "TA Foci investigated",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci that received foci-investigation activities by a team in a given period",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria foci investigated",
@@ -3650,15 +3647,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3671,7 +3669,6 @@
       "shortName": "TA Foci investigated within 6 days of diagnosis",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci investiated within (N3)*,the number of days after confirmation of case, defined in the national guideline",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria foci investigated within timeframe of the guideline",
@@ -3680,15 +3677,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3701,7 +3699,6 @@
       "shortName": "TA Foci with response within 10 days of diagnosis",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of foci with response within (N4)*,the number of days after confirmation of case, defined in the national guideline. Note: Eligibility of foci for response depends on previous interventions, status of foci (active, non-active or clear-up)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of malaria foci with response within timeframe of the guideline",
@@ -3710,15 +3707,16 @@
         "id": "JuuvtzLw22M"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3731,7 +3729,6 @@
       "shortName": "TA Mixed (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as mixed infection with P.falciparum and P.vivax with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Mixed (micr)",
@@ -3740,15 +3737,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3761,7 +3759,6 @@
       "shortName": "TA Mixed (RDT)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as mixed infection with P.falciparum and other species with RDT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Mixed (RDT)",
@@ -3770,15 +3767,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3791,7 +3789,6 @@
       "shortName": "TA Foci identified (list of foci)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of malaria foci classified active foci identified within current calendar year",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "New foci identified (current year)",
@@ -3800,15 +3797,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3821,7 +3819,6 @@
       "shortName": "TA Other species (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.malariae or P. ovale or P. knowlesi with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Other species (micr)",
@@ -3830,15 +3827,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3851,7 +3849,6 @@
       "shortName": "TA P. falciparum cases treated with ACT only",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. falciparum cases  potentially treated only with full ACT treatment courses",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. falciparum cases treated with ACT only",
@@ -3860,15 +3857,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3881,7 +3879,6 @@
       "shortName": "TAP. falciparum cases treated w/premaquine and ACT",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. falciparum cases  potentially treated with single dose premaquine and ACT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. falciparum cases treated with single dose premaquine and ACT",
@@ -3890,15 +3887,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3911,7 +3909,6 @@
       "shortName": "TA P. vivax cases tested for G6DP deficiency",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. viva positive cases  tested for G6DP deficiency with RDT before treatment with premaquine",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. vivax cases tested for G6DP deficiency with RDT before treatment with premaquine",
@@ -3920,15 +3917,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3941,7 +3939,6 @@
       "shortName": "TA P. vivax cases positive to G6DP deficiency",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. vivax that are positive to G6DP deficiency test with RDT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. vivax cases that are positive to G6DP deficiency",
@@ -3950,15 +3947,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -3971,7 +3969,6 @@
       "shortName": "TA P. vivax cases treated chloroquine",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. vivax cases treated with chloroquine only (3 days)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. vivax cases treated chloroquine",
@@ -3980,15 +3977,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4001,7 +3999,6 @@
       "shortName": "TA People protected by IRS",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of people at risk living in households that received indoor-residual spraying (IRS)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "zeroIsSignificant": true,
@@ -4009,15 +4006,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4030,7 +4028,6 @@
       "shortName": "TA P. vivax cases treated with premaquine (14d)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Number of P. vivax cases treated with premaquine for 14 days (for radical cure)",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Number of P. vivax cases treated with premaquine (14 days)",
@@ -4039,15 +4036,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4060,7 +4058,6 @@
       "shortName": "TA P. falciparum (micr)",
       "aggregationType": "NONE",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.falciparum positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. falciparum (micr)",
@@ -4069,15 +4066,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4090,7 +4088,6 @@
       "shortName": "TA P. falciparum (RDT)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.falciparum with RDT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. falciparum (RDT)",
@@ -4099,15 +4096,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4120,7 +4118,6 @@
       "shortName": "TA P. knowlesi (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.knowlesi positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. knowlesi (micr)",
@@ -4129,15 +4126,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4150,7 +4148,6 @@
       "shortName": "TA P. malariae (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.malariae positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. malariae (micr)",
@@ -4159,15 +4156,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4180,7 +4178,6 @@
       "shortName": "TA P. ovale (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.ovale positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. ovale (micr)",
@@ -4189,15 +4186,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4210,7 +4208,6 @@
       "shortName": "TA P. vivax (micr)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.vivax positive with microscopy",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. vivax (micr)",
@@ -4219,15 +4216,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4240,7 +4238,6 @@
       "shortName": "TA P. vivax (RDT)",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Cases confirmed as P.vivax positive with RDT",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "P. vivax (RDT)",
@@ -4249,15 +4246,16 @@
         "id": "IvYR8mc6prX"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4270,7 +4268,6 @@
       "shortName": "TA Population at risk for malaria",
       "aggregationType": "AVERAGE_SUM_ORG_UNIT",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "Population living in areas where malaria transmission is possible, i.e. population living in either endemic area, active foci, non-active and cleared-up foci",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "formName": "Population at risk",
@@ -4279,15 +4276,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4300,7 +4298,6 @@
       "shortName": "TA Stock-out of ACT - Adult - Pack",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "ACT - Adult - Pack",
       "zeroIsSignificant": true,
@@ -4308,15 +4305,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4329,7 +4327,6 @@
       "shortName": "TA Stock-out of ACT - Children - Pack",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "ACT - Children - Pack",
       "zeroIsSignificant": true,
@@ -4337,15 +4334,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4358,7 +4356,6 @@
       "shortName": "TA Stock-out of ACT - Infant  - Pack",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "ACT - Infant  - Pack",
       "zeroIsSignificant": true,
@@ -4366,15 +4363,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4387,7 +4385,6 @@
       "shortName": "TA Stock-out of ACT - Toddlers - Pack",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "ACT - Toddlers - Pack",
       "zeroIsSignificant": true,
@@ -4395,15 +4392,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4416,7 +4414,6 @@
       "shortName": "TA Stock-out of artesunate",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "Artesunate (injectables + suppositories)",
       "zeroIsSignificant": true,
@@ -4424,15 +4421,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4445,7 +4443,6 @@
       "shortName": "TA Stock-out of LLIN malaria",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "LLIN malaria",
       "zeroIsSignificant": true,
@@ -4453,15 +4450,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4474,7 +4472,6 @@
       "shortName": "TA Stock-out of primaquine",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "Primaquine",
       "zeroIsSignificant": true,
@@ -4482,15 +4479,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4503,7 +4501,6 @@
       "shortName": "TA Stock-out of RDT malaria kits",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "RDT malaria kits",
       "zeroIsSignificant": true,
@@ -4511,15 +4508,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -4532,7 +4530,6 @@
       "shortName": "TA Stock-out of SP",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "valueType": "BOOLEAN",
       "formName": "Sulfadoxine-pyrimethamine (SP)",
       "zeroIsSignificant": true,
@@ -4540,15 +4537,16 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
     }
@@ -4561,17 +4559,17 @@
       "name": "TA Malaria",
       "id": "ri242cU0Sm5",
       "shortName": "TA Malaria",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "Qzfvt1YRb1Y"
@@ -4803,17 +4801,17 @@
       "name": "TA Malaria interventions",
       "id": "tbQsD5xgWDH",
       "shortName": "TA Malaria interventions",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "NywGy6uMS5r"
@@ -4829,17 +4827,17 @@
       "name": "TA Malaria other",
       "id": "cDz6fWn4n7M",
       "shortName": "TA Malaria other",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "S9nIxTMWplW"
@@ -4861,17 +4859,17 @@
       "name": "TA Malaria stock",
       "id": "cWFV4unGXXn",
       "shortName": "TA Malaria stock",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "yMIgzlV9sES"
@@ -4908,17 +4906,17 @@
       "name": "TA Malaria surveillance",
       "id": "O3Y4zr16OCX",
       "shortName": "TA Malaria surveillance",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "Qzfvt1YRb1Y"
@@ -5084,17 +5082,17 @@
       "name": "TA Malaria treatment",
       "id": "QA59eN3tJve",
       "shortName": "TA Malaria treatment",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "OCuA0tI3BCi"
@@ -5126,17 +5124,17 @@
       "name": "TA Population estimates",
       "id": "gDwHOp9bAdJ",
       "shortName": "TA Population estimates",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "dataElements": [
         {
           "id": "dFaBg0HpoIL"
@@ -5152,16 +5150,16 @@
       "name": "TA 0-4 years",
       "id": "UPvKbcqTEY3",
       "shortName": "TA 0-4 y",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5171,16 +5169,16 @@
       "name": "TA 15+ years",
       "id": "wTpH7wugXzZ",
       "shortName": "TA 15+ y",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5190,16 +5188,16 @@
       "name": "TA 5-14 years",
       "id": "pa0cY66MrG6",
       "shortName": "TA 5-14 y",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5209,17 +5207,17 @@
       "name": "TA Active foci",
       "id": "FYTYL2zIeUe",
       "shortName": "TA Active",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5229,17 +5227,17 @@
       "name": "TA Cleared-up foci",
       "id": "YKaVC5vFh4Q",
       "shortName": "TA Cleared-up",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5249,16 +5247,16 @@
       "name": "TA Female",
       "id": "FFA9e1yIXCT",
       "shortName": "TA Female",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5268,16 +5266,16 @@
       "name": "TA Male",
       "id": "MP15bHaQh2x",
       "shortName": "TA Male",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [],
       "organisationUnits": []
     },
     {
@@ -5287,17 +5285,17 @@
       "name": "TA Residual foci",
       "id": "mmepRq1pnwq",
       "shortName": "TA Residual",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     }
   ],
@@ -5307,14 +5305,15 @@
       "lastUpdated": "2019-08-26T14:24:44.696",
       "name": "TA Malaria annual blood examination rate",
       "id": "phSksJ6YPO4",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "legends": [
         {
@@ -5325,7 +5324,6 @@
           "endValue": 100.0,
           "color": "#F2EBEB",
           "displayName": "> 20%",
-          "externalAccess": false,
           "startValue": 20.0,
           "favorite": false,
           "access": {
@@ -5338,9 +5336,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5350,7 +5346,6 @@
           "endValue": 20.0,
           "color": "#EBBFA1",
           "displayName": "10 - 20%",
-          "externalAccess": false,
           "startValue": 10.0,
           "favorite": false,
           "access": {
@@ -5363,9 +5358,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5375,7 +5368,6 @@
           "endValue": 10.0,
           "color": "#A13300",
           "displayName": "< 10%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5388,27 +5380,25 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2017-06-15T14:51:58.863",
       "lastUpdated": "2019-08-26T14:24:44.697",
       "name": "TA Malaria confirmed incidence rate",
       "id": "JUG5nRDqRFl",
-      "publicAccess": "--------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "legends": [
         {
@@ -5419,7 +5409,6 @@
           "endValue": 40.0,
           "color": "#EBBFA1",
           "displayName": "20 -40%",
-          "externalAccess": false,
           "startValue": 20.0,
           "favorite": false,
           "access": {
@@ -5432,9 +5421,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5444,7 +5431,6 @@
           "endValue": 20.0,
           "color": "#EDDBC4",
           "displayName": "10 - 20%",
-          "externalAccess": false,
           "startValue": 10.0,
           "favorite": false,
           "access": {
@@ -5457,9 +5443,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5469,7 +5453,6 @@
           "endValue": 60.0,
           "color": "#D18C4D",
           "displayName": "40 - 60%",
-          "externalAccess": false,
           "startValue": 40.0,
           "favorite": false,
           "access": {
@@ -5482,9 +5465,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5494,7 +5475,6 @@
           "endValue": 1.0,
           "color": "#F2EBEB",
           "displayName": "0 - 1%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5507,9 +5487,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.697",
@@ -5519,7 +5497,6 @@
           "endValue": 80.0,
           "color": "#A13300",
           "displayName": "60 - 80%",
-          "externalAccess": false,
           "startValue": 60.0,
           "favorite": false,
           "access": {
@@ -5532,9 +5509,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5544,7 +5519,6 @@
           "endValue": 100.0,
           "color": "#400000",
           "displayName": "80 - 100%",
-          "externalAccess": false,
           "startValue": 80.0,
           "favorite": false,
           "access": {
@@ -5557,9 +5531,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5569,7 +5541,6 @@
           "endValue": 0.0,
           "color": "#ffffff",
           "displayName": "0%",
-          "externalAccess": false,
           "startValue": 0.0,
           "favorite": false,
           "access": {
@@ -5582,9 +5553,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2019-08-26T14:24:44.698",
@@ -5594,7 +5563,6 @@
           "endValue": 10.0,
           "color": "#F0E0CD",
           "displayName": "1 - 10%",
-          "externalAccess": false,
           "startValue": 1.0,
           "favorite": false,
           "access": {
@@ -5607,13 +5575,10 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "categoryCombos": [
@@ -5623,17 +5588,17 @@
       "name": "TA Age (malaria)",
       "id": "BwnnrV1AkNj",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "mFoasCYViMW"
@@ -5646,17 +5611,17 @@
       "name": "TA Age and sex (malaria)",
       "id": "IvYR8mc6prX",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "mFoasCYViMW"
@@ -5672,17 +5637,17 @@
       "name": "TA Foci classification",
       "id": "JuuvtzLw22M",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "--------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing" : {
+        "public": "--------",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "Xaol8a2c51w"

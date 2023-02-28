@@ -9,7 +9,10 @@
       "shortName": "DESA",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "description": "DEDA",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",

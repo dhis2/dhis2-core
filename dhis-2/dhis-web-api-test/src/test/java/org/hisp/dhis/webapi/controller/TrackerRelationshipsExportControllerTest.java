@@ -169,7 +169,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByIdNotFound()
     {
-        assertEquals( "Relationship not found for uid: Hq3Kc6HK4OZ",
+        assertEquals( "Relationship with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/relationships/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );

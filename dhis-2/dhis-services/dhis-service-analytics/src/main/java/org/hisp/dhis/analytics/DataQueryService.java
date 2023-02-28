@@ -38,6 +38,7 @@ import java.util.Set;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -85,7 +86,7 @@ public interface DataQueryService
      * @throws IllegalQueryException if the query is illegal.
      */
     default List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
-        Date relativePeriodDate, String userOrgUnit, IdScheme inputIdScheme )
+        Date relativePeriodDate, String userOrgUnit, DisplayProperty displayProperty, IdScheme inputIdScheme )
     {
         List<DimensionalObject> list = new ArrayList<>();
         List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
@@ -100,7 +101,7 @@ public interface DataQueryService
                 if ( dimension != null && items != null )
                 {
                     list.add( getDimension(
-                        dimension, items, relativePeriodDate, userOrgUnits, false, inputIdScheme ) );
+                        dimension, items, relativePeriodDate, userOrgUnits, false, displayProperty, inputIdScheme ) );
                 }
             }
         }
@@ -131,7 +132,8 @@ public interface DataQueryService
      * @throws IllegalQueryException if the query is illegal.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
+        IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension

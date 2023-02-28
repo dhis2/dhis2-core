@@ -6,7 +6,10 @@
         "id": "T12jeH7KPzk"
       },
       "aggregationLevels": [ ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "aggregationType": "SUM",
       "lastUpdated": "2016-03-08T07:30:07.699+0000",
       "created": "2016-03-08T07:30:07.698+0000",
@@ -32,7 +35,10 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "valueType": "NUMBER",
       "aggregationType": "SUM",
       "categoryCombo": {
@@ -45,7 +51,10 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdated": "2016-03-08T07:29:15.719+0000",
       "created": "2016-03-08T07:29:07.104+0000",
       "categories": [
@@ -91,7 +100,10 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------"
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
     },
     {
       "shortName": "Male",
@@ -105,7 +117,10 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------"
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
     }
   ],
   "userRoles": [
@@ -151,7 +166,10 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "programs": [ ]
     }
   ],
@@ -160,7 +178,10 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "categoryOptions": [
         {
           "id": "JYiFOMKa25J"
@@ -270,7 +291,6 @@
     {
       "sharing": {
         "owner": "T12jeH7KPzk",
-        "external": false,
         "users": {
           "bKGX66nV2lI": {
             "access": "rw------",
@@ -310,14 +330,15 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "noValueRequiresComment": false,
       "shortName": "Data Set",
       "attributeValues": [ ],
       "id": "em8Bg4LCr5k",
       "indicators": [ ],
-      "userGroupAccesses": [ ],
-      "userAccesses": [ ],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -343,21 +364,21 @@
         }
       ],
       "dataViewOrganisationUnits": [ ],
-        "catDimensionConstraints": [ ],
-        "disabled": false,
-        "username": "admin",
-        "created": "2016-03-08T07:26:52.033+0000",
-        "selfRegistered": false,
-        "cogsDimensionConstraints": [ ],
-        "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
-        "userRoles": [
-          {
-            "id": "wSdzlWUHmEu"
-          }
-        ],
-        "invitation": false,
-        "externalAuth": false,
-        "lastLogin": "2016-03-08T07:26:51.942+0000",
+      "catDimensionConstraints": [ ],
+      "disabled": false,
+      "username": "admin",
+      "created": "2016-03-08T07:26:52.033+0000",
+      "selfRegistered": false,
+      "cogsDimensionConstraints": [ ],
+      "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
+      "userRoles": [
+        {
+          "id": "wSdzlWUHmEu"
+        }
+      ],
+      "invitation": false,
+      "externalAuth": false,
+      "lastLogin": "2016-03-08T07:26:51.942+0000",
       "surname": "admin",
       "attributeValues": [ ],
       "id": "T12jeH7KPzk",
@@ -371,16 +392,16 @@
           "id": "x3gVvpbVgqy"
         }
       ],
-        "disabled": false,
-        "username": "userA",
-        "selfRegistered": false,
-        "userRoles": [
-          {
-            "id": "wSdzlWUHmEu"
-          }
-        ],
-        "invitation": false,
-        "externalAuth": false,
+      "disabled": false,
+      "username": "userA",
+      "selfRegistered": false,
+      "userRoles": [
+        {
+          "id": "wSdzlWUHmEu"
+        }
+      ],
+      "invitation": false,
+      "externalAuth": false,
       "surname": "userA",
       "id": "bKGX66nV2lI",
       "firstName": "userA"

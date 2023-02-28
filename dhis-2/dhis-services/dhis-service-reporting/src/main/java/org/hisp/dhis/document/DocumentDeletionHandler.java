@@ -31,7 +31,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Document.class );

@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.ZonedDateTime;
@@ -51,6 +52,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -81,6 +85,9 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     private OrganisationUnit unitA;
 
@@ -177,6 +184,32 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         userService.deleteUser( userA );
         assertNull( userService.getUser( userA.getId() ) );
         assertNotNull( userService.getUser( userB.getId() ) );
+    }
+
+    @Test
+    void testDeleteCreatedByUser()
+    {
+        User userA = addUser( "A" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setCreatedBy( userA );
+        idObjectManager.save( dataElement );
+
+        assertThrows( DeleteNotAllowedException.class, () -> userService.deleteUser( userA ) );
+    }
+
+    @Test
+    void testDeleteLastUpdatedByUser()
+    {
+        User userA = createUserWithAuth( "A", "ALL" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        idObjectManager.save( dataElement );
+
+        dataElement.setDescription( "Updated" );
+        idObjectManager.update( dataElement, userA );
+
+        assertThrows( DeleteNotAllowedException.class, () -> userService.deleteUser( userA ) );
     }
 
     @Test

@@ -147,29 +147,6 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Creates a map based on the given array of elements, where each pair of
-     * elements are put on them map as a key-value pair.
-     *
-     * @param elements the elements to put on the map.
-     * @return a map.
-     */
-    @SafeVarargs
-    public static <T> Map<T, T> asMap( final T... elements )
-    {
-        Map<T, T> map = new HashMap<>();
-
-        if ( elements != null && (elements.length % 2 == 0) )
-        {
-            for ( int i = 0; i < elements.length; i += 2 )
-            {
-                map.put( elements[i], elements[i + 1] );
-            }
-        }
-
-        return map;
-    }
-
-    /**
      * Retrieves the dimension name from the given string. Returns the part of
      * the string preceding the dimension name separator, or the whole string if
      * the separator is not present.

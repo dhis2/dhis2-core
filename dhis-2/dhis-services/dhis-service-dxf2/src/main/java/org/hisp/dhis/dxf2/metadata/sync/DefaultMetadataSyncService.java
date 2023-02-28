@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultMetadataSyncService implements MetadataSyncService
 {
     private final MetadataVersionDelegate metadataVersionDelegate;

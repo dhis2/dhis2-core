@@ -7,7 +7,10 @@
       "id": "OPVIvvXzNTw",
       "userGroupAccesses": [
       ],
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "attributeValues": [],
       "managedGroups": [],
       "translations": [],

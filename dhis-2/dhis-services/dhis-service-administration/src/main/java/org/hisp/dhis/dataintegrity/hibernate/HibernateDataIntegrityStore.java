@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import java.util.Date;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore
 {
     private final SessionFactory sessionFactory;

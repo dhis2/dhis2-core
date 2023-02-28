@@ -80,7 +80,6 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -116,7 +115,7 @@ public class DefaultEventAnalyticsService
 
     private static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
 
-    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+    private static final Map<String, String> COLUMN_NAMES = Map.of(
         DATA_X_DIM_ID, "data",
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
@@ -153,6 +152,8 @@ public class DefaultEventAnalyticsService
     private static final String NAME_LATITUDE = "Latitude";
 
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
+
+    private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
 
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
@@ -749,6 +750,8 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader(
+                new GridHeader( ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );

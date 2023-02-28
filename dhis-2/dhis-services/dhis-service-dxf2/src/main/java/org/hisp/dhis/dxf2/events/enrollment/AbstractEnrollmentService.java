@@ -91,6 +91,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
@@ -605,6 +606,8 @@ public abstract class AbstractEnrollmentService
             programInstance.setEndDate( date );
         }
 
+        programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
+
         programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment, importSummary );
@@ -1001,6 +1004,8 @@ public abstract class AbstractEnrollmentService
 
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
+
+        programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
         programInstanceService.updateProgramInstance( programInstance, importOptions.getUser() );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), importOptions.getUser() );

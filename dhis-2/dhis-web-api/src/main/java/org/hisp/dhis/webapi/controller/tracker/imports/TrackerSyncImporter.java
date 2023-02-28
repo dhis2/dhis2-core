@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.ImportReport;
@@ -48,10 +47,10 @@ public class TrackerSyncImporter
     @Nonnull
     private final TrackerImportService trackerImportService;
 
-    public ImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
+    public ImportReport importTracker( TrackerImportParams params )
     {
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        return trackerImportService.buildImportReport( importReport, reportMode );
+        return trackerImportService.buildImportReport( importReport, params.getReportMode() );
     }
 }

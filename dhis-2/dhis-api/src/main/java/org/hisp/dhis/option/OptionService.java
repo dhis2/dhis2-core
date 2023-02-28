@@ -29,7 +29,7 @@ package org.hisp.dhis.option;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
@@ -43,19 +43,21 @@ public interface OptionService
     // OptionSet
     // -------------------------------------------------------------------------
 
-    long saveOptionSet( OptionSet optionSet );
+    long saveOptionSet( OptionSet optionSet )
+        throws ConflictException;
 
-    void updateOptionSet( OptionSet optionSet );
+    void updateOptionSet( OptionSet optionSet )
+        throws ConflictException;
 
     /**
      * Validate an {@link OptionSet}.
      *
      * @param optionSet the set to validate
-     * @throws IllegalQueryException when the provided {@link OptionSet} has
+     * @throws ConflictException when the provided {@link OptionSet} has
      *         validation errors
      */
     void validateOptionSet( OptionSet optionSet )
-        throws IllegalQueryException;
+        throws ConflictException;
 
     ErrorMessage validateOption( OptionSet optionSet, Option option );
 

@@ -12,15 +12,15 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
       "attributeValues": [],
-      "translations": []
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      }
     },
     {
       "level": 3,
@@ -31,13 +31,14 @@
       "parent": {
         "id": "PIBHO8qBw9o"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "attributeValues": [],
       "translations": []
     }
@@ -47,17 +48,16 @@
       "name": "TA OU_DELETION_TESTS_GROUP",
       "id": "IViMsXfUyWn",
       "shortName": "TA OU_DELETION_TESTS_GROUP",
-      "publicAccess": "rw------",
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": [
         {
           "id": "LlabdFE9f05"
@@ -73,20 +73,19 @@
       "shortName": "TA OU_DELETION_TESTS_GROUP_SET",
       "name": "TA OU_DELETION_TESTS_GROUP_SET",
       "id": "XcKGktFuGFj",
-      "publicAccess": "rw------",
       "compulsory": false,
       "includeSubhierarchyInAnalytics": false,
       "dataDimension": true,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
         }
-      ],
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnitGroups": [
         {
           "id": "IViMsXfUyWn"

@@ -73,7 +73,8 @@ public class PeriodResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "create " + tableType + " table " + getTempTableName() +
-            " (periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
+            " (periodid bigint not null primary key, iso varchar(15) not null, " +
+            "daysno integer not null, startdate date not null, enddate date not null, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
@@ -110,8 +111,8 @@ public class PeriodResourceTable
 
                 if ( !uniqueIsoDates.add( isoDate ) )
                 {
-                    // Protect against duplicates produced by calendar
-                    // implementations
+                    // Protect against duplicates produced by calendars
+
                     log.warn( "Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate );
                     continue;
                 }
@@ -160,13 +161,15 @@ public class PeriodResourceTable
      */
     private int resolveYearFromPeriod( Period period )
     {
+        DateTime dateTime = new DateTime( period.getStartDate().getTime() );
+
         if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
         {
-            return new DateTime( period.getStartDate().getTime() ).plusDays( 3 ).getYear();
+            return dateTime.plusDays( 3 ).getYear();
         }
         else
         {
-            return PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+            return dateTime.getYear();
         }
     }
 }

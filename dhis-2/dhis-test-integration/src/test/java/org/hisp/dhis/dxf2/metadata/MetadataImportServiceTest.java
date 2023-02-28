@@ -1097,6 +1097,19 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( createdByUser.getUid(), category.getCreatedBy().getUid() );
     }
 
+    @Test
+    void testImportDuplicates()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/duplicate_categories.json" ).getInputStream(), RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.ERROR, report.getStatus() );
+        assertTrue( report.hasErrorReport( errorReport -> errorReport.getMessage().equals(
+            "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`" ) ) );
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {

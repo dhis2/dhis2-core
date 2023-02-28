@@ -11,12 +11,14 @@
       "created": "2020-04-17T14:25:08.171",
       "lastUpdated": "2020-04-17T14:25:08.206",
       "name": "default",
+      "shortName": "default",
       "id": "xYerKDKCefk",
-      "publicAccess": "rwrw----",
-      "userGroupAccesses": [],
+      "sharing": {
+        "public": "rwrw----",
+        "external": false
+      },
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "organisationUnits": []
     }
   ],
@@ -157,7 +159,6 @@
       "lastUpdated": "2020-04-17T15:12:38.464",
       "name": "Tracked Entity Type A",
       "id": "YDzXLdCvV4h",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -168,20 +169,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        },
-        {
-          "access": "rwr-----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
+
       "attributeValues": [],
       "trackedEntityTypeAttributes": [
         {
@@ -191,7 +179,6 @@
           "name": "Tracked Entity Type A Tracked Entity Attribute A",
           "displayName": "Tracked Entity Type A Tracked Entity Attribute A",
           "displayShortName": "null TEAA",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": true,
           "displayInList": false,
@@ -212,9 +199,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-17T15:12:38.465",
@@ -223,7 +208,6 @@
           "name": "Tracked Entity Type A Tracked Entity Attribute B",
           "displayName": "Tracked Entity Type A Tracked Entity Attribute B",
           "displayShortName": "null TEAB",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": false,
           "displayInList": false,
@@ -244,9 +228,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-17T15:12:38.465",
@@ -255,7 +237,6 @@
           "name": "Tracked Entity Type A Tracked Entity Attribute C",
           "displayName": "Tracked Entity Type A Tracked Entity Attribute C",
           "displayShortName": "null TEAC",
-          "externalAccess": false,
           "valueType": "TEXT",
           "searchable": false,
           "displayInList": false,
@@ -276,33 +257,40 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
       "translations": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwr-----"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwrw----"
+          }
         },
-        {
-          "access": "rwrw----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwrw----"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwr-----"
+          }
         }
-      ]
+      }
     },
     {
       "created": "2020-04-17T14:38:49.128",
       "lastUpdated": "2020-04-17T14:40:31.680",
       "name": "Tracked Entity Type B",
       "id": "QPi1HImFAmE",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -313,44 +301,39 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
         },
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ]
+      "translations": []
     },
     {
       "created": "2020-04-17T14:38:53.947",
       "lastUpdated": "2020-04-17T14:40:58.821",
       "name": "Tracked Entity Type C",
       "id": "RttzawN27Pi",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -361,25 +344,25 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwrw----"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwrw-----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "rwrw----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      "translations": []
     }
   ],
   "programs": [
@@ -390,7 +373,6 @@
       "created": "2020-04-17T14:41:59.629",
       "name": "Program A",
       "shortName": "PA",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -427,7 +409,6 @@
           "displayName": "Program A Tracked Entity Attribute D",
           "mandatory": false,
           "displayShortName": "PA TEAD",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": true,
@@ -449,11 +430,8 @@
             "id": "snIPEgBsMnl"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-24T11:53:57.741",
@@ -463,7 +441,6 @@
           "displayName": "Program A Tracked Entity Attribute E",
           "mandatory": false,
           "displayShortName": "PA TEAE",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": true,
@@ -485,11 +462,8 @@
             "id": "cbUr7QElnov"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-24T11:53:57.742",
@@ -499,7 +473,6 @@
           "displayName": "Program A Tracked Entity Attribute F",
           "mandatory": false,
           "displayShortName": "PA TEAF",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": true,
@@ -521,11 +494,8 @@
             "id": "PAEO7jHsWQI"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -547,20 +517,7 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        },
-        {
-          "access": "rwrw----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
+
       "programSections": [],
       "attributeValues": [],
       "programStages": [
@@ -574,20 +531,30 @@
           "id": "caZoL1LKwG0"
         }
       ],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwrw----"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwr-----"
+          }
         },
-        {
-          "access": "rwrw----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwr-----"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwrw----"
+          }
         }
-      ]
+      }
     },
     {
       "code": "PB",
@@ -596,7 +563,6 @@
       "created": "2020-04-17T14:42:14.970",
       "name": "Program B",
       "shortName": "PB",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -633,7 +599,6 @@
           "displayName": "Program B Tracked Entity Attribute Dummy A",
           "mandatory": false,
           "displayShortName": "PB TEADA",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -655,11 +620,8 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -681,37 +643,33 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
         },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      "programStages": []
     },
     {
       "code": "PC",
@@ -720,7 +678,6 @@
       "created": "2020-04-17T14:42:28.888",
       "name": "Program C",
       "shortName": "PC",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -757,7 +714,6 @@
           "displayName": "Program C Tracked Entity Attribute G",
           "mandatory": false,
           "displayShortName": "PC TEAG",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -779,11 +735,8 @@
             "id": "dajV3r1u6U2"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-24T12:05:25.467",
@@ -793,7 +746,6 @@
           "displayName": "Program C Tracked Entity Attribute H",
           "mandatory": false,
           "displayShortName": "PC TEAH",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -815,11 +767,8 @@
             "id": "qbPmBkNankQ"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-24T12:05:25.467",
@@ -829,7 +778,6 @@
           "displayName": "Program C Tracked Entity Attribute I",
           "mandatory": false,
           "displayShortName": "PC TEAI",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -851,11 +799,8 @@
             "id": "fmYlkfUNMQg"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -877,25 +822,25 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwr-----"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwr-----"
+          }
         }
-      ],
+      },
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ]
+      "programStages": []
     },
     {
       "code": "PDA",
@@ -904,7 +849,6 @@
       "created": "2020-04-24T12:03:05.076",
       "name": "Program Dummy A",
       "shortName": "PDA",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -941,7 +885,6 @@
           "displayName": "Program Dummy A Tracked Entity Attribute Dummy A",
           "mandatory": false,
           "displayShortName": "PDA TEADA",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -963,11 +906,8 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -989,11 +929,14 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [],
       "programSections": [],
       "attributeValues": [],
       "programStages": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
+
     },
     {
       "code": "PDB",
@@ -1002,7 +945,11 @@
       "created": "2020-04-24T12:03:25.612",
       "name": "Program Dummy B",
       "shortName": "PDB",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -1039,7 +986,6 @@
           "displayName": "Program Dummy B Tracked Entity Attribute Dummy A",
           "mandatory": false,
           "displayShortName": "PDB TEADA",
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "valueType": "TEXT",
           "searchable": false,
@@ -1061,11 +1007,8 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "notificationTemplates": [],
@@ -1087,11 +1030,9 @@
           "id": "OUQ3Ny4FaF5"
         }
       ],
-      "userGroupAccesses": [],
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
-      "userAccesses": []
+      "programStages": []
     }
   ],
   "dataElements": [
@@ -1104,7 +1045,6 @@
       "shortName": "DEA",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -1117,23 +1057,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -1146,7 +1086,6 @@
       "shortName": "DEB",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -1159,35 +1098,30 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
         },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
+      },
       "legendSets": [],
       "aggregationLevels": []
     },
@@ -1200,7 +1134,6 @@
       "shortName": "DEC",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -1213,23 +1146,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
+      },
       "legendSets": [],
       "aggregationLevels": []
     }
@@ -1241,14 +1174,12 @@
       "lastUpdated": "2020-04-17T14:35:48.309",
       "name": "User Group A",
       "id": "umOKHwu9CFL",
-      "publicAccess": "rw------",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "users": [
         {
@@ -1257,7 +1188,10 @@
       ],
       "managedGroups": [],
       "translations": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
     },
     {
       "code": "UGB",
@@ -1265,14 +1199,16 @@
       "lastUpdated": "2020-04-17T14:35:58.711",
       "name": "User Group B",
       "id": "CHkHCLtw4eX",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "users": [
         {
@@ -1280,8 +1216,7 @@
         }
       ],
       "managedGroups": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "users": [
@@ -1294,7 +1229,6 @@
       "name": "UserD UserD",
       "displayName": "UserD UserD",
       "externalAuth": false,
-      "externalAccess": false,
       "disabled": false,
       "twoFA": false,
       "passwordLastUpdated": "2020-04-17T14:35:28.946",
@@ -1314,13 +1248,11 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "translations": [],
-      "userGroupAccesses": [],
       "userRoles": [
         {
           "id": "UbhT3bXWUyb"
         }
       ],
-      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "OUQ3Ny4FaF5"
@@ -1346,7 +1278,6 @@
       "name": "UserC UserC",
       "displayName": "UserC UserC",
       "externalAuth": false,
-      "externalAccess": false,
       "disabled": false,
       "twoFA": false,
       "passwordLastUpdated": "2020-04-17T14:35:00.889",
@@ -1366,13 +1297,11 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "translations": [],
-      "userGroupAccesses": [],
       "userRoles": [
         {
           "id": "UbhT3bXWUyb"
         }
       ],
-      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -1398,7 +1327,6 @@
       "name": "UserALL UserALL",
       "displayName": "UserALL UserALL",
       "externalAuth": false,
-      "externalAccess": false,
       "disabled": false,
       "twoFA": false,
       "passwordLastUpdated": "2020-04-17T14:34:24.177",
@@ -1418,13 +1346,11 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "translations": [],
-      "userGroupAccesses": [],
       "userRoles": [
         {
           "id": "BuL50qd9Tlw"
         }
       ],
-      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -1496,7 +1422,6 @@
       "name": "UserB UserB",
       "displayName": "UserB UserB",
       "externalAuth": false,
-      "externalAccess": false,
       "disabled": false,
       "twoFA": false,
       "passwordLastUpdated": "2020-04-17T14:33:40.947",
@@ -1516,13 +1441,11 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "translations": [],
-      "userGroupAccesses": [],
       "userRoles": [
         {
           "id": "UbhT3bXWUyb"
         }
       ],
-      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "OUQ3Ny4FaF5"
@@ -1548,7 +1471,6 @@
       "name": "UserA UserA",
       "displayName": "UserA UserA",
       "externalAuth": false,
-      "externalAccess": false,
       "disabled": false,
       "twoFA": false,
       "passwordLastUpdated": "2020-04-17T14:32:53.338",
@@ -1568,13 +1490,11 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "translations": [],
-      "userGroupAccesses": [],
       "userRoles": [
         {
           "id": "UbhT3bXWUyb"
         }
       ],
-      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -1603,7 +1523,6 @@
       "name": "Program Stage A",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -1633,7 +1552,6 @@
           "created": "2020-04-17T15:48:06.122",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -1656,9 +1574,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-17T15:48:06.123",
@@ -1666,7 +1582,6 @@
           "created": "2020-04-17T15:48:06.123",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -1689,9 +1604,7 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         },
         {
           "lastUpdated": "2020-04-17T15:48:06.122",
@@ -1699,7 +1612,6 @@
           "created": "2020-04-17T15:48:06.122",
           "displayInReports": false,
           "skipSynchronization": false,
-          "externalAccess": false,
           "renderOptionsAsRadio": false,
           "allowFutureDate": false,
           "compulsory": false,
@@ -1722,41 +1634,35 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+           "attributeValues": []
         }
       ],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwr-----"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwrw----"
+          }
         },
-        {
-          "access": "rwr-----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwrw----"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwr-----"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rwrw----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "programStageSections": []
     },
     {
@@ -1766,7 +1672,6 @@
       "name": "Program Stage B",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -1791,36 +1696,32 @@
       "notificationTemplates": [],
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        },
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "programStageSections": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
         },
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
-      "programStageSections": []
+      }
     },
     {
       "lastUpdated": "2020-04-17T15:48:06.124",
@@ -1829,7 +1730,6 @@
       "name": "Program Stage C",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -1854,24 +1754,24 @@
       "notificationTemplates": [],
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "programStageSections": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwr-----"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwr-----"
+          }
         }
-      ],
-      "programStageSections": []
+      }
     }
   ],
   "categoryOptionCombos": [
@@ -1900,49 +1800,53 @@
       "lastUpdated": "2020-04-17T14:32:46.031",
       "name": "ALL",
       "id": "BuL50qd9Tlw",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "authorities": [
         "ALL"
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "created": "2020-04-17T14:32:31.826",
       "lastUpdated": "2020-04-17T14:32:31.826",
       "name": "Basic",
       "id": "UbhT3bXWUyb",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "authorities": [
         "M_dhis-web-capture",
         "M_dhis-web-tracker-capture"
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "Superuser",
       "created": "2020-04-17T14:25:28.922",
       "lastUpdated": "2020-04-17T14:25:28.922",
       "name": "Superuser",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "id": "yrB6vc5Ip3r",
-      "publicAccess": "--------",
       "description": "Superuser",
-      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -1979,8 +1883,7 @@
         "F_UNCOMPLETE_EVENT",
         "F_NONE"
       ],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     }
   ],
   "trackedEntityAttributes": [
@@ -1993,7 +1896,6 @@
       "shortName": "TEAA",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2010,23 +1912,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2038,7 +1940,30 @@
       "shortName": "TEAB",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          },
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          }
+        }
+      },
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2055,35 +1980,7 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2095,7 +1992,6 @@
       "shortName": "TEAC",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2112,23 +2008,24 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
+      },
+
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ],
       "legendSets": []
     },
     {
@@ -2140,7 +2037,6 @@
       "shortName": "TEAD",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2157,23 +2053,22 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
-      "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ],
+      },
       "legendSets": []
     },
     {
@@ -2184,7 +2079,10 @@
       "shortName": "TEADA",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2201,9 +2099,7 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "legendSets": []
     },
     {
@@ -2215,7 +2111,6 @@
       "shortName": "TEAE",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2232,36 +2127,32 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
         },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          }
         }
-      ],
-      "legendSets": []
+      }
     },
     {
       "code": "TEAF",
@@ -2272,7 +2163,6 @@
       "shortName": "TEAF",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2289,24 +2179,24 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
-      "legendSets": []
+      }
     },
     {
       "code": "TEAG",
@@ -2317,7 +2207,6 @@
       "shortName": "TEAG",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2334,23 +2223,23 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          }
         }
-      ],
+      },
       "legendSets": []
     },
     {
@@ -2362,7 +2251,6 @@
       "shortName": "TEAH",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2379,36 +2267,32 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "r-------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        },
-        {
-          "access": "rw------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "r-------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rw------"
+          }
         },
-        {
-          "access": "rw------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rw------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "r-------"
+          }
         }
-      ],
-      "legendSets": []
+      }
     },
     {
       "code": "TEAI",
@@ -2419,7 +2303,6 @@
       "shortName": "TEAI",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -2436,24 +2319,24 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
-        }
-      ],
       "attributeValues": [],
-      "userAccesses": [
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          }
+        },
+        "users": {
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
-      "legendSets": []
+      }
     }
   ],
   "categoryCombos": [
@@ -2464,11 +2347,12 @@
       "name": "default",
       "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "skipTotal": false,
-      "userGroupAccesses": [],
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "GLevLNI9wkl"
@@ -2485,12 +2369,13 @@
       "shortName": "default",
       "id": "GLevLNI9wkl",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "dataDimension": false,
-      "userGroupAccesses": [],
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
@@ -2506,7 +2391,10 @@
       "name": "Relationship A",
       "id": "W5sbcbXOAox",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "A",
       "fromToName": "A",
       "lastUpdatedBy": {
@@ -2527,9 +2415,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RB",
@@ -2538,7 +2424,10 @@
       "name": "Relationship B",
       "id": "hoDGnmw72Vk",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "B",
       "fromToName": "B",
       "lastUpdatedBy": {
@@ -2559,9 +2448,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RC",
@@ -2570,7 +2457,10 @@
       "name": "Relationship C",
       "id": "XPx5BQl51Ty",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "V",
       "fromToName": "C",
       "lastUpdatedBy": {
@@ -2591,9 +2481,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RD",
@@ -2602,7 +2490,10 @@
       "name": "Relationship D",
       "id": "ccqft1Ym2Vq",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "D",
       "fromToName": "D",
       "lastUpdatedBy": {
@@ -2623,9 +2514,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RE",
@@ -2634,7 +2523,10 @@
       "name": "Relationship E",
       "id": "Qq2HXTrMyyb",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "E",
       "fromToName": "E",
       "lastUpdatedBy": {
@@ -2655,9 +2547,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RF",
@@ -2666,7 +2556,10 @@
       "name": "Relationship F",
       "id": "mhAKWgPUgE9",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "F",
       "fromToName": "F",
       "lastUpdatedBy": {
@@ -2687,9 +2580,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RG",
@@ -2698,7 +2589,10 @@
       "name": "Relationship G",
       "id": "XMJZlr00RYj",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "G",
       "fromToName": "G",
       "lastUpdatedBy": {
@@ -2719,9 +2613,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RH",
@@ -2730,7 +2622,10 @@
       "name": "Relationship H",
       "id": "JjHhFb6CUoM",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "H",
       "fromToName": "H",
       "lastUpdatedBy": {
@@ -2751,9 +2646,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RI",
@@ -2762,7 +2655,10 @@
       "name": "Relationship I",
       "id": "psRiRacOO6c",
       "bidirectional": true,
-      "publicAccess": "rwr-----",
+      "sharing": {
+        "public": "rwr-----",
+        "external": false
+      },
       "toFromName": "I",
       "fromToName": "I",
       "lastUpdatedBy": {
@@ -2783,9 +2679,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
-      "translations": [],
-      "userAccesses": []
+      "translations": []
     },
     {
       "code": "RJ",
@@ -2794,7 +2688,10 @@
       "name": "Relationship J",
       "id": "AKTHvc4Elu8",
       "bidirectional": true,
-      "publicAccess": "rw------",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
       "toFromName": "J",
       "fromToName": "J",
       "lastUpdatedBy": {
@@ -2815,35 +2712,30 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rwr-----"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwrw----"
+          }
         },
-        {
-          "access": "rwr-----",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwrw----"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rwr-----"
+          }
         }
-      ],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        },
-        {
-          "access": "rwrw----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      }
     },
     {
       "code": "RK",
@@ -2852,7 +2744,6 @@
       "name": "Relationship K",
       "id": "wQa9qDf4mwj",
       "bidirectional": true,
-      "publicAccess": "rw------",
       "toFromName": "K",
       "fromToName": "K",
       "lastUpdatedBy": {
@@ -2873,35 +2764,30 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "CHkHCLtw4eX",
-          "displayName": "User Group B",
-          "id": "CHkHCLtw4eX"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "CHkHCLtw4eX": {
+            "id": "CHkHCLtw4eX",
+            "access": "rw------"
+          },
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "r-------"
+          }
         },
-        {
-          "access": "r-------",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "r-------"
+          },
+          "aDy67f9ijOe": {
+            "id": "aDy67f9ijOe",
+            "access": "rw------"
+          }
         }
-      ],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "r-------",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        },
-        {
-          "access": "rw------",
-          "displayName": "UserB UserB",
-          "id": "aDy67f9ijOe",
-          "userUid": "aDy67f9ijOe"
-        }
-      ]
+      }
     },
     {
       "code": "RL",
@@ -2910,7 +2796,6 @@
       "name": "Relationship L",
       "id": "GVV9ky9Zt29",
       "bidirectional": true,
-      "publicAccess": "rw------",
       "toFromName": "L",
       "fromToName": "L",
       "lastUpdatedBy": {
@@ -2931,23 +2816,22 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [
-        {
-          "access": "rwr-----",
-          "userGroupUid": "umOKHwu9CFL",
-          "displayName": "User Group A",
-          "id": "umOKHwu9CFL"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "umOKHwu9CFL": {
+            "id": "umOKHwu9CFL",
+            "access": "rwr-----"
+          }
+        },
+        "users": {
+          "O2PajOxjJSa": {
+            "id": "O2PajOxjJSa",
+            "access": "rwr-----"
+          }
         }
-      ],
-      "translations": [],
-      "userAccesses": [
-        {
-          "access": "rwr-----",
-          "displayName": "UserA UserA",
-          "id": "O2PajOxjJSa",
-          "userUid": "O2PajOxjJSa"
-        }
-      ]
+      }
     }
   ]
 }

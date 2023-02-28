@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.security.action;
 
-import static org.hisp.dhis.webapi.filter.CspFilter.CSP_REQUEST_NONCE_ATTR_NAME;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -138,8 +136,6 @@ public class LoginAction
         throws Exception
     {
         addRegisteredProviders();
-
-        cspNonce = (String) ServletActionContext.getRequest().getSession().getAttribute( CSP_REQUEST_NONCE_ATTR_NAME );
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +34,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -47,6 +46,7 @@ import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
+import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -203,7 +203,7 @@ public class DhisWebApiWebSecurityConfig
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -276,6 +276,7 @@ public class DhisWebApiWebSecurityConfig
         final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore( tokenStore() );
         defaultTokenServices.setSupportRefreshToken( true );
+        defaultTokenServices.setRefreshTokenValiditySeconds( Integer.MAX_VALUE );
         return defaultTokenServices;
     }
 
@@ -300,6 +301,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
+        @Autowired
+        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -322,6 +326,8 @@ public class DhisWebApiWebSecurityConfig
                 } )
 
                 .oauth2Login( oauth2 -> oauth2
+                    .tokenEndpoint()
+                    .accessTokenResponseClient( jwtPrivateCodeTokenResponseClient ).and()
                     .failureUrl( "/dhis-web-commons/security/login.action?oidcFailure=true" )
                     .clientRegistrationRepository( dhisOidcProviderRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )
@@ -330,7 +336,7 @@ public class DhisWebApiWebSecurityConfig
 
                 .csrf().disable();
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
     }
 
@@ -402,6 +408,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -471,13 +480,8 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( "/index.html" ).permitAll()
 
                 .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
-                .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
-                .antMatchers( apiContextPath + "/account/password" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
-                .antMatchers( apiContextPath + "/account" ).permitAll()
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
@@ -499,13 +503,13 @@ public class DhisWebApiWebSecurityConfig
 
             configureMatchers( http );
             configureOAuthAuthorizationServer( http );
-            configureCspFilter( http, dhisConfig, dhisOidcProviderRepository );
+            configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
             configureApiTokenAuthorizationFilter( http );
             configureOAuthTokenFilters( http );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private void configureMatchers( HttpSecurity http )
@@ -520,7 +524,7 @@ public class DhisWebApiWebSecurityConfig
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
                     .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( strutsLessFormLoginBasicAuthenticationEntryPoint() );
 
                 http
                     .sessionManagement()
@@ -571,9 +575,9 @@ public class DhisWebApiWebSecurityConfig
         }
 
         private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
-            DhisOidcProviderRepository dhisOidcProviderRepository )
+            ConfigurationService configurationService )
         {
-            http.addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+            http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                 HeaderWriterFilter.class );
         }
 
@@ -692,6 +696,12 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
+            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        @Bean
+        public FormLoginBasicAuthenticationEntryPoint strutsLessFormLoginBasicAuthenticationEntryPoint()
+        {
             return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
@@ -714,10 +724,9 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @param dhisConfig DHIS2 configuration provider
      * @throws Exception
      */
-    public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )
+    public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
         http
@@ -730,10 +739,5 @@ public class DhisWebApiWebSecurityConfig
             .httpStrictTransportSecurity()
             .and()
             .frameOptions().sameOrigin();
-
-        if ( dhisConfig.isEnabled( CSP_ENABLED ) )
-        {
-            http.headers().contentSecurityPolicy( dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        }
     }
 }

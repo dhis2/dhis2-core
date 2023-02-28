@@ -32,6 +32,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,6 +48,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public interface AnalyticalObjectService<T extends AnalyticalObject>
 {
     void update( T object );
+
+    List<T> getAnalyticalObjects( ExpressionDimensionItem expressionDimensionItem );
 
     List<T> getAnalyticalObjects( Indicator indicator );
 

@@ -1,0 +1,18 @@
+{
+  "id": "bRNvL6NMQXb",
+  "name": "WebhookApiToken",
+  "source": {
+    "path": "metadata",
+    "fields": "id,name"
+  },
+  "targets": [
+    {
+      "type": "webhook",
+      "url": "http://localhost:8081/api/gateway",
+      "auth": {
+        "type": "api-token",
+        "token": "EB3F6799-AA5A-47E8-B6B7-97EA54EB3873"
+      }
+    }
+  ]
+}

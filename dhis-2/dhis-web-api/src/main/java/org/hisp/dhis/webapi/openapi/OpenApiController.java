@@ -31,9 +31,12 @@ import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
@@ -42,29 +45,89 @@ import org.hisp.dhis.common.OpenApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Tags( "system" )
 @RestController
-@RequestMapping( "/openapi" )
+@RequestMapping( "" )
 @AllArgsConstructor
 public class OpenApiController
 {
+    private static final String APPLICATION_X_YAML = "application/x-yaml";
+
     private final ApplicationContext context;
 
-    @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getOpenApiDocument(
+    /*
+     * YAML
+     */
+
+    @GetMapping( value = "/openapi.yaml", produces = APPLICATION_X_YAML )
+    public void getFullOpenApiYaml( HttpServletRequest request, HttpServletResponse response )
+    {
+        writeDocument( request, response, Set.of(), Set.of(), APPLICATION_X_YAML, OpenApiGenerator::generateYaml );
+    }
+
+    @GetMapping( value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML )
+    public void getPathOpenApiYaml( @PathVariable String path, HttpServletRequest request,
+        HttpServletResponse response )
+    {
+        writeDocument( request, response, Set.of( "/" + path ), Set.of(), APPLICATION_X_YAML,
+            OpenApiGenerator::generateYaml );
+    }
+
+    @GetMapping( value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML )
+    public void getOpenApiYaml(
         @RequestParam( required = false ) Set<String> path,
         @RequestParam( required = false ) Set<String> tag,
-        HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response )
     {
-        Api api = ApiAnalyse.analyseApi( new ApiAnalyse.Scope( getAllControllerClasses(), path, tag ) );
+        writeDocument( request, response, path, tag, APPLICATION_X_YAML, OpenApiGenerator::generateYaml );
+    }
+
+    /*
+     * JSON
+     */
+
+    @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
+    public void getFullOpenApiJson( HttpServletRequest request, HttpServletResponse response )
+    {
+        writeDocument( request, response, Set.of(), Set.of(), APPLICATION_JSON_VALUE, OpenApiGenerator::generateJson );
+    }
+
+    @GetMapping( value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE )
+    public void getPathOpenApiJson( @PathVariable String path, HttpServletRequest request,
+        HttpServletResponse response )
+    {
+        writeDocument( request, response, Set.of( "/" + path ), Set.of(), APPLICATION_JSON_VALUE,
+            OpenApiGenerator::generateJson );
+    }
+
+    @GetMapping( value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE )
+    public void getOpenApiJson(
+        @RequestParam( required = false ) Set<String> path,
+        @RequestParam( required = false ) Set<String> tag,
+        HttpServletRequest request, HttpServletResponse response )
+    {
+        writeDocument( request, response, path, tag, APPLICATION_JSON_VALUE, OpenApiGenerator::generateJson );
+    }
+
+    private void writeDocument( HttpServletRequest request, HttpServletResponse response,
+        Set<String> paths, Set<String> tags, String contentType, BiFunction<Api, String, String> writer )
+    {
+        Api api = ApiAnalyse.analyseApi( new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
         ApiDescribe.describeApi( api );
-        response.setContentType( APPLICATION_JSON_VALUE );
-        response.getWriter().write( OpenApiGenerator.generate( api ) );
+        response.setContentType( contentType );
+        try
+        {
+            response.getWriter().write( writer.apply( api, getServerUrl( request ) ) );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 
     private Set<Class<?>> getAllControllerClasses()
@@ -87,5 +150,12 @@ public class OpenApiController
             && !c.isAnnotationPresent( Controller.class )
                 ? c.getSuperclass()
                 : c;
+    }
+
+    private static String getServerUrl( HttpServletRequest request )
+    {
+        StringBuffer url = request.getRequestURL();
+        String uri = request.getRequestURI();
+        return url.substring( 0, url.indexOf( uri ) ) + request.getServletPath();
     }
 }
