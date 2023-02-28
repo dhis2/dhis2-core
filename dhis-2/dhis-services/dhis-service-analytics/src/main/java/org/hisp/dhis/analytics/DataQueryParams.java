@@ -520,6 +520,8 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
+    protected transient String serverBaseUrl;
+
     protected String explainOrderId;
 
     // -------------------------------------------------------------------------
@@ -625,6 +627,7 @@ public class DataQueryParams
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
         params.explainOrderId = this.explainOrderId;
+        params.serverBaseUrl = this.serverBaseUrl;
 
         return params;
     }
@@ -2398,6 +2401,11 @@ public class DataQueryParams
         return apiVersion;
     }
 
+    public String getServerBaseUrl()
+    {
+        return serverBaseUrl;
+    }
+
     public Program getProgram()
     {
         return program;
@@ -3136,6 +3144,12 @@ public class DataQueryParams
         public Builder withValidationRules( List<? extends DimensionalItemObject> validationRules )
         {
             this.params.setDataDimensionOptions( DataDimensionItemType.VALIDATION_RULE, validationRules );
+            return this;
+        }
+
+        public Builder withServerBaseUrl( String serverBaseUrl )
+        {
+            params.serverBaseUrl = serverBaseUrl;
             return this;
         }
 
