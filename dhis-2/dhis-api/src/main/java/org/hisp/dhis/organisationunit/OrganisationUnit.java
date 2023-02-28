@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -603,6 +605,26 @@ public class OrganisationUnit
         this.parent = newParent;
 
         newParent.getChildren().add( this );
+    }
+
+    /**
+     * Indicates whether this org unit is a descendant of any of the given
+     * ancestor org units.
+     *
+     * @param ancestors the collection of ancestor org units.
+     * @return true if his org unit is a descendant of the ancestors.
+     */
+    public boolean isDescendant( Collection<OrganisationUnit> ancestors )
+    {
+        if ( isEmpty( ancestors ) )
+        {
+            return false;
+        }
+
+        Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet( ancestors );
+
+        return ancestorUids.stream()
+            .anyMatch( uid -> path.contains( uid ) );
     }
 
     public Set<OrganisationUnit> getChildrenThisIfEmpty()
