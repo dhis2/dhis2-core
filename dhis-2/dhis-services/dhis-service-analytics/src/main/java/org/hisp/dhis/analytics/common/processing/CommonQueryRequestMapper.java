@@ -314,7 +314,7 @@ public class CommonQueryRequestMapper
      */
     private static List<String> splitOnOrIfNecessary( String dimensionAsString )
     {
-        return Arrays.stream( dimensionAsString.split( DIMENSION_OR_SEPARATOR ) )
+        return Arrays.stream( DIMENSION_OR_SEPARATOR.split( dimensionAsString ) )
             .collect( toList() );
     }
 

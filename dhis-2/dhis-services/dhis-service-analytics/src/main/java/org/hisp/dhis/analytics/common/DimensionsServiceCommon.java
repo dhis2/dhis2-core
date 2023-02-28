@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.common;
 
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
@@ -60,12 +60,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class DimensionsServiceCommon
 {
 
-    public static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = EnumSet.of(
+    protected static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = EnumSet.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    public static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = EnumSet.of(
+    protected static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = EnumSet.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
