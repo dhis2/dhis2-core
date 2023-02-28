@@ -907,9 +907,6 @@ public class DefaultOrganisationUnitService
         return null;
     }
 
-    /**
-     * Get all the Organisation Units within the distance of a coordinate.
-     */
     @Override
     @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithinDistance( double longitude, double latitude,
@@ -943,10 +940,6 @@ public class DefaultOrganisationUnitService
         return objects;
     }
 
-    /**
-     * Get lowest level/target level Organisation Units that includes the
-     * coordinates.
-     */
     @Override
     @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitByCoordinate( double longitude, double latitude,
@@ -976,9 +969,7 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search children org units to get the lowest level org unit that
-            // contains
-            // coordinate
+            // Search child org units to get lowest level org unit with coordinate
 
             if ( topOrgUnit != null )
             {
@@ -1028,9 +1019,14 @@ public class DefaultOrganisationUnitService
     /**
      * Searches organisation units until finding one with polygon containing
      * point.
+     *
+     * @param longitude the longitude.
+     * @param latitude the latitude.
+     * @param searchLevel the search level.
+     * @param stopLevel the stop level.
      */
-    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
-        int stopLevel )
+    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude,
+        int searchLevel, int stopLevel )
     {
         for ( int i = searchLevel; i <= stopLevel; i++ )
         {
