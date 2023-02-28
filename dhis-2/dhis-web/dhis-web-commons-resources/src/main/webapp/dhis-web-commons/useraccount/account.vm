@@ -3,7 +3,7 @@
 <head>
     <title>$encoder.htmlEncode( $applicationTitle )</title>
     <meta name="referrer" content="no-referrer">
-    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.3.min.js"></script>
     <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.js"></script>
     <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.ext.js"></script>
     <script type="text/javascript" src="../javascripts/useraccount/account.js"></script>
@@ -11,7 +11,7 @@
     #if( !$keySelfRegistrationNoRecaptcha )
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     #end
-    <script type="text/javascript" >
+    <script type="text/javascript">
 
     </script>
     <link type="text/css" rel="stylesheet" href="../css/account.css">
@@ -22,91 +22,98 @@
 
 <div id="accountContainer">
 
-<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+    <div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
 
-<div id="accountInput">
+    <div id="accountInput">
 
-<h3><span id="create_new_account">$i18n.getString( "create_new_account" )</span></h3>
+        <h3><span id="create_new_account">$i18n.getString( "create_new_account" )</span></h3>
 
-<form id="accountForm">
+        <form id="accountForm">
 
-<table>
+            <table>
 
-	#if( $accountAction == "invited" )
-    <tr>
-        <td style="width:140px"><label for="code"></label></td>
-        <td>
-            <input type="hidden" id="inviteUsername" name="inviteUsername" value="$username">
-            <input type="hidden" id="inviteToken" name="inviteToken" value="$token">
-        </td>
-    </tr>
-	#end
+                #if( $accountAction == "invited" )
+                    <tr>
+                        <td style="width:140px"><label for="code"></label></td>
+                        <td>
+                            <input type="hidden" id="inviteUsername" name="inviteUsername" value="$username">
+                            <input type="hidden" id="inviteToken" name="inviteToken" value="$token">
+                        </td>
+                    </tr>
+                #end
 
-    <tr>
-        <td style="width:140px"><label id="label_firstName" for="firstName">$i18n.getString( "name" )</label></td>
-        <td>
-            <input type="text" id="firstName" name="firstName" autocomplete="off" style="width:11.7em; margin-right:7px;" placeholder="First">
-            <input type="text" id="surname" name="surname" autocomplete="off" style="width:11.7em" placeholder="Last">
-        </td>
-    </tr>
-    <tr>
-        <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
-        #if( $usernameChoice == "false" )
-        <td><input type="hidden" id="username" name="username" value="RpuECtIlVoRKTpYmEkYrAHmPtX4m1U">
-        	<input type="text" id="assignedUsername" name="assignedUsername" disabled="disabled" value="${username}"></td>
-        #else
-        <td><input type="text" id="username" name="username" autocomplete="off"></td>
-        #end
-        <td>
-    </tr>
-    <tr>
-        <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
-        <td><input type="password" id="password" name="password"  onfocusout="checkPasswordForUsername()" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
-    </tr>
-    <tr>
-        <td><label id="label_retypePassword" for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
-        <td><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
-    </tr>
-    <tr>
-        <td><label id="label_email" for="email">$i18n.getString( "email" )</label></td>
-        #if( $accountAction == "invited" )
-        <td><input type="hidden" id="email" name="email" value="$email">
-            <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
-        #else
-        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
-        #end
-    </tr>
-    <tr>
-        <td><label id="label_phoneNumber" for="phoneNumber">$i18n.getString( "mobile_phone" )</label></td>
-        <td style="padding-bottom: 5px"><input type="text" id="phoneNumber" name="phoneNumber"></td>
-    </tr>
-    <tr>
-        <td><label id="label_employer" for="employer">$i18n.getString( "employer" )</label></td>
-        <td style="padding-bottom: 5px"><input type="text" id="employer" name="employer"></td>
-    </tr>
-    #if( !$keySelfRegistrationNoRecaptcha )
-    <td>
-        <td style="padding-bottom: 5px">
-            <form action="?" method="POST">
-                <div class="g-recaptcha" data-sitekey=$recaptchaSite></div>
-                <br/>
-            </form>
-        </td>
-	</tr>
-    #end
-	<tr>
-		<td></td>
-		<td><label id="messageSpan" class="error" style="display:none"></label></td>
-	</tr>
-    <tr>
-    	<td></td>
-    	<td><input id="submitButton" type="submit" value="$i18n.getString( 'create' )" style="width:10em"></td>
-    </tr>
-</table>
+                <tr>
+                    <td style="width:140px"><label id="label_firstName" for="firstName">$i18n.getString(
+                        "name" )</label></td>
+                    <td>
+                        <input type="text" id="firstName" name="firstName" autocomplete="off"
+                               style="width:11.7em; margin-right:7px;" placeholder="First">
+                        <input type="text" id="surname" name="surname" autocomplete="off" style="width:11.7em"
+                               placeholder="Last">
+                    </td>
+                </tr>
+                <tr>
+                    <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
+                    #if( $usernameChoice == "false" )
+                        <td><input type="hidden" id="username" name="username" value="RpuECtIlVoRKTpYmEkYrAHmPtX4m1U">
+                            <input type="text" id="assignedUsername" name="assignedUsername" disabled="disabled"
+                                   value="${username}"></td>
+                    #else
+                        <td><input type="text" id="username" name="username" autocomplete="off"></td>
+                    #end
+                    <td>
+                </tr>
+                <tr>
+                    <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
+                    <td><input type="password" id="password" name="password" onfocusout="checkPasswordForUsername()"
+                               autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+                </tr>
+                <tr>
+                    <td><label id="label_retypePassword" for="retypePassword">$i18n.getString(
+                        "confirm_password" )</label></td>
+                    <td><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td><label id="label_email" for="email">$i18n.getString( "email" )</label></td>
+                    #if( $accountAction == "invited" )
+                        <td><input type="hidden" id="email" name="email" value="$email">
+                            <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
+                    #else
+                        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
+                    #end
+                </tr>
+                <tr>
+                    <td><label id="label_phoneNumber" for="phoneNumber">$i18n.getString( "mobile_phone" )</label></td>
+                    <td style="padding-bottom: 5px"><input type="text" id="phoneNumber" name="phoneNumber"></td>
+                </tr>
+                <tr>
+                    <td><label id="label_employer" for="employer">$i18n.getString( "employer" )</label></td>
+                    <td style="padding-bottom: 5px"><input type="text" id="employer" name="employer"></td>
+                </tr>
+                #if( !$keySelfRegistrationNoRecaptcha )
+                    <td>
+                    <td style="padding-bottom: 5px">
+                        <form action="?" method="POST">
+                            <div class="g-recaptcha" data-sitekey=$recaptchaSite></div>
+                            <br/>
+                        </form>
+                    </td>
+                    </tr>
+                #end
+                <tr>
+                    <td></td>
+                    <td><label id="messageSpan" class="error" style="display:none"></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input id="submitButton" type="submit" value="$i18n.getString( 'create' )" style="width:10em">
+                    </td>
+                </tr>
+            </table>
 
-</form>
+        </form>
 
-</div>
+    </div>
 
 </div>
 

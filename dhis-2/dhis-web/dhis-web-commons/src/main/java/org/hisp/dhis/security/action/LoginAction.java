@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.security.action;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
@@ -71,6 +71,11 @@ public class LoginAction
     // Input & Output
     // -------------------------------------------------------------------------
     private String cspNonce = "";
+
+    public void setCspNonce( String cspNonce )
+    {
+        this.cspNonce = cspNonce;
+    }
 
     public String getCspNonce()
     {
@@ -138,6 +143,9 @@ public class LoginAction
         addRegisteredProviders();
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
+        HttpSession session = ServletActionContext.getRequest().getSession();
+        String nounce = (String) session.getAttribute( "nounce" );
+        setCspNonce( nounce );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
 

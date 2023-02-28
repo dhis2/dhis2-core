@@ -28,10 +28,11 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import static org.hisp.dhis.security.utils.CspUtils.DEFAULT_HEADER_VALUE;
+import static org.hisp.dhis.security.utils.CspConstans.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
+import static org.hisp.dhis.security.utils.CspConstans.LOGIN_PATTERN;
+import static org.hisp.dhis.security.utils.CspConstans.SCRIPT_SOURCE_DEFAULT;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -42,9 +43,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.utils.CspUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -56,18 +57,19 @@ public class CspFilter
 {
     public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
 
-    public static final String FRAME_ANCESTORS_STATIC_CONTENT_CSP = "frame-ancestors 'self' ";
+    public static final String SCRIPT_SOURCE_SELF = "script-src 'self' ";
+
+    public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
+
+    public static final String FRAME_ANCESTORS_STRICT_CSP = "frame-ancestors 'none';";
 
     private final boolean enabled;
-
-    private final List<Pattern> externalContentInsideApiPatterns;
 
     ConfigurationService configurationService;
 
     public CspFilter( DhisConfigurationProvider dhisConfig, ConfigurationService configurationService )
     {
         this.enabled = dhisConfig.isEnabled( CSP_ENABLED );
-        this.externalContentInsideApiPatterns = CspUtils.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
         this.configurationService = configurationService;
     }
 
@@ -76,35 +78,33 @@ public class CspFilter
         throws ServletException,
         IOException
     {
+        String url = req.getRequestURL().toString();
+
         if ( !enabled )
         {
+            res.addHeader( "X-Frame-Options", "SAMEORIGIN" );
             chain.doFilter( req, res );
             return;
         }
 
-        if ( isStaticContentInsideApi( req.getRequestURI() ) )
+        if ( LOGIN_PATTERN.matcher( url ).matches() )
         {
-            setFrameAncestorsCspRule( res );
+            String nounce = CodeGenerator.getRandomUrlToken();
+            req.getSession().setAttribute( "nounce", nounce );
+
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nounce + "';" );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_STRICT_CSP );
             chain.doFilter( req, res );
             return;
         }
 
-        if ( isExternalContentInsideApi( req.getRequestURL().toString() ) )
+        if ( isUploadedContentInsideApi( url ) )
         {
-            // Add default CSP header for external content
-            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, DEFAULT_HEADER_VALUE );
-            chain.doFilter( req, res );
-            return;
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_DEFAULT );
         }
 
-        if ( isRegularApi( req.getRequestURI() ) )
-        {
-            chain.doFilter( req, res );
-            return;
-        }
-
-        // Rest must be static content
         setFrameAncestorsCspRule( res );
+
         chain.doFilter( req, res );
     }
 
@@ -115,31 +115,17 @@ public class CspFilter
         {
             String corsAllowedOrigins = String.join( " ", corsWhitelist );
             res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME,
-                FRAME_ANCESTORS_STATIC_CONTENT_CSP + corsAllowedOrigins );
+                FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";" );
         }
-    }
-
-    private boolean isRegularApi( String requestURI )
-    {
-        return CspUtils.EVERYTHING_START_WITH_API.matcher( requestURI ).find();
-    }
-
-    private boolean isStaticContentInsideApi( String requestURI )
-    {
-        for ( Pattern pattern : CspUtils.STATIC_RESOURCES_IN_API_URL_PATTERNS )
+        else
         {
-            if ( pattern.matcher( requestURI ).matches() )
-            {
-                return true;
-            }
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_DEFAULT_CSP + ";" );
         }
-        return false;
     }
 
-    // Returns false if URI matches one of the regexp patterns in the list
-    private boolean isExternalContentInsideApi( String requestURI )
+    private boolean isUploadedContentInsideApi( String requestURI )
     {
-        for ( Pattern pattern : externalContentInsideApiPatterns )
+        for ( Pattern pattern : EXTERNAL_STATIC_CONTENT_URL_PATTERNS )
         {
             if ( pattern.matcher( requestURI ).matches() )
             {

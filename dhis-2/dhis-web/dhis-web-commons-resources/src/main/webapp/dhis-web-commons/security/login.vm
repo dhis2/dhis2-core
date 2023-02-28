@@ -6,20 +6,20 @@
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="shortcut icon" href="../../favicon.ico"/>
-    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.3.min.js"></script>
     <script nonce="$cspNonce">
-        $.ajaxSetup( {
-            beforeSend: function(xhr) {
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
                 xhr.setRequestHeader(
                         'X-Requested-With',
                         {
-                            toString: function() {
+                            toString: function () {
                                 return '';
                             }
                         }
                 );
             }
-        } );
+        });
     </script>
     <script type="text/javascript" src="../javascripts/login.js"></script>
     <link type="text/css" rel="stylesheet" href="../css/widgets.css">
@@ -29,16 +29,20 @@
         .displayNoneClass {
             display: none;
         }
+
         .borderNoneClass {
             border: none;
         }
+
         .paddingTenClass {
             padding-bottom: 10px;
         }
+
         .whiteRedClass {
             color: white;
             background-color: red;
         }
+
         .marginLeftClass {
             margin-left: 30px;
         }
@@ -86,12 +90,12 @@
                 <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
                 <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"
                             required></div>
-                    #if( $twoFactor == true )
+                #if( $twoFactor == true )
                     <div>
-                    <input type="code" id="2fa_code" name="2fa_code"
+                        <input type="code" id="2fa_code" name="2fa_code"
                                placeholder="$i18n.getString('two_factor_authentication_code')">
                     </div>
-                    #end
+                #end
             </div>
             <div id="submitDiv">
                 <input id="submit" class="button" type="submit" value="$i18n.getString('sign_in')">
