@@ -29,11 +29,14 @@ package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
@@ -98,10 +101,10 @@ class OrganisationUnitTest
         unitB = new OrganisationUnit( "OrgUnitB" );
         unitC = new OrganisationUnit( "OrgUnitC" );
         unitD = new OrganisationUnit( "OrgUnitD" );
-        unitA.setUid( "uidA" );
-        unitB.setUid( "uidB" );
-        unitC.setUid( "uidC" );
-        unitD.setUid( "uidD" );
+        unitA.setUid( "e8iHpRVptzA" );
+        unitB.setUid( "e8iHpRVptzB" );
+        unitC.setUid( "e8iHpRVptzC" );
+        unitD.setUid( "e8iHpRVptzD" );
     }
 
     @Test
@@ -145,8 +148,33 @@ class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        String expected = "/uidA/uidB/uidC/uidD";
+        String expected = "/e8iHpRVptzA/e8iHpRVptzB/e8iHpRVptzC/e8iHpRVptzD";
         assertEquals( expected, unitD.getPath() );
+    }
+
+    @Test
+    void testIsDescendant()
+    {
+        unitB.setParent( unitA );
+        unitC.setParent( unitB );
+        unitD.setParent( unitA );
+
+        // Set path property directly to emulate persistence layer
+
+        unitA.getPath();
+        unitB.getPath();
+        unitC.getPath();
+        unitD.getPath();
+
+        assertTrue( unitC.isDescendant( Set.of( unitB ) ) );
+        assertTrue( unitC.isDescendant( Set.of( unitA ) ) );
+        assertTrue( unitC.isDescendant( Set.of( unitA, unitD ) ) );
+        assertTrue( unitB.isDescendant( Set.of( unitA ) ) );
+        assertTrue( unitB.isDescendant( Set.of( unitA, unitD ) ) );
+
+        assertFalse( unitC.isDescendant( Set.of( unitD ) ) );
+        assertFalse( unitB.isDescendant( Set.of( unitD ) ) );
+        assertFalse( unitB.isDescendant( Set.of( unitC ) ) );
     }
 
     @Test
