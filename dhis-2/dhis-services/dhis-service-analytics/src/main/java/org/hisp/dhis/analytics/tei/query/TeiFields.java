@@ -71,7 +71,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @NoArgsConstructor( access = PRIVATE )
 public class TeiFields
 {
-
     /**
      * Retrieves all object attributes from the given param encapsulating them
      * into a stream of {@link Field}.
@@ -254,8 +253,7 @@ public class TeiFields
         {
             return getCustomGridHeaderForItem( item, commonParams, dimIdentifier );
         }
-
-        if ( dimensionalObject != null )
+        else if ( dimensionalObject != null )
         {
             return getCustomGridHeaderForDimensionalObject( dimensionalObject, commonParams, dimIdentifier );
         }
@@ -272,6 +270,7 @@ public class TeiFields
             {
                 fullName = "Enrollment " + fullName;
             }
+
             ValueType valueType = dimensionParam.getValueType();
 
             return new GridHeader( dimIdentifier.getDimension().getUid(), fullName, valueType, false, true );

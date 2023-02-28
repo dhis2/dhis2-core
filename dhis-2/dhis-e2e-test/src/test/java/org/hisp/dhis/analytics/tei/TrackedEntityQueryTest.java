@@ -466,7 +466,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "width", equalTo( 3 ) )
             .body( "headerWidth", equalTo( 3 ) );
 
-        // Validate headers //TODO: Fix Org unit "column" value
+        // Validate headers
         validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 1, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 2, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
