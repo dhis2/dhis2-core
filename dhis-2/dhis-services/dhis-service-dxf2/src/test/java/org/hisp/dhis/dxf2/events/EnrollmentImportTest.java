@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.Date;
@@ -129,10 +128,10 @@ public class EnrollmentImportTest extends TransactionalIntegrationTest
             new ImportOptions().setUser( user ),
             null );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( enrollmentUid )
-                    .getCreatedByUserInfo() ) );
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+        assertEquals( UserInfoSnapshot.from( user ),
+            enrollmentService.getEnrollment( enrollmentUid )
+                .getCreatedByUserInfo() );
     }
 
     @Test
@@ -146,10 +145,10 @@ public class EnrollmentImportTest extends TransactionalIntegrationTest
             new ImportOptions().setUser( user ),
             true );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( programInstance.getUid() )
-                    .getLastUpdatedByUserInfo() ) );
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+        assertEquals( UserInfoSnapshot.from( user ),
+            enrollmentService.getEnrollment( programInstance.getUid() )
+                .getLastUpdatedByUserInfo() );
     }
 
     private Enrollment enrollment( String orgUnit, String program, String trackedEntity )
