@@ -507,7 +507,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        Set<String> ancestorsUid = IdentifiableObjectUtils.getUidsAsSet( ancestors );
+        Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet( ancestors );
 
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
 
@@ -518,7 +518,7 @@ public class DefaultOrganisationUnitService
 
         while ( unit != null )
         {
-            if ( ancestorsUid.contains( unit.getUid() ) )
+            if ( ancestorUids.contains( unit.getUid() ) )
             {
                 return true;
             }
