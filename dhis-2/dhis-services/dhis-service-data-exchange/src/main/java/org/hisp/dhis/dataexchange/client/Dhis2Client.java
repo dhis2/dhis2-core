@@ -250,7 +250,7 @@ public class Dhis2Client
     {
         if ( idScheme != null && idScheme != IdSchemes.DEFAULT_ID_SCHEME )
         {
-            builder.queryParam( queryParam, idScheme.name().toLowerCase() );
+            builder.queryParam( queryParam, idScheme.name() );
         }
     }
 

@@ -76,6 +76,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@org.springframework.core.annotation.Order( 998 )
 public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder
 {
     public static final String SUBQUERY_TABLE_ALIAS = "subax";

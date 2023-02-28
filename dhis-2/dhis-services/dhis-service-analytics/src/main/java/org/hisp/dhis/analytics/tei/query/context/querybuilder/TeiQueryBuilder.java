@@ -59,6 +59,7 @@ import org.springframework.stereotype.Service;
  * {teiField} - {programUid}.{programAttribute}
  */
 @Service
+@org.springframework.core.annotation.Order( 1 )
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
 {
 
@@ -75,14 +76,17 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
         TeiQueryBuilder::isTeiRestriction );
 
     @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of( TeiQueryBuilder::isTeiOrder );
+    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
+        sortingParams -> SqlQueryBuilders.isNotPeriodDimension( sortingParams.getOrderBy() ),
+        sortingParams -> OrgUnitQueryBuilder.isNotOuDimension( sortingParams.getOrderBy() ),
+        TeiQueryBuilder::isTeiOrder );
 
     @Override
     protected Stream<Field> getSelect( QueryContext queryContext )
     {
         return Stream.concat(
-            // Static fields + 'enrollment' dynamic column.
-            TeiFields.getStaticAndDynamicFields(),
+            // Static fields column.
+            TeiFields.getStaticFields(),
 
             // Tei/Program attributes.
             TeiFields.getDimensionFields( queryContext.getTeiQueryParams() ) );

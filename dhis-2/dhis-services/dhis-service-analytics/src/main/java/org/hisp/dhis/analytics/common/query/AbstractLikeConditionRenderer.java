@@ -31,6 +31,8 @@ import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -55,6 +57,7 @@ public abstract class AbstractLikeConditionRenderer extends BaseRenderable
         this.valueTransformer = Function.identity();
     }
 
+    @Nonnull
     @Override
     public String render()
     {

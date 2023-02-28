@@ -46,6 +46,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
@@ -71,12 +73,6 @@ public class BinaryConditionRenderer extends BaseRenderable
             Field.of( leftAlias, () -> left, EMPTY ), EQ, Field.of( rightAlias, () -> right, EMPTY ) );
     }
 
-    public static BinaryConditionRenderer of( String field, QueryOperator queryOperator, List<String> values,
-        ValueTypeMapping valueTypeMapping, QueryContext queryContext )
-    {
-        return BinaryConditionRenderer.of( () -> field, queryOperator, values, valueTypeMapping, queryContext );
-    }
-
     public static BinaryConditionRenderer of( Renderable field, QueryOperator queryOperator, List<String> values,
         ValueTypeMapping valueTypeMapping, QueryContext queryContext )
     {
@@ -86,6 +82,7 @@ public class BinaryConditionRenderer extends BaseRenderable
 
     private static final Collection<QueryOperator> comparisonOperators = Arrays.asList( GT, GE, LT, LE );
 
+    @Nonnull
     @Override
     public String render()
     {

@@ -61,6 +61,7 @@ import org.springframework.stereotype.Service;
  * and are rendered as a single group of "OR" conditions.
  */
 @Service
+@org.springframework.core.annotation.Order( 3 )
 public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor
 {
     private static final String PERIOD_CONDITION_GROUP = "PERIOD_CONDITION";

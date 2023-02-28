@@ -25,41 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.querybuilder;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import org.hisp.dhis.common.ValueType;
 
-import java.util.List;
-
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.Table;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
-import org.springframework.stereotype.Service;
-
-/**
- * This class is responsible for building the SQL statement for the main TEI
- * table.
- */
-@Service
-public class MainTableQueryBuilder implements SqlQueryBuilder
+public interface TeiHeaderProvider
 {
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unusedOne,
-        List<AnalyticsSortingParams> unusedTwo )
-    {
-        return RenderableSqlQuery.builder()
-            .mainTable( Table.ofStrings( queryContext.getMainTableName(), TEI_ALIAS ) )
-            .build();
-    }
+    String getAlias();
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+    String getFullName();
+
+    ValueType getType();
 }

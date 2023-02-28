@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @NoArgsConstructor( access = PRIVATE )
 class ContextUtils
 {
-    // TODO: Think about implementing this using the query builders
     static String enrollmentSelect( ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
     {
@@ -61,7 +60,6 @@ class ContextUtils
             " where innermost_enr.rn = 1";
     }
 
-    // TODO: Think about implementing this using the query builders
     static String eventSelect( ElementWithOffset<Program> program,
         ElementWithOffset<ProgramStage> programStage,
         TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )

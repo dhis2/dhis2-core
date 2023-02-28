@@ -88,10 +88,7 @@ public class GridAdaptor
         headerParamsHandler.handle( grid, teiQueryParams, fields );
 
         // Adding rows.
-        if ( sqlQueryResult.isPresent() )
-        {
-            grid.addNamedRows( sqlQueryResult.get().result() );
-        }
+        sqlQueryResult.ifPresent( queryResult -> grid.addNamedRows( queryResult.result() ) );
 
         // Adding metadata info.
         metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),

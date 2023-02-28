@@ -25,41 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.querybuilder;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.Table;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.common.ValueType;
 
 /**
- * This class is responsible for building the SQL statement for the main TEI
- * table.
+ * This enum represents the TEI static fields. It is used to generate the query
+ * and to provide the header information.
  */
-@Service
-public class MainTableQueryBuilder implements SqlQueryBuilder
+@Getter
+@RequiredArgsConstructor
+public enum TeiStaticField implements TeiHeaderProvider
 {
-    @Override
-    public RenderableSqlQuery buildSqlQuery( QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> unusedOne,
-        List<AnalyticsSortingParams> unusedTwo )
-    {
-        return RenderableSqlQuery.builder()
-            .mainTable( Table.ofStrings( queryContext.getMainTableName(), TEI_ALIAS ) )
-            .build();
-    }
+    TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
+    LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
+    CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by", TEXT ),
+    LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by", TEXT ),
+    GEOMETRY( "geometry", "Geometry", TEXT ),
+    LONGITUDE( "longitude", "Longitude", NUMBER ),
+    LATITUDE( "latitude", "Latitude", NUMBER ),
+    ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
+    ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
 
-    @Override
-    public boolean alwaysRun()
-    {
-        return true;
-    }
+    private final String alias;
+
+    private final String fullName;
+
+    private final ValueType type;
 }

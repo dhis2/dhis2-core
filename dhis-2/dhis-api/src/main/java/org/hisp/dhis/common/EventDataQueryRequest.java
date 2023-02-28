@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -206,7 +207,7 @@ public class EventDataQueryRequest
 
     public static class ExtendedEventDataQueryRequestBuilder extends EventDataQueryRequestBuilder
     {
-        public static final String DIMENSION_OR_SEPARATOR = "_OR_";
+        public static final Pattern DIMENSION_OR_SEPARATOR = Pattern.compile( "_OR_" );
 
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
         {
@@ -293,7 +294,7 @@ public class EventDataQueryRequest
 
         private static Set<String> splitDimension( String dimension )
         {
-            return Arrays.stream( dimension.split( DIMENSION_OR_SEPARATOR ) )
+            return Arrays.stream( DIMENSION_OR_SEPARATOR.split( dimension ) )
                 .collect( Collectors.toSet() );
         }
 
