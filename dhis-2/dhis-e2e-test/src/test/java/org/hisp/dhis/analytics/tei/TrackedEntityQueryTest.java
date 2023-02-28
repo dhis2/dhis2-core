@@ -656,7 +656,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
-            .add( "dimension=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3")
+            .add( "dimension=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
             .add( "desc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q,IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
             .add( "relativePeriodDate=2022-09-27" );
@@ -676,18 +676,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Validate headers
         validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 1, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 2, "IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 2, "IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double",
+            false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
                 "",
-                "NaN") );
+                "NaN" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
                 "",
-                "NaN") );
+                "NaN" ) );
 
         validateRow( response, 2,
             List.of( "Govt. Hospital Moyamba",
