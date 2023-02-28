@@ -49,6 +49,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -82,6 +83,9 @@ public class AnalyticsController
 
     @Nonnull
     private final ContextUtils contextUtils;
+
+    @Nonnull
+    private final DhisConfigurationProvider configurationProvider;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -309,6 +313,9 @@ public class AnalyticsController
         HttpServletResponse response, boolean analyzeOnly )
     {
         DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        params = DataQueryParams.newBuilder( params )
+            .withServerBaseUrl( configurationProvider.getServerBaseUrl() )
+            .build();
 
         if ( analyzeOnly )
         {
