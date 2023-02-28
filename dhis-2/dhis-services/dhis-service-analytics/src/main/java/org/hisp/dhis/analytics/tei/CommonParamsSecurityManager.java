@@ -31,6 +31,7 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
@@ -78,7 +79,8 @@ public class CommonParamsSecurityManager
 {
     private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES = List.of(
         PROGRAM_ATTRIBUTE,
-        DATA_ELEMENT );
+        DATA_ELEMENT,
+        PROGRAM_INDICATOR );
 
     private final AnalyticsSecurityManager securityManager;
 
@@ -104,7 +106,7 @@ public class CommonParamsSecurityManager
             .filter( Objects::nonNull )
             .map( DimensionalObject::getItems )
             .flatMap( Collection::stream )
-            .map( dimensionalItemObject -> (OrganisationUnit) dimensionalItemObject )
+            .map( OrganisationUnit.class::cast )
             .collect( Collectors.toList() );
 
         Set<IdentifiableObject> objects = new HashSet<>();
@@ -116,7 +118,7 @@ public class CommonParamsSecurityManager
             .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
             // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
-            .filter( not( CommonParamsSecurityManager::isAttribute ) )
+            .filter( not( CommonParamsSecurityManager::shouldSkipCheck ) )
             .map( DimensionParam::getDimensionalObject )
             .filter( Objects::nonNull )
             .map( DimensionalObject::getItems )
@@ -131,7 +133,7 @@ public class CommonParamsSecurityManager
             .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
             // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
-            .filter( not( CommonParamsSecurityManager::isAttribute ) )
+            .filter( not( CommonParamsSecurityManager::shouldSkipCheck ) )
             .map( DimensionParam::getQueryItem )
             .filter( Objects::nonNull )
             .map( QueryItem::getItem )
@@ -152,7 +154,7 @@ public class CommonParamsSecurityManager
         securityManager.decideAccessEventAnalyticsAuthority();
     }
 
-    private static boolean isAttribute( DimensionParam dimensionParam )
+    private static boolean shouldSkipCheck( DimensionParam dimensionParam )
     {
         return SECURITY_CHECK_SKIP_TYPES.contains( dimensionParam.getDimensionParamObjectType() );
     }

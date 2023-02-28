@@ -1043,7 +1043,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Female",
                 "" ) );
 
-        validateRow( response, 2,
+        validateRow( response, 3,
             List.of( "xgrOXoHRoZC",
                 "2015-08-06 21:20:52.781",
                 "",

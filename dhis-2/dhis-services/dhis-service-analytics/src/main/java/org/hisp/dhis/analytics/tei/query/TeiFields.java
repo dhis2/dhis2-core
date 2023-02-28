@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tei.query;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -43,6 +44,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -65,6 +68,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * different objects types, like {@link TrackedEntityAttribute},
  * {@link ProgramTrackedEntityAttribute}, {@link GridHeader} and {@link Field}.
  */
+@NoArgsConstructor( access = PRIVATE )
 public class TeiFields
 {
 

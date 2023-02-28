@@ -270,7 +270,7 @@ public class CommonQueryRequestMapper
 
                 dimensionParams.addAll(
                     unmodifiableList( dimensionsOrFilter.stream()
-                        .map( this::splitOnOrIfNecessary )
+                        .map( CommonQueryRequestMapper::splitOnOrIfNecessary )
                         .map( dof -> toDimensionIdentifier( dof, dimensionParamType, queryRequest, programs,
                             userOrgUnits ) )
                         .flatMap( Collection::stream )
@@ -312,7 +312,7 @@ public class CommonQueryRequestMapper
      * @param dimensionAsString, in the format dim_OR_anotherDim.
      * @return the {@link List} of String.
      */
-    private List<String> splitOnOrIfNecessary( String dimensionAsString )
+    private static List<String> splitOnOrIfNecessary( String dimensionAsString )
     {
         return Arrays.stream( dimensionAsString.split( DIMENSION_OR_SEPARATOR ) )
             .collect( toList() );

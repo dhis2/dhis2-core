@@ -56,7 +56,7 @@ import org.hisp.dhis.program.ProgramStage;
 @AllArgsConstructor( staticName = "of" )
 public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 {
-    public final static DimensionIdentifier<DimensionParam> EMPTY = DimensionIdentifier.of( null, null, null );
+    public static final DimensionIdentifier<DimensionParam> EMPTY = DimensionIdentifier.of( null, null, null );
 
     private final ElementWithOffset<Program> program;
 
