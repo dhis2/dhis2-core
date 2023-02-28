@@ -28,9 +28,9 @@
 package org.hisp.dhis.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import java.util.List;
 
 import org.hisp.dhis.antlr.ParserException;
 import org.junit.jupiter.api.Test;
@@ -38,30 +38,36 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jim Grace
  */
-class PredictorPreprocessorExpressionTest
+class PredictorExpressionTest
 {
     @Test
-    void testPredictorPreprossorExpression()
+    void testSimplePredictorExpression()
     {
-        PredictorPreprocessorExpression ppe = new PredictorPreprocessorExpression(
-            "forEach ?de in :DEG:G1234567890 --> #{?de.A1234567890}" );
+        String expression = "#{A1234567890} + #{B1234567890}";
+        PredictorExpression pe = new PredictorExpression( expression );
 
-        // PreprocessorExpresssion properties
-
-        assertEquals( "forEach ?de in :DEG:G1234567890 --> #{?de.A1234567890}", ppe.getExpression() );
-        assertEquals( "forEach ?de in :DEG:G1234567890", ppe.getPrefix() );
-        assertEquals( List.of( "forEach", "?de", "in", ":DEG:G1234567890" ), ppe.getParts() );
-        assertEquals( "#{?de.A1234567890}", ppe.getMain() );
-
-        // PredictorPreprocessorExpression properties
-
-        assertEquals( "?de", ppe.getVariable() );
-        assertEquals( ":DEG:G1234567890", ppe.getTaggedDegUid() );
-        assertEquals( "G1234567890", ppe.getDegUid() );
+        assertTrue( pe.isSimple() );
+        assertEquals( expression, pe.getExpression() );
+        assertEquals( expression, pe.getMain() );
     }
 
     @Test
-    void testInvalidPredictorPreprosserExpression()
+    void testPredictorExpression()
+    {
+        String expression = "forEach ?de in :DEG:G1234567890 --> #{?de.A1234567890}";
+        PredictorExpression pe = new PredictorExpression( expression );
+
+        assertFalse( pe.isSimple() );
+        assertEquals( expression, pe.getExpression() );
+        assertEquals( "forEach ?de in :DEG:G1234567890", pe.getPrefix() );
+        assertEquals( "#{?de.A1234567890}", pe.getMain() );
+        assertEquals( "?de", pe.getVariable() );
+        assertEquals( ":DEG:G1234567890", pe.getTaggedDegUid() );
+        assertEquals( "G1234567890", pe.getDegUid() );
+    }
+
+    @Test
+    void testInvalidPredictorExpression()
     {
         // bad expression
 
@@ -76,8 +82,8 @@ class PredictorPreprocessorExpressionTest
         // bad forEach
 
         assertEquals(
-            "Predictor preprocessor expression must start with forEach: 'forEvery ?de in :DEG:G1234567890 --> #{?de.A1234567890}'",
-            testError( "forEvery ?de in :DEG:G1234567890 --> #{?de.A1234567890}" ) );
+            "Predictor preprocessor expression must start with forEach: 'forEachOne ?de in :DEG:G1234567890 --> #{?de.A1234567890}'",
+            testError( "forEachOne ?de in :DEG:G1234567890 --> #{?de.A1234567890}" ) );
 
         // bad variable
 
@@ -119,7 +125,7 @@ class PredictorPreprocessorExpressionTest
     {
         try
         {
-            new PredictorPreprocessorExpression( expression );
+            new PredictorExpression( expression );
             fail();
             return null;
         }

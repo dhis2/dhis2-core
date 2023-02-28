@@ -38,13 +38,12 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.expression.PredictorPreprocessorExpression;
+import org.hisp.dhis.expression.PredictorExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,9 +69,11 @@ public class PredictionPreprocessor
      */
     public List<Predictor> preprocess( Predictor predictor )
     {
-        return (needsPreprocessing( predictor.getGenerator().getExpression() ))
-            ? expand( predictor )
-            : List.of( predictor );
+        PredictorExpression pe = new PredictorExpression( predictor.getGenerator().getExpression() );
+
+        return (pe.isSimple())
+            ? List.of( predictor )
+            : expand( predictor, pe );
     }
 
     /**
@@ -84,9 +85,11 @@ public class PredictionPreprocessor
      */
     public String getDescription( String expression )
     {
-        return (needsPreprocessing( expression ))
-            ? describe( expression )
-            : expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION );
+        PredictorExpression pe = new PredictorExpression( expression );
+
+        return (pe.isSimple())
+            ? expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION )
+            : describe( pe );
     }
 
     // -------------------------------------------------------------------------
@@ -94,26 +97,14 @@ public class PredictionPreprocessor
     // -------------------------------------------------------------------------
 
     /**
-     * Does this predictor expression need preprocessing?
+     * Expands this predictor to a list of simple predictors.
      */
-    private boolean needsPreprocessing( String expression )
+    private List<Predictor> expand( Predictor predictor, PredictorExpression pe )
     {
-        return expression.startsWith( FOR_EACH );
-    }
-
-    /**
-     * Expands this predictor to a list of predictors.
-     */
-    private List<Predictor> expand( Predictor predictor )
-    {
-        String expression = predictor.getGenerator().getExpression();
-
-        PredictorPreprocessorExpression preEx = new PredictorPreprocessorExpression( expression );
-
-        DataElementGroup deg = getDeg( preEx.getDegUid(), expression );
+        DataElementGroup deg = getDeg( pe );
 
         return deg.getMembers().stream()
-            .map( de -> clonePredictor( predictor, preEx, de ) )
+            .map( de -> clonePredictor( predictor, pe, de ) )
             .collect( toList() );
     }
 
@@ -126,15 +117,15 @@ public class PredictionPreprocessor
      * were Hibernate proxies and the resulting objects triggered unable to
      * initialize proxy exceptions.
      */
-    private Predictor clonePredictor( Predictor predictor, PredictorPreprocessorExpression preEx,
+    private Predictor clonePredictor( Predictor predictor, PredictorExpression pe,
         DataElement dataElement )
     {
         Predictor clone = predictor.toBuilder().build();
 
         clone.setOutput( dataElement );
 
-        String mainExpression = preEx.getMain();
-        String variable = preEx.getVariable();
+        String mainExpression = pe.getMain();
+        String variable = pe.getVariable();
         String clonedExpression = mainExpression.replace( variable, dataElement.getUid() );
         Expression clonedGenerator = new Expression( clonedExpression, clone.getGenerator().getDescription(),
             clone.getGenerator().getMissingValueStrategy() );
@@ -146,23 +137,21 @@ public class PredictionPreprocessor
     /**
      * Gets the description for a predictor.
      */
-    private String describe( String expression )
+    private String describe( PredictorExpression pe )
     {
-        PredictorPreprocessorExpression preEx = new PredictorPreprocessorExpression( expression );
-
         // Get prefix description (resolve data element group)
-        DataElementGroup deg = getDeg( preEx.getDegUid(), expression );
-        String prefixDescription = preEx.getPrefix().replace( preEx.getTaggedDegUid(), deg.getName() );
+        DataElementGroup deg = getDeg( pe );
+        String prefixDescription = pe.getPrefix().replace( pe.getTaggedDegUid(), deg.getName() );
 
         // Find item descriptions for the main expression with a dummy
         // expression resolving the data element variable to some DE in the DEG
-        DataElement de = getOneDataElement( deg, expression );
-        String mainExpressionWithOneDataElement = preEx.getMain().replace( preEx.getVariable(), de.getUid() );
+        DataElement de = getOneDataElement( deg, pe );
+        String mainExpressionWithOneDataElement = pe.getMain().replace( pe.getVariable(), de.getUid() );
         Map<String, String> itemDescriptions = expressionService.getExpressionItemDescriptions(
             mainExpressionWithOneDataElement, PREDICTOR_EXPRESSION );
 
         // Get the main expression description
-        String mainDescription = preEx.getMain();
+        String mainDescription = pe.getMain();
         for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
         {
             mainDescription = mainDescription.replace( entry.getKey(), entry.getValue() );
@@ -175,14 +164,14 @@ public class PredictionPreprocessor
     /**
      * Gets the data element group for preprocessing.
      */
-    private DataElementGroup getDeg( String deUid, String expression )
+    private DataElementGroup getDeg( PredictorExpression pe )
     {
-        DataElementGroup deg = idObjectManager.get( DataElementGroup.class, deUid );
+        DataElementGroup deg = idObjectManager.get( DataElementGroup.class, pe.getDegUid() );
 
         if ( deg == null )
         {
-            throw new ParserException(
-                format( "Can't find data element group %s in %s", deUid, expression ) );
+            throw new IllegalStateException(
+                format( "Can't find data element group %s in %s", pe.getDegUid(), pe.getExpression() ) );
         }
         return deg;
     }
@@ -190,14 +179,14 @@ public class PredictionPreprocessor
     /**
      * Gets one data element from the data element group.
      */
-    private DataElement getOneDataElement( DataElementGroup deg, String expression )
+    private DataElement getOneDataElement( DataElementGroup deg, PredictorExpression pe )
     {
         Set<DataElement> dataElements = deg.getMembers();
 
         if ( dataElements.isEmpty() )
         {
-            throw new ParserException(
-                format( "DataElementGroup '%s' is empty when evaluating '%s'", deg.getName(), expression ) );
+            throw new IllegalStateException(
+                format( "DataElementGroup '%s' is empty when evaluating '%s'", deg.getName(), pe.getExpression() ) );
         }
 
         return dataElements.iterator().next();
