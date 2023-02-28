@@ -34,7 +34,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.springframework.util.StringUtils;
 
-public class StringToTrackerIdSchemeParamConverter extends PropertyEditorSupport
+public class IdSchemeParamEditor extends PropertyEditorSupport
 {
     private static final String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
 

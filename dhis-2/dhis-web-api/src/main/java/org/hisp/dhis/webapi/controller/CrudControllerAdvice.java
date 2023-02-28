@@ -78,7 +78,7 @@ import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.hisp.dhis.webapi.controller.tracker.imports.StringToTrackerIdSchemeParamConverter;
+import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
@@ -134,7 +134,7 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
-        binder.registerCustomEditor( TrackerIdSchemeParam.class, new StringToTrackerIdSchemeParamConverter() );
+        binder.registerCustomEditor( TrackerIdSchemeParam.class, new IdSchemeParamEditor() );
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
@@ -267,7 +267,7 @@ public class CrudControllerAdvice
 
     private String getNotValidValueMessage( Object value, String field )
     {
-        if ( value == null || "".equals( value ) )
+        if ( value == null || (value instanceof String && ((String) value).isEmpty()) )
         {
             return MessageFormat.format( "{0} cannot be empty.", field );
         }
