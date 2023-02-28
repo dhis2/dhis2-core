@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -101,6 +103,11 @@ public class MetadataItem
     @JsonProperty
     private String expression;
 
+    @JsonProperty
+    private ObjectStyle style;
+
+    private transient String serverBaseUrl;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -120,6 +127,13 @@ public class MetadataItem
     public MetadataItem( String name, DimensionalItemObject dimensionalItemObject )
     {
         this.name = name;
+        setDataItem( dimensionalItemObject );
+    }
+
+    public MetadataItem( String name, String serverBaseUrl, DimensionalItemObject dimensionalItemObject )
+    {
+        this.name = name;
+        this.serverBaseUrl = serverBaseUrl;
         setDataItem( dimensionalItemObject );
     }
 
@@ -212,6 +226,15 @@ public class MetadataItem
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
+
+            if ( indicator.getStyle() != null )
+            {
+                // Override icon path.
+                ObjectStyle indicatorStyle = indicator.getStyle();
+                indicator.getStyle().setIcon( getFullIconUrl( indicatorStyle.getIcon() ) );
+
+                this.style = indicator.getStyle();
+            }
         }
         else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
         {
@@ -219,6 +242,20 @@ public class MetadataItem
 
             this.expression = expressionDimensionItem.getExpression();
         }
+    }
+
+    /**
+     * It returns the full icon URL for the given icon name. The full URL is
+     * based on the Icons' API. See the controller
+     * {@link org.hisp.dhis.webapi.controller.IconController} for more details.
+     *
+     * @param iconName the icon name.
+     * @return the icon's full path.
+     */
+    private String getFullIconUrl( String iconName )
+    {
+        String absoluteUrl = appendIfMissing( serverBaseUrl, "/" );
+        return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
     }
 
     private void setDataItem( DimensionalObject dimensionalObject )

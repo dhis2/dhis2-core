@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -44,22 +45,20 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @Value
 @Builder
 @JsonDeserialize( builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class )
-@AllArgsConstructor( staticName = "of" )
+@AllArgsConstructor( staticName = "of", access = AccessLevel.PRIVATE )
 public class TrackerIdSchemeParam
 {
-    public static final TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public static final TrackerIdSchemeParam UID = TrackerIdSchemeParam.of( TrackerIdScheme.UID, null );
 
-    public static final TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public static final TrackerIdSchemeParam CODE = TrackerIdSchemeParam.of( TrackerIdScheme.CODE, null );
 
-    public static final TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
-
-    @JsonProperty
-    @Builder.Default
-    private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
+    public static final TrackerIdSchemeParam NAME = TrackerIdSchemeParam.of( TrackerIdScheme.NAME, null );
 
     @JsonProperty
-    @Builder.Default
-    private final String attributeUid = null;
+    private final TrackerIdScheme idScheme;
+
+    @JsonProperty
+    private final String attributeUid;
 
     /**
      * Creates a TrackerIdSchemeParam of idScheme ATTRIBUTE.

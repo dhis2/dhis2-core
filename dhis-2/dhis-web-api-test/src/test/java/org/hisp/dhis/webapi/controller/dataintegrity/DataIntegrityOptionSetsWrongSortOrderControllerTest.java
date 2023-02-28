@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
@@ -66,6 +67,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
     @Test
     @Disabled( "Cannot directly set the sort order of option sets" )
     void testOptionSetWrongSortOrder()
+        throws ConflictException
     {
 
         Option optionA = new Option( "Sweet", "SWEET", 1 );
