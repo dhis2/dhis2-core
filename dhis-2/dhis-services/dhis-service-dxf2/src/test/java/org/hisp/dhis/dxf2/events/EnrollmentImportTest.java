@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.events;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -53,13 +53,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author <luca@dhis2.org>
  */
-class EnrollmentImportTest extends TransactionalIntegrationTest
+public class EnrollmentImportTest extends TransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -117,7 +117,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void shouldSetCreatedByUserInfoWhenCreateEnrollments()
+    public void shouldSetCreatedByUserInfoWhenCreateEnrollments()
     {
         String enrollmentUid = CodeGenerator.generateUid();
 
@@ -125,30 +125,30 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
             trackedEntityInstance.getUid() );
         enrollment.setEnrollment( enrollmentUid );
 
-        ImportSummaries importSummaries = enrollmentService.addEnrollments( List.of( enrollment ),
+        ImportSummaries importSummaries = enrollmentService.addEnrollments( Collections.singletonList( enrollment ),
             new ImportOptions().setUser( user ),
             null );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
             () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
+                enrollmentService.getEnrollment( enrollmentUid )
                     .getCreatedByUserInfo() ) );
     }
 
     @Test
-    void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
+    public void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
     {
         Enrollment enrollment = enrollment( organisationUnitA.getUid(), program.getUid(),
             trackedEntityInstance.getUid() );
         enrollment.setEnrollment( programInstance.getUid() );
 
-        ImportSummaries importSummaries = enrollmentService.updateEnrollments( List.of( enrollment ),
+        ImportSummaries importSummaries = enrollmentService.updateEnrollments( Collections.singletonList( enrollment ),
             new ImportOptions().setUser( user ),
             true );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
             () -> assertEquals( UserInfoSnapshot.from( user ),
-                enrollmentService.getEnrollment( programInstance.getUid(), EnrollmentParams.FALSE )
+                enrollmentService.getEnrollment( programInstance.getUid() )
                     .getLastUpdatedByUserInfo() ) );
     }
 
