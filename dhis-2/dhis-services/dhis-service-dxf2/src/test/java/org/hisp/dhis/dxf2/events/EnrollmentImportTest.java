@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -48,6 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -121,7 +121,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     {
         String enrollmentUid = CodeGenerator.generateUid();
 
-        Enrollment enrollment = createEnrollment( organisationUnitA.getUid(), program.getUid(),
+        Enrollment enrollment = enrollment( organisationUnitA.getUid(), program.getUid(),
             trackedEntityInstance.getUid() );
         enrollment.setEnrollment( enrollmentUid );
 
@@ -130,7 +130,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
             null );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertNotNull(
+            () -> assertEquals( UserInfoSnapshot.from( user ),
                 enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
                     .getCreatedByUserInfo() ) );
     }
@@ -138,7 +138,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     @Test
     void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
     {
-        Enrollment enrollment = createEnrollment( organisationUnitA.getUid(), program.getUid(),
+        Enrollment enrollment = enrollment( organisationUnitA.getUid(), program.getUid(),
             trackedEntityInstance.getUid() );
         enrollment.setEnrollment( programInstance.getUid() );
 
@@ -147,12 +147,12 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
             true );
 
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
-            () -> assertNotNull(
+            () -> assertEquals( UserInfoSnapshot.from( user ),
                 enrollmentService.getEnrollment( programInstance.getUid(), EnrollmentParams.FALSE )
                     .getLastUpdatedByUserInfo() ) );
     }
 
-    private Enrollment createEnrollment( String orgUnit, String program, String trackedEntity )
+    private Enrollment enrollment( String orgUnit, String program, String trackedEntity )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setOrgUnit( orgUnit );
