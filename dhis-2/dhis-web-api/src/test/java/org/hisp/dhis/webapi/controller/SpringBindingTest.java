@@ -34,8 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +57,7 @@ class SpringBindingTest
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( new BindingController() )
+            .setControllerAdvice( new CrudControllerAdvice() )
             .build();
     }
 
@@ -92,7 +93,7 @@ class SpringBindingTest
             .param( "doubleNumber", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string( containsString(
-                "Value INVALID is not valid for parameter doubleNumber. It should be of type Double" ) ) );
+                "Value INVALID is not valid for parameter doubleNumber. It should be of type double" ) ) );
     }
 
     @Test
@@ -103,7 +104,7 @@ class SpringBindingTest
             .param( "integerNumber", "10.5" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string( containsString(
-                "Value 10.5 is not valid for parameter integerNumber. It should be of type Integer" ) ) );
+                "Value 10.5 is not valid for parameter integerNumber. For input string: \"10.5\"" ) ) );
     }
 
     @Test
@@ -114,7 +115,7 @@ class SpringBindingTest
             .param( "date", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string(
-                containsString( "Value INVALID is not valid for parameter date. It should be of type Date" ) ) );
+                containsString( "Value INVALID is not valid for parameter date. Invalid format: \"INVALID\"" ) ) );
     }
 
     @Test
@@ -125,7 +126,7 @@ class SpringBindingTest
             .param( "booleanValue", "INVALID" ) )
             .andExpect( content().string( containsString( "Bad Request" ) ) )
             .andExpect( content().string( containsString(
-                "Value INVALID is not valid for parameter booleanValue. It should be of type Boolean" ) ) );
+                "Value INVALID is not valid for parameter booleanValue. Invalid boolean value [INVALID]" ) ) );
     }
 
     @Controller
@@ -144,19 +145,19 @@ class SpringBindingTest
         }
     }
 
-    @AllArgsConstructor
-    @Getter
+    @NoArgsConstructor
+    @Data
     private class Criteria
     {
-        private final SimpleEnum simpleEnumInCriteria;
+        private SimpleEnum simpleEnumInCriteria;
 
-        private final Date date;
+        private Date date;
 
-        private final Double doubleNumber;
+        private double doubleNumber;
 
-        private final Integer integerNumber;
+        private Integer integerNumber;
 
-        private final Boolean booleanValue;
+        private Boolean booleanValue;
     }
 
     private enum SimpleEnum
