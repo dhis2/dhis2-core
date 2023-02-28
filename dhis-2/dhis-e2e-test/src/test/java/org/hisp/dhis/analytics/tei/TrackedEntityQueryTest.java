@@ -576,7 +576,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
-            .add( "desc=IpHINAT79UW.A03MvHHogjR.ouname" )
+            .add( "desc=lastupdated,IpHINAT79UW.A03MvHHogjR.ouname" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -598,15 +598,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Zimmi CHC",
+            List.of( "Ngelehun CHC",
                 "" ) );
 
         validateRow( response, 1,
-            List.of( "Zimmi CHC",
+            List.of( "Ngelehun CHC",
                 "" ) );
 
         validateRow( response, 2,
-            List.of( "Zimmi CHC",
+            List.of( "Ngelehun CHC",
                 "" ) );
     }
 
@@ -657,7 +657,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
-            .add( "desc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
+            .add( "asc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3,IpHINAT79UW.zDhUuAYrxNC,IpHINAT79UW.w75KJ2mc4zz" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q,IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -681,19 +681,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Ngelehun CHC",
+            List.of( "Tambaliabalia MCHP",
                 "",
-                "NaN" ) );
+                "0.0" ) );
 
         validateRow( response, 1,
-            List.of( "Ngelehun CHC",
+            List.of( "Kathanta Bana MCHP",
                 "",
-                "NaN" ) );
+                "0.0" ) );
 
         validateRow( response, 2,
-            List.of( "Govt. Hospital Moyamba",
+            List.of( "Sam Lean's MCHP",
                 "",
-                "1.0" ) );
+                "0.0" ) );
     }
 
     @Test
@@ -990,7 +990,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "eventDate=IpHINAT79UW.A03MvHHogjR.LAST_YEAR" )
-            .add( "desc=lastupdated" )
+            .add( "desc=lastupdated,oucode" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -1043,7 +1043,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Female",
                 "" ) );
 
-        validateRow( response, 3,
+        validateRow( response, 2,
             List.of( "xgrOXoHRoZC",
                 "2015-08-06 21:20:52.781",
                 "",

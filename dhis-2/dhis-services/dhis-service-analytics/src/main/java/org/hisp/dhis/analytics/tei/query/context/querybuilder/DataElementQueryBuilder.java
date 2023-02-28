@@ -59,6 +59,7 @@ import org.springframework.stereotype.Service;
  * Query builder for data elements.
  */
 @Service
+@org.springframework.core.annotation.Order( 999 )
 public class DataElementQueryBuilder implements SqlQueryBuilder
 {
     @Getter

@@ -58,6 +58,7 @@ import org.springframework.stereotype.Service;
  * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
  */
 @Service
+@org.springframework.core.annotation.Order( 2 )
 public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
     @Getter
