@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,7 +107,7 @@ public class IdentifiableObjectUtils
     public static <T extends IdentifiableObject> List<String> getUids( Collection<T> objects )
     {
         return objects != null ? objects.stream()
-            .filter( o -> o != null )
+            .filter( Objects::nonNull )
             .map( o -> o.getUid() )
             .collect( Collectors.toList() ) : null;
     }
@@ -120,7 +121,7 @@ public class IdentifiableObjectUtils
     public static <T extends IdentifiableObject> Set<String> getUidsAsSet( Collection<T> objects )
     {
         return objects != null ? objects.stream()
-            .filter( o -> o != null )
+            .filter( Objects::nonNull )
             .map( o -> o.getUid() )
             .collect( Collectors.toSet() ) : null;
     }
