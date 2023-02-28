@@ -55,6 +55,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.tei.query.TeiHeaderProvider;
+import org.hisp.dhis.analytics.tei.query.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;
@@ -260,9 +262,11 @@ public class DimensionParam implements UidObject
     }
 
     @RequiredArgsConstructor
-    public enum StaticDimension
+    public enum StaticDimension implements TeiHeaderProvider
     {
-        OUNAME( TEXT, ORGANISATION_UNIT ),
+        OUNAME( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME ),
+        OUCODE( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE ),
+
         ENROLLMENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         ENDDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         INCIDENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
@@ -278,7 +282,15 @@ public class DimensionParam implements UidObject
         @Getter
         private final DimensionParamObjectType dimensionParamObjectType;
 
+        private final TeiStaticField teiStaticField;
+
         StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType )
+        {
+            this( valueType, dimensionParamObjectType, null );
+        }
+
+        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType,
+            TeiStaticField teiStaticField )
         {
             this.valueType = valueType;
 
@@ -286,6 +298,8 @@ public class DimensionParam implements UidObject
             this.columnName = lowerCase( name() );
 
             this.dimensionParamObjectType = dimensionParamObjectType;
+
+            this.teiStaticField = teiStaticField;
         }
 
         static Optional<StaticDimension> of( String value )
@@ -293,6 +307,28 @@ public class DimensionParam implements UidObject
             return Arrays.stream( StaticDimension.values() )
                 .filter( sd -> StringUtils.equalsIgnoreCase( sd.name(), value ) )
                 .findFirst();
+        }
+
+        @Override
+        public String getAlias()
+        {
+            return Optional.ofNullable( teiStaticField )
+                .map( TeiStaticField::getAlias )
+                .orElse( name() );
+        }
+
+        @Override
+        public String getFullName()
+        {
+            return Optional.ofNullable( teiStaticField )
+                .map( TeiStaticField::getFullName )
+                .orElse( name() );
+        }
+
+        @Override
+        public ValueType getType()
+        {
+            return valueType;
         }
     }
 }
