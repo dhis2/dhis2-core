@@ -1295,7 +1295,10 @@ public class JdbcEventStore implements EventStore
 
         if ( orgUnitSql != null )
         {
-            fromBuilder.append( hlp.whereAnd() ).append( orgUnitSql + " " );
+            fromBuilder.append( hlp.whereAnd() )
+                .append( " (" )
+                .append( orgUnitSql )
+                .append( ") " );
         }
 
         if ( params.getStartDate() != null )

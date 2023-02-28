@@ -1008,8 +1008,10 @@ public abstract class AbstractEventService implements EventService
                 : "Current user is not authorized to query across all organisation units";
             break;
         case ACCESSIBLE:
+            violation = getAccessibleScopeValidation( user, params );
+            break;
         case CAPTURE:
-            violation = user == null ? "User is required for ouMode: " + params.getOrgUnitSelectionMode() : null;
+            violation = getCaptureScopeValidation( user );
             break;
         case CHILDREN:
         case SELECTED:
@@ -1021,6 +1023,46 @@ public abstract class AbstractEventService implements EventService
         default:
             violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
             break;
+        }
+
+        return violation;
+    }
+
+    private String getCaptureScopeValidation( User user )
+    {
+        String violation = null;
+
+        if ( user == null )
+        {
+            violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
+        }
+        else if ( user.getOrganisationUnits().isEmpty() )
+        {
+            violation = "User needs to be assigned data capture orgunits";
+        }
+
+        return violation;
+    }
+
+    private String getAccessibleScopeValidation( User user, EventSearchParams params )
+    {
+        String violation = null;
+
+        if ( user == null )
+        {
+            return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+        }
+
+        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
+        {
+            violation = user.getOrganisationUnits().isEmpty() ? "User needs to be assigned data capture orgunits"
+                : null;
+        }
+        else
+        {
+            violation = user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
+                ? "User needs to be assigned either TEI search, data view or data capture org units"
+                : null;
         }
 
         return violation;
