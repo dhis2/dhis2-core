@@ -621,9 +621,7 @@ public class OrganisationUnit
             return false;
         }
 
-        Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet( ancestors );
-
-        return ancestorUids.stream()
+        return IdentifiableObjectUtils.getUidsAsSet( ancestors ).stream()
             .anyMatch( uid -> path.contains( uid ) );
     }
 
