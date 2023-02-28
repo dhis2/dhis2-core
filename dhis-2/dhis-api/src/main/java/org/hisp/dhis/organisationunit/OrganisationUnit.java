@@ -622,7 +622,7 @@ public class OrganisationUnit
         }
 
         return IdentifiableObjectUtils.getUidsAsSet( ancestors ).stream()
-            .anyMatch( uid -> path.contains( uid ) );
+            .anyMatch( uid -> StringUtils.contains( path, uid ) );
     }
 
     public Set<OrganisationUnit> getChildrenThisIfEmpty()
