@@ -520,6 +520,27 @@ class OrganisationUnitServiceTest extends DhisSpringTest
     }
 
     @Test
+    void testIsDescendantOrgUnit()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( ouA );
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA );
+        ouA.getChildren().add( ouB );
+        organisationUnitService.addOrganisationUnit( ouB );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouB );
+        ouB.getChildren().add( ouC );
+        organisationUnitService.addOrganisationUnit( ouC );
+        OrganisationUnit ouD = createOrganisationUnit( 'D' );
+        organisationUnitService.addOrganisationUnit( ouD );
+        assertTrue( ouA.isDescendant( Set.of( ouA ) ) );
+        assertTrue( ouB.isDescendant( Set.of( ouA ) ) );
+        assertTrue( ouC.isDescendant( Set.of( ouA, ouD ) ) );
+        assertTrue( ouB.isDescendant( Set.of( ouA, ouC ) ) );
+        assertFalse( ouB.isDescendant( Set.of( ouC ) ) );
+        assertFalse( ouD.isDescendant( Set.of( ouA ) ) );
+    }
+
+    @Test
     void testIsDescendantObject()
     {
         OrganisationUnit unit1 = createOrganisationUnit( '1' );

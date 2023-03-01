@@ -67,7 +67,6 @@ import com.google.common.collect.Sets;
  */
 class AnalyticsSecurityManagerTest extends IntegrationTestBase
 {
-
     @Autowired
     private AnalyticsSecurityManager securityManager;
 
@@ -144,6 +143,7 @@ class AnalyticsSecurityManagerTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+        organisationUnitService.addOrganisationUnit( ouF );
         userOrgUnits = Sets.newHashSet( ouB, ouC );
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );

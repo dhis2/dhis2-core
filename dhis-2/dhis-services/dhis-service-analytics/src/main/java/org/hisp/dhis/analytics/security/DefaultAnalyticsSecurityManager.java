@@ -140,9 +140,9 @@ public class DefaultAnalyticsSecurityManager
 
         for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
         {
-            boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
+            boolean descendant = queryOrgUnit.isDescendant( viewOrgUnits );
 
-            if ( notDescendant )
+            if ( !descendant )
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }
