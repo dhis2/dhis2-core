@@ -966,7 +966,8 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search child org units to get lowest level org unit with coordinate
+            // Search child org units to get lowest level org unit with
+            // coordinate
 
             if ( topOrgUnit != null )
             {
