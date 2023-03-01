@@ -155,7 +155,8 @@ public class OpenApiController
     private static String getServerUrl( HttpServletRequest request )
     {
         StringBuffer url = request.getRequestURL();
-        String uri = request.getRequestURI();
-        return url.substring( 0, url.indexOf( uri ) ) + request.getServletPath();
+        String servletPath = request.getServletPath();
+        servletPath = servletPath.substring( servletPath.indexOf( "/api" ) );
+        return url.substring( 0, url.indexOf( "/api/" ) ) + servletPath;
     }
 }
