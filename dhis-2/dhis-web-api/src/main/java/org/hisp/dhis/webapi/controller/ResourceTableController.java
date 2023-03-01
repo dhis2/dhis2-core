@@ -129,12 +129,6 @@ public class ResourceTableController
             skipTableTypes.add( TRACKED_ENTITY_INSTANCE_EVENTS );
             skipTableTypes.add( TRACKED_ENTITY_INSTANCE_ENROLLMENTS );
         }
-        else
-        {
-            // Ensure these tables are never skipped. They are required by TEI tables/queries.
-            skipTableTypes.remove( EVENT );
-            skipTableTypes.remove( ENROLLMENT );
-        }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
             skipPrograms, skipResourceTables );
