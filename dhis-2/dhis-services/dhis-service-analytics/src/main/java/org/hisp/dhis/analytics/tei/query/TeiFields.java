@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
@@ -35,6 +36,7 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,11 +44,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -71,6 +76,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @NoArgsConstructor( access = PRIVATE )
 public class TeiFields
 {
+    public static final String EVENT_COLUMN_PREFIX = "Event";
+
+    public static final String ENROLLMENT_COLUMN_PREFIX = "Enrollment";
+
     /**
      * Retrieves all object attributes from the given param encapsulating them
      * into a stream of {@link Field}.
@@ -90,7 +99,7 @@ public class TeiFields
             .flatMap( List::stream )
             .map( programAttr -> Field.of( TEI_ALIAS,
                 () -> programAttr.getAttribute().getUid(),
-                String.join( ".", programAttr.getProgram().getUid(), programAttr.getAttribute().getUid() ) ) );
+                join( ".", programAttr.getProgram().getUid(), programAttr.getAttribute().getUid() ) ) );
 
         Stream<Field> trackedEntityAttributesFromType = getTrackedEntityAttributes(
             teiQueryParams.getTrackedEntityType() )
@@ -255,32 +264,53 @@ public class TeiFields
         }
         else if ( dimensionalObject != null )
         {
-            return getCustomGridHeaderForDimensionalObject( dimensionalObject, commonParams, dimIdentifier );
+            return getCustomGridHeader( dimIdentifier,
+                d -> d.getDimensionalObject().getDimensionDisplayName() );
         }
         else
         {
             // It is a static dimension here
-            DimensionParam.StaticDimension dimension = dimIdentifier.getDimension().getStaticDimension();
-            String fullName = dimension.getFullName();
-            if ( dimIdentifier.hasProgramStage() )
-            {
-                fullName = "Event " + fullName;
-            }
-            else if ( dimIdentifier.hasProgram() )
-            {
-                fullName = "Enrollment " + fullName;
-            }
-
-            ValueType valueType = dimensionParam.getValueType();
-
-            return new GridHeader( dimIdentifier.getDimension().getUid(), fullName, valueType, false, true );
+            return getCustomGridHeader(
+                dimIdentifier,
+                d -> d.getStaticDimension().getFullName() );
         }
     }
 
-    private static GridHeader getCustomGridHeaderForDimensionalObject( DimensionalObject dimensionalObject,
-        CommonParams commonParams, DimensionIdentifier<DimensionParam> dimIdentifier )
+    private static GridHeader getCustomGridHeader(
+        DimensionIdentifier<DimensionParam> dimensionIdentifier,
+        Function<DimensionParam, String> dimensionNameProvider )
     {
-        return null;
+        /*
+         * Sometimes it looks like DimensionalObject.valueType is null, so we
+         * default to TEXT
+         */
+        ValueType valueType = Optional.of( dimensionIdentifier )
+            .map( DimensionIdentifier::getDimension )
+            .map( DimensionParam::getValueType )
+            .orElse( ValueType.TEXT );
+
+        return new GridHeader(
+            dimensionIdentifier.getKey(),
+            join( SPACE,
+                getColumnPrefix( dimensionIdentifier ),
+                dimensionNameProvider.apply( dimensionIdentifier.getDimension() ) )
+                    .trim(),
+            valueType,
+            false,
+            true );
+    }
+
+    private static String getColumnPrefix( DimensionIdentifier<DimensionParam> dimIdentifier )
+    {
+        if ( dimIdentifier.hasProgramStage() )
+        {
+            return EVENT_COLUMN_PREFIX;
+        }
+        else if ( dimIdentifier.hasProgram() )
+        {
+            return ENROLLMENT_COLUMN_PREFIX;
+        }
+        return StringUtils.EMPTY;
     }
 
     /**

@@ -437,7 +437,7 @@ public class EventAnalyticsController
     {
         criteria.definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( criteria,
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
             systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()

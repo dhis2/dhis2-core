@@ -857,13 +857,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 14 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "BV4IomHvri4" ) )
             .body( "height", equalTo( 14 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -879,7 +879,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Angela",
                 "Wright",
                 "Female",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
 
         validateRow( response, 1,
             List.of( "sM7XmpfgKFb",
@@ -894,7 +895,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Brenda",
                 "Morgan",
                 "Female",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
 
         validateRow( response, 2,
             List.of( "vFSQneulDLz",
@@ -909,7 +911,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Edward",
                 "Murray",
                 "Male",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
     }
 
     @Test
@@ -928,13 +931,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 14 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "BV4IomHvri4" ) )
             .body( "height", equalTo( 14 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -950,7 +953,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Angela",
                 "Wright",
                 "Female",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
 
         validateRow( response, 1,
             List.of( "sM7XmpfgKFb",
@@ -965,7 +969,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Brenda",
                 "Morgan",
                 "Female",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
 
         validateRow( response, 2,
             List.of( "vFSQneulDLz",
@@ -980,7 +985,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "Edward",
                 "Murray",
                 "Male",
-                "" ) );
+                "",
+                "BV4IomHvri4" ) );
     }
 
     @Test
