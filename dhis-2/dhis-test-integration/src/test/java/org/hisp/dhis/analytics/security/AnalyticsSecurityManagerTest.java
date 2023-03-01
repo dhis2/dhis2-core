@@ -68,7 +68,6 @@ import com.google.common.collect.Sets;
  */
 class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private AnalyticsSecurityManager securityManager;
 
@@ -139,6 +138,7 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+        organisationUnitService.addOrganisationUnit( ouF );
         userOrgUnits = Sets.newHashSet( ouB, ouC );
         User user = createUserWithAuth( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );

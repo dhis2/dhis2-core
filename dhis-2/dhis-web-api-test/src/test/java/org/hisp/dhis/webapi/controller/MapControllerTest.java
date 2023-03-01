@@ -45,12 +45,23 @@ import org.junit.jupiter.api.Test;
  */
 class MapControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testPutJsonObject()
     {
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/maps/" + mapId, "{'name':'My updated map'}" ) );
+
+        JsonResponse map = GET( "/maps/{uid}", mapId ).content();
+
+        // The default merge method is REPLACE, so we must set the mandatory attributes from the created object.
+        String mandatoryProperties = "'lastUpdated':'" + map.get( "lastUpdated" ).node().value() + "', 'created':'"
+            + map.get( "created" ).node().value() + "'";
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            PUT( "/maps/" + mapId, "{'name':'My updated map'," + mandatoryProperties + "}" ) );
+
+        map = GET( "/maps/{uid}", mapId ).content();
+
+        assertEquals( "My updated map", map.get( "name" ).node().value() );
     }
 
     @Test
