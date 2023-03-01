@@ -108,8 +108,8 @@
 
     <!-- Struts -->
     <struts.version>2.5.30</struts.version>
-    <velocity.version>1.7</velocity.version>
-    <velocity-tools.version>2.0</velocity-tools.version>
+    <velocity.version>2.3</velocity.version>
+    <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
     <jackson.version>2.14.2</jackson.version>
@@ -1329,12 +1329,12 @@
       </dependency>
       <dependency>
         <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity</artifactId>
+        <artifactId>velocity-engine-core</artifactId>
         <version>${velocity.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity-tools</artifactId>
+        <groupId>org.apache.velocity.tools</groupId>
+        <artifactId>velocity-tools-generic</artifactId>
         <version>${velocity-tools.version}</version>
         <exclusions>
           <exclusion>

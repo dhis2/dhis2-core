@@ -56,7 +56,7 @@ public class EncoderVelocityContext
     }
 
     @Override
-    public boolean containsKey( Object key )
+    public boolean containsKey( String key )
     {
         return KEY.equals( key ) || super.containsKey( key );
     }
