@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.dxf2.events.EnrollmentParams.ALL;
 import static org.hisp.dhis.dxf2.events.Param.DELETED;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -57,7 +57,7 @@ class EnrollmentFieldsParamMapper implements FieldsParamMapper<EnrollmentParams>
     public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
     {
         return initUsingAllOrNoFields( rootFields( fields ) )
-            .with( ALL.stream().collect( Collectors.toMap( p -> p,
+            .with( ALL.stream().collect( toMap( p -> p,
                 p -> fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) ) ) )
             .with( DELETED, includeDeleted ).build();
     }

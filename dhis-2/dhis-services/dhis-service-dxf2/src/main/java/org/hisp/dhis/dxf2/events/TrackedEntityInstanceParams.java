@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.dxf2.events.Param.ATTRIBUTES;
 import static org.hisp.dhis.dxf2.events.Param.DELETED;
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS;
@@ -40,7 +41,6 @@ import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
@@ -67,9 +67,7 @@ public class TrackedEntityInstanceParams extends AbstractParams
             .with( this.params.stream()
                 .filter(
                     p -> p.getPrefix().isPresent() && p.getPrefix().get() == ENROLLMENTS )
-                .map( p -> fromFieldPath( p.getField() ) )
-                .collect( Collectors.toCollection( () -> EnumSet.noneOf( Param.class ) ) ),
-                true )
+                .collect( toMap( p -> fromFieldPath( p.getField() ), p -> true ) ) )
             .with( DELETED, this.params.contains( DELETED ) ).build();
     }
 

@@ -73,12 +73,6 @@ public abstract class AbstractParams
             return this;
         }
 
-        public ParamsBuilder<T> with( Set<Param> params, boolean isIncluded )
-        {
-            this.params = isIncluded ? include( params ) : exclude( params );
-            return this;
-        }
-
         public ParamsBuilder<T> with( Map<Param, Boolean> paramsToInclusion )
         {
             paramsToInclusion.forEach(

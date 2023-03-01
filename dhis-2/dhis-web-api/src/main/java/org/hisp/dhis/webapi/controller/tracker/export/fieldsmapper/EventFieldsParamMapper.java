@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.dxf2.events.EventParams.ALL;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -49,7 +49,7 @@ class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
     @Override
     public EventParams map( List<FieldPath> fields )
     {
-        return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( Collectors.toMap( p -> p,
+        return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( toMap( p -> p,
             p -> fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) ) ) ).build();
     }
 
