@@ -56,9 +56,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.DefaultProgramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class TeiQueryParamPostProcessorTest
 {
