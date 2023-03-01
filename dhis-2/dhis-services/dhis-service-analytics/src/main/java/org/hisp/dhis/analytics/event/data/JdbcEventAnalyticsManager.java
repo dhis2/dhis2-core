@@ -74,6 +74,7 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -193,7 +194,7 @@ public class JdbcEventAnalyticsManager
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
         List<String> clusterFields = params.getCoordinateFields();
-        String sqlClusterFields = getCoalesce( clusterFields );
+        String sqlClusterFields = getCoalesce( clusterFields, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
 
         List<String> columns = Lists.newArrayList( "count(psi) as count",
             "ST_Extent(" + sqlClusterFields + ") as extent" );
@@ -277,7 +278,9 @@ public class JdbcEventAnalyticsManager
     public Rectangle getRectangle( EventQueryParams params )
     {
         String sql = "select count(psi) as " + COL_COUNT +
-            ", ST_Extent(" + getCoalesce( params.getCoordinateFields() ) + ") as " + COL_EXTENT + " ";
+            ", ST_Extent("
+            + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() ) + ") as "
+            + COL_EXTENT + " ";
 
         sql += getFromClause( params );
 
@@ -338,7 +341,8 @@ public class JdbcEventAnalyticsManager
             cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
         }
 
-        String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
+        String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields(),
+            FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
 
         cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
             "ounamehierarchy",
@@ -531,7 +535,9 @@ public class JdbcEventAnalyticsManager
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
             sql += hlp.whereAnd() + " " +
-                getCoalesce( resolveCoordinateFieldsColumnNames( params.getCoordinateFields(), params ) ) +
+                getCoalesce( resolveCoordinateFieldsColumnNames( params.getCoordinateFields(), params ),
+                    FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() )
+                +
                 " is not null ";
         }
 
@@ -542,7 +548,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += hlp.whereAnd() + " " + getCoalesce( params.getCoordinateFields() ) +
+            sql += hlp.whereAnd() + " "
+                + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() ) +
                 " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
 
