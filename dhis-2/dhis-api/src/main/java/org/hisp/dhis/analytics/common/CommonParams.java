@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -120,7 +121,7 @@ public class CommonParams
      * The user's organization unit.
      */
     @Builder.Default
-    private final String userOrgUnit;
+    private final List<OrganisationUnit> userOrgUnit;
 
     /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning

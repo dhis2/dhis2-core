@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import java.util.stream.Collectors;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +36,7 @@ import lombok.Setter;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.IdentifiableKey;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
@@ -64,7 +67,11 @@ public class TeiQueryParams implements IdentifiableKey
         key.addIgnoreNull( "paging", commonParams.getPagingParams().wrappedKey() );
         key.addIgnoreNull( "includeMetadataDetails", commonParams.isIncludeMetadataDetails() );
         key.addIgnoreNull( "displayProperty", commonParams.getDisplayProperty() );
-        key.addIgnoreNull( "userOrgUnit", commonParams.getUserOrgUnit() );
+        key.addIgnoreNull( "userOrgUnit",
+            commonParams.getUserOrgUnit().stream()
+                .map( BaseIdentifiableObject::getUid )
+                .sorted()
+                .collect( Collectors.joining( ";" ) ) );
         key.addIgnoreNull( "ouMode", commonParams.getOuMode() );
         key.addIgnoreNull( "dataIdScheme", commonParams.getDataIdScheme() );
         key.addIgnoreNull( "relativePeriodDate", commonParams.getRelativePeriodDate() );

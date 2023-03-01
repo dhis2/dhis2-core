@@ -126,6 +126,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "asc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -234,6 +235,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "pageSize=10" )
             .add( "totalPages=true" )
             .add( "asc=lastupdated" )
@@ -349,6 +351,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "showHierarchy=true" )
             .add( "hierarchyMeta=true" )
             .add( "dimension=cejWyOfXge6" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add(
                 "headers=ouname,IpHINAT79UW.cejWyOfXge6,IpHINAT79UW.w75KJ2mc4zz,trackedentityinstanceuid,lastupdated,oucode" )
             .add( "desc=lastupdated" )
@@ -429,6 +432,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=ouname,IpHINAT79UW.w75KJ2mc4zz:eq:James" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "includeMetadataDetails=false" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,lastupdated" )
             .add( "asc=lastupdated" )
@@ -497,6 +501,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "program=IpHINAT79UW" )
             .add( "desc=lastupdated,ouname" )
             .add( "headers=ouname,lastupdated" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -536,6 +541,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" )
             .add( "headers=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" )
             .add( "relativePeriodDate=2022-09-27" );
@@ -576,6 +582,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=lastupdated,IpHINAT79UW.A03MvHHogjR.ouname" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q" )
             .add( "relativePeriodDate=2022-09-27" );
@@ -617,6 +624,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "desc=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -657,6 +665,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "asc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3,IpHINAT79UW.zDhUuAYrxNC,IpHINAT79UW.w75KJ2mc4zz" )
             .add( "headers=ouname,IpHINAT79UW.lZGmxYbs97q,IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3" )
             .add( "relativePeriodDate=2022-09-27" );
@@ -703,6 +712,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=ou:BV4IomHvri4" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -774,6 +784,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -847,6 +858,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "dimension=IpHINAT79UW.ou:BV4IomHvri4" )
             .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
@@ -922,6 +934,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.A03MvHHogjR.ou:BV4IomHvri4" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
@@ -1240,6 +1253,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO:eq:12" )
+            .add( "lastUpdated=LAST_10_YEARS" )
             .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 

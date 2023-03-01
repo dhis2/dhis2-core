@@ -56,6 +56,8 @@ public class TeiQueryRequestMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
+    private final TeiQueryParamPostProcessor teiQueryParamPostProcessor;
+
     /**
      * Maps incoming query requests into a valid and usable
      * {@link TeiQueryParams}.
@@ -76,10 +78,11 @@ public class TeiQueryRequestMapper
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() ) );
 
-        return TeiQueryParams.builder().trackedEntityType( trackedEntityType )
-            .commonParams( commonQueryRequestMapper.map(
-                queryRequest.getCommonQueryRequest() ) )
-            .build();
+        return teiQueryParamPostProcessor.postProcess(
+            TeiQueryParams.builder().trackedEntityType( trackedEntityType )
+                .commonParams( commonQueryRequestMapper.map(
+                    queryRequest.getCommonQueryRequest() ) )
+                .build() );
     }
 
     /**
