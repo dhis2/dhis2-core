@@ -152,11 +152,25 @@ public class OpenApiController
                 : c;
     }
 
+    /**
+     * This has to work with 3 types of URLs
+     *
+     * <pre>
+     *     http://localhost/openapi.json
+     *     http://localhost:8080/api/openapi.json
+     *     https://play.dhis2.org/dev/api/openapi.json
+     * </pre>
+     *
+     * And any of the variants when it comes to the path the controller allows
+     * to query an OpenAPI document.
+     */
     private static String getServerUrl( HttpServletRequest request )
     {
         StringBuffer url = request.getRequestURL();
         String servletPath = request.getServletPath();
-        servletPath = servletPath.substring( servletPath.indexOf( "/api" ) );
-        return url.substring( 0, url.indexOf( "/api/" ) ) + servletPath;
+        servletPath = servletPath.substring( servletPath.indexOf( "/api" ) + 1 );
+        int apiStart = url.indexOf( "/api/" );
+        String root = apiStart < 0 ? url.substring( 0, url.indexOf( "/", 10 ) ) : url.substring( 0, apiStart );
+        return root + "/" + servletPath;
     }
 }
