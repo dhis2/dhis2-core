@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -165,6 +166,33 @@ public class FileResourceUtils
         IOException
     {
         return saveFileResource( null, file, domain );
+    }
+
+    public FileResource saveFileResource( InputStream inputStream, FileResourceDomain domain, String fileName,
+        String contentType )
+        throws WebMessageException,
+        IOException
+    {
+
+        byte[] bytes = IOUtils.toByteArray( inputStream );
+
+        if ( bytes.length <= 0 )
+        {
+            throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
+        }
+
+        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
+            fileName, fileName, contentType, bytes.length );
+
+        ByteSource byteSource = ByteSource.wrap( bytes );
+
+        String contentMd5 = byteSource.hash( Hashing.md5() ).toString();
+
+        FileResource fileResource = new FileResource( fileName, contentType, bytes.length, contentMd5, domain );
+
+        fileResourceService.saveFileResource( fileResource, bytes );
+
+        return fileResource;
     }
 
     public FileResource saveFileResource( String uid, MultipartFile file, FileResourceDomain domain )

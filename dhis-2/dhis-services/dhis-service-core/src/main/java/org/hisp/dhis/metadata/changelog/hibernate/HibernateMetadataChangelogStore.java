@@ -40,8 +40,8 @@ public class HibernateMetadataChangelogStore extends HibernateGenericStore<Metad
     implements MetadataChangelogStore
 {
     public HibernateMetadataChangelogStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, Class<MetadataChangelog> clazz, boolean cacheable )
+        ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
+        super( sessionFactory, jdbcTemplate, publisher, MetadataChangelog.class, true );
     }
 }

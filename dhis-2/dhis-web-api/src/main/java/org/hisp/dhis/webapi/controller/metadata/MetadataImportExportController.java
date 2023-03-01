@@ -36,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -62,12 +64,16 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
+import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -77,6 +83,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -141,17 +148,35 @@ public class MetadataImportExportController
     @Autowired
     private BulkPatchManager bulkPatchManager;
 
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
+
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonMetadata( HttpServletRequest request )
-        throws IOException
+        throws IOException,
+        WebMessageException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        CloseShieldInputStream closeShieldInputStream = CloseShieldInputStream.wrap( inputStream );
+
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
-            .fromMetadataWithChangelog( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ),
-                RenderFormat.JSON, changelog -> params.setMetadataChangelog( changelog ) );
+            .fromMetadataWithChangelog( closeShieldInputStream, RenderFormat.JSON,
+                changelog -> params.setMetadataChangelog( changelog ) );
+
         params.setObjects( objects );
+
+        if ( params.hasMetadataChangelog() )
+        {
+            MetadataChangelog changelog = params.getMetadataChangelog();
+            FileResource fileResource = fileResourceUtils.saveFileResource( closeShieldInputStream,
+                FileResourceDomain.DOCUMENT, changelog.getName() + ".json", "application/json" );
+            changelog.setImportFile( fileResource );
+        }
+
+        closeShieldInputStream.close();
 
         if ( params.hasJobId() )
         {

@@ -127,11 +127,6 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         postCreateBundle( bundle, bundleParams );
 
-        if ( params.hasMetadataChangelog() )
-        {
-            metadataChangelogService.saveMetadataChangelog( params.getMetadataChangelog() );
-        }
-
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport );
 
