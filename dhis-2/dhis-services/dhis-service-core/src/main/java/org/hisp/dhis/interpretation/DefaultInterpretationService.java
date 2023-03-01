@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.interpretation;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -287,12 +289,17 @@ public class DefaultInterpretationService
         if ( interpretableObjectSchema.isSubscribable() )
         {
             SubscribableObject object = (SubscribableObject) interpretableObject;
-            Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
-            subscribers.remove( currentUserService.getCurrentUser() );
+            Set<String> subscribersUid = object.getSubscribers();
 
-            if ( !subscribers.isEmpty() )
+            if ( isNotEmpty( subscribersUid ) )
             {
-                sendNotificationMessage( subscribers, interpretation, comment, notificationType );
+                Set<User> subscribers = new HashSet<>( userService.getUsers( subscribersUid ) );
+                subscribers.remove( currentUserService.getCurrentUser() );
+
+                if ( !subscribers.isEmpty() )
+                {
+                    sendNotificationMessage( subscribers, interpretation, comment, notificationType );
+                }
             }
         }
     }
