@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -280,6 +280,10 @@ public class TeiFields
         DimensionIdentifier<DimensionParam> dimensionIdentifier,
         Function<DimensionParam, String> dimensionNameProvider )
     {
+        /*
+         * Sometimes it looks like DimensionalObject.valueType is null, so we
+         * default to TEXT
+         */
         ValueType valueType = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getValueType )
