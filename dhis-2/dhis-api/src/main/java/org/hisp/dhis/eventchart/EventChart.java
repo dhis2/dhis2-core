@@ -147,20 +147,6 @@ public class EventChart
     // Cannot be removed until EventChart if fully deprecated.
     // -------------------------------------------------------------------------
 
-    private boolean rowTotals;
-
-    private boolean colTotals;
-
-    private boolean rowSubTotals;
-
-    private boolean colSubTotals;
-
-    private boolean hideEmptyRows;
-
-    private boolean showHierarchy;
-
-    private boolean showDimensionLabels;
-
     /**
      * Default to true, as this entity is always legacy.
      */
