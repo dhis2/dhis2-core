@@ -61,7 +61,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -103,7 +103,7 @@ public class TrackerEventsExportController
     @Nonnull
     private final FieldFilterService fieldFilterService;
 
-    private final EventFieldsParamMapper eventsMapper;
+    private final FieldsParamMapper<EventParams> eventsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(

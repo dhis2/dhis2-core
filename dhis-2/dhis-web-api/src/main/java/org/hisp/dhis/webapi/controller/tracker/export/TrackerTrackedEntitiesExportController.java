@@ -59,7 +59,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -112,7 +112,7 @@ public class TrackerTrackedEntitiesExportController
     @Nonnull
     private final CsvEventService<TrackedEntity> csvEventService;
 
-    private final TrackedEntityFieldsParamMapper fieldsMapper;
+    private final FieldsParamMapper<TrackedEntityInstanceParams> fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,

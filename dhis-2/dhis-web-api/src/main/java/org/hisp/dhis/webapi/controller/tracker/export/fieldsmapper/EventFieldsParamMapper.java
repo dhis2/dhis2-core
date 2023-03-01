@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
+class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
 {
     private final FieldFilterService fieldFilterService;
 
@@ -51,6 +51,12 @@ public class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
     {
         return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( Collectors.toMap( p -> p,
             p -> fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) ) ) ).build();
+    }
+
+    @Override
+    public EventParams map( List<FieldPath> fields, boolean includeDeleted )
+    {
+        return getParamsBuilder().empty().build();
     }
 
     @Override

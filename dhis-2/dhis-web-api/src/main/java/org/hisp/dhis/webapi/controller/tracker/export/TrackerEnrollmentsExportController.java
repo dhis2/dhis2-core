@@ -50,7 +50,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -82,7 +82,7 @@ public class TrackerEnrollmentsExportController
 
     private final FieldFilterService fieldFilterService;
 
-    private final EnrollmentFieldsParamMapper fieldsMapper;
+    private final FieldsParamMapper<EnrollmentParams> fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(

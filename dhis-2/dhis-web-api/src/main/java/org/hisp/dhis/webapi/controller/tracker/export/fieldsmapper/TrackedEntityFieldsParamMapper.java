@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class TrackedEntityFieldsParamMapper implements FieldsParamMapper<TrackedEntityInstanceParams>
+class TrackedEntityFieldsParamMapper implements FieldsParamMapper<TrackedEntityInstanceParams>
 {
     private final FieldFilterService fieldFilterService;
 

@@ -41,14 +41,11 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-interface FieldsParamMapper<T extends AbstractParams>
+public interface FieldsParamMapper<T extends AbstractParams>
 {
     T map( List<FieldPath> fields );
 
-    default T map( List<FieldPath> fields, boolean includeDeleted )
-    {
-        return getParamsBuilder().empty().build();
-    }
+    T map( List<FieldPath> fields, boolean includeDeleted );
 
     default Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {

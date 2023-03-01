@@ -34,8 +34,6 @@ import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_ATTRIBUTES;
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS;
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_EVENTS_RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.ENROLLMENTS_RELATIONSHIPS;
-import static org.hisp.dhis.dxf2.events.Param.EVENTS;
-import static org.hisp.dhis.dxf2.events.Param.EVENTS_RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.PROGRAM_OWNERS;
 import static org.hisp.dhis.dxf2.events.Param.RELATIONSHIPS;
 import static org.hisp.dhis.dxf2.events.Param.fromFieldPath;
@@ -51,9 +49,7 @@ public class TrackedEntityInstanceParams extends AbstractParams
 {
     public static final Set<Param> ALL = EnumSet.of( RELATIONSHIPS, ATTRIBUTES, PROGRAM_OWNERS, DELETED,
         ENROLLMENTS, ENROLLMENTS_EVENTS, ENROLLMENTS_RELATIONSHIPS, ENROLLMENTS_ATTRIBUTES,
-        ENROLLMENTS_EVENTS_RELATIONSHIPS,
-        EVENTS,
-        EVENTS_RELATIONSHIPS );
+        ENROLLMENTS_EVENTS_RELATIONSHIPS );
 
     private TrackedEntityInstanceParams( Set<Param> paramsSet )
     {
