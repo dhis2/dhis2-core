@@ -142,7 +142,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
         {
             object.setCreatedBy( object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser() );
         }
-        else if ( !IdentifiableObjectUtils.equalByUID( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
+        else if ( !IdentifiableObjectUtils.equalsByUid( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
         {
             object.setCreatedBy( persistedObject.getCreatedBy() );
             bundle.getPreheat().put( PreheatIdentifier.UID, object.getCreatedBy() );
