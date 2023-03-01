@@ -49,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,7 @@ import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -160,6 +162,7 @@ public class CommonQueryRequestMapper
             .includeMetadataDetails( request.isIncludeMetadataDetails() )
             .hierarchyMeta( request.isHierarchyMeta() )
             .showHierarchy( request.isShowHierarchy() )
+            .userOrgUnit( userOrgUnits )
             .build();
     }
 
@@ -334,6 +337,31 @@ public class CommonQueryRequestMapper
         DimensionParamType dimensionParamType, CommonQueryRequest queryRequest, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
+        return toDimensionIdentifier( dimensionOrFilter, dimensionParamType, queryRequest.getRelativePeriodDate(),
+            queryRequest.getDisplayProperty(), programs, userOrgUnits );
+    }
+
+    /**
+     * Returns a {@link DimensionIdentifier} built from given arguments, params
+     * and filter.
+     *
+     * @param dimensionOrFilter the uid of a dimension or filter.
+     * @param dimensionParamType the {@link DimensionParamType}.
+     * @param relativePeriodDate the {@link Date} used to compute the relative
+     *        period.
+     * @param displayProperty the {@link DisplayProperty}.
+     * @param programs the list of {@link Program}.
+     * @param userOrgUnits the list of {@link OrganisationUnit}.
+     * @return the {@link DimensionIdentifier}.
+     * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
+     */
+    public DimensionIdentifier<DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
+        DimensionParamType dimensionParamType,
+        Date relativePeriodDate,
+        DisplayProperty displayProperty,
+        List<Program> programs,
+        List<OrganisationUnit> userOrgUnits )
+    {
         String dimensionId = getDimensionFromParam( dimensionOrFilter );
 
         // We first parse the dimensionId into <Program, ProgramStage, String>
@@ -345,16 +373,13 @@ public class CommonQueryRequestMapper
         // Then we check if it's a static dimension.
         if ( isStaticDimensionIdentifier( dimensionIdentifier.getDimension().getUid() ) )
         {
-            return DimensionIdentifier.of(
-                dimensionIdentifier.getProgram(),
-                dimensionIdentifier.getProgramStage(),
-                DimensionParam.ofObject( dimensionIdentifier.getDimension().getUid(), dimensionParamType, items ) );
+            return parseAsStaticDimension( dimensionParamType, dimensionIdentifier, items );
         }
 
         // Then we check if it's a DimensionalObject.
         DimensionalObject dimensionalObject = dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(), items, queryRequest.getRelativePeriodDate(), userOrgUnits,
-            true, queryRequest.getDisplayProperty(), UID );
+            dimensionIdentifier.getDimension().getUid(), items, relativePeriodDate, userOrgUnits,
+            true, displayProperty, UID );
 
         if ( Objects.nonNull( dimensionalObject ) )
         {
@@ -383,5 +408,15 @@ public class CommonQueryRequestMapper
         }
 
         throw new IllegalQueryException( E7250, dimensionId );
+
+    }
+
+    private static DimensionIdentifier<DimensionParam> parseAsStaticDimension( DimensionParamType dimensionParamType,
+        DimensionIdentifier<StringUid> dimensionIdentifier, List<String> items )
+    {
+        return DimensionIdentifier.of(
+            dimensionIdentifier.getProgram(),
+            dimensionIdentifier.getProgramStage(),
+            DimensionParam.ofObject( dimensionIdentifier.getDimension().getUid(), dimensionParamType, items ) );
     }
 }
