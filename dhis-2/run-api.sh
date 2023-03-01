@@ -93,4 +93,4 @@ fi
 
 # Start DHIS 2
 start_dhis2
-exit 0;
+exit 0
