@@ -100,9 +100,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "headerWidth", equalTo( 13 ) );
 
         // Validate headers
-        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked Entity Instance", "TEXT", "java.lang.String",
+        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 1, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
         validateHeader( response, 2, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
@@ -162,9 +162,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "headerWidth", equalTo( 13 ) );
 
         // Validate headers
-        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked Entity Instance", "TEXT", "java.lang.String",
+        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 1, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
         validateHeader( response, 2, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
@@ -272,9 +272,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "headerWidth", equalTo( 13 ) );
 
         // Validate headers
-        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked Entity Instance", "TEXT", "java.lang.String",
+        validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 1, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
         validateHeader( response, 2, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
@@ -390,9 +390,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 1, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 2, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 3, "trackedentityinstanceuid", "Tracked Entity Instance", "TEXT", "java.lang.String",
+        validateHeader( response, 3, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 4, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 4, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
         validateHeader( response, 5, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
 
@@ -469,7 +469,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Validate headers
         validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 1, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 2, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 2, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
 
         // Validate the first three rows, as samples.
@@ -513,7 +513,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate headers
         validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+        validateHeader( response, 1, "lastupdated", "Last updated", "DATETIME", "java.time.LocalDateTime", false,
             true );
 
         // Validate the first three rows, as samples.
