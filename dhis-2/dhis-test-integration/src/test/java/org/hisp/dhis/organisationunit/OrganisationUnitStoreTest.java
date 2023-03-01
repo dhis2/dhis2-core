@@ -115,10 +115,6 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouD = addOrganisationUnit( 'D', ouB );
         // 3
         OrganisationUnit ouE = addOrganisationUnit( 'E', ouB );
-        // 3
-        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC );
-        // 3
-        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC );
         Program prA = addProgram( 'A', ouA, ouB, ouC, ouE );
         Program prB = addProgram( 'B', ouA, ouD, ouE );
         assertContainsOnly( List.of( ouA, ouB, ouC, ouE ), unitStore.getOrganisationUnitsWithProgram( prA ) );

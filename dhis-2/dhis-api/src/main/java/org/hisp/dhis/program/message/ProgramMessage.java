@@ -34,8 +34,9 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -52,7 +53,8 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Data
+@Getter
+@Setter
 @Builder( builderClassName = "ProgramMessageBuilder" )
 @NoArgsConstructor
 @AllArgsConstructor

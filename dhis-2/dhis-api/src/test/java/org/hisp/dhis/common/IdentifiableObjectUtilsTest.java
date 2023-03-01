@@ -68,6 +68,17 @@ class IdentifiableObjectUtilsTest
     }
 
     @Test
+    void testGetUidsBySet()
+    {
+        DataElement deA = new DataElement( "DEA" );
+        deA.setUid( "rAFWf6BDJxX" );
+        DataElement deB = new DataElement( "DEB" );
+        deB.setUid( "r6PuyLmXQBp" );
+        Set<String> uids = IdentifiableObjectUtils.getUidsAsSet( Lists.newArrayList( deA, null, deB ) );
+        assertEquals( Set.of( "rAFWf6BDJxX", "r6PuyLmXQBp" ), uids );
+    }
+
+    @Test
     void testGetIdMap()
     {
         DataElement deA = new DataElement( "NameA" );
@@ -192,7 +203,7 @@ class IdentifiableObjectUtilsTest
     }
 
     @Test
-    void testEqualByUid()
+    void testEqualsByUid()
     {
         DataElement deA = new DataElement();
         deA.setUid( "UIDA" );
@@ -203,13 +214,13 @@ class IdentifiableObjectUtilsTest
         DataElement deC = new DataElement();
         deC.setUid( null );
         DataElement deD = null;
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deB ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deA, deA1 ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deC ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deA ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deD ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deD, deD ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deC, deC ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deD ) );
+        assertFalse( IdentifiableObjectUtils.equalsByUid( deA, deB ) );
+        assertTrue( IdentifiableObjectUtils.equalsByUid( deA, deA1 ) );
+        assertFalse( IdentifiableObjectUtils.equalsByUid( deA, deC ) );
+        assertFalse( IdentifiableObjectUtils.equalsByUid( deC, deA ) );
+        assertFalse( IdentifiableObjectUtils.equalsByUid( deC, deD ) );
+        assertTrue( IdentifiableObjectUtils.equalsByUid( deD, deD ) );
+        assertTrue( IdentifiableObjectUtils.equalsByUid( deC, deC ) );
+        assertFalse( IdentifiableObjectUtils.equalsByUid( deA, deD ) );
     }
 }
