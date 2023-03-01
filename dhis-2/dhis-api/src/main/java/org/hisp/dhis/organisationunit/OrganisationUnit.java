@@ -613,7 +613,7 @@ public class OrganisationUnit
      * ancestor org units.
      *
      * @param ancestors the collection of ancestor org units.
-     * @return true if his org unit is a descendant of the ancestors.
+     * @return true if this org unit is a descendant of the ancestors.
      */
     public boolean isDescendant( Collection<OrganisationUnit> ancestors )
     {
