@@ -30,15 +30,11 @@ package org.hisp.dhis.deduplication;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-@Getter
-@Setter
-@RequiredArgsConstructor
+@Data
 public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter
 {
     private List<String> teis = new ArrayList<>();
