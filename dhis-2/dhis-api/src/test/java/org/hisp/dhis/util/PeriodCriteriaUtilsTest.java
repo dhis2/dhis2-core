@@ -28,6 +28,7 @@
 package org.hisp.dhis.util;
 
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,11 +40,10 @@ import java.util.Set;
 
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test class for PeriodCriteriaUtils
+ * Unit tests for {@link PeriodCriteriaUtils}.
  */
 class PeriodCriteriaUtilsTest
 {
@@ -52,18 +52,16 @@ class PeriodCriteriaUtilsTest
     {
         // given
         EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithPeriod(
-            RelativePeriodEnum.LAST_5_YEARS.name() );
+            LAST_5_YEARS.name() );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( eventsAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertTrue( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
-        assertTrue( eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
+        assertNull( eventsAnalyticsQueryCriteria.getDesc() );
         assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( "eventdate", eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
+            PERIOD_DIM_ID + ":" + LAST_5_YEARS );
     }
 
     @Test
@@ -74,15 +72,13 @@ class PeriodCriteriaUtilsTest
             null );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( eventsAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertTrue( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
-        assertTrue( eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
+        assertNull( eventsAnalyticsQueryCriteria.getDesc() );
         assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( "eventdate", eventsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
+            PERIOD_DIM_ID + ":" + LAST_5_YEARS );
     }
 
     @Test
@@ -93,8 +89,7 @@ class PeriodCriteriaUtilsTest
             new Date(), new Date() );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( eventsAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertFalse( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
@@ -108,8 +103,7 @@ class PeriodCriteriaUtilsTest
         EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithEventDate();
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( eventsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( eventsAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertFalse( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
@@ -121,18 +115,17 @@ class PeriodCriteriaUtilsTest
     {
         // given
         EnrollmentAnalyticsQueryCriteria enrollmentsAnalyticsQueryCriteria = configureEnrollmentAnalyticsQueryCriteriaWithPeriod(
-            RelativePeriodEnum.LAST_5_YEARS.name() );
+            LAST_5_YEARS.name() );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( enrollmentsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( enrollmentsAnalyticsQueryCriteria,
+            LAST_5_YEARS );
 
         // then
         assertTrue( enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
-        assertTrue( enrollmentsAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
+        assertNull( enrollmentsAnalyticsQueryCriteria.getDesc() );
         assertEquals( enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( "enrollmentdate", enrollmentsAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
+            PERIOD_DIM_ID + ":" + LAST_5_YEARS );
     }
 
     @Test
@@ -143,15 +136,13 @@ class PeriodCriteriaUtilsTest
             null );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( enrollmentAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( enrollmentAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertTrue( enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
-        assertTrue( enrollmentAnalyticsQueryCriteria.getDesc().stream().findFirst().isPresent() );
+        assertNull( enrollmentAnalyticsQueryCriteria.getDesc() );
         assertEquals( enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-            PERIOD_DIM_ID + ":" + RelativePeriodEnum.LAST_5_YEARS );
-        assertEquals( "enrollmentdate", enrollmentAnalyticsQueryCriteria.getDesc().stream().findFirst().get() );
+            PERIOD_DIM_ID + ":" + LAST_5_YEARS );
     }
 
     @Test
@@ -162,8 +153,7 @@ class PeriodCriteriaUtilsTest
             new Date(), new Date() );
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( enrollmentAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( enrollmentAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertFalse( enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
@@ -177,8 +167,7 @@ class PeriodCriteriaUtilsTest
         EnrollmentAnalyticsQueryCriteria enrollmentsAnalyticsQueryCriteria = configureEnrollmentAnalyticsQueryCriteriaWithEventDate();
 
         // when
-        PeriodCriteriaUtils.defineDefaultPeriodDimensionCriteriaWithOrderBy( enrollmentsAnalyticsQueryCriteria,
-            RelativePeriodEnum.LAST_5_YEARS );
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( enrollmentsAnalyticsQueryCriteria, LAST_5_YEARS );
 
         // then
         assertFalse( enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
