@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -621,7 +622,9 @@ public class OrganisationUnit
             return false;
         }
 
-        return IdentifiableObjectUtils.getUidsAsSet( ancestors ).stream()
+        return ancestors.stream()
+            .filter( Objects::nonNull )
+            .map( OrganisationUnit::getUid )
             .anyMatch( uid -> StringUtils.contains( path, uid ) );
     }
 
