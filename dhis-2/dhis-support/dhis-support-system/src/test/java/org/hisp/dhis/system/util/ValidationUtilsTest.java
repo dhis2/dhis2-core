@@ -65,6 +65,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.validateRenderingType;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,6 +85,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -619,5 +623,34 @@ class ValidationUtilsTest
 
         List<String> invalid = List.of( "1", "", "aa", "=", "," );
         invalid.forEach( value -> assertFalse( isValidLetter( value ) ) );
+    }
+
+    @Test
+    void shouldPassValidationWhenRenderTypeIsCanvasAndValueTypeIsImageAndNoOptionSet()
+    {
+        // Both ProgramStageDataElement and ProgramTrackedEntityAttribute should be supported.
+        assertTrue( validateRenderingType( ProgramStageDataElement.class, IMAGE, false, ValueTypeRenderingType.CANVAS ),
+            "ProgramStageDataElement of type IMAGE fails renderingType validation for CANVAS" );
+        assertTrue(
+            validateRenderingType( ProgramTrackedEntityAttribute.class, IMAGE, false, ValueTypeRenderingType.CANVAS ),
+            "ProgramTrackedEntityAttribute of type IMAGE fails renderingType validation for CANVAS" );
+    }
+
+    @Test
+    void shouldFailValidationWhenRenderTypeIsCanvasAndValueTypeIsNotImageOrOptionSet()
+    {
+        // Both ProgramStageDataElement and ProgramTrackedEntityAttribute should be supported.
+
+        assertFalse( validateRenderingType( ProgramStageDataElement.class, TEXT, false, ValueTypeRenderingType.CANVAS ),
+            "ProgramStageDataElement of type TEXT pass renderingType validation for CANVAS" );
+        assertFalse(
+            validateRenderingType( ProgramTrackedEntityAttribute.class, TEXT, false, ValueTypeRenderingType.CANVAS ),
+            "ProgramTrackedEntityAttribute of TEXT IMAGE pass renderingType validation for CANVAS" );
+
+        assertFalse( validateRenderingType( ProgramStageDataElement.class, IMAGE, true, ValueTypeRenderingType.CANVAS ),
+            "ProgramStageDataElement with OptionSet pass renderingType validation for CANVAS" );
+        assertFalse(
+            validateRenderingType( ProgramTrackedEntityAttribute.class, IMAGE, true, ValueTypeRenderingType.CANVAS ),
+            "ProgramTrackedEntityAttribute with OptionSet pass renderingType validation for CANVAS" );
     }
 }
