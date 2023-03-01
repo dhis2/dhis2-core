@@ -65,7 +65,6 @@ import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,7 +89,10 @@ class TrackerImportControllerTest
     private DefaultTrackerImportService trackerImportService;
 
     @Mock
-    private TrackerImporter importStrategy;
+    private TrackerSyncImporter syncImporter;
+
+    @Mock
+    private TrackerAsyncImporter asyncImporter;
 
     @Mock
     private CsvEventService<Event> csvEventService;
@@ -108,8 +110,9 @@ class TrackerImportControllerTest
             mock( SchemaService.class ) );
 
         // Controller under test
-        final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            csvEventService, new DefaultContextService(), notifier );
+        final TrackerImportController controller = new TrackerImportController( syncImporter, asyncImporter,
+            trackerImportService,
+            csvEventService, notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller )
             .setControllerAdvice( new CrudControllerAdvice() )
@@ -145,7 +148,7 @@ class TrackerImportControllerTest
             .andExpect( content().contentType( "application/json" ) );
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( asyncImporter ).importTracker( any(), any(), any() );
     }
 
     @Test
@@ -153,7 +156,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
             ValidationReport.emptyReport(),
@@ -172,7 +175,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -189,7 +192,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
             ValidationReport.emptyReport(),
@@ -208,7 +211,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -226,7 +229,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
             ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
@@ -242,7 +245,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -260,7 +263,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
             ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
@@ -276,7 +279,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {

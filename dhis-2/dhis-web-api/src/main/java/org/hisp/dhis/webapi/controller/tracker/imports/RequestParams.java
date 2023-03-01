@@ -25,25 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -51,35 +46,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerImportParams
+@Builder
+class RequestParams
 {
-    /**
-     * User uid to use for import job.
-     */
-    @JsonProperty
-    private String userId;
-
-    /**
-     * User to use for import job.
-     */
-    private User user;
-
     /**
      * Should import be imported or just validated.
      */
     @JsonProperty
     @Builder.Default
-    private final TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
-
-    /**
-     * IdSchemes to match metadata
-     */
-    @JsonProperty
-    @Builder.Default
-    private final TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
+    private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -100,109 +77,84 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private final FlushMode flushMode = FlushMode.AUTO;
+    private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
     @JsonProperty
     @Builder.Default
-    private final ValidationMode validationMode = ValidationMode.FULL;
+    private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Should text pattern validation be skipped or not, default is not.
      */
     @JsonProperty
     @Builder.Default
-    private final boolean skipPatternValidation = false;
+    private boolean skipPatternValidation = false;
 
     /**
      * Should side effects be skipped or not, default is not.
      */
     @JsonProperty
     @Builder.Default
-    private final boolean skipSideEffects = false;
+    private boolean skipSideEffects = false;
 
     /**
      * Should rule engine call be skipped or not, default is to skip.
      */
     @JsonProperty
     @Builder.Default
-    private final boolean skipRuleEngine = false;
+    private boolean skipRuleEngine = false;
 
     /**
-     * Name of file that was used for import (if available).
+     * The mode in which the response is going to be reported.
      */
-    @JsonProperty
-    @Builder.Default
-    private final String filename = null;
-
-    /**
-     * Job configuration
-     */
-    private JobConfiguration jobConfiguration;
-
     @JsonProperty
     @Builder.Default
     private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
-     * Tracked entities to import.
+     * Specific identifier to match data elements on.
      */
     @JsonProperty
-    @Builder.Default
-    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private TrackerIdSchemeParam dataElementIdScheme;
 
     /**
-     * Enrollments to import.
+     * Specific identifier to match organisation units on.
      */
     @JsonProperty
-    @Builder.Default
-    private final List<Enrollment> enrollments = new ArrayList<>();
+    private TrackerIdSchemeParam orgUnitIdScheme;
 
     /**
-     * Events to import.
+     * Specific identifier to match program on.
      */
     @JsonProperty
-    @Builder.Default
-    private final List<Event> events = new ArrayList<>();
+    private TrackerIdSchemeParam programIdScheme;
 
     /**
-     * Relationships to import.
+     * Specific identifier to match program stage on.
+     */
+    @JsonProperty
+    private TrackerIdSchemeParam programStageIdScheme;
+
+    /**
+     * Specific identifier to match all metadata on. Will be overridden by
+     * metadata-specific idSchemes.
      */
     @JsonProperty
     @Builder.Default
-    private final List<Relationship> relationships = new ArrayList<>();
+    private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
-    public TrackerImportParams setUser( User user )
-    {
-        this.user = user;
-
-        if ( user != null )
-        {
-            this.userId = user.getUid();
-        }
-
-        return this;
-    }
-
+    /**
+     * Specific identifier to match category option combo on.
+     */
     @JsonProperty
-    public String getUsername()
-    {
-        return User.username( user );
-    }
+    private TrackerIdSchemeParam categoryOptionComboIdScheme;
 
-    @Override
-    public String toString()
-    {
-        return Optional.ofNullable( this.getJobConfiguration() )
-            .map( jobConfiguration -> JobType.TRACKER_IMPORT_JOB + " ( " + jobConfiguration.getUid() + " )" )
-            .orElse( JobType.TRACKER_IMPORT_JOB.toString() );
-    }
-
-    public String userStartInfo()
-    {
-        return this + " started by "
-            + this.getUsername() + " ( " + this.userId + " )";
-    }
+    /**
+     * Specific identifier to match category option on.
+     */
+    @JsonProperty
+    private TrackerIdSchemeParam categoryOptionIdScheme;
 }

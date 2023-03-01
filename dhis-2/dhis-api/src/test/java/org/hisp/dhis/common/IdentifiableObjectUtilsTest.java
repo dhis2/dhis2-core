@@ -68,6 +68,17 @@ class IdentifiableObjectUtilsTest
     }
 
     @Test
+    void testGetUidsBySet()
+    {
+        DataElement deA = new DataElement( "DEA" );
+        deA.setUid( "rAFWf6BDJxX" );
+        DataElement deB = new DataElement( "DEB" );
+        deB.setUid( "r6PuyLmXQBp" );
+        Set<String> uids = IdentifiableObjectUtils.getUidsAsSet( Lists.newArrayList( deA, null, deB ) );
+        assertEquals( Set.of( "rAFWf6BDJxX", "r6PuyLmXQBp" ), uids );
+    }
+
+    @Test
     void testGetIdMap()
     {
         DataElement deA = new DataElement( "NameA" );
