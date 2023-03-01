@@ -86,7 +86,7 @@ echo ""
 [ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME' does not exist, aborting." && exit 1;
 [ ! -f "$DHIS2_HOME_DIR/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 
-# Compile unless skip compile flag is given
+# Compile unless skip compile flag is set
 if [[ $SKIP_COMPILE == 0 ]]; then
   build_dhis2
 fi
