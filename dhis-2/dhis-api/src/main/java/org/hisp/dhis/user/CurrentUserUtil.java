@@ -129,7 +129,7 @@ public class CurrentUserUtil
     public static Boolean hasAnyAuthority( Collection<String> candidateAuthorities )
     {
         List<String> currentUserAuthorities = getCurrentUserAuthorities();
-        return candidateAuthorities.stream().anyMatch( authority -> currentUserAuthorities.contains( authority ) );
+        return candidateAuthorities.stream().anyMatch( currentUserAuthorities::contains );
     }
 
     public static Boolean hasAuthority( String authority )
