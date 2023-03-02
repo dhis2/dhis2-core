@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,7 +44,6 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-@Slf4j
 class GistFilterControllerTest extends AbstractGistControllerTest
 {
 

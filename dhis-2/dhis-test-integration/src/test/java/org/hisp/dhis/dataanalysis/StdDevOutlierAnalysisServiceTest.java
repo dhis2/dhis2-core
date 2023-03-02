@@ -58,7 +58,6 @@ import com.google.common.collect.Lists;
 
 class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     @Qualifier( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
     private DataAnalysisService stdDevOutlierAnalysisService;
