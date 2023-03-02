@@ -27,32 +27,24 @@ if [[ -v "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
 
-# Read command line options
-while getopts "d:h:p:s" OPT; do
-  case "$OPT" in
-    d)
-      DHIS2_HOME_DIR=$OPTARG
-      ;;
-    h)
-      DHIS2_HOSTNAME=$OPTARG
-      ;;
-    p)
-      DHIS2_PORT=$OPTARG
-      ;;
-    s)
-      SKIP_COMPILE=1
-      ;;
-    ?)
-      echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
-      echo "  -d <directory> DHIS 2 home directory" >&2
-      echo "  -h <hostname>  Hostname (default is localhost)" >&2
-      echo "  -p <port>      Port number (default is 9090)" >&2
-      echo "  -s             Skip compilation of source code" >&2
-      exit 1
-      ;;
-  esac
-done
-shift "$(($OPTIND -1))"
+# Print usage help
+function print_usage() {
+  echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
+  echo "  -d <directory> DHIS 2 home directory" >&2
+  echo "  -h <hostname>  Hostname (default is localhost)" >&2
+  echo "  -p <port>      Port number (default is 9090)" >&2
+  echo "  -s             Skip compilation of source code" >&2
+}
+
+# Print variables
+function print_variables() {
+  echo "JAVA_HOME: $JAVA_HOME"
+  echo "DHIS2_HOME_DIR: $DHIS2_HOME"
+  echo "HOSTNAME: $DHIS2_HOSTNAME"
+  echo "PORT: $DHIS2_PORT"
+  echo "SKIP_COMPILE: $SKIP_COMPILE"
+  echo ""
+}
 
 # Start DHIS 2 in embedded Jetty container
 function start_dhis2() {
@@ -72,15 +64,32 @@ function build_dhis2() {
     -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
 }
 
+# Read command line options
+while getopts "d:h:p:s" OPT; do
+  case "$OPT" in
+    d)
+      DHIS2_HOME_DIR=$OPTARG
+      ;;
+    h)
+      DHIS2_HOSTNAME=$OPTARG
+      ;;
+    p)
+      DHIS2_PORT=$OPTARG
+      ;;
+    s)
+      SKIP_COMPILE=1
+      ;;
+    ?)
+      print_usage
+      exit 1
+      ;;
+  esac
+done
+shift "$(($OPTIND -1))"
+
 echo -e "Note: JDK 11 or later is required!\n"
 
-# Print variables
-echo "JAVA_HOME: $JAVA_HOME"
-echo "DHIS2_HOME_DIR: $DHIS2_HOME"
-echo "HOSTNAME: $DHIS2_HOSTNAME"
-echo "PORT: $DHIS2_PORT"
-echo "SKIP_COMPILE: $SKIP_COMPILE"
-echo ""
+print_variables
 
 # Verify DHIS2_HOME variable
 [ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME' does not exist, aborting." && exit 1;
