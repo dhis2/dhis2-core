@@ -31,6 +31,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -41,6 +43,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.constant.Constant;
@@ -76,7 +79,13 @@ public class CommonExpressionVisitor
 
     private StatementBuilder statementBuilder;
 
-    private I18n i18n;
+    /**
+     * A {@link Supplier} object that can return a {@link I18n} instance when
+     * needed. This is done because retrieving a {@link I18n} instance can be
+     * expensive and is not needed for most parsing operations. When it is
+     * needed, however, this can provide it.
+     */
+    private Supplier<I18n> i18nSupplier;
 
     /**
      * Map of constant values to use in evaluating the expression.
@@ -152,6 +161,35 @@ public class CommonExpressionVisitor
         }
 
         return visit( ctx.getChild( 0 ) ); // All others: visit first child.
+    }
+
+    /**
+     * Visits a part of an expression that will be evaluated in predictors on
+     * past-period sampled data. During this visit we want any data items that
+     * are encountered to be remembered as those for which we will need to
+     * collect past-period data.
+     * <p>
+     * To accomplish this, we first save any {@link DimensionalItemId}s
+     * collected so far and set the collection of {@link DimensionalItemId} to
+     * gather as the set of sample item ids we have collected so far if any. As
+     * we evaluate this part of the expression, any item ids encountered will be
+     * added here. After we are done, we put these item ids back into the sample
+     * item ids, and restore the saved item ids for any further collecting.
+     *
+     * @param expr the part of the expression to evaluate for samples
+     * @return the value of that part of the expression
+     */
+    public Object visitSamples( ExprContext expr )
+    {
+        Set<DimensionalItemId> savedItemIds = info.getItemIds();
+        info.setItemIds( info.getSampleItemIds() );
+
+        Object result = visitExpr( expr );
+
+        info.setSampleItemIds( info.getItemIds() );
+        info.setItemIds( savedItemIds );
+
+        return result;
     }
 
     /**

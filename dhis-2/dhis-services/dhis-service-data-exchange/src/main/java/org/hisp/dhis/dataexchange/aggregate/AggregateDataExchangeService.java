@@ -420,7 +420,7 @@ public class AggregateDataExchangeService
         Target target = exchange.getTarget();
         Api api = target.getApi();
         return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
-            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
+            target.getType().name(), api == null ? "(local)" : api.getUrl() );
     }
 
     /**
