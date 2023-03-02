@@ -35,7 +35,6 @@ public class HeaderUtils
     {
         response.setHeader( "Content-Security-Policy", cspHeaders );
         response.setHeader( "X-Content-Type-Options", "nosniff" );
-        response.setHeader( "X-Frame-Options", "SAMEORIGIN" );
         response.setHeader( "X-XSS-Protection", "1; mode=block" );
     }
 }

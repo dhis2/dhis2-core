@@ -30,24 +30,32 @@ package org.hisp.dhis.security.utils;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CspUtils
+public class CspConstants
 {
-    public static final String DEFAULT_HEADER_VALUE = "script-src 'none'; ";
+    private CspConstants()
+    {
+    }
 
-    public static final Pattern p1 = Pattern.compile( "^.+/events/files$" );
+    public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-    public static final Pattern p2 = Pattern.compile( "^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$" );
+    public static final Pattern P_1 = Pattern.compile( "^.+/events/files$" );
 
-    public static final Pattern p3 = Pattern.compile( "^.+/dataValues/files$" );
+    public static final Pattern P_2 = Pattern.compile( "^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$" );
 
-    public static final Pattern p4 = Pattern.compile(
+    public static final Pattern P_3 = Pattern.compile( "^.+/dataValues/files$" );
+
+    public static final Pattern P_4 = Pattern.compile(
         "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$" );
 
-    public static final Pattern p5 = Pattern.compile( "^.+fileResources/[a-zA-Z\\d]+/data$" );
+    public static final Pattern P_5 = Pattern.compile( "^.+fileResources/[a-zA-Z\\d]+/data$" );
 
-    public static final Pattern p6 = Pattern.compile( "^.+audits/files/[a-zA-Z\\d]+$" );
+    public static final Pattern P_6 = Pattern.compile( "^.+audits/files/[a-zA-Z\\d]+$" );
 
-    public static final Pattern p7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
+    public static final Pattern P_7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
 
-    public static final List<Pattern> DEFAULT_FILTERED_URL_PATTERNS = List.of( p1, p2, p3, p4, p5, p6, p7 );
+    public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS = List.of( P_1, P_2, P_3, P_4, P_5, P_6,
+        P_7 );
+
+    public static final Pattern LOGIN_PATTERN = Pattern.compile( "^.+/dhis-web-commons/security/.+$" );
+
 }

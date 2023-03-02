@@ -28,44 +28,46 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.security.utils.CspConstants.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
+import static org.hisp.dhis.security.utils.CspConstants.LOGIN_PATTERN;
+import static org.hisp.dhis.security.utils.CspConstants.SCRIPT_SOURCE_DEFAULT;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 
-import lombok.extern.slf4j.Slf4j;
-
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.security.utils.CspUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class CspFilter
     extends OncePerRequestFilter
 {
-    public static final String CSP_REQUEST_NONCE_ATTR_NAME = "cspRequestNonce";
-
     public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
+
+    public static final String SCRIPT_SOURCE_SELF = "script-src 'self' ";
+
+    public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
+
+    public static final String FRAME_ANCESTORS_STRICT_CSP = "frame-ancestors 'none';";
 
     private final boolean enabled;
 
-    private final List<Pattern> filteredURLs;
+    ConfigurationService configurationService;
 
-    public CspFilter( DhisConfigurationProvider dhisConfig,
-        DhisOidcProviderRepository dhisOidcProviderRepository )
+    public CspFilter( DhisConfigurationProvider dhisConfig, ConfigurationService configurationService )
     {
         this.enabled = dhisConfig.isEnabled( CSP_ENABLED );
-        this.filteredURLs = CspUtils.DEFAULT_FILTERED_URL_PATTERNS;
+        this.configurationService = configurationService;
     }
 
     @Override
@@ -73,56 +75,60 @@ public class CspFilter
         throws ServletException,
         IOException
     {
-        if ( enabled && shouldRemoveCSPHeaders( req.getRequestURL().toString() ) )
+        String url = req.getRequestURL().toString();
+
+        if ( !enabled )
         {
-            // Remove the CSP headers that are added in
-            // DhisWebApiWebSecurityConfig#setHttpHeaders()
-            // Unless they match our patterns.
-            chain.doFilter( req,
-                new RemoveCspHeaderResponseWrapper( res ) );
+            res.addHeader( "X-Frame-Options", "SAMEORIGIN" );
+            chain.doFilter( req, res );
+            return;
+        }
+
+        if ( LOGIN_PATTERN.matcher( url ).matches() )
+        {
+            String nonce = CodeGenerator.getRandomUrlToken();
+            req.getSession().setAttribute( "nonce", nonce );
+
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nonce + "';" );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_STRICT_CSP );
+            chain.doFilter( req, res );
+            return;
+        }
+
+        if ( isUploadedContentInsideApi( url ) )
+        {
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_DEFAULT );
+        }
+
+        setFrameAncestorsCspRule( res );
+
+        chain.doFilter( req, res );
+    }
+
+    private void setFrameAncestorsCspRule( HttpServletResponse res )
+    {
+        Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+        if ( !corsWhitelist.isEmpty() )
+        {
+            String corsAllowedOrigins = String.join( " ", corsWhitelist );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME,
+                FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";" );
         }
         else
         {
-            chain.doFilter( req, res );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_DEFAULT_CSP + ";" );
         }
     }
 
-    // Returns false if URI matches one of the regexp patterns in the list
-    private boolean shouldRemoveCSPHeaders( String requestURI )
+    private boolean isUploadedContentInsideApi( String requestURI )
     {
-        for ( Pattern pattern : filteredURLs )
+        for ( Pattern pattern : EXTERNAL_STATIC_CONTENT_URL_PATTERNS )
         {
             if ( pattern.matcher( requestURI ).matches() )
             {
-                return false;
+                return true;
             }
         }
-        return true;
-    }
-
-    public static class RemoveCspHeaderResponseWrapper extends HttpServletResponseWrapper
-    {
-        public RemoveCspHeaderResponseWrapper( HttpServletResponse res )
-        {
-            super( res );
-        }
-
-        @Override
-        public void setHeader( String name, String value )
-        {
-            if ( !name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.setHeader( name, value );
-            }
-        }
-
-        @Override
-        public void addHeader( String name, String value )
-        {
-            if ( !name.equals( CONTENT_SECURITY_POLICY_HEADER_NAME ) )
-            {
-                super.addHeader( name, value );
-            }
-        }
+        return false;
     }
 }
