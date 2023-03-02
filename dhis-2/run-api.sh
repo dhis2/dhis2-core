@@ -39,7 +39,7 @@ function print_usage() {
 # Print variables
 function print_variables() {
   echo "JAVA_HOME: $JAVA_HOME"
-  echo "DHIS2_HOME_DIR: $DHIS2_HOME"
+  echo "DHIS2_HOME_DIR: $DHIS2_HOME_DIR"
   echo "HOSTNAME: $DHIS2_HOSTNAME"
   echo "PORT: $DHIS2_PORT"
   echo "SKIP_COMPILE: $SKIP_COMPILE"
@@ -92,7 +92,7 @@ echo -e "Note: JDK 11 or later is required!\n"
 print_variables
 
 # Verify DHIS2_HOME variable
-[ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME' does not exist, aborting." && exit 1;
+[ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 [ ! -f "$DHIS2_HOME_DIR/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 
 # Compile unless skip compile flag is set
