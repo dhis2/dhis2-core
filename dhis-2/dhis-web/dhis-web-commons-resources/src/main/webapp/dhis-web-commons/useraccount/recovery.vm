@@ -3,7 +3,7 @@
 <head>
     <title>$encoder.htmlEncode( $applicationTitle )</title>
     <meta name="referrer" content="no-referrer">
-    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.3.min.js"></script>
     <script type="text/javascript" src="../javascripts/useraccount/recovery.js"></script>
     <link type="text/css" rel="stylesheet" href="../css/account.css">
 </head>
