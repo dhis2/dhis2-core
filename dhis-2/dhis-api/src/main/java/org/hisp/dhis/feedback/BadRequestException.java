@@ -44,7 +44,6 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 @Getter
 @Accessors( chain = true )
 @OpenApi.Response( status = BAD_REQUEST, value = WebMessageResponse.class )
-@SuppressWarnings( { "java:S1165", "java:S1948" } )
 public final class BadRequestException extends Exception implements Error
 {
     public static <E extends RuntimeException, V> V on( Class<E> type, Supplier<V> operation )
