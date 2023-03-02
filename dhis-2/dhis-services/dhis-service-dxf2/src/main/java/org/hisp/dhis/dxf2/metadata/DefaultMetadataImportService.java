@@ -66,8 +66,8 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
+import org.hisp.dhis.metadatapackage.MetadataPackageService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -104,7 +104,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
     private final Notifier notifier;
 
-    private final MetadataChangelogService metadataChangelogService;
+    private final MetadataPackageService packageService;
 
     private final FileResourceService fileResourceService;
 
@@ -201,11 +201,11 @@ public class DefaultMetadataImportService implements MetadataImportService
         {
             try
             {
-                saveMetadataChangelog( params );
+                saveMetadataPackage( params );
             }
             catch ( WebMessageException | IOException e )
             {
-                importReport.addTypeReport( typeReport( MetadataChangelog.class,
+                importReport.addTypeReport( typeReport( MetadataPackage.class,
                     List.of( new ErrorReport( FileResource.class, ErrorCode.E6102 ) ) ) );
                 importReport.setStatus( Status.ERROR );
                 log.error( DebugUtils.getStackTrace( e ) );
@@ -373,22 +373,21 @@ public class DefaultMetadataImportService implements MetadataImportService
     }
 
     /**
-     * Saves the metadata changelog to the database together with the import
-     * file.
+     * Saves the metadata package and the import file.
      *
      * @param params the import parameters.
      * @throws WebMessageException
      * @throws IOException
      */
-    private void saveMetadataChangelog( MetadataImportParams params )
+    private void saveMetadataPackage( MetadataImportParams params )
         throws WebMessageException,
         IOException
     {
-        MetadataChangelog changelog = params.getMetadataChangelog();
-        changelog.setImportFile( saveFileResource( params.getTempFile(), changelog.getName(),
+        MetadataPackage metadataPackage = params.getMetadataPackage();
+        metadataPackage.setImportFile( saveFileResource( params.getTempFile(), metadataPackage.getName(),
             FileResourceDomain.DOCUMENT, "application/json" ) );
 
-        metadataChangelogService.saveMetadataChangelog( changelog );
+        packageService.saveMetadataPackage( metadataPackage );
     }
 
     /**

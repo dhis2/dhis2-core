@@ -1110,12 +1110,6 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
             "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`" ) ) );
     }
 
-    @Test
-    void testImportMetadataChangelog()
-    {
-
-    }
-
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {

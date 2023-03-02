@@ -25,20 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.changelog;
+package org.hisp.dhis.webapi.controller.metadata;
 
-import java.util.List;
-import java.util.Optional;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public interface MetadataChangelogService
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.junit.jupiter.api.Test;
+
+public class MetadataPackageControllerTest extends DhisControllerConvenienceTest
 {
-    List<MetadataChangelog> getAll();
+    @Test
+    void testGetAllMetadataPackages()
+    {
+        HttpResponse res = POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) );
+        assertEquals( HttpStatus.OK, res.status() );
 
-    int countMetadataChangelogs();
-
-    void saveMetadataChangelog( MetadataChangelog metadataChangelog );
-
-    void updateMetadataChangelog( MetadataChangelog metadataChangelog );
-
-    Optional<MetadataChangelog> findByName( String name );
+        JsonList<JsonIdentifiableObject> objects = GET( "/metadataPackages" )
+            .content( HttpStatus.OK ).getList( "metadataPackagess", JsonIdentifiableObject.class );
+        assertEquals( 1, objects.size() );
+    }
 }

@@ -43,7 +43,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -161,7 +161,7 @@ public class MetadataImportParams
      */
     private boolean firstRowIsHeader = true;
 
-    private MetadataChangelog metadataChangelog;
+    private MetadataPackage metadataPackage;
 
     /**
      * Job id to use for threaded imports.
@@ -432,14 +432,14 @@ public class MetadataImportParams
 
     @OpenApi.Ignore
     @JsonIgnore
-    public MetadataChangelog getMetadataChangelog()
+    public MetadataPackage getMetadataPackage()
     {
-        return metadataChangelog;
+        return metadataPackage;
     }
 
-    public void setMetadataChangelog( MetadataChangelog metadataChangelog )
+    public void setMetadataPackage( MetadataPackage metadataPackage )
     {
-        this.metadataChangelog = metadataChangelog;
+        this.metadataPackage = metadataPackage;
     }
 
     @OpenApi.Ignore
@@ -528,9 +528,9 @@ public class MetadataImportParams
         return this;
     }
 
-    public boolean hasMetadataChangelog()
+    public boolean hasMetadataPackage()
     {
-        return metadataChangelog != null;
+        return metadataPackage != null;
     }
 
     public ObjectBundleParams toObjectBundleParams()

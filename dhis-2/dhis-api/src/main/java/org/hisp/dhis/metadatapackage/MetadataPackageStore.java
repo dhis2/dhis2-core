@@ -25,53 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.changelog;
+package org.hisp.dhis.metadatapackage;
 
-import java.util.List;
-import java.util.Optional;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service( "org.hisp.dhis.metadata.changelog.MetadataChangelogService" )
-@RequiredArgsConstructor
-public class DefaultMetadataChangelogService implements MetadataChangelogService
+public interface MetadataPackageStore extends IdentifiableObjectStore<MetadataPackage>
 {
-    private final MetadataChangelogStore store;
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<MetadataChangelog> getAll()
-    {
-        return store.getAll();
-    }
-
-    @Override
-    public int countMetadataChangelogs()
-    {
-        return store.getCount();
-    }
-
-    @Override
-    @Transactional
-    public void saveMetadataChangelog( MetadataChangelog metadataChangelog )
-    {
-        store.save( metadataChangelog );
-    }
-
-    @Override
-    @Transactional
-    public void updateMetadataChangelog( MetadataChangelog metadataChangelog )
-    {
-        store.update( metadataChangelog );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Optional<MetadataChangelog> findByName( String name )
-    {
-        return Optional.ofNullable( store.findByName( name ) );
-    }
+    MetadataPackage findByName( String name );
 }

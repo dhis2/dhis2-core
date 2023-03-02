@@ -25,11 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.changelog;
+package org.hisp.dhis.metadatapackage;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
+import java.util.Optional;
 
-public interface MetadataChangelogStore extends IdentifiableObjectStore<MetadataChangelog>
+public interface MetadataPackageService
 {
-    MetadataChangelog findByName( String name );
+    List<MetadataPackage> getAll();
+
+    void saveMetadataPackage( MetadataPackage metadataPackage );
+
+    Optional<MetadataPackage> findByName( String name );
 }

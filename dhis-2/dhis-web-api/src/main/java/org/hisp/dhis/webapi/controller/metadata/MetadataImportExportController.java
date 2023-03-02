@@ -72,8 +72,8 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
+import org.hisp.dhis.metadatapackage.MetadataPackageService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -149,10 +149,7 @@ public class MetadataImportExportController
     private BulkPatchManager bulkPatchManager;
 
     @Autowired
-    private MetadataChangelogService changelogService;
-
-    @Autowired
-    private FileResourceUtils fileResourceUtils;
+    private MetadataPackageService packageService;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -168,9 +165,9 @@ public class MetadataImportExportController
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
             .fromMetadata( new FileInputStream( tempFile ), RenderFormat.JSON );
 
-        params.setMetadataChangelog( validateMetadataChangelog( objects.remove( MetadataChangelog.class ) ) );
+        params.setMetadataPackage( validateMetadataPackage( objects.remove( MetadataPackage.class ) ) );
 
-        if ( params.hasMetadataChangelog() )
+        if ( params.hasMetadataPackage() )
         {
             params.setTempFile( tempFile );
         }
@@ -344,35 +341,36 @@ public class MetadataImportExportController
     }
 
     /**
-     * Validate the MetadataChangelog object.
+     * Validate the {@link MetadataPackage} object.
      *
-     * @param changelogs The changelogs list from the payload. Should only
-     *        contain one MetadataChangelog object.
-     * @throws ConflictException if the MetadataChangelog's name is existed in
+     * @param packages The packages list from the payload. Should only contain
+     *        one MetadataPackage object.
+     * @throws ConflictException if the MetadataPackage's name is existed in
      *         database.
      */
-    private MetadataChangelog validateMetadataChangelog( List<IdentifiableObject> changelogs )
+    private MetadataPackage validateMetadataPackage( List<IdentifiableObject> packages )
         throws ConflictException
     {
-        if ( CollectionUtils.isEmpty( changelogs ) )
+        if ( CollectionUtils.isEmpty( packages ) )
         {
             return null;
         }
 
-        if ( changelogs.size() > 1 )
+        if ( packages.size() > 1 )
         {
             throw new ConflictException( "Only one Metadata package object is allowed in the payload." );
         }
 
-        MetadataChangelog changelog = (MetadataChangelog) changelogs.get( 0 );
+        MetadataPackage metadataPackage = (MetadataPackage) packages.get( 0 );
 
-        Optional<MetadataChangelog> persistedChangelog = changelogService.findByName( changelog.getName() );
+        Optional<MetadataPackage> persistedPackage = packageService.findByName( metadataPackage.getName() );
 
-        if ( persistedChangelog.isPresent() )
+        if ( persistedPackage.isPresent() )
         {
-            throw new ConflictException( "Metadata package with name '" + changelog.getName() + "' already exists." );
+            throw new ConflictException(
+                "Metadata package with name '" + metadataPackage.getName() + "' already exists." );
         }
 
-        return changelog;
+        return metadataPackage;
     }
 }

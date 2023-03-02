@@ -35,15 +35,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -190,48 +189,6 @@ public class DefaultRenderService
         return rootNode.get( "system" );
     }
 
-    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadataWithChangelog(
-        InputStream inputStream,
-        RenderFormat format, Consumer<MetadataChangelog> addChangelog )
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
-
-        ObjectMapper mapper;
-
-        if ( RenderFormat.JSON == format )
-        {
-            mapper = jsonMapper;
-        }
-        else if ( RenderFormat.XML == format )
-        {
-            throw new IllegalArgumentException( "XML format is not supported." );
-        }
-        else
-        {
-            return map;
-        }
-
-        JsonNode rootNode = mapper.readTree( inputStream );
-        Iterator<String> fieldNames = rootNode.fieldNames();
-
-        while ( fieldNames.hasNext() )
-        {
-            String fieldName = fieldNames.next();
-
-            if ( fieldName.equals( MetadataChangelog.JSON_OBJECT_NAME ) )
-            {
-                addChangelog.accept( mapper.treeToValue( rootNode.get( fieldName ), MetadataChangelog.class ) );
-            }
-            else
-            {
-                addObjectToMap( fieldName, mapper, rootNode, map );
-            }
-        }
-
-        return map;
-    }
-
     @Override
     @SuppressWarnings( "unchecked" )
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream,
@@ -261,11 +218,11 @@ public class DefaultRenderService
         while ( fieldNames.hasNext() )
         {
             String fieldName = fieldNames.next();
-            if ( MetadataChangelog.JSON_OBJECT_NAME.equals( fieldName ) )
+            if ( MetadataPackage.JSON_OBJECT_NAME.equals( fieldName ) )
             {
-                MetadataChangelog metadataChangelog = mapper.treeToValue( rootNode.get( fieldName ),
-                    MetadataChangelog.class );
-                map.put( MetadataChangelog.class, List.of( metadataChangelog ) );
+                MetadataPackage metadataPackage = mapper.treeToValue( rootNode.get( fieldName ),
+                    MetadataPackage.class );
+                map.put( MetadataPackage.class, List.of( metadataPackage ) );
                 continue;
             }
 

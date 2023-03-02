@@ -1,24 +1,23 @@
-create table if not exists metadatachangelog (
-    metadatachangelogid int not null,
-    uid varchar(11) NOT NULL,
-    code varchar(50) unique,
-    created timestamp not null,
-    lastupdated timestamp,
-    createdby int8 not null,
-    name varchar(250) unique not null,
-    type varchar(50),
-    version varchar(10) not null,
-    dhis2version varchar(10) not null,
-    dhis2build varchar(10) not null,
-    locale varchar(10) not null,
+CREATE TABLE IF NOT EXISTS metadatapackage (
+    metadatapackageid INT NOT NULL,
+    uid VARCHAR(11) NOT NULL,
+    code VARCHAR(50) UNIQUE ,
+    created TIMESTAMP NOT NULL,
+    lastupdated TIMESTAMP ,
+    createdby int8 NOT NULL,
+    name VARCHAR(250) unique NOT NULL,
+    type VARCHAR(50),
+    version VARCHAR(10) NOT NULL,
+    dhis2version VARCHAR(10) NOT NULL,
+    dhis2build VARCHAR(10) NOT NULL,
+    locale VARCHAR(10) NOT NULL,
     importfile int8,
     lastupdatedby int8,
 
-    constraint metadatachangelogid primary key (metadatachangelogid),
-    constraint fk_metadatachangelog_fileresourceid foreign key (importfile) references fileresource (fileresourceid),
-    constraint fk_metadatachangelog_createdby_userinfoid FOREIGN KEY (createdby) REFERENCES userinfo(userinfoid),
-    CONSTRAINT fk_metadatachangelog_lastupdateby_userinfoid FOREIGN KEY (lastupdatedby) REFERENCES userinfo(userinfoid)
-    );
+    CONSTRAINT metadatapackageid PRIMARY KEY (metadatapackageid),
+    CONSTRAINT fk_metadatapackage_fileresourceid FOREIGN KEY (importfile) REFERENCES fileresource (fileresourceid),
+    CONSTRAINT fk_metadatapackage_createdby_userinfoid FOREIGN KEY (createdby) REFERENCES userinfo(userinfoid),
+    CONSTRAINT fk_metadatapackage_lastupdateby_userinfoid FOREIGN KEY (lastupdatedby) REFERENCES userinfo(userinfoid) );
 
 
 

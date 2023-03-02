@@ -25,24 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata.changelog;
+package org.hisp.dhis.metadatapackage.hibernate;
 
-import lombok.RequiredArgsConstructor;
+import javax.persistence.criteria.CriteriaBuilder;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.schema.descriptors.MetadataChangelogSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
+import org.hisp.dhis.metadatapackage.MetadataPackageStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-@OpenApi.Tags( "metadata" )
-@RestController
-@RequestMapping( MetadataChangelogSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequiredArgsConstructor
-public class MetadataChangelogController extends AbstractFullReadOnlyController<MetadataChangelog>
+@Repository( "org.hisp.dhis.metadatapackage.MetadataPackageStore" )
+public class HibernateMetadataPackageStore extends HibernateIdentifiableObjectStore<MetadataPackage>
+    implements MetadataPackageStore
 {
+    public HibernateMetadataPackageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, MetadataPackage.class, currentUserService, aclService,
+            false );
+    }
+
+    @Override
+    public MetadataPackage findByName( String name )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "name" ), name ) ) );
+    }
 }

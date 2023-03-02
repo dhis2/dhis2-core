@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.changelog;
+package org.hisp.dhis.metadatapackage;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,17 +57,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *   }
  * // @formatter:on
  * <p>
- * The name of the changelog is a concatenation of code, type, dhisVersion,
+ * The name of the Metadata Package is a concatenation of code, type, dhisVersion,
  * locale.
  */
 @Getter
 @Setter
 @EqualsAndHashCode( of = { "version", "dhis2Version", "locale" } )
 @Accessors( chain = true )
-public class MetadataChangelog extends BaseIdentifiableObject
+public class MetadataPackage extends BaseIdentifiableObject
 {
     /**
-     * The name of the metadata changelog object in the import payload.
+     * The name of the metadata package object in the import payload.
      */
     public static final String JSON_OBJECT_NAME = "package";
 

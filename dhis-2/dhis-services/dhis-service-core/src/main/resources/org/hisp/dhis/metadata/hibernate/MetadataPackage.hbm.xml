@@ -6,9 +6,9 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.metadata.changelog.MetadataChangelog" table="metadatachangelog">
+  <class name="org.hisp.dhis.metadatapackage.MetadataPackage" table="metadatapackage">
 
-    <id name="id" column="metadatachangelogid">
+    <id name="id" column="metadatapackageid">
       <generator class="native" />
     </id>
     &identifiableProperties;
@@ -25,9 +25,9 @@
 
     <property name="locale" column="locale" not-null="true" length="10" />
 
-    <many-to-one name="importFile" class="org.hisp.dhis.fileresource.FileResource" column="importfile" foreign-key="fk_metadatachangelog_fileresourceid" />
+    <many-to-one name="importFile" class="org.hisp.dhis.fileresource.FileResource" column="importfile" foreign-key="fk_metadatapackage_fileresourceid" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_metadatachangelog_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_metadatapackage_userid" />
 
   </class>
 </hibernate-mapping>

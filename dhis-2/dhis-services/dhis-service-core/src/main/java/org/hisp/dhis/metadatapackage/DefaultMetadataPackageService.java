@@ -25,27 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.metadatapackage;
 
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.List;
+import java.util.Optional;
 
-public class MetadataChangelogSchemaDescriptor implements SchemaDescriptor
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service( "org.hisp.dhis.metadatapackage.MetadataPackageService" )
+@RequiredArgsConstructor
+public class DefaultMetadataPackageService implements MetadataPackageService
 {
-    public static final String SINGULAR = "metadataChangelog";
-
-    public static final String PLURAL = "metadataChangelogs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private final MetadataPackageStore store;
 
     @Override
-    public Schema getSchema()
+    @Transactional( readOnly = true )
+    public List<MetadataPackage> getAll()
     {
-        Schema schema = new Schema( MetadataChangelog.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1200 );
+        return store.getAll();
+    }
 
-        return schema;
+    @Override
+    @Transactional
+    public void saveMetadataPackage( MetadataPackage metadataPackage )
+    {
+        store.save( metadataPackage );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<MetadataPackage> findByName( String name )
+    {
+        return Optional.ofNullable( store.findByName( name ) );
     }
 }

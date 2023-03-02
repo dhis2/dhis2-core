@@ -41,7 +41,7 @@ import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
@@ -312,27 +312,27 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testImportMetadataChangelogSuccess()
+    void testImportMetadataPackageSuccess()
     {
-        POST( "/metadata", Body( "metadata_changelog/metadata_changelog_success.json" ) ).content( HttpStatus.OK );
+        POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) ).content( HttpStatus.OK );
 
-        List<MetadataChangelog> changelogs = manager.getAll( MetadataChangelog.class );
-        assertEquals( 1, changelogs.size() );
-        MetadataChangelog changelog = changelogs.get( 0 );
-        assertEquals( "GEN_LIB_DHIS2.38.0-en", changelog.getName() );
-        assertEquals( "2.38.0", changelog.getDhis2Version() );
-        assertEquals( "769bded", changelog.getDhis2Build() );
-        assertEquals( "en", changelog.getLocale() );
-        assertEquals( "GEN", changelog.getType() );
+        List<MetadataPackage> packages = manager.getAll( MetadataPackage.class );
+        assertEquals( 1, packages.size() );
+        MetadataPackage metadataPackage = packages.get( 0 );
+        assertEquals( "GEN_LIB_DHIS2.38.0-en", metadataPackage.getName() );
+        assertEquals( "2.38.0", metadataPackage.getDhis2Version() );
+        assertEquals( "769bded", metadataPackage.getDhis2Build() );
+        assertEquals( "en", metadataPackage.getLocale() );
+        assertEquals( "GEN", metadataPackage.getType() );
     }
 
     @Test
-    void testImportMetadataChangelogFail()
+    void testImportMetadataPackageFail()
     {
-        HttpResponse res = POST( "/metadata", Body( "metadata_changelog/metadata_changelog_fail.json" ) );
+        HttpResponse res = POST( "/metadata", Body( "metadata_package/metadata_package_fail.json" ) );
         assertEquals( HttpStatus.CONFLICT, res.status() );
 
-        List<MetadataChangelog> changelogs = manager.getAll( MetadataChangelog.class );
-        assertEquals( 0, changelogs.size() );
+        List<MetadataPackage> packages = manager.getAll( MetadataPackage.class );
+        assertEquals( 0, packages.size() );
     }
 }

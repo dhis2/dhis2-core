@@ -215,7 +215,7 @@ public class DefaultSchemaService
         register( new ItemConfigSchemaDescriptor() );
         register( new LayoutSchemaDescriptor() );
         register( new RouteSchemaDescriptor() );
-        register( new MetadataChangelogSchemaDescriptor() );
+        register( new MetadataPackageSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

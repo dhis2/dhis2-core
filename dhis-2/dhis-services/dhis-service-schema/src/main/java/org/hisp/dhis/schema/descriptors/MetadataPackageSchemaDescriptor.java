@@ -25,27 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.schema.descriptors;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.hisp.dhis.metadatapackage.MetadataPackage;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.junit.jupiter.api.Test;
-
-public class MetadataChangelogControllerTest extends DhisControllerConvenienceTest
+public class MetadataPackageSchemaDescriptor implements SchemaDescriptor
 {
-    @Test
-    void testGetAllMetadataChangelogs()
-    {
-        HttpResponse res = POST( "/metadata", Body( "metadata_changelog/metadata_changelog_success.json" ) );
-        assertEquals( HttpStatus.OK, res.status() );
+    public static final String SINGULAR = "metadataPackage";
 
-        JsonList<JsonIdentifiableObject> objects = GET( "/metadataChangelogs" )
-            .content( HttpStatus.OK ).getList( "metadataChangelogs", JsonIdentifiableObject.class );
-        assertEquals( 1, objects.size() );
+    public static final String PLURAL = "metadataPackages";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( MetadataPackage.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1200 );
+
+        return schema;
     }
 }
