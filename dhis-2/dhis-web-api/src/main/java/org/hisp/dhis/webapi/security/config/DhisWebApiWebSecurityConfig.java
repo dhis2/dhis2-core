@@ -88,6 +88,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -112,8 +113,11 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
@@ -140,6 +144,11 @@ public class DhisWebApiWebSecurityConfig
 
     @Autowired
     public DataSource dataSource;
+
+
+    @Autowired
+    @Qualifier( "userDetailsService" )
+    private UserDetailsService userDetailsService;
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -410,6 +419,7 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ConfigurationService configurationService;
+
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -739,5 +749,17 @@ public class DhisWebApiWebSecurityConfig
             .httpStrictTransportSecurity()
             .and()
             .frameOptions().sameOrigin();
+    }
+
+    @Bean( "switchUserProcessingFilter" )
+    public SwitchUserFilter switchUserFilter()
+    {
+        SwitchUserFilter filter = new SwitchUserFilter();
+        filter.setUserDetailsService( userDetailsService );
+//        filter.setSwitchUserUrl( "/impersonate" );
+        filter.setSwitchUserMatcher( new AntPathRequestMatcher("impersonate", "GET", true, new UrlPathHelper()) );
+        filter.setSwitchFailureUrl( "/switchUser" );
+        filter.setTargetUrl( "/dhis-web-dashboardD" );
+        return filter;
     }
 }

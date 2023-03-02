@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.security.config;
 
-import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -73,19 +66,27 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+
 /**
- * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
- * authentication and authorization NOT on the /api endpoint.
+ * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all authentication and authorization NOT on the
+ * /api endpoint.
  *
- * Almost all /api/* endpoints are configured in
- * {@code DhisWebApiWebSecurityConfig}
+ * Almost all /api/* endpoints are configured in {@code DhisWebApiWebSecurityConfig}
  *
  * Most of the configuration here is related to Struts security.
  *
@@ -102,8 +103,7 @@ public class DhisWebCommonsWebSecurityConfig
         "/api/files/style/external", "/" );
 
     /**
-     * This configuration class is responsible for setting up the session
-     * management.
+     * This configuration class is responsible for setting up the session management.
      */
     @Configuration
     @Order( 3300 )
@@ -120,7 +120,8 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Override
         protected void configure( HttpSecurity http )
-            throws Exception
+            throws
+            Exception
         {
             http
                 .sessionManagement()
@@ -134,8 +135,7 @@ public class DhisWebCommonsWebSecurityConfig
     }
 
     /**
-     * This configuration class is responsible for setting up the form login and
-     * everything related to the web pages.
+     * This configuration class is responsible for setting up the form login and everything related to the web pages.
      */
     @Configuration
     @Order( 2200 )
@@ -177,7 +177,8 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
+            throws
+            Exception
         {
             auth.authenticationProvider( customLdapAuthenticationProvider );
             auth.authenticationProvider( twoFactorAuthenticationProvider );
@@ -192,7 +193,8 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Override
         protected void configure( HttpSecurity http )
-            throws Exception
+            throws
+            Exception
         {
             http
                 .authorizeRequests()
@@ -251,6 +253,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-sms-configuration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL" )
+                .antMatchers( "/dhis-web-commons/security/impersonateUser.action" ).hasAnyAuthority( "ALL" )
                 .antMatchers( "/dhis-web-aggregate-data-entry/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-aggregate-data-entry" )
 
@@ -260,7 +264,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .formLogin()
                 .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
                 .loginPage( "/dhis-web-commons/security/login.action" )
-                .usernameParameter( "j_username" ).passwordParameter( "j_password" )
+                .usernameParameter( "j_username" )
+                .passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
                 .failureHandler( customAuthFailureHandler )
                 .successHandler( authenticationSuccessHandler() )
@@ -361,6 +366,7 @@ public class DhisWebCommonsWebSecurityConfig
                 "dhis-web-api-mobile",
                 "dhis-web-portal",
                 "dhis-web-uaa" ) );
+
             return voter;
         }
 
@@ -395,5 +401,7 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
+
+
     }
 }

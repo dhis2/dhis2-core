@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.useraccount.action;
 
-import static org.springframework.http.HttpStatus.OK;
+import com.opensymphony.xwork2.Action;
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@Controller
-public class PingController
+/**
+ * @author Morten Svanæs
+ */
+public class ImpersonateUserAction implements Action
 {
-    @GetMapping( "/ping" )
-    @ResponseStatus( OK )
-    @CrossOrigin
-    public void ping()
+    private SystemSettingManager systemSettingManager;
+
+    private UserService userService;
+
+    @Autowired
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
     {
-        // Do nothing
+        this.systemSettingManager = systemSettingManager;
     }
+
+    @Autowired
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
+    }
+
+    private String username;
+
+    private String image;
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public String getImage()
+    {
+        return image;
+    }
+
+    @Override
+    public String execute()
+        throws Exception
+    {
+        this.username = (String) ServletActionContext.getRequest().getSession().getAttribute( "username" );
+
+        User user = userService.getUserByUsername( username );
+
+
+
+        return SUCCESS;
+    }
+
+
 }
