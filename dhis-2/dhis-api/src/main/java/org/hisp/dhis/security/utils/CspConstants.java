@@ -30,8 +30,12 @@ package org.hisp.dhis.security.utils;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CspConstans
+public class CspConstants
 {
+    private CspConstants()
+    {
+    }
+
     public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
     public static final Pattern P_1 = Pattern.compile( "^.+/events/files$" );

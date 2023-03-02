@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import static org.hisp.dhis.security.utils.CspConstans.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
-import static org.hisp.dhis.security.utils.CspConstans.LOGIN_PATTERN;
-import static org.hisp.dhis.security.utils.CspConstans.SCRIPT_SOURCE_DEFAULT;
+import static org.hisp.dhis.security.utils.CspConstants.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
+import static org.hisp.dhis.security.utils.CspConstants.LOGIN_PATTERN;
+import static org.hisp.dhis.security.utils.CspConstants.SCRIPT_SOURCE_DEFAULT;
 
 import java.io.IOException;
 import java.util.Set;
@@ -89,10 +89,10 @@ public class CspFilter
 
         if ( LOGIN_PATTERN.matcher( url ).matches() )
         {
-            String nounce = CodeGenerator.getRandomUrlToken();
-            req.getSession().setAttribute( "nounce", nounce );
+            String nonce = CodeGenerator.getRandomUrlToken();
+            req.getSession().setAttribute( "nounce", nonce );
 
-            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nounce + "';" );
+            res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nonce + "';" );
             res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_STRICT_CSP );
             chain.doFilter( req, res );
             return;
