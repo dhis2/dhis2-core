@@ -60,12 +60,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TeiQueryParamPostProcessorTest
+class TeiQueryParamPostProcessorTest
 {
     private TeiQueryParamPostProcessor teiQueryParamPostProcessor;
 
     @BeforeEach
-    public void setup()
+    void setup()
     {
         DefaultDataQueryService dataQueryService = mock( DefaultDataQueryService.class );
         DefaultEventDataQueryService eventDataQueryService = mock( DefaultEventDataQueryService.class );
@@ -91,7 +91,7 @@ public class TeiQueryParamPostProcessorTest
     }
 
     @Test
-    public void verifyDefaultPeriodIsAddedIfPeriodIsMissing()
+    void verifyDefaultPeriodIsAddedIfPeriodIsMissing()
     {
         // Given
         TeiQueryParams params = TeiQueryParams.builder()
@@ -108,7 +108,7 @@ public class TeiQueryParamPostProcessorTest
     }
 
     @Test
-    public void verifyDefaultPeriodIsNotAddedIfPeriodIsPresent()
+    void verifyDefaultPeriodIsNotAddedIfPeriodIsPresent()
     {
         // Given
         TeiQueryParams params = TeiQueryParams.builder()
@@ -133,7 +133,7 @@ public class TeiQueryParamPostProcessorTest
     }
 
     @Test
-    public void verifyDefaultPeriodIsAddedIfPeriodIsPresentWithNoItems()
+    void verifyDefaultPeriodIsAddedIfPeriodIsPresentWithNoItems()
     {
         // Given
         TeiQueryParams params = TeiQueryParams.builder()
