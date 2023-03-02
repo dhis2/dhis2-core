@@ -37,7 +37,7 @@ pipeline {
                 script {
                     env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
-                    git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+                    gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
@@ -205,7 +205,7 @@ pipeline {
                     if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                             dir('im-db-manager') {
-                                git.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
 
                                 dir('scripts') {
                                     env.DATABASE_ID = sh(
@@ -219,7 +219,7 @@ pipeline {
                             }
 
                             dir('im-manager') {
-                                git.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
                                 dir('scripts') {
                                     echo 'Creating DHIS2 instance on IM...'
@@ -241,7 +241,7 @@ pipeline {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
 
             script {
-                git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
             }
         }
 
