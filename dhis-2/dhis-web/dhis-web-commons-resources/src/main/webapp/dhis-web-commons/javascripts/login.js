@@ -16,7 +16,7 @@ $( document ).ready( function()
         checked = !checked;
     });
 
-    $( '#loginForm').bind( 'submit', function() 
+    $( '#loginForm').bind( 'submit', function()
     {
 		if ( window.location.hash )
 		{	
