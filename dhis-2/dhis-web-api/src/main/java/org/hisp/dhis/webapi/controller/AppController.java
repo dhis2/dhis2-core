@@ -53,9 +53,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -105,26 +102,20 @@ public class AppController
     @Autowired
     private ObjectMapper jsonMapper;
 
-    @Autowired
-    private UserService userService;
-
     @GetMapping( value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody Map<String, List<WebModule>> getWebModules( HttpServletRequest request )
     {
-        String currentUsername = CurrentUserUtil.getCurrentUsername();
         String contextPath = ContextUtils.getContextPath( request );
 
-        return Map.of( "modules", getAccessibleAppMenu( contextPath, currentUsername ) );
+        return Map.of( "modules", getAccessibleAppMenu( contextPath ) );
     }
 
-    public List<WebModule> getAccessibleAppMenu( String contextPath, String username )
+    public List<WebModule> getAccessibleAppMenu( String contextPath )
     {
-        List<WebModule> modules = appMenuManager.getAppMenu( username );
-
-        User user = userService.getUserByUsername( username );
+        List<WebModule> modules = appMenuManager.getAccessibleWebModules();
 
         List<App> apps = appManager
-            .getAccessibleApps( contextPath, user )
+            .getApps( contextPath )
             .stream()
             .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
             .collect( Collectors.toList() );
