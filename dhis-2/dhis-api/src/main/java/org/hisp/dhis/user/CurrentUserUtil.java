@@ -111,7 +111,15 @@ public class CurrentUserUtil
 
     public static List<String> getCurrentUserAuthorities()
     {
-        return getCurrentUserDetails()
+        CurrentUserDetails currentUserDetails = getCurrentUserDetails();
+
+        if ( currentUserDetails == null )
+        {
+            // Anonymous user has no authorities
+            return List.of();
+        }
+
+        return currentUserDetails
             .getAuthorities()
             .stream()
             .map( auth -> auth.getAuthority() )
