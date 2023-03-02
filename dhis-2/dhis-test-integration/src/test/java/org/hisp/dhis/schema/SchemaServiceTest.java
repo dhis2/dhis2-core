@@ -74,10 +74,6 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase
     {
         Schema schema = schemaService.getSchema( ProgramTrackedEntityAttribute.class );
         assertNotNull( schema );
-        Property groups = schema.getProperty( "programTrackedEntityAttributeGroups" );
-        assertNotNull( groups );
-        assertFalse( groups.isSimple() );
-        assertTrue( groups.isCollection() );
     }
 
     @Test

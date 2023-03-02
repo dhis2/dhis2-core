@@ -86,7 +86,7 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
+    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
@@ -141,6 +141,10 @@ public class TrackerImportParams
      * Job configuration
      */
     private JobConfiguration jobConfiguration;
+
+    @JsonProperty
+    @Builder.Default
+    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Tracked entities to import.

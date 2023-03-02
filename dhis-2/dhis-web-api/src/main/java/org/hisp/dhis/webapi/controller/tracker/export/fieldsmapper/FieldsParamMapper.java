@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
@@ -52,17 +50,6 @@ class FieldsParamMapper
     static final String FIELD_EVENTS = "events";
 
     static final String FIELD_ATTRIBUTES = "attributes";
-
-    static Map<String, FieldPath> getRoots( List<String> fields )
-    {
-        return rootFields( getFieldPaths( fields ) );
-    }
-
-    static List<FieldPath> getFieldPaths( List<String> fields )
-    {
-        return FieldFilterParser
-            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
-    }
 
     static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {

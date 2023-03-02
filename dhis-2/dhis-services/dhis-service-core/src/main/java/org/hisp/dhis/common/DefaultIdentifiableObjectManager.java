@@ -63,6 +63,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -253,6 +254,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .map( store -> store.getByUid( uid ) )
             .filter( Objects::nonNull )
             .findFirst();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> findByUser( Class<T> type, @Nonnull User user )
+    {
+        IdentifiableObjectStore<T> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return List.of();
+        }
+
+        return findByUser( store, user );
     }
 
     @CheckForNull
@@ -1327,4 +1341,34 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         } );
     }
 
+    /**
+     * Look up list objects by property createdBy or lastUpdatedBy. Among those
+     * properties, only persisted ones will be used for looking up.
+     *
+     * @param store the store to be used for looking up objects.
+     * @param user the {@link User} that is linked to createdBy or lastUpdateBy
+     *        property.
+     * @return list of {@link IdentifiableObject} found.
+     */
+    private <T extends IdentifiableObject> List<T> findByUser( IdentifiableObjectStore<T> store, User user )
+    {
+        Schema schema = schemaService.getDynamicSchema( store.getClazz() );
+        boolean hasCreatedBy = schema.getPersistedProperty( BaseIdentifiableObject_.CREATED_BY ) != null;
+        boolean hasLastUpdatedBy = schema.getPersistedProperty( BaseIdentifiableObject_.LAST_UPDATED_BY ) != null;
+
+        if ( hasCreatedBy && hasLastUpdatedBy )
+        {
+            return store.findByUser( user );
+        }
+        else if ( hasLastUpdatedBy )
+        {
+            return store.findByLastUpdatedBy( user );
+        }
+        else if ( hasCreatedBy )
+        {
+            return store.findByCreatedBy( user );
+        }
+
+        return List.of();
+    }
 }

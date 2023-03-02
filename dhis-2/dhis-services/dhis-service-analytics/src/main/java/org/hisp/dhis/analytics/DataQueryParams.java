@@ -98,6 +98,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -519,6 +520,8 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
+    protected transient String serverBaseUrl;
+
     protected String explainOrderId;
 
     // -------------------------------------------------------------------------
@@ -624,6 +627,7 @@ public class DataQueryParams
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
         params.explainOrderId = this.explainOrderId;
+        params.serverBaseUrl = this.serverBaseUrl;
 
         return params;
     }
@@ -690,8 +694,15 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
+            .add( "expressiondimensionitems", getExpressionDimensionItemsExpressions() )
             .addIgnoreNull( "apiVersion", apiVersion )
             .addIgnoreNull( "locale", locale );
+    }
+
+    private String getExpressionDimensionItemsExpressions()
+    {
+        return this.getExpressionDimensionItems().stream()
+            .map( edi -> ((ExpressionDimensionItem) edi).getExpression() ).collect( Collectors.joining() );
     }
 
     private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
@@ -2390,6 +2401,11 @@ public class DataQueryParams
         return apiVersion;
     }
 
+    public String getServerBaseUrl()
+    {
+        return serverBaseUrl;
+    }
+
     public Program getProgram()
     {
         return program;
@@ -3128,6 +3144,12 @@ public class DataQueryParams
         public Builder withValidationRules( List<? extends DimensionalItemObject> validationRules )
         {
             this.params.setDataDimensionOptions( DataDimensionItemType.VALIDATION_RULE, validationRules );
+            return this;
+        }
+
+        public Builder withServerBaseUrl( String serverBaseUrl )
+        {
+            params.serverBaseUrl = serverBaseUrl;
             return this;
         }
 

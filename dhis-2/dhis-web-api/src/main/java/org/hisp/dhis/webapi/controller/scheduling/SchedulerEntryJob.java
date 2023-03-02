@@ -56,6 +56,9 @@ class SchedulerEntryJob
     String cronExpression;
 
     @JsonProperty
+    Integer delay;
+
+    @JsonProperty
     Date nextExecutionTime;
 
     @JsonProperty
@@ -68,6 +71,7 @@ class SchedulerEntryJob
             config.getName(),
             config.getJobType(),
             config.getCronExpression(),
+            config.getDelay(),
             config.getNextExecutionTime(),
             config.getJobStatus() );
     }

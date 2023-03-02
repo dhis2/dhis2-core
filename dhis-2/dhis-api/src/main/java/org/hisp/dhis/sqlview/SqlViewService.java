@@ -64,8 +64,6 @@ public interface SqlViewService
     // SQL view
     // -------------------------------------------------------------------------
 
-    boolean viewTableExists( String viewTableName );
-
     /**
      * Creates the SQL view in the database. Checks if the SQL query is valid.
      *
@@ -108,14 +106,6 @@ public interface SqlViewService
      */
     void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException;
-
-    /**
-     * Tests whether the given SQL view syntax is valid.
-     *
-     * @param sql the SQL view.
-     * @return null if valid, a non-null descriptive string if invalid.
-     */
-    String testSqlGrammar( String sql );
 
     /**
      * Refreshes the materialized view.

@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -101,7 +102,7 @@ public class JdbcEnrollmentAnalyticsManager
     private static final List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
-        "ouname", "oucode", "enrollmentstatus" );
+        "ouname", "ounamehierarchy", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
@@ -122,7 +123,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else
         {
-            withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
+            withExceptionHandling( () -> getEnrollments( params, grid, sql, maxLimit == 0 ) );
         }
     }
 
@@ -134,7 +135,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @param grid the {@link Grid}.
      * @param sql the SQL statement used to retrieve events.
      */
-    private void getEnrollments( EventQueryParams params, Grid grid, String sql )
+    private void getEnrollments( EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging )
     {
         log.debug( String.format( "Analytics enrollment query SQL: %s", sql ) );
 
@@ -146,7 +147,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() && !unlimitedPaging )
             {
                 grid.setLastDataRow( false );
 
@@ -337,7 +338,9 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + getCoalesce( params.getCoordinateFields() ) + IS_NOT_NULL;
+            sql += "and "
+                + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue() )
+                + IS_NOT_NULL;
         }
 
         if ( params.isCompletedOnly() )
@@ -347,7 +350,9 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += "and " + getCoalesce( params.getCoordinateFields() ) + " && ST_MakeEnvelope(" + params.getBbox()
+            sql += "and "
+                + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue() )
+                + " && ST_MakeEnvelope(" + params.getBbox()
                 + ",4326) ";
         }
 

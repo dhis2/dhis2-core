@@ -520,6 +520,27 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
+    void testIsDescendantOrgUnit()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( ouA );
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA );
+        ouA.getChildren().add( ouB );
+        organisationUnitService.addOrganisationUnit( ouB );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouB );
+        ouB.getChildren().add( ouC );
+        organisationUnitService.addOrganisationUnit( ouC );
+        OrganisationUnit ouD = createOrganisationUnit( 'D' );
+        organisationUnitService.addOrganisationUnit( ouD );
+        assertTrue( ouA.isDescendant( Set.of( ouA ) ) );
+        assertTrue( ouB.isDescendant( Set.of( ouA ) ) );
+        assertTrue( ouC.isDescendant( Set.of( ouA, ouD ) ) );
+        assertTrue( ouB.isDescendant( Set.of( ouA, ouC ) ) );
+        assertFalse( ouB.isDescendant( Set.of( ouC ) ) );
+        assertFalse( ouD.isDescendant( Set.of( ouA ) ) );
+    }
+
+    @Test
     void testIsDescendantObject()
     {
         OrganisationUnit unit1 = createOrganisationUnit( '1' );
@@ -756,14 +777,10 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testOrganisationUnitGroupSetsBasic()
     {
-        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup();
-        organisationUnitGroup1.setName( "oug1" );
-        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup();
-        organisationUnitGroup2.setName( "oug2" );
-        OrganisationUnitGroup organisationUnitGroup3 = new OrganisationUnitGroup();
-        organisationUnitGroup3.setName( "oug3" );
-        OrganisationUnitGroup organisationUnitGroup4 = new OrganisationUnitGroup();
-        organisationUnitGroup4.setName( "oug4" );
+        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup( "oug1" );
+        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup( "oug2" );
+        OrganisationUnitGroup organisationUnitGroup3 = new OrganisationUnitGroup( "oug3" );
+        OrganisationUnitGroup organisationUnitGroup4 = new OrganisationUnitGroup( "oug4" );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup2 );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup3 );

@@ -58,7 +58,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -71,6 +70,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -111,6 +111,8 @@ public abstract class AbstractJdbcTableManager
 
     protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
+    protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
+
     protected final IdentifiableObjectManager idObjectManager;
 
     protected final OrganisationUnitService organisationUnitService;
@@ -134,6 +136,8 @@ public abstract class AbstractJdbcTableManager
     protected final JdbcTemplate jdbcTemplate;
 
     protected final AnalyticsExportSettings analyticsExportSettings;
+
+    protected final PeriodDataProvider periodDataProvider;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
@@ -529,7 +533,6 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Calendar calendar = PeriodType.getCalendar();
 
         List<Integer> years = ListUtils.mutableCopy( dataYears );
 
@@ -545,8 +548,8 @@ public abstract class AbstractJdbcTableManager
             }
             else
             {
-                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                    PartitionUtils.getEndDate( calendar, year ) );
+                table.addPartitionTable( year, PartitionUtils.getStartDate( year ),
+                    PartitionUtils.getEndDate( year ) );
             }
         }
 
@@ -690,6 +693,19 @@ public abstract class AbstractJdbcTableManager
                 return new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( lv.getCreated() );
             } )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Organisation unit name hierarchy delivery.
+     *
+     * @return a table column {@link AnalyticsTableColumn}
+     */
+    protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn()
+    {
+        String columnAlias = "concat_ws(' / '," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .map( lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel() )
+            .collect( Collectors.joining( "," ) ) + ") as ounamehierarchy";
+        return new AnalyticsTableColumn( "ounamehierarchy", TEXT, columnAlias );
     }
 
     /**

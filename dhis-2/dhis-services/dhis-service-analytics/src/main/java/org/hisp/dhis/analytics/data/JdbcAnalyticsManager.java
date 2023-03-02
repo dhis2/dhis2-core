@@ -28,8 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.collections4.CollectionUtils.union;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -77,6 +76,7 @@ import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -188,9 +188,13 @@ public class JdbcAnalyticsManager
 
             String sql = getSelectClause( params );
 
-            sql += getFromClause( params );
+            sql += getFromClause( params, tableType );
 
-            sql += getWhereClause( params, tableType );
+            // Skip the where clause here if it's already in the subquery
+            if ( !params.getAggregationType().isMinOrMaxInPeriodAggregationType() )
+            {
+                sql += getWhereClause( params, tableType );
+            }
 
             sql += getGroupByClause( params );
 
@@ -306,7 +310,7 @@ public class JdbcAnalyticsManager
      */
     private String getSelectClause( DataQueryParams params )
     {
-        String sql = "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
+        String sql = "select " + getCommaDelimitedQuotedDimensionColumns( params.getDimensions() ) + ", ";
 
         sql += getValueClause( params );
 
@@ -380,7 +384,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL from clause.
      */
-    private String getFromClause( DataQueryParams params )
+    private String getFromClause( DataQueryParams params, AnalyticsTableType tableType )
     {
         String sql = "from ";
 
@@ -395,7 +399,7 @@ public class JdbcAnalyticsManager
         }
         else if ( params.getAggregationType().isMinOrMaxInPeriodAggregationType() )
         {
-            sql += getMinOrMaxValueSubquerySql( params );
+            sql += getMinOrMaxValueSubquerySql( params, tableType );
         }
         else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
@@ -591,7 +595,7 @@ public class JdbcAnalyticsManager
 
         if ( params.isAggregation() )
         {
-            sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
+            sql = "group by " + getCommaDelimitedQuotedDimensionColumns( params.getDimensions() ) + " ";
         }
 
         return sql;
@@ -605,35 +609,32 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL minimum or maximum value sub query.
      */
-    private String getMinOrMaxValueSubquerySql( DataQueryParams params )
+    private String getMinOrMaxValueSubquerySql( DataQueryParams params, AnalyticsTableType tableType )
     {
         String dimensionColumns = getMinOrMaxValueSubqueryDimensionColumns( params );
         String valueColumns = getMinOrMaxValueSubqueryValueColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
-        Date earliestDate = params.getEarliestStartDate();
-        Date latestDate = params.getLatestEndDate();
+        String whereClause = getWhereClause( params, tableType );
 
         return "(select " + dimensionColumns + "," + valueColumns + " " +
             "from " + fromSourceClause + " " +
-            "where " + quoteAlias( PESTARTDATE ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
-            "and " + quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( latestDate ) + "' " +
-            "and (" + quoteAlias( VALUE ) + " is not null or " + quoteAlias( TEXTVALUE ) + " is not null) " +
-            "group by " + dimensionColumns + ") ";
+            whereClause +
+            "group by " + dimensionColumns + ")";
     }
 
     /**
-     * Gets a string with the dimension columns for a min or max value subquery,
-     * quoted and separated with commas.
+     * Gets a string with the dimension columns for a min or max value subquery
+     * quoted and separated with commas. OU (organisation unit) is included to
+     * find min or max within each organisation unit,
      *
      * @param params the {@link DataQueryParams}.
      * @return the dimension columns string.
      */
     private String getMinOrMaxValueSubqueryDimensionColumns( DataQueryParams params )
     {
-        // Note that the non-fixed subquery dimension columns may or may not
-        // duplicate the DX column that is specified, so a Set union is used.
-        return join( ",", union( quotedListOf( DX, OU, CO, AO, OULEVEL, YEAR ),
-            getParamsDependentSubqueryDimensionColumns( params, false ) ) );
+        return join( ",", concat( List.of( quoteAlias( OU ) ),
+            getSubqueryDataApprovalColumns( params ),
+            getQuotedDimensionColumns( params.getDimensions() ) ) );
     }
 
     /**
@@ -704,7 +705,7 @@ public class JdbcAnalyticsManager
     {
         if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
         {
-            return getCommaDelimitedQuotedColumns( params.getNonPeriodDimensions() );
+            return getCommaDelimitedQuotedDimensionColumns( params.getNonPeriodDimensions() );
         }
         else
         {
@@ -724,39 +725,29 @@ public class JdbcAnalyticsManager
     {
         return join( ",", concat(
             quotedListOf( YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE ),
-            getParamsDependentSubqueryDimensionColumns( params, true ) ) );
+            getSubqueryDataApprovalColumns( params ),
+            getFirstOrLastValueSubqueryDimensionAndFilterColumns( params ) ) );
     }
 
     /**
      * Returns quoted names of all dimension columns for a period subquery (e.g.
      * first, last, min, max) that depend on the parameters.
      * <p>
-     * If requested, the period dimension is replaced by the name of the latest
-     * period in the given query.
+     * The period dimension is replaced by the name of the latest period in the
+     * given query.
      *
      * @param params the {@link DataQueryParams}.
-     * @param replacePeriod if the query is for first or last value.
-     * @return a {@link List} of columns
+     * @return a {@link List} of columns.
      */
-    private List<String> getParamsDependentSubqueryDimensionColumns( DataQueryParams params, boolean replacePeriod )
+    private List<String> getFirstOrLastValueSubqueryDimensionAndFilterColumns( DataQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
         List<String> cols = Lists.newArrayList();
 
-        if ( params.isDataApproval() )
-        {
-            cols.add( quote( APPROVALLEVEL ) );
-
-            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
-            {
-                cols.add( quote( LEVEL_PREFIX + unit.getLevel() ) );
-            }
-        }
-
         for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {
-            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null && replacePeriod )
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
                 String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
@@ -768,6 +759,28 @@ public class JdbcAnalyticsManager
             }
         }
 
+        return cols;
+    }
+
+    /**
+     * Returns the data approval columns (if any) needed by subqueries.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a {@link List} of columns.
+     */
+    private List<String> getSubqueryDataApprovalColumns( DataQueryParams params )
+    {
+        List<String> cols = Lists.newArrayList();
+
+        if ( params.isDataApproval() )
+        {
+            cols.add( quote( APPROVALLEVEL ) );
+
+            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
+            {
+                cols.add( quote( LEVEL_PREFIX + unit.getLevel() ) );
+            }
+        }
         return cols;
     }
 
@@ -882,6 +895,23 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates a list of the dimension names of the given dimensions where
+     * each dimension name is quoted. Dimensions which are considered fixed will
+     * be excluded.
+     *
+     * @param dimensions the collection of {@link DimensionalObject}.
+     * @return a list of quoted dimension names.
+     */
+    private List<String> getQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
+    {
+        return dimensions.stream()
+            .filter( d -> !d.isFixed() )
+            .map( DimensionalObject::getDimensionName )
+            .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( toList() );
+    }
+
+    /**
      * Generates a comma-delimited string with the dimension names of the given
      * dimensions where each dimension name is quoted. Dimensions which are
      * considered fixed will be excluded.
@@ -889,24 +919,9 @@ public class JdbcAnalyticsManager
      * @param dimensions the collection of {@link DimensionalObject}.
      * @return a comma-delimited string of quoted dimension names.
      */
-    private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
+    private String getCommaDelimitedQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
     {
-        StringBuilder builder = new StringBuilder();
-
-        if ( isNotEmpty( dimensions ) )
-        {
-            for ( DimensionalObject dimension : dimensions )
-            {
-                if ( !dimension.isFixed() )
-                {
-                    builder.append( quoteAlias( dimension.getDimensionName() ) ).append( "," );
-                }
-            }
-
-            return builder.substring( 0, builder.length() - 1 );
-        }
-
-        return builder.toString();
+        return join( ",", getQuotedDimensionColumns( dimensions ) );
     }
 
     /**

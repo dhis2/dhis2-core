@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList" table="programstageworkinglist">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programstageworkinglistid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" length="230" />
+
+    <property name="description" type="text"/>
+    
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true" foreign-key="fk_programstageworkinglist_programid" lazy="false" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+                 column="programstageid" not-null="true" foreign-key="fk_programstageworkinglist_programstageid" lazy="false" />
+    
+    <property name="programStageQueryCriteria" type="jbProgramStageQueryCriteria" />
+
+    <property name="translations" type="jblTranslations"/>
+
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageworkinglist_userid" />
+
+    <property name="sharing" type="jsbObjectSharing"/>
+    
+  </class>
+
+</hibernate-mapping>

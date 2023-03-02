@@ -99,6 +99,10 @@
     <param name="clazz">java.util.ArrayList</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbMap">
+    <param name="clazz">java.util.HashMap</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType" name="jbJobParameters">
     <param name="clazz">org.hisp.dhis.scheduling.JobParameters</param>
   </typedef>
@@ -113,6 +117,10 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEntityQueryCriteria">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbProgramStageQueryCriteria">
+    <param name="clazz">org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
@@ -166,13 +174,25 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbTrackerDataView">
     <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeSource">
     <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Source</param>
-  </typedef>  
+  </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
     <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
-  </typedef>  
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAuth">
+    <param name="clazz">org.hisp.dhis.common.auth.Auth</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblEventHookSource">
+    <param name="clazz">org.hisp.dhis.eventhook.Source</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventHookTargets">
+    <param name="clazz">org.hisp.dhis.eventhook.Target</param>
+  </typedef>
 
 </hibernate-mapping>

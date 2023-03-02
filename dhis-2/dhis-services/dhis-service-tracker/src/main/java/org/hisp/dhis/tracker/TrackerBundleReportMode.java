@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker;
 
-import java.util.stream.Stream;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -50,18 +48,4 @@ public enum TrackerBundleReportMode
      * timings.
      */
     WARNINGS;
-
-    private static Stream<TrackerBundleReportMode> stream()
-    {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
-
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
-    }
 }

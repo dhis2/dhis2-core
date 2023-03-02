@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -52,7 +55,7 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
     void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}" ) );
     }
 
     @Test
@@ -100,5 +103,36 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
         assertEquals( HttpStatus.OK, res.status() );
         assertEquals( "attachment; filename=metadata.json", res.header( "Content-Disposition" ) );
         assertEquals( "application/json", res.header( "Content-Type" ) );
+    }
+
+    /**
+     * When updating DataSet, compulsoryDataElementOperand should be deleted if
+     * the referenced DataElement is removed from the DataSet.
+     */
+    @Test
+    void testRemoveDataElement()
+    {
+        DataElement deA = createDataElement( 'A' );
+        deA.setUid( "cYeuwXTCPkU" );
+        DataElement deB = createDataElement( 'B' );
+        deB.setUid( "fbfJHSPpUQD" );
+        manager.save( deA );
+        manager.save( deB );
+
+        String dataSetId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", Body( "dataset/dataset_with_compulsoryDataElementOperand.json" ) ) );
+
+        DataSet dataSet = manager.get( DataSet.class, dataSetId );
+
+        assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/dataSets/{id}", dataSetId,
+                Body( "dataset/dataset_with_compulsoryDataElementOperand_update.json" ) ) );
+
+        dataSet = manager.get( DataSet.class, dataSetId );
+
+        assertEquals( 0, dataSet.getCompulsoryDataElementOperands().size() );
+
     }
 }

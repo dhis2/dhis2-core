@@ -45,6 +45,7 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -57,7 +58,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -149,7 +149,7 @@ public class ConfigurationController
 
         if ( group == null )
         {
-            throw new NotFoundException( "User group", uid );
+            throw new NotFoundException( UserGroup.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -189,7 +189,7 @@ public class ConfigurationController
 
         if ( group == null )
         {
-            throw new NotFoundException( "User group", uid );
+            throw new NotFoundException( UserGroup.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -230,7 +230,7 @@ public class ConfigurationController
 
         if ( organisationUnitLevel == null )
         {
-            throw new NotFoundException( "Organisation unit level", uid );
+            throw new NotFoundException( OrganisationUnitLevel.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -270,7 +270,7 @@ public class ConfigurationController
 
         if ( group == null )
         {
-            throw new NotFoundException( "Indicator group", uid );
+            throw new NotFoundException( IndicatorGroup.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -298,7 +298,7 @@ public class ConfigurationController
 
         if ( group == null )
         {
-            throw new NotFoundException( "Data element group", uid );
+            throw new NotFoundException( DataElementGroup.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -328,7 +328,7 @@ public class ConfigurationController
 
         if ( periodType == null )
         {
-            throw new NotFoundException( "Period type", name );
+            throw new NotFoundException( "Period type not found: " + name );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -358,7 +358,7 @@ public class ConfigurationController
 
         if ( userGroup == null )
         {
-            throw new NotFoundException( "User authority group", uid );
+            throw new NotFoundException( UserRole.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -398,7 +398,7 @@ public class ConfigurationController
 
         if ( orgunit == null )
         {
-            throw new NotFoundException( "Organisation unit", uid );
+            throw new NotFoundException( OrganisationUnit.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -450,7 +450,7 @@ public class ConfigurationController
 
         if ( groupSet == null )
         {
-            throw new NotFoundException( "Organisation unit group sets", uid );
+            throw new NotFoundException( OrganisationUnitGroupSet.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();
@@ -478,7 +478,7 @@ public class ConfigurationController
 
         if ( level == null )
         {
-            throw new NotFoundException( "Organisation unit level", uid );
+            throw new NotFoundException( OrganisationUnitLevel.class, uid );
         }
 
         Configuration configuration = configurationService.getConfiguration();

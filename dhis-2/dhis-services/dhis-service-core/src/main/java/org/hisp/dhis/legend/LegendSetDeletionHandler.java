@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.legend;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class LegendSetDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class LegendSetDeletionHandler extends IdObjectDeletionHandler<LegendSet>
 {
     private final LegendSetService legendSetService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( Legend.class, this::deleteLegend );
     }

@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.dataexchange.client;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static java.lang.String.format;
 
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataexchange.client.auth.AccessTokenAuthentication;
 import org.hisp.dhis.dataexchange.client.auth.Authentication;
 import org.hisp.dhis.dataexchange.client.auth.BasicAuthentication;
@@ -55,8 +54,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * API client for DHIS 2.
@@ -66,13 +69,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class Dhis2Client
 {
-    private static final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
-
     private final String url;
 
     private final Authentication authentication;
 
     private final RestTemplate restTemplate;
+
+    private final ObjectMapper objectMapper;
 
     /**
      * Main constructor.
@@ -86,6 +89,7 @@ public class Dhis2Client
         this.url = url;
         this.authentication = authentication;
         this.restTemplate = new RestTemplate();
+        this.objectMapper = JacksonObjectMapperConfig.jsonMapper;
         Validate.notNull( url );
         Validate.notNull( authentication );
     }
@@ -145,25 +149,6 @@ public class Dhis2Client
     }
 
     /**
-     * Handles response errors.
-     *
-     * @param response the {@link ResponseEntity}.
-     * @throws Dhis2ClientException
-     */
-    void handleErrors( ResponseEntity<?> response )
-    {
-        log.debug( "Response status code: {}", response.getStatusCode() );
-
-        if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
-        {
-            log.warn( "Errror status code: {}, reason phrase: {}",
-                response.getStatusCode().value(), response.getStatusCode().getReasonPhrase() );
-
-            throw new Dhis2ClientException( response.getStatusCode() );
-        }
-    }
-
-    /**
      * Returns a {@link HttpHeaders} for basic authentication indicating JSON
      * accept and content-type format.
      *
@@ -190,9 +175,20 @@ public class Dhis2Client
     private <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest( URI uri, T body, Class<U> type )
     {
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
-        ResponseEntity<U> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
-        handleErrors( response );
-        return response;
+
+        try
+        {
+            return restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            if ( HttpStatus.CONFLICT == ex.getStatusCode() )
+            {
+                return getResponseEntity( deserialize( ex.getResponseBodyAsString(), type ), ex );
+            }
+
+            throw ex;
+        }
     }
 
     /**
@@ -254,7 +250,45 @@ public class Dhis2Client
     {
         if ( idScheme != null && idScheme != IdSchemes.DEFAULT_ID_SCHEME )
         {
-            builder.queryParam( queryParam, idScheme.name().toLowerCase() );
+            builder.queryParam( queryParam, idScheme.name() );
+        }
+    }
+
+    /**
+     * Returns a {@link ResponseEntity} for the given body and
+     * {@link HttpClientErrorException}.
+     *
+     * @param <T> the type.
+     * @param body the body.
+     * @param ex the {@link HttpClientErrorException}.
+     * @return the {@link ResponseEntity}.
+     */
+    private <T extends Dhis2Response> ResponseEntity<T> getResponseEntity( T body, HttpClientErrorException ex )
+    {
+        return new ResponseEntity<>( body, ex.getResponseHeaders(), ex.getStatusCode() );
+    }
+
+    /**
+     * Deserializes the given JSON value to the given Java type.
+     *
+     * @param <T> the type.
+     * @param content the JSON value.
+     * @param type the type.
+     * @return the deserialized object.
+     */
+    <T> T deserialize( String content, Class<T> type )
+    {
+        try
+        {
+            return objectMapper.readValue( content, type );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            String message = format( "Failed to read JSON value: %s", ex.getMessage() );
+
+            log.error( message, ex );
+
+            throw new UncheckedIOException( message, ex );
         }
     }
 }

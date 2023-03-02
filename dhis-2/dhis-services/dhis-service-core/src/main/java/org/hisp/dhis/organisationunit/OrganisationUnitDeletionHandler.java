@@ -30,14 +30,11 @@ package org.hisp.dhis.organisationunit;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -45,13 +42,10 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class OrganisationUnitDeletionHandler extends DeletionHandler
+public class OrganisationUnitDeletionHandler extends IdObjectDeletionHandler<OrganisationUnit>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( DataSet.class, this::deleteDataSet );
         whenDeleting( User.class, this::deleteUser );

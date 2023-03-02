@@ -120,6 +120,11 @@ final class GistLogic
         return "attributeValues".equals( p.key() ) && p.getItemKlass() == AttributeValue.class;
     }
 
+    static boolean isAttributeFlagProperty( Property p )
+    {
+        return p.getName().endsWith( "Attribute" ) && p.getKlass() == boolean.class || p.getKlass() == Boolean.class;
+    }
+
     static boolean isCollectionSizeFilter( Filter filter, Property property )
     {
         return filter.getOperator().isEmptinessCompare() ||

@@ -1,0 +1,19 @@
+{
+  "id": "bRNvL6NMQXb",
+  "name": "WebhookHttpBasic",
+  "source": {
+    "path": "metadata",
+    "fields": "id,name"
+  },
+  "targets": [
+    {
+      "type": "webhook",
+      "url": "http://localhost:8081/api/gateway",
+      "auth": {
+        "type": "http-basic",
+        "username": "admin",
+        "password": "district"
+      }
+    }
+  ]
+}

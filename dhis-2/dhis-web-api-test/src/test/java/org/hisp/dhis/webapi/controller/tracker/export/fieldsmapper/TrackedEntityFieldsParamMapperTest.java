@@ -27,29 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackedEntityFieldsParamMapperTest
+class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    TrackedEntityFieldsParamMapper mapper;
 
-    @Test
-    void getTrackedEntityInstanceParamsWithStar()
+    @ParameterizedTest
+    @ValueSource( strings = { "*", "!*" } )
+    void mapWithStar( String fields )
     {
-
-        TrackedEntityInstanceParams params = map( List.of( "*" ) );
+        // This value "!*" does not make sense as it means exclude all.
+        // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
+        TrackedEntityInstanceParams params = map( fields );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -58,34 +64,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithPresetAll()
+    void mapWithOnlyRelationships()
     {
-
-        TrackedEntityInstanceParams params = map( List.of( ":all" ) );
-
-        assertTrue( params.isIncludeRelationships() );
-        assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertTrue( params.isIncludeProgramOwners() );
-    }
-
-    @Test
-    void getTrackedEntityInstanceParamsWithAllExcluded()
-    {
-
-        TrackedEntityInstanceParams params = map( List.of( "!*" ) );
-
-        assertFalse( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
-        assertFalse( params.isIncludeProgramOwners() );
-    }
-
-    @Test
-    void getTrackedEntityInstanceParamsWithOnlyRelationships()
-    {
-
-        TrackedEntityInstanceParams params = map( List.of( "relationships" ) );
+        TrackedEntityInstanceParams params = map( "relationships" );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -94,10 +75,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithOnlyProgramOwners()
+    void mapWithOnlyProgramOwners()
     {
-
-        TrackedEntityInstanceParams params = map( List.of( "programOwners" ) );
+        TrackedEntityInstanceParams params = map( "programOwners" );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -106,10 +86,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithOnlyOneExclusion()
+    void mapWithOnlyOneExclusion()
     {
-
-        TrackedEntityInstanceParams params = map( List.of( "!relationships" ) );
+        TrackedEntityInstanceParams params = map( "!relationships" );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -118,10 +97,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithAllExceptRelationships()
+    void mapWithAllExceptRelationships()
     {
-
-        TrackedEntityInstanceParams params = map( List.of( "*", "!relationships" ) );
+        TrackedEntityInstanceParams params = map( "*,!relationships" );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -130,10 +108,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithAllExceptProgramOwners()
+    void mapWithAllExceptProgramOwners()
     {
-
-        TrackedEntityInstanceParams params = map( List.of( "*", "!programOwners" ) );
+        TrackedEntityInstanceParams params = map( "*,!programOwners" );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -142,11 +119,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithSubFields()
+    void mapWithSubFields()
     {
-
-        TrackedEntityInstanceParams params = map(
-            List.of( "programOwners[orgUnit]", "relationships[from[trackedEntity],to[*]]" ) );
+        TrackedEntityInstanceParams params = map( "programOwners[orgUnit],relationships[from[trackedEntity],to[*]]" );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -155,24 +130,22 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsWithExcludedSubFields()
+    void mapWithExcludedSubFields()
     {
-
-        TrackedEntityInstanceParams params = map(
-            List.of( "!enrollments[uid,enrolledAt]", "relationships[relationship]" ) );
+        TrackedEntityInstanceParams params = map( "enrollments[!uid,!relationships],relationships[relationship]" );
 
         assertTrue( params.isIncludeRelationships() );
-        assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.isIncludeEnrollments() );
+        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getEnrollmentParams().isIncludeAttributes() );
+        assertFalse( params.getEnrollmentParams().isIncludeRelationships() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
     @Test
-    void getTrackedEntityInstanceParamsOnlyIncludeIfFieldIsRoot()
+    void mapOnlyIncludeIfFieldIsRoot()
     {
-
-        TrackedEntityInstanceParams params = map(
-            List.of( "enrollments[events,relationships]" ) );
+        TrackedEntityInstanceParams params = map( "enrollments[events,relationships]" );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -181,20 +154,17 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsOnlyIncludeIfNotAlsoExcluded()
+    void mapOnlyIncludeIfNotAlsoExcluded()
     {
-
         // is order independent
-        TrackedEntityInstanceParams params = map(
-            List.of( "relationships", "!relationships" ) );
+        TrackedEntityInstanceParams params = map( "relationships,!relationships" );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
 
-        params = map(
-            List.of( "!relationships", "relationships" ) );
+        params = map( "!relationships,relationships" );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -203,11 +173,9 @@ class TrackedEntityFieldsParamMapperTest
     }
 
     @Test
-    void getTrackedEntityInstanceParamsRootInclusionPrecedesSubfieldExclusion()
+    void mapRootInclusionPrecedesSubfieldExclusion()
     {
-
-        TrackedEntityInstanceParams params = map(
-            List.of( "enrollments", "enrollments[!status]" ) );
+        TrackedEntityInstanceParams params = map( "enrollments,enrollments[!status]" );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -215,36 +183,36 @@ class TrackedEntityFieldsParamMapperTest
         assertFalse( params.isIncludeProgramOwners() );
     }
 
-    static Stream<Arguments> getTrackedEntityInstanceParamsEnrollmentsAndEvents()
+    static Stream<Arguments> mapEnrollmentsAndEvents()
     {
         // events is a child of enrollments not TEI
         return Stream.of(
-            arguments( List.of( "*", "!enrollments" ), false, false ),
-            arguments( List.of( "!events" ), false, false ),
-            arguments( List.of( "events" ), false, false ),
-            arguments( List.of( "!enrollments" ), false, false ),
-            arguments( List.of( "!enrollments", "enrollments" ), false, false ),
-            arguments( List.of( "!enrollments[*]" ), false, false ),
-            arguments( List.of( "enrollments[createdAt]", "enrollments", "enrollments", "!enrollments",
-                "enrollments[notes]", "enrollments[enrollment,updatedAt]" ), false, false ),
-            arguments( List.of( "enrollments[!events]" ), true, false ),
-            arguments( List.of( "enrollments[*,!events]" ), true, false ),
-            arguments( List.of( "enrollments", "enrollments[!events]" ), true, false ),
-            arguments( List.of( "enrollments[!status]" ), true, true ),
-            arguments( List.of( "enrollments" ), true, true ),
-            arguments( List.of( "enrollments", "!events" ), true, true ),
-            arguments( List.of( "enrollments[*]" ), true, true ),
-            arguments( List.of( "enrollments[events]" ), true, true ),
-            arguments( List.of( "enrollments[events[dataValues[*]]]" ), true, true ),
-            arguments( List.of( "enrollments[status,events]" ), true, true ) );
+            arguments( "*,!enrollments", false, false ),
+            arguments( "!events", false, false ),
+            arguments( "events", false, false ),
+            arguments( "!enrollments", false, false ),
+            arguments( "!enrollments,enrollments", false, false ),
+            arguments( "!enrollments[*]", false, false ),
+            arguments(
+                "enrollments[createdAt],enrollments,enrollments,!enrollments,enrollments[notes],enrollments[enrollment,updatedAt]",
+                false, false ),
+            arguments( "enrollments[!events]", true, false ),
+            arguments( "enrollments[*,!events]", true, false ),
+            arguments( "enrollments,enrollments[!events]", true, false ),
+            arguments( "enrollments[!status]", true, true ),
+            arguments( "enrollments", true, true ),
+            arguments( "enrollments,!events", true, true ),
+            arguments( "enrollments[*]", true, true ),
+            arguments( "enrollments[events]", true, true ),
+            arguments( "enrollments[events[dataValues[*]]]", true, true ),
+            arguments( "enrollments[status,events]", true, true ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void getTrackedEntityInstanceParamsEnrollmentsAndEvents( List<String> fields, boolean expectEnrollments,
+    void mapEnrollmentsAndEvents( String fields, boolean expectEnrollments,
         boolean expectEvents )
     {
-
         TrackedEntityInstanceParams params = map( fields );
 
         assertEquals( expectEvents, params.getTeiEnrollmentParams().isIncludeEvents() );
@@ -254,21 +222,22 @@ class TrackedEntityFieldsParamMapperTest
     static Stream<Arguments> shouldSetCorrectRelationshipsWhenMixedRelationshipFields()
     {
         return Stream.of(
-            arguments( List.of( "!relationships,enrollments[relationships,events]" ), false, true,
+            arguments( "!relationships,enrollments[relationships,events]", false, true,
                 true ),
-            arguments( List.of( "relationships,enrollments[!relationships,events]" ), true, false,
+            arguments( "relationships,enrollments[!relationships,events]", true, false,
                 true ),
-            arguments( List.of( "relationships,enrollments[relationships,events[!relationships]]" ),
+            arguments( "relationships,enrollments[relationships,events[!relationships]]",
                 true, true, false ),
-            arguments( List.of( "!relationships,enrollments[!relationships,events[!relationships]]" ),
+            arguments( "!relationships,enrollments[!relationships,events[!relationships]]",
                 false, false, false ),
-            arguments( List.of( "!enrollments", "relationships,enrollments[relationships,events[!relationships]]" ),
+            arguments( "!enrollments,relationships,enrollments[relationships,events[!relationships]]",
                 true, false, false ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void shouldSetCorrectRelationshipsWhenMixedRelationshipFields( List<String> fields, boolean expectTeiRelationship,
+    void shouldSetCorrectRelationshipsWhenMixedRelationshipFields( String fields,
+        boolean expectTeiRelationship,
         boolean expectEnrollmentRelationship,
         boolean expectEventRelationships )
     {
@@ -278,5 +247,10 @@ class TrackedEntityFieldsParamMapperTest
         assertEquals( expectTeiRelationship, params.isIncludeRelationships() );
         assertEquals( expectEnrollmentRelationship, params.getEnrollmentParams().isIncludeRelationships() );
         assertEquals( expectEventRelationships, params.getEventParams().isIncludeRelationships() );
+    }
+
+    private TrackedEntityInstanceParams map( String fields )
+    {
+        return mapper.map( FieldFilterParser.parse( fields ) );
     }
 }
