@@ -10,6 +10,7 @@
 #   -h <hostname>  Hostname (default is localhost)
 #   -p <port>      Port number (default is 9090)
 #   -s             Skip compilation of source code
+#   -m             Print this manual
 
 set -e
 
