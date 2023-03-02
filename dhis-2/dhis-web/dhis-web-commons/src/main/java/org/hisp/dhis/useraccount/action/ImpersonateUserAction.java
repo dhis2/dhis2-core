@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.useraccount.action;
 
-import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Morten Svanæs
@@ -77,10 +78,7 @@ public class ImpersonateUserAction implements Action
 
         User user = userService.getUserByUsername( username );
 
-
-
         return SUCCESS;
     }
-
 
 }

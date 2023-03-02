@@ -145,7 +145,6 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
-
     @Autowired
     @Qualifier( "userDetailsService" )
     private UserDetailsService userDetailsService;
@@ -410,7 +409,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ConfigurationService configurationService;
-
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -747,8 +745,8 @@ public class DhisWebApiWebSecurityConfig
     {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService( userDetailsService );
-//        filter.setSwitchUserUrl( "/impersonate" );
-        filter.setSwitchUserMatcher( new AntPathRequestMatcher("impersonate", "GET", true, new UrlPathHelper()) );
+        //        filter.setSwitchUserUrl( "/impersonate" );
+        filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "GET", true, new UrlPathHelper() ) );
         filter.setSwitchFailureUrl( "/switchUser" );
         filter.setTargetUrl( "/dhis-web-dashboardD" );
         return filter;

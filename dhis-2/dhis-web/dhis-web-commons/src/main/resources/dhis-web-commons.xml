@@ -129,7 +129,7 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <action name="recovery" class="org.hisp.dhis.useraccount.action.ImpersonateUserAction">
+    <action name="impersonateUser" class="org.hisp.dhis.useraccount.action.ImpersonateUserAction">
       <result name="success" type="velocity">/dhis-web-commons/useraccount/impersonateUser.vm</result>
       <result name="error" type="redirect">impersonateUser.action</result>
     </action>
