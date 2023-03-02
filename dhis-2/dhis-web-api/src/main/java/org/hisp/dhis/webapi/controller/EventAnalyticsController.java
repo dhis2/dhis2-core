@@ -51,7 +51,6 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +76,7 @@ public class EventAnalyticsController
     @NonNull
     private final ContextUtils contextUtils;
 
-    @Autowired
+    @NonNull
     private SystemSettingManager systemSettingManager;
     // -------------------------------------------------------------------------
     // Aggregate
