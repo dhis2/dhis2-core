@@ -22,7 +22,7 @@ DHIS2_PORT=9090
 # Skip compilation of DHIS 2 source code
 SKIP_COMPILE=0
 
-# Set DHIS 2 home directory to DHIS2_HOME env variable if set
+# Set DHIS 2 home directory to DHIS2_HOME_DIR env variable if set
 if [[ -v "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
@@ -96,7 +96,7 @@ echo -e "Note: JDK 11 or later is required!\n"
 
 print_variables
 
-# Verify DHIS2_HOME variable
+# Verify DHIS2_HOME
 [ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 [ ! -f "$DHIS2_HOME_DIR/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 
