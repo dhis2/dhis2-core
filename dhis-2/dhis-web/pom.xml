@@ -17,7 +17,7 @@
     <module>dhis-web-commons-resources</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-portal</module>
-<!--    <module>dhis-web-apps</module>-->
+    <module>dhis-web-apps</module>
   </modules>
 
   <profiles>
