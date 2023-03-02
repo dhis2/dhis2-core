@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.HttpStatus.OK;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -38,6 +39,7 @@ public class PingController
 {
     @GetMapping( "/ping" )
     @ResponseStatus( OK )
+    @CrossOrigin
     public void ping()
     {
         // Do nothing
