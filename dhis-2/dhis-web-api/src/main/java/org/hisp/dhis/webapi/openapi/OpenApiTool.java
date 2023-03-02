@@ -56,7 +56,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
  */
 public class OpenApiTool implements ToolProvider
 {
-    @SuppressWarnings( "java:S106" )
     public static void main( String[] args )
     {
         int errorCode = new OpenApiTool().run( System.out, System.err, args );

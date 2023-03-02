@@ -59,8 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleAssignActionTest extends TrackerTest
 {
-    private static final String EVENT_UID = "D9PbzJY8bJO";
-
     @Autowired
     private TrackerImportService trackerImportService;
 

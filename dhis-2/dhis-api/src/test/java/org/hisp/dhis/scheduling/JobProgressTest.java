@@ -246,47 +246,6 @@ class JobProgressTest
         verify( progress, never() ).failedStage( any( Exception.class ) );
     }
 
-    private static void runStageInParallel_HalfSuccessHalfError( int parallelism )
-    {
-        AtomicInteger enterCount = new AtomicInteger();
-        AtomicInteger exitCount = new AtomicInteger();
-        AtomicInteger concurrentCount = new AtomicInteger();
-        AtomicInteger maxConcurrentCount = new AtomicInteger();
-        List<Integer> processed = new CopyOnWriteArrayList<>();
-        Consumer<Integer> work = value -> {
-            enterCount.incrementAndGet();
-            int cur = concurrentCount.incrementAndGet();
-            maxConcurrentCount.updateAndGet( val -> max( val, cur ) );
-            // simulate the actual "work"
-            processed.add( value );
-            await().atLeast( 100, TimeUnit.MILLISECONDS );
-            concurrentCount.decrementAndGet();
-            exitCount.incrementAndGet();
-            if ( processed.size() % 2 == 1 )
-            {
-                throw new RuntimeException();
-            }
-        };
-        JobProgress progress = newMockJobProgress();
-        List<Integer> items = IntStream.range( 1, parallelism * 2 ).boxed().collect( toList() );
-        progress.runStageInParallel( parallelism, items, String::valueOf, work );
-        assertTrue( progress.isSkipCurrentStage() );
-        int itemCount = items.size();
-        int successCount = itemCount / 2;
-        int errorCount = itemCount - successCount;
-        assertEquals( new HashSet<>( items ), new HashSet<>( processed ) );
-        assertEquals( itemCount, enterCount.get() );
-        assertEquals( itemCount, exitCount.get() );
-        assertTrue( maxConcurrentCount.get() <= parallelism, "too much parallel work" );
-        verify( progress, times( itemCount ) ).startingWorkItem( anyString() );
-        verify( progress, times( successCount ) ).completedWorkItem( null );
-        verify( progress ).completedStage( null );
-        verify( progress, never() ).failedWorkItem( anyString() );
-        verify( progress, times( errorCount ) ).failedWorkItem( any( Exception.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-        verify( progress, never() ).failedStage( any( Exception.class ) );
-    }
-
     private static String printSummary( int success, int failed )
     {
         return String.format( "(%d/%d)", success, failed );
