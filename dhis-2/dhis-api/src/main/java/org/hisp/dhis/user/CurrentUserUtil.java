@@ -28,7 +28,10 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -104,6 +107,26 @@ public class CurrentUserUtil
         {
             throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
         }
+    }
+
+    public static List<String> getCurrentUserAuthorities()
+    {
+        return getCurrentUserDetails()
+            .getAuthorities()
+            .stream()
+            .map( auth -> auth.getAuthority() )
+            .collect( Collectors.toList() );
+    }
+
+    public static Boolean hasAnyAuthority( Collection<String> candidateAuthorities )
+    {
+        List<String> currentUserAuthorities = getCurrentUserAuthorities();
+        return candidateAuthorities.stream().anyMatch( authority -> currentUserAuthorities.contains( authority ) );
+    }
+
+    public static Boolean hasAuthority( String authority )
+    {
+        return hasAnyAuthority( List.of( authority ) );
     }
 
     @SuppressWarnings( "unchecked" )

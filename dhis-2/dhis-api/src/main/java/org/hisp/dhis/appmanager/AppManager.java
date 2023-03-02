@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
 
 /**
@@ -155,7 +154,7 @@ public interface AppManager
      * @param contextPath the context path of this instance.
      * @return apps which are accessible to the current user.
      */
-    List<App> getAccessibleApps( String contextPath, User user );
+    List<App> getAccessibleApps( String contextPath );
 
     /**
      * Installs the app.
@@ -202,15 +201,6 @@ public interface AppManager
      * @return true if app is accessible.
      */
     boolean isAccessible( App app );
-
-    /**
-     * Indicates whether the given app is accessible to the given user.
-     *
-     * @param app the app.
-     * @param user the user.
-     * @return true if app is accessible.
-     */
-    boolean isAccessible( App app, User user );
 
     /**
      * Returns the app associated with the namespace, or null if no app is

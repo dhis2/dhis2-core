@@ -37,7 +37,6 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,6 +54,8 @@ public class AppMenuManager
     private final LocaleManager localeManager;
 
     private final List<WebModule> menuModules;
+
+    private final AppManager appManager;
 
     private Locale currentLocale;
 
@@ -111,14 +112,7 @@ public class AppMenuManager
 
     private boolean hasAccess( String module )
     {
-        Collection<? extends GrantedAuthority> allAuthorities = CurrentUserUtil.getCurrentUserDetails()
-            .getAuthorities();
-        List<String> authorities = allAuthorities.stream().map( auth -> auth.getAuthority() )
-            .collect( Collectors.toList() );
-        Boolean authModule = authorities.contains( "M_" + module );
-        Boolean authAll = authorities.contains( "ALL" );
-        Boolean authAppManager = authorities.contains( AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY );
-
-        return authAll || authAppManager || authModule;
+        return CurrentUserUtil
+            .hasAnyAuthority( List.of( "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, "M_" + module ) );
     }
 }

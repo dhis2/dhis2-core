@@ -115,7 +115,7 @@ public class AppController
         List<WebModule> modules = appMenuManager.getAccessibleWebModules();
 
         List<App> apps = appManager
-            .getApps( contextPath )
+            .getAccessibleApps( contextPath )
             .stream()
             .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
             .collect( Collectors.toList() );
