@@ -37,7 +37,7 @@ pipeline {
                 script {
                     env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
-                    git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+                    gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty'
@@ -194,7 +194,7 @@ pipeline {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
 
             script {
-                git.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
             }
         }
 
