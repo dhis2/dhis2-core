@@ -32,8 +32,9 @@ function print_usage() {
   echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
   echo "  -d <directory> DHIS 2 home directory" >&2
   echo "  -h <hostname>  Hostname (default is localhost)" >&2
-  echo "  -p <port>      Port number (default is 9090)" >&2
   echo "  -s             Skip compilation of source code" >&2
+  echo "  -p <port>      Port number (default is 9090)" >&2
+  echo "  -m             Print this manual" >&2
 }
 
 # Print variables
@@ -65,7 +66,7 @@ function build_dhis2() {
 }
 
 # Read command line options
-while getopts "d:h:p:s" OPT; do
+while getopts "d:h:p:sm" OPT; do
   case "$OPT" in
     d)
       DHIS2_HOME_DIR=$OPTARG
@@ -78,6 +79,10 @@ while getopts "d:h:p:s" OPT; do
       ;;
     s)
       SKIP_COMPILE=1
+      ;;
+    m)
+      print_usage
+      exit 0
       ;;
     ?)
       print_usage
