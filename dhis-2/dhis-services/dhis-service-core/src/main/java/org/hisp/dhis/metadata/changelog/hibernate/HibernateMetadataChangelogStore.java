@@ -27,21 +27,35 @@
  */
 package org.hisp.dhis.metadata.changelog.hibernate;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.metadata.changelog.MetadataChangelogStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.metadatachangelog.MetadataChangelogStore" )
-public class HibernateMetadataChangelogStore extends HibernateGenericStore<MetadataChangelog>
+public class HibernateMetadataChangelogStore extends HibernateIdentifiableObjectStore<MetadataChangelog>
     implements MetadataChangelogStore
 {
     public HibernateMetadataChangelogStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, MetadataChangelog.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, MetadataChangelog.class, currentUserService, aclService,
+            false );
+    }
+
+    @Override
+    public MetadataChangelog findByName( String name )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "name" ), name ) ) );
     }
 }

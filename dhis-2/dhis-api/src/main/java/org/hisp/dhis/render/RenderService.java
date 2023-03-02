@@ -32,10 +32,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -110,21 +108,5 @@ public interface RenderService
      * @throws IOException
      */
     List<MetadataVersion> fromMetadataVersion( InputStream inputStream, RenderFormat format )
-        throws IOException;
-
-    /**
-     * Parses metadata stream and automatically finds collections of id object
-     * based on root properties. This method will also find the
-     * {@link MetadataChangelog} info and add it to the addChangelog consumer.
-     *
-     * @param inputStream
-     * @param format
-     * @param addChangelog
-     * @return
-     * @throws IOException
-     */
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadataWithChangelog(
-        InputStream inputStream,
-        RenderFormat format, Consumer<MetadataChangelog> addChangelog )
         throws IOException;
 }

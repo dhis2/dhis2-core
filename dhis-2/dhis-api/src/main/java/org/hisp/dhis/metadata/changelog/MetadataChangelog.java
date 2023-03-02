@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.metadata.changelog;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.fileresource.FileResource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,53 +43,47 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <pre>
  * {@code
+ *  // @formatter:off
  * "package": {
  *     "DHIS2Build": "23c23c5",
  *     "DHIS2Version": "2.37.7.1",
  *     "code": "C19_CS",
  *     "description": "COVID-19 Case Surveillance and Contact Tracing",
  *     "lastUpdated": "20220919T104915",
- *     "locale": "en", "name": "C19_CS_TRK_DHIS2.37.7.1-en", "type": "TRK",
- * "version": "1.0.2" } }
+ *     "locale": "en",
+ *     "name": "C19_CS_TRK_DHIS2.37.7.1-en",
+ *     "type": "TRK",
+ *     "version": "1.0.2" }
+ *   }
+ * // @formatter:on
  * <p>
  * The name of the changelog is a concatenation of code, type, dhisVersion,
  * locale.
  */
 @Getter
 @Setter
-@EqualsAndHashCode( of = { "version", "dhisVersion", "locale" } )
+@EqualsAndHashCode( of = { "version", "dhis2Version", "locale" } )
 @Accessors( chain = true )
-public class MetadataChangelog implements Serializable
+public class MetadataChangelog extends BaseIdentifiableObject
 {
     /**
      * The name of the metadata changelog object in the import payload.
      */
     public static final String JSON_OBJECT_NAME = "package";
 
-    private long id;
-
-    /**
-     * The name of the metadata package.
-     */
-    @JsonProperty
-    private String name;
-
     /**
      * The build version of the DHIS2 instance which the metadata package was
      * exported from.
      */
-    @JsonProperty
-    private String dhisBuild;
-
-    @JsonProperty
-    private String code;
+    @JsonProperty( value = "DHIS2Build", required = true )
+    private String dhis2Build;
 
     /**
      * The version of the DHIS2 instance which the metadata package was exported
      * from.
      */
-    @JsonProperty( required = true )
-    private String dhisVersion;
+    @JsonProperty( value = "DHIS2Version", required = true )
+    private String dhis2Version;
 
     /**
      * Type of the metadata package.
@@ -112,21 +104,9 @@ public class MetadataChangelog implements Serializable
     private String locale;
 
     /**
-     * TRUE if the import process was successful.
-     */
-    @JsonProperty
-    private boolean success;
-
-    /**
      * A reference to the imported file. Only created if the import is
      * successful.
      */
     @JsonProperty
     private FileResource importFile;
-
-    @JsonProperty
-    private Date createdAt;
-
-    @JsonProperty
-    private String createdBy;
 }

@@ -28,9 +28,11 @@
 package org.hisp.dhis.metadata.changelog;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +50,17 @@ public class DefaultMetadataChangelogService implements MetadataChangelogService
     }
 
     @Override
-    @Transactional
-    public void saveMetadataChangelog( MetadataChangelog metadataChangelog )
+    public int countMetadataChangelogs()
     {
+        return store.getCount();
+    }
+
+    @Override
+    @Transactional
+    public void saveMetadataChangelog( MetadataChangelog metadataChangelog, User currentUser )
+    {
+        metadataChangelog.setCreatedBy( currentUser );
+        metadataChangelog.setAutoFields();
         store.save( metadataChangelog );
     }
 
@@ -59,5 +69,12 @@ public class DefaultMetadataChangelogService implements MetadataChangelogService
     public void updateMetadataChangelog( MetadataChangelog metadataChangelog )
     {
         store.update( metadataChangelog );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<MetadataChangelog> findByName( String name )
+    {
+        return Optional.ofNullable( store.findByName( name ) );
     }
 }

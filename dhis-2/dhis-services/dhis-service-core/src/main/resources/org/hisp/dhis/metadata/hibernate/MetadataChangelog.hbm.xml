@@ -2,6 +2,7 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 
 <hibernate-mapping>
@@ -13,19 +14,15 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="250" />
 
-    <property name="code" column="code" length="50" />
-
     <property name="type" column="type" length="50"/>
 
     <property name="version" column="version" not-null="true" length="10" />
 
-    <property name="dhisVersion" column="dhisversion" not-null="true" length="10" />
+    <property name="dhis2Version" column="dhisversion" not-null="true" length="10" />
 
     <property name="locale" column="locale" not-null="true" length="10" />
 
-    <property name="success" column="success" type="boolean" />
-
-    <property name="createdAt" type="timestamp" not-null="true" />
+    <property name="created" type="timestamp" not-null="true" />
 
     <many-to-one name="importFile" class="org.hisp.dhis.fileresource.FileResource" column="importfile" foreign-key="fk_metadatachangelog_fileresourceid" />
 

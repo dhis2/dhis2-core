@@ -260,7 +260,16 @@ public class DefaultRenderService
 
         while ( fieldNames.hasNext() )
         {
-            addObjectToMap( fieldNames.next(), mapper, rootNode, map );
+            String fieldName = fieldNames.next();
+            if ( MetadataChangelog.JSON_OBJECT_NAME.equals( fieldName ) )
+            {
+                MetadataChangelog metadataChangelog = mapper.treeToValue( rootNode.get( fieldName ),
+                    MetadataChangelog.class );
+                map.put( MetadataChangelog.class, List.of( metadataChangelog ) );
+                continue;
+            }
+
+            addObjectToMap( fieldName, mapper, rootNode, map );
         }
 
         return map;

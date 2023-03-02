@@ -25,22 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.changelog;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
-import java.util.Optional;
+import org.hisp.dhis.metadata.changelog.MetadataChangelog;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import org.hisp.dhis.user.User;
-
-public interface MetadataChangelogService
+public class MetadataChangelogSchemaDescriptor implements SchemaDescriptor
 {
-    List<MetadataChangelog> getAll();
+    public static final String SINGULAR = "metadataChangelog";
 
-    int countMetadataChangelogs();
+    public static final String PLURAL = "metadataChangelogs";
 
-    void saveMetadataChangelog( MetadataChangelog metadataChangelog, User currentUser );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    void updateMetadataChangelog( MetadataChangelog metadataChangelog );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( MetadataChangelog.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1200 );
 
-    Optional<MetadataChangelog> findByName( String name );
+        return schema;
+    }
 }

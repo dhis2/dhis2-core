@@ -167,11 +167,6 @@ public class DefaultMetadataImportService implements MetadataImportService
             return importReport;
         }
 
-        if ( params.hasMetadataChangelog() )
-        {
-            metadataChangelogService.updateMetadataChangelog( params.getMetadataChangelog().setSuccess( true ) );
-        }
-
         importReport.clean();
         importReport.forEachTypeReport( typeReport -> {
             ImportReportMode mode = params.getImportReportMode();
@@ -184,6 +179,11 @@ public class DefaultMetadataImportService implements MetadataImportService
                 typeReport.getObjectReports().forEach( objectReport -> objectReport.setDisplayName( null ) );
             }
         } );
+
+        if ( importReport.getStatus() == Status.OK )
+        {
+            metadataChangelogService.saveMetadataChangelog( params.getMetadataChangelog(), params.getUser() );
+        }
 
         return importReport;
     }

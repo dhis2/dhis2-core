@@ -36,15 +36,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.input.CloseShieldInputStream;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -64,16 +64,15 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.metadata.changelog.MetadataChangelog;
+import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -83,7 +82,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -149,34 +147,22 @@ public class MetadataImportExportController
     private BulkPatchManager bulkPatchManager;
 
     @Autowired
-    private FileResourceUtils fileResourceUtils;
+    private MetadataChangelogService changelogService;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonMetadata( HttpServletRequest request )
         throws IOException,
-        WebMessageException
+        ConflictException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        CloseShieldInputStream closeShieldInputStream = CloseShieldInputStream.wrap( inputStream );
-
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
-            .fromMetadataWithChangelog( closeShieldInputStream, RenderFormat.JSON,
-                changelog -> params.setMetadataChangelog( changelog ) );
+            .fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
+
+        params.setMetadataChangelog( validateMetadataChangelog( objects.remove( MetadataChangelog.class ) ) );
 
         params.setObjects( objects );
-
-        if ( params.hasMetadataChangelog() )
-        {
-            MetadataChangelog changelog = params.getMetadataChangelog();
-            FileResource fileResource = fileResourceUtils.saveFileResource( closeShieldInputStream,
-                FileResourceDomain.DOCUMENT, changelog.getName() + ".json", "application/json" );
-            changelog.setImportFile( fileResource );
-        }
-
-        closeShieldInputStream.close();
 
         if ( params.hasJobId() )
         {
@@ -338,5 +324,38 @@ public class MetadataImportExportController
             ? translateParams
                 .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
             : null;
+    }
+
+    /**
+     * Validate the MetadataChangelog object.
+     *
+     * @param changelogs The changelogs list from the payload. Should only
+     *        contain one MetadataChangelog object.
+     * @throws ConflictException if the MetadataChangelog's name is existed in
+     *         database.
+     */
+    private MetadataChangelog validateMetadataChangelog( List<IdentifiableObject> changelogs )
+        throws ConflictException
+    {
+        if ( CollectionUtils.isEmpty( changelogs ) )
+        {
+            return null;
+        }
+
+        if ( changelogs.size() > 1 )
+        {
+            throw new ConflictException( "Only one Metadata package object is allowed in the payload." );
+        }
+
+        MetadataChangelog changelog = (MetadataChangelog) changelogs.get( 0 );
+
+        Optional<MetadataChangelog> persistedChangelog = changelogService.findByName( changelog.getName() );
+
+        if ( persistedChangelog.isPresent() )
+        {
+            return persistedChangelog.get();
+        }
+
+        return changelog;
     }
 }

@@ -1,0 +1,206 @@
+{
+  "package":
+  {
+    "DHIS2Build": "769bded",
+    "DHIS2Version": "2.38.0",
+    "code": "GEN_LIB",
+    "description": "",
+    "lastUpdated": "",
+    "locale": "en",
+    "name": "GEN_LIB_DHIS2.38.0-en",
+    "type": "GEN",
+    "version": "1.0.0"
+  },
+  "attributes": [
+    {
+      "attributeValues": [],
+      "categoryAttribute": false,
+      "categoryOptionAttribute": false,
+      "categoryOptionComboAttribute": false,
+      "categoryOptionGroupAttribute": false,
+      "categoryOptionGroupSetAttribute": false,
+      "code": "GEN_LIB_TRK_LOINC",
+      "constantAttribute": false,
+      "dataElementAttribute": false,
+      "dataElementGroupAttribute": false,
+      "dataElementGroupSetAttribute": false,
+      "dataSetAttribute": false,
+      "description": "Loinc code",
+      "documentAttribute": false,
+      "externalAccess": false,
+      "favorite": false,
+      "id": "mpXON5igCG1",
+      "indicatorAttribute": false,
+      "indicatorGroupAttribute": false,
+      "legendSetAttribute": false,
+      "mandatory": false,
+      "name": "Code (Loinc)",
+      "optionAttribute": false,
+      "optionSetAttribute": false,
+      "organisationUnitAttribute": false,
+      "organisationUnitGroupAttribute": false,
+      "organisationUnitGroupSetAttribute": false,
+      "programAttribute": false,
+      "programIndicatorAttribute": false,
+      "programStageAttribute": false,
+      "publicAccess": "rw------",
+      "sectionAttribute": false,
+      "sharing": {
+        "external": false,
+        "owner": "vUeLeQMSwhN",
+        "public": "rw------",
+        "userGroups": {},
+        "users": {}
+      },
+      "shortName": "Loinc",
+      "sqlViewAttribute": false,
+      "trackedEntityAttributeAttribute": true,
+      "trackedEntityTypeAttribute": false,
+      "translations": [
+        {
+          "locale": "ar_IQ",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ar_SD",
+          "property": "NAME",
+          "value": "رمز (Loinc)"
+        },
+        {
+          "locale": "cs",
+          "property": "DESCRIPTION",
+          "value": "Loinc kód"
+        },
+        {
+          "locale": "ar",
+          "property": "NAME",
+          "value": "رمز (Loinc)"
+        },
+        {
+          "locale": "es_US",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ru",
+          "property": "NAME",
+          "value": "Код (Loinc)"
+        },
+        {
+          "locale": "ar_SD",
+          "property": "DESCRIPTION",
+          "value": "رمز Loinc"
+        },
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "Kód (Loinc)"
+        },
+        {
+          "locale": "fr",
+          "property": "NAME",
+          "value": "code (LOINC)"
+        },
+        {
+          "locale": "ar_IQ",
+          "property": "NAME",
+          "value": "رمز (Loinc)"
+        },
+        {
+          "locale": "ru",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Código (Loinc)"
+        },
+        {
+          "locale": "fr",
+          "property": "SHORT_NAME",
+          "value": "LOINC"
+        },
+        {
+          "locale": "es_US",
+          "property": "DESCRIPTION",
+          "value": "Código Loinc"
+        },
+        {
+          "locale": "ar_EG",
+          "property": "NAME",
+          "value": "رمز (Loinc)"
+        },
+        {
+          "locale": "fr",
+          "property": "DESCRIPTION",
+          "value": "code LOINC"
+        },
+        {
+          "locale": "es",
+          "property": "DESCRIPTION",
+          "value": "Código Loinc"
+        },
+        {
+          "locale": "es_US",
+          "property": "NAME",
+          "value": "Código (Loinc)"
+        },
+        {
+          "locale": "ar_EG",
+          "property": "DESCRIPTION",
+          "value": "رمز Loinc"
+        },
+        {
+          "locale": "es",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "cs",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ar_SD",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ar",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ar_IQ",
+          "property": "DESCRIPTION",
+          "value": "رمز Loinc"
+        },
+        {
+          "locale": "ru",
+          "property": "DESCRIPTION",
+          "value": "Код Loinc"
+        },
+        {
+          "locale": "ar_EG",
+          "property": "SHORT_NAME",
+          "value": "Loinc"
+        },
+        {
+          "locale": "ar",
+          "property": "DESCRIPTION",
+          "value": "رمز Loinc"
+        }
+      ],
+      "unique": true,
+      "userAccesses": [],
+      "userAttribute": false,
+      "userGroupAccesses": [],
+      "userGroupAttribute": false,
+      "validationRuleAttribute": false,
+      "validationRuleGroupAttribute": false,
+      "valueType": "TEXT"
+    }
+  ]
+}

@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.metadata.changelog;
 
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface MetadataChangelogStore extends GenericStore<MetadataChangelog>
+public interface MetadataChangelogStore extends IdentifiableObjectStore<MetadataChangelog>
 {
+    MetadataChangelog findByName( String name );
 }

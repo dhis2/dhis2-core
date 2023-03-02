@@ -1,14 +1,15 @@
 create table if not exists metadatachangelog (
     metadatachangelogid bigint not null,
+    uid varchar(11) NOT NULL,
     code varchar(50) unique,
     created timestamp not null,
-    createdby bigint,
+    lastupdated timestamp,
+    createdby bigint not null,
     name varchar(250) unique not null ,
     type varchar(50),
     version varchar(10) not null,
     dhisversion varchar(10) not null,
     locale varchar(10) not null,
-    success boolean,
     importfile bigint,
 
     constraint metadatachangelogid primary key (metadatachangelogid),

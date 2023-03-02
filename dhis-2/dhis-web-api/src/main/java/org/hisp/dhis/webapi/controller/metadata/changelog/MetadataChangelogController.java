@@ -27,32 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.metadata.changelog;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
+import org.hisp.dhis.schema.descriptors.MetadataChangelogSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Tags( "metadata" )
-@Controller
-@RequestMapping( "/metadataChangelogs" )
+@RestController
+@RequestMapping( MetadataChangelogSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class MetadataChangelogController
+public class MetadataChangelogController extends AbstractFullReadOnlyController<MetadataChangelog>
 {
-    private final MetadataChangelogService service;
-
-    @GetMapping
-    public List<MetadataChangelog> getMetadataChangelogs()
-    {
-        return service.getAll();
-    }
-
 }
