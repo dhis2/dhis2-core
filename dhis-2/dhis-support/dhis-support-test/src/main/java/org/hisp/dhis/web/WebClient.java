@@ -59,6 +59,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
  * @author Jan Bernitt
  */
 @FunctionalInterface
+@SuppressWarnings( "java:S100" )
 public interface WebClient
 {
     HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
