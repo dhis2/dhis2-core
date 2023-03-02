@@ -56,7 +56,6 @@ import org.springframework.core.io.ClassPathResource;
 
 class EventImportWithMetadataTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private RenderService _renderService;
 
