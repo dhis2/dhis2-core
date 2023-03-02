@@ -28,11 +28,13 @@
 package org.hisp.dhis.security.action;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpSession;
 
@@ -40,6 +42,7 @@ import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
@@ -120,11 +123,11 @@ public class LoginAction
         this.oidcFailure = oidcFailure;
     }
 
-    private List<Locale> availableLocales;
+    private List<WebLocale> webLocales;
 
-    public List<Locale> getAvailableLocales()
+    public List<WebLocale> getWebLocales()
     {
-        return availableLocales;
+        return webLocales;
     }
 
     private final Map<String, Object> oidcConfig = new HashMap<>();
@@ -156,7 +159,12 @@ public class LoginAction
             return "mobile";
         }
 
-        availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
+        List<Locale> availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
+        webLocales = availableLocales
+                .stream()
+                .map( WebLocale::fromLocale )
+                .sorted(Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ))
+                .collect( Collectors.toList() );
 
         return "standard";
     }

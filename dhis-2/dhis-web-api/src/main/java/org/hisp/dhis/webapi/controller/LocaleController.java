@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,7 +87,11 @@ public class LocaleController
     public @ResponseBody List<WebLocale> getUiLocales( Model model )
     {
         List<Locale> locales = localeManager.getAvailableLocales();
-        List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
+        List<WebLocale> webLocales = locales
+                .stream()
+                .map( WebLocale::fromLocale )
+                .sorted(Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ))
+                .collect( Collectors.toList() );
 
         return webLocales;
     }

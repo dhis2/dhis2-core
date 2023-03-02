@@ -150,8 +150,8 @@
         <span id="applicationRightFooter">$!{keyApplicationRightFooter}</span>
         <select id="localeSelect" onchange="login.localeChanged()" class="marginLeftClass">
             <option value="">[ $i18n.getString( "change_language" ) ]</option>
-            #foreach( $locale in $availableLocales )
-                <option value="${locale.language}">${locale.displayName}</option>
+            #foreach( $locale in $webLocales )
+                <option value="${locale.locale}">${locale.name}</option>
             #end
         </select>
     </div>
