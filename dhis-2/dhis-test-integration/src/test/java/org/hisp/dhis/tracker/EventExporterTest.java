@@ -684,9 +684,9 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-
         params.addFilterAttributes( queryItem( "toUpdate000" ) );
         params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+        params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -700,9 +700,9 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-
         params.addFilterAttributes( queryItem( "toUpdate000" ) );
         params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -716,10 +716,10 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-
         params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
         params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -733,10 +733,10 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-
         params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
         params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+        params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -856,6 +856,75 @@ class EventExporterTest extends TrackerTest
         List<String> events = eventsFunction.apply( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+        params.addOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ),
+            new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
+            new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "dueDate", OrderParam.SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ),
+            new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
     private DataElement dataElement( String uid )

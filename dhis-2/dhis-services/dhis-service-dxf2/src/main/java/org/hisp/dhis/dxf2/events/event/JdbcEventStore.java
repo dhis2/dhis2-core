@@ -1921,26 +1921,6 @@ public class JdbcEventStore implements EventStore
     {
         ArrayList<String> orderFields = new ArrayList<>();
 
-        for ( OrderParam order : params.getGridOrders() )
-        {
-
-            Set<QueryItem> items = params.getDataElements();
-
-            for ( QueryItem item : items )
-            {
-                if ( order.getField().equals( item.getItemId() ) )
-                {
-                    orderFields.add( order.getField() + " " + order.getDirection() );
-                    break;
-                }
-            }
-        }
-
-        for ( OrderParam order : params.getAttributeOrders() )
-        {
-            orderFields.add( order.getField() + "_value " + order.getDirection() );
-        }
-
         for ( OrderParam order : params.getOrders() )
         {
             if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
@@ -1948,6 +1928,14 @@ public class JdbcEventStore implements EventStore
                 String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
                 orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
                 orderFields.add( orderText );
+            }
+            else if ( params.getAttributeOrders().contains( order ) )
+            {
+                orderFields.add( order.getField() + "_value " + order.getDirection() );
+            }
+            else if ( params.getGridOrders().contains( order ) )
+            {
+                orderFields.add( getDataElementsOrder( params.getDataElements(), order ) );
             }
         }
 
@@ -1959,6 +1947,19 @@ public class JdbcEventStore implements EventStore
         {
             return "order by psi_lastupdated desc ";
         }
+    }
+
+    private String getDataElementsOrder( Set<QueryItem> dataElements, OrderParam order )
+    {
+        for ( QueryItem item : dataElements )
+        {
+            if ( order.getField().equals( item.getItemId() ) )
+            {
+                return order.getField() + " " + order.getDirection();
+            }
+        }
+
+        return "";
     }
 
     private String getAttributeValueQuery()
