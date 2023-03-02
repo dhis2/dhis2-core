@@ -155,7 +155,7 @@ public class MapController
         Map newMap = deserializeJsonEntity( request );
         newMap.setUid( uid );
 
-        mergeService.merge( new MergeParams<>( map, newMap )
+        mergeService.merge( new MergeParams<>( newMap, map )
             .setMergeMode( params.getMergeMode() )
             .setSkipSharing( params.isSkipSharing() )
             .setSkipTranslation( params.isSkipTranslation() ) );

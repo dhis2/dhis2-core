@@ -318,8 +318,6 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         DataElementGroup dataElementGroup = fromJson( "preheat/degAUidRef.json", DataElementGroup.class );
         defaultSetup();
 
-        List<User> allUsers = userService.getAllUsers();
-
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
         params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );

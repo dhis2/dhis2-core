@@ -29,8 +29,10 @@ package org.hisp.dhis.analytics.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -87,5 +89,40 @@ class AnalyticsSqlUtilsTest
         assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( "" ) );
         assertEquals( ")", AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ) );
         assertEquals( "))", AnalyticsSqlUtils.getClosingParentheses( "((" ) );
+    }
+
+    @Test
+    void testGetCoalesce_returns_defaultColumnName_when_coordinate_field_collection_is_empty()
+    {
+        // given
+        // when
+        String sqlSnippet = AnalyticsSqlUtils.getCoalesce( new ArrayList<>(),
+            FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
+
+        // then
+        assertEquals( FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet );
+    }
+
+    @Test
+    void testGetCoalesce_returns_defaultColumnName_when_coordinate_field_collection_is_null()
+    {
+        // given
+        // when
+        String sqlSnippet = AnalyticsSqlUtils.getCoalesce( null, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
+
+        // then
+        assertEquals( FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet );
+    }
+
+    @Test
+    void testGetCoalesce_returns_coalesce_when_coordinate_field_collection_is_not_empty()
+    {
+        // given
+        // when
+        String sqlSnippet = AnalyticsSqlUtils.getCoalesce( List.of( "coorA", "coorB", "coorC" ),
+            FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
+
+        // then
+        assertEquals( "coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet );
     }
 }
