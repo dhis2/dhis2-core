@@ -44,6 +44,11 @@ public class CurrentUserUtil
         throw new UnsupportedOperationException( "Utility class" );
     }
 
+    /**
+     * Get the username of the currently authenticated user
+     *
+     * @return the current user's username
+     */
     public static String getCurrentUsername()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -77,6 +82,12 @@ public class CurrentUserUtil
         }
     }
 
+    /**
+     * Get details about the currently authenticated user
+     *
+     * @return CurrentUserDetails representing the authenticated user, or null
+     *         if the user is unauthenticated
+     */
     public static CurrentUserDetails getCurrentUserDetails()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -109,6 +120,12 @@ public class CurrentUserUtil
         }
     }
 
+    /**
+     * Get all authorities assigned to the current user Return an empty list if
+     * the current session is anonymous
+     *
+     * @return list of authority names
+     */
     public static List<String> getCurrentUserAuthorities()
     {
         CurrentUserDetails currentUserDetails = getCurrentUserDetails();
@@ -126,17 +143,36 @@ public class CurrentUserUtil
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Check if the current user has any of the passed candidate authorities
+     *
+     * @param candidateAuthorities a list of possible authorities to check
+     *        against
+     * @return true if the user has one or more of the candidateAuthorities
+     */
     public static Boolean hasAnyAuthority( Collection<String> candidateAuthorities )
     {
         List<String> currentUserAuthorities = getCurrentUserAuthorities();
         return candidateAuthorities.stream().anyMatch( currentUserAuthorities::contains );
     }
 
-    public static Boolean hasAuthority( String authority )
+    /**
+     * Check if the current user has the passed candidate authority
+     *
+     * @param candidateAuthority the authority to check for
+     * @return true if the user has the candidateAuthority
+     */
+    public static Boolean hasAuthority( String candidateAuthority )
     {
-        return hasAnyAuthority( List.of( authority ) );
+        return hasAnyAuthority( List.of( candidateAuthority ) );
     }
 
+    /**
+     * Return the value of the user setting referred to by 'key'
+     *
+     * @param key the key of the user setting
+     * @return the value of the user setting
+     */
     @SuppressWarnings( "unchecked" )
     public static <T> T getUserSetting( UserSettingKey key )
     {
@@ -155,6 +191,12 @@ public class CurrentUserUtil
         return (T) userSettings.get( key.getName() );
     }
 
+    /**
+     * Set the value of the user setting referred to by 'key'
+     *
+     * @param key the key of the user setting
+     * @param value the value to set
+     */
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
         setUserSettingInternal( key.getName(), value );
