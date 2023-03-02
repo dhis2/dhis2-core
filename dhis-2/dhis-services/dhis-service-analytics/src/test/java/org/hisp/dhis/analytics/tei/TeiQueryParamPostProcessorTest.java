@@ -38,8 +38,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -56,10 +54,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.DefaultProgramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
+/**
+ * Unit tests for {@link TeiQueryParamPostProcessor}.
+ */
 class TeiQueryParamPostProcessorTest
 {
     private TeiQueryParamPostProcessor teiQueryParamPostProcessor;
