@@ -52,9 +52,11 @@ import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -428,6 +430,9 @@ public class EventAnalyticsController
     {
         criteria
             .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
+            systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
