@@ -167,9 +167,6 @@ public class DhisWebApiWebSecurityConfig
         implements AuthorizationServerConfigurer
     {
         @Autowired
-        private DhisConfigurationProvider dhisConfig;
-
-        @Autowired
         private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
         @Autowired
@@ -299,9 +296,6 @@ public class DhisWebApiWebSecurityConfig
         extends WebSecurityConfigurerAdapter
     {
         @Autowired
-        private DhisConfigurationProvider dhisConfig;
-
-        @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         @Autowired
@@ -359,9 +353,6 @@ public class DhisWebApiWebSecurityConfig
     {
         @Autowired
         private DhisConfigurationProvider dhisConfig;
-
-        @Autowired
-        private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         @Autowired
         @Qualifier( "defaultTokenService" )

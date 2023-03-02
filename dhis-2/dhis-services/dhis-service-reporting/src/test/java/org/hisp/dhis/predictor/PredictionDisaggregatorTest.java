@@ -40,11 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
@@ -237,11 +234,6 @@ class PredictionDisaggregatorTest
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private DataElementOperand deo( DataElement dataElement, CategoryOptionCombo coc )
-    {
-        return new DataElementOperand( dataElement, coc );
-    }
 
     private void setUpWithoutDisag()
     {

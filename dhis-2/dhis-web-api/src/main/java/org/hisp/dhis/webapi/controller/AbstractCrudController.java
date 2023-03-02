@@ -232,7 +232,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         BadRequestException,
         IOException,
         JsonPatchException
-
     {
         WebOptions options = new WebOptions( rpParameters );
 

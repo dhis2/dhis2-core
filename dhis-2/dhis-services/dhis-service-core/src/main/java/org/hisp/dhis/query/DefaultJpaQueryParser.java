@@ -127,6 +127,7 @@ public class DefaultJpaQueryParser
         return getRestriction( property, property.getKlass(), path, operator, arg );
     }
 
+    @SuppressWarnings( "unchecked" )
     private Restriction getRestriction( Property property, Class<?> valueType, String path, String operator,
         Object arg )
         throws QueryParserException
