@@ -180,7 +180,7 @@ public class DefaultAppManager
     public List<App> getAppsByPluginType( String pluginType, Collection<App> apps )
     {
         return apps.stream()
-            .filter( app -> app.getPluginType().equals( pluginType ))
+            .filter( app -> app.getPluginType().equals( pluginType ) )
             .collect( Collectors.toList() );
     }
 
