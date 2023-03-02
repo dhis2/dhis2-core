@@ -39,7 +39,11 @@ import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +70,9 @@ public class EnrollmentAnalyticsController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
@@ -169,6 +176,9 @@ public class EnrollmentAnalyticsController
     private EventQueryParams getEventQueryParams( @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
     {
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
+            systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
+
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( criteria )
             .program( program )

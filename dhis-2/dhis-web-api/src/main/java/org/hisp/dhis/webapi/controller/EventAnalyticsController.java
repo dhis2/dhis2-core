@@ -44,9 +44,14 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,6 +77,8 @@ public class EventAnalyticsController
     @NonNull
     private final ContextUtils contextUtils;
 
+    @Autowired
+    private SystemSettingManager systemSettingManager;
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
@@ -308,6 +315,9 @@ public class EventAnalyticsController
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion )
     {
+        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
+            systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
+
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( criteria )
             .program( program )
