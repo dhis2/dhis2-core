@@ -651,7 +651,7 @@ public class DefaultChartService implements ChartService
         pieChart.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
         pieChart.getTitle().setFont( SUB_TITLE_FONT );
 
-        PiePlot piePlot = (PiePlot) pieChart.getPlot();
+        PiePlot<?> piePlot = (PiePlot<?>) pieChart.getPlot();
         piePlot.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
         piePlot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
         piePlot.setLabelFont( LABEL_FONT );
