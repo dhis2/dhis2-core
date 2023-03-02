@@ -95,7 +95,6 @@ public class DimensionParam implements UidObject
      *        {@link DimensionParam} returned (weather it's a filter or a
      *        dimension).
      * @param items the list of items parameters for this DimensionParam.
-     *
      * @return a new instance of {@link DimensionParam}.
      */
     public static DimensionParam ofObject( Object dimensionalObjectOrQueryItem, DimensionParamType dimensionParamType,
@@ -187,7 +186,9 @@ public class DimensionParam implements UidObject
     }
 
     /**
-     * @return the DimensionParamObjectType of this DimensionParam.
+     * Returns the type of the current {@link DimensionParam} instance.
+     *
+     * @return the respective {@link DimensionParamObjectType}.
      */
     public DimensionParamObjectType getDimensionParamObjectType()
     {

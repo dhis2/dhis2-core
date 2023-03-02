@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;

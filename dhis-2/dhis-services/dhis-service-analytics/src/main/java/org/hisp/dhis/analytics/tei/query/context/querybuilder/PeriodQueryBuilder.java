@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.DIMENSION_SEPARATOR;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
 import java.util.List;

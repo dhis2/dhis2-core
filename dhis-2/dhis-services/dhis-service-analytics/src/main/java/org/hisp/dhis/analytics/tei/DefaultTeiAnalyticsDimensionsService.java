@@ -51,10 +51,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
-/**
- * Service to retrieve all dimensions that can be used in Cross Program Line
- * Listing given a TrackedEntityType.
- */
 @Service
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
@@ -77,6 +73,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
         if ( Objects.nonNull( trackedEntityType ) )
         {
             Stream<Program> programs;
+
             if ( isEmpty( programUids ) )
             {
                 programs = programService.getAllPrograms().stream();
@@ -86,7 +83,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
                 programs = programService.getPrograms( programUids ).stream();
             }
 
-            // dimensions by programs defined on given TET
+            // Dimensions by programs defined on the given tracked entity type.
             return programs
                 .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
                 .map( program -> enrollmentAnalyticsDimensionsService

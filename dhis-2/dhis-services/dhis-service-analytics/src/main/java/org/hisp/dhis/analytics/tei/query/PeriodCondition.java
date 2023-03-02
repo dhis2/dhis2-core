@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 

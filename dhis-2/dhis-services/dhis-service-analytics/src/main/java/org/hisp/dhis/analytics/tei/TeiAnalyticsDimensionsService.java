@@ -35,15 +35,18 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrefixedDimension;
 
 /**
- * Provides service methods that operate on top of TEIs dimensions and types.
+ * Service that provides methods able to extract dimensions that are associated
+ * with given a tracked entity type.
  */
 public interface TeiAnalyticsDimensionsService
 {
     /**
-     * Retrieve all Dimensions that can be used on a given Tracked Entity Type.
+     * Retrieve all dimensions that are associated with the given tracked entity
+     * type.
      *
-     * @param trackedEntityTypeId the uid of a tracked entity type
-     * @return list of dimensions
+     * @param trackedEntityTypeId the uid of a tracked entity type.
+     * @param programUids the set of program uids where to extract dimensions.
+     * @return the list of dimensions {@link PrefixedDimension} found.
      */
     @Nonnull
     List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( @Nonnull String trackedEntityTypeId,

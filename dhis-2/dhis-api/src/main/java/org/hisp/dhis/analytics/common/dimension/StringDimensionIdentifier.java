@@ -63,6 +63,6 @@ public class StringDimensionIdentifier
 
     public String toString()
     {
-        return DimensionIdentifierConverterSupport.asText( getProgram(), getProgramStage(), getDimension() );
+        return DimensionIdentifierHelper.asText( getProgram(), getProgramStage(), getDimension() );
     }
 }

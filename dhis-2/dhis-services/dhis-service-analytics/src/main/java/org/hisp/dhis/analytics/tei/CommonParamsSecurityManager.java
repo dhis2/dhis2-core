@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,7 +98,7 @@ public class CommonParamsSecurityManager
      *
      * @param commonParams the {@link CommonParams} to check.
      */
-    void decideAccess( CommonParams commonParams, Collection<IdentifiableObject> extraObjects )
+    void decideAccess( @Nonnull CommonParams commonParams, @Nonnull Collection<IdentifiableObject> extraObjects )
     {
         List<OrganisationUnit> queryOrgUnits = commonParams
             .getDimensionIdentifiers().stream()
@@ -166,7 +168,7 @@ public class CommonParamsSecurityManager
      *
      * @param commonParams the {@link CommonParams}.
      */
-    void applyOrganisationUnitConstraint( CommonParams commonParams )
+    void applyOrganisationUnitConstraint( @Nonnull CommonParams commonParams )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -227,7 +229,7 @@ public class CommonParamsSecurityManager
      *
      * @param commonParams the {@link CommonParams}.
      */
-    void applyDimensionConstraints( CommonParams commonParams )
+    void applyDimensionConstraints( @Nonnull CommonParams commonParams )
     {
         User user = currentUserService.getCurrentUser();
 

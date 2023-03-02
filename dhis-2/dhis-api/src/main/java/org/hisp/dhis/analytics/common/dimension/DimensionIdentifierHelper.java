@@ -46,7 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UidObject;
 
 @NoArgsConstructor( access = PRIVATE )
-public class DimensionIdentifierConverterSupport
+public class DimensionIdentifierHelper
 {
     public static final Character DIMENSION_SEPARATOR = '.';
 
@@ -54,10 +54,10 @@ public class DimensionIdentifierConverterSupport
      * Will parse the given argument into a {@link DimensionIdentifier} object.
      *
      * @param fullDimensionId in the format
-     *        "PROGRAM_UID[1].PSTAGE_UID[4].DIM_UID"
+     *        "PROGRAM_UID[1].PSTAGE_UID[4].DIM_UID".
      * @throws IllegalArgumentException when the format of the given argument is
-     *         not supported
-     * @return the {@link DimensionIdentifier} object
+     *         not supported.
+     * @return the {@link DimensionIdentifier} object.
      */
     public static StringDimensionIdentifier fromFullDimensionId( String fullDimensionId )
     {
@@ -115,7 +115,7 @@ public class DimensionIdentifierConverterSupport
     {
         return stream(
             split( fullDimensionId, DIMENSION_SEPARATOR ) )
-                .map( DimensionIdentifierConverterSupport::elementWithOffsetByString )
+                .map( DimensionIdentifierHelper::elementWithOffsetByString )
                 .collect( toList() );
     }
 

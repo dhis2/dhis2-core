@@ -40,7 +40,7 @@ import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Class to store Program and Program Stage to help to generate the prefix
- * during serialization
+ * during serialization.
  */
 @With
 @Getter

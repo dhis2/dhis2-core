@@ -32,7 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +48,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Class to identify a dimension in analytics TEI cross program. A dimension can
- * be composed by up to 3 elements: Program, Stage and dimension (the dimension
- * uid).
+ * Class that identifies a dimension. A dimension can be composed by up to three
+ * elements: Program, Program Stage and a Dimension (the dimension uid).
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
@@ -70,10 +69,10 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     /**
      * Creates a dimension identifier for a TEI dimension with empty groupId.
      *
-     * @param program the program
-     * @param programStage the program stage
-     * @param ofObject the dimension
-     * @return the dimension identifier
+     * @param program the {@link ElementWithOffset<Program>}.
+     * @param programStage the {@link ElementWithOffset<ProgramStage>}.
+     * @param ofObject the dimension.
+     * @return the dimension identifier.
      */
     public static <D extends UidObject> DimensionIdentifier<D> of( ElementWithOffset<Program> program,
         ElementWithOffset<ProgramStage> programStage, D ofObject )
@@ -135,7 +134,7 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     @Override
     public String toString()
     {
-        return DimensionIdentifierConverterSupport.asText( program, programStage, dimension );
+        return DimensionIdentifierHelper.asText( program, programStage, dimension );
     }
 
     public enum DimensionIdentifierType

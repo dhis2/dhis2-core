@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.fromFullDimensionId;
 import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link DimensionIdentifierConverterSupport}
+ * Unit tests for {@link DimensionIdentifierHelper}
  */
-class DimensionIdentifierConverterSupportTest
+class DimensionIdentifierHelperTest
 {
     @Test
     void testFromFullDimensionId()

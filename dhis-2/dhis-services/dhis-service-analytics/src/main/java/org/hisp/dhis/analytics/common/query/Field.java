@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.getPrefix;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 
 import lombok.AccessLevel;
