@@ -146,8 +146,8 @@ public class LoginAction
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
         HttpSession session = ServletActionContext.getRequest().getSession();
-        String nounce = (String) session.getAttribute( "nounce" );
-        setCspNonce( nounce );
+        String nonce = (String) session.getAttribute( "nonce" );
+        setCspNonce( nonce );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
 
