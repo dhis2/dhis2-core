@@ -50,8 +50,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -92,7 +90,6 @@ import com.google.common.primitives.Primitives;
  * @author Morten Olav Hansen <mortenoh@gmail.com> (original author)
  * @author Jan Bernitt (extraction to this class)
  */
-@Slf4j
 public class JacksonPropertyIntrospector implements PropertyIntrospector
 {
     @Override
