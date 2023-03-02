@@ -248,7 +248,7 @@ public class DefaultAppManager
     @Override
     public List<App> getAccessibleApps( String contextPath )
     {
-        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a ) )
+        return getApps( contextPath ).stream().filter( this::isAccessible )
             .collect( Collectors.toList() );
     }
 
