@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
  * This interface simply enables and object to be "renderable" based on the
  * conditions defined by the implementer in the respective methods.
  */
+@FunctionalInterface
 public interface Renderable
 {
     /**
