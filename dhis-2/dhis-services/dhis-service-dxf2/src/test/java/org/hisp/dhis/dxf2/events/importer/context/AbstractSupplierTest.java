@@ -61,6 +61,7 @@ abstract class AbstractSupplierTest<T>
     @Captor
     protected ArgumentCaptor<String> sql;
 
+    @SuppressWarnings( "unchecked" )
     public void mockResultSetExtractor( ResultSet resultSetMock )
     {
         when( jdbcTemplate.query( sql.capture(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
@@ -77,6 +78,7 @@ abstract class AbstractSupplierTest<T>
             } );
     }
 
+    @SuppressWarnings( "unchecked" )
     public void mockResultSetExtractorWithoutParameters( ResultSet resultSetMock )
     {
         when( jdbcTemplate.query( anyString(), any( ResultSetExtractor.class ) ) )
