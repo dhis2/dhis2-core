@@ -245,11 +245,6 @@ class TrackerBundleImportReportTest
         assertEquals( toSerializeReport.getStats(), deserializedReport.getStats() );
     }
 
-    private Error getError( String message, ValidationCode code, TrackerType type, String uid )
-    {
-        return new Error( message, code.name(), type.name(), uid );
-    }
-
     private void assertStats( ImportReport report )
     {
         assertNotNull( report.getStats() );
