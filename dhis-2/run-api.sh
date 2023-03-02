@@ -22,7 +22,7 @@ DHIS2_PORT=9090
 # Skip compilation of DHIS 2 source code
 SKIP_COMPILE=0
 
-# Set DHIS 2 home directory to DHIS2_HOME env variable if set
+# Set DHIS 2 home directory to DHIS2_HOME_DIR env variable if set
 if [[ -v "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
@@ -32,14 +32,15 @@ function print_usage() {
   echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
   echo "  -d <directory> DHIS 2 home directory" >&2
   echo "  -h <hostname>  Hostname (default is localhost)" >&2
-  echo "  -p <port>      Port number (default is 9090)" >&2
   echo "  -s             Skip compilation of source code" >&2
+  echo "  -p <port>      Port number (default is 9090)" >&2
+  echo "  -m             Print this manual" >&2
 }
 
 # Print variables
 function print_variables() {
   echo "JAVA_HOME: $JAVA_HOME"
-  echo "DHIS2_HOME_DIR: $DHIS2_HOME"
+  echo "DHIS2_HOME_DIR: $DHIS2_HOME_DIR"
   echo "HOSTNAME: $DHIS2_HOSTNAME"
   echo "PORT: $DHIS2_PORT"
   echo "SKIP_COMPILE: $SKIP_COMPILE"
@@ -65,7 +66,7 @@ function build_dhis2() {
 }
 
 # Read command line options
-while getopts "d:h:p:s" OPT; do
+while getopts "d:h:p:sm" OPT; do
   case "$OPT" in
     d)
       DHIS2_HOME_DIR=$OPTARG
@@ -79,6 +80,10 @@ while getopts "d:h:p:s" OPT; do
     s)
       SKIP_COMPILE=1
       ;;
+    m)
+      print_usage
+      exit 0
+      ;;
     ?)
       print_usage
       exit 1
@@ -91,8 +96,8 @@ echo -e "Note: JDK 11 or later is required!\n"
 
 print_variables
 
-# Verify DHIS2_HOME variable
-[ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME' does not exist, aborting." && exit 1;
+# Verify DHIS2_HOME
+[ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 [ ! -f "$DHIS2_HOME_DIR/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 
 # Compile unless skip compile flag is set
