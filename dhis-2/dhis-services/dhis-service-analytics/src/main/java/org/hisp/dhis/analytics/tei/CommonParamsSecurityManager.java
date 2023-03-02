@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
@@ -41,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -98,7 +99,10 @@ public class CommonParamsSecurityManager
      * org units, programs, programStages and all dimensionalObjects in the
      * query.
      *
-     * @param commonParams the {@link CommonParams} to check.
+     * @param commonParams the {@link CommonParams} where to extract objects to
+     *        check.
+     * @param extraObjects the collection of additional objects that need to be
+     *        checked.
      */
     void decideAccess( @Nonnull CommonParams commonParams, @Nonnull Collection<IdentifiableObject> extraObjects )
     {
@@ -111,7 +115,7 @@ public class CommonParamsSecurityManager
             .map( DimensionalObject::getItems )
             .flatMap( Collection::stream )
             .map( OrganisationUnit.class::cast )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         Set<IdentifiableObject> objects = new HashSet<>();
         objects.addAll( extraObjects );
@@ -121,27 +125,27 @@ public class CommonParamsSecurityManager
             .getDimensionIdentifiers().stream()
             .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
-            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET.
             .filter( not( CommonParamsSecurityManager::shouldSkipCheck ) )
             .map( DimensionParam::getDimensionalObject )
             .filter( Objects::nonNull )
             .map( DimensionalObject::getItems )
             .flatMap( List::stream )
-            .collect( Collectors.toSet() ) );
+            .collect( toSet() ) );
 
-        // DimensionalItemObjects from TeiQueryParams -> QueryItems
+        // DimensionalItemObjects from TeiQueryParams -> QueryItems.
         objects.addAll( commonParams
             .getDimensionIdentifiers().stream()
             // We don't want to add the org units to the objects since they are
-            // already checked in the queryOrgUnits list
+            // already checked in the queryOrgUnits list.
             .filter( not( OrgUnitQueryBuilder::isOu ) )
             .map( DimensionIdentifier::getDimension )
-            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET.
             .filter( not( CommonParamsSecurityManager::shouldSkipCheck ) )
             .map( DimensionParam::getQueryItem )
             .filter( Objects::nonNull )
             .map( QueryItem::getItem )
-            .collect( Collectors.toSet() ) );
+            .collect( toSet() ) );
 
         // Programs
         objects.addAll( commonParams.getPrograms() );
@@ -152,7 +156,7 @@ public class CommonParamsSecurityManager
             .filter( DimensionIdentifier::hasProgramStage )
             .map( DimensionIdentifier::getProgramStage )
             .map( ElementWithOffset::getElement )
-            .collect( Collectors.toSet() ) );
+            .collect( toSet() ) );
 
         securityManager.decideAccess( queryOrgUnits, objects );
         securityManager.decideAccessEventAnalyticsAuthority();
@@ -200,7 +204,7 @@ public class CommonParamsSecurityManager
         List<DimensionIdentifier<DimensionParam>> orgUnitDimensions = commonParams
             .getDimensionIdentifiers().stream()
             .filter( OrgUnitQueryBuilder::isOu )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         Set<OrganisationUnit> userDataViewOrganisationUnits = user.getDataViewOrganisationUnits();
 
@@ -211,7 +215,7 @@ public class CommonParamsSecurityManager
 
             Set<OrganisationUnit> orgUnitFromRequest = orgUnitItems.stream()
                 .map( OrganisationUnit.class::cast )
-                .collect( Collectors.toSet() );
+                .collect( toSet() );
 
             Collection<OrganisationUnit> intersection = CollectionUtils.intersection( userDataViewOrganisationUnits,
                 orgUnitFromRequest );
@@ -227,7 +231,7 @@ public class CommonParamsSecurityManager
     /**
      * Transforms the given {@link CommonParams}, checking that all
      * DimensionalObjects specified in the query are readable to the current
-     * user
+     * user.
      *
      * @param commonParams the {@link CommonParams}.
      */
@@ -248,23 +252,23 @@ public class CommonParamsSecurityManager
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getDimensionalObject )
             .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
-        // Categories the user is constrained to
+        // Categories the user is constrained to.
         Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
             : getCategoriesWithoutRestrictions(
                 commonParams.getPrograms(),
                 dimensionalObjects );
 
-        // union of user and category constraints
+        // Union of user and category constraints.
         Set<DimensionalObject> dimensionConstraints = Stream.concat(
             user.getDimensionConstraints().stream(),
             categories.stream() )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
 
         if ( dimensionConstraints.isEmpty() ) // if no constraints
         {
-            return; // nothing to do - no filters added to query
+            return; // Nothing to do - no filters added to the query.
         }
 
         for ( DimensionalObject dimension : dimensionConstraints )
@@ -306,7 +310,7 @@ public class CommonParamsSecurityManager
      * @param commonParams the {@link CommonParams}.
      * @param dimensionUid the dimension uid.
      * @return true if the given dimensionUid in the {@link CommonParams} has a
-     *         dimension or filter
+     *         dimension or filter.
      */
     private boolean hasDimensionOrFilterWithItems( CommonParams commonParams, String dimensionUid )
     {

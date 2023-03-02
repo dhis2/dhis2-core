@@ -30,11 +30,17 @@ package org.hisp.dhis.analytics.common.processing;
 import javax.annotation.Nonnull;
 
 /**
- * Simple interface that enables validation capabilities.
+ * Simple interface that enables validation capabilities on a given object T.
  *
  * @param <T>
  */
 public interface Validator<T>
 {
+    /**
+     * Runs a validation on the given query request object T to ensure it is in
+     * a valid state.
+     *
+     * @param object the object T.
+     */
     void validate( @Nonnull T object );
 }

@@ -31,7 +31,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Represents the result of a query. It's a very simple interface that will hold
- * the result object required by the implementation class.
+ * the result object required by the implementation class and its associated
+ * metadata.
  *
  * @author maikel arabori
  */
@@ -40,15 +41,15 @@ public interface QueryResult<R, M>
     /**
      * Holds the result object of a query.
      *
-     * @return the result object
+     * @return the result object R.
      */
     @Nonnull
     R result();
 
     /**
-     * Returns the metaData info related to the result, if any.
+     * Returns the metadata info related to the result, if any.
      *
-     * @return
+     * @return the metadata object M.
      */
     @Nonnull
     M metadata();

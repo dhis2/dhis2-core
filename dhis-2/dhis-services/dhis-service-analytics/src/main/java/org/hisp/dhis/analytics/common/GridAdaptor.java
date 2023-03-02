@@ -34,7 +34,6 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -59,8 +58,6 @@ public class GridAdaptor
 
     private final MetadataParamsHandler metadataParamsHandler;
 
-    private final AnalyticsSecurityManager analyticsSecurityManager;
-
     private final CurrentUserService currentUserService;
 
     /**
@@ -71,9 +68,7 @@ public class GridAdaptor
      *
      * @param sqlQueryResult the optional of {@link SqlQueryResult}.
      * @param teiQueryParams the {@link TeiQueryParams}.
-     *
      * @return the {@link Grid} object.
-     *
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null.
      */

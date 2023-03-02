@@ -31,6 +31,8 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -45,17 +47,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
 {
+    @Nonnull
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public SqlQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
-        notNull( jdbcTemplate, "jdbcTemplate cannot be null" );
-
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
     /**
-     * @throws IllegalArgumentException if the query argument is null
+     * @throws IllegalArgumentException if the query argument is null.
      */
     @Override
     public SqlQueryResult find( SqlQuery query )
@@ -69,7 +70,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
     }
 
     /**
-     * @throws IllegalArgumentException if the query argument is null
+     * @throws IllegalArgumentException if the query argument is null.
      */
     @Override
     public long count( SqlQuery query )

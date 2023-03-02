@@ -79,10 +79,11 @@ public enum ValueTypeMapping
 
     /**
      * Finds the associated {@link ValueTypeMapping} for the given
-     * {@link ValueType},
+     * {@link ValueType}.
      *
-     * @param valueType the {@link ValueType}
-     * @return the respective ValueTypeMapping, or default to TEXT
+     * @param valueType the {@link ValueType}.
+     * @return the respective ValueTypeMapping, or default to
+     *         {@link ValueTypeMapping.TEXT}.
      */
     public static ValueTypeMapping fromValueType( ValueType valueType )
     {

@@ -51,7 +51,7 @@ public class SqlQuery implements Query
 
     /**
      * @throws IllegalArgumentException if statement or params are
-     *         null/empty/blank
+     *         null/empty/blank.
      */
     public SqlQuery( String statement, Map<String, Object> params )
     {

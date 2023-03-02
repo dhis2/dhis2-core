@@ -41,7 +41,7 @@ public interface Processor<T>
      * Processes the given object based on the implementation logic/rules.
      *
      * @param object to be processed.
-     * @return the processed T.
+     * @return the processed object T.
      */
     @Nonnull
     T process( @Nonnull T object );

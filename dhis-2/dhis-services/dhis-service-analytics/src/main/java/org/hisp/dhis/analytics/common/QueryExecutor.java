@@ -30,20 +30,19 @@ package org.hisp.dhis.analytics.common;
 import javax.annotation.Nonnull;
 
 /**
- * Responsible for providing methods able to execute queries on the respective
- * data source, based on the implementation provided.
+ * Responsible for providing methods able to execute read only queries on the
+ * respective data source, based on the implementation provided.
  *
- * NOTE: in analytics we never persist or update data. So this interface will
- * always delivery read/retrieve operations.
+ * This interface must not provide any method that might persist data.
  *
  * @author maikel arabori
  */
 public interface QueryExecutor<T extends Query, E extends QueryResult>
 {
     /**
-     * Executes a read/retrieve operation based on the given query.
+     * Executes a find operation based on the given SQL query object.
      *
-     * @param query
+     * @param query the SQL statement to be executed.
      * @return the result of the execution represented by a {@link QueryResult}
      *         object.
      */
@@ -51,9 +50,9 @@ public interface QueryExecutor<T extends Query, E extends QueryResult>
     E find( @Nonnull T query );
 
     /**
-     * Executes a read/retrieve operation based on the given query.
+     * Executes a count operation based on the given SQL query object.
      *
-     * @param query
+     * @param query the SQL statement to be executed.
      * @return the number of results found.
      */
     long count( @Nonnull T query );

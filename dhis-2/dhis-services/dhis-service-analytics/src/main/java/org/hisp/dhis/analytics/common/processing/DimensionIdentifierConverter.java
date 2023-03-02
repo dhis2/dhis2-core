@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Component responsible for converting string representations of dimensions
- * into DimensionIdentifier objects.
+ * into {@link DimensionIdentifier} objects.
  */
 @Component
 public class DimensionIdentifierConverter
@@ -83,9 +83,11 @@ public class DimensionIdentifierConverter
             { // Contains only a dimension.
                 return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
             }
+
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(
                     ("Specified program " + programWithOffset + " does not exist") ) );
+
             return DimensionIdentifier.of(
                 ElementWithOffset.of( program, programWithOffset.getOffset() ),
                 emptyElementWithOffset(),
@@ -95,7 +97,9 @@ public class DimensionIdentifierConverter
         {
             throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
         }
+
         Program program = programOptional.get();
+
         return extractProgramStageIfExists( program, programStageWithOffset.getElement() )
             .map( programStage -> DimensionIdentifier.of(
                 ElementWithOffset.of( program, programWithOffset.getOffset() ),

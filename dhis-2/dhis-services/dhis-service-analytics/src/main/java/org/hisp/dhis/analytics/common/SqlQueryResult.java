@@ -47,18 +47,12 @@ public class SqlQueryResult implements QueryResult<SqlRowSet, SqlRowSetMetaData>
     @Nonnull
     private final SqlRowSet result;
 
-    /**
-     * @return sql result set
-     */
     @Override
     public SqlRowSet result()
     {
         return result;
     }
 
-    /**
-     * @return the sql result metadata
-     */
     @Override
     public SqlRowSetMetaData metadata()
     {

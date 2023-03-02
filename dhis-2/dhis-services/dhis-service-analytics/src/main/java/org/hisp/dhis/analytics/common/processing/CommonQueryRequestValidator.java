@@ -39,8 +39,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for generic validations on top of a CommonQueryRequest
- * object.
+ * Component responsible for generic validations on top of a
+ * {@link CommonQueryRequest} object.
  */
 @Component
 public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
@@ -50,8 +50,8 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
      * {@link CommonQueryRequest}, preventing basic syntax and consistency
      * issues.
      *
-     * @param commonQueryRequest
-     * @throws IllegalQueryException is some invalid state is found
+     * @param commonQueryRequest the {@link CommonQueryRequest}.
+     * @throws IllegalQueryException is some invalid state is found.
      */
     @Override
     public void validate( CommonQueryRequest commonQueryRequest )
@@ -94,7 +94,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
     }
 
     /**
-     * The event date should have a format like: "IpHINAT79UW.LAST_YEAR"
+     * The event date should have a format like: "IpHINAT79UW.LAST_YEAR".
      *
      * @param enrollmentDate the date to validate.
      * @throws IllegalQueryException if the format is invalid.

@@ -32,6 +32,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -51,7 +52,6 @@ import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -76,9 +76,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @NoArgsConstructor( access = PRIVATE )
 public class TeiFields
 {
-    public static final String EVENT_COLUMN_PREFIX = "Event";
+    private static final String EVENT_COLUMN_PREFIX = "Event";
 
-    public static final String ENROLLMENT_COLUMN_PREFIX = "Enrollment";
+    private static final String ENROLLMENT_COLUMN_PREFIX = "Enrollment";
 
     /**
      * Retrieves all object attributes from the given param encapsulating them
@@ -264,15 +264,12 @@ public class TeiFields
         }
         else if ( dimensionalObject != null )
         {
-            return getCustomGridHeader( dimIdentifier,
-                d -> d.getDimensionalObject().getDimensionDisplayName() );
+            return getCustomGridHeader( dimIdentifier, d -> d.getDimensionalObject().getDimensionDisplayName() );
         }
         else
         {
-            // It is a static dimension here
-            return getCustomGridHeader(
-                dimIdentifier,
-                d -> d.getStaticDimension().getFullName() );
+            // It is a static dimension.
+            return getCustomGridHeader( dimIdentifier, d -> d.getStaticDimension().getFullName() );
         }
     }
 
@@ -281,23 +278,18 @@ public class TeiFields
         Function<DimensionParam, String> dimensionNameProvider )
     {
         /*
-         * Sometimes it looks like DimensionalObject.valueType is null, so we
-         * default to TEXT
+         * In some situations the DimensionalObject.valueType can be null. In
+         * such cases, it defaults to ValueType.TEXT.
          */
         ValueType valueType = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getValueType )
             .orElse( ValueType.TEXT );
 
-        return new GridHeader(
-            dimensionIdentifier.getKey(),
-            join( SPACE,
-                getColumnPrefix( dimensionIdentifier ),
-                dimensionNameProvider.apply( dimensionIdentifier.getDimension() ) )
-                    .trim(),
-            valueType,
-            false,
-            true );
+        return new GridHeader( dimensionIdentifier.getKey(),
+            join( SPACE, getColumnPrefix( dimensionIdentifier ),
+                dimensionNameProvider.apply( dimensionIdentifier.getDimension() ) ).trim(),
+            valueType, false, true );
     }
 
     private static String getColumnPrefix( DimensionIdentifier<DimensionParam> dimIdentifier )
@@ -310,7 +302,8 @@ public class TeiFields
         {
             return ENROLLMENT_COLUMN_PREFIX;
         }
-        return StringUtils.EMPTY;
+
+        return EMPTY;
     }
 
     /**

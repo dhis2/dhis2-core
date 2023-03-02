@@ -63,8 +63,9 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
      * taking into account the system setting for the maximum limit and the
      * ignoreLimit flag.
      *
-     * @param commonQueryRequest the {@link CommonQueryRequest} to compute the
-     * @return the computed {@link CommonQueryRequest}
+     * @param commonQueryRequest the {@link CommonQueryRequest} used to compute
+     *        the paging.
+     * @return the computed {@link CommonQueryRequest}.
      */
     private CommonQueryRequest computePagingParams( CommonQueryRequest commonQueryRequest )
     {

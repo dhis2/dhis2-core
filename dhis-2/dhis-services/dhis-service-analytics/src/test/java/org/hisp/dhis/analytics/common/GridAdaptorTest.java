@@ -55,7 +55,6 @@ import javax.sql.rowset.RowSetMetaDataImpl;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
@@ -99,16 +98,12 @@ class GridAdaptorTest extends DhisConvenienceTest
     @Mock
     private CurrentUserService currentUserService;
 
-    @Mock
-    private AnalyticsSecurityManager analyticsSecurityManager;
-
     @BeforeEach
     void setUp()
     {
         headerParamsHandler = new HeaderParamsHandler();
         metadataDetailsHandler = new MetadataParamsHandler();
-        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, analyticsSecurityManager,
-            currentUserService );
+        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
 
