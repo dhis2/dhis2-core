@@ -55,8 +55,7 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -73,8 +72,6 @@ public class DefaultAppManager
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    private final CurrentUserService currentUserService;
-
     private final AppStorageService localAppStorageService;
 
     private final AppStorageService jCloudsAppStorageService;
@@ -88,20 +85,17 @@ public class DefaultAppManager
     private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
-        CurrentUserService currentUserService,
         @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
         @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
         DatastoreService datastoreService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
-        checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( datastoreService );
         checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
-        this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.datastoreService = datastoreService;
@@ -252,9 +246,9 @@ public class DefaultAppManager
     }
 
     @Override
-    public List<App> getAccessibleApps( String contextPath, User user )
+    public List<App> getAccessibleApps( String contextPath )
     {
-        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) )
+        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a ) )
             .collect( Collectors.toList() );
     }
 
@@ -354,22 +348,8 @@ public class DefaultAppManager
     @Override
     public boolean isAccessible( App app )
     {
-        return isAccessible( app, currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public boolean isAccessible( App app, User user )
-    {
-        if ( app == null || app.getShortName() == null || user == null )
-        {
-            return false;
-        }
-
-        Set<String> auths = user.getAllAuthorities();
-
-        return auths.contains( "ALL" ) ||
-            auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||
-            auths.contains( app.getSeeAppAuthority() );
+        return CurrentUserUtil.hasAnyAuthority(
+            List.of( "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() ) );
     }
 
     @Override

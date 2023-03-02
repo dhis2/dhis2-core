@@ -112,7 +112,7 @@ public class AppController
 
     public List<WebModule> getAccessibleAppMenu( String contextPath )
     {
-        List<WebModule> modules = appMenuManager.getAppMenu();
+        List<WebModule> modules = appMenuManager.getAccessibleWebModules();
 
         List<App> apps = appManager
             .getApps( contextPath )

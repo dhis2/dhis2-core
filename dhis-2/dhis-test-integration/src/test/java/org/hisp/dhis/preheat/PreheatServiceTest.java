@@ -40,13 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -318,8 +315,6 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         DataElementGroup dataElementGroup = fromJson( "preheat/degAUidRef.json", DataElementGroup.class );
         defaultSetup();
 
-        List<User> allUsers = userService.getAllUsers();
-
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
         params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
@@ -462,29 +457,6 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
-        User user = makeUser( "A" );
-        manager.save( user );
-    }
-
-    private void defaultSetupWithAttributes()
-    {
-        Attribute attribute = new Attribute( "AttributeA", ValueType.TEXT );
-        attribute.setUnique( true );
-        attribute.setMandatory( true );
-        attribute.setDataElementAttribute( true );
-        manager.save( attribute );
-        AttributeValue attributeValue1 = new AttributeValue( "Value1", attribute );
-        AttributeValue attributeValue2 = new AttributeValue( "Value2", attribute );
-        AttributeValue attributeValue3 = new AttributeValue( "Value3", attribute );
-        DataElement de1 = createDataElement( 'A' );
-        DataElement de2 = createDataElement( 'B' );
-        DataElement de3 = createDataElement( 'C' );
-        attributeService.addAttributeValue( de1, attributeValue1 );
-        attributeService.addAttributeValue( de2, attributeValue2 );
-        attributeService.addAttributeValue( de3, attributeValue3 );
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );

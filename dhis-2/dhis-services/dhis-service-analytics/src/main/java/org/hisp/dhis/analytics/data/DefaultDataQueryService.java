@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -292,7 +293,7 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension(
+                    addIgnoreNull( list, getDimension(
                         dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
                         userOrgUnits, false, firstNonNull( request.getInputIdScheme(), UID ) ) );
                 }

@@ -98,7 +98,7 @@ public class RouteService
 
         if ( route == null )
         {
-            route = routeStore.getByUidNoAcl( id );
+            route = routeStore.getByCodeNoAcl( id );
         }
 
         if ( route == null || route.isDisabled() )

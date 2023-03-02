@@ -27,25 +27,17 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.appmanager.webmodules.ConfigurableWebModuleComparator;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -55,34 +47,25 @@ import com.google.gson.reflect.TypeToken;
 @RequiredArgsConstructor
 public class AppMenuManager
 {
-    private static final List<String> MODULE_ORDER = List.of( "dhis-web-dashboard-integration",
-        "dhis-web-visualizer", "dhis-web-mapping", "dhis-web-event-reports", "dhis-web-event-visualizer",
-        "dhis-web-dataentry", "dhis-web-tracker-capture", "dhis-web-reporting", "dhis-web-dashboard" );
-
-    private static final Comparator<WebModule> MODULE_COMPARATOR = new ConfigurableWebModuleComparator( MODULE_ORDER );
-
-    private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of( "dhis-web-apps" );
+    private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of( "dhis-web-user-profile" );
 
     private final I18nManager i18nManager;
 
-    private final UserService userService;
-
-    private final CurrentUserService currentUserService;
-
     private final LocaleManager localeManager;
 
-    private final List<WebModule> menuModules = new ArrayList<>();
+    private final List<WebModule> menuModules;
+
+    private final AppManager appManager;
 
     private Locale currentLocale;
 
-    private void detectModules()
-        throws IOException
+    private void generateModules()
     {
-        String content = getResourceFileAsString( "apps-to-bundle_COPY.json" );
+        Set<String> bundledApps = AppManager.BUNDLED_APPS;
 
-        for ( String moduleUri : getAppUriList( content ) )
+        for ( String app : bundledApps )
         {
-            String key = "dhis-web-" + moduleUri.split( "/" )[4].replace( "-app", "" );
+            String key = "dhis-web-" + app;
             String displayName = i18nManager.getI18n().getString( key );
 
             WebModule module = new WebModule( key, "/" + key, "../" + key + "/index.html" );
@@ -92,8 +75,6 @@ public class AppMenuManager
             if ( !MENU_MODULE_EXCLUSIONS.contains( key ) )
                 menuModules.add( module );
         }
-
-        menuModules.sort( MODULE_COMPARATOR );
 
         currentLocale = localeManager.getCurrentLocale();
     }
@@ -110,32 +91,11 @@ public class AppMenuManager
         currentLocale = localeManager.getCurrentLocale();
     }
 
-    private static List<String> getAppUriList( String content )
-    {
-        List<String> uriList = new Gson().fromJson( content, new TypeToken<List<String>>()
-        {
-        }.getType() );
-
-        if ( uriList == null )
-        {
-            throw new IllegalStateException( "Failed to parse apps-to-bundle.json content" );
-        }
-
-        return uriList;
-    }
-
-    public List<WebModule> getAppMenu()
+    public List<WebModule> getAccessibleWebModules()
     {
         if ( menuModules.isEmpty() )
         {
-            try
-            {
-                detectModules();
-            }
-            catch ( IOException e )
-            {
-                log.error( "Failed to read web modules configuration", e );
-            }
+            generateModules();
         }
 
         detectLocaleChange();
@@ -153,12 +113,7 @@ public class AppMenuManager
 
     private boolean hasAccess( String module )
     {
-        Set<String> allAuthorities = currentUserService.getCurrentUser().getAllAuthorities();
-
-        boolean containsAuth = allAuthorities.contains( "M_" + module );
-        boolean containsAll = allAuthorities.contains( "ALL" );
-        boolean containsAppManager = allAuthorities.contains( AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY );
-
-        return containsAll || containsAppManager || containsAuth;
+        return CurrentUserUtil
+            .hasAnyAuthority( List.of( "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, "M_" + module ) );
     }
 }

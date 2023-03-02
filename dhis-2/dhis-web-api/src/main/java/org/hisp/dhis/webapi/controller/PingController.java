@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.webapi.controller;
 
-/**
- * @author Luciano Fiandesio
- */
-public class CopyMapper implements PreheatMapper<Object>
+import static org.springframework.http.HttpStatus.OK;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@Controller
+public class PingController
 {
-    @Override
-    public Object map( Object obj )
+    @GetMapping( "/ping" )
+    @ResponseStatus( OK )
+    @CrossOrigin
+    public void ping()
     {
-        return obj;
+        // Do nothing
     }
 }
