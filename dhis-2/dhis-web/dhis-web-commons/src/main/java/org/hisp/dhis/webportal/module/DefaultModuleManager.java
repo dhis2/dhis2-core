@@ -161,12 +161,10 @@ public class DefaultModuleManager
     {
         List<Module> modules = getAccessibleMenuModules();
 
-        User user = currentUserService.getCurrentUser();
-
         List<App> apps = appManager
-            .getAccessibleApps( contextPath, user )
+            .getApps( contextPath )
             .stream()
-            .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
+            .filter( app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled() )
             .collect( Collectors.toList() );
 
         modules.addAll( apps.stream().map( Module::getModule ).collect( Collectors.toList() ) );

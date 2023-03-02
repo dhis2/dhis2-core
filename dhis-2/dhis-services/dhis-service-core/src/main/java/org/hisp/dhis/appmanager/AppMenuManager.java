@@ -40,7 +40,7 @@ import org.hisp.dhis.appmanager.webmodules.ConfigurableWebModuleComparator;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +66,8 @@ public class AppMenuManager
     private final I18nManager i18nManager;
 
     private final UserService userService;
+
+    private final CurrentUserService currentUserService;
 
     private final LocaleManager localeManager;
 
@@ -122,7 +124,7 @@ public class AppMenuManager
         return uriList;
     }
 
-    public List<WebModule> getAppMenu( String username )
+    public List<WebModule> getAppMenu()
     {
         if ( menuModules.isEmpty() )
         {
@@ -138,24 +140,25 @@ public class AppMenuManager
 
         detectLocaleChange();
 
-        return getAccessibleModules( menuModules, username );
+        return getAccessibleModules( menuModules );
     }
 
-    private List<WebModule> getAccessibleModules( List<WebModule> modules, String username )
+    private List<WebModule> getAccessibleModules( List<WebModule> modules )
     {
+
         return modules.stream()
-            .filter( module -> module != null && hasAccess( username, module.getName() ) )
+            .filter( module -> module != null && hasAccess( module.getName() ) )
             .collect( Collectors.toList() );
     }
 
-    private boolean hasAccess( String username, String module )
+    private boolean hasAccess( String module )
     {
-        User userByUsername = userService.getUserByUsername( username );
-        Set<String> allAuthorities = userByUsername.getAllAuthorities();
+        Set<String> allAuthorities = currentUserService.getCurrentUser().getAllAuthorities();
 
         boolean containsAuth = allAuthorities.contains( "M_" + module );
         boolean containsAll = allAuthorities.contains( "ALL" );
+        boolean containsAppManager = allAuthorities.contains( AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY );
 
-        return containsAll || containsAuth;
+        return containsAll || containsAppManager || containsAuth;
     }
 }

@@ -39,7 +39,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -123,8 +122,8 @@ public class DefaultDashboardService
     {
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
-        List<App> dashboardApps = appManager.getAppsByType( AppType.DASHBOARD_WIDGET,
-            new HashSet<>( appManager.getApps( null ) ) );
+        List<App> dashboardApps = appManager.getPlugins( null,
+            getMax( DashboardItemType.APP, maxTypes, count, maxCount ) );
 
         DashboardSearchResult result = new DashboardSearchResult();
 
@@ -146,7 +145,7 @@ public class DefaultDashboardService
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0,
             getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getAppsByName( query, dashboardApps, "ilike" ) );
+        result.setApps( AppManager.filterAppsByName( query, dashboardApps, "ilike" ) );
 
         return result;
     }
@@ -171,7 +170,7 @@ public class DefaultDashboardService
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0,
             getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET,
+        result.setApps( appManager.getPlugins( null,
             getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
 
         return result;

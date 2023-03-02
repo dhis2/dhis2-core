@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -113,24 +114,54 @@ public class DefaultAppManager
     // AppManagerService implementation
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<App> getApps( String contextPath )
+    private Stream<App> getAppsStream()
     {
-        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
-            .collect( Collectors.toList() );
+        return appCache.getAll()
+            .filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS );
+    }
 
-        apps.forEach( a -> a.init( contextPath ) );
-
-        return apps;
+    private Stream<App> getAccessibleAppsStream()
+    {
+        return getAppsStream()
+            .filter( app -> this.isAccessible( app ) );
     }
 
     @Override
-    public List<App> getApps( AppType appType, int max )
+    public List<App> getApps( String contextPath, int max )
     {
-        return getApps( null ).stream()
-            .filter( app -> appType == app.getAppType() )
-            .limit( max )
-            .collect( Collectors.toList() );
+        Stream<App> stream = getAccessibleAppsStream();
+        if ( max >= 0 )
+        {
+            stream = stream.limit( max );
+        }
+
+        return stream.map( app -> {
+            app.init( contextPath );
+            return app;
+        } ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getPlugins( String contextPath, int max )
+    {
+        Stream<App> stream = getAccessibleAppsStream()
+            .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || app.hasPluginEntrypoint() );
+
+        if ( max >= 0 )
+        {
+            stream = stream.limit( max );
+        }
+
+        return stream.map( app -> {
+            app.init( contextPath );
+            return app;
+        } ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getApps( String contextPath )
+    {
+        return this.getApps( contextPath, -1 );
     }
 
     @Override
@@ -139,50 +170,14 @@ public class DefaultAppManager
         // Checks for app.getUrlFriendlyName which is the key of AppMap
 
         Optional<App> appOptional = appCache.getIfPresent( appName );
-        if ( appOptional.isPresent() )
+        if ( appOptional.isPresent() && this.isAccessible( appOptional.get() ) )
         {
             return appOptional.get();
         }
 
         // If no apps are found, check for original name
-        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
-    }
-
-    @Override
-    public List<App> getAppsByType( AppType appType, Collection<App> apps )
-    {
-        return apps.stream()
-            .filter( app -> app.getAppType() == appType )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream().filter(
-            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
-                ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByShortName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream()
-            .filter( app -> (("ilike".equalsIgnoreCase( operator )
-                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
-    {
-        return apps
-            .stream()
-            .filter( app -> app.isBundled() == isBundled )
-            .collect( Collectors.toList() );
+        return getAccessibleAppsStream().filter( app -> app.getShortName().equals( appName ) ).findFirst()
+            .orElse( null );
     }
 
     private void applyFilter( Set<App> apps, String key, String operator, String value )
@@ -190,20 +185,20 @@ public class DefaultAppManager
         if ( "appType".equalsIgnoreCase( key ) )
         {
             String appType = value != null ? value.toUpperCase() : null;
-            apps.retainAll( getAppsByType( AppType.valueOf( appType ), apps ) );
+            apps.retainAll( AppManager.filterAppsByType( AppType.valueOf( appType ), apps ) );
         }
         else if ( "name".equalsIgnoreCase( key ) )
         {
-            apps.retainAll( getAppsByName( value, apps, operator ) );
+            apps.retainAll( AppManager.filterAppsByName( value, apps, operator ) );
         }
         else if ( "shortName".equalsIgnoreCase( key ) )
         {
-            apps.retainAll( getAppsByShortName( value, apps, operator ) );
+            apps.retainAll( AppManager.filterAppsByShortName( value, apps, operator ) );
         }
         else if ( "bundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
-            apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
+            apps.retainAll( AppManager.filterAppsByIsBundled( isBundled, apps ) );
         }
     }
 

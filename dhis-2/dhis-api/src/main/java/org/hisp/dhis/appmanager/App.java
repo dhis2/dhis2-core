@@ -496,4 +496,14 @@ public class App
         return SEE_APP_AUTHORITY_PREFIX
             + getShortName().trim().replaceAll( "[^a-zA-Z0-9\\s]", "" ).replaceAll( "\\s+", "_" );
     }
+
+    public Boolean hasAppEntrypoint()
+    {
+        return (this.appType == AppType.APP) && (this.launchPath != null);
+    }
+
+    public Boolean hasPluginEntrypoint()
+    {
+        return (this.appType == AppType.APP) && (this.pluginLaunchPath != null);
+    }
 }
