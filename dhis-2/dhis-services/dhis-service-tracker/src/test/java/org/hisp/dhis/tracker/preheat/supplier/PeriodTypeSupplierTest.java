@@ -75,7 +75,7 @@ class PeriodTypeSupplierTest
     @BeforeEach
     public void setUp()
     {
-        final PreheatCacheService cache = new DefaultPreheatCacheService( conf, env );
+        final PreheatCacheService cache = new DefaultPreheatCacheService();
         supplier = new PeriodTypeSupplier( periodStore, cache );
         when( env.getActiveProfiles() ).thenReturn( new String[] {} );
     }

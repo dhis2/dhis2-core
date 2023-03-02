@@ -320,7 +320,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
-        JsonErrorReport error = message.find( JsonErrorReport.class,
+        message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E3001 );
         JsonMetadataProposal proposal = GET( "/metadata/proposals/" + proposalId ).content()
             .as( JsonMetadataProposal.class );

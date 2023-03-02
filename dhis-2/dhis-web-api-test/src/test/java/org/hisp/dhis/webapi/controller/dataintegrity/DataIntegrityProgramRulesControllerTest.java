@@ -34,7 +34,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.junit.jupiter.api.Test;
@@ -57,9 +56,6 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
 
     @Autowired
     private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
 
     private ProgramRule programRuleA;
 

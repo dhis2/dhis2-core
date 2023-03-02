@@ -70,6 +70,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostForSingleEventDate()
     {
         // Given
@@ -96,6 +97,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostForMultiEventDates()
     {
         // Given
@@ -149,6 +151,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testThatGetEventVisualizationsContainsLegacyEventReports()
     {
         // Given
@@ -167,6 +170,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testThatGetEventReportsDoesNotContainNewEventVisualizations()
     {
         // Given
