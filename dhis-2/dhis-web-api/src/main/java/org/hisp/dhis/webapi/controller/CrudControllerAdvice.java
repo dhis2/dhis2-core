@@ -37,11 +37,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -75,6 +79,7 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -82,6 +87,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -93,6 +100,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -120,6 +128,78 @@ public class CrudControllerAdvice
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( MethodArgumentTypeMismatchException.class )
+    @ResponseBody
+    public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
+        {
+            return badRequest( ex.getMessage() );
+        }
+
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    @ExceptionHandler( TypeMismatchException.class )
+    @ResponseBody
+    public WebMessage handleTypeMismatchException( TypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        if ( requiredType == null )
+        {
+            return badRequest( ex.getMessage() );
+        }
+
+        return (requiredType.isEnum())
+            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
+            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+    }
+
+    private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
+    {
+        String validValues = StringUtils
+            .join( Arrays.stream( requiredType.getEnumConstants() ).map( Object::toString )
+                .collect( Collectors.toList() ), ", " );
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
+            value, field, validValues );
+        return badRequest( errorMessage );
+    }
+
+    private WebMessage getWebMessage( Object value, String fieldType )
+    {
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}.",
+            value, fieldType );
+        return badRequest( errorMessage );
+    }
+
+    /**
+     * A BindException wraps possible errors happened trying to bind all the
+     * request parameters to a binding object. Errors could be simple conversion
+     * failures (Trying to convert a 'TEXT' to an Integer ) or validation errors
+     * create by hibernate-validator framework. Currently, we are not using such
+     * framework hence only conversion errors can happen.
+     *
+     * Only first error is returned to the client in order to be consistent in
+     * the way BAD_REQUEST responses are displayed.
+     *
+     */
+    @ExceptionHandler( BindException.class )
+    @ResponseBody
+    public WebMessage handleBindException( BindException ex )
+    {
+        FieldError fieldError = ex.getFieldError();
+
+        if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
+        {
+            return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
+        }
+
+        return badRequest( ex.getMessage() );
     }
 
     @ExceptionHandler( QueryRuntimeException.class )
