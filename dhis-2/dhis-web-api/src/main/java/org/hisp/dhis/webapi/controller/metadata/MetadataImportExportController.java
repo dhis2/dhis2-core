@@ -35,6 +35,8 @@ import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +52,6 @@ import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
@@ -82,6 +83,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -149,18 +151,33 @@ public class MetadataImportExportController
     @Autowired
     private MetadataChangelogService changelogService;
 
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
+
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonMetadata( HttpServletRequest request )
         throws IOException,
         ConflictException
     {
+        File tempFile = FileResourceUtils.toTempFile( request.getInputStream() );
+        tempFile.deleteOnExit();
+
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = renderService
-            .fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
+            .fromMetadata( new FileInputStream( tempFile ), RenderFormat.JSON );
 
         params.setMetadataChangelog( validateMetadataChangelog( objects.remove( MetadataChangelog.class ) ) );
+
+        if ( params.hasMetadataChangelog() )
+        {
+            params.setTempFile( tempFile );
+        }
+        else
+        {
+            tempFile.delete();
+        }
 
         params.setObjects( objects );
 
@@ -353,7 +370,7 @@ public class MetadataImportExportController
 
         if ( persistedChangelog.isPresent() )
         {
-            return persistedChangelog.get();
+            throw new ConflictException( "Metadata package with name '" + changelog.getName() + "' already exists." );
         }
 
         return changelog;

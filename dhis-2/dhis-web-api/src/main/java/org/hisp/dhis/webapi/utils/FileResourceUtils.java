@@ -87,6 +87,15 @@ public class FileResourceUtils
         return tmpFile;
     }
 
+    public static File toTempFile( InputStream inputStream )
+        throws IOException
+    {
+        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
+        IOUtils.copy( inputStream, Files.newOutputStream( tmpFile.toPath() ) );
+        return tmpFile;
+    }
+
     /**
      * Indicates whether the content type represented by the given string is a
      * valid, known content type.
@@ -166,33 +175,6 @@ public class FileResourceUtils
         IOException
     {
         return saveFileResource( null, file, domain );
-    }
-
-    public FileResource saveFileResource( InputStream inputStream, FileResourceDomain domain, String fileName,
-        String contentType )
-        throws WebMessageException,
-        IOException
-    {
-
-        byte[] bytes = IOUtils.toByteArray( inputStream );
-
-        if ( bytes.length <= 0 )
-        {
-            throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
-        }
-
-        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
-            fileName, fileName, contentType, bytes.length );
-
-        ByteSource byteSource = ByteSource.wrap( bytes );
-
-        String contentMd5 = byteSource.hash( Hashing.md5() ).toString();
-
-        FileResource fileResource = new FileResource( fileName, contentType, bytes.length, contentMd5, domain );
-
-        fileResourceService.saveFileResource( fileResource, bytes );
-
-        return fileResource;
     }
 
     public FileResource saveFileResource( String uid, MultipartFile file, FileResourceDomain domain )

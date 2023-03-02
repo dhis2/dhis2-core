@@ -32,7 +32,6 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,10 +56,8 @@ public class DefaultMetadataChangelogService implements MetadataChangelogService
 
     @Override
     @Transactional
-    public void saveMetadataChangelog( MetadataChangelog metadataChangelog, User currentUser )
+    public void saveMetadataChangelog( MetadataChangelog metadataChangelog )
     {
-        metadataChangelog.setCreatedBy( currentUser );
-        metadataChangelog.setAutoFields();
         store.save( metadataChangelog );
     }
 

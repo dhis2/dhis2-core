@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.metadata.changelog.MetadataChangelog;
-import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
@@ -51,7 +50,6 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -64,9 +62,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
 {
-    @Autowired
-    private MetadataChangelogService changelogService;
-
     @Test
     void testPostJsonMetadata()
     {
@@ -319,15 +314,13 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testImportMetadataChangelogSuccess()
     {
-        HttpResponse res = POST( "/metadata", Body( "metadata_changelog/metadata_changelog_success.json" ) );
-        assertEquals( HttpStatus.OK, res.status() );
+        POST( "/metadata", Body( "metadata_changelog/metadata_changelog_success.json" ) ).content( HttpStatus.OK );
 
-        List<MetadataChangelog> changelogs = changelogService.getAll();
+        List<MetadataChangelog> changelogs = manager.getAll( MetadataChangelog.class );
         assertEquals( 1, changelogs.size() );
         MetadataChangelog changelog = changelogs.get( 0 );
         assertEquals( "GEN_LIB_DHIS2.38.0-en", changelog.getName() );
         assertEquals( "2.38.0", changelog.getDhis2Version() );
-        // assertEquals all properties of changelog
         assertEquals( "769bded", changelog.getDhis2Build() );
         assertEquals( "en", changelog.getLocale() );
         assertEquals( "GEN", changelog.getType() );
@@ -336,17 +329,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testImportMetadataChangelogFail()
     {
-        HttpResponse res = POST( "/metadata", Body( "metadata_changelog/metadata_changelog_success.json" ) );
-        assertEquals( HttpStatus.OK, res.status() );
+        HttpResponse res = POST( "/metadata", Body( "metadata_changelog/metadata_changelog_fail.json" ) );
+        assertEquals( HttpStatus.CONFLICT, res.status() );
 
-        List<MetadataChangelog> changelogs = changelogService.getAll();
-        assertEquals( 1, changelogs.size() );
-        MetadataChangelog changelog = changelogs.get( 0 );
-        assertEquals( "GEN_LIB_DHIS2.38.0-en", changelog.getName() );
-        assertEquals( "2.38.0", changelog.getDhis2Version() );
-        // assertEquals all properties of changelog
-        assertEquals( "769bded", changelog.getDhis2Build() );
-        assertEquals( "en", changelog.getLocale() );
-        assertEquals( "GEN", changelog.getType() );
+        List<MetadataChangelog> changelogs = manager.getAll( MetadataChangelog.class );
+        assertEquals( 0, changelogs.size() );
     }
 }

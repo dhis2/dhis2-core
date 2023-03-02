@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -144,6 +145,11 @@ public class MetadataImportParams
      * Name of file that was used for import (if available).
      */
     private String filename;
+
+    /**
+     * Temporary file containing the data to import.
+     */
+    private File tempFile;
 
     /**
      * Metadata Class name for importing using CSV
@@ -434,6 +440,18 @@ public class MetadataImportParams
     public void setMetadataChangelog( MetadataChangelog metadataChangelog )
     {
         this.metadataChangelog = metadataChangelog;
+    }
+
+    @OpenApi.Ignore
+    @JsonIgnore
+    public File getTempFile()
+    {
+        return tempFile;
+    }
+
+    public void setTempFile( File tempFile )
+    {
+        this.tempFile = tempFile;
     }
 
     public boolean hasJobId()

@@ -30,15 +30,13 @@ package org.hisp.dhis.metadata.changelog;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.user.User;
-
 public interface MetadataChangelogService
 {
     List<MetadataChangelog> getAll();
 
     int countMetadataChangelogs();
 
-    void saveMetadataChangelog( MetadataChangelog metadataChangelog, User currentUser );
+    void saveMetadataChangelog( MetadataChangelog metadataChangelog );
 
     void updateMetadataChangelog( MetadataChangelog metadataChangelog );
 

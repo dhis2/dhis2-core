@@ -28,7 +28,12 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +48,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,8 +58,15 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.metadata.changelog.MetadataChangelog;
 import org.hisp.dhis.metadata.changelog.MetadataChangelogService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -68,6 +81,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,6 +105,8 @@ public class DefaultMetadataImportService implements MetadataImportService
     private final Notifier notifier;
 
     private final MetadataChangelogService metadataChangelogService;
+
+    private final FileResourceService fileResourceService;
 
     @Override
     @Transactional
@@ -182,7 +199,17 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( importReport.getStatus() == Status.OK )
         {
-            metadataChangelogService.saveMetadataChangelog( params.getMetadataChangelog(), params.getUser() );
+            try
+            {
+                saveMetadataChangelog( params );
+            }
+            catch ( WebMessageException | IOException e )
+            {
+                importReport.addTypeReport( typeReport( MetadataChangelog.class,
+                    List.of( new ErrorReport( FileResource.class, ErrorCode.E6102 ) ) ) );
+                importReport.setStatus( Status.ERROR );
+                log.error( DebugUtils.getStackTrace( e ) );
+            }
         }
 
         return importReport;
@@ -343,5 +370,61 @@ public class DefaultMetadataImportService implements MetadataImportService
         {
             object.setCreatedBy( (User) userByReference );
         }
+    }
+
+    /**
+     * Saves the metadata changelog to the database together with the import
+     * file.
+     *
+     * @param params the import parameters.
+     * @throws WebMessageException
+     * @throws IOException
+     */
+    private void saveMetadataChangelog( MetadataImportParams params )
+        throws WebMessageException,
+        IOException
+    {
+        MetadataChangelog changelog = params.getMetadataChangelog();
+        changelog.setImportFile( saveFileResource( params.getTempFile(), changelog.getName(),
+            FileResourceDomain.DOCUMENT, "application/json" ) );
+
+        metadataChangelogService.saveMetadataChangelog( changelog );
+    }
+
+    /**
+     * Saves the import file to the database.
+     *
+     * @param file the file to save.
+     * @param name the name of the file.
+     * @param domain the {@link FileResourceDomain} of the file.
+     * @param contentType the content type of the file.
+     * @return the saved file resource.
+     * @throws WebMessageException
+     * @throws IOException
+     */
+    private FileResource saveFileResource( File file, String name, FileResourceDomain domain,
+        String contentType )
+        throws WebMessageException,
+        IOException
+    {
+        FileInputStream inputStream = new FileInputStream( file );
+
+        int contentLength = inputStream.available();
+
+        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
+            name, file.getName(), contentType, contentLength );
+
+        if ( contentLength <= 0 )
+        {
+            throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
+        }
+
+        String contentMd5 = ByteSource.wrap( inputStream.readAllBytes() ).hash( Hashing.md5() ).toString();
+
+        FileResource fileResource = new FileResource( name, contentType, contentLength, contentMd5, domain );
+
+        fileResourceService.saveFileResource( fileResource, file );
+
+        return fileResource;
     }
 }

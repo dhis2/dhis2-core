@@ -11,6 +11,7 @@
     <id name="id" column="metadatachangelogid">
       <generator class="native" />
     </id>
+    &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="true" length="250" />
 
@@ -18,11 +19,11 @@
 
     <property name="version" column="version" not-null="true" length="10" />
 
-    <property name="dhis2Version" column="dhisversion" not-null="true" length="10" />
+    <property name="dhis2Version" column="dhis2version" not-null="true" length="10" />
+
+    <property name="dhis2Build" column="dhis2build" not-null="true" length="10" />
 
     <property name="locale" column="locale" not-null="true" length="10" />
-
-    <property name="created" type="timestamp" not-null="true" />
 
     <many-to-one name="importFile" class="org.hisp.dhis.fileresource.FileResource" column="importfile" foreign-key="fk_metadatachangelog_fileresourceid" />
 
