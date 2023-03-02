@@ -99,7 +99,7 @@ class TeiQueryParamPostProcessorTest
             .build();
 
         // When
-        params = teiQueryParamPostProcessor.postProcess( params );
+        params = teiQueryParamPostProcessor.process( params );
 
         // Then
         assertEquals( 1, params.getCommonParams().getDimensionIdentifiers().size() );
@@ -124,7 +124,7 @@ class TeiQueryParamPostProcessorTest
             .build();
 
         // When
-        params = teiQueryParamPostProcessor.postProcess( params );
+        params = teiQueryParamPostProcessor.process( params );
 
         // Then
         assertEquals( 1, params.getCommonParams().getDimensionIdentifiers().size() );
@@ -149,7 +149,7 @@ class TeiQueryParamPostProcessorTest
             .build();
 
         // When
-        params = teiQueryParamPostProcessor.postProcess( params );
+        params = teiQueryParamPostProcessor.process( params );
 
         // Then
         assertEquals( 2, params.getCommonParams().getDimensionIdentifiers().size() );

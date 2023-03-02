@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tei;
 import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
@@ -82,7 +83,8 @@ public class CommonParamsSecurityManager
     private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES = List.of(
         PROGRAM_ATTRIBUTE,
         DATA_ELEMENT,
-        PROGRAM_INDICATOR );
+        PROGRAM_INDICATOR,
+        PERIOD );
 
     private final AnalyticsSecurityManager securityManager;
 

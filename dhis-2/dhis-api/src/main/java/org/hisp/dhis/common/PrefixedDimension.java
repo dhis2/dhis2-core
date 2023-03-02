@@ -58,9 +58,9 @@ public class PrefixedDimension
     private final String dimensionType;
 
     /**
-     * Get the prefix of this dimension
+     * Get the prefix of this dimension.
      *
-     * @return the prefix of this dimension
+     * @return the prefix of this dimension.
      */
     public String getPrefix()
     {

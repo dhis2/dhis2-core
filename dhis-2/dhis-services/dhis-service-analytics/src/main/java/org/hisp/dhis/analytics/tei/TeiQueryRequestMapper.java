@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
+import org.hisp.dhis.analytics.common.processing.Processor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -44,9 +45,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
 
 /**
- * This component maps query request objects into query params objects. The
- * query params objects represents the preparation of data and elements that are
- * ready to be queried at database level.
+ * This component maps {@link QueryRequest} objects into query params objects.
+ * The query params objects represents the preparation of dimensions and
+ * elements that are ready to be queried at database level.
  */
 @Component
 @RequiredArgsConstructor
@@ -56,7 +57,7 @@ public class TeiQueryRequestMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TeiQueryParamPostProcessor teiQueryParamPostProcessor;
+    private final Processor<TeiQueryParams> teiQueryParamPostProcessor;
 
     /**
      * Maps incoming query requests into a valid and usable
@@ -78,7 +79,7 @@ public class TeiQueryRequestMapper
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() ) );
 
-        return teiQueryParamPostProcessor.postProcess(
+        return teiQueryParamPostProcessor.process(
             TeiQueryParams.builder().trackedEntityType( trackedEntityType )
                 .commonParams( commonQueryRequestMapper.map(
                     queryRequest.getCommonQueryRequest() ) )

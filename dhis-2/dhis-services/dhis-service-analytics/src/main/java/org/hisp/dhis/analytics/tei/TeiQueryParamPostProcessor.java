@@ -37,18 +37,18 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.analytics.common.processing.Processor;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class TeiQueryParamPostProcessor
+public class TeiQueryParamPostProcessor implements Processor<TeiQueryParams>
 {
-
     private static final String DEFAULT_PERIOD = "pe:LAST_YEAR:LAST_UPDATED";
 
     private final CommonQueryRequestMapper commonQueryRequestMapper;
 
-    public TeiQueryParams postProcess( TeiQueryParams params )
+    public TeiQueryParams process( TeiQueryParams params )
     {
         boolean existsPeriodRestriction = params.getCommonParams().getDimensionIdentifiers().stream()
             .filter( d -> d.getDimension().isPeriodDimension() )
@@ -77,6 +77,5 @@ public class TeiQueryParamPostProcessor
                     .dimensionIdentifiers( dimensionIdentifiers )
                     .build() )
             .build();
-
     }
 }
