@@ -631,7 +631,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Test
     void testTrackedEntityInstanceRelationshipsTei2Enrollment()
     {
-        User currentUser = currentUserService.getCurrentUser();
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
