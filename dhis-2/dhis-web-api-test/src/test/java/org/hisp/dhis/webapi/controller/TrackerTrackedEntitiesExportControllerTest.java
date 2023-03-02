@@ -526,7 +526,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertFalse( event.getBoolean( "deleted" ).booleanValue() );
         assertHasMember( event, "createdAt" );
         assertHasMember( event, "occurredAt" );
-        assertEquals( event.getString( "occurredAt" ).string(), EVENT_DATE );
+        assertEquals( EVENT_DATE, event.getString( "occurredAt" ).string() );
         assertHasMember( event, "createdAtClient" );
         assertHasMember( event, "updatedAt" );
         assertHasMember( event, "notes" );
