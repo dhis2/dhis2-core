@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
 
 /**
@@ -41,11 +41,11 @@ import org.springframework.core.io.Resource;
  */
 public interface AppManager
 {
-    String ID = AppManager.class.getName();
+    static final String ID = AppManager.class.getName();
 
-    String BUNDLED_APP_PREFIX = "dhis-web-";
+    static final String BUNDLED_APP_PREFIX = "dhis-web-";
 
-    Set<String> BUNDLED_APPS = Set.of(
+    static final Set<String> BUNDLED_APPS = Set.of(
         // Javascript apps
         "aggregate-data-entry",
         "app-management",
@@ -79,7 +79,18 @@ public interface AppManager
         "dataentry",
         "maintenance-mobile" );
 
-    String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-maintenance-appmanager";
+    static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
+
+    static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
+
+    /**
+     * Returns a list of all installed apps.
+     *
+     * @param contextPath the context path of this instance.
+     * @param max the maximum number of apps to return, -1 to return all
+     * @return list of installed apps
+     */
+    List<App> getApps( String contextPath, int max );
 
     /**
      * Returns a list of all installed apps.
@@ -90,53 +101,23 @@ public interface AppManager
     List<App> getApps( String contextPath );
 
     /**
-     * Returns a list of installed apps.
+     * Returns a list of installed apps with plugins. Includes both
+     * DASHBOARD_WIDGET app types and APP app types with a pluginLaunchPath.
      *
-     * @param appType the app type filter.
-     * @param max the max number of apps to return.
+     * @param contextPath the context path of this instance.
+     * @param max the maximum number of apps to return, -1 to return all
+     *
      * @return a list of apps.
      */
-    List<App> getApps( AppType appType, int max );
+    List<App> getDashboardPlugins( String contextPath, int max );
 
+    /**
+     * Returns the installed app with a given name
+     *
+     * @param appName the name of the app to return.
+     * @return the app with the requested name
+     */
     App getApp( String appName );
-
-    /**
-     * Returns a list of all installed apps with AppType equal the given Type
-     *
-     * @return list of installed apps with given AppType
-     */
-    List<App> getAppsByType( AppType appType, Collection<App> apps );
-
-    /**
-     * Returns a list of all installed apps with name equal the given name and
-     * operator. Currently supports eq and ilike.
-     *
-     * @return list of installed apps with given name
-     */
-    List<App> getAppsByName( String name, Collection<App> apps, String operator );
-
-    /**
-     * Returns a list of all installed apps with shortName equal the given name
-     * and operator. Currently supports eq and ilike.
-     *
-     * @return list of installed apps with given name
-     */
-    List<App> getAppsByShortName( String shortName, Collection<App> apps, String operator );
-
-    /**
-     * Returns a list of all installed apps with pluginType equal the given Type
-     *
-     * @return list of installed apps with given pluginType
-     */
-    List<App> getAppsByPluginType( String pluginType, Collection<App> apps );
-
-    /**
-     * Returns a list of all installed apps which are either bundled or not
-     * bundled operator. Currently supports eq.
-     *
-     * @return list of installed apps with given isBundled property
-     */
-    List<App> getAppsByIsBundled( boolean isBundled, Collection<App> apps );
 
     /**
      * Return a list of all installed apps with given filter list Currently
@@ -155,14 +136,6 @@ public interface AppManager
      * @return the app with the given key.
      */
     App getApp( String key, String contextPath );
-
-    /**
-     * Returns apps which are accessible to the current user.
-     *
-     * @param contextPath the context path of this instance.
-     * @return apps which are accessible to the current user.
-     */
-    List<App> getAccessibleApps( String contextPath, User user );
 
     /**
      * Installs the app.
@@ -211,15 +184,6 @@ public interface AppManager
     boolean isAccessible( App app );
 
     /**
-     * Indicates whether the given app is accessible to the given user.
-     *
-     * @param app the app.
-     * @param user the user.
-     * @return true if app is accessible.
-     */
-    boolean isAccessible( App app, User user );
-
-    /**
      * Returns the app associated with the namespace, or null if no app is
      * associated.
      *
@@ -247,4 +211,79 @@ public interface AppManager
      */
     boolean markAppToDelete( App app );
 
+    // -------------------------------------------------------------------------
+    // Static methods for manipulating a collection of apps
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a list of all installed apps with AppType equal the given Type
+     *
+     * @return list of installed apps with given AppType
+     */
+    public static List<App> filterAppsByType( AppType appType, Collection<App> apps )
+    {
+        return apps.stream()
+            .filter( app -> app.getAppType() == appType )
+            .collect( Collectors.toList() );
+    }
+
+    private static Boolean checkAppStringProperty( final String propertyValue, final String testValue,
+        final String operator )
+    {
+        return ("ilike".equalsIgnoreCase( operator ) && propertyValue.toLowerCase().contains( testValue.toLowerCase() ))
+            ||
+            ("eq".equalsIgnoreCase( operator ) && propertyValue.equals( testValue ));
+    }
+
+    /**
+     * Returns a list of all installed apps with name equal the given name and
+     * operator. Currently supports eq and ilike.
+     *
+     * @return list of installed apps with given name
+     */
+    public static List<App> filterAppsByName( final String name, Collection<App> apps, final String operator )
+    {
+        return apps.stream().filter(
+            app -> checkAppStringProperty( app.getName(), name, operator ) )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns a list of all installed apps with shortName equal the given name
+     * and operator. Currently supports eq and ilike.
+     *
+     * @return list of installed apps with given name
+     */
+    public static List<App> filterAppsByShortName( final String name, Collection<App> apps, final String operator )
+    {
+        return apps.stream()
+            .filter( app -> checkAppStringProperty( app.getShortName(), name, operator ) )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns a list of all installed apps which are either bundled or not
+     * bundled operator. Currently supports eq.
+     *
+     * @return list of installed apps with given isBundled property
+     */
+    public static List<App> filterAppsByIsBundled( final boolean isBundled, Collection<App> apps )
+    {
+        return apps
+            .stream()
+            .filter( app -> app.isBundled() == isBundled )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns a list of all installed apps which have the given plugin type.
+     *
+     * @return list of installed apps with given isBundled property
+     */
+    public static List<App> filterAppsByPluginType( String pluginType, Collection<App> apps )
+    {
+        return apps.stream()
+            .filter( app -> app.getPluginType().equals( pluginType ) )
+            .collect( Collectors.toList() );
+    }
 }
