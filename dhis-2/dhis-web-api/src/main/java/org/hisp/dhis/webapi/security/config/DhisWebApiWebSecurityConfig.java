@@ -146,10 +146,6 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
-    @Autowired
-    @Qualifier( "userDetailsService" )
-    private UserDetailsService userDetailsService;
-
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
      * endpoint and /authorize endpoint. This config is a modification of the
@@ -745,7 +741,7 @@ public class DhisWebApiWebSecurityConfig
     }
 
     @Bean( "switchUserProcessingFilter" )
-    public SwitchUserFilter switchUserFilter()
+    public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService )
     {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService( userDetailsService );

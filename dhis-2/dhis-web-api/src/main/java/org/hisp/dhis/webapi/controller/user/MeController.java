@@ -192,7 +192,7 @@ public class MeController
             .collect( Collectors.toList() );
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
-        determineImpersonation( meDto, user );
+        determineImpersonation( meDto );
 
         // TODO: To remove when we remove old UserCredentials compatibility
         UserCredentialsDto userCredentialsDto = user.getUserCredentials();
@@ -204,7 +204,7 @@ public class MeController
         return ResponseEntity.ok( jsonNodes );
     }
 
-    private void determineImpersonation( MeDto meDto, User user )
+    private void determineImpersonation( MeDto meDto )
     {
         Authentication current = SecurityContextHolder.getContext().getAuthentication();
 
