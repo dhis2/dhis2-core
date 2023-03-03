@@ -135,13 +135,18 @@ public class DefaultAppManager
         } ).collect( Collectors.toList() );
     }
 
+    private Boolean isDashboardPluginType( App app )
+    {
+        return app.hasPluginEntrypoint()
+            && (app.getPluginType().toUpperCase().equals( AppManager.DASHBOARD_PLUGIN_TYPE )
+                || app.getPluginType() == null);
+    }
+
     @Override
     public List<App> getDashboardPlugins( String contextPath, int max )
     {
         Stream<App> stream = getAccessibleAppsStream()
-            .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || app.hasPluginEntrypoint()
-                && (app.getPluginType().toUpperCase() == AppManager.DASHBOARD_PLUGIN_TYPE
-                    || app.getPluginType() == null) );
+            .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || isDashboardPluginType( app ) );
 
         if ( max >= 0 )
         {
