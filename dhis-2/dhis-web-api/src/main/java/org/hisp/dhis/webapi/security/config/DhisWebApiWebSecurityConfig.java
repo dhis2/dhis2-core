@@ -33,8 +33,6 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -136,7 +134,6 @@ import org.springframework.web.util.UrlPathHelper;
  */
 @Configuration
 @Order( 1999 )
-@Slf4j
 public class DhisWebApiWebSecurityConfig
 {
     private static String apiContextPath = "/api";
@@ -152,9 +149,6 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     @Qualifier( "userDetailsService" )
     private UserDetailsService userDetailsService;
-
-    @Autowired
-    private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -184,6 +178,9 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private DhisOauthAuthenticationProvider dhisOauthAuthenticationProvider;
+
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Override
         protected void configure( HttpSecurity http )
@@ -305,10 +302,10 @@ public class DhisWebApiWebSecurityConfig
         private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
 
         @Autowired
-        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Autowired
-        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -745,11 +742,6 @@ public class DhisWebApiWebSecurityConfig
             .xssProtection()
             .and()
             .httpStrictTransportSecurity();
-    }
-
-    public void logToSlf4( String messsage )
-    {
-
     }
 
     @Bean( "switchUserProcessingFilter" )
