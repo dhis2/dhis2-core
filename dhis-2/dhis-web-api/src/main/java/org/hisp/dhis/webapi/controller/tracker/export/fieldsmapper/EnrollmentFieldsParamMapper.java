@@ -56,15 +56,9 @@ class EnrollmentFieldsParamMapper implements FieldsParamMapper<EnrollmentParams>
     @Override
     public EnrollmentParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        return initUsingAllOrNoFields( rootFields( fields ) )
+        return EnrollmentParams.builder().empty()
             .with( ALL.stream().collect( toMap( p -> p,
                 p -> fieldFilterService.filterIncludes( Enrollment.class, fields, p.getFieldPath() ) ) ) )
             .with( DELETED, includeDeleted ).build();
-    }
-
-    @Override
-    public EnrollmentParams.Builder getParamsBuilder()
-    {
-        return EnrollmentParams.builder();
     }
 }

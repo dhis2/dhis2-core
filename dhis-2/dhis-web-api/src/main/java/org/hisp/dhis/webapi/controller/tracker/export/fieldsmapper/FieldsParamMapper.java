@@ -27,51 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.AbstractParams;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 /**
- * Provides basic methods to transform input fields into {@link FieldPath }
- * based on {@link FieldFilterParser }. It follows the principles of
- * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ * Map a FieldPath list to a AbstractParams implementation.
  */
 public interface FieldsParamMapper<T extends AbstractParams>
 {
+    /**
+     * In case is not specified, the deleted parameter inclusion is false by
+     * default. This is, for example, when we find an entity by id
+     *
+     * @param fields
+     * @return
+     */
     T map( List<FieldPath> fields );
 
     T map( List<FieldPath> fields, boolean includeDeleted );
-
-    default Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
-    {
-        Map<String, FieldPath> roots = new HashMap<>();
-        for ( FieldPath p : fieldPaths )
-        {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
-            {
-                roots.put( p.getName(), p );
-            }
-        }
-        return roots;
-    }
-
-    default AbstractParams.ParamsBuilder<T> initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                return getParamsBuilder().all();
-            }
-        }
-        return getParamsBuilder().empty();
-    }
-
-    AbstractParams.ParamsBuilder<T> getParamsBuilder();
 }

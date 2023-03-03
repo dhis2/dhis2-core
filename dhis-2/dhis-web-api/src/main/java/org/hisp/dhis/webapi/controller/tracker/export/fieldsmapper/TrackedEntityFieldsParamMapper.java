@@ -56,15 +56,9 @@ class TrackedEntityFieldsParamMapper implements FieldsParamMapper<TrackedEntityI
     @Override
     public TrackedEntityInstanceParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        return initUsingAllOrNoFields( rootFields( fields ) )
+        return TrackedEntityInstanceParams.builder().empty()
             .with( ALL.stream().collect( toMap( p -> p,
                 p -> fieldFilterService.filterIncludes( TrackedEntity.class, fields, p.getFieldPath() ) ) ) )
             .with( DELETED, includeDeleted ).build();
-    }
-
-    @Override
-    public TrackedEntityInstanceParams.Builder getParamsBuilder()
-    {
-        return TrackedEntityInstanceParams.builder();
     }
 }

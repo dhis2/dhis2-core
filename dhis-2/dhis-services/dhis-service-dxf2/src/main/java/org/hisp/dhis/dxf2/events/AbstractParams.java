@@ -36,11 +36,12 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 /**
- * @author Luca Cambi <luca@dhis2.org> Abstract Params class to store a
- *         {@link Param} set which maps to the set of fields in a request. It
- *         includes a builder to initialize an empty or all (*) params list and
- *         to create a new Params implementation instance in case the params
- *         list has mutated
+ * @author Luca Cambi <luca@dhis2.org>
+ *         <p>
+ *         Abstract Params class to store a {@link Param} set which maps to the
+ *         set of fields in a request. It includes a builder to initialize an
+ *         empty or all (*) params list and to create a new Params
+ *         implementation instance in case the params list has mutated
  */
 @AllArgsConstructor
 public abstract class AbstractParams

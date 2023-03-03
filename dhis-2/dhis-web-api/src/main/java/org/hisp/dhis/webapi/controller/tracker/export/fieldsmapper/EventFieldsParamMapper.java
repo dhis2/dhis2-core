@@ -49,19 +49,13 @@ class EventFieldsParamMapper implements FieldsParamMapper<EventParams>
     @Override
     public EventParams map( List<FieldPath> fields )
     {
-        return initUsingAllOrNoFields( rootFields( fields ) ).with( ALL.stream().collect( toMap( p -> p,
+        return EventParams.builder().empty().with( ALL.stream().collect( toMap( p -> p,
             p -> fieldFilterService.filterIncludes( Event.class, fields, p.getFieldPath() ) ) ) ).build();
     }
 
     @Override
     public EventParams map( List<FieldPath> fields, boolean includeDeleted )
     {
-        return getParamsBuilder().empty().build();
-    }
-
-    @Override
-    public EventParams.Builder getParamsBuilder()
-    {
-        return EventParams.builder();
+        return EventParams.builder().empty().build();
     }
 }
