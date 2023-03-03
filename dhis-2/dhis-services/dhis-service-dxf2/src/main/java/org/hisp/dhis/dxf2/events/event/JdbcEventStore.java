@@ -2074,6 +2074,21 @@ public class JdbcEventStore implements EventStore
             PreparedStatement::execute );
     }
 
+    @Override
+    public void updateEnrollmentsLastUpdatedUserInfo( List<String> enrollmentUids, UserInfoSnapshot userInfoSnapshot )
+    {
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( enrollmentUids ), 20000 );
+
+        PGobject userInfoToJson = userInfoToJson( userInfoSnapshot, jsonMapper );
+
+        uidsPartitions.forEach( uids -> jdbcTemplate.execute(
+            "update programinstance set lastupdatedbyuserinfo = :lastupdatedbyuserinfo where uid IN (:uids)",
+            new MapSqlParameterSource()
+                .addValue( "lastupdatedbyuserinfo", userInfoToJson )
+                .addValue( "uids", uids ),
+            PreparedStatement::execute ) );
+    }
+
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
         throws SQLException,
         JsonProcessingException

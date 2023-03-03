@@ -34,6 +34,7 @@ import java.util.Set;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 
 /**
@@ -69,6 +70,8 @@ public interface EventStore
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+
+    void updateEnrollmentsLastUpdatedUserInfo( List<String> enrollmentUids, UserInfoSnapshot userInfoSnapshot );
 
     /**
      * Delete list of given events to be removed. This operation also remove

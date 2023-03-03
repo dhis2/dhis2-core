@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,4 +143,12 @@ public class DefaultEventPersistenceService
 
         jdbcEventStore.updateTrackedEntityInstances( distinctTeiList, context.getImportOptions().getUser() );
     }
+
+    @Override
+    @Transactional
+    public void updateEnrollmentsLastUpdatedUserInfo( List<String> enrollmentUids, UserInfoSnapshot userInfoSnapshot )
+    {
+        jdbcEventStore.updateEnrollmentsLastUpdatedUserInfo( enrollmentUids, userInfoSnapshot );
+    }
+
 }

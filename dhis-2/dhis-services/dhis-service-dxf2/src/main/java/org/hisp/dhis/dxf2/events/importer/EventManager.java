@@ -65,6 +65,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.trackedentity.store.EnrollmentStore;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -72,6 +73,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -106,6 +108,8 @@ public class EventManager
 
     @Nonnull
     private final CurrentUserService currentUserService;
+
+    private final EnrollmentStore enrollmenStore;
 
     private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
@@ -189,8 +193,10 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
 
-            Date today = new Date();
-            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, new Date() ) );
+
+            updateEnrollmentsLastUpdatedUserInfo( savedEvents.stream().map( Event::getEnrollment ).collect( toList() ),
+                UserInfoSnapshot.from( workContext.getImportOptions().getUser() ) );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
@@ -263,8 +269,10 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
 
-            Date today = new Date();
-            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, new Date() ) );
+
+            updateEnrollmentsLastUpdatedUserInfo( savedEvents.stream().map( Event::getEnrollment ).collect( toList() ),
+                UserInfoSnapshot.from( workContext.getImportOptions().getUser() ) );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 
@@ -328,6 +336,11 @@ public class EventManager
         }
 
         return importSummaries;
+    }
+
+    private void updateEnrollmentsLastUpdatedUserInfo( List<String> enrollmentUids, UserInfoSnapshot userInfoSnapshot )
+    {
+        eventPersistenceService.updateEnrollmentsLastUpdatedUserInfo( enrollmentUids, userInfoSnapshot );
     }
 
     private void auditTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )

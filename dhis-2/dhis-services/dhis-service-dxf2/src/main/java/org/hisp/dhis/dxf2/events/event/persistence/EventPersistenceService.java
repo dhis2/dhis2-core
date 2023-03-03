@@ -31,6 +31,8 @@ import java.util.List;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Wrapper service for Event-related operations. This service acts as a
@@ -63,4 +65,7 @@ public interface EventPersistenceService
      * @param events a List of {@see Event}
      */
     void delete( WorkContext context, List<Event> events );
+
+    @Transactional
+    void updateEnrollmentsLastUpdatedUserInfo( List<String> enrollmentUids, UserInfoSnapshot userInfoSnapshot );
 }
