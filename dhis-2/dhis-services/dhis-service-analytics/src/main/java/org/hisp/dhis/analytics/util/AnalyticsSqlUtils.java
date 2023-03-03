@@ -241,21 +241,21 @@ public class AnalyticsSqlUtils
     }
 
     /**
-     * This method will simply prefix the given column with the collate
-     * function. ie: columnA -> collate "columnA"
+     * This method will simply prefix the given "collate" with the collate
+     * function. ie: Posix -> collate "Posix"
      *
      * The final statement is surrounded by blank spaces to make its usage safet
      * to the caller.
      *
-     * @param column the column to be "collated".
-     * @return the collate statement, or blank if the given column is
+     * @param collate the type of collate to be used.
+     * @return the collate statement, or blank if the given "collate" is
      *         null/blank.
      */
-    public static String getCollate( String column )
+    public static String getCollate( String collate )
     {
-        if ( isNotBlank( column ) )
+        if ( isNotBlank( collate ) )
         {
-            return " collate \"" + column + "\" ";
+            return " collate \"" + collate + "\" ";
         }
 
         return EMPTY;
