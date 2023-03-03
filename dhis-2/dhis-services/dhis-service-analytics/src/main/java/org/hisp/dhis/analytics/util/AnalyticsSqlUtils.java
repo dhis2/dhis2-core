@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.util;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -118,7 +120,7 @@ public class AnalyticsSqlUtils
     {
         Assert.notNull( relation, "Relation must be specified" );
 
-        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
+        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, EMPTY );
     }
 
     /**
@@ -190,7 +192,7 @@ public class AnalyticsSqlUtils
     {
         if ( StringUtils.isEmpty( str ) )
         {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         int open = 0;
@@ -236,5 +238,26 @@ public class AnalyticsSqlUtils
 
         return args.isEmpty() ? defaultColumnName
             : "coalesce(" + args + ")";
+    }
+
+    /**
+     * This method will simply prefix the given column with the collate
+     * function. ie: columnA -> collate "columnA"
+     *
+     * The final statement is surrounded by blank spaces to make its usage safet
+     * to the caller.
+     *
+     * @param column the column to be "collated".
+     * @return the collate statement, or blank if the given column is
+     *         null/blank.
+     */
+    public static String getCollate( String column )
+    {
+        if ( isNotBlank( column ) )
+        {
+            return " collate \"" + column + "\" ";
+        }
+
+        return EMPTY;
     }
 }
