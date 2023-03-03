@@ -118,7 +118,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void shouldSetCreatedByUserInfoWhenCreateEnrollments()
+    void shouldSetCreatedAndLastUpdatedByUserInfoWhenCreateEnrollments()
     {
         String enrollmentUid = CodeGenerator.generateUid();
 
@@ -140,7 +140,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
+    void shouldSetLastUpdatedByUserInfoWhenUpdateEnrollments()
     {
         Enrollment enrollment = enrollment( organisationUnitA.getUid(), program.getUid(),
             trackedEntityInstance.getUid() );
