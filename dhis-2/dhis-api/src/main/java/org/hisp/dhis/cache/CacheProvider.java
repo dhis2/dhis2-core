@@ -140,5 +140,5 @@ public interface CacheProvider
 
     <V> Cache<V> createSubExpressionCache();
 
-    <V> Cache<V> createQueryShortenerCache();
+    <V> Cache<V> createQueryAliasCache();
 }

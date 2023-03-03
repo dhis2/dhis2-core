@@ -649,7 +649,7 @@ public class DefaultCacheProvider
     }
 
     @Override
-    public <V> Cache<V> createQueryShortenerCache()
+    public <V> Cache<V> createQueryAliasCache()
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.queryShortenerCache.name() )

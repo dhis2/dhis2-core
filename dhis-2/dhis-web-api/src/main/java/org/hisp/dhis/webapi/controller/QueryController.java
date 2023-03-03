@@ -27,53 +27,120 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
 
+/**
+ * Supports shortening of long API request URIs. This is achieved by accepting
+ * the long URI in the body of a POST request and creating a deterministic
+ * shortened endpoint for subsequent GET requests which are forwarded to the
+ * original controller.
+ *
+ * @author Austin McGee
+ */
 @RequestMapping( QueryController.RESOURCE_PATH )
 @Controller
 public class QueryController
 {
     public static final String RESOURCE_PATH = "/query";
 
-    private final Cache<String> shortenerCache;
+    private final RenderService renderService;
 
-    public QueryController( CacheProvider cacheProvider )
+    private final Cache<String> aliasCache;
+
+    public QueryController( RenderService renderService, CacheProvider cacheProvider )
     {
-        this.shortenerCache = cacheProvider.createQueryShortenerCache();
+        this.renderService = renderService;
+        this.aliasCache = cacheProvider.createQueryAliasCache();
     }
 
-    @PostMapping( "/shorten" )
+    @PostMapping( value = "/alias", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @CrossOrigin
-    public RedirectView postQuery( @RequestParam String targetUrl )
+    public @ResponseBody Map<String, String> postQueryAlias( @RequestBody String bodyString )
+        throws BadRequestException
     {
-        String hash = DigestUtils.sha1Hex( targetUrl );
-        shortenerCache.put( hash, targetUrl );
-        return new RedirectView( "/api/query/shortened/" + hash, false, false );
+        final String target = parseTargetFromRequestBody( bodyString );
+        final String hash = createAlias( target );
+
+        return Map.of( "alias", "/api/query/alias" + hash );
     }
 
-    @GetMapping( "/shortened/{hash}" )
+    @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
     @CrossOrigin
-    public String getQuery( @PathVariable( "hash" ) String hash )
+    public RedirectView redirectQueryAlias( @RequestBody String bodyString )
+        throws BadRequestException
+    {
+        final String target = parseTargetFromRequestBody( bodyString );
+        final String hash = createAlias( target );
+
+        return new RedirectView( "/api/query/alias/" + hash, false, false );
+    }
+
+    @GetMapping( "/alias/{hash}" )
+    @CrossOrigin
+    public String getQueryAlias( @PathVariable( "hash" ) String hash )
         throws NotFoundException
     {
-        Optional<String> targetUrl = shortenerCache.get( hash );
+        Optional<String> targetUrl = aliasCache.get( hash );
         if ( targetUrl.isPresent() )
         {
             return "forward:" + targetUrl.get();
         }
-        throw new NotFoundException( "No shortened query found with this hash id, it may have expired." );
+        throw new NotFoundException( "No query alias found with this hash id, it may have expired." );
+    }
+
+    private String parseTargetFromRequestBody( String bodyString )
+        throws BadRequestException
+    {
+        String target = null;
+        try
+        {
+            if ( !renderService.isValidJson( bodyString ) )
+            {
+                throw new BadRequestException( "Alias must be passed a valid JSON object" );
+            }
+
+            Map<String, String> map = renderService.fromJson( bodyString, Map.class );
+
+            if ( map != null )
+            {
+                target = map.get( "target" );
+            }
+        }
+        catch ( Exception e )
+        {
+            // continue
+        }
+
+        if ( target == null )
+        {
+            throw new BadRequestException( "Alias must contain a 'target' property" );
+        }
+        return target;
+    }
+
+    private String createAlias( String target )
+    {
+        String hash = DigestUtils.sha1Hex( target );
+        aliasCache.put( hash, target );
+        return hash;
     }
 }
