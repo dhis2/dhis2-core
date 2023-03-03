@@ -110,7 +110,7 @@ public class AppController
         return Map.of( "modules", getAccessibleAppMenu( contextPath ) );
     }
 
-    public List<WebModule> getAccessibleAppMenu( String contextPath )
+    private List<WebModule> getAccessibleAppMenu( String contextPath )
     {
         List<WebModule> modules = appMenuManager.getAccessibleWebModules();
 

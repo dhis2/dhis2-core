@@ -225,6 +225,14 @@ public interface AppManager
             .collect( Collectors.toList() );
     }
 
+    private static Boolean checkAppStringProperty( final String propertyValue, final String testValue,
+        final String operator )
+    {
+        return ("ilike".equalsIgnoreCase( operator ) && propertyValue.toLowerCase().contains( testValue.toLowerCase() ))
+            ||
+            ("eq".equalsIgnoreCase( operator ) && propertyValue.equals( testValue ));
+    }
+
     /**
      * Returns a list of all installed apps with name equal the given name and
      * operator. Currently supports eq and ilike.
@@ -234,9 +242,7 @@ public interface AppManager
     public static List<App> filterAppsByName( final String name, Collection<App> apps, final String operator )
     {
         return apps.stream().filter(
-            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
-                ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
+            app -> checkAppStringProperty( app.getName(), name, operator ) )
             .collect( Collectors.toList() );
     }
 
@@ -249,9 +255,7 @@ public interface AppManager
     public static List<App> filterAppsByShortName( final String name, Collection<App> apps, final String operator )
     {
         return apps.stream()
-            .filter( app -> (("ilike".equalsIgnoreCase( operator )
-                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
+            .filter( app -> checkAppStringProperty( app.getShortName(), name, operator ) )
             .collect( Collectors.toList() );
     }
 

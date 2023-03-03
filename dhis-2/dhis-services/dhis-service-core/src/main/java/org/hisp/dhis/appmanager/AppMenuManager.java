@@ -55,8 +55,6 @@ public class AppMenuManager
 
     private final List<WebModule> menuModules;
 
-    private final AppManager appManager;
-
     private Locale currentLocale;
 
     private void generateModules()
