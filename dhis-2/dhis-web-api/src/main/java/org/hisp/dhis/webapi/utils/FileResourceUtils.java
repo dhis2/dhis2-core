@@ -34,6 +34,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletResponse;
@@ -92,7 +93,12 @@ public class FileResourceUtils
     {
         File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
         tmpFile.deleteOnExit();
-        IOUtils.copy( inputStream, Files.newOutputStream( tmpFile.toPath() ) );
+
+        try ( OutputStream outputStream = Files.newOutputStream( tmpFile.toPath() ) )
+        {
+            IOUtils.copy( inputStream, outputStream );
+        }
+
         return tmpFile;
     }
 

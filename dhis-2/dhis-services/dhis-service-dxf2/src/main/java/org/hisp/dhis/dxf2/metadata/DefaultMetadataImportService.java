@@ -32,8 +32,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -406,9 +406,9 @@ public class DefaultMetadataImportService implements MetadataImportService
         throws WebMessageException,
         IOException
     {
-        FileInputStream inputStream = new FileInputStream( file );
+        ByteSource byteSource = ByteSource.wrap( Files.readAllBytes( file.toPath() ) );
 
-        int contentLength = inputStream.available();
+        long contentLength = byteSource.size();
 
         log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
             name, file.getName(), contentType, contentLength );
@@ -418,8 +418,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
         }
 
-        String contentMd5 = ByteSource.wrap( inputStream.readAllBytes() ).hash( Hashing.md5() ).toString();
-
+        String contentMd5 = byteSource.hash( Hashing.md5() ).toString();
         FileResource fileResource = new FileResource( name, contentType, contentLength, contentMd5, domain );
 
         fileResourceService.saveFileResource( fileResource, file );
