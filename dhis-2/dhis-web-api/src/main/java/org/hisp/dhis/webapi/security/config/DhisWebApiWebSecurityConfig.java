@@ -33,10 +33,13 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
@@ -133,6 +136,7 @@ import org.springframework.web.util.UrlPathHelper;
  */
 @Configuration
 @Order( 1999 )
+@Slf4j
 public class DhisWebApiWebSecurityConfig
 {
     private static String apiContextPath = "/api";
@@ -148,6 +152,9 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     @Qualifier( "userDetailsService" )
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -177,9 +184,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private DhisOauthAuthenticationProvider dhisOauthAuthenticationProvider;
-
-        @Autowired
-        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Override
         protected void configure( HttpSecurity http )
@@ -301,10 +305,10 @@ public class DhisWebApiWebSecurityConfig
         private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
 
         @Autowired
-        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
         @Autowired
-        private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -475,6 +479,11 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+                .antMatchers( "/dhis-web-commons/security/impersonateUser.action" )
+                .hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
                 .antMatchers( "/index.html" ).permitAll()
 
@@ -738,15 +747,21 @@ public class DhisWebApiWebSecurityConfig
             .httpStrictTransportSecurity();
     }
 
+    public void logToSlf4( String messsage )
+    {
+
+    }
+
     @Bean( "switchUserProcessingFilter" )
     public SwitchUserFilter switchUserFilter()
     {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService( userDetailsService );
-        //        filter.setSwitchUserUrl( "/impersonate" );
+        filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
         filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "GET", true, new UrlPathHelper() ) );
-        filter.setSwitchFailureUrl( "/switchUser" );
-        filter.setTargetUrl( "/dhis-web-dashboardD" );
+        filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "GET", true, new UrlPathHelper() ) );
+        filter.setSwitchFailureUrl( "/dhis-web-commons/security/impersonateUser.action" );
+        filter.setTargetUrl( "/dhis-web-dashboard" );
         return filter;
     }
 }

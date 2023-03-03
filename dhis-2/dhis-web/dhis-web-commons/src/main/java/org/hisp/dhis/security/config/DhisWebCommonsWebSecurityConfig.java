@@ -191,6 +191,10 @@ public class DhisWebCommonsWebSecurityConfig
                 .accessDecisionManager( accessDecisionManager() )
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+                .antMatchers( "/dhis-web-commons/security/impersonateUser.action" )
+                .hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+
                 .antMatchers( "/api/staticContent/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/javascripts/**" ).permitAll()
@@ -243,8 +247,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-sms-configuration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
-                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL" )
-                .antMatchers( "/dhis-web-commons/security/impersonateUser.action" ).hasAnyAuthority( "ALL" )
                 .antMatchers( "/dhis-web-aggregate-data-entry/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-aggregate-data-entry" )
 
