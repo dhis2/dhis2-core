@@ -91,7 +91,7 @@ public class AppHubController
     }
 
     @PostMapping( value = "/{versionId}" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installAppFromAppHub( @PathVariable String versionId )
         throws WebMessageException
