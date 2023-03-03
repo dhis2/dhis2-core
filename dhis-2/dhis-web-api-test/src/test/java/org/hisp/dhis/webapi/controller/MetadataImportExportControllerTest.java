@@ -39,6 +39,7 @@ import java.util.List;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.metadatapackage.MetadataPackage;
@@ -334,5 +335,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
 
         List<MetadataPackage> packages = manager.getAll( MetadataPackage.class );
         assertEquals( 0, packages.size() );
+        assertEquals( 0, manager.getAll( FileResource.class ) );
     }
 }

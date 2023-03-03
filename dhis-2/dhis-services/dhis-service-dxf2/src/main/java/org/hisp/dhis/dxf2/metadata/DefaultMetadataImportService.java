@@ -75,6 +75,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.FileUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -204,6 +205,8 @@ public class DefaultMetadataImportService implements MetadataImportService
                 importReport.setStatus( Status.ERROR );
             }
         }
+
+        FileUtils.cleanUp( params.getTempFile() );
 
         return importReport;
     }

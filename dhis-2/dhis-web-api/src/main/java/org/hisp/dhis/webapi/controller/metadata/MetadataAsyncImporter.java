@@ -39,7 +39,6 @@ import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -81,8 +80,6 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
         }
 
         metadataImportService.importMetadata( params );
-
-        FileUtils.cleanUp( params.getTempFile() );
     }
 
     @Override

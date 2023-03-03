@@ -81,7 +81,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.FileUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
@@ -176,8 +175,6 @@ public class MetadataImportExportController
         }
 
         ImportReport importReport = metadataImportService.importMetadata( params );
-
-        FileUtils.cleanUp( params.getTempFile() );
 
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
