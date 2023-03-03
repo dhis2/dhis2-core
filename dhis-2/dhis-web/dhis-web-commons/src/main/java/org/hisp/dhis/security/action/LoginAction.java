@@ -34,6 +34,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpSession;
+
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
@@ -71,6 +73,11 @@ public class LoginAction
     // Input & Output
     // -------------------------------------------------------------------------
     private String cspNonce = "";
+
+    public void setCspNonce( String cspNonce )
+    {
+        this.cspNonce = cspNonce;
+    }
 
     public String getCspNonce()
     {
@@ -138,6 +145,9 @@ public class LoginAction
         addRegisteredProviders();
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
+        HttpSession session = ServletActionContext.getRequest().getSession();
+        String nonce = (String) session.getAttribute( "nonce" );
+        setCspNonce( nonce );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
 

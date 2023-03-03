@@ -735,9 +735,7 @@ public class DhisWebApiWebSecurityConfig
             .and()
             .xssProtection()
             .and()
-            .httpStrictTransportSecurity()
-            .and()
-            .frameOptions().sameOrigin();
+            .httpStrictTransportSecurity();
     }
 
     @Bean( "switchUserProcessingFilter" )
