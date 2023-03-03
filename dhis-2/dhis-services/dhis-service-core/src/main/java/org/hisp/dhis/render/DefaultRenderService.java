@@ -195,40 +195,36 @@ public class DefaultRenderService
         RenderFormat format )
         throws IOException
     {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
-
-        ObjectMapper mapper;
-
-        if ( RenderFormat.JSON == format )
-        {
-            mapper = jsonMapper;
-        }
-        else if ( RenderFormat.XML == format )
+        if ( RenderFormat.XML == format )
         {
             inputStream.close();
             throw new IllegalArgumentException( "XML format is not supported." );
         }
-        else
+
+        if ( RenderFormat.JSON != format )
         {
             inputStream.close();
-            return map;
+            return Map.of();
         }
 
-        JsonNode rootNode = mapper.readTree( inputStream );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+
+        JsonNode rootNode = jsonMapper.readTree( inputStream );
         Iterator<String> fieldNames = rootNode.fieldNames();
 
         while ( fieldNames.hasNext() )
         {
             String fieldName = fieldNames.next();
+
             if ( MetadataPackage.JSON_OBJECT_NAME.equals( fieldName ) )
             {
-                MetadataPackage metadataPackage = mapper.treeToValue( rootNode.get( fieldName ),
+                MetadataPackage metadataPackage = jsonMapper.treeToValue( rootNode.get( fieldName ),
                     MetadataPackage.class );
                 map.put( MetadataPackage.class, List.of( metadataPackage ) );
                 continue;
             }
 
-            addObjectToMap( fieldName, mapper, rootNode, map );
+            addObjectToMap( fieldName, jsonMapper, rootNode, map );
         }
 
         return map;
@@ -262,6 +258,15 @@ public class DefaultRenderService
         return metadataVersions;
     }
 
+    /**
+     * Adds the object with given field name to the given map.
+     *
+     * @param fieldName the field name of the object
+     * @param mapper the mapper to use
+     * @param rootNode the root node of the JSON document
+     * @param map the map containing the objects
+     * @throws JsonProcessingException
+     */
     private void addObjectToMap( String fieldName, ObjectMapper mapper, JsonNode rootNode,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map )
         throws JsonProcessingException

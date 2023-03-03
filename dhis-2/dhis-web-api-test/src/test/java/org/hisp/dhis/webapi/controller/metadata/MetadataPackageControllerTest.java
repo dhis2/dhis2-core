@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.metadata;
 
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
@@ -39,13 +40,17 @@ import org.junit.jupiter.api.Test;
 class MetadataPackageControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void testGetAllMetadataPackages()
+    void testGetMetadataPackages()
     {
         HttpResponse res = POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) );
         assertEquals( HttpStatus.OK, res.status() );
 
-        JsonList<JsonIdentifiableObject> objects = GET( "/metadataPackages" )
+        JsonList<JsonIdentifiableObject> objects = GET( "/metadataPackages?fields=:owner" )
             .content( HttpStatus.OK ).getList( "metadataPackages", JsonIdentifiableObject.class );
         assertEquals( 1, objects.size() );
+
+        JsonIdentifiableObject object = objects.get( 0 );
+        assertEquals( "GEN_LIB_DHIS2.38.0-en", object.getName() );
+        assertNotNull( object.getObject( "importFile" ).get( "id" ) );
     }
 }

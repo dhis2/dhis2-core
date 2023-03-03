@@ -32,9 +32,26 @@ import java.util.Optional;
 
 public interface MetadataPackageService
 {
+    /**
+     * Get all metadata packages.
+     *
+     * @return list of {@link MetadataPackage}
+     */
     List<MetadataPackage> getAll();
 
+    /**
+     * Save a metadata package.
+     *
+     * @param metadataPackage
+     */
     void saveMetadataPackage( MetadataPackage metadataPackage );
 
+    /**
+     * Find a metadata package by name. The {@link MetadataPackage#getName()} is
+     * unique, so only one record will be returned.
+     *
+     * @param name name of the metadata package.
+     * @return {@link MetadataPackage}
+     */
     Optional<MetadataPackage> findByName( String name );
 }

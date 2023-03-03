@@ -33,6 +33,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -64,7 +65,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @EqualsAndHashCode( of = { "version", "dhis2Version", "locale" } )
 @Accessors( chain = true )
-public class MetadataPackage extends BaseIdentifiableObject
+public class MetadataPackage extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The name of the metadata package object in the import payload.

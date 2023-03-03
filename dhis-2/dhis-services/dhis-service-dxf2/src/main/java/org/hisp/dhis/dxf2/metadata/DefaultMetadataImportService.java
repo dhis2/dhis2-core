@@ -369,8 +369,6 @@ public class DefaultMetadataImportService implements MetadataImportService
      * Saves the metadata package and the import file.
      *
      * @param params the import parameters.
-     * @throws WebMessageException
-     * @throws IOException
      */
     private ErrorReport saveMetadataPackage( MetadataImportParams params )
     {
