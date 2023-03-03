@@ -197,7 +197,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             }
         } );
 
-        if ( importReport.getStatus() == Status.OK )
+        if ( importReport.getStatus() == Status.OK && params.hasMetadataPackage() )
         {
             try
             {

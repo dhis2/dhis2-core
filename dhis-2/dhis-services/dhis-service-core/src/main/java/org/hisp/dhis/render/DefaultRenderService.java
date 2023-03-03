@@ -205,10 +205,12 @@ public class DefaultRenderService
         }
         else if ( RenderFormat.XML == format )
         {
+            inputStream.close();
             throw new IllegalArgumentException( "XML format is not supported." );
         }
         else
         {
+            inputStream.close();
             return map;
         }
 
