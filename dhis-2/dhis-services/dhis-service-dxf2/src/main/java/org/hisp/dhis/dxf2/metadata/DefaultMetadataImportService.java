@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +81,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
 import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -406,9 +404,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         throws WebMessageException,
         IOException
     {
-        ByteSource byteSource = ByteSource.wrap( Files.readAllBytes( file.toPath() ) );
-
-        long contentLength = byteSource.size();
+        long contentLength = file.length();
 
         log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
             name, file.getName(), contentType, contentLength );
@@ -417,8 +413,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         {
             throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
         }
-
-        String contentMd5 = byteSource.hash( Hashing.md5() ).toString();
+        String contentMd5 = com.google.common.io.Files.asByteSource( file ).hash( Hashing.md5() ).toString();
         FileResource fileResource = new FileResource( name, contentType, contentLength, contentMd5, domain );
 
         fileResourceService.saveFileResource( fileResource, file );

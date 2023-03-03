@@ -45,7 +45,7 @@ public class MetadataPackageControllerTest extends DhisControllerConvenienceTest
         assertEquals( HttpStatus.OK, res.status() );
 
         JsonList<JsonIdentifiableObject> objects = GET( "/metadataPackages" )
-            .content( HttpStatus.OK ).getList( "metadataPackagess", JsonIdentifiableObject.class );
+            .content( HttpStatus.OK ).getList( "metadataPackages", JsonIdentifiableObject.class );
         assertEquals( 1, objects.size() );
     }
 }

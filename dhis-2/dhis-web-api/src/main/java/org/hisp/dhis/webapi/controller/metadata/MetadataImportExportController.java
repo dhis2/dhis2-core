@@ -158,7 +158,6 @@ public class MetadataImportExportController
         ConflictException
     {
         File tempFile = FileResourceUtils.toTempFile( request.getInputStream() );
-        tempFile.deleteOnExit();
 
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
@@ -166,15 +165,7 @@ public class MetadataImportExportController
             .fromMetadata( new FileInputStream( tempFile ), RenderFormat.JSON );
 
         params.setMetadataPackage( validateMetadataPackage( objects.remove( MetadataPackage.class ) ) );
-
-        if ( params.hasMetadataPackage() )
-        {
-            params.setTempFile( tempFile );
-        }
-        else
-        {
-            tempFile.delete();
-        }
+        params.setTempFile( params.hasMetadataPackage() ? tempFile : null );
 
         params.setObjects( objects );
 
