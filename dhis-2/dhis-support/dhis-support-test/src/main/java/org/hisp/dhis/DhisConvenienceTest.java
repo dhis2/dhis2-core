@@ -845,6 +845,19 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
+     * @param dataElements Data elements to go in the group.
+     */
+    public static DataElementGroup createDataElementGroup( char uniqueCharacter, DataElement... dataElements )
+    {
+        DataElementGroup deg = createDataElementGroup( uniqueCharacter );
+
+        Arrays.stream( dataElements ).forEach( deg::addDataElement );
+
+        return deg;
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
      */
     public static DataElementGroupSet createDataElementGroupSet( char uniqueCharacter )
     {

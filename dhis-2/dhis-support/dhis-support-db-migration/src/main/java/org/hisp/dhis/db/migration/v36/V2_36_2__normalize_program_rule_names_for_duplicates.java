@@ -129,11 +129,6 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
         return preparedStatement;
     }
 
-    private String getUpdateQuery()
-    {
-        return UPDATE_PROGRAMRULE;
-    }
-
     private Pair<String, String> nameUidUpdateSupplier( Map.Entry<String, String> uidNameEntry,
         Set<String> existingNames )
     {

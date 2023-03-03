@@ -37,7 +37,6 @@ import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertEr
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -61,7 +60,6 @@ import org.springframework.stereotype.Component;
  */
 @Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.SecurityOwnershipValidator" )
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator
     implements Validator<TrackedEntity>
 {
