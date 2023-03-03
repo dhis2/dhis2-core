@@ -138,7 +138,7 @@ public class DefaultAppManager
     private Boolean isDashboardPluginType( App app )
     {
         return app.hasPluginEntrypoint()
-            && (app.getPluginType().toUpperCase().equals( AppManager.DASHBOARD_PLUGIN_TYPE )
+            && (app.getPluginType().equalsIgnoreCase( AppManager.DASHBOARD_PLUGIN_TYPE )
                 || app.getPluginType() == null);
     }
 
