@@ -41,11 +41,11 @@ import org.springframework.core.io.Resource;
  */
 public interface AppManager
 {
-    String ID = AppManager.class.getName();
+    static final String ID = AppManager.class.getName();
 
-    String BUNDLED_APP_PREFIX = "dhis-web-";
+    static final String BUNDLED_APP_PREFIX = "dhis-web-";
 
-    Set<String> BUNDLED_APPS = Set.of(
+    static final Set<String> BUNDLED_APPS = Set.of(
         // Javascript apps
         "aggregate-data-entry",
         "app-management",
@@ -79,9 +79,9 @@ public interface AppManager
         "dataentry",
         "maintenance-mobile" );
 
-    String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
+    static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
 
-    String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
+    static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
     /**
      * Returns a list of all installed apps.
