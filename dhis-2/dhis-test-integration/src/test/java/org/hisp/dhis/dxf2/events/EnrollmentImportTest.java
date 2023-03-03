@@ -133,7 +133,10 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
         assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
             () -> assertEquals( UserInfoSnapshot.from( user ),
                 enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
-                    .getCreatedByUserInfo() ) );
+                    .getCreatedByUserInfo() ),
+            () -> assertEquals( UserInfoSnapshot.from( user ),
+                enrollmentService.getEnrollment( enrollmentUid, EnrollmentParams.FALSE )
+                    .getLastUpdatedByUserInfo() ) );
     }
 
     @Test
