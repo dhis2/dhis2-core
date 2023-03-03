@@ -34,7 +34,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletResponse;
@@ -42,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -85,27 +83,6 @@ public class FileResourceUtils
         File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
         tmpFile.deleteOnExit();
         multipartFile.transferTo( tmpFile );
-        return tmpFile;
-    }
-
-    /**
-     * Transfers the given input stream content to a local temporary file. The
-     * temporary file must be deleted manually.
-     *
-     * @param inputStream
-     * @return
-     * @throws IOException
-     */
-    public static File toTempFile( InputStream inputStream )
-        throws IOException
-    {
-        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
-
-        try ( OutputStream outputStream = Files.newOutputStream( tmpFile.toPath() ) )
-        {
-            IOUtils.copy( inputStream, outputStream );
-        }
-
         return tmpFile;
     }
 
