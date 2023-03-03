@@ -132,7 +132,8 @@ public class DefaultCacheProvider
         jobCancelRequested,
         dataIntegritySummaryCache,
         dataIntegrityDetailsCache,
-        subExpressionCache
+        subExpressionCache,
+        queryShortenerCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -645,5 +646,16 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.subExpressionCache.name() )
             .expireAfterWrite( 5, TimeUnit.MINUTES ) );
+    }
+
+    @Override
+    public <V> Cache<V> createQueryShortenerCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.queryShortenerCache.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 }
