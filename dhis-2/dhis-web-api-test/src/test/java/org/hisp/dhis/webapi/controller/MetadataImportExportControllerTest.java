@@ -335,6 +335,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
 
         List<MetadataPackage> packages = manager.getAll( MetadataPackage.class );
         assertEquals( 0, packages.size() );
-        assertEquals( 0, manager.getAll( FileResource.class ) );
+        assertEquals( 0, manager.getAll( FileResource.class ).size() );
     }
 }
