@@ -28,14 +28,19 @@
 package org.hisp.dhis.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class FileUtils
 {
     private FileUtils()
@@ -64,6 +69,28 @@ public class FileUtils
             {
                 return reader.lines().collect( Collectors.joining( System.lineSeparator() ) );
             }
+        }
+    }
+
+    /**
+     * Deletes the given file if it exists.
+     *
+     * @param file the file to delete
+     */
+    public static void cleanUp( File file )
+    {
+        if ( file == null )
+        {
+            return;
+        }
+
+        try
+        {
+            Files.deleteIfExists( file.toPath() );
+        }
+        catch ( IOException e )
+        {
+            log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), e );
         }
     }
 }

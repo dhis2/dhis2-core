@@ -88,11 +88,18 @@ public class FileResourceUtils
         return tmpFile;
     }
 
+    /**
+     * Transfers the given input stream content to a local temporary file. The
+     * temporary file must be deleted manually.
+     *
+     * @param inputStream
+     * @return
+     * @throws IOException
+     */
     public static File toTempFile( InputStream inputStream )
         throws IOException
     {
         File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
-        tmpFile.deleteOnExit();
 
         try ( OutputStream outputStream = Files.newOutputStream( tmpFile.toPath() ) )
         {
