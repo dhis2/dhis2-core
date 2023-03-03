@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -49,6 +50,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -82,6 +84,9 @@ public class AnalyticsController
 
     @Nonnull
     private final ContextUtils contextUtils;
+
+    @Nonnull
+    private final DhisConfigurationProvider configurationProvider;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -188,7 +193,7 @@ public class AnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE,
             "debug.sql", false, params.getLatestEndDate() );
@@ -249,7 +254,7 @@ public class AnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -263,7 +268,7 @@ public class AnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -278,7 +283,7 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
             CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
@@ -308,7 +313,14 @@ public class AnalyticsController
     private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
         HttpServletResponse response, boolean analyzeOnly )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
+
+        if ( isNotBlank( configurationProvider.getServerBaseUrl() ) )
+        {
+            params = DataQueryParams.newBuilder( params )
+                .withServerBaseUrl( configurationProvider.getServerBaseUrl() )
+                .build();
+        }
 
         if ( analyzeOnly )
         {
@@ -328,7 +340,7 @@ public class AnalyticsController
     private Grid getGridWithAttachment( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion,
         String contentType, String file, HttpServletResponse response )
     {
-        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+        DataQueryParams params = dataQueryService.getFromRequest( fromCriteria( criteria, apiVersion ) );
 
         contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
             file, true, params.getLatestEndDate() );
@@ -337,7 +349,7 @@ public class AnalyticsController
             getItemsFromParam( criteria.getRows() ) );
     }
 
-    private DataQueryRequest mapFromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
+    private DataQueryRequest fromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
     {
         return DataQueryRequest.newBuilder()
             .fromCriteria( criteria )

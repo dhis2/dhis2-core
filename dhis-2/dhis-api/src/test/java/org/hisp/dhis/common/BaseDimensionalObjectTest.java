@@ -54,7 +54,6 @@ class BaseDimensionalObjectTest
     private static final EasyRandom rnd = new EasyRandom();
 
     @Test
-    @SuppressWarnings( "unchecked" )
     void verifyInstanceCloneObject()
     {
         BaseDimensionalObject target = new BaseDimensionalObject( "test-dimension" );

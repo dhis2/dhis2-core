@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -42,7 +40,6 @@ import org.springframework.stereotype.Service;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
-@Slf4j
 public class PaginationCacheManager
 {
     private final Map<String, Cache<String, Long>> cacheMap = new ConcurrentHashMap<>();

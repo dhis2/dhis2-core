@@ -57,7 +57,6 @@ import org.hibernate.cfg.Configuration;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -88,8 +87,6 @@ public class DefaultHibernateConfigurationProvider
 
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
 
-    @Autowired
-    private org.springframework.core.env.Environment environment;
     // -------------------------------------------------------------------------
     // Property resources
 

@@ -68,7 +68,6 @@ class SectionUtilsTest extends DhisConvenienceTest
         CategoryOption categoryOptionD = new CategoryOption( "OptionD" );
         CategoryOption categoryOptionE = new CategoryOption( "OptionE" );
         CategoryOption categoryOptionF = new CategoryOption( "OptionF" );
-        CategoryOption categoryOptionG = new CategoryOption( "OptionG" );
 
         Category categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
         Category categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );

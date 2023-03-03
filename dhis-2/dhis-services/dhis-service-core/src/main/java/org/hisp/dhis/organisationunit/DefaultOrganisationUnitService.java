@@ -28,6 +28,7 @@
 package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 import java.awt.geom.Point2D;
@@ -49,6 +50,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -316,8 +318,8 @@ public class DefaultOrganisationUnitService
         }
 
         int rootLevel = organisationUnit.getLevel();
-
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
+
         SortProperty orderBy = SortProperty
             .fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
@@ -486,7 +488,7 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        if ( user == null || isEmpty( user.getOrganisationUnits() ) )
         {
             return false;
         }
@@ -498,25 +500,17 @@ public class DefaultOrganisationUnitService
     @Transactional
     public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
     {
-        Objects.requireNonNull( organisationUnit, "organisationUnit is null" );
+        Objects.requireNonNull( organisationUnit );
 
-        if ( ancestors == null || ancestors.isEmpty() )
+        if ( isEmpty( ancestors ) )
         {
             return false;
         }
 
-        Set<String> ancestorsUid = new HashSet<>();
-        for ( OrganisationUnit ancestor : ancestors )
-        {
-            if ( ancestor == null )
-            {
-                continue;
-            }
-
-            ancestorsUid.add( ancestor.getUid() );
-        }
+        Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet( ancestors );
 
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+
         if ( unit == null )
         {
             unit = organisationUnit;
@@ -524,7 +518,7 @@ public class DefaultOrganisationUnitService
 
         while ( unit != null )
         {
-            if ( ancestorsUid.contains( unit.getUid() ) )
+            if ( ancestorUids.contains( unit.getUid() ) )
             {
                 return true;
             }
@@ -578,8 +572,7 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getDataViewOrganisationUnitsWithFallback() == null
-            || user.getDataViewOrganisationUnitsWithFallback().isEmpty() )
+        if ( user == null || isEmpty( user.getDataViewOrganisationUnitsWithFallback() ) )
         {
             return false;
         }
@@ -625,8 +618,7 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null
-            || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        if ( user == null || isEmpty( user.getTeiSearchOrganisationUnitsWithFallback() ) )
         {
             return false;
         }
@@ -648,10 +640,12 @@ public class DefaultOrganisationUnitService
     public List<String> getCaptureOrganisationUnitUidsWithChildren()
     {
         User user = currentUserService.getCurrentUser();
+
         if ( user == null )
         {
             return new ArrayList<>();
         }
+
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( user.getOrganisationUnits() );
         params.setFetchChildren( true );
@@ -663,10 +657,12 @@ public class DefaultOrganisationUnitService
     public boolean isCaptureOrgUnitCountAboveThreshold( int threshold )
     {
         User user = currentUserService.getCurrentUser();
+
         if ( user == null )
         {
             return false;
         }
+
         return userCaptureOrgCountThresholdCache.get( user.getUsername(), ou -> {
 
             OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -911,9 +907,6 @@ public class DefaultOrganisationUnitService
         return null;
     }
 
-    /**
-     * Get all the Organisation Units within the distance of a coordinate.
-     */
     @Override
     @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithinDistance( double longitude, double latitude,
@@ -947,10 +940,6 @@ public class DefaultOrganisationUnitService
         return objects;
     }
 
-    /**
-     * Get lowest level/target level Organisation Units that includes the
-     * coordinates.
-     */
     @Override
     @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitByCoordinate( double longitude, double latitude,
@@ -980,9 +969,7 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search children org units to get the lowest level org unit that
-            // contains
-            // coordinate
+            // Search child org units to get lowest level org unit with coordinate
 
             if ( topOrgUnit != null )
             {
@@ -1032,9 +1019,14 @@ public class DefaultOrganisationUnitService
     /**
      * Searches organisation units until finding one with polygon containing
      * point.
+     *
+     * @param longitude the longitude.
+     * @param latitude the latitude.
+     * @param searchLevel the search level.
+     * @param stopLevel the stop level.
      */
-    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
-        int stopLevel )
+    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude,
+        int searchLevel, int stopLevel )
     {
         for ( int i = searchLevel; i <= stopLevel; i++ )
         {
