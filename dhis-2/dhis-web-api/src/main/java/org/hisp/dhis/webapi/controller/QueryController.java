@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
