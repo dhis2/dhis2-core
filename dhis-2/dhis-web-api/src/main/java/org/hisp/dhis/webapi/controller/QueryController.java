@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -68,7 +66,7 @@ public class QueryController
 
     @GetMapping( "/shortened/{hash}" )
     @CrossOrigin
-    public String getQuery( @PathVariable( "hash" ) String hash, HttpServletRequest request )
+    public String getQuery( @PathVariable( "hash" ) String hash )
         throws NotFoundException
     {
         Optional<String> targetUrl = shortenerCache.get( hash );
