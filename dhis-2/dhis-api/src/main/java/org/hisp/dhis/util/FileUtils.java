@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
 
@@ -93,26 +92,5 @@ public class FileUtils
         {
             log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), e );
         }
-    }
-
-    /**
-     * Transfers the given input stream content to a local temporary file. The
-     * temporary file must be deleted manually.
-     *
-     * @param inputStream
-     * @return
-     * @throws IOException
-     */
-    public static File toTempFile( InputStream inputStream )
-        throws IOException
-    {
-        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
-
-        try ( OutputStream outputStream = Files.newOutputStream( tmpFile.toPath() ) )
-        {
-            IOUtils.copy( inputStream, outputStream );
-        }
-
-        return tmpFile;
     }
 }
