@@ -317,7 +317,7 @@ public enum ErrorCode
     /* File resource */
     E6100( "Filename not present" ),
     E6101( "File type not allowed" ),
-    E6102( "Could not save file" ),
+    E6102( "Could not save file resource with name `{1}`" ),
 
     /* Users */
     E6200( "Feedback message recipients user group not defined" ),

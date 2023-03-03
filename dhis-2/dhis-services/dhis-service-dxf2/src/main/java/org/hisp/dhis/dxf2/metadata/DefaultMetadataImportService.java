@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 
 import java.io.File;
@@ -81,6 +80,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
 import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -197,16 +197,11 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( importReport.getStatus() == Status.OK && params.hasMetadataPackage() )
         {
-            try
+            ErrorReport errorReport = saveMetadataPackage( params );
+            if ( errorReport != null )
             {
-                saveMetadataPackage( params );
-            }
-            catch ( WebMessageException | IOException e )
-            {
-                importReport.addTypeReport( typeReport( MetadataPackage.class,
-                    List.of( new ErrorReport( FileResource.class, ErrorCode.E6102 ) ) ) );
+                importReport.addTypeReport( typeReport( MetadataPackage.class, List.of( errorReport ) ) );
                 importReport.setStatus( Status.ERROR );
-                log.error( DebugUtils.getStackTrace( e ) );
             }
         }
 
@@ -377,15 +372,29 @@ public class DefaultMetadataImportService implements MetadataImportService
      * @throws WebMessageException
      * @throws IOException
      */
-    private void saveMetadataPackage( MetadataImportParams params )
-        throws WebMessageException,
-        IOException
+    private ErrorReport saveMetadataPackage( MetadataImportParams params )
     {
         MetadataPackage metadataPackage = params.getMetadataPackage();
-        metadataPackage.setImportFile( saveFileResource( params.getTempFile(), metadataPackage.getName(),
-            FileResourceDomain.DOCUMENT, "application/json" ) );
 
-        packageService.saveMetadataPackage( metadataPackage );
+        if ( metadataPackage == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            metadataPackage.setImportFile( saveFileResource( params.getTempFile(), metadataPackage.getName(),
+                FileResourceDomain.DOCUMENT, "application/json" ) );
+
+            packageService.saveMetadataPackage( metadataPackage );
+        }
+        catch ( IOException e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+            return new ErrorReport( FileResource.class, ErrorCode.E6102, params.getMetadataPackage().getName() );
+        }
+
+        return null;
     }
 
     /**
@@ -401,17 +410,17 @@ public class DefaultMetadataImportService implements MetadataImportService
      */
     private FileResource saveFileResource( File file, String name, FileResourceDomain domain,
         String contentType )
-        throws WebMessageException,
-        IOException
+        throws IOException
     {
         long contentLength = file.length();
 
         log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
             name, file.getName(), contentType, contentLength );
+        ByteSource byteSource = com.google.common.io.Files.asByteSource( file );
 
-        if ( contentLength <= 0 )
+        if ( byteSource.size() == 0 )
         {
-            throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
+            throw new IOException( "Could not read file or file is empty." );
         }
         String contentMd5 = com.google.common.io.Files.asByteSource( file ).hash( Hashing.md5() ).toString();
         FileResource fileResource = new FileResource( name, contentType, contentLength, contentMd5, domain );
