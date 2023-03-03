@@ -58,7 +58,6 @@ import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.LockExceptionStore;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -90,10 +89,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataValueSetImportValidatorTest
 {
-
     private AclService aclService;
-
-    private AggregateAccessManager accessManager;
 
     private LockExceptionStore lockExceptionStore;
 
@@ -113,7 +109,6 @@ class DataValueSetImportValidatorTest
     void setUp()
     {
         aclService = mock( AclService.class );
-        accessManager = mock( AggregateAccessManager.class );
         lockExceptionStore = mock( LockExceptionStore.class );
         approvalService = mock( DataApprovalService.class );
         dataValueService = mock( DataValueService.class );
@@ -124,7 +119,7 @@ class DataValueSetImportValidatorTest
             .thenReturn( true );
 
         i18n = mock( I18n.class );
-        validator = new DataValueSetImportValidator( aclService, accessManager, lockExceptionStore, approvalService,
+        validator = new DataValueSetImportValidator( aclService, lockExceptionStore, approvalService,
             dataValueService, organisationUnitService );
         validator.init();
         setupUserCanWriteCategoryOptions( true );

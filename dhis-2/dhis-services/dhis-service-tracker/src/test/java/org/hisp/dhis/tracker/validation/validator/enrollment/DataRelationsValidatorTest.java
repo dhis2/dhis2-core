@@ -238,14 +238,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
     // make connections between different entities clear when looking at the
     // test. Without having to navigate to the
     // helpers.
-    private Program programWithRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit, TrackedEntityType teiType )
+    private Program programWithRegistration( String uid, OrganisationUnit orgUnit, TrackedEntityType teiType )
     {
         return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType );
     }
 
-    private Program programWithoutRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit )
+    private Program programWithoutRegistration( String uid, OrganisationUnit orgUnit )
     {
         return program( uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
     }
@@ -261,7 +259,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return program;
     }
 
-    private TrackedEntityType trackedEntityType( @SuppressWarnings( "SameParameterValue" ) String uid )
+    private TrackedEntityType trackedEntityType( String uid )
     {
         return trackedEntityType( uid, 'A' );
     }
@@ -273,8 +271,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return trackedEntityType;
     }
 
-    private TrackedEntityInstance trackedEntityInstance( @SuppressWarnings( "SameParameterValue" ) String uid,
-        TrackedEntityType type, OrganisationUnit orgUnit )
+    private TrackedEntityInstance trackedEntityInstance( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
     {
         TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
         tei.setUid( uid );

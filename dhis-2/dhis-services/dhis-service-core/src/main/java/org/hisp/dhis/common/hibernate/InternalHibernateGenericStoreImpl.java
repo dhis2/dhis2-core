@@ -39,8 +39,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -62,7 +60,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * This class contains methods for generating predicates which are used for
  * validating sharing access permission.
  */
-@Slf4j
 public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T>
     implements InternalHibernateGenericStore<T>

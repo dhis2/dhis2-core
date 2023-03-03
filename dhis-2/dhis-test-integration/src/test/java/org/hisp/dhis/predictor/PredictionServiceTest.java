@@ -30,6 +30,8 @@ package org.hisp.dhis.predictor;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
@@ -45,6 +47,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -1658,5 +1661,74 @@ class PredictionServiceTest extends IntegrationTestBase
         predictionService.predictTask( monthStart( 2021, 12 ), monthStart( 2022, 1 ), null,
             Lists.newArrayList( "predictorgA" ), progress );
         assertEquals( "64", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2021, 12 ) ) );
+    }
+
+    @Test
+    void testPredictionPreprocessor()
+    {
+        // Note: the predictions will create a new period in the database, and
+        // will work only if each prediction is in a different transaction
+        // (which it will be).
+        useDataValue( dataElementA, makeMonth( 2023, 1 ), sourceA, defaultCombo, "1" );
+        useDataValue( dataElementB, makeMonth( 2023, 1 ), sourceA, defaultCombo, "2" );
+        useDataValue( dataElementC, makeMonth( 2023, 1 ), sourceA, defaultCombo, "3" );
+
+        dataValueBatchHandler.flush();
+
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A', dataElementA, dataElementB, dataElementC );
+        dataElementGroup.setUid( "dataElemGrp" );
+        dataElementService.addDataElementGroup( dataElementGroup );
+
+        Expression expression = new Expression( "forEach ?d in :DEG:dataElemGrp --> sum(#{?d}+#{?d}*#{?d})", "desc" );
+        Predictor p = createPredictor( dataElementC, defaultCombo, "p", expression, null, periodTypeMonthly,
+            orgUnitLevel1,
+            1, 0, 1 );
+
+        predictionService.predict( p, monthStart( 2023, 2 ), monthStart( 2023, 3 ), summary );
+        assertEquals( "Pred 3 Ins 3 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "2", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2023, 2 ) ) );
+        assertEquals( "6", getDataValue( dataElementB, defaultCombo, sourceA, makeMonth( 2023, 2 ) ) );
+        assertEquals( "12", getDataValue( dataElementC, defaultCombo, sourceA, makeMonth( 2023, 2 ) ) );
+    }
+
+    @Test
+    void testExpressionIsValid()
+    {
+        assertEquals( VALID, predictionService.expressionIsValid( "#{deabcdefghA} + #{deabcdefghB}" ) );
+        assertEquals( VALID, predictionService.expressionIsValid( "sum(#{deabcdefghA})" ) );
+
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, predictionService.expressionIsValid( "#{deabcdefghXYZ}" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, predictionService.expressionIsValid( "xyz(#{deabcdefghA})" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, predictionService.expressionIsValid( "forEach ?d --> #{?d}" ) );
+
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
+        dataElementGroup.setUid( "dataElemGrp" );
+        dataElementService.addDataElementGroup( dataElementGroup );
+
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            predictionService.expressionIsValid( "forEach ?d in :DEG:dataElemGrp --> #{?d}" ) );
+
+        dataElementGroup.addDataElement( dataElementA );
+        dataElementService.updateDataElementGroup( dataElementGroup );
+
+        assertEquals( VALID,
+            predictionService.expressionIsValid( "forEach ?d in :DEG:dataElemGrp --> #{?d}" ) );
+    }
+
+    @Test
+    void testGetExpressionDescription()
+    {
+        assertEquals( "DataElementA + DataElementB",
+            predictionService.getExpressionDescription( "#{deabcdefghA} + #{deabcdefghB}" ) );
+
+        assertEquals( "sum(DataElementA)",
+            predictionService.getExpressionDescription( "sum(#{deabcdefghA})" ) );
+
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A', dataElementA );
+        dataElementGroup.setUid( "dataElemGrp" );
+        dataElementService.addDataElementGroup( dataElementGroup );
+
+        assertEquals( "forEach ?d in DataElementGroupA --> #{?d} + DataElementA",
+            predictionService.getExpressionDescription( "forEach ?d in :DEG:dataElemGrp --> #{?d} + #{deabcdefghA}" ) );
     }
 }

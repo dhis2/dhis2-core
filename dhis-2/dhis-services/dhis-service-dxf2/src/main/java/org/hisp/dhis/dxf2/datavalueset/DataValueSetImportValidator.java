@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -49,7 +49,6 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
@@ -71,13 +70,10 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataValueSetImportValidator
 {
-
     private final AclService aclService;
-
-    private final AggregateAccessManager accessManager;
 
     private final LockExceptionStore lockExceptionStore;
 

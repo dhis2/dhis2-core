@@ -66,18 +66,13 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
      */
     private String group1Id;
 
-    /**
-     * Another group having the text attribute but with a different value
-     */
-    private String group2Id;
-
     @BeforeEach
     void setUp()
     {
         // create user group with custom attribute value
         attrId = postNewAttribute( "extra", ValueType.TEXT, Attribute.ObjectType.USER_GROUP );
         group1Id = postNewUserGroupWithAttributeValue( "G1", attrId, "extra-value" );
-        group2Id = postNewUserGroupWithAttributeValue( "G2", attrId, "different" );
+        postNewUserGroupWithAttributeValue( "G2", attrId, "different" );
     }
 
     @Test
