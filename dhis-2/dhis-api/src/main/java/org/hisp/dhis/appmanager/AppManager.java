@@ -81,6 +81,8 @@ public interface AppManager
 
     String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
 
+    String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
+
     /**
      * Returns a list of all installed apps.
      *

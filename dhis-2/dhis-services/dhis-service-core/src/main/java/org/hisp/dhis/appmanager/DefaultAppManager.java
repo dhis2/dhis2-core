@@ -140,7 +140,8 @@ public class DefaultAppManager
     {
         Stream<App> stream = getAccessibleAppsStream()
             .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || app.hasPluginEntrypoint()
-                && (app.getPluginType() == "DASHBOARD" || app.getPluginType() == null) );
+                && (app.getPluginType().toUpperCase() == AppManager.DASHBOARD_PLUGIN_TYPE
+                    || app.getPluginType() == null) );
 
         if ( max >= 0 )
         {
