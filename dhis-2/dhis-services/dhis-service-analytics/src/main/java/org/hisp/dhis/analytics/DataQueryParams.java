@@ -1622,6 +1622,15 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query has a single expression dimension item
+     * specified as dimension option for the data dimension.
+     */
+    public boolean hasSingleExpressionDimensionItemAsDataFilter()
+    {
+        return getFilterExpressionDimensionItems().size() == 1 && getFilterOptions( DATA_X_DIM_ID ).size() == 1;
+    }
+
+    /**
      * Indicates whether this query has a single indicator specified as
      * dimension option for the data dimension.
      */
