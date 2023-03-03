@@ -155,12 +155,6 @@ public class ValidationReport
         return this.getErrors().stream().map( Error::getUid ).distinct().count();
     }
 
-    private void addValidationReport( ValidationReport report )
-    {
-        addErrors( report.getErrors() );
-        addWarnings( report.getWarnings() );
-    }
-
     public void addErrors( List<Error> errors )
     {
         for ( Error error : errors )

@@ -41,7 +41,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.junit.jupiter.api.Test;
@@ -61,13 +60,11 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
-    private User user;
-
     @Override
     public void setUpTest()
     {
         this.userService = injectUserService;
-        user = createUserAndInjectSecurityContext( true );
+        createUserAndInjectSecurityContext( true );
     }
 
     // -------------------------------------------------------------------------
