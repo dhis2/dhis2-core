@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS metadatapackage (
-    metadatapackageid INT NOT NULL,
+    metadatapackageid int NOT NULL,
     uid VARCHAR(11) NOT NULL,
     code VARCHAR(50) UNIQUE ,
     created TIMESTAMP NOT NULL,
     lastupdated TIMESTAMP ,
     createdby int8 NOT NULL,
-    name VARCHAR(250) unique NOT NULL,
+    name VARCHAR(250) NOT NULL,
     type VARCHAR(50),
     version VARCHAR(10) NOT NULL,
     dhis2version VARCHAR(10) NOT NULL,

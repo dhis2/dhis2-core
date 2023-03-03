@@ -13,7 +13,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="250" />
+    <property name="name" column="name" not-null="true" length="250" />
 
     <property name="type" column="type" length="50"/>
 

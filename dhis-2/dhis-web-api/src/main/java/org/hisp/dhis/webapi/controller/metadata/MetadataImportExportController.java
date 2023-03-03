@@ -356,10 +356,12 @@ public class MetadataImportExportController
 
         Optional<MetadataPackage> persistedPackage = packageService.findByName( metadataPackage.getName() );
 
-        if ( persistedPackage.isPresent() )
+        if ( persistedPackage.isPresent()
+            && metadataPackage.getVersion().equals( persistedPackage.get().getVersion() ) )
         {
             throw new ConflictException(
-                "Metadata package with name '" + metadataPackage.getName() + "' already exists." );
+                "Metadata package with name '" + metadataPackage.getName() + "' and version '"
+                    + metadataPackage.getVersion() + "' already exists." );
         }
 
         return metadataPackage;
