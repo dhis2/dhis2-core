@@ -100,6 +100,7 @@ public class FileResourceUtils
         throws IOException
     {
         File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
 
         try ( OutputStream outputStream = Files.newOutputStream( tmpFile.toPath() ) )
         {

@@ -332,11 +332,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) ).content( HttpStatus.OK );
 
-        JsonResponse response = POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) )
-            .content( HttpStatus.CONFLICT );
-
-        assertEquals( "Metadata package with name 'GEN_LIB_DHIS2.38.0-en' and version '1.0.0' already exists.",
-            response.getString( "message" ) );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Metadata package with name 'GEN_LIB_DHIS2.38.0-en' and version '1.0.0' already exists.",
+            POST( "/metadata", Body( "metadata_package/metadata_package_success.json" ) )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test

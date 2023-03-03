@@ -2,7 +2,6 @@
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 
 <hibernate-mapping>
@@ -11,11 +10,14 @@
     <id name="id" column="metadatapackageid">
       <generator class="native" />
     </id>
-    &identifiableProperties;
+
+    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
 
     <property name="name" column="name" not-null="true" length="250" />
 
     <property name="type" column="type" length="50"/>
+
+    <property name="code" column="code" not-null="false" length="50" />
 
     <property name="version" column="version" not-null="true" length="10" />
 
@@ -28,6 +30,12 @@
     <many-to-one name="importFile" class="org.hisp.dhis.fileresource.FileResource" column="importfile" foreign-key="fk_metadatapackage_fileresourceid" />
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_metadatapackage_userid" />
+
+    <property name="created" type="timestamp" not-null="true" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
 
   </class>
 </hibernate-mapping>

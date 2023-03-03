@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS metadatapackage (
     metadatapackageid int NOT NULL,
     uid VARCHAR(11) NOT NULL,
-    code VARCHAR(50) UNIQUE ,
+    code VARCHAR(50) ,
     created TIMESTAMP NOT NULL,
     lastupdated TIMESTAMP ,
     createdby int8 NOT NULL,
