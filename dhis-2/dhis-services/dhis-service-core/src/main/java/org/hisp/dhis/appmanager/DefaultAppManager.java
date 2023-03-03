@@ -136,10 +136,11 @@ public class DefaultAppManager
     }
 
     @Override
-    public List<App> getPlugins( String contextPath, int max )
+    public List<App> getDashboardPlugins( String contextPath, int max )
     {
         Stream<App> stream = getAccessibleAppsStream()
-            .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || app.hasPluginEntrypoint() );
+            .filter( app -> app.getAppType() == AppType.DASHBOARD_WIDGET || app.hasPluginEntrypoint()
+                && (app.getPluginType() == "DASHBOARD" || app.getPluginType() == null) );
 
         if ( max >= 0 )
         {

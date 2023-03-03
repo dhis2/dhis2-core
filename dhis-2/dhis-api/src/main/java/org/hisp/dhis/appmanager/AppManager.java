@@ -107,7 +107,7 @@ public interface AppManager
      *
      * @return a list of apps.
      */
-    List<App> getPlugins( String contextPath, int max );
+    List<App> getDashboardPlugins( String contextPath, int max );
 
     /**
      * Returns the installed app with a given name

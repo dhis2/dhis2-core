@@ -122,7 +122,7 @@ public class DefaultDashboardService
     {
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
-        List<App> dashboardApps = appManager.getPlugins( null,
+        List<App> dashboardApps = appManager.getDashboardPlugins( null,
             getMax( DashboardItemType.APP, maxTypes, count, maxCount ) );
 
         DashboardSearchResult result = new DashboardSearchResult();
@@ -170,7 +170,7 @@ public class DefaultDashboardService
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0,
             getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getPlugins( null,
+        result.setApps( appManager.getDashboardPlugins( null,
             getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
 
         return result;
