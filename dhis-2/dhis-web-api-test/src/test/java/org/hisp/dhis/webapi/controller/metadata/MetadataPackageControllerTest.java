@@ -36,7 +36,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
-public class MetadataPackageControllerTest extends DhisControllerConvenienceTest
+class MetadataPackageControllerTest extends DhisControllerConvenienceTest
 {
     @Test
     void testGetAllMetadataPackages()
