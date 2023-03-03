@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 @RequestMapping( QueryController.RESOURCE_PATH )
@@ -60,8 +59,7 @@ public class QueryController
 
     @PostMapping( "/shorten" )
     @CrossOrigin
-    public RedirectView postQuery( HttpServletRequest request, @RequestParam String targetUrl,
-        RedirectAttributes redirectAttributes )
+    public RedirectView postQuery( @RequestParam String targetUrl )
     {
         String hash = DigestUtils.sha1Hex( targetUrl );
         shortenerCache.put( hash, targetUrl );
