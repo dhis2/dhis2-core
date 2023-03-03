@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.exparity.hamcrest.date.DateMatchers;
@@ -154,9 +155,9 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private DataElement dataElementB;
 
-    private Program programA;
+    private Program programWithRegistration;
 
-    private Program programB;
+    private Program programWithoutRegistration;
 
     private ProgramStage programStageA;
 
@@ -164,7 +165,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private ProgramStage programStageB;
 
-    private ProgramInstance pi;
+    private ProgramInstance programInstance;
 
     private Event event;
 
@@ -223,14 +224,14 @@ class EventImportTest extends TransactionalIntegrationTest
         programStageB = createProgramStage( 'B', 0 );
         programStageB.setFeatureType( FeatureType.POINT );
         manager.save( programStageB );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        programA.setCategoryCombo( categoryCombo );
-        manager.save( programA );
-        programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
-        programB.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programB.setCategoryCombo( categoryCombo );
-        manager.save( programB );
+        programWithRegistration = createProgram( 'A', new HashSet<>(), organisationUnitA );
+        programWithRegistration.setProgramType( ProgramType.WITH_REGISTRATION );
+        programWithRegistration.setCategoryCombo( categoryCombo );
+        manager.save( programWithRegistration );
+        programWithoutRegistration = createProgram( 'B', new HashSet<>(), organisationUnitB );
+        programWithoutRegistration.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        programWithoutRegistration.setCategoryCombo( categoryCombo );
+        manager.save( programWithoutRegistration );
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
         programStageDataElement.setProgramStage( programStageA );
@@ -245,27 +246,27 @@ class EventImportTest extends TransactionalIntegrationTest
         programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA2.getProgramStageDataElements().add( programStageDataElementA2 );
-        programStageA.setProgram( programA );
-        programStageA2.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
-        programA.getProgramStages().add( programStageA2 );
+        programStageA.setProgram( programWithRegistration );
+        programStageA2.setProgram( programWithRegistration );
+        programWithRegistration.getProgramStages().add( programStageA );
+        programWithRegistration.getProgramStages().add( programStageA2 );
         programStageB.getProgramStageDataElements().add( programStageDataElementB );
-        programStageB.setProgram( programB );
-        programB.getProgramStages().add( programStageB );
+        programStageB.setProgram( programWithoutRegistration );
+        programWithoutRegistration.getProgramStages().add( programStageB );
         manager.update( programStageA );
         manager.update( programStageA2 );
-        manager.update( programA );
+        manager.update( programWithRegistration );
         manager.update( programStageB );
-        manager.update( programB );
-        pi = new ProgramInstance();
-        pi.setEnrollmentDate( new Date() );
-        pi.setIncidentDate( new Date() );
-        pi.setProgram( programB );
-        pi.setStatus( ProgramStatus.ACTIVE );
-        pi.setStoredBy( "test" );
-        pi.setName( "EventImportTestPI" );
-        pi.setUid( CodeGenerator.generateUid() );
-        manager.save( pi );
+        manager.update( programWithoutRegistration );
+        programInstance = new ProgramInstance();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setProgram( programWithoutRegistration );
+        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setStoredBy( "test" );
+        programInstance.setName( "EventImportTestPI" );
+        programInstance.setUid( CodeGenerator.generateUid() );
+        manager.save( programInstance );
         event = createEvent( "eventUid001" );
     }
 
@@ -273,7 +274,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnProgramWithoutRegistration()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
@@ -283,7 +284,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void shouldSetEnrollmentLastUpdatedUserInfoWhenAddEventOnProgramWithRegistration()
         throws IOException
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
+        Enrollment enrollment = createEnrollment( programWithRegistration.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
 
         assertEquals( ImportStatus.SUCCESS,
@@ -299,8 +300,9 @@ class EventImportTest extends TransactionalIntegrationTest
 
         InputStream is = byteArrayInputStream(
             createEventJsonObject(
-                eventOfProgramWithRegistration(
-                    CodeGenerator.generateUid(), enrollment.getEnrollment() ),
+                event( programWithRegistration, programStageA, Optional.of( trackedEntityInstanceMaleA ),
+                    organisationUnitA,
+                    enrollment.getEnrollment() ),
                 dataElementA,
                 "1000" )
                     .toString().getBytes() );
@@ -320,7 +322,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void shouldSetEnrollmentLastUpdatedUserInfoWhenUpdateEventOnProgramWithRegistration()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
+        Enrollment enrollment = createEnrollment( programWithRegistration.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
 
         assertEquals( ImportStatus.SUCCESS,
@@ -331,8 +333,9 @@ class EventImportTest extends TransactionalIntegrationTest
             enrollmentService.getEnrollment( enrollment.getEnrollment(), EnrollmentParams.FALSE )
                 .getLastUpdatedByUserInfo() );
 
-        Event event = eventOfProgramWithRegistration(
-            CodeGenerator.generateUid(), enrollment.getEnrollment() );
+        Event event = event( programWithRegistration, programStageA, Optional.of( trackedEntityInstanceMaleA ),
+            organisationUnitA,
+            enrollment.getEnrollment() );
 
         assertEquals( ImportStatus.SUCCESS,
             eventService.addEvent( event, null, false )
@@ -355,18 +358,10 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddEventWithDueDateForProgramWithoutRegistration()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = event( programWithoutRegistration, programStageB, Optional.empty(), organisationUnitB,
+            programInstance.getUid() );
 
-        assertEquals( ImportStatus.SUCCESS,
-            enrollmentService.addEnrollment( enrollment, null,
-                null ).getStatus() );
-
-        String eventUid = CodeGenerator.generateUid();
-
-        Event event = eventOfProgramWithRegistration( eventUid, enrollment.getEnrollment() );
         event.setStatus( EventStatus.SCHEDULE );
-        event.setEnrollment( pi.getUid() );
         event.setDueDate( DUE_DATE );
 
         ImportSummary summary = eventService.addEvent( event, null, false );
@@ -374,14 +369,14 @@ class EventImportTest extends TransactionalIntegrationTest
 
         DataValue dataValue = new DataValue();
         dataValue.setValue( "10" );
-        dataValue.setDataElement( dataElementA.getUid() );
+        dataValue.setDataElement( dataElementB.getUid() );
         event.setDataValues( Set.of( dataValue ) );
         event.setStatus( EventStatus.COMPLETED );
 
         summary = eventService.updateEvent( event, true, null, false );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
 
         assertEquals( DUE_DATE, DateUtils.getLongDateString( psi.getDueDate() ) );
     }
@@ -398,11 +393,11 @@ class EventImportTest extends TransactionalIntegrationTest
         ProgramInstance pi = new ProgramInstance();
         pi.setEnrollmentDate( new Date() );
         pi.setIncidentDate( new Date() );
-        pi.setProgram( programB );
+        pi.setProgram( programWithoutRegistration );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
         programInstanceService.addProgramInstance( pi );
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
@@ -424,7 +419,8 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnNonExistentProgramStage()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), "null", organisationUnitA.getUid(), null,
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), "null",
+            organisationUnitA.getUid(), null,
             dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
@@ -439,11 +435,11 @@ class EventImportTest extends TransactionalIntegrationTest
     {
         String lastUpdateDateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated();
-        Enrollment enrollment = createEnrollment( programA.getUid(),
+        Enrollment enrollment = createEnrollment( programWithRegistration.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(),
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), programStageA.getUid(),
             organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
@@ -467,7 +463,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnProgramWithRegistrationWithoutTei()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(),
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), programStageA.getUid(),
             organisationUnitA.getUid(), null, dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
@@ -479,7 +475,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnProgramWithRegistrationWithInvalidTei()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(),
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), programStageA.getUid(),
             organisationUnitA.getUid(), "null", dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
@@ -491,7 +487,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnProgramWithRegistrationButWithoutEnrollment()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(),
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), programStageA.getUid(),
             organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
@@ -503,11 +499,11 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnRepeatableProgramStageWithRegistration()
         throws IOException
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
+        Enrollment enrollment = createEnrollment( programWithRegistration.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA2.getUid(),
+        InputStream is = createEventJsonInputStream( programWithRegistration.getUid(), programStageA2.getUid(),
             organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA2, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
@@ -533,7 +529,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddValidEnrollmentWithOneValidAndOneInvalidEvent()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
+        Enrollment enrollment = createEnrollment( programWithRegistration.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         Event validEvent = createEvent( "eventUid004" );
         validEvent.setOrgUnit( organisationUnitA.getUid() );
@@ -557,7 +553,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testEventDeletion()
     {
-        programInstanceService.addProgramInstance( pi );
+        programInstanceService.addProgramInstance( programInstance );
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -575,7 +571,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEvent()
     {
-        programInstanceService.addProgramInstance( pi );
+        programInstanceService.addProgramInstance( programInstance );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -591,7 +587,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEventInBulk()
     {
-        programInstanceService.addProgramInstance( pi );
+        programInstanceService.addProgramInstance( programInstance );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -623,7 +619,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testGeometry()
         throws IOException
     {
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
@@ -637,7 +633,7 @@ class EventImportTest extends TransactionalIntegrationTest
         throws IOException
     {
         // CREATE A NEW EVENT
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -660,7 +656,7 @@ class EventImportTest extends TransactionalIntegrationTest
         throws IOException
     {
         // CREATE A NEW EVENT
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -671,7 +667,7 @@ class EventImportTest extends TransactionalIntegrationTest
         // USE ONLY PROGRAM
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgram( programB.getUid() );
+        event.setProgram( programWithoutRegistration.getUid() );
         event.setStatus( EventStatus.COMPLETED );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
@@ -700,7 +696,7 @@ class EventImportTest extends TransactionalIntegrationTest
         throws IOException
     {
         // CREATE A NEW EVENT
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+        InputStream is = createEventJsonInputStream( programWithoutRegistration.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -712,7 +708,7 @@ class EventImportTest extends TransactionalIntegrationTest
         // change)
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgram( programB.getUid() );
+        event.setProgram( programWithoutRegistration.getUid() );
         event.setStatus( EventStatus.ACTIVE );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
@@ -805,25 +801,29 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setUid( uid );
         event.setEvent( uid );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgram( programB.getUid() );
+        event.setProgram( programWithoutRegistration.getUid() );
         event.setProgramStage( programStageB.getUid() );
         event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.setOrgUnit( organisationUnitB.getUid() );
-        event.setEnrollment( pi.getUid() );
+        event.setEnrollment( programInstance.getUid() );
         event.setEventDate( EVENT_DATE );
         event.setDeleted( false );
         return event;
     }
 
-    private Event eventOfProgramWithRegistration( String uid, String enrollment )
+    private Event event( Program program, ProgramStage programStage,
+        Optional<TrackedEntityInstance> trackedEntityInstance, OrganisationUnit organisationUnit, String enrollment )
     {
+        String uid = CodeGenerator.generateUid();
+
         Event event = new Event();
         event.setUid( uid );
         event.setEvent( uid );
-        event.setProgram( programA.getUid() );
-        event.setProgramStage( programStageA.getUid() );
-        event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        event.setOrgUnit( organisationUnitA.getUid() );
+        event.setProgram( program.getUid() );
+        event.setProgramStage( programStage.getUid() );
+        event.setTrackedEntityInstance(
+            trackedEntityInstance.map( TrackedEntityInstance::getTrackedEntityInstance ).orElse( null ) );
+        event.setOrgUnit( organisationUnit.getUid() );
         event.setEnrollment( enrollment );
         event.setEventDate( "2020-01-01" );
         return event;
