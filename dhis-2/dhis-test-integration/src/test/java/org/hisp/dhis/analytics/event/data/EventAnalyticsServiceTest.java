@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Calendar.APRIL;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
@@ -338,11 +337,8 @@ class EventAnalyticsServiceTest
 
         Date jan1 = new GregorianCalendar( 2017, JANUARY, 1 ).getTime();
         Date jan15 = new GregorianCalendar( 2017, JANUARY, 15 ).getTime();
-        Date feb14 = new GregorianCalendar( 2017, FEBRUARY, 14 ).getTime();
         Date feb15 = new GregorianCalendar( 2017, FEBRUARY, 15 ).getTime();
-        Date mar14 = new GregorianCalendar( 2017, MARCH, 14 ).getTime();
         Date mar15 = new GregorianCalendar( 2017, MARCH, 15 ).getTime();
-        Date apr15 = new GregorianCalendar( 2017, APRIL, 15 ).getTime();
 
         // Data Elements
         deA = createDataElement( 'A', INTEGER, SUM );

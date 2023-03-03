@@ -30,6 +30,10 @@ package org.hisp.dhis.predictor;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -56,6 +60,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Ken Haase
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder( toBuilder = true )
 @JacksonXmlRootElement( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
     extends BaseNameableObject implements MetadataObject
@@ -81,7 +88,7 @@ public class Predictor
     private PeriodType periodType;
 
     /**
-     * When non-empty, this is a boolean valued generator which indicates when
+     * When non-empty, this is a boolean-valued generator which indicates when
      * this rule should be skipped
      */
     private Expression sampleSkipTest;
@@ -122,14 +129,6 @@ public class Predictor
      * The set of PredictorGroups to which this Predictor belongs.
      */
     private Set<PredictorGroup> groups = new HashSet<>();
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public Predictor()
-    {
-    }
 
     // -------------------------------------------------------------------------
     // Logic

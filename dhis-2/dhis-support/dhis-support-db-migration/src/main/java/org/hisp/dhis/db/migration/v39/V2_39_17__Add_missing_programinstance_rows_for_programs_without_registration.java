@@ -34,8 +34,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -47,7 +45,6 @@ import org.hisp.dhis.common.CodeGenerator;
  *
  * @author Ameen Mohamed
  */
-@Slf4j
 public class V2_39_17__Add_missing_programinstance_rows_for_programs_without_registration extends BaseJavaMigration
 {
 

@@ -41,10 +41,8 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,10 +54,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultPreheatCacheService implements PreheatCacheService
 {
-    private final DhisConfigurationProvider config;
-
-    private final Environment environment;
-
     /**
      * Data structure to hold the metadata cache:
      *

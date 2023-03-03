@@ -487,7 +487,7 @@ public class IdentifiableObjectUtils
      * @return TRUE if both objects are null or have same UID or both UIDs are
      *         null. Otherwise, return FALSE.
      */
-    public static boolean equalByUID( IdentifiableObject object, IdentifiableObject target )
+    public static boolean equalsByUid( IdentifiableObject object, IdentifiableObject target )
     {
         if ( ObjectUtils.allNotNull( object, target ) )
         {

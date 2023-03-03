@@ -51,7 +51,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -74,9 +73,6 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 
     @Autowired
     private DataValueService dataValueService;
-
-    @Autowired
-    private PeriodService periodService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;

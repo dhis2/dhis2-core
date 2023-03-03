@@ -6,17 +6,7 @@ $( document ).ready( function()
 {
     $( '#j_username' ).focus();
 
-    var checked = document.getElementById( '2fa' ).checked;
-
-    $( '#2fa' ).click( function () {
-        $( '#2fa_code' ).attr("hidden", checked);
-        $( '#2fa_code' ).attr("readonly", checked);
-        document.getElementById( '2fa' ).checked = !checked;
-
-        checked = !checked;
-    });
-
-    $( '#loginForm').bind( 'submit', function() 
+    $( '#loginForm').bind( 'submit', function()
     {
 		if ( window.location.hash )
 		{	
