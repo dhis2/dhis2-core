@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.hibernate.HibernateService;
@@ -136,6 +137,8 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected RelationshipType relationshipType;
 
+    private User user;
+
     /**
      * Default COC created in DefaultCategoryService
      */
@@ -189,7 +192,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
 
-        User user = createUserWithAuth( "testUser" );
+        user = createUserWithAuth( "testUser" );
         injectSecurityContext( user );
     }
 
@@ -347,6 +350,10 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setLastUpdatedAtClient( now );
                 event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
+
+                event1.setAssignedUser( user.getUid() );
+                event1.setNotes( createEventNotes() );
+
                 eventList.add( event1 );
             }
             enrollment.setEvents( eventList );
@@ -407,5 +414,20 @@ public abstract class TrackerTest extends IntegrationTestBase
         group.setUid( "uid4" );
         group.setAuthorities( new HashSet<>( Arrays.asList( "z1", UserRole.AUTHORITY_ALL ) ) );
         user.setUserRoles( Sets.newHashSet( group ) );
+    }
+
+    private List<Note> createEventNotes()
+    {
+        List<Note> notes = new ArrayList<>();
+
+        for ( int i = 1; i < 3; i++ )
+        {
+            Note e = new Note();
+            e.setNote( "Event note: " + i );
+            e.setValue( "Event note: " + i );
+            notes.add( e );
+        }
+
+        return notes;
     }
 }
