@@ -36,6 +36,8 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Unit tests for {@link AnalyticsSqlUtils}.
+ *
  * @author Luciano Fiandesio
  */
 class AnalyticsSqlUtilsTest
@@ -94,7 +96,6 @@ class AnalyticsSqlUtilsTest
     @Test
     void testGetCoalesce_returns_defaultColumnName_when_coordinate_field_collection_is_empty()
     {
-        // given
         // when
         String sqlSnippet = AnalyticsSqlUtils.getCoalesce( new ArrayList<>(),
             FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
@@ -104,9 +105,8 @@ class AnalyticsSqlUtilsTest
     }
 
     @Test
-    void testGetCoalesce_returns_defaultColumnName_when_coordinate_field_collection_is_null()
+    void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldCollectionIsNull()
     {
-        // given
         // when
         String sqlSnippet = AnalyticsSqlUtils.getCoalesce( null, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
 
@@ -115,14 +115,22 @@ class AnalyticsSqlUtilsTest
     }
 
     @Test
-    void testGetCoalesce_returns_coalesce_when_coordinate_field_collection_is_not_empty()
+    void testGetCoalesceReturnsCoalesceWhenCoordinateFieldCollectionIsNotEmpty()
     {
-        // given
         // when
         String sqlSnippet = AnalyticsSqlUtils.getCoalesce( List.of( "coorA", "coorB", "coorC" ),
             FallbackCoordinateFieldType.PSI_GEOMETRY.getValue() );
 
         // then
         assertEquals( "coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet );
+    }
+
+    @Test
+    void testGetCollate()
+    {
+        assertEquals( " collate \"Posix\" ", AnalyticsSqlUtils.getCollate( "Posix" ) );
+        assertEquals( "", AnalyticsSqlUtils.getCollate( null ) );
+        assertEquals( "", AnalyticsSqlUtils.getCollate( "" ) );
+        assertEquals( "", AnalyticsSqlUtils.getCollate( " " ) );
     }
 }

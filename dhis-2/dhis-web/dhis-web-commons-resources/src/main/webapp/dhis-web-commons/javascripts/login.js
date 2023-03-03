@@ -31,6 +31,11 @@ $( document ).ready( function()
     	login.changeLocale( locale );
     	$( '#localeSelect option[value="' + locale + '"]' ).attr( 'selected', 'selected' );
     }
+
+    $( '#localeSelect' ).on( 'change', function()
+    {
+        login.localeChanged();
+    } );
 } );
 
 login.localeChanged = function()
