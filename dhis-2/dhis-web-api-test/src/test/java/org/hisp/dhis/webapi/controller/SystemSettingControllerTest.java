@@ -37,12 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link SystemSettingController} using (mocked) REST requests.
@@ -51,10 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class SystemSettingControllerTest extends DhisControllerConvenienceTest
 {
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
     @Test
     void testSetSystemSettingOrTranslation_NoSuchObject()
     {

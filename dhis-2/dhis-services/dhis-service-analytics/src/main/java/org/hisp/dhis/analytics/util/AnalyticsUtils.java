@@ -805,6 +805,7 @@ public class AnalyticsUtils
 
                     map.put( item.getDimensionItem(),
                         new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
+                            params.getServerBaseUrl(),
                             includeMetadataDetails ? item : null ) );
                 }
 
@@ -846,7 +847,6 @@ public class AnalyticsUtils
                 dimension.getDimensionItemKeywords().getKeywords()
                     .forEach( b -> map.putIfAbsent( b.getKey(), b.getMetadataItem() ) );
             }
-
         }
 
         Program program = params.getProgram();

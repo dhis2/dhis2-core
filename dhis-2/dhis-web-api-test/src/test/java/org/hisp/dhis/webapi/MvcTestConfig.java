@@ -48,7 +48,6 @@ import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.controller.tracker.imports.StringToTrackerIdSchemeParamConverter;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
@@ -285,7 +284,6 @@ public class MvcTestConfig implements WebMvcConfigurer
     public void addFormatters( FormatterRegistry registry )
     {
         registry.addConverter( new FieldPathConverter() );
-        registry.addConverter( new StringToTrackerIdSchemeParamConverter() );
     }
 
     @Bean

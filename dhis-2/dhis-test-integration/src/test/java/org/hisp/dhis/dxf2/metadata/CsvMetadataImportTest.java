@@ -52,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +107,7 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase
     void testOrgUnitImport_SuperUser()
         throws Exception
     {
-        User admin = createAndInjectAdminUser();
+        createAndInjectAdminUser();
         ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals( 6, metadata.getOrganisationUnits().size() ) );
         assertEquals( 6, importReport.getStats().getCreated() );
