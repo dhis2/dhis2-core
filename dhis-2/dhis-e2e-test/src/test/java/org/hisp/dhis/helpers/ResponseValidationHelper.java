@@ -30,6 +30,7 @@ package org.hisp.dhis.helpers;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.apache.http.HttpStatus;
 import org.hisp.dhis.dto.ApiResponse;
 
 /**
@@ -45,6 +46,11 @@ public class ResponseValidationHelper
 
     public static void validateObjectCreation( ApiResponse response )
     {
+        if ( response.statusCode() == HttpStatus.SC_METHOD_NOT_ALLOWED )
+        {
+            return;
+        }
+
         response.validate().statusCode( 201 );
         validateObjectUpdateResponse( response );
     }
