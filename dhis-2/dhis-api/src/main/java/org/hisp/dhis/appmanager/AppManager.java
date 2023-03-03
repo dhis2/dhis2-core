@@ -110,7 +110,7 @@ public interface AppManager
     List<App> getPlugins( String contextPath, int max );
 
     /**
-     * Returns a list of all installed apps.
+     * Returns the installed app with a given name
      *
      * @param appName the name of the app to return.
      * @return the app with the requested name
@@ -270,6 +270,18 @@ public interface AppManager
         return apps
             .stream()
             .filter( app -> app.isBundled() == isBundled )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns a list of all installed apps which have the given plugin type.
+     *
+     * @return list of installed apps with given isBundled property
+     */
+    public static List<App> filterAppsByPluginType( String pluginType, Collection<App> apps )
+    {
+        return apps.stream()
+            .filter( app -> app.getPluginType().equals( pluginType ) )
             .collect( Collectors.toList() );
     }
 }

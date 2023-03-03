@@ -87,7 +87,7 @@ public class CspFilter
         if ( LOGIN_PATTERN.matcher( url ).matches() )
         {
             String nonce = CodeGenerator.getRandomUrlToken();
-            req.getSession().setAttribute( "nounce", nonce );
+            req.getSession().setAttribute( "nonce", nonce );
 
             res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nonce + "';" );
             res.addHeader( CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_STRICT_CSP );

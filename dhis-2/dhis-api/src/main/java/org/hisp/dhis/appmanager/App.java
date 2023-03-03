@@ -96,6 +96,8 @@ public class App
 
     private String pluginLaunchUrl;
 
+    private String pluginType;
+
     private String baseUrl;
 
     private Set<String> authorities = new HashSet<>();
@@ -259,6 +261,18 @@ public class App
     public void setPluginLaunchPath( String pluginLaunchPath )
     {
         this.pluginLaunchPath = pluginLaunchPath;
+    }
+
+    @JsonProperty( "plugin_type" )
+    @JacksonXmlProperty( localName = "plugin_type", namespace = DxfNamespaces.DXF_2_0 )
+    public String getPluginType()
+    {
+        return pluginType;
+    }
+
+    public void setPluginType( String pluginType )
+    {
+        this.pluginType = pluginType;
     }
 
     @JsonProperty( "installs_allowed_from" )

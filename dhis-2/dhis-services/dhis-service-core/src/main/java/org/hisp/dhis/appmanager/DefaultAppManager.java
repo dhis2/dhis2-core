@@ -189,6 +189,10 @@ public class DefaultAppManager
         {
             apps.retainAll( AppManager.filterAppsByShortName( value, apps, operator ) );
         }
+        else if ( "pluginType".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( AppManager.filterAppsByPluginType( value, apps ) );
+        }
         else if ( "bundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
