@@ -473,9 +473,9 @@ public class DhisWebApiWebSecurityConfig
 
             authorize
 
-                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
                 .antMatchers( "/dhis-web-commons/security/impersonateUser.action" )
-                .hasAnyAuthority( "ALL", "F_IMPERSONATE_USERS" )
+                .hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
 
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
                 .antMatchers( "/index.html" ).permitAll()
