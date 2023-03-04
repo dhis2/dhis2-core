@@ -32,14 +32,18 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1308;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
@@ -74,9 +78,18 @@ class ProgramRuleAssignActionTest extends TrackerTest
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
     private Program program;
 
     private DataElement dataElement1;
+
+    private DataElement dataElementWithOptionSet;
+
+    private DataElement dataElementToAssignValueTo;
+
+    private ProgramRuleVariable programRuleVariableWithOptionSet;
 
     @Override
     public void initTest()
@@ -86,8 +99,17 @@ class ProgramRuleAssignActionTest extends TrackerTest
         program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
         dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
+        dataElementWithOptionSet = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00012" );
+        dataElementToAssignValueTo = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00013" );
+
         ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
             dataElement2 );
+        programRuleVariableWithOptionSet = createProgramRuleVariableWithDataElement( 'A', program,
+            dataElementWithOptionSet );
+        programRuleVariableWithOptionSet.setName( "test-de-optionset" );
+        programRuleVariableWithOptionSet.setUseCodeForOptionSet( false );
+
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableWithOptionSet );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
 
         injectAdminUser();
@@ -105,7 +127,23 @@ class ProgramRuleAssignActionTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyWarnings( importReport, E1308 );
+        assertHasOnlyWarnings( importReport, E1308, E1308 );
+    }
+
+    @Test
+    void shouldAssignOptionNameToDataElement()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/programrule/event_update_datavalue_same_value.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+
+        trackerImportService.importTracker( params );
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( "D9PbzJY8bJO" );
+        String dataValue = psi.getEventDataValues().stream().filter( dv -> dv.getDataElement().equals( "DATAEL00013" ) )
+            .map( EventDataValue::getValue ).findAny().get();
+
+        assertEquals( "option3-name", dataValue, "Option name is not assigned to dataElement" );
     }
 
     @Test
@@ -143,6 +181,16 @@ class ProgramRuleAssignActionTest extends TrackerTest
         programRuleActionService.addProgramRuleAction( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         programRuleService.updateProgramRule( programRule );
+
+        ProgramRule programRuleForOptionSet = createProgramRule( 'P', program, null,
+            "d2:hasValue(#{test-de-optionset})" );
+        programRuleService.addProgramRule( programRuleForOptionSet );
+        ProgramRuleAction programRuleActionForOptionSet = createProgramRuleAction( programRuleForOptionSet, ASSIGN,
+            dataElementToAssignValueTo,
+            "#{test-de-optionset}" );
+        programRuleActionService.addProgramRuleAction( programRuleActionForOptionSet );
+        programRuleForOptionSet.getProgramRuleActions().add( programRuleActionForOptionSet );
+        programRuleService.updateProgramRule( programRuleForOptionSet );
     }
 
     private ProgramRule createProgramRule( char uniqueCharacter, Program program, ProgramStage programStage,
