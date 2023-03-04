@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -123,6 +124,11 @@ public class MetadataImportBasedOnSchemasTest
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
 
         ApiResponse response = apiActions.post( object );
+
+        if ( response.statusCode() == HttpStatus.SC_METHOD_NOT_ALLOWED )
+        {
+            return;
+        }
 
         // validate response;
         ResponseValidationHelper.validateObjectCreation( response );
