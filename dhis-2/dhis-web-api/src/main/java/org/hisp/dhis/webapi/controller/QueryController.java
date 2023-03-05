@@ -32,12 +32,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,7 +78,7 @@ public class QueryController
         final String target = parseTargetFromRequestBody( bodyString );
         final String hash = createAlias( target );
 
-        return Map.of( "alias", "/api/query/alias" + hash );
+        return Map.of( "alias", "/api/query/alias/" + hash );
     }
 
     @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
@@ -109,11 +109,6 @@ public class QueryController
         String target = null;
         try
         {
-            if ( !renderService.isValidJson( bodyString ) )
-            {
-                throw new BadRequestException( "Alias must be passed a valid JSON object" );
-            }
-
             Map<String, String> map = renderService.fromJson( bodyString, Map.class );
 
             if ( map != null )
@@ -123,19 +118,25 @@ public class QueryController
         }
         catch ( Exception e )
         {
-            // continue
+            throw new BadRequestException( "Request body must be a valid JSON object" );
         }
 
         if ( target == null )
         {
             throw new BadRequestException( "Alias must contain a 'target' property" );
         }
+
+        if ( !target.startsWith( "/api/" ) )
+        {
+            throw new BadRequestException( "Target must start with /api/" );
+        }
+
         return target;
     }
 
     private String createAlias( String target )
     {
-        String hash = DigestUtils.sha1Hex( target );
+        String hash = CodecUtils.sha1Hex( target );
         aliasCache.put( hash, target );
         return hash;
     }
