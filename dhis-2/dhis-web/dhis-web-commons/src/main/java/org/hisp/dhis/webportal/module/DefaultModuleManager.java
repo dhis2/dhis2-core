@@ -40,8 +40,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.ActionAccessResolver;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.config.Configuration;
@@ -78,9 +76,6 @@ public class DefaultModuleManager
 
     @Autowired
     private LocaleManager localeManager;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private ActionAccessResolver actionAccessResolver;
 
@@ -161,12 +156,10 @@ public class DefaultModuleManager
     {
         List<Module> modules = getAccessibleMenuModules();
 
-        User user = currentUserService.getCurrentUser();
-
         List<App> apps = appManager
-            .getAccessibleApps( contextPath, user )
+            .getApps( contextPath )
             .stream()
-            .filter( app -> app.getAppType() == AppType.APP && !app.isBundled() )
+            .filter( app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled() )
             .collect( Collectors.toList() );
 
         modules.addAll( apps.stream().map( Module::getModule ).collect( Collectors.toList() ) );
