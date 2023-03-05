@@ -39,7 +39,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,7 +72,6 @@ public class QueryController
     }
 
     @PostMapping( value = "/alias", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @CrossOrigin
     public @ResponseBody Map<String, String> postQueryAlias( @RequestBody String bodyString )
         throws BadRequestException
     {
@@ -84,7 +82,6 @@ public class QueryController
     }
 
     @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
-    @CrossOrigin
     public RedirectView redirectQueryAlias( @RequestBody String bodyString )
         throws BadRequestException
     {
@@ -95,7 +92,6 @@ public class QueryController
     }
 
     @GetMapping( "/alias/{hash}" )
-    @CrossOrigin
     public String getQueryAlias( @PathVariable( "hash" ) String hash )
         throws NotFoundException
     {
