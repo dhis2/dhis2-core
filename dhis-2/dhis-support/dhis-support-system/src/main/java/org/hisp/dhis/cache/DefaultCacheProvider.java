@@ -133,7 +133,7 @@ public class DefaultCacheProvider
         dataIntegritySummaryCache,
         dataIntegrityDetailsCache,
         subExpressionCache,
-        queryShortenerCache
+        queryAliasCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -652,7 +652,7 @@ public class DefaultCacheProvider
     public <V> Cache<V> createQueryAliasCache()
     {
         return registerCache( this.<V> newBuilder()
-            .forRegion( Region.queryShortenerCache.name() )
+            .forRegion( Region.queryAliasCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
             .forceInMemory()
