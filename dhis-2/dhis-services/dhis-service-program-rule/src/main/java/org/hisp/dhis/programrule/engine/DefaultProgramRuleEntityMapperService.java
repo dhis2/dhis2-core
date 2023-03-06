@@ -310,10 +310,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .getProgramRuleVariable( psi.getProgramStage().getProgram() );
 
         Map<String, ProgramRuleVariable> dataElementLinkedToProgramRuleVariables = programRuleVariables
-            .stream().collect( Collectors.toMap( programRuleVariable -> programRuleVariable.getDataElement().getUid(),
+            .stream().filter( ProgramRuleVariable::hasDataElement )
+            .collect( Collectors.toMap( programRuleVariable -> programRuleVariable.getDataElement().getUid(),
                 programRuleVariable -> programRuleVariable ) );
 
         Map<String, DataElement> dataElementWithOptionSet = programRuleVariables.stream()
+            .filter( ProgramRuleVariable::hasDataElement )
             .map( ProgramRuleVariable::getDataElement ).filter( DataElement::hasOptionSet )
             .collect( Collectors.toMap( BaseIdentifiableObject::getUid, de -> de ) );
 
