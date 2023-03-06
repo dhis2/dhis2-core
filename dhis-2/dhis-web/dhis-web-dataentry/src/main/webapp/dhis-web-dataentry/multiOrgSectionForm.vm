@@ -19,7 +19,7 @@ var organisationUnitList = []
     #foreach( $catComboId in $categoryComboIds )
         #set( $seCbId = "${section.id}-${catComboId}" )
         #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
-        #set( $categoryComboId = $orderedSectionCategoryCombos.get( $catComboId ) )
+        #set( $categoryComboId = $customSectionCategoryCombos.get( $catComboId ) )
     
         #if( $marker == 1 )
           #set( $marker = 0 )
