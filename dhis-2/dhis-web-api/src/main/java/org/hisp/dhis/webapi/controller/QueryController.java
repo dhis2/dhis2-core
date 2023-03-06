@@ -89,7 +89,7 @@ public class QueryController
         final String target = parseTargetFromRequestBody( bodyString );
         final String alias = createAlias( target );
 
-        Map<String, String> map = new LinkedHashMap<String, String>();
+        Map<String, String> map = new LinkedHashMap<>();
         map.put( "id", alias );
         map.put( "path", getAliasPath( alias ) );
         map.put( "href", getAliasHref( alias, request ) );
