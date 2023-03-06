@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.analytics.security;
 
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
+import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -375,17 +373,17 @@ public class DefaultAnalyticsSecurityManager
             return;
         }
 
-        // DimensionalObjects from the params
+        // DimensionalObjects from the params.
         List<DimensionalObject> dimensionalObjects = Stream.concat(
             params.getDimensions().stream(),
             params.getFilters().stream() )
             .collect( Collectors.toList() );
 
-        // Categories the user is constrained to
-        Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
-            : getCategoriesWithoutRestrictions( params.getProgram(), dimensionalObjects );
+        // Categories the user is constrained to.
+        List<Category> categories = currentUserService.currentUserIsSuper() ? List.of()
+            : getConstrainedCategories( params.getProgram(), dimensionalObjects );
 
-        // union of user and category constraints
+        // Union of user and category constraints.
         Set<DimensionalObject> dimensionConstraints = Stream.concat(
             user.getDimensionConstraints().stream(),
             categories.stream() )

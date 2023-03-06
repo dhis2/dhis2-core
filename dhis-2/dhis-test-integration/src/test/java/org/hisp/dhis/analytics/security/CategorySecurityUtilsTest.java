@@ -31,7 +31,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
+import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,8 +53,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A test for {@link CategorySecurityUtils} This class is a test for the method
- * {@link CategorySecurityUtils#getCategoriesWithoutRestrictions(List, List)}
- * which is used to get the categories that are not restricted by the user.
+ * {@link CategorySecurityUtils#getConstrainedCategories(List, List)} which is
+ * used to get the categories that are not restricted by the user.
  */
 class CategorySecurityUtilsTest
 {
@@ -123,7 +123,7 @@ class CategorySecurityUtilsTest
         EventQueryParams params = paramBuilder.build();
 
         // the actual tested method
-        List<String> actual = getCategoriesWithoutRestrictions(
+        List<String> actual = getConstrainedCategories(
             params.getProgram(),
             Stream.concat(
                 params.getDimensions().stream(),

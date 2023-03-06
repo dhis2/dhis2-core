@@ -48,7 +48,7 @@ public class OrderRenderer implements Renderable
     @Override
     public String render()
     {
-        return RenderableUtils.join(
+        return RenderableHelper.join(
             CollectionUtils.emptyIfNull( indexedOrders ).stream()
                 .sorted( comparing( IndexedOrder::getIndex ) )
                 .map( IndexedOrder::getRenderable )

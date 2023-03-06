@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.common.query;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
+import static org.hisp.dhis.analytics.common.query.RenderableHelper.join;
 
 import java.util.List;
 

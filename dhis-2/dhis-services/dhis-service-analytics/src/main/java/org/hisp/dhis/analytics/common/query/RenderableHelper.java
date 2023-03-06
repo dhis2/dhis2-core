@@ -42,15 +42,19 @@ import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Helper class that provides methods responsible for assisting with specific
+ * tasks related to {@link Renderable} objects.
+ */
 @NoArgsConstructor( access = PRIVATE )
-public class RenderableUtils
+public class RenderableHelper
 {
     /**
      * Joins the given {@link Renderable} objects using the given delimiter.
      *
-     * @param renderables a collection of {@link Renderable} objects
-     * @param delimiter a delimiter string
-     * @return a string of rendered objects joined by the delimiter
+     * @param renderables a collection of {@link Renderable} objects.
+     * @param delimiter a delimiter string.
+     * @return a string of rendered objects joined by the delimiter.
      */
     public static String join( Collection<? extends Renderable> renderables, String delimiter )
     {
@@ -61,11 +65,11 @@ public class RenderableUtils
      * Joins the given {@link Renderable} objects using the given delimiter and
      * prefix.
      *
-     * @param renderables a collection of {@link Renderable} objects
-     * @param delimiter a delimiter string
-     * @param prefix a prefix string
+     * @param renderables a collection of {@link Renderable} objects.
+     * @param delimiter a delimiter string.
+     * @param prefix a prefix string.
      * @return a string of rendered objects joined by the delimiter and prefixed
-     *         by the given prefix
+     *         by the given prefix.
      */
     public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix )
     {
@@ -76,8 +80,8 @@ public class RenderableUtils
      * Renders the given {@link Renderable} objects. Returns an empty list if
      * the given collection is null or contains only null/blank values.
      *
-     * @param renderables
-     * @return a list of rendered strings
+     * @param renderables the collection of {@link Renderable}.
+     * @return a list of rendered strings.
      */
     public static List<String> renderCollection( Collection<? extends Renderable> renderables )
     {
@@ -93,12 +97,12 @@ public class RenderableUtils
      * Joins the given {@link Renderable} objects using the given delimiter,
      * prefix and suffix.
      *
-     * @param renderables a collection of {@link Renderable} objects
-     * @param delimiter a delimiter string
-     * @param prefix a prefix string
-     * @param suffix a suffix string
+     * @param renderables a collection of {@link Renderable} objects.
+     * @param delimiter a delimiter string.
+     * @param prefix a prefix string.
+     * @param suffix a suffix string.
      * @return a string of rendered objects joined by the delimiter and prefixed
-     *         by the given prefix and suffixed by the given suffix
+     *         by the given prefix and suffixed by the given suffix.
      */
     public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix,
         String suffix )

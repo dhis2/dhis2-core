@@ -47,7 +47,7 @@ public class AndCondition extends BaseRenderable
      */
     public String render()
     {
-        List<String> renderedConditions = RenderableUtils.renderCollection( conditions );
+        List<String> renderedConditions = RenderableHelper.renderCollection( conditions );
         if ( renderedConditions.isEmpty() )
         {
             return EMPTY;

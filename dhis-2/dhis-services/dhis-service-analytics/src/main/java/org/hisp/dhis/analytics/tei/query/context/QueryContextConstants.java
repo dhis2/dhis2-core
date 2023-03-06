@@ -34,6 +34,12 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+
+/**
+ * Set of constants used by the {@link QueryContext} object. They mostly support
+ * SQL query generation.
+ */
 @NoArgsConstructor( access = PRIVATE )
 public class QueryContextConstants
 {
@@ -46,10 +52,6 @@ public class QueryContextConstants
     public static final String TEI_ALIAS = "t_1";
 
     public static final String DOT = ".";
-
-    public static final String EVT_ALIAS = "evt";
-
-    public static final String ENR_ALIAS = "enr";
 
     public static final String PI_UID = "programinstanceuid";
 

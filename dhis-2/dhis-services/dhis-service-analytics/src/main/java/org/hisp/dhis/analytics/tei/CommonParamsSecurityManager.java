@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static java.util.Collections.emptyList;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -35,7 +34,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObje
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getCategoriesWithoutRestrictions;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.Collection;
@@ -57,6 +55,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.security.CategorySecurityUtils;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DimensionService;
@@ -120,7 +119,7 @@ public class CommonParamsSecurityManager
         Set<IdentifiableObject> objects = new HashSet<>();
         objects.addAll( extraObjects );
 
-        // DimensionalObjects from TeiQueryParams
+        // DimensionalObjects from TeiQueryParams.
         objects.addAll( commonParams
             .getDimensionIdentifiers().stream()
             .filter( not( OrgUnitQueryBuilder::isOu ) )
@@ -255,8 +254,8 @@ public class CommonParamsSecurityManager
             .collect( toList() );
 
         // Categories the user is constrained to.
-        Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
-            : getCategoriesWithoutRestrictions(
+        Collection<Category> categories = currentUserService.currentUserIsSuper() ? List.of()
+            : CategorySecurityUtils.getConstrainedCategories(
                 commonParams.getPrograms(),
                 dimensionalObjects );
 

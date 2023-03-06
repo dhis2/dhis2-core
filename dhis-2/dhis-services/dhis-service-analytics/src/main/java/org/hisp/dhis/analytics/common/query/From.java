@@ -44,7 +44,7 @@ public class From implements Renderable
     @Override
     public String render()
     {
-        return RenderableUtils.join( List.of( mainTable, joinsWithConditions ), SPACE, "from " );
+        return RenderableHelper.join( List.of( mainTable, joinsWithConditions ), SPACE, "from " );
     }
 
     public static From ofSingleTableAndAlias( String table, String alias )
