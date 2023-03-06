@@ -85,11 +85,7 @@ class ProgramRuleAssignActionTest extends TrackerTest
 
     private DataElement dataElement1;
 
-    private DataElement dataElementWithOptionSet;
-
     private DataElement dataElementToAssignValueTo;
-
-    private ProgramRuleVariable programRuleVariableWithOptionSet;
 
     @Override
     public void initTest()
@@ -99,12 +95,13 @@ class ProgramRuleAssignActionTest extends TrackerTest
         program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
         dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
-        dataElementWithOptionSet = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00012" );
+        DataElement dataElementWithOptionSet = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class,
+            "DATAEL00012" );
         dataElementToAssignValueTo = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00013" );
 
         ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
             dataElement2 );
-        programRuleVariableWithOptionSet = createProgramRuleVariableWithDataElement( 'A', program,
+        ProgramRuleVariable programRuleVariableWithOptionSet = createProgramRuleVariableWithDataElement( 'B', program,
             dataElementWithOptionSet );
         programRuleVariableWithOptionSet.setName( "test-de-optionset" );
         programRuleVariableWithOptionSet.setUseCodeForOptionSet( false );
@@ -127,13 +124,14 @@ class ProgramRuleAssignActionTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyWarnings( importReport, E1308, E1308 );
+        assertHasOnlyWarnings( importReport, E1308 );
     }
 
     @Test
     void shouldAssignOptionNameToDataElement()
         throws IOException
     {
+        assignProgramRuleForOptionSet();
         TrackerImportParams params = fromJson( "tracker/programrule/event_update_datavalue_same_value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
@@ -181,7 +179,10 @@ class ProgramRuleAssignActionTest extends TrackerTest
         programRuleActionService.addProgramRuleAction( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         programRuleService.updateProgramRule( programRule );
+    }
 
+    private void assignProgramRuleForOptionSet()
+    {
         ProgramRule programRuleForOptionSet = createProgramRule( 'P', program, null,
             "d2:hasValue(#{test-de-optionset})" );
         programRuleService.addProgramRule( programRuleForOptionSet );
