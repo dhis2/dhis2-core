@@ -61,9 +61,14 @@ public enum DimensionParamType
         .flatMap( Collection::stream )
         .collect( Collectors.toList() ) ),
 
-    // The uidsGetter invoked on this enum, will return a collection made of:
-    // - commonQueryRequest.getAsc(), suffixed by ":asc"
-    // - commonQueryRequest.getDesc(), suffixed by ":desc"
+    /**
+     * The function invoked on this enum, will return a collection made of:
+     *
+     * <ul>
+     * <li>commonQueryRequest.getAsc(), suffixed by ":asc"</li>
+     * <li>commonQueryRequest.getDesc(), suffixed by ":desc"</li>
+     * </ul>
+     */
     SORTING( commonQueryRequest -> Stream.concat(
         commonQueryRequest.getAsc().stream()
             .map( s -> s + ":" + ASC.getValue() ),
@@ -85,12 +90,21 @@ public enum DimensionParamType
             .collect( Collectors.toList() );
     }
 
-    private static String toDimensionParam( String dateFilterItem, AnalyticsDateFilter analyticsDateFilter )
+    /**
+     * Transforms the given "dateItemFilter" into the default internal format
+     * for "pe" dimensions based on the {@link AnalyticsDateFilter} provided.
+     *
+     * @param dateItemFilter the date item filter in the format
+     *        "programUid.programStageUid.period"
+     * @param analyticsDateFilter the {@link AnalyticsDateFilter}.
+     * @return the string in the format
+     *         "programUid.programStageUid.pe:period:analyticsDateFilter"
+     */
+    private static String toDimensionParam( String dateItemFilter, AnalyticsDateFilter analyticsDateFilter )
     {
-        // Here, dateItem filter is in the form of
-        // programUid.programStageUid.period we need to return
+        // Parsing the "programUid.programStageUid.period" to
         // programUid.programStageUid.pe:period:analyticsDateFilter.
-        StringDimensionIdentifier parsedItem = fromFullDimensionId( dateFilterItem );
+        StringDimensionIdentifier parsedItem = fromFullDimensionId( dateItemFilter );
 
         String period = parsedItem.getDimension().getUid();
 
@@ -105,7 +119,9 @@ public enum DimensionParamType
             analyticsDateFilter.name() );
     }
 
-    // Getter method to retrieve the dimensions or filters from the
-    // CommonQueryRequest.
+    /**
+     * Getter method that retrieves the dimensions or filters from the
+     * {@link CommonQueryRequest}.
+     */
     private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }

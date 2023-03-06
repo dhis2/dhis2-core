@@ -31,11 +31,11 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Objects;

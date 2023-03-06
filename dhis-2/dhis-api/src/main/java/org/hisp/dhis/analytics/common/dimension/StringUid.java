@@ -31,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.UidObject;
 
+/**
+ * Simply holds as value that has the format of an "uid".
+ */
 @RequiredArgsConstructor( staticName = "of" )
 public class StringUid implements UidObject
 {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.RequiredArgsConstructor;
 

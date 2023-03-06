@@ -39,7 +39,7 @@ import org.hisp.dhis.common.UidObject;
 /**
  * Encapsulates and element T with its offset.
  *
- * @param <T> the dimension type
+ * @param <T> the dimension type.
  */
 @Data
 @RequiredArgsConstructor( staticName = "of" )

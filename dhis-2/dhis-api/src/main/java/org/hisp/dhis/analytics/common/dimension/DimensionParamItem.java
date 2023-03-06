@@ -59,10 +59,11 @@ public class DimensionParamItem
         {
             return Collections.emptyList();
         }
-        // if operator is specified, it's in the first element
+        // If operator is specified, it's in the first element.
         String firstElement = items.get( 0 );
+
         if ( firstElement.contains( DIMENSION_NAME_SEP ) )
-        { // has operator
+        { // Has operator.
             String[] parts = firstElement.split( DIMENSION_NAME_SEP );
             QueryOperator queryOperator = getOperator( parts[0] );
             return singletonList(

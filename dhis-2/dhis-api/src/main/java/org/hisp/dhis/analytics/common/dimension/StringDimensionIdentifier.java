@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
-import lombok.AccessLevel;
+import static lombok.AccessLevel.PRIVATE;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.tuple.Triple;
 
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+/**
+ * This object identifies the structure of dimension item and its associations
+ * (program and a program stage).
+ */
+@RequiredArgsConstructor( access = PRIVATE )
 public class StringDimensionIdentifier
 {
-
     private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid> triple;
 
     public static StringDimensionIdentifier of(
@@ -61,6 +65,12 @@ public class StringDimensionIdentifier
         return triple.getRight();
     }
 
+    /**
+     * Returns this object as a String in its full representation. The returned
+     * value will have the format: programUid.programStageUid.dimensionUid.
+     *
+     * @return the string representing the full dimension.
+     */
     public String toString()
     {
         return DimensionIdentifierHelper.asText( getProgram(), getProgramStage(), getDimension() );
