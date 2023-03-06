@@ -115,10 +115,16 @@ public class DefaultProgramRuleVariableService
     public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
     {
         return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
-            List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
-                .getProgramVariables( program, dataElement );
+            List<ProgramRuleVariable> ruleVariables = getProgramVariables( program, dataElement );
             return !ruleVariables.isEmpty();
         } );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement )
+    {
+        return programRuleVariableStore.getProgramVariables( program, dataElement );
     }
 
     @Override
