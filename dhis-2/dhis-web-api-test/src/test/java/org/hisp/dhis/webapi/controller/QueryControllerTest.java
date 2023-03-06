@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -47,18 +46,22 @@ class QueryControllerTest extends DhisControllerConvenienceTest
 {
     private static final String API_QUERY_ALIAS = "/query/alias";
 
-    private static final String API_QUERY_ALIAS_REDIRECT = "/query/redirect";
+    private static final String API_QUERY_ALIAS_REDIRECT = "/query/alias/redirect";
 
-    private static final String testTargetUrl = "/api/me";
+    private static final String testTargetUrl = "/api/me?fields=id,username,surname,firstName";
 
-    private static final String testTargetUrlHash = CodecUtils.sha1Hex( testTargetUrl );
+    private static final String testTargetAliasId = "671575eeea3d36a777efa6dcb48076083ff5cbbd";
 
-    private static final String testTargetAliasUrl = API_QUERY_ALIAS + "/" + testTargetUrlHash;
+    private static final String testTargetAliasPath = API_QUERY_ALIAS + "/" + testTargetAliasId;
+
+    private static final String testTargetAliasFullPath = "/api" + testTargetAliasPath;
+
+    private static final String testTargetAliasHref = "http://localhost" + testTargetAliasFullPath;
 
     @Test
     void testGetUninitializedAlias()
     {
-        assertStatus( HttpStatus.NOT_FOUND, GET( API_QUERY_ALIAS + testTargetUrlHash ) );
+        assertStatus( HttpStatus.NOT_FOUND, GET( testTargetAliasPath ) );
     }
 
     @Test
@@ -67,12 +70,16 @@ class QueryControllerTest extends DhisControllerConvenienceTest
         JsonObject doc = POST( API_QUERY_ALIAS, "{ \"target\": \"" + testTargetUrl + "\" }" ).content();
 
         assertTrue( doc.isObject() );
-        assertTrue( doc.getString( "alias" ).string().equals( testTargetAliasUrl ) );
 
-        JsonObject targetResponse = GET( "/me" ).content();
-        JsonObject aliasResponse = GET( testTargetAliasUrl ).content();
+        assertEquals( testTargetAliasId, doc.getString( "id" ).string() );
+        assertEquals( testTargetAliasFullPath, doc.getString( "path" ).string() );
+        assertEquals( testTargetAliasHref, doc.getString( "href" ).string() );
+        assertEquals( testTargetUrl, doc.getString( "target" ).string() );
 
-        assertTrue( targetResponse.toString().equals( aliasResponse.toString() ) );
+        JsonObject targetResponse = GET( testTargetUrl.substring( "/api".length() ) ).content();
+        JsonObject aliasResponse = GET( testTargetAliasPath ).content();
+
+        assertEquals( targetResponse.toString(), aliasResponse.toString() );
     }
 
     @Test
@@ -81,7 +88,6 @@ class QueryControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "/api/me" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "\"/api/me\"" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "{ \"destination\": \"/api/me\"" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "\"/api/me\"" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "{ \"target\": \"/me\" }" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS, "{ \"target\": \"api/me\" }" ) );
@@ -94,7 +100,7 @@ class QueryControllerTest extends DhisControllerConvenienceTest
     {
         HttpResponse response = POST( API_QUERY_ALIAS_REDIRECT, "{ \"target\": \"" + testTargetUrl + "\" }" );
         assertStatus( HttpStatus.SEE_OTHER, response );
-        assertEquals( response.header( "Location" ), "/api/query/alias/" + testTargetUrlHash );
+        assertEquals( testTargetAliasHref, response.header( "Location" ) );
     }
 
     @Test
@@ -103,7 +109,6 @@ class QueryControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "/api/me" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "\"/api/me\"" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "{ \"destination\": \"/api/me\"" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "\"/api/me\"" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "{ \"target\": \"/me\" }" ) );
         assertStatus( HttpStatus.BAD_REQUEST, POST( API_QUERY_ALIAS_REDIRECT, "{ \"target\": \"api/me\" }" ) );

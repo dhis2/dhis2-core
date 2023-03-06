@@ -29,8 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -38,6 +41,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,6 +65,8 @@ public class QueryController
 {
     public static final String RESOURCE_PATH = "/query";
 
+    private static final String ALIAS_ROOT = "/api/query/alias";
+
     private final RenderService renderService;
 
     private final Cache<String> aliasCache;
@@ -72,23 +78,30 @@ public class QueryController
     }
 
     @PostMapping( value = "/alias", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, String> postQueryAlias( @RequestBody String bodyString )
+    public @ResponseBody Map<String, String> postQueryAlias( HttpServletRequest request,
+        @RequestBody String bodyString )
         throws BadRequestException
     {
         final String target = parseTargetFromRequestBody( bodyString );
-        final String hash = createAlias( target );
+        final String alias = createAlias( target );
 
-        return Map.of( "alias", "/api/query/alias/" + hash );
+        Map<String, String> map = new LinkedHashMap<String, String>();
+        map.put( "id", alias );
+        map.put( "path", getAliasPath( alias ) );
+        map.put( "href", getAliasHref( alias, request ) );
+        map.put( "target", target );
+
+        return map;
     }
 
     @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
-    public RedirectView redirectQueryAlias( @RequestBody String bodyString )
+    public RedirectView redirectQueryAlias( HttpServletRequest request, @RequestBody String bodyString )
         throws BadRequestException
     {
         final String target = parseTargetFromRequestBody( bodyString );
-        final String hash = createAlias( target );
+        final String alias = createAlias( target );
 
-        return new RedirectView( "/api/query/alias/" + hash, false, false );
+        return new RedirectView( getAliasHref( alias, request ), false, false );
     }
 
     @GetMapping( "/alias/{hash}" )
@@ -136,8 +149,22 @@ public class QueryController
 
     private String createAlias( String target )
     {
-        String hash = CodecUtils.sha1Hex( target );
-        aliasCache.put( hash, target );
-        return hash;
+        String alias = CodecUtils.sha1Hex( target );
+        aliasCache.put( alias, target );
+        return alias;
+    }
+
+    private static String getAliasPath( String alias )
+    {
+        return String.join( "/", ALIAS_ROOT, alias ).replaceAll( "/+", "/" );
+    }
+
+    private static String getAliasHref( String alias, HttpServletRequest request )
+    {
+        String contextPath = ContextUtils.getContextPath( request );
+        String scheme = contextPath.substring( 0, contextPath.indexOf( "://" ) + 3 );
+        String contextPathNoScheme = contextPath.substring( scheme.length() );
+
+        return scheme + String.join( "/", contextPathNoScheme, getAliasPath( alias ) ).replaceAll( "/+", "/" );
     }
 }
