@@ -139,7 +139,8 @@ public class ExpirationDaysCheck implements Checker
                 }
 
                 Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-                if ( today.after( DateUtils.addDays( period.getEndDate(), program.getExpiryDays() ) ) )
+                if ( !Period.isDateInTimeFrame( null, DateUtils.addDays( period.getEndDate(), program.getExpiryDays() ),
+                    today ) )
                 {
                     return error(
                         "The program's expiry date has passed. It is not possible to make changes to this event",

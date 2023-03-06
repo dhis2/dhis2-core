@@ -333,7 +333,10 @@ public class Period
      */
     public boolean isFuture()
     {
-        return getEndDate().after( new Date() );
+        Date now = new Date();
+        return getEndDate().after( now )
+            // on same day it is not the future yet
+            && new DateTime( getEndDate() ).getDayOfWeek() != new DateTime( now ).getDayOfYear();
     }
 
     /**

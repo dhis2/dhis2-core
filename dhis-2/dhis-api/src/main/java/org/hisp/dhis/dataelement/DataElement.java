@@ -514,9 +514,12 @@ public class DataElement extends BaseDimensionalItemObject
     public boolean isExpired( Period period, Date now )
     {
         int expiryDays = getExpiryDays();
-
-        return expiryDays != DataSet.NO_EXPIRY
-            && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
+        if ( expiryDays == DataSet.NO_EXPIRY )
+        {
+            return false;
+        }
+        return !Period.isDateInTimeFrame( null, new DateTime( period.getEndDate() ).plusDays( expiryDays ).toDate(),
+            now );
     }
 
     /**
