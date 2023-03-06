@@ -32,6 +32,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -66,6 +68,8 @@ public class QueryController
     public static final String RESOURCE_PATH = "/query";
 
     private static final String ALIAS_ROOT = "/api/query/alias";
+
+    private static final Pattern MULTIPLE_FORWARD_SLASH_PATTERN = Pattern.compile( "/+" );
 
     private final RenderService renderService;
 
@@ -154,17 +158,24 @@ public class QueryController
         return alias;
     }
 
+    private static String replaceDuplicateSlashes( String input )
+    {
+        Matcher matcher = MULTIPLE_FORWARD_SLASH_PATTERN.matcher( input );
+        return matcher.replaceAll( "/" );
+    }
+
     private static String getAliasPath( String alias )
     {
-        return String.join( "/", ALIAS_ROOT, alias ).replaceAll( "/+", "/" );
+        String path = String.join( "/", ALIAS_ROOT, alias );
+        return replaceDuplicateSlashes( path );
     }
 
     private static String getAliasHref( String alias, HttpServletRequest request )
     {
         String contextPath = ContextUtils.getContextPath( request );
         String scheme = contextPath.substring( 0, contextPath.indexOf( "://" ) + 3 );
-        String contextPathNoScheme = contextPath.substring( scheme.length() );
+        String path = String.join( "/", contextPath.substring( scheme.length() ), getAliasPath( alias ) );
 
-        return scheme + String.join( "/", contextPathNoScheme, getAliasPath( alias ) ).replaceAll( "/+", "/" );
+        return scheme + replaceDuplicateSlashes( path );
     }
 }
