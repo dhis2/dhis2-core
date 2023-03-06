@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.utils;
 
-import com.github.javafaker.Faker;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.actions.IdGenerator;
@@ -40,10 +41,10 @@ import org.hisp.dhis.dto.schemas.PropertyType;
 import org.hisp.dhis.dto.schemas.Schema;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import com.github.javafaker.Faker;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -200,10 +201,12 @@ public class DataGenerator
     }
 
     /**
-     * Generates random value from the list of constants.
-     * If the list contains "MULTI_TEXT" value, it will be skipped.
-     * This is because a DataElement with valueType=MultiText must have an OptionSet, but currently we don't have a way to generate an OptionSet.
-     * TODO: add a way to generate an OptionSet
+     * Generates random value from the list of constants. If the list contains
+     * "MULTI_TEXT" value, it will be skipped. This is because a DataElement
+     * with valueType=MultiText must have an OptionSet, but currently we don't
+     * have a way to generate an OptionSet. TODO: add a way to generate an
+     * OptionSet
+     *
      * @param property SchemaProperty
      * @return JsonElement
      */
@@ -211,7 +214,8 @@ public class DataGenerator
     {
         int randomConstant = -1;
         JsonPrimitive element = null;
-        while( randomConstant == -1 || ( property.getName().equals( "valueType" ) && property.getConstants().get( randomConstant ).equals( "MULTI_TEXT" ) ) )
+        while ( randomConstant == -1 || (property.getName().equals( "valueType" )
+            && property.getConstants().get( randomConstant ).equals( "MULTI_TEXT" )) )
         {
             randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
             element = new JsonPrimitive( property.getConstants().get( randomConstant ) );
