@@ -37,12 +37,10 @@ import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
-import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
@@ -145,9 +143,6 @@ public class DhisWebCommonsWebSecurityConfig
         private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
 
         @Autowired
-        private I18nManager i18nManager;
-
-        @Autowired
         private DhisConfigurationProvider dhisConfig;
 
         @Autowired
@@ -168,9 +163,6 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
-        @Autowired
-        private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         @Autowired
         private ConfigurationService configurationService;

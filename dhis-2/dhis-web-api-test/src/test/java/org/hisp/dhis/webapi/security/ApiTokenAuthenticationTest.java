@@ -31,8 +31,6 @@ import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
@@ -50,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
     public static final String URI = "/me?fields=settings,id";

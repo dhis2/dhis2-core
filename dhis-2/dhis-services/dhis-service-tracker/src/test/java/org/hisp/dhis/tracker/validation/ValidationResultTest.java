@@ -34,7 +34,6 @@ import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
 
 class ValidationResultTest
@@ -90,19 +89,9 @@ class ValidationResultTest
         return new Error( "", code, TrackerType.EVENT, uid );
     }
 
-    private Error newError( TrackerDto dto )
-    {
-        return new Error( "", ValidationCode.E9999, dto.getTrackerType(), dto.getUid() );
-    }
-
     private Warning newWarning()
     {
         return newWarning( CodeGenerator.generateUid(), ValidationCode.E9999 );
-    }
-
-    private Warning newWarning( ValidationCode code )
-    {
-        return newWarning( CodeGenerator.generateUid(), code );
     }
 
     private Warning newWarning( String uid, ValidationCode code )

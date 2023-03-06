@@ -183,25 +183,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // READ
     // -------------------------------------------------------------------------
 
-    /**
-     * Merges the two sets, if the passed condition is true
-     *
-     * @param set1 a Set
-     * @param set2 a second Set
-     * @param condition a boolean condition
-     * @return if condition is true, a new Set consisting of the first and
-     *         second set. If false, the first set
-     */
-    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
-        boolean condition )
-    {
-        if ( condition )
-        {
-            set1.addAll( set2 );
-        }
-        return set1;
-    }
-
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,

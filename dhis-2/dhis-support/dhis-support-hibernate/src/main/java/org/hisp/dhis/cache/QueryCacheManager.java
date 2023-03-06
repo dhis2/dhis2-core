@@ -36,8 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.Query;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Cache;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +46,6 @@ import com.google.common.hash.Hashing;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
-@Slf4j
 public class QueryCacheManager
 {
     private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
