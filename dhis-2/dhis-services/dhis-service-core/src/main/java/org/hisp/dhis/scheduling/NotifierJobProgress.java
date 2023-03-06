@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * A {@link JobProgress} implementation that forwards the tracking to a
  * {@link Notifier}. It has no flow control and should be wrapped in a
@@ -72,7 +74,7 @@ public class NotifierJobProgress implements JobProgress
         {
             notifier.clear( jobId );
         }
-        notifier.notify( jobId, message );
+        notifier.notify( jobId, message + getJobParameterString() );
     }
 
     @Override
@@ -143,6 +145,23 @@ public class NotifierJobProgress implements JobProgress
         if ( isNotEmpty( error ) )
         {
             notifier.notify( jobId, NotificationLevel.ERROR, error, false );
+        }
+    }
+
+    private String getJobParameterString()
+    {
+        JobParameters params = jobId.getJobParameters();
+        if ( params == null )
+        {
+            return "";
+        }
+        try
+        {
+            return "\n" + new ObjectMapper().writeValueAsString( params );
+        }
+        catch ( Exception ex )
+        {
+            return "(failed to extract job parameter object)";
         }
     }
 }
