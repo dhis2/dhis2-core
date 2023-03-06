@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.common.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.junit.jupiter.api.Test;
 
 class LimitOffsetTest

@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;

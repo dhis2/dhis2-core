@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class RenderableDimensionIdentifier extends BaseRenderable

@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
-import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Objects;

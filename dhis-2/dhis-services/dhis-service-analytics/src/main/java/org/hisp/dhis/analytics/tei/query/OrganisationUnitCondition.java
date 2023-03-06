@@ -37,9 +37,9 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;

@@ -52,11 +52,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
-import org.hisp.dhis.analytics.common.dimension.StringUid;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;

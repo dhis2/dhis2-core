@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
 import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.eventSelect;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
@@ -48,10 +48,10 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;

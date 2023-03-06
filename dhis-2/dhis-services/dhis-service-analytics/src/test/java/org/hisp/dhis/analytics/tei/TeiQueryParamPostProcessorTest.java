@@ -38,11 +38,11 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.processing.DimensionIdentifierConverter;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;

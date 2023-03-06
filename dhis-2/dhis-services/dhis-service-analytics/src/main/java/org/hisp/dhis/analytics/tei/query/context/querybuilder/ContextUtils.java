@@ -28,14 +28,14 @@
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static lombok.AccessLevel.PRIVATE;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.P_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_ENR;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_EVT;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PS_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_UID;
 
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
+
+import static lombok.AccessLevel.PRIVATE;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.UidObject;
+import org.apache.commons.lang3.tuple.Triple;
 
 /**
- * Simply holds as value that has the format of an "uid".
+ * This object identifies the structure of dimension item and its associations
+ * (program and a program stage).
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class StringUid implements UidObject
+@RequiredArgsConstructor( access = PRIVATE )
+public class StringDimensionIdentifier
 {
-    private final String value;
+    private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid> triple;
 
-    @Override
-    public String getUid()
+    public static StringDimensionIdentifier of(
+        ElementWithOffset<StringUid> program,
+        ElementWithOffset<StringUid> programStage,
+        StringUid dimension )
     {
-        return value;
+        return new StringDimensionIdentifier( Triple.of( program, programStage, dimension ) );
+    }
+
+    public ElementWithOffset<StringUid> getProgram()
+    {
+        return triple.getLeft();
+    }
+
+    public ElementWithOffset<StringUid> getProgramStage()
+    {
+        return triple.getMiddle();
+    }
+
+    public StringUid getDimension()
+    {
+        return triple.getRight();
+    }
+
+    /**
+     * Returns this object as a String in its full representation. The returned
+     * value will have the format: programUid.programStageUid.dimensionUid.
+     *
+     * @return the string representing the full dimension.
+     */
+    public String toString()
+    {
+        return DimensionIdentifierHelper.asText( getProgram(), getProgramStage(), getDimension() );
     }
 }

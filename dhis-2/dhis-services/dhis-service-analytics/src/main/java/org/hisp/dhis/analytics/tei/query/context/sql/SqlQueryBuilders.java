@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 
 /**
  * Utility class of common methods used in the sql query builders.

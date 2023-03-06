@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import static lombok.AccessLevel.PRIVATE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Collection;
+import java.util.List;
 
-import org.apache.commons.lang3.tuple.Triple;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.junit.jupiter.api.Test;
 
 /**
- * This object identifies the structure of dimension item and its associations
- * (program and a program stage).
+ * Unit tests for {@link DimensionParamType}.
  */
-@RequiredArgsConstructor( access = PRIVATE )
-public class StringDimensionIdentifier
+class DimensionParamTypeTest
 {
-    private final Triple<ElementWithOffset<StringUid>, ElementWithOffset<StringUid>, StringUid> triple;
-
-    public static StringDimensionIdentifier of(
-        ElementWithOffset<StringUid> program,
-        ElementWithOffset<StringUid> programStage,
-        StringUid dimension )
+    @Test
+    void mapDates()
     {
-        return new StringDimensionIdentifier( Triple.of( program, programStage, dimension ) );
-    }
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
+            .withIncidentDate( "LAST_MONTH" )
+            .withEnrollmentDate( "2021-06-30" )
+            .withLastUpdated( "TODAY" )
+            .withScheduledDate( "YESTERDAY" );
+        Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply( request );
 
-    public ElementWithOffset<StringUid> getProgram()
-    {
-        return triple.getLeft();
-    }
+        List<String> expected = List.of( "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
+            "pe:2021-06-30:ENROLLMENT_DATE",
+            "pe:LAST_MONTH:INCIDENT_DATE",
+            "pe:YESTERDAY:SCHEDULED_DATE",
+            "pe:TODAY:LAST_UPDATED" );
 
-    public ElementWithOffset<StringUid> getProgramStage()
-    {
-        return triple.getMiddle();
-    }
-
-    public StringUid getDimension()
-    {
-        return triple.getRight();
-    }
-
-    /**
-     * Returns this object as a String in its full representation. The returned
-     * value will have the format: programUid.programStageUid.dimensionUid.
-     *
-     * @return the string representing the full dimension.
-     */
-    public String toString()
-    {
-        return DimensionIdentifierHelper.asText( getProgram(), getProgramStage(), getDimension() );
+        assertTrue( expected.containsAll( dateFilters ) );
+        assertTrue( dateFilters.containsAll( expected ) );
     }
 }

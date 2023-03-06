@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.fromFullDimensionId;
-import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
-import org.hisp.dhis.analytics.common.dimension.StringDimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.StringUid;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.dimension.StringDimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.common.params;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -39,8 +39,8 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalItemObject;

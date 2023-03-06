@@ -34,8 +34,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.hisp.dhis.analytics.QueryKey;
-import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.analytics.common.IdentifiableKey;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.IdentifiableKey;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 

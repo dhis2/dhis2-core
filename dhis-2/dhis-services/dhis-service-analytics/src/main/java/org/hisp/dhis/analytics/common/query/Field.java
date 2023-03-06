@@ -31,14 +31,14 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
 /**
  * This class represents a {@link Renderable} field. It's mainly used for SQL

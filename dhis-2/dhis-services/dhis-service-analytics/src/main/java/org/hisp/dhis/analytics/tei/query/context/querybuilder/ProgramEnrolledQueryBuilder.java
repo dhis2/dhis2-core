@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.tei.query.EnrolledInProgramCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
@@ -47,7 +47,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor
 {
-
     @Override
     protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
         List<DimensionIdentifier<DimensionParam>> unused )

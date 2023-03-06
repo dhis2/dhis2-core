@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.fromFullDimensionId;
-import static org.hisp.dhis.analytics.common.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

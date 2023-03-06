@@ -47,7 +47,7 @@ import java.util.Set;
 
 import javax.annotation.CheckForNull;
 
-import org.hisp.dhis.analytics.common.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;

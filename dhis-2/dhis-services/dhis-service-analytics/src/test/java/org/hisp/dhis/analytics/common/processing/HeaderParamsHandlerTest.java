@@ -37,7 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.common.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;

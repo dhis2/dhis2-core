@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;

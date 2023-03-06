@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
@@ -40,9 +40,9 @@ import lombok.Getter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;

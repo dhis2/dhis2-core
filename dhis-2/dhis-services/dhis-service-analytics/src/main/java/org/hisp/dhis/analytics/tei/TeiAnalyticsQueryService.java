@@ -42,11 +42,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;

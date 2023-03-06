@@ -25,14 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei.query.context;
 
-public interface IdentifiableKey
+import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.ValueType;
+
+/**
+ * This enum represents the TEI static fields. It is used to generate the query
+ * and to provide the header information.
+ */
+@Getter
+@RequiredArgsConstructor
+public enum TeiStaticField implements TeiHeaderProvider
 {
-    String getKey();
+    TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked entity instance", TEXT ),
+    LAST_UPDATED( "lastupdated", "Last updated", DATETIME ),
+    CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by", TEXT ),
+    LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by", TEXT ),
+    GEOMETRY( "geometry", "Geometry", TEXT ),
+    LONGITUDE( "longitude", "Longitude", NUMBER ),
+    LATITUDE( "latitude", "Latitude", NUMBER ),
+    ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
+    ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
 
-    default String wrappedKey()
-    {
-        return "[" + getKey() + "]";
-    }
+    private final String alias;
+
+    private final String fullName;
+
+    private final ValueType type;
 }

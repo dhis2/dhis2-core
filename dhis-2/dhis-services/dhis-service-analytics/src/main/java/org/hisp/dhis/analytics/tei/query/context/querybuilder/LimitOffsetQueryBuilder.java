@@ -29,10 +29,10 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.LimitOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;

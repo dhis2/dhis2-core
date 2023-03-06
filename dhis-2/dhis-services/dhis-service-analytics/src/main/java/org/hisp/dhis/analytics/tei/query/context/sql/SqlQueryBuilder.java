@@ -32,9 +32,9 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 
 /**
  * Provides the required methods to build {@link RenderableSqlQuery} objects.

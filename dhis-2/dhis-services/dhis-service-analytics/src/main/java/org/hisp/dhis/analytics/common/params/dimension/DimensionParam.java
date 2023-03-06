@@ -25,17 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.byForeignType;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.ValueType.DATETIME;
@@ -55,8 +55,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.tei.query.TeiHeaderProvider;
-import org.hisp.dhis.analytics.tei.query.TeiStaticField;
+import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
+import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;

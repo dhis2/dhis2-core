@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
@@ -38,9 +38,9 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
@@ -62,7 +62,6 @@ import org.springframework.stereotype.Service;
 @org.springframework.core.annotation.Order( 1 )
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor
 {
-
     @Override
     public boolean alwaysRun()
     {

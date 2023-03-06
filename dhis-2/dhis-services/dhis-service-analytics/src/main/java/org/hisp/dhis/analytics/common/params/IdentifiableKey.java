@@ -25,15 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.params;
 
-import org.hisp.dhis.common.ValueType;
-
-public interface TeiHeaderProvider
+public interface IdentifiableKey
 {
-    String getAlias();
+    String getKey();
 
-    String getFullName();
-
-    ValueType getType();
+    default String wrappedKey()
+    {
+        return "[" + getKey() + "]";
+    }
 }

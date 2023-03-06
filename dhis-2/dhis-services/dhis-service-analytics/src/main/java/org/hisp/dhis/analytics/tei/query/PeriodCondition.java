@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -38,8 +38,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;

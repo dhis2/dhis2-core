@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

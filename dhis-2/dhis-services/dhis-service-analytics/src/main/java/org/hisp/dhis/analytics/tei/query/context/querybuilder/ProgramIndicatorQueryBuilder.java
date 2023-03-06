@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
@@ -48,10 +48,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;

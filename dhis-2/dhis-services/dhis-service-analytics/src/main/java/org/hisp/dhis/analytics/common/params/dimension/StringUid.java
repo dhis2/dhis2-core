@@ -25,37 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
+import org.hisp.dhis.common.UidObject;
 
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.junit.jupiter.api.Test;
-
-class DimensionParamTypeTest
+/**
+ * Simply holds as value that has the format of an "uid".
+ */
+@RequiredArgsConstructor( staticName = "of" )
+public class StringUid implements UidObject
 {
+    private final String value;
 
-    @Test
-    void mapDates()
+    @Override
+    public String getUid()
     {
-        CommonQueryRequest request = new CommonQueryRequest()
-            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
-            .withIncidentDate( "LAST_MONTH" )
-            .withEnrollmentDate( "2021-06-30" )
-            .withLastUpdated( "TODAY" )
-            .withScheduledDate( "YESTERDAY" );
-        Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply( request );
-
-        List<String> expected = List.of( "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
-            "pe:2021-06-30:ENROLLMENT_DATE",
-            "pe:LAST_MONTH:INCIDENT_DATE",
-            "pe:YESTERDAY:SCHEDULED_DATE",
-            "pe:TODAY:LAST_UPDATED" );
-
-        assertTrue( expected.containsAll( dateFilters ) );
-        assertTrue( dateFilters.containsAll( expected ) );
+        return value;
     }
 }

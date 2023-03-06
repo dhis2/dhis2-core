@@ -42,9 +42,9 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
-import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryItem;

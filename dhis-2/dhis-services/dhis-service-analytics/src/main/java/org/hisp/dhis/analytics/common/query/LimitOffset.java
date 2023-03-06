@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class LimitOffset extends BaseRenderable

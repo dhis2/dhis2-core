@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;

@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
@@ -52,11 +52,12 @@ import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;

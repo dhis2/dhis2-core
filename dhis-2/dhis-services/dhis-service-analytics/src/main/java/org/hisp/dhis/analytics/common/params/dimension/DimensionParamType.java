@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.fromFullDimensionId;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.fromFullDimensionId;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.Arrays;

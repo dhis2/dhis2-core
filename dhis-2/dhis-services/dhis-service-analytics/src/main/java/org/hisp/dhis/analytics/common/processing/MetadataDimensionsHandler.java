@@ -40,7 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.analytics.common.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;

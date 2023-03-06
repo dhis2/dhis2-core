@@ -25,42 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei.query.context;
 
-import lombok.Builder;
-import lombok.Data;
+import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import lombok.NoArgsConstructor;
 
-/**
- * This class represents the sorting parameters for analytics.
- */
-@Data
-@Builder
-public class AnalyticsSortingParams implements IdentifiableKey
+@NoArgsConstructor( access = PRIVATE )
+public class QueryContextConstants
 {
-    private final DimensionIdentifier<DimensionParam> orderBy;
+    public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
-    private final SortDirection sortDirection;
+    public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
 
-    private final long index;
+    public static final String ANALYTICS_TEI_ENR = TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
 
-    public String getKey()
-    {
-        StringBuilder key = new StringBuilder();
+    public static final String TEI_ALIAS = "t_1";
 
-        if ( orderBy != null && orderBy.getDimension() != null )
-        {
-            key.append( orderBy.getDimension().getUid() );
-        }
+    public static final String DOT = ".";
 
-        if ( sortDirection != null )
-        {
-            key.append( sortDirection.getValue() );
-        }
+    public static final String EVT_ALIAS = "evt";
 
-        return key.toString();
-    }
+    public static final String ENR_ALIAS = "enr";
+
+    public static final String PI_UID = "programinstanceuid";
+
+    public static final String PS_UID = "programstageuid";
+
+    public static final String TEI_UID = "trackedentityinstanceuid";
+
+    public static final String P_UID = "programuid";
 }

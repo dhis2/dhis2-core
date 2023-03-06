@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.dimension;
+package org.hisp.dhis.analytics.common.params.dimension;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
-import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ import lombok.Data;
 import lombok.With;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.common.IdentifiableKey;
+import org.hisp.dhis.analytics.common.params.IdentifiableKey;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
