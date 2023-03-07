@@ -87,13 +87,11 @@ public class LocaleController
     public @ResponseBody List<WebLocale> getUiLocales( Model model )
     {
         List<Locale> locales = localeManager.getAvailableLocales();
-        List<WebLocale> webLocales = locales
+        return locales
             .stream()
             .map( WebLocale::fromLocale )
             .sorted( Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ) )
             .collect( Collectors.toList() );
-
-        return webLocales;
     }
 
     @GetMapping( value = "/db" )
