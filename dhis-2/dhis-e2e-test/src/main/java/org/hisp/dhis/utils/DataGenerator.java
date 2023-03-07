@@ -101,8 +101,7 @@ public class DataGenerator
             break;
 
         case CONSTANT:
-            int randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
-            jsonElement = new JsonPrimitive( property.getConstants().get( randomConstant ) );
+            jsonElement = generateConstantValue( property );
             break;
 
         case NUMBER:
@@ -199,5 +198,29 @@ public class DataGenerator
 
             return faker.lorem().characters( minLength, maxLength );
         }
+    }
+
+    /**
+     * Generates random value from the list of constants. If the list contains
+     * "MULTI_TEXT" value, it will be skipped. This is because a DataElement
+     * with valueType=MultiText must have an OptionSet, but currently we don't
+     * have a way to generate an OptionSet. TODO: add a way to generate an
+     * OptionSet
+     *
+     * @param property SchemaProperty
+     * @return JsonElement
+     */
+    private static JsonElement generateConstantValue( SchemaProperty property )
+    {
+        int randomConstant = -1;
+        JsonPrimitive element = null;
+        while ( randomConstant == -1 || (property.getName().equals( "valueType" )
+            && property.getConstants().get( randomConstant ).equals( "MULTI_TEXT" )) )
+        {
+            randomConstant = faker.number().numberBetween( 0, property.getConstants().size() - 1 );
+            element = new JsonPrimitive( property.getConstants().get( randomConstant ) );
+        }
+
+        return element;
     }
 }
