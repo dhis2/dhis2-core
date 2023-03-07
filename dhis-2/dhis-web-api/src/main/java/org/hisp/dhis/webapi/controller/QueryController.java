@@ -29,13 +29,14 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+
+import lombok.Value;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -52,6 +53,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Supports shortening of long API request URIs. This is achieved by accepting
@@ -71,6 +74,9 @@ public class QueryController
 
     private static final Pattern MULTIPLE_FORWARD_SLASH_PATTERN = Pattern.compile( "/+" );
 
+    /* Set an upper bound url size to prevent abuse */
+    private static final int MAX_TARGET_LENGTH = 16 * 1024;
+
     private final RenderService renderService;
 
     private final Cache<String> aliasCache;
@@ -82,20 +88,13 @@ public class QueryController
     }
 
     @PostMapping( value = "/alias", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, String> postQueryAlias( HttpServletRequest request,
+    public @ResponseBody QueryAlias postQueryAlias( HttpServletRequest request,
         @RequestBody String bodyString )
         throws BadRequestException
     {
         final String target = parseTargetFromRequestBody( bodyString );
-        final String alias = createAlias( target );
 
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put( "id", alias );
-        map.put( "path", getAliasPath( alias ) );
-        map.put( "href", getAliasHref( alias, request ) );
-        map.put( "target", target );
-
-        return map;
+        return createAlias( target, request );
     }
 
     @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
@@ -103,9 +102,9 @@ public class QueryController
         throws BadRequestException
     {
         final String target = parseTargetFromRequestBody( bodyString );
-        final String alias = createAlias( target );
+        final QueryAlias alias = createAlias( target, request );
 
-        return new RedirectView( getAliasHref( alias, request ), false, false );
+        return new RedirectView( alias.getHref(), false, false );
     }
 
     @GetMapping( "/alias/{hash}" )
@@ -151,11 +150,30 @@ public class QueryController
         return target;
     }
 
-    private String createAlias( String target )
+    private QueryAlias createAlias( String target, HttpServletRequest request )
+        throws BadRequestException
     {
+        if ( target.length() > MAX_TARGET_LENGTH )
+        {
+            throw new BadRequestException( "Target url exceeds maximum length" );
+        }
+
         String alias = CodecUtils.sha1Hex( target );
         aliasCache.put( alias, target );
-        return alias;
+
+        String contextPath = ContextUtils.getContextPath( request );
+        String path = replaceDuplicateSlashes( String.join( "/", ALIAS_ROOT, alias ) );
+        String href = constructAliasHref( path, contextPath );
+
+        return new QueryAlias( alias, path, href, target );
+    }
+
+    private static String constructAliasHref( String path, String contextPath )
+    {
+        String scheme = contextPath.substring( 0, contextPath.indexOf( "://" ) + 3 );
+        String fullPath = String.join( "/", contextPath.substring( scheme.length() ), path );
+
+        return scheme + replaceDuplicateSlashes( fullPath );
     }
 
     private static String replaceDuplicateSlashes( String input )
@@ -164,18 +182,19 @@ public class QueryController
         return matcher.replaceAll( "/" );
     }
 
-    private static String getAliasPath( String alias )
+    @Value
+    public class QueryAlias
     {
-        String path = String.join( "/", ALIAS_ROOT, alias );
-        return replaceDuplicateSlashes( path );
-    }
+        @JsonProperty
+        String id;
 
-    private static String getAliasHref( String alias, HttpServletRequest request )
-    {
-        String contextPath = ContextUtils.getContextPath( request );
-        String scheme = contextPath.substring( 0, contextPath.indexOf( "://" ) + 3 );
-        String path = String.join( "/", contextPath.substring( scheme.length() ), getAliasPath( alias ) );
+        @JsonProperty
+        String path;
 
-        return scheme + replaceDuplicateSlashes( path );
+        @JsonProperty
+        String href;
+
+        @JsonProperty
+        String target;
     }
 }
