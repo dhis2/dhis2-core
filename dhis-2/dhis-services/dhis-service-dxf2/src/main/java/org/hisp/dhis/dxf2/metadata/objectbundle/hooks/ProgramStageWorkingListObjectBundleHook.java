@@ -79,8 +79,9 @@ public class ProgramStageWorkingListObjectBundleHook
 
         validateDateFilterPeriod( errorReports, "EnrollmentCreatedDate", queryCriteria.getEnrolledAt() );
         validateDateFilterPeriod( errorReports, "EnrollmentIncidentDate", queryCriteria.getEnrollmentOccurredAt() );
-        validateDateFilterPeriod( errorReports, "EventDate", queryCriteria.getEventCreatedAt() );
-        validateDateFilterPeriod( errorReports, "EventScheduledDate", queryCriteria.getScheduledAt() );
+        validateDateFilterPeriod( errorReports, "EventCreatedDate", queryCriteria.getEventCreatedAt() );
+        validateDateFilterPeriod( errorReports, "EventOccurredDate", queryCriteria.getEventOccurredAt() );
+        validateDateFilterPeriod( errorReports, "EventScheduledDate", queryCriteria.getEventScheduledAt() );
 
         validateAssignedUsers( errorReports, queryCriteria.getAssignedUsers(), queryCriteria.getAssignedUserMode() );
         validateOrganisationUnit( errorReports, queryCriteria.getOrgUnit(), queryCriteria.getOuMode() );
