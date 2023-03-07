@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -365,6 +367,7 @@ public abstract class AbstractJdbcTableManager
             sqlCreate.append( col.getName() )
                 .append( SPACE )
                 .append( col.getDataType().getValue() )
+                .append( col.hasCollate() ? getCollate( col.getCollate().name() ) : EMPTY )
                 .append( notNull )
                 .append( "," );
         }
@@ -598,7 +601,7 @@ public abstract class AbstractJdbcTableManager
         String columnAlias = "concat_ws(' / '," + organisationUnitService.getFilledOrganisationUnitLevels().stream()
             .map( lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel() )
             .collect( Collectors.joining( "," ) ) + ") as ounamehierarchy";
-        return new AnalyticsTableColumn( "ounamehierarchy", TEXT, columnAlias );
+        return new AnalyticsTableColumn( "ounamehierarchy", TEXT, columnAlias, AnalyticsTableColumn.Collate.C );
     }
 
     /**
