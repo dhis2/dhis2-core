@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -93,11 +94,13 @@ public class RedisNotifier implements Notifier
     // -------------------------------------------------------------------------
 
     @Override
-    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message,
+        boolean completed, NotificationDataType dataType, JsonNode data )
     {
         if ( id != null && !level.isOff() )
         {
-            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
+            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed,
+                dataType, data );
 
             if ( id.isInMemoryJob() && StringUtils.isEmpty( id.getUid() ) )
             {
