@@ -119,7 +119,7 @@ public class InternalImportSummaryResponse
      *
      * @return an {@link ImportSummary}.
      */
-    ImportSummary getImportSummary237()
+    private ImportSummary getImportSummary237()
     {
         ImportSummary summary = new ImportSummary();
         summary.setStatus( toImportStatus( status ) );
