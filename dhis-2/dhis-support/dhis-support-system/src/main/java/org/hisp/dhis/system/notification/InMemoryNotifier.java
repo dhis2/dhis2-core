@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Lars Helge Overland
  */
@@ -50,11 +52,13 @@ public class InMemoryNotifier implements Notifier
     private final NotificationMap notificationMap = new NotificationMap( MAX_POOL_TYPE_SIZE );
 
     @Override
-    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message,
+        boolean completed, NotificationDataType dataType, JsonNode data )
     {
         if ( id != null && !level.isOff() )
         {
-            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
+            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed,
+                dataType, data );
 
             if ( id.isInMemoryJob() && !StringUtils.isEmpty( id.getUid() ) )
             {
