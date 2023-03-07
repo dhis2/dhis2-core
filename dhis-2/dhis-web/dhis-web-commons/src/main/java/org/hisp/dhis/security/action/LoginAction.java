@@ -161,10 +161,10 @@ public class LoginAction
 
         List<Locale> availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
         webLocales = availableLocales
-                .stream()
-                .map( WebLocale::fromLocale )
-                .sorted(Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ))
-                .collect( Collectors.toList() );
+            .stream()
+            .map( WebLocale::fromLocale )
+            .sorted( Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ) )
+            .collect( Collectors.toList() );
 
         return "standard";
     }

@@ -88,10 +88,10 @@ public class LocaleController
     {
         List<Locale> locales = localeManager.getAvailableLocales();
         List<WebLocale> webLocales = locales
-                .stream()
-                .map( WebLocale::fromLocale )
-                .sorted(Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ))
-                .collect( Collectors.toList() );
+            .stream()
+            .map( WebLocale::fromLocale )
+            .sorted( Comparator.comparing( WebLocale::getName, String.CASE_INSENSITIVE_ORDER ) )
+            .collect( Collectors.toList() );
 
         return webLocales;
     }

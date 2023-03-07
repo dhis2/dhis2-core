@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,8 +46,7 @@ public class WebLocale
     private String name;
 
     private static Map<String, Locale> localeMap = Map.ofEntries(
-        new AbstractMap.SimpleEntry<String, Locale>("prs", new Locale("fa","AF"))
-    );
+        new AbstractMap.SimpleEntry<String, Locale>( "prs", new Locale( "fa", "AF" ) ) );
 
     public static WebLocale fromLocale( Locale locale )
     {
@@ -56,12 +54,7 @@ public class WebLocale
 
         loc.setLocale( locale.toString() );
 
-        if (localeMap.containsKey( locale.toString() ))
-        {
-            loc.setName( localeMap.get( locale.toString() ).getDisplayName() );
-        } else {
-            loc.setName( locale.getDisplayName() );
-        }
+        loc.setName( localeMap.getOrDefault( locale.toString(), locale ).getDisplayName() );
 
         return loc;
     }
