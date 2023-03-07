@@ -39,7 +39,8 @@ public enum FileResourceDomain
     DOCUMENT( "document" ),
     MESSAGE_ATTACHMENT( "messageAttachment" ),
     USER_AVATAR( "userAvatar" ),
-    ORG_UNIT( "organisationUnit" );
+    ORG_UNIT( "organisationUnit" ),
+    METADATA_PACKAGE( "metadataPackage" );
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain

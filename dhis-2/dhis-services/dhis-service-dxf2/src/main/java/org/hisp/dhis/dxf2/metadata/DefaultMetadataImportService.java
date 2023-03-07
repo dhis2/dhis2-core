@@ -381,8 +381,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         try
         {
-            metadataPackage.setImportFile( saveFileResource( params.getTempFile(), metadataPackage.getName(),
-                FileResourceDomain.DOCUMENT, "application/json" ) );
+            metadataPackage.setImportFile( saveFileResource( params.getTempFile(), metadataPackage.getName() ) );
 
             packageService.saveMetadataPackage( metadataPackage );
         }
@@ -400,28 +399,28 @@ public class DefaultMetadataImportService implements MetadataImportService
      *
      * @param file the file to save.
      * @param name the name of the file.
-     * @param domain the {@link FileResourceDomain} of the file.
-     * @param contentType the content type of the file.
      * @return the saved file resource.
      * @throws WebMessageException
      * @throws IOException
      */
-    private FileResource saveFileResource( File file, String name, FileResourceDomain domain,
-        String contentType )
+    private FileResource saveFileResource( File file, String name )
         throws IOException
     {
         long contentLength = file.length();
 
         log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
-            name, file.getName(), contentType, contentLength );
+            name, file.getName(), "application/json", contentLength );
         ByteSource byteSource = com.google.common.io.Files.asByteSource( file );
 
         if ( byteSource.size() == 0 )
         {
             throw new IOException( "Could not read file or file is empty." );
         }
+
         String contentMd5 = com.google.common.io.Files.asByteSource( file ).hash( Hashing.md5() ).toString();
-        FileResource fileResource = new FileResource( name, contentType, contentLength, contentMd5, domain );
+        FileResource fileResource = new FileResource( name, "application/json", contentLength, contentMd5,
+            FileResourceDomain.METADATA_PACKAGE );
+        fileResource.setAssigned( true );
 
         fileResourceService.saveFileResource( fileResource, file );
 
