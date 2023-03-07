@@ -45,7 +45,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItemHelper;
+import org.hisp.dhis.dxf2.util.ExpressionDimensionItemUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -161,7 +161,7 @@ public class VisualizationController
             .stream()
             .filter( ddi -> ddi.getExpressionDimensionItem() != null )
             .forEach( ddi -> {
-                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemHelper
+                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemUtils
                     .getExpressionItems( manager, ddi );
 
                 expressionItems.forEach( ei -> {
