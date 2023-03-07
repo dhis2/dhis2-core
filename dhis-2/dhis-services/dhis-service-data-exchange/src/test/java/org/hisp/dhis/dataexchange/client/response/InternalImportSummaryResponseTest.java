@@ -37,16 +37,6 @@ import org.junit.jupiter.api.Test;
 class InternalImportSummaryResponseTest
 {
     @Test
-    void testToImportStatus()
-    {
-        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
-
-        assertEquals( ImportStatus.SUCCESS, response.toImportStatus( Status.SUCCESS ) );
-        assertEquals( ImportStatus.WARNING, response.toImportStatus( Status.WARNING ) );
-        assertEquals( ImportStatus.ERROR, response.toImportStatus( Status.ERROR ) );
-    }
-
-    @Test
     void testGetImportSummary238()
     {
         InternalImportSummaryResponse response = new InternalImportSummaryResponse();
@@ -67,5 +57,15 @@ class InternalImportSummaryResponseTest
 
         assertEquals( ImportStatus.WARNING, response.getImportSummary().getStatus() );
         assertEquals( 2, response.getImportSummary().getImportCount().getUpdated() );
+    }
+
+    @Test
+    void testToImportStatus()
+    {
+        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
+
+        assertEquals( ImportStatus.SUCCESS, response.toImportStatus( Status.SUCCESS ) );
+        assertEquals( ImportStatus.WARNING, response.toImportStatus( Status.WARNING ) );
+        assertEquals( ImportStatus.ERROR, response.toImportStatus( Status.ERROR ) );
     }
 }
