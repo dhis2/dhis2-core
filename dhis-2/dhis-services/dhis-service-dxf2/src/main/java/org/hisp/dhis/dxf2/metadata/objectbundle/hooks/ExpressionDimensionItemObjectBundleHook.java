@@ -31,7 +31,6 @@ import java.util.function.Consumer;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.util.ExpressionDimensionItemUtils;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -45,8 +44,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ExpressionDimensionItemObjectBundleHook extends AbstractObjectBundleHook<ExpressionDimensionItem>
 {
-    private final IdentifiableObjectManager manager;
-
     private final AclService aclService;
 
     @Override
@@ -55,7 +52,7 @@ public class ExpressionDimensionItemObjectBundleHook extends AbstractObjectBundl
     {
         String expression = expressionDimensionItem.getExpression();
 
-        if ( !ExpressionDimensionItemUtils.validateExpressionItems( manager, expression ) )
+        if ( !ExpressionDimensionItemUtils.isValidExpressionItems( manager, expression ) )
         {
             addReports.accept( new ErrorReport( ExpressionDimensionItem.class, ErrorCode.E7136, expression,
                 "Not a valid expression" ) );

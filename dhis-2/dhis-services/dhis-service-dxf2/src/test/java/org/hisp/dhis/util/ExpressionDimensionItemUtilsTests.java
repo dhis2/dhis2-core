@@ -96,7 +96,7 @@ class ExpressionDimensionItemUtilsTests
         when( manager.get( (Class<IdentifiableObject>) any(), anyString() ) ).thenReturn( object );
 
         // When
-        boolean valid = ExpressionDimensionItemUtils.validateExpressionItems( manager,
+        boolean valid = ExpressionDimensionItemUtils.isValidExpressionItems( manager,
             "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
@@ -110,7 +110,7 @@ class ExpressionDimensionItemUtilsTests
     {
         // Given
         // When
-        boolean valid = ExpressionDimensionItemUtils.validateExpressionItems( manager,
+        boolean valid = ExpressionDimensionItemUtils.isValidExpressionItems( manager,
             "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then

@@ -100,7 +100,7 @@ public class ExpressionDimensionItemUtils
      * @param expression or indicator of expression dimension item
      * @return true when expression is valid
      */
-    public static boolean validateExpressionItems( IdentifiableObjectManager manager, String expression )
+    public static boolean isValidExpressionItems( IdentifiableObjectManager manager, String expression )
     {
         List<String> expressionTokens = getExpressionTokens( pattern, expression );
 
