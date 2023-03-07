@@ -653,6 +653,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.queryAliasCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
