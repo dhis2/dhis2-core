@@ -10,8 +10,8 @@
   <url>http://dhis2.org</url>
 
   <description>
-    DHIS 2 is a system for aggregation and reporting statistical health data.
-    The goal is to allow users to analyze and use this data to guide local 
+    DHIS 2 is a system for aggregation and reporting statistical data. The 
+    goal is to allow users to analyze and use this data to guide local 
     action. The system is based around an goals of empowering users, by 
     allowing them to decide what to register and report data for.
   </description>
