@@ -91,7 +91,7 @@
 
         <!--DBMS -->
         <flyway-core.version>8.5.1</flyway-core.version>
-        <hibernate.version>5.4.28.Final</hibernate.version>
+        <hibernate.version>5.6.15.Final</hibernate.version>
         <hibernate-types.version>2.14.0</hibernate-types.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
