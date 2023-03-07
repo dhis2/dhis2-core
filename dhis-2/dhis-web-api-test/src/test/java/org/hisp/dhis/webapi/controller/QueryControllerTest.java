@@ -44,37 +44,25 @@ import org.junit.jupiter.api.Test;
  */
 class QueryControllerTest extends DhisControllerConvenienceTest
 {
-    private static final String API_QUERY_ALIAS = "/query/alias";
-
-    private static final String API_QUERY_ALIAS_REDIRECT = "/query/alias/redirect";
-
-    private static final String testTargetUrl = "/api/me?fields=id,username,surname,firstName";
-
-    private static final String testTargetAliasId = "671575eeea3d36a777efa6dcb48076083ff5cbbd";
-
-    private static final String testTargetAliasPath = API_QUERY_ALIAS + "/" + testTargetAliasId;
-
-    private static final String testTargetAliasFullPath = "/api" + testTargetAliasPath;
-
-    private static final String testTargetAliasHref = "http://localhost" + testTargetAliasFullPath;
-
     @Test
     void testGetUninitializedAlias()
     {
-        assertStatus( HttpStatus.NOT_FOUND, GET( testTargetAliasPath ) );
+        assertStatus( HttpStatus.NOT_FOUND, GET( "/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd" ) );
     }
 
     @Test
     void testCreateAlias()
     {
-        JsonObject doc = POST( API_QUERY_ALIAS, "{ \"target\": \"" + testTargetUrl + "\" }" ).content();
+        JsonObject doc = POST( "/query/alias", "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }" )
+            .content();
 
         assertTrue( doc.isObject() );
 
-        assertEquals( testTargetAliasId, doc.getString( "id" ).string() );
-        assertEquals( testTargetAliasFullPath, doc.getString( "path" ).string() );
-        assertEquals( testTargetAliasHref, doc.getString( "href" ).string() );
-        assertEquals( testTargetUrl, doc.getString( "target" ).string() );
+        assertEquals( "671575eeea3d36a777efa6dcb48076083ff5cbbd", doc.getString( "id" ).string() );
+        assertEquals( "/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd", doc.getString( "path" ).string() );
+        assertEquals( "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+            doc.getString( "href" ).string() );
+        assertEquals( "/api/me?fields=id,username,surname,firstName", doc.getString( "target" ).string() );
 
         /*
          * Testing the actual query implementation requires a valid cache
@@ -103,20 +91,22 @@ class QueryControllerTest extends DhisControllerConvenienceTest
     @Test
     void testCreateAliasInvalidPayload()
     {
-        testInvalidPayloads( API_QUERY_ALIAS );
+        testInvalidPayloads( "/query/alias" );
     }
 
     @Test
     void tesAliasRedirect()
     {
-        HttpResponse response = POST( API_QUERY_ALIAS_REDIRECT, "{ \"target\": \"" + testTargetUrl + "\" }" );
+        HttpResponse response = POST( "/query/alias/redirect",
+            "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }" );
         assertStatus( HttpStatus.SEE_OTHER, response );
-        assertEquals( testTargetAliasHref, response.header( "Location" ) );
+        assertEquals( "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+            response.header( "Location" ) );
     }
 
     @Test
     void testAliasRedirectInvalidPayload()
     {
-        testInvalidPayloads( API_QUERY_ALIAS_REDIRECT );
+        testInvalidPayloads( "/query/alias/redirect" );
     }
 }
