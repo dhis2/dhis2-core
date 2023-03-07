@@ -43,7 +43,10 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Internal representation of a DHIS 2 import operation summary response.
+ * Internal representation of a DHIS 2 import summary response. Supports the
+ * import summary up to DHIS 2.37 where the summary was located at the root, and
+ * the import summary after 2.38 where the summary was located in the
+ * {@code response} object.
  *
  * @author Lars Helge Overland
  */
@@ -68,13 +71,13 @@ public class InternalImportSummaryResponse
      * DHIS 2.37 and earlier.
      */
     @JsonProperty
-    private ImportCount importCount;
+    private String description;
 
     /**
      * DHIS 2.37 and earlier.
      */
     @JsonProperty
-    private String description;
+    private ImportCount importCount;
 
     /**
      * DHIS 2.37 and earlier.
