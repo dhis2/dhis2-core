@@ -183,7 +183,7 @@ public class QueryController
     }
 
     @Value
-    public class QueryAlias
+    public static class QueryAlias
     {
         @JsonProperty
         String id;
