@@ -76,14 +76,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
- * A DataElement is a definition (meta-information about) of the entities that
- * are captured in the system. An example from public health care is a
- * DataElement representing the number BCG doses; A DataElement with "BCG dose"
- * as name, with type DataElement.TYPE_INT.
- * <p>
- * DataElement acts as a DimensionSet in the dynamic dimensional model, and as a
- * DimensionOption in the static DataElement dimension.
- *
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
