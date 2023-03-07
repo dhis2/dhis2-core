@@ -10,6 +10,7 @@
 #   -h <hostname>  Hostname (default is localhost)
 #   -p <port>      Port number (default is 9090)
 #   -s             Skip compilation of source code
+#   -m             Print this manual
 
 set -e
 
@@ -97,7 +98,7 @@ echo -e "Note: JDK 11 or later is required!\n"
 print_variables
 
 # Verify DHIS2_HOME
-[ ! -d $DHIS2_HOME_DIR ] && echo "DHIS2_HOME directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
+[ ! -d "$DHIS2_HOME_DIR" ] && echo "DHIS2_HOME directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 [ ! -f "$DHIS2_HOME_DIR/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME_DIR' does not exist, aborting." && exit 1;
 
 # Compile unless skip compile flag is set

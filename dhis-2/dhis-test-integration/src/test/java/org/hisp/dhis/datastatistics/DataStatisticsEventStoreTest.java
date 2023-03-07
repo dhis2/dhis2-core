@@ -44,7 +44,6 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataStatisticsEventStoreTest extends IntegrationTestBase
 {
-
     @Autowired
     private DataStatisticsEventStore dataStatisticsEventStore;
 
@@ -63,9 +61,6 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private UserSettingService userSettingService;
 
     @Autowired
     private DataStatisticsService dataStatisticsService;

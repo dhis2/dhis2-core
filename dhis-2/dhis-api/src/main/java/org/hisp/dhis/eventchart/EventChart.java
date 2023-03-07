@@ -63,13 +63,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
- *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
- *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization
+ * MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
+ * FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
  *
  * @author Jan Henrik Overland
  */
-@Deprecated
 @JacksonXmlRootElement( localName = "eventChart", namespace = DxfNamespaces.DXF_2_0 )
 public class EventChart
     extends BaseChart

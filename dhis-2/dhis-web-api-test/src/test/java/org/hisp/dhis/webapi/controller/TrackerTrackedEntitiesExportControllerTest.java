@@ -61,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -72,6 +73,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 {
     private static final String TEA_UID = "TvjwTPToKHO";
+
+    private static final String EVENT_DATE = "2023-03-23T12:23:00.000";
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -460,6 +463,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         ProgramStageInstance programStageInstance = new ProgramStageInstance( programInstance, programStage,
             programInstance.getOrganisationUnit() );
         programStageInstance.setAutoFields();
+        programStageInstance.setExecutionDate( DateUtils.parseDate( EVENT_DATE ) );
 
         dataElement = createDataElement( 'A' );
         dataElement.setValueType( ValueType.TEXT );
@@ -521,6 +525,8 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertEquals( orgUnit.getName(), event.getString( "orgUnitName" ).string() );
         assertFalse( event.getBoolean( "deleted" ).booleanValue() );
         assertHasMember( event, "createdAt" );
+        assertHasMember( event, "occurredAt" );
+        assertEquals( EVENT_DATE, event.getString( "occurredAt" ).string() );
         assertHasMember( event, "createdAtClient" );
         assertHasMember( event, "updatedAt" );
         assertHasMember( event, "notes" );

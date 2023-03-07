@@ -381,7 +381,6 @@ public class TrackerPreheat
      * @param id metadata identifier
      * @return A metadata object or null
      */
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( Class<? extends IdentifiableObject> klass, MetadataIdentifier id )
     {
         if ( id == null )

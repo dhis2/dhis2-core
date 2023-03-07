@@ -137,6 +137,11 @@ public class ProgramRuleVariable
         this.valueType = valueType;
     }
 
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
