@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,20 @@
  */
 package org.hisp.dhis.dataexchange.client.response;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.springframework.http.HttpStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * DHIS 2 API response.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class Dhis2Response
+class InternalImportSummaryResponseTest
 {
-    @JsonProperty
-    protected Status status;
-
-    @JsonProperty
-    protected Integer httpStatusCode;
-
-    @JsonProperty
-    protected ErrorCode errorCode;
-
-    @JsonProperty
-    protected String message;
-
-    public HttpStatus getHttpStatus()
+    @Test
+    void testToImportStatus()
     {
-        return httpStatusCode != null ? HttpStatus.valueOf( httpStatusCode ) : null;
+        InternalImportSummaryResponse response = new InternalImportSummaryResponse();
+
+        assertEquals( ImportStatus.SUCCESS, response.toImportStatus( Status.SUCCESS ) );
+        assertEquals( ImportStatus.WARNING, response.toImportStatus( Status.WARNING ) );
+        assertEquals( ImportStatus.ERROR, response.toImportStatus( Status.ERROR ) );
     }
 }
