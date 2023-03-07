@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -234,9 +235,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .build() ) );
 
         // program variables
-        RuleEngineUtils.ENV_VARIABLES.entrySet().forEach( var -> itemStore.put( var.getKey(), DataItem.builder()
-            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var.getKey() ), var.getKey() ) )
-            .valueType( var.getValue() )
+        RuleEngineUtils.ENV_VARIABLES.forEach( ( key, value ) -> itemStore.put( key, DataItem.builder()
+            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( key ), key ) )
+            .valueType( value )
             .build() ) );
 
         return itemStore;
@@ -305,6 +306,19 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return null;
         }
 
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( psi.getProgramStage().getProgram() );
+
+        Map<String, ProgramRuleVariable> dataElementLinkedToProgramRuleVariables = programRuleVariables
+            .stream().filter( ProgramRuleVariable::hasDataElement )
+            .collect( Collectors.toMap( programRuleVariable -> programRuleVariable.getDataElement().getUid(),
+                programRuleVariable -> programRuleVariable ) );
+
+        Map<String, DataElement> dataElementWithOptionSet = programRuleVariables.stream()
+            .filter( ProgramRuleVariable::hasDataElement )
+            .map( ProgramRuleVariable::getDataElement ).filter( DataElement::hasOptionSet )
+            .collect( Collectors.toMap( BaseIdentifiableObject::getUid, de -> de ) );
+
         String orgUnit = getOrgUnit( psi );
         String orgUnitCode = getOrgUnitCode( psi );
 
@@ -316,8 +330,31 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .stream()
                 .filter( Objects::nonNull )
                 .filter( dv -> dv.getValue() != null )
-                .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
-                    psi.getProgramStage().getUid(), dv.getDataElement(), dv.getValue() ) )
+                .map( dv -> {
+
+                    if ( dataElementWithOptionSet.containsKey( dv.getDataElement() )
+                        && dataElementLinkedToProgramRuleVariables.containsKey( dv.getDataElement() ) )
+                    {
+                        ProgramRuleVariable prv = dataElementLinkedToProgramRuleVariables.get( dv.getDataElement() );
+
+                        if ( !prv.getUseCodeForOptionSet() )
+                        {
+                            DataElement dataElement = dataElementWithOptionSet.get( dv.getDataElement() );
+
+                            String value = Optional.ofNullable( dataElement.getOptionSet() )
+                                .map( op -> op.getOptionByCode( dv.getValue() ).getName() )
+                                .orElse( dv.getValue() );
+
+                            return RuleDataValue.create(
+                                ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+                                psi.getProgramStage().getUid(), dv.getDataElement(), value );
+                        }
+                    }
+
+                    return RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+                        psi.getProgramStage().getUid(), dv.getDataElement(), dv.getValue() );
+
+                } )
                 .collect( Collectors.toList() ),
             psi.getProgramStage().getName(), ObjectUtils.defaultIfNull( psi.getCompletedDate(), null ) );
     }
