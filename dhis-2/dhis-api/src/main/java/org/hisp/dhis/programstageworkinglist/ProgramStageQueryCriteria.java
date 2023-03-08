@@ -63,7 +63,7 @@ public class ProgramStageQueryCriteria implements Serializable
      * Property indicating which event status types to filter
      */
     @JsonProperty
-    private EventStatus status;
+    private EventStatus eventStatus;
 
     /**
      * Property to filter events based on their created dates
@@ -72,10 +72,16 @@ public class ProgramStageQueryCriteria implements Serializable
     private DateFilterPeriod eventCreatedAt;
 
     /**
+     * Property to filter events based on their occurred dates
+     */
+    @JsonProperty
+    private DateFilterPeriod eventOccurredAt;
+
+    /**
      * Property to filter events based on their scheduled dates
      */
     @JsonProperty
-    private DateFilterPeriod scheduledAt;
+    private DateFilterPeriod eventScheduledAt;
 
     /**
      * Property indicating which enrollment status types to filter
