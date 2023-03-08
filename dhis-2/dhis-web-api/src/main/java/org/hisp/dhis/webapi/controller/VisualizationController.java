@@ -69,7 +69,7 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
-    private final ExpressionDimensionItemService expressionDimensionItemUtils;
+    private final ExpressionDimensionItemService expressionDimensionItemService;
 
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
         I18nManager i18nManager, ExpressionDimensionItemService expressionDimensionItemService )
@@ -77,7 +77,7 @@ public class VisualizationController
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
         this.i18nManager = i18nManager;
-        this.expressionDimensionItemUtils = expressionDimensionItemService;
+        this.expressionDimensionItemService = expressionDimensionItemService;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class VisualizationController
             .stream()
             .filter( ddi -> ddi.getExpressionDimensionItem() != null )
             .forEach( ddi -> {
-                List<BaseDimensionalItemObject> expressionItems = expressionDimensionItemUtils
+                List<BaseDimensionalItemObject> expressionItems = expressionDimensionItemService
                     .getExpressionItems( ddi );
 
                 expressionItems.forEach( ei -> {
