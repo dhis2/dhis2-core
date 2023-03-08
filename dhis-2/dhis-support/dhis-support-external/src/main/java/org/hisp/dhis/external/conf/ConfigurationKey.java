@@ -744,7 +744,6 @@ public enum ConfigurationKey
     SWITCH_USER_FEATURE_ENABLED( "switch_user_feature.enabled", Constants.OFF, false ),
     SWITCH_USER_ALLOW_LISTED_IPS( "switch_user_allow_listed_ips", "localhost,127.0.0.1", false );
 
-
     private final String key;
 
     private final String defaultValue;
