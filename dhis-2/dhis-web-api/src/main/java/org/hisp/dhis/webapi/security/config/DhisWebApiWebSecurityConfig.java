@@ -64,6 +64,7 @@ import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +146,9 @@ public class DhisWebApiWebSecurityConfig
 
     @Autowired
     public DataSource dataSource;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -743,12 +747,12 @@ public class DhisWebApiWebSecurityConfig
     @Bean( "switchUserProcessingFilter" )
     public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService )
     {
-        SwitchUserFilter filter = new SwitchUserFilter();
+        DhisSwitchUserFilter filter = new DhisSwitchUserFilter( dhisConfig );
         filter.setUserDetailsService( userDetailsService );
         filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
         filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "GET", true, new UrlPathHelper() ) );
         filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "GET", true, new UrlPathHelper() ) );
-        filter.setSwitchFailureUrl( "/dhis-web-commons/security/impersonateUser.action" );
+        filter.setSwitchFailureUrl( "/dhis-web-dashboard" );
         filter.setTargetUrl( "/dhis-web-dashboard" );
         return filter;
     }

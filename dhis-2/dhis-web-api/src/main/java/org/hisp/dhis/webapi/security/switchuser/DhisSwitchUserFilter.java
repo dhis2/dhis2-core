@@ -17,7 +17,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class DhisSwitchUserFilter extends SwitchUserFilter
 {
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+    private final DhisConfigurationProvider config;
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
@@ -25,7 +25,7 @@ public class DhisSwitchUserFilter extends SwitchUserFilter
         IOException,
         ServletException
     {
-        boolean enabled = dhisConfigurationProvider.isEnabled( ConfigurationKey.SWITCH_USER_FEATURE_ENABLED );
+        boolean enabled = config.isEnabled( ConfigurationKey.SWITCH_USER_FEATURE_ENABLED );
         if ( enabled && isAllowListedIp( request.getRemoteAddr() ) )
         {
             super.doFilter( request, response, chain );
@@ -37,10 +37,10 @@ public class DhisSwitchUserFilter extends SwitchUserFilter
 
     private boolean isAllowListedIp( String remoteAddr )
     {
-        String property = dhisConfigurationProvider.getProperty( ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS );
+        String property = config.getProperty( ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS );
         for ( String ip : property.split( "," ) )
         {
-            if ( ip.equals( remoteAddr ) )
+            if ( ip.trim().equalsIgnoreCase( remoteAddr ) )
             {
                 return true;
             }
