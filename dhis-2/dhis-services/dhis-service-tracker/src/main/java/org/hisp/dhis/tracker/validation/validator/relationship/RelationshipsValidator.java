@@ -141,7 +141,8 @@ class RelationshipsValidator
 
     private void validateAutoRelationship( Reporter reporter, Relationship relationship )
     {
-        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
+        if ( relationshipItemValueType( relationship.getFrom() ) != null
+            && Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
             reporter.addError( relationship, E4000, relationship.getRelationship() );
         }
@@ -155,7 +156,8 @@ class RelationshipsValidator
     {
         if ( relationshipItemValueType( item ) == null )
         {
-            reporter.addError( relationship, ValidationCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
+            reporter.addError( relationship, ValidationCode.E4013, relSide,
+                constraint.getRelationshipEntity().getName() );
             return;
         }
 
@@ -186,14 +188,10 @@ class RelationshipsValidator
                         } );
             }
         }
-        else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) && item.getEnrollment() == null )
         {
-            if ( item.getEnrollment() == null )
-            {
-                reporter.addError( relationship,
-                    ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
-                    relationshipItemValueType( item ).getName() );
-            }
+            reporter.addError( relationship, ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
+                relationshipItemValueType( item ).getName() );
 
         }
         else if ( constraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) && item.getEvent() == null )
