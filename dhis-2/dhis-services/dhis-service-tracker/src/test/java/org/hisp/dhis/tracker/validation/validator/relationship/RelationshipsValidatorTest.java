@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E4013;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4014;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -163,7 +164,7 @@ class RelationshipsValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4013,
-            "Relationship Type `from` constraint is missing trackedEntity." );
+            "Relationship Type `from` constraint is missing tracked_entity." );
     }
 
     @Test
@@ -385,6 +386,77 @@ class RelationshipsValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4018 );
+    }
+
+    @Test
+    void shouldFailWhenRelationshipEntityIsProgramAndConstraintIsMissingEnrollment()
+    {
+        String relationshipUid = "nBx6auGDUHG";
+        String relTypeUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
+            .from( RelationshipItem.builder().build() )
+            .to( RelationshipItem.builder().build() )
+            .build();
+
+        RelationshipType relationshipType = createRelTypeConstraint( PROGRAM_INSTANCE );
+        relationshipType.setUid( relTypeUid );
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relationshipType ) );
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertAll( () -> {
+            assertHasError( reporter, relationship, E4013,
+                "Relationship Type `from` constraint is missing enrollment." );
+            assertHasError( reporter, relationship, E4013,
+                "Relationship Type `to` constraint is missing enrollment." );
+        } );
+    }
+
+    @Test
+    void shouldFailWhenRelationshipEntityIsProgramStageAndConstraintIsMissingEvent()
+    {
+        String relationshipUid = "nBx6auGDUHG";
+        String relTypeUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
+            .from( RelationshipItem.builder().build() )
+            .to( RelationshipItem.builder().build() )
+            .build();
+
+        RelationshipType relationshipType = createRelTypeConstraint( PROGRAM_STAGE_INSTANCE );
+        relationshipType.setUid( relTypeUid );
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relationshipType ) );
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertAll( () -> {
+            assertHasError( reporter, relationship, E4013,
+                "Relationship Type `from` constraint is missing event." );
+            assertHasError( reporter, relationship, E4013,
+                "Relationship Type `to` constraint is missing event." );
+        } );
+    }
+
+    private RelationshipType createRelTypeConstraint( RelationshipEntity entity )
+    {
+        RelationshipConstraint constraint = new RelationshipConstraint();
+        constraint.setRelationshipEntity( entity );
+
+        String relTypeUid = CodeGenerator.generateUid();
+
+        RelationshipType relationshipType = new RelationshipType();
+        relationshipType.setUid( relTypeUid );
+        relationshipType.setFromConstraint( constraint );
+        relationshipType.setToConstraint( constraint );
+
+        return relationshipType;
     }
 
     private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
