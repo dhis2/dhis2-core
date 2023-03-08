@@ -45,7 +45,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dxf2.util.ExpressionDimensionItemUtils;
+import org.hisp.dhis.dxf2.expressiondimensionitem.ExpressionDimensionItemService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -69,12 +69,15 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
+    private final ExpressionDimensionItemService expressionDimensionItemUtils;
+
     public VisualizationController( final LegendSetService legendSetService, DimensionService dimensionService,
-        I18nManager i18nManager )
+        I18nManager i18nManager, ExpressionDimensionItemService expressionDimensionItemService )
     {
         this.legendSetService = legendSetService;
         this.dimensionService = dimensionService;
         this.i18nManager = i18nManager;
+        this.expressionDimensionItemUtils = expressionDimensionItemService;
     }
 
     @Override
@@ -161,8 +164,8 @@ public class VisualizationController
             .stream()
             .filter( ddi -> ddi.getExpressionDimensionItem() != null )
             .forEach( ddi -> {
-                List<BaseDimensionalItemObject> expressionItems = ExpressionDimensionItemUtils
-                    .getExpressionItems( manager, ddi );
+                List<BaseDimensionalItemObject> expressionItems = expressionDimensionItemUtils
+                    .getExpressionItems( ddi );
 
                 expressionItems.forEach( ei -> {
                     DataDimensionItem dataDimensionItem = new DataDimensionItem();

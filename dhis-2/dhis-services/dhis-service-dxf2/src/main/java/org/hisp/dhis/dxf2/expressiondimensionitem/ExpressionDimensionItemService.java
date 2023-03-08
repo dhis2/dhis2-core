@@ -25,14 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.util;
+package org.hisp.dhis.dxf2.expressiondimensionitem;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -41,28 +40,30 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.springframework.stereotype.Service;
 
 /**
  * Parsing the expression of ExpressionDimensionItem, provides collection of
  * BaseDimensionalItemObjects.
  */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class ExpressionDimensionItemUtils
+@Service
+@AllArgsConstructor
+public class ExpressionDimensionItemService
 {
+    //valid expressions fbfJHSPpUQD, fbfJHSPpUQD.pq2XI5kz2BY, fbfJHSPpUQD.pq2XI5kz2BY.pq2XI5kz2BZ
     public static final Pattern pattern = Pattern
         .compile( "[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}" );
+
+    private final IdentifiableObjectManager manager;
 
     /**
      * Provides collection of selected item types inside the expression
      *
-     * @param manager {@link IdentifiableObjectManager} service for item
-     *        delivery
      * @param dataDimensionItem {@link IdentifiableObjectManager} expression
      *        dimension item
      * @return collection of selected item types
      */
-    public static List<BaseDimensionalItemObject> getExpressionItems( IdentifiableObjectManager manager,
-        DataDimensionItem dataDimensionItem )
+    public List<BaseDimensionalItemObject> getExpressionItems( DataDimensionItem dataDimensionItem )
     {
         if ( dataDimensionItem.getExpressionDimensionItem() == null )
         {
@@ -95,12 +96,10 @@ public class ExpressionDimensionItemUtils
     /**
      * Provides expression validation
      *
-     * @param manager {@link IdentifiableObjectManager} service for item
-     *        delivery
      * @param expression or indicator of expression dimension item
      * @return true when expression is valid
      */
-    public static boolean isValidExpressionItems( IdentifiableObjectManager manager, String expression )
+    public boolean isValidExpressionItems( String expression )
     {
         List<String> expressionTokens = getExpressionTokens( pattern, expression );
 
@@ -139,7 +138,7 @@ public class ExpressionDimensionItemUtils
      * @param expression expression of indicator
      * @return collection of tokens
      */
-    public static List<String> getExpressionTokens( Pattern pattern, String expression )
+    public List<String> getExpressionTokens( Pattern pattern, String expression )
     {
         List<String> expressionTokens = new ArrayList<>();
 

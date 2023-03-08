@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.dxf2.expressiondimensionitem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,7 +39,7 @@ import java.util.List;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.util.ExpressionDimensionItemUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,10 +47,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 
 /**
- * Test for {@link ExpressionDimensionItemUtils}
+ * Test for {@link ExpressionDimensionItemService}
  */
 @ExtendWith( org.mockito.junit.jupiter.MockitoExtension.class )
-class ExpressionDimensionItemUtilsTests
+class ExpressionDimensionItemServiceTests
 {
     @Mock
     private IdentifiableObjectManager manager;
@@ -58,13 +58,21 @@ class ExpressionDimensionItemUtilsTests
     @Mock
     private IdentifiableObject object;
 
+    private ExpressionDimensionItemService sut;
+
+    @BeforeEach
+    void initialize()
+    {
+        sut = new ExpressionDimensionItemService( manager );
+    }
+
     @Test
     void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
     {
         // Given
         // When
         // Then
-        assertEquals( 0, ExpressionDimensionItemUtils.getExpressionItems( manager, new DataDimensionItem() ).size(),
+        assertEquals( 0, sut.getExpressionItems( new DataDimensionItem() ).size(),
             "NPE assertion failed" );
     }
 
@@ -76,7 +84,7 @@ class ExpressionDimensionItemUtilsTests
     {
         // Given
         // When
-        List<String> tokens = ExpressionDimensionItemUtils.getExpressionTokens( ExpressionDimensionItemUtils.pattern,
+        List<String> tokens = sut.getExpressionTokens( ExpressionDimensionItemService.pattern,
             "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
@@ -96,8 +104,7 @@ class ExpressionDimensionItemUtilsTests
         when( manager.get( (Class<IdentifiableObject>) any(), anyString() ) ).thenReturn( object );
 
         // When
-        boolean valid = ExpressionDimensionItemUtils.isValidExpressionItems( manager,
-            "#{" + token1 + "/#{" + token2 + "}" );
+        boolean valid = sut.isValidExpressionItems( "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
         assertTrue( valid );
@@ -110,8 +117,7 @@ class ExpressionDimensionItemUtilsTests
     {
         // Given
         // When
-        boolean valid = ExpressionDimensionItemUtils.isValidExpressionItems( manager,
-            "#{" + token1 + "/#{" + token2 + "}" );
+        boolean valid = sut.isValidExpressionItems( "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
         assertFalse( valid );
