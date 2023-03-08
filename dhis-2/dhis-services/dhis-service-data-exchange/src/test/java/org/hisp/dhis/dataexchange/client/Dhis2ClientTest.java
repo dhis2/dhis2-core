@@ -36,8 +36,11 @@ import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
+import org.hisp.dhis.dataexchange.client.response.InternalImportSummaryResponse;
 import org.hisp.dhis.dataexchange.client.response.Status;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -147,7 +150,7 @@ class Dhis2ClientTest
     }
 
     @Test
-    void testDeserialize()
+    void testDeserializeResponse()
     {
         String json = "{\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
 
@@ -159,5 +162,28 @@ class Dhis2ClientTest
         assertEquals( HttpStatus.CONFLICT, response.getHttpStatus() );
         assertEquals( Status.ERROR, response.getStatus() );
         assertEquals( "There was a problem", response.getMessage() );
+    }
+
+    @Test
+    void testDeserializeImportSummary238()
+    {
+        String json = "{" +
+            "\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"Process failed\"," +
+            "\"response\": {\"status\": \"WARNING\", \"description\": \"Import process failed\"," +
+            "\"importCount\": {\"imported\": 0, \"updated\": 0, \"ignored\": 4, \"deleted\": 0}}}";
+
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        InternalImportSummaryResponse response = client.deserialize( json, InternalImportSummaryResponse.class );
+
+        assertEquals( HttpStatus.CONFLICT, response.getHttpStatus() );
+        assertEquals( Status.ERROR, response.getStatus() );
+        assertEquals( "Process failed", response.getMessage() );
+        ImportSummary summary = response.getResponse();
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
+        assertEquals( "Import process failed", summary.getDescription() );
+        assertEquals( 0, summary.getImportCount().getImported() );
+        assertEquals( 4, summary.getImportCount().getIgnored() );
     }
 }

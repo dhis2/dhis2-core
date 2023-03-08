@@ -44,7 +44,7 @@ import org.hisp.dhis.dataexchange.client.auth.Authentication;
 import org.hisp.dhis.dataexchange.client.auth.BasicAuthentication;
 import org.hisp.dhis.dataexchange.client.auth.CookieAuthentication;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
-import org.hisp.dhis.dataexchange.client.response.ImportSummaryResponse;
+import org.hisp.dhis.dataexchange.client.response.InternalImportSummaryResponse;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -211,9 +211,9 @@ public class Dhis2Client
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet, ImportOptions options )
     {
         URI uri = getDataValueSetUri( options );
-        ImportSummaryResponse response = executeJsonPostRequest(
-            uri, dataValueSet, ImportSummaryResponse.class ).getBody();
-        return response != null ? response.getResponse() : null;
+        InternalImportSummaryResponse response = executeJsonPostRequest(
+            uri, dataValueSet, InternalImportSummaryResponse.class ).getBody();
+        return response != null ? response.getImportSummary() : null;
     }
 
     /**

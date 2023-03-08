@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client.response;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.system.notification;
 
 /**
- * DHIS 2 API response.
+ * A {@link Notification} can have a
+ * {@link com.fasterxml.jackson.databind.JsonNode} data object attached for
+ * additional information. The {@link NotificationDataType} indicates what data
+ * the value represents. This is purely for clarity and ease of processing the
+ * data programmatically.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class Dhis2Response
+public enum NotificationDataType
 {
-    @JsonProperty
-    protected Status status;
-
-    @JsonProperty
-    protected Integer httpStatusCode;
-
-    @JsonProperty
-    protected ErrorCode errorCode;
-
-    @JsonProperty
-    protected String message;
-
-    public HttpStatus getHttpStatus()
-    {
-        return httpStatusCode != null ? HttpStatus.valueOf( httpStatusCode ) : null;
-    }
+    PARAMETERS
 }
