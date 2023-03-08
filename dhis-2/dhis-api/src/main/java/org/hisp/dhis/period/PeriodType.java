@@ -144,6 +144,7 @@ public abstract class PeriodType
         new MonthlyPeriodType(),
         new BiMonthlyPeriodType(),
         new QuarterlyPeriodType(),
+        new QuarterlyNovemberPeriodType(),
         new SixMonthlyPeriodType(),
         new SixMonthlyAprilPeriodType(),
         new SixMonthlyNovemberPeriodType(),
