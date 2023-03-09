@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.util.DateUtils.addDays;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,7 +65,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -550,16 +551,13 @@ public class DataSet
      */
     public boolean isLocked( User user, Period period, Date now )
     {
-        if ( user != null && user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        if ( expiryDays == DataSet.NO_EXPIRY
+            || user != null && user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
             return false;
         }
-
         Date date = now != null ? now : new Date();
-
-        return expiryDays != DataSet.NO_EXPIRY
-            && !Period.isDateInTimeFrame( null, new DateTime( period.getEndDate() ).plusDays( expiryDays ).toDate(),
-                date );
+        return !Period.isDateInTimeFrame( null, addDays( period.getEndDate(), expiryDays ), date );
     }
 
     /**
