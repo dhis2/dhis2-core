@@ -43,7 +43,6 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.jupiter.api.Test;
 
@@ -181,10 +180,10 @@ class DataElementTest
         assertIsExpired( true, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 2 ) ) );
     }
 
-    private static void assertIsExpired( boolean expected, Function<Period, Date> actual )
+    private void assertIsExpired( boolean expected, Function<Period, Date> actual )
     {
         Date now = new Date();
-        Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod( now );
+        Period thisMonth = periodType.createPeriod( now );
         DataElement de = new DataElement();
         DataSet ds = new DataSet();
         ds.setExpiryDays( 1 );

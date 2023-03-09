@@ -38,8 +38,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
@@ -144,7 +142,7 @@ class DataSetTest
     private static void assertIsLocked( boolean expected, Function<Period, Date> actual )
     {
         Date now = new Date();
-        Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod( now );
+        Period thisMonth = new MonthlyPeriodType().createPeriod( now );
         DataSet ds = new DataSet();
         ds.setExpiryDays( 1 );
         assertEquals( expected, ds.isLocked( null, thisMonth, actual.apply( thisMonth ) ) );
