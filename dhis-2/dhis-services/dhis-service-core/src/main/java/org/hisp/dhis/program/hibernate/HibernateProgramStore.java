@@ -107,6 +107,7 @@ public class HibernateProgramStore
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 
+    @SuppressWarnings( "unchecked" )
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
         NativeQuery<Long> query = getSession().createNativeQuery(

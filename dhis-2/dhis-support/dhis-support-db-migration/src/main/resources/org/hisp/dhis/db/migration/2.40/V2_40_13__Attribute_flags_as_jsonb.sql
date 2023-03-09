@@ -65,6 +65,9 @@ select update_object_type_columns_to_jsonb();
 /* clean up the update function */
 drop function if exists update_object_type_columns_to_jsonb();
 
+/*set empty array for any null value*/
+update attribute set objecttypes = '[]'::jsonb where objecttypes is null;
+
 /* make new column not null now that all have a jsonb value */
 alter table attribute alter column objecttypes set not null;
 

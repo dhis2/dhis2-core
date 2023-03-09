@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.CoordinatesTuple;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -91,55 +90,6 @@ public class CoordinateUtils
         }
 
         return list;
-    }
-
-    public static String setMultiPolygonCoordinatesFromList( List<CoordinatesTuple> list )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        if ( CoordinatesTuple.hasCoordinates( list ) )
-        {
-            builder.append( "[" );
-
-            for ( CoordinatesTuple tuple : list )
-            {
-                if ( tuple.hasCoordinates() )
-                {
-                    builder.append( "[[" );
-
-                    for ( String coordinates : tuple.getCoordinatesTuple() )
-                    {
-                        builder.append( "[" ).append( coordinates ).append( "]," );
-                    }
-
-                    builder.deleteCharAt( builder.lastIndexOf( "," ) );
-                    builder.append( "]]," );
-                }
-            }
-
-            builder.deleteCharAt( builder.lastIndexOf( "," ) );
-            builder.append( "]" );
-        }
-
-        return StringUtils.trimToNull( builder.toString() );
-    }
-
-    public static String setPointCoordinatesFromList( List<CoordinatesTuple> list )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        if ( list != null && list.size() > 0 )
-        {
-            for ( CoordinatesTuple tuple : list )
-            {
-                for ( String coordinates : tuple.getCoordinatesTuple() )
-                {
-                    builder.append( "[" ).append( coordinates ).append( "]" );
-                }
-            }
-        }
-
-        return StringUtils.trimToNull( builder.toString() );
     }
 
     public static String getCoordinatesFromGeometry( Geometry geometry )

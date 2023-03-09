@@ -504,16 +504,7 @@ public class DefaultExpressionService
             return "";
         }
 
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, ExpressionParams.builder()
-            .expression( expression )
-            .parseType( parseType )
-            .dataType( dataType )
-            .missingValueStrategy( NEVER_SKIP )
-            .build() );
-
-        visit( expression, dataType, visitor, false );
-
-        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
+        Map<String, String> itemDescriptions = getExpressionItemDescriptions( expression, parseType, dataType );
 
         String description = expression;
 
@@ -523,6 +514,28 @@ public class DefaultExpressionService
         }
 
         return description;
+    }
+
+    @Override
+    public Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType )
+    {
+        return getExpressionItemDescriptions( expression, parseType, parseType.getDataType() );
+    }
+
+    @Override
+    public Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType,
+        DataType dataType )
+    {
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, ExpressionParams.builder()
+            .expression( expression )
+            .parseType( parseType )
+            .dataType( dataType )
+            .missingValueStrategy( NEVER_SKIP )
+            .build() );
+
+        visit( expression, dataType, visitor, false );
+
+        return visitor.getItemDescriptions();
     }
 
     @Override

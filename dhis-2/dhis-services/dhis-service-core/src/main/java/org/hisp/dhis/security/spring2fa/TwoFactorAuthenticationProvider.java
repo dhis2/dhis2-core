@@ -74,14 +74,19 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         throws AuthenticationException
     {
         String username = auth.getName();
-        ForwardedIpAwareWebAuthenticationDetails details = (ForwardedIpAwareWebAuthenticationDetails) auth.getDetails();
+        String ip = "";
+        if ( auth.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails )
+        {
+            ForwardedIpAwareWebAuthenticationDetails details = (ForwardedIpAwareWebAuthenticationDetails) auth
+                .getDetails();
+            ip = details.getIp();
+        }
 
         log.debug( String.format( "Login attempt: %s", username ) );
 
         // If enabled, temporarily block user with too many failed attempts
         if ( securityService.isLocked( username ) )
         {
-            String ip = details.getIp();
             log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
             throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
         }
@@ -103,22 +108,21 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid login method, user is using external authentication." );
         }
 
-        validateTwoFactor( user, details );
+        validateTwoFactor( user, auth.getDetails() );
 
         return new UsernamePasswordAuthenticationToken( userService.createUserDetails( user ),
             result.getCredentials(),
             result.getAuthorities() );
     }
 
-    private void validateTwoFactor( User user, ForwardedIpAwareWebAuthenticationDetails details )
+    private void validateTwoFactor( User user, Object details )
     {
-        // If user has 2FA enabled and tries to authenticate with HTTP Basic
+        // If user has 2FA enabled and tries to authenticate with HTTP Basic or OAuth
         if ( user.isTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails) )
         {
-            log.debug( "User has 2FA enabled, but tried to authenticate with HTTP Basic; username={}",
-                user.getUsername() );
             throw new PreAuthenticatedCredentialsNotFoundException(
-                "User has 2FA enabled, but tried to authenticate with HTTP Basic; username=" + user.getUsername() );
+                "User has 2FA enabled, but tried to authenticate with a non-form based login method; username="
+                    + user.getUsername() );
         }
 
         // If user require 2FA, and it's not enabled/provisioned, redirect to

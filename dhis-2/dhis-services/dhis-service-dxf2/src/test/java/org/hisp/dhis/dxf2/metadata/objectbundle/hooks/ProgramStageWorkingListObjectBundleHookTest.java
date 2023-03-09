@@ -112,7 +112,9 @@ class ProgramStageWorkingListObjectBundleHookTest
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
             .eventCreatedAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
-            .scheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+            .eventOccurredAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
+            .eventScheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
             .assignedUsers( Collections.singleton( "User" ) )
             .assignedUserMode( AssignedUserSelectionMode.PROVIDED )
@@ -168,14 +170,27 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertErrorReport( errorReports, E4062, "EventDate" );
+        assertErrorReport( errorReports, E4062, "EventCreatedDate" );
+    }
+
+    @Test
+    void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEventOccurredAt()
+    {
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .eventOccurredAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
+
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
+
+        assertErrorReport( errorReports, E4062, "EventOccurredDate" );
     }
 
     @Test
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForScheduledAt()
     {
         ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
-            .scheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .eventScheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
             .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 

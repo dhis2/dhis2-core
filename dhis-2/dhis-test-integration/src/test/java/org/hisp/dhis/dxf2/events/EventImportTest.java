@@ -106,6 +106,8 @@ class EventImportTest extends TransactionalIntegrationTest
 {
     private static final String DUE_DATE = "2021-02-28T13:05:00";
 
+    private static final String EVENT_DATE = "2021-02-25T12:15:00";
+
     @Autowired
     private EventService eventService;
 
@@ -730,7 +732,7 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.setOrgUnit( organisationUnitB.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setEventDate( "2019-10-24" );
+        event.setEventDate( EVENT_DATE );
         event.setDeleted( false );
         return event;
     }

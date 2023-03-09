@@ -745,7 +745,6 @@ public class DefaultPreheatService implements PreheatService
         return map;
     }
 
-    @SuppressWarnings( "unchecked" )
     private void collectScanTargets( Map<Class<?>, List<?>> targets )
     {
         for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )

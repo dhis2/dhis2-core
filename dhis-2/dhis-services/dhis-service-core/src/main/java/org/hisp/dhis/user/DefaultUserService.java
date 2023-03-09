@@ -910,7 +910,9 @@ public class DefaultUserService
             .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
-            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
+            .userGroupIds( user.getUid() == null
+                ? Set.of()
+                : currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
             .isSuper( user.isSuper() )
             .build();
     }

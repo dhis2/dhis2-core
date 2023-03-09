@@ -25,48 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.help.action;
+package org.hisp.dhis.security.utils;
 
-import java.io.OutputStream;
+import java.util.List;
+import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.system.help.HelpManager;
-import org.hisp.dhis.util.ContextUtils;
-import org.hisp.dhis.util.StreamActionSupport;
-
-/**
- * @author Lars Helge Overland
- */
-public class GetHelpItemsAction
-    extends StreamActionSupport
+public class CspConstants
 {
-    private LocaleManager localeManager;
-
-    public void setLocaleManager( LocaleManager localeManager )
+    private CspConstants()
     {
-        this.localeManager = localeManager;
     }
 
-    @Override
-    protected String execute( HttpServletResponse response, OutputStream out )
-        throws Exception
-    {
-        HelpManager.getHelpItems( out, localeManager.getCurrentLocale() );
+    public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-        return SUCCESS;
-    }
+    public static final Pattern P_1 = Pattern.compile( "^.+/events/files$" );
 
-    @Override
-    protected String getContentType()
-    {
-        return ContextUtils.CONTENT_TYPE_HTML;
-    }
+    public static final Pattern P_2 = Pattern.compile( "^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$" );
 
-    @Override
-    protected String getFilename()
-    {
-        return "help.html";
-    }
+    public static final Pattern P_3 = Pattern.compile( "^.+/dataValues/files$" );
+
+    public static final Pattern P_4 = Pattern.compile(
+        "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$" );
+
+    public static final Pattern P_5 = Pattern.compile( "^.+fileResources/[a-zA-Z\\d]+/data$" );
+
+    public static final Pattern P_6 = Pattern.compile( "^.+audits/files/[a-zA-Z\\d]+$" );
+
+    public static final Pattern P_7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
+
+    public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS = List.of( P_1, P_2, P_3, P_4, P_5, P_6,
+        P_7 );
+
+    public static final Pattern LOGIN_PATTERN = Pattern.compile( "^.+/dhis-web-commons/security/.+$" );
+
 }
