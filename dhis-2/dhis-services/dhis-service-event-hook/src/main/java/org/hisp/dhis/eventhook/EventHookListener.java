@@ -37,10 +37,12 @@ import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.eventhook.handlers.AmqpHandler;
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
 import org.hisp.dhis.eventhook.handlers.KafkaHandler;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
+import org.hisp.dhis.eventhook.targets.AmqpTarget;
 import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
@@ -150,6 +152,10 @@ public class EventHookListener
                 else if ( KafkaTarget.TYPE.equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new KafkaHandler( (KafkaTarget) target ) );
+                }
+                else if ( AmqpTarget.TYPE.equals( target.getType() ) )
+                {
+                    targets.get( eh.getUid() ).add( new AmqpHandler( (AmqpTarget) target ) );
                 }
             }
         }

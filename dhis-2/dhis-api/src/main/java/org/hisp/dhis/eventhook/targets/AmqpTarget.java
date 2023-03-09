@@ -25,52 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
-
-import java.io.Serializable;
+package org.hisp.dhis.eventhook.targets;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.targets.AmqpTarget;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.eventhook.Target;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@ToString
+@EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
-@EqualsAndHashCode
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = WebhookTarget.TYPE ),
-    @JsonSubTypes.Type( value = ConsoleTarget.class, name = ConsoleTarget.TYPE ),
-    @JsonSubTypes.Type( value = JmsTarget.class, name = JmsTarget.TYPE ),
-    @JsonSubTypes.Type( value = KafkaTarget.class, name = KafkaTarget.TYPE ),
-    @JsonSubTypes.Type( value = AmqpTarget.class, name = AmqpTarget.TYPE )
-} )
-public abstract class Target
-    implements Serializable
+public class AmqpTarget extends Target
 {
-    @JsonCreator
-    protected Target( @JsonProperty( "type" ) String type )
-    {
-        this.type = type;
-    }
+    public static final String TYPE = "amqp";
 
-    @JsonProperty
-    protected final String type;
+    @JsonProperty( required = true )
+    private String clientId = "dhis2-amqp-" + CodeGenerator.generateUid();
+
+    public AmqpTarget()
+    {
+        super( TYPE );
+    }
 }
