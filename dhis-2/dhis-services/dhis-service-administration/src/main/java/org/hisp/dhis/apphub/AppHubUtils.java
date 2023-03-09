@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.apphub;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.IllegalQueryException;
@@ -83,6 +86,32 @@ public class AppHubUtils
         if ( !API_VERSION_PATTERN.matcher( apiVersion ).matches() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1002 ) );
+        }
+    }
+
+    /**
+     * Validates the UUID. Apphub uses UUID-v4 for all identifiers.
+     *
+     * @param uuid
+     * @throws IllegalQueryException
+     */
+
+    public static void validateUuid( String uuid )
+        throws IllegalQueryException
+    {
+        if ( uuid == null || uuid.isEmpty() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1003 ) );
+        }
+
+        try
+        {
+            // need to check equality because fromString converts strings like 1-1-1-1-1 to a valid UUID
+            checkArgument( UUID.fromString( uuid ).toString() == uuid );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7800, uuid ) );
         }
     }
 

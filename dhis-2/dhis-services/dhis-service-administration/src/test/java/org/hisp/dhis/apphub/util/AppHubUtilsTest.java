@@ -111,4 +111,32 @@ class AppHubUtilsTest
         HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
         assertTrue( entity.getHeaders().getAccept().contains( MediaType.APPLICATION_JSON ) );
     }
+
+    @Test
+    void testValidateUuid()
+    {
+        AppHubUtils.validateUuid( "2621d406-a908-476a-bcd2-e55abe3445b4" );
+    }
+
+    @Test
+    void testValidateInvalidUuidA()
+    {
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateUuid( "evil-uuid.jpg" ) );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateUuid( "1-1-1-1-1" ) );
+    }
+
+    @Test
+    void testValidateInvalidUuidB()
+    {
+        //edge case for UUID.fromString
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateUuid( "1-1-1-1-1" ) );
+    }
+
+    @Test
+    void testValidateInvalidUuidC()
+    {
+        //edge case for UUID.fromString
+        assertThrows( IllegalQueryException.class,
+            () -> AppHubUtils.validateUuid( "2621d406/a908-476a-bcd2-e55abe3445b4" ) );
+    }
 }

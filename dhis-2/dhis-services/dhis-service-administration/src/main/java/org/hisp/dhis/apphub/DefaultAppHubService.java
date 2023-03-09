@@ -31,6 +31,7 @@ import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
 import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
 import static org.hisp.dhis.apphub.AppHubUtils.validateApiVersion;
 import static org.hisp.dhis.apphub.AppHubUtils.validateQuery;
+import static org.hisp.dhis.apphub.AppHubUtils.validateUuid;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -107,6 +108,8 @@ public class DefaultAppHubService implements AppHubService
     @Override
     public AppVersion getWebAppVersion( String versionId )
     {
+        validateUuid( versionId );
+
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
         String appVersionEndpoint = "v2/appVersions";
         String url = String.format( "%s/%s/%s", appHubApiUrl, appVersionEndpoint, versionId );
