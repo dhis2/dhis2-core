@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,57 +27,59 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
+import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link Relationship}s in the {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator" )
-public class RelationshipValidator implements Validator<TrackerBundle>
+public class LinkValidator implements Validator<Relationship>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public RelationshipValidator()
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getRelationships,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new DataRelationsValidator(),
-                                all(
-                                        new LinkValidator(),
-                                        new DuplicationValidator(),
-                                        seq(
-                                                new ConstraintValueTypeValidator(),
-                                                new ConstraintEntityValidator()
-                                        )
-                                )
-                        )
-                );
-        // @formatter:on
-    }
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        validator.validate( reporter, bundle, input );
+        validateRelationshipLinksOnlyTwoEntities( reporter, relationship );
+        validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
+    }
+
+    private void validateRelationshipLinksOnlyTwoEntities( Reporter reporter,
+        Relationship relationship )
+    {
+        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getFrom() ),
+            relationship, E4001, "from", relationship.getRelationship() );
+        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getTo() ),
+            relationship, E4001, "to", relationship.getRelationship() );
+    }
+
+    private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
+    {
+        if ( relationshipItemValueType( relationship.getFrom() ) != null
+            && Objects.equals( relationship.getFrom(), relationship.getTo() ) )
+        {
+            reporter.addError( relationship, E4000, relationship.getRelationship() );
+        }
+    }
+
+    private boolean hasMoreThanOneReference( RelationshipItem item )
+    {
+        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
+            .filter( StringUtils::isNotBlank )
+            .count() > 1;
     }
 
     @Override
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return true; // this main validator should always run
+        return strategy.isCreate();
     }
 }
