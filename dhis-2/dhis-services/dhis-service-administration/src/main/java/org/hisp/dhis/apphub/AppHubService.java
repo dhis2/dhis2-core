@@ -51,6 +51,6 @@ public interface AppHubService
         throws URISyntaxException;
 
     List<WebApp> getAppHub();
-
+    AppVersion getWebAppVersion( String appVersion );
     AppStatus installAppFromAppHub( String id );
 }

@@ -42,7 +42,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +53,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -105,6 +105,16 @@ public class DefaultAppHubService implements AppHubService
     }
 
     @Override
+    public AppVersion getWebAppVersion(String versionId)
+    {
+        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
+        String appVersionEndpoint = "v2/appVersions";
+        String url = String.format( "%s/%s/%s", appHubApiUrl, appVersionEndpoint, versionId );
+
+        return restTemplate.getForObject( url, AppVersion.class );
+    }
+
+    @Override
     public AppStatus installAppFromAppHub( String id )
     {
         if ( id == null )
@@ -114,21 +124,16 @@ public class DefaultAppHubService implements AppHubService
 
         try
         {
-            Optional<AppVersion> webAppVersion = getWebAppVersion( id );
+            AppVersion version = getWebAppVersion( id );
+            URL url = new URL( version.getDownloadUrl() );
+            String filename = version.getFilename();
 
-            if ( webAppVersion.isPresent() )
-            {
-                AppVersion version = webAppVersion.get();
-
-                URL url = new URL( version.getDownloadUrl() );
-
-                String filename = version.getFilename();
-
-                return appManager.installApp( getFile( url ), filename );
-            }
-
-            log.info( String.format( "No version found for id %s", id ) );
-
+            log.info( "Installing App version from App Hub, URL: '{}'", url.toString() );
+            return appManager.installApp( getFile( url ), filename );
+        }
+        catch(HttpClientErrorException.NotFound ex)
+        {
+            log.info( String.format( "Failed to install app: No version found for id %s", id ) );
             return AppStatus.NOT_FOUND;
         }
         catch ( IOException ex )
@@ -140,22 +145,6 @@ public class DefaultAppHubService implements AppHubService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private Optional<AppVersion> getWebAppVersion( String id )
-    {
-        for ( WebApp app : getAppHub() )
-        {
-            for ( AppVersion version : app.getVersions() )
-            {
-                if ( id.equals( version.getId() ) )
-                {
-                    return Optional.of( version );
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
 
     private static File getFile( URL url )
         throws IOException

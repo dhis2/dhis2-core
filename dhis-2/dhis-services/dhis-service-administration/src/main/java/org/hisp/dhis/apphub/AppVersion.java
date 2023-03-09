@@ -41,7 +41,11 @@ public class AppVersion
 {
     private String id;
 
+    private String appId;
+
     private String version;
+
+    private String channel;
 
     private String minDhisVersion;
 
@@ -50,6 +54,8 @@ public class AppVersion
     private String downloadUrl;
 
     private String demoUrl;
+
+    private Integer downloadCount;
 
     private Date created;
 
@@ -75,6 +81,16 @@ public class AppVersion
     public void setVersion( String version )
     {
         this.version = version;
+    }
+
+
+    @JsonProperty
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 
     @JsonProperty
@@ -111,6 +127,17 @@ public class AppVersion
     }
 
     @JsonProperty
+    public Integer getDownloadCount()
+    {
+        return downloadCount;
+    }
+
+    public void setDownloadCount( Integer downloadCount )
+    {
+        this.downloadCount = downloadCount;
+    }
+
+    @JsonProperty
     public String getDemoUrl()
     {
         return demoUrl;
@@ -130,6 +157,17 @@ public class AppVersion
     public void setCreated( Date created )
     {
         this.created = created;
+    }
+
+    @JsonProperty
+    public String getAppId()
+    {
+        return appId;
+    }
+
+    public void setAppId( String appId )
+    {
+        this.appId = appId;
     }
 
     @JsonProperty
