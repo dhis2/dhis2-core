@@ -36,7 +36,6 @@ import static org.hisp.dhis.tracker.validation.validator.relationship.Validation
 
 import java.util.Optional;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -63,25 +62,26 @@ class DataRelationsValidator
         RelationshipItem item )
     {
         Optional<String> uid = getUidFromRelationshipItem( item );
-        TrackerType trackerType = relationshipItemValueType( item );
+        String trackerType = relationshipItemValueType( item );
 
-        if ( TRACKED_ENTITY.equals( trackerType ) )
+        if ( TRACKED_ENTITY.getName().equalsIgnoreCase( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( bundle, uid.get() ) )
             {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
+                reporter.addError( relationship, E4012, trackerType, uid.get() );
             }
         }
-        else if ( ENROLLMENT.equals( trackerType ) )
+        else if ( ENROLLMENT.getName().equalsIgnoreCase( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.enrollmentExist( bundle, uid.get() ) )
             {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
+                reporter.addError( relationship, E4012, trackerType, uid.get() );
             }
         }
-        else if ( EVENT.equals( trackerType ) && uid.isPresent() && !ValidationUtils.eventExist( bundle, uid.get() ) )
+        else if ( EVENT.getName().equalsIgnoreCase( trackerType ) && uid.isPresent()
+            && !ValidationUtils.eventExist( bundle, uid.get() ) )
         {
-            reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
+            reporter.addError( relationship, E4012, trackerType, uid.get() );
         }
     }
 

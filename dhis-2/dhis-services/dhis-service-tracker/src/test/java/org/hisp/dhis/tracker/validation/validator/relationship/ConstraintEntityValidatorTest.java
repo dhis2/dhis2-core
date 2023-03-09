@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,37 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4010;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.validator.AssertValidations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-/**
- * @author Enrico Colasante
- */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class MandatoryFieldsValidatorTest
+class ConstraintEntityValidatorTest
 {
 
-    private MandatoryFieldsValidator validator;
+    private ConstraintEntityValidator validator;
 
     @Mock
     private TrackerBundle bundle;
@@ -77,10 +70,8 @@ class MandatoryFieldsValidatorTest
     @BeforeEach
     public void setUp()
     {
-        validator = new MandatoryFieldsValidator();
+        validator = new ConstraintEntityValidator();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
@@ -88,106 +79,110 @@ class MandatoryFieldsValidatorTest
     }
 
     @Test
-    void verifyRelationshipValidationSuccess()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndToConstraintIsSetToEnrollment()
     {
-        String relTypeUid = CodeGenerator.generateUid();
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relTypeUid );
+        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+            .from( trackedEntityRelationshipItem() )
+            .to( enrollmentRelationshipItem() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
+
         when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
+            .thenReturn( Collections.singletonList( relType ) );
 
         validator.validate( reporter, bundle, relationship );
 
-        assertIsEmpty( reporter.getErrors() );
+        assertHasError( reporter, relationship, E4010,
+            "Relationship Type `to` constraint requires a trackedEntity but a enrollment was found." );
     }
 
     @Test
-    void verifyRelationshipValidationFailsOnMissingFrom()
+    void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndToConstraintIsSetToEnrollment()
     {
+        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_STAGE_INSTANCE );
+
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+            .from( trackedEntityRelationshipItem() )
+            .to( enrollmentRelationshipItem() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relType ) );
+
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship, "from" );
+        assertHasError( reporter, relationship, E4010,
+            "Relationship Type `to` constraint requires a event but a enrollment was found." );
     }
 
     @Test
-    void verifyRelationshipValidationFailsOnMissingTo()
+    void shouldFailWhenRelationshipEntityIsProgramInstanceAndFromConstraintIsSetToEvent()
     {
+        RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
+
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
+                .event( event() )
                 .build() )
+            .to( trackedEntityRelationshipItem() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relType ) );
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship, "to" );
+        assertHasError( reporter, relationship, E4010,
+            "Relationship Type `from` constraint requires a enrollment but a event was found." );
     }
 
-    @Test
-    void verifyRelationshipValidationFailsOnMissingRelationshipType()
+    private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
     {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.EMPTY_UID )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+        RelationshipType relType = new RelationshipType();
+        relType.setUid( CodeGenerator.generateUid() );
+        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+        relationshipConstraintFrom.setRelationshipEntity( from );
+        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+        relationshipConstraintTo.setRelationshipEntity( to );
+
+        relType.setFromConstraint( relationshipConstraintFrom );
+        relType.setToConstraint( relationshipConstraintTo );
+
+        return relType;
+    }
+
+    private RelationshipItem trackedEntityRelationshipItem()
+    {
+        return RelationshipItem.builder()
+            .trackedEntity( trackedEntity() )
             .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertMissingProperty( reporter, relationship, "relationshipType" );
     }
 
-    @Test
-    void shouldFailWhenInvalidRelationshipTypeProvided()
+    private RelationshipItem enrollmentRelationshipItem()
     {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( "do-not-exist" ) )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+        return RelationshipItem.builder()
+            .enrollment( enrollment() )
             .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, E4009 );
-    }
-
-    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
-    {
-        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1124, property );
     }
 
     private String trackedEntity()
+    {
+        return CodeGenerator.generateUid();
+    }
+
+    private String enrollment()
+    {
+        return CodeGenerator.generateUid();
+    }
+
+    private String event()
     {
         return CodeGenerator.generateUid();
     }

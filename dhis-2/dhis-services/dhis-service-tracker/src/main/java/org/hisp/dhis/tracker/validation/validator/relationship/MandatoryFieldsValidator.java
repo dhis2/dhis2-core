@@ -28,8 +28,14 @@
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
@@ -48,6 +54,15 @@ class MandatoryFieldsValidator
         reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
         reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
             "relationshipType" );
+        reporter.addErrorIf(
+            () -> getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
+                relationship.getRelationshipType() ).isEmpty(),
+            relationship, E4009, relationship.getRelationshipType() );
     }
 
+    private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
+        MetadataIdentifier relationshipType )
+    {
+        return relationshipsTypes.stream().filter( relationshipType::isEqualTo ).findFirst();
+    }
 }
