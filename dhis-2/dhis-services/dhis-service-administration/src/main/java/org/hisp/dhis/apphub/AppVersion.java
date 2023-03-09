@@ -83,13 +83,14 @@ public class AppVersion
         this.version = version;
     }
 
-
     @JsonProperty
-    public String getChannel() {
+    public String getChannel()
+    {
         return channel;
     }
 
-    public void setChannel(String channel) {
+    public void setChannel( String channel )
+    {
         this.channel = channel;
     }
 

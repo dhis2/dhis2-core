@@ -105,7 +105,7 @@ public class DefaultAppHubService implements AppHubService
     }
 
     @Override
-    public AppVersion getWebAppVersion(String versionId)
+    public AppVersion getWebAppVersion( String versionId )
     {
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
         String appVersionEndpoint = "v2/appVersions";
@@ -131,7 +131,7 @@ public class DefaultAppHubService implements AppHubService
             log.info( "Installing App version from App Hub, URL: '{}'", url.toString() );
             return appManager.installApp( getFile( url ), filename );
         }
-        catch(HttpClientErrorException.NotFound ex)
+        catch ( HttpClientErrorException.NotFound ex )
         {
             log.info( String.format( "Failed to install app: No version found for id %s", id ) );
             return AppStatus.NOT_FOUND;
