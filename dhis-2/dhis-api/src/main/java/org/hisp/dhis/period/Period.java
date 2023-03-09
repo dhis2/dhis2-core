@@ -327,16 +327,6 @@ public class Period
     }
 
     /**
-     * Determines whether this is a future period relative to the current time.
-     *
-     * @return true if this period ends in the future, false otherwise.
-     */
-    public boolean isFuture()
-    {
-        return getEndDate().after( new Date() );
-    }
-
-    /**
      * Indicates whether this period is after the given period. Bases the
      * comparison on the end dates of the periods. If the given period is null,
      * false is returned.
