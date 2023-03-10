@@ -1180,4 +1180,32 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertEquals( true, row.next() );
         assertEquals( de.getUid(), row.getString( "uid" ) );
     }
+
+    @Test
+    public void testOwnerDataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        // set sharing with public='--------' and owner=userA /
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    public void testOwnerMetadataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        // set sharing with public='--------' and owner=userA /
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canRead( userA, categoryOption ) );
+    }
 }
