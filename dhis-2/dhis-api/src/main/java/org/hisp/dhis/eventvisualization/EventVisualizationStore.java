@@ -99,6 +99,18 @@ public interface EventVisualizationStore extends
     List<EventVisualization> getReportsLikeName( Set<String> words, int first, int max );
 
     /**
+     * Query the EventVisualization collection and retrieve only the
+     * EventVisualizations of type Line list only, comparing the name based on
+     * the given "words".
+     *
+     * @param words the characters describing the Visualization's name.
+     * @param first the first result row.
+     * @param max the maximum result row.
+     * @return a list of EventVisualization containing only Line lists.
+     */
+    List<EventVisualization> getLineListsLikeName( Set<String> words, int first, int max );
+
+    /**
      * Counts the number of Reports (Pivot and Line list) created since the
      * given date.
      *
