@@ -92,8 +92,8 @@ public class AppHubUtils
     /**
      * Validates the UUID. Apphub uses UUID-v4 for all identifiers.
      *
-     * @param uuid
-     * @throws IllegalQueryException
+     * @param uuid the uuid
+     * @throws IllegalQueryException if the UUID is invalid
      */
 
     public static void validateUuid( String uuid )

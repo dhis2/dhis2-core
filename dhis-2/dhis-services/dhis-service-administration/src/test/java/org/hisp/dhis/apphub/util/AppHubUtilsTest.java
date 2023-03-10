@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.matchers.Null;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 
