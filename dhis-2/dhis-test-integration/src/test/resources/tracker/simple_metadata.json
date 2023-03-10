@@ -242,65 +242,6 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
-    },
-
-
-    {
-      "lastUpdated": "2020-05-31T11:41:22.404",
-      "id": "DATAEL00012",
-      "created": "2020-05-31T08:58:48.406",
-      "name": "test-de-optionset",
-      "shortName": "test-de-optionset",
-      "aggregationType": "NONE",
-      "domainType": "TRACKER",
-      "publicAccess": "rw------",
-      "valueType": "TEXT",
-      "zeroIsSignificant": false,
-      "optionSet": {
-        "id": "VWzgQENmzIN"
-      },
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
-      "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": [],
-      "aggregationLevels": []
-    },
-    {
-      "lastUpdated": "2020-05-31T11:41:22.404",
-      "id": "DATAEL00013",
-      "created": "2020-05-31T08:58:48.406",
-      "name": "test-de-assign-value",
-      "shortName": "test-de-assign-value",
-      "aggregationType": "NONE",
-      "domainType": "TRACKER",
-      "publicAccess": "rw------",
-      "valueType": "TEXT",
-      "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
-      "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": [],
-      "aggregationLevels": []
     }
   ],
   "options": [
@@ -337,23 +278,6 @@
       "sortOrder": 4,
       "userAccesses": [],
       "userGroupAccesses": []
-    },
-    {
-      "attributeValues": [],
-      "code": "option3-code",
-      "displayFormName": "option3-name",
-      "displayName": "option3-name",
-      "externalAccess": false,
-      "favorite": false,
-      "favorites": [],
-      "id": "HxFNfoxk7xz",
-      "name": "option3-name",
-      "optionSet": {
-        "id": "VWzgQENmzIN"
-      },
-      "sortOrder": 4,
-      "userAccesses": [],
-      "userGroupAccesses": []
     }
   ],
   "optionSets": [
@@ -372,26 +296,6 @@
         },
         {
           "id": "HxFNfoxk7ac"
-        }
-      ],
-      "publicAccess": "rw------",
-      "userAccesses": [],
-      "userGroupAccesses": [],
-      "valueType": "TEXT",
-      "version": 5
-    },
-    {
-      "attributeValues": [],
-      "code": "options1",
-      "displayName": "options1",
-      "externalAccess": false,
-      "favorite": false,
-      "favorites": [],
-      "id": "VWzgQENmzIN",
-      "name": "options1",
-      "options": [
-        {
-          "id": "HxFNfoxk7xz"
         }
       ],
       "publicAccess": "rw------",
@@ -659,74 +563,6 @@
           },
           "dataElement": {
             "id": "DATAEL00006"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-
-
-        {
-          "lastUpdated": "2019-01-28T11:23:20.855",
-          "id": "PSDE0000007",
-          "created": "2019-01-28T11:23:20.855",
-          "displayInReports": false,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "renderOptionsAsRadio": false,
-          "allowFutureDate": false,
-          "compulsory": false,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 1,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "NpsdDv6kKSO"
-          },
-          "dataElement": {
-            "id": "DATAEL00012"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-        {
-          "lastUpdated": "2019-01-28T11:23:20.855",
-          "id": "PSDE0000008",
-          "created": "2019-01-28T11:23:20.855",
-          "displayInReports": false,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "renderOptionsAsRadio": false,
-          "allowFutureDate": false,
-          "compulsory": false,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 1,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "NpsdDv6kKSO"
-          },
-          "dataElement": {
-            "id": "DATAEL00013"
           },
           "favorites": [],
           "translations": [],
