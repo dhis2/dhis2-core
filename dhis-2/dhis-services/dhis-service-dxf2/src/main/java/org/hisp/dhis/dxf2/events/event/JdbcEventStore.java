@@ -1821,8 +1821,6 @@ public class JdbcEventStore implements EventStore
      */
     private String getCategoryOptionComboQuery( User user, EventSearchParams params )
     {
-        // TODO(ivo) since we need to agg for super users as well we can also just aggregatet the CO count in here and remove
-        // that part from the branch looking at the params.
         String joinCondition = "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             +
             " inner join (select coc.categoryoptioncomboid as id," +
@@ -1831,22 +1829,16 @@ public class JdbcEventStore implements EventStore
             " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             +
             " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid" +
-            " group by coc.categoryoptioncomboid) coc_agg on coc_agg.id = psi.attributeoptioncomboid ";
+            " group by coc.categoryoptioncomboid ";
 
-        // TODO(ivo) merge this count into the above coc_agg; make the having conditional?
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
-            && !isSuper( user ) )
+        if ( !isSuper( user ) )
         {
-            // A user must have access to all COs of the events COC to have access to an event.
-            return joinCondition + " inner join (select cocco.categoryoptioncomboid as coc_id " +
-                " from dataelementcategoryoption as co inner join categoryoptioncombos_categoryoptions cocco on cocco.categoryoptionid = co.categoryoptionid "
-                +
-                " group by cocco.categoryoptioncomboid having bool_and(case when "
+            joinCondition = joinCondition + " having bool_and(case when "
                 + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AclService.LIKE_READ_DATA )
-                + " then true else false end) = True) coc_access on coc_access.coc_id = psi.attributeoptioncomboid ";
+                + " then true else false end) = True ";
         }
 
-        return joinCondition;
+        return joinCondition + ") as coc_agg on coc_agg.id = psi.attributeoptioncomboid ";
     }
 
     private String getEventPagingQuery( final EventSearchParams params )
