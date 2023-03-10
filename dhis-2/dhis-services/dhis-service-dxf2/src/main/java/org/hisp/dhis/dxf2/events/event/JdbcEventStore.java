@@ -1144,7 +1144,7 @@ public class JdbcEventStore implements EventStore
             joinAttributeValueWithoutQueryParameter( fromBuilder, params.getFilterAttributes() );
         }
 
-        fromBuilder.append( getCategoryOptionComboQuery( user, params ) );
+        fromBuilder.append( getCategoryOptionComboQuery( user ) );
 
         fromBuilder.append( dataElementAndFiltersSql );
 
@@ -1819,7 +1819,7 @@ public class JdbcEventStore implements EventStore
      * to an event.</li>
      * </ul>
      */
-    private String getCategoryOptionComboQuery( User user, EventSearchParams params )
+    private String getCategoryOptionComboQuery( User user )
     {
         String joinCondition = "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             +
