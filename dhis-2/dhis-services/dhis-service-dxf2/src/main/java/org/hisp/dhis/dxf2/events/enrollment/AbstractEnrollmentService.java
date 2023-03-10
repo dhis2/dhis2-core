@@ -607,6 +607,7 @@ public abstract class AbstractEnrollmentService
         }
 
         programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
+        programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
         programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
 
