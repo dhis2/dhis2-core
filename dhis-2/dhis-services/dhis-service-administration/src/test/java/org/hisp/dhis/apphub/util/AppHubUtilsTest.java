@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.matchers.Null;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 
@@ -135,8 +136,14 @@ class AppHubUtilsTest
     @Test
     void testValidateInvalidUuidC()
     {
-        //edge case for UUID.fromString
         assertThrows( IllegalQueryException.class,
             () -> AppHubUtils.validateUuid( "2621d406/a908-476a-bcd2-e55abe3445b4" ) );
+    }
+
+    @Test
+    void testValidateInvalidUuidD()
+    {
+        assertThrows( IllegalQueryException.class,
+            () -> AppHubUtils.validateUuid( "" ) );
     }
 }

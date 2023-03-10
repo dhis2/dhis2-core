@@ -101,7 +101,7 @@ public class AppHubUtils
     {
         if ( uuid == null || uuid.isEmpty() )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1003 ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7800, uuid ) );
         }
 
         try
