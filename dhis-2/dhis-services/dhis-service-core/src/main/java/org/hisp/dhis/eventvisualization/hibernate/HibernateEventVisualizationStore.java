@@ -125,7 +125,7 @@ public class HibernateEventVisualizationStore extends
     @Override
     public List<EventVisualization> getLineLists( int first, int max )
     {
-        return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST, false );
+        return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST, null );
     }
 
     @Override
@@ -150,7 +150,7 @@ public class HibernateEventVisualizationStore extends
     }
 
     private List<EventVisualization> getEventVisualizations( int first, int max,
-        EventVisualizationSet eventVisualizationSet, boolean legacy )
+        EventVisualizationSet eventVisualizationSet, Boolean legacy )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
