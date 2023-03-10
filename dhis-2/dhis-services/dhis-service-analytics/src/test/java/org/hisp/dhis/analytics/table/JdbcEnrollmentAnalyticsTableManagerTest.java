@@ -48,6 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -84,6 +85,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest
     @Mock
     private AnalyticsExportSettings analyticsExportSettings;
 
+    @Mock
+    private PeriodDataProvider periodDataProvider;
+
     private JdbcEnrollmentAnalyticsTableManager subject;
 
     private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
@@ -95,7 +99,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest
             mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
             new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate,
-            analyticsExportSettings );
+            analyticsExportSettings, periodDataProvider );
     }
 
     @Test

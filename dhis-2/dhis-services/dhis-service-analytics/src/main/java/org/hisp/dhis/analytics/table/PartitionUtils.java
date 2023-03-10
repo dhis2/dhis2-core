@@ -43,7 +43,6 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
 

@@ -70,6 +70,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -134,6 +135,8 @@ public abstract class AbstractJdbcTableManager
     protected final JdbcTemplate jdbcTemplate;
 
     protected final AnalyticsExportSettings analyticsExportSettings;
+
+    protected final PeriodDataProvider periodDataProvider;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
