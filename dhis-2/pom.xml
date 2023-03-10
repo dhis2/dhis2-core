@@ -161,7 +161,7 @@
         <rxtx.version>2.1.7</rxtx.version>
         <json-path.version>2.7.0</json-path.version>
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
-        <jboss-logging.version>3.4.2.Final</jboss-logging.version>
+        <jboss-logging.version>3.5.0.Final</jboss-logging.version>
         <jsoup.version>1.14.3</jsoup.version>
         <jetty.version>10.0.8</jetty.version>
 
