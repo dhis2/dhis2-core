@@ -107,7 +107,7 @@ public class AppHubUtils
         try
         {
             // need to check equality because fromString converts strings like 1-1-1-1-1 to a valid UUID
-            checkArgument( UUID.fromString( uuid ).toString() == uuid );
+            checkArgument( UUID.fromString( uuid ).toString().equals( uuid ) );
         }
         catch ( IllegalArgumentException e )
         {

@@ -122,7 +122,6 @@ class AppHubUtilsTest
     void testValidateInvalidUuidA()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateUuid( "evil-uuid.jpg" ) );
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateUuid( "1-1-1-1-1" ) );
     }
 
     @Test

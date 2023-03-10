@@ -131,7 +131,7 @@ public class DefaultAppHubService implements AppHubService
             URL url = new URL( version.getDownloadUrl() );
             String filename = version.getFilename();
 
-            log.info( "Installing App version from App Hub, URL: '{}'", url.toString() );
+            log.info( "Installing app version from App Hub, URL: '{}'", url.toString() );
             return appManager.installApp( getFile( url ), filename );
         }
         catch ( HttpClientErrorException.NotFound ex )
