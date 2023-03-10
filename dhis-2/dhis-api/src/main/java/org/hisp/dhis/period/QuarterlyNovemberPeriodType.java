@@ -31,23 +31,15 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
- * to the first day of a calendar quarter, and endDate set to the last day of
- * the same quarter.
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
- * @author Torgeir Lorange Ostby
  */
-public class QuarterlyPeriodType
+public class QuarterlyNovemberPeriodType
     extends QuarterlyAbstractPeriodType
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -5973809094923012052L;
-
     private static final String ISO_FORMAT = "yyyyQn";
 
-    public static final String NAME = "Quarterly";
+    public static final String NAME = "QuarterlyNov";
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
@@ -71,16 +63,26 @@ public class QuarterlyPeriodType
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
+        int startMonth = ((dateTimeUnit.getMonth() - 2) - ((dateTimeUnit.getMonth() - 2) % 3)) + 2;
+        int startYear = dateTimeUnit.getYear();
 
-        start.setMonth( ((dateTimeUnit.getMonth() - 1) - ((dateTimeUnit.getMonth() - 1) % 3)) + 1 );
-        start.setDay( 1 );
-
-        if ( start.getMonth() > 12 )
+        if ( dateTimeUnit.getMonth() == 1 )
         {
-            start.setYear( start.getYear() + 1 );
-            start.setMonth( 1 );
+            startMonth = -1;
         }
+
+        if ( startMonth > 12 )
+        {
+            startMonth = 1;
+            startYear = startYear + 1;
+        }
+        else if ( startMonth < 1 )
+        {
+            startMonth = startMonth + 12;
+            startYear = startYear - 1;
+        }
+
+        DateTimeUnit start = new DateTimeUnit( startYear, startMonth, 1, dateTimeUnit.isIso8601() );
 
         DateTimeUnit end = new DateTimeUnit( start );
         end = calendar.plusMonths( end, 2 );
@@ -88,10 +90,6 @@ public class QuarterlyPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-
-    // -------------------------------------------------------------------------
-    // CalendarPeriodType functionality
-    // -------------------------------------------------------------------------
 
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
@@ -105,16 +103,17 @@ public class QuarterlyPeriodType
 
         switch ( newUnit.getMonth() )
         {
-        case 1:
-            return newUnit.getYear() + "Q1";
-        case 4:
-            return newUnit.getYear() + "Q2";
-        case 7:
-            return newUnit.getYear() + "Q3";
-        case 10:
-            return newUnit.getYear() + "Q4";
+        case 11:
+            return newUnit.getYear() + 1 + "NovQ1";
+        case 2:
+            return newUnit.getYear() + "NovQ2";
+        case 5:
+            return newUnit.getYear() + "NovQ3";
+        case 8:
+            return newUnit.getYear() + "NovQ4";
         default:
-            throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
+            throw new IllegalArgumentException( "Month not valid [11,2,5,8], was given " + dateTimeUnit.getMonth() );
         }
     }
+
 }

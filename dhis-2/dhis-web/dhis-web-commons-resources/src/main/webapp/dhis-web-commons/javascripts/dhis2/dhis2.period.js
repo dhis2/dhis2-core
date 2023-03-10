@@ -220,6 +220,7 @@ dhis2.period.PeriodGenerator = function(calendar, format) {
   this.registerGenerator( dhis2.period.MonthlyGenerator );
   this.registerGenerator( dhis2.period.BiMonthlyGenerator );
   this.registerGenerator( dhis2.period.QuarterlyGenerator );
+  this.registerGenerator( dhis2.period.QuarterlyNovemberGenerator );
   this.registerGenerator( dhis2.period.SixMonthlyGenerator );
   this.registerGenerator( dhis2.period.SixMonthlyAprilGenerator );
   this.registerGenerator( dhis2.period.SixMonthlyNovemberGenerator );
@@ -404,6 +405,13 @@ dhis2.period.PeriodGenerator.prototype.biMonthly = function(offset) {
  */
 dhis2.period.PeriodGenerator.prototype.quarterly = function(offset) {
   return this.get( 'Quarterly' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get QuarterlyNovember generator
+ */
+dhis2.period.PeriodGenerator.prototype.quarterly = function(offset) {
+  return this.get( 'QuarterlyNov' ).generatePeriods( offset );
 };
 
 /**
@@ -1155,6 +1163,93 @@ $.extend( dhis2.period.QuarterlyGenerator.prototype, {
 
       periods.push( period );
     }
+
+    return periods;
+  },
+  $datePlusPeriods: function(d, n) {
+    return this.calendar.today().add( n * 3, 'm' );
+  }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates Financial November Quarterly periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.QuarterlyNovemberGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'QuarterlyNov', calendar, format );
+};
+
+dhis2.period.QuarterlyNovemberGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.QuarterlyNovemberGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year - 1, 11, 1 );
+    var endDate = this.calendar.newDate( year, 1, 30 );
+
+    var period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + (year - 1) + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + year;
+    period['id'] = 'FinancialNovQuarterly' + period['startDate'];
+    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovQ1';
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
+
+    startDate = this.calendar.newDate( year, 2, 1 );
+    endDate = this.calendar.newDate( year, 4, 30 );
+
+    period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + year + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + year;
+    period['id'] = 'FinancialNovQuarterly' + period['startDate'];
+    period['iso'] = startDate.formatDate( "yyyy" ) + 'NovQ2';
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
+
+    startDate = this.calendar.newDate( year, 5, 1 );
+    endDate = this.calendar.newDate( year, 7, 30 );
+
+    period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + year + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + year;
+    period['id'] = 'FinancialNovQuarterly' + period['startDate'];
+    period['iso'] = startDate.formatDate( "yyyy" ) + 'NovQ3';
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
+
+    startDate = this.calendar.newDate( year, 8, 1 );
+    endDate = this.calendar.newDate( year, 10, 30 );
+
+    period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + year + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + year;
+    period['id'] = 'FinancialNovQuarterly' + period['startDate'];
+    period['iso'] = startDate.formatDate( "yyyy" ) + 'NovQ4';
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
 
     return periods;
   },

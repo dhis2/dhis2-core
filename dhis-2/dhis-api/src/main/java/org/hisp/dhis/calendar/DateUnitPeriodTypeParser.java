@@ -204,6 +204,37 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
 
             return new DateInterval( start, end );
         }
+        else if ( DateUnitType.QUARTERLY_NOV == dateUnitType )
+        {
+            int year = Integer.parseInt( matcher.group( 1 ) );
+            int quarter = Integer.parseInt( matcher.group( 2 ) );
+
+            // valid quarters are from 1 - 4
+            if ( quarter < 1 || quarter > 4 )
+            {
+                return null;
+            }
+
+            int monthOffset = -2;
+            int month = ((quarter - 1) * 3) + 1;
+            month = month + monthOffset;
+
+            if ( month < 0 )
+            {
+                month += 12;
+                year -= 1;
+            }
+
+            DateTimeUnit start = new DateTimeUnit( year, month, 1, calendar.isIso8601() );
+            DateTimeUnit end = new DateTimeUnit( start );
+            end = calendar.plusMonths( end, 3 );
+            end = calendar.minusDays( end, 1 );
+
+            start.setDayOfWeek( calendar.weekday( start ) );
+            end.setDayOfWeek( calendar.weekday( end ) );
+
+            return new DateInterval( start, end );
+        }
         else if ( DateUnitType.SIX_MONTHLY == dateUnitType )
         {
             int year = Integer.parseInt( matcher.group( 1 ) );
