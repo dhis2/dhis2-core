@@ -123,15 +123,15 @@ public class RouteService
         return route;
     }
 
-    public ResponseEntity<String> exec( Route route, User currentUser, HttpServletRequest request )
+    public ResponseEntity<String> exec( Route route, User user, HttpServletRequest request )
         throws IOException
     {
         HttpHeaders headers = new HttpHeaders();
         route.getHeaders().forEach( headers::add );
 
-        if ( currentUser != null && StringUtils.hasText( currentUser.getUsername() ) )
+        if ( user != null && StringUtils.hasText( user.getUsername() ) )
         {
-            headers.add( "X-Forwarded-User", currentUser.getUsername() );
+            headers.add( "X-Forwarded-User", user.getUsername() );
         }
 
         if ( route.getAuth() != null )
