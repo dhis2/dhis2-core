@@ -270,7 +270,6 @@ public class Assertions
 
     public static void assertNoErrors( ObjectBundleValidationReport report )
     {
-        // TODO(ivo): refactor, is there a way to reuse the existing errorMessage()?
         assertNotNull( report );
         List<String> errors = new ArrayList<>();
         report.forEachErrorReport( err -> {
