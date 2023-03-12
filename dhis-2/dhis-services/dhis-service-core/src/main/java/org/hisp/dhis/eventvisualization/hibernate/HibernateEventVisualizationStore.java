@@ -125,7 +125,13 @@ public class HibernateEventVisualizationStore extends
     @Override
     public List<EventVisualization> getLineLists( int first, int max )
     {
-        return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST, false );
+        return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST, null );
+    }
+
+    @Override
+    public List<EventVisualization> getLineListsLikeName( Set<String> words, int first, int max )
+    {
+        return getEventVisualizationsLikeName( words, first, max, EventVisualizationSet.EVENT_LINE_LIST, null );
     }
 
     private int countEventVisualizationCreated( Date startingAt, EventVisualizationSet eventVisualizationSet,
@@ -144,7 +150,7 @@ public class HibernateEventVisualizationStore extends
     }
 
     private List<EventVisualization> getEventVisualizations( int first, int max,
-        EventVisualizationSet eventVisualizationSet, boolean legacy )
+        EventVisualizationSet eventVisualizationSet, Boolean legacy )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -158,7 +164,7 @@ public class HibernateEventVisualizationStore extends
     }
 
     private List<EventVisualization> getEventVisualizationsLikeName( Set<String> words, int first, int max,
-        EventVisualizationSet eventVisualizationSet, boolean legacy )
+        EventVisualizationSet eventVisualizationSet, Boolean legacy )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -188,7 +194,7 @@ public class HibernateEventVisualizationStore extends
     }
 
     private void setCorrectPredicates( EventVisualizationSet eventVisualizationSet, CriteriaBuilder builder,
-        JpaQueryParameters<EventVisualization> params, boolean legacy )
+        JpaQueryParameters<EventVisualization> params, Boolean legacy )
     {
         if ( eventVisualizationSet == EventVisualizationSet.EVENT_CHART )
         {
@@ -205,6 +211,9 @@ public class HibernateEventVisualizationStore extends
             params.addPredicate( root -> builder.equal( root.get( "type" ), LINE_LIST ) );
         }
 
-        params.addPredicate( root -> builder.equal( root.get( "legacy" ), legacy ) );
+        if ( legacy != null )
+        {
+            params.addPredicate( root -> builder.equal( root.get( "legacy" ), legacy ) );
+        }
     }
 }
