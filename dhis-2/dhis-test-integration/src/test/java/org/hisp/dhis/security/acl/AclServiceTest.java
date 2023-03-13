@@ -1182,7 +1182,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testOwnerDataRead()
+    void testOwnerDataRead()
     {
         User userA = makeUser( "A" );
         manager.save( userA );
@@ -1195,7 +1195,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testOwnerMetadataRead()
+    void testOwnerMetadataRead()
     {
         User userA = makeUser( "A" );
         manager.save( userA );
