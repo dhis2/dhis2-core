@@ -83,10 +83,6 @@ public class DefaultDashboardService
 
     private static final int MAX_HITS_PER_OBJECT = 25;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" )
     private final HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
 
@@ -99,14 +95,6 @@ public class DefaultDashboardService
     private final AppManager appManager;
 
     private final EventVisualizationStore eventVisualizationStore;
-
-    // -------------------------------------------------------------------------
-    // DashboardService implementation
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // Dashboard
-    // -------------------------------------------------------------------------
 
     @Override
     @Transactional( readOnly = true )
@@ -123,7 +111,7 @@ public class DefaultDashboardService
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
         List<App> dashboardApps = appManager.getDashboardPlugins( null,
-            getMax( DashboardItemType.APP, maxTypes, count, maxCount ) );
+            getMax( DashboardItemType.APP, maxTypes, count, maxCount ), true );
 
         DashboardSearchResult result = new DashboardSearchResult();
 
@@ -133,7 +121,7 @@ public class DefaultDashboardService
             convertFromVisualization( objectManager.getBetweenLikeName( Visualization.class, words, 0,
                 getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
         result.setEventVisualizations(
-            convertFromEventVisualization( objectManager.getBetweenLikeName( EventVisualization.class, words, 0,
+            convertFromEventVisualization( eventVisualizationStore.getLineListsLikeName( words, 0,
                 getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( eventVisualizationStore.getChartsLikeName( words, 0,
             getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
@@ -171,7 +159,7 @@ public class DefaultDashboardService
         result.setResources( objectManager.getBetweenSorted( Document.class, 0,
             getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
         result.setApps( appManager.getDashboardPlugins( null,
-            getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
+            getMax( DashboardItemType.APP, maxTypes, count, maxCount ), true ) );
 
         return result;
     }
@@ -473,9 +461,9 @@ public class DefaultDashboardService
         return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
     }
 
-    private List<SimpleVisualizationView> convertFromVisualization( final List<Visualization> visualizations )
+    private List<SimpleVisualizationView> convertFromVisualization( List<Visualization> visualizations )
     {
-        final List<SimpleVisualizationView> views = new ArrayList<>();
+        List<SimpleVisualizationView> views = new ArrayList<>();
 
         if ( isNotEmpty( visualizations ) )
         {
@@ -488,22 +476,22 @@ public class DefaultDashboardService
         return views;
     }
 
-    private SimpleVisualizationView convertFrom( final Visualization visualization )
+    private SimpleVisualizationView convertFrom( Visualization visualization )
     {
-        final SimpleVisualizationView view = new SimpleVisualizationView();
+        SimpleVisualizationView view = new SimpleVisualizationView();
         BeanUtils.copyProperties( visualization, view );
 
         return view;
     }
 
     private List<SimpleEventVisualizationView> convertFromEventVisualization(
-        final List<EventVisualization> eventVisualizations )
+        List<EventVisualization> eventVisualizations )
     {
-        final List<SimpleEventVisualizationView> views = new ArrayList<>();
+        List<SimpleEventVisualizationView> views = new ArrayList<>();
 
         if ( isNotEmpty( eventVisualizations ) )
         {
-            for ( final EventVisualization eventVisualization : eventVisualizations )
+            for ( EventVisualization eventVisualization : eventVisualizations )
             {
                 views.add( convertFrom( eventVisualization ) );
             }
@@ -512,9 +500,9 @@ public class DefaultDashboardService
         return views;
     }
 
-    private SimpleEventVisualizationView convertFrom( final EventVisualization visualization )
+    private SimpleEventVisualizationView convertFrom( EventVisualization visualization )
     {
-        final SimpleEventVisualizationView view = new SimpleEventVisualizationView();
+        SimpleEventVisualizationView view = new SimpleEventVisualizationView();
         BeanUtils.copyProperties( visualization, view );
 
         return view;
