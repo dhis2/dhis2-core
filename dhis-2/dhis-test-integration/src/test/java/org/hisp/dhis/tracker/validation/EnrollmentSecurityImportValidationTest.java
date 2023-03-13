@@ -270,7 +270,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         setup();
         programA.setPublicAccess( AccessStringHelper.FULL );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
         manager.flush();
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
