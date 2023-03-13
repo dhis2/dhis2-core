@@ -38,8 +38,8 @@ import java.util.stream.Stream;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
-import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,13 +69,13 @@ class DefaultAppManagerTest
     private AppStorageService jCloudsAppStorageService;
 
     @Mock
-    private DatastoreService datastoreService;
-
-    @Mock
     private Cache<App> appCache;
 
     @Mock
     private DefaultCacheBuilderProvider cacheBuilderProvider;
+
+    @Mock
+    private KeyJsonValueService keyJsonValueService;
 
     @Mock
     private CacheBuilder cacheBuilder;
@@ -132,7 +132,7 @@ class DefaultAppManagerTest
         doReturn( appCache ).when( cacheBuilder ).build();
 
         appManager = new DefaultAppManager( dhisConfigurationProvider, currentUserService, localAppStorageService,
-            jCloudsAppStorageService, datastoreService, cacheBuilderProvider );
+            jCloudsAppStorageService, keyJsonValueService, cacheBuilderProvider );
     }
 
     /**
