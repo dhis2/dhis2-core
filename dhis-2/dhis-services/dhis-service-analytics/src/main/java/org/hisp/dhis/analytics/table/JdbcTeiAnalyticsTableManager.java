@@ -278,6 +278,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
     public List<AnalyticsTableColumn> getFixedColumns()
     {
         List<AnalyticsTableColumn> allFixedColumns = new ArrayList<>( GROUP_BY_COLS );
+        allFixedColumns.add( getOrganisationUnitNameHierarchyColumn() );
         allFixedColumns.addAll( NON_GROUP_BY_COLS );
 
         return allFixedColumns;

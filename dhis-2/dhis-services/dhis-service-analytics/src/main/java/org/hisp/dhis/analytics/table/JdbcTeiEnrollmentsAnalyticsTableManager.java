@@ -47,6 +47,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -148,7 +149,10 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
     private List<AnalyticsTableColumn> getTableColumns()
     {
-        return getFixedColumns();
+        List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>( getFixedColumns() );
+        analyticsTableColumnList.add( getOrganisationUnitNameHierarchyColumn() );
+
+        return analyticsTableColumnList;
     }
 
     /**
