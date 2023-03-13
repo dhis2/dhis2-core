@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.help.action;
-
-import java.io.OutputStream;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.system.help.HelpManager;
-import org.hisp.dhis.util.ContextUtils;
-import org.hisp.dhis.util.StreamActionSupport;
+package org.hisp.dhis.system.notification;
 
 /**
- * @author Lars Helge Overland
+ * A {@link Notification} can have a
+ * {@link com.fasterxml.jackson.databind.JsonNode} data object attached for
+ * additional information. The {@link NotificationDataType} indicates what data
+ * the value represents. This is purely for clarity and ease of processing the
+ * data programmatically.
+ *
+ * @author Jan Bernitt
  */
-public class GetHelpItemsAction
-    extends StreamActionSupport
+public enum NotificationDataType
 {
-    private LocaleManager localeManager;
-
-    public void setLocaleManager( LocaleManager localeManager )
-    {
-        this.localeManager = localeManager;
-    }
-
-    @Override
-    protected String execute( HttpServletResponse response, OutputStream out )
-        throws Exception
-    {
-        HelpManager.getHelpItems( out, localeManager.getCurrentLocale() );
-
-        return SUCCESS;
-    }
-
-    @Override
-    protected String getContentType()
-    {
-        return ContextUtils.CONTENT_TYPE_HTML;
-    }
-
-    @Override
-    protected String getFilename()
-    {
-        return "help.html";
-    }
+    PARAMETERS
 }

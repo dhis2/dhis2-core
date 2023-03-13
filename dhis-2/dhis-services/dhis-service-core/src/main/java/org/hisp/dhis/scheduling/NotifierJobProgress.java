@@ -33,8 +33,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A {@link JobProgress} implementation that forwards the tracking to a
@@ -72,7 +76,8 @@ public class NotifierJobProgress implements JobProgress
         {
             notifier.clear( jobId );
         }
-        notifier.notify( jobId, message );
+        notifier.notify( jobId, NotificationLevel.INFO, message, false, NotificationDataType.PARAMETERS,
+            getJobParameterData() );
     }
 
     @Override
@@ -143,6 +148,23 @@ public class NotifierJobProgress implements JobProgress
         if ( isNotEmpty( error ) )
         {
             notifier.notify( jobId, NotificationLevel.ERROR, error, false );
+        }
+    }
+
+    private JsonNode getJobParameterData()
+    {
+        JobParameters params = jobId.getJobParameters();
+        if ( params == null )
+        {
+            return null;
+        }
+        try
+        {
+            return new ObjectMapper().valueToTree( params );
+        }
+        catch ( Exception ex )
+        {
+            return null;
         }
     }
 }
