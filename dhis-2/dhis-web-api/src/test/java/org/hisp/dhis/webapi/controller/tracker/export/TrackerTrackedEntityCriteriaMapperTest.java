@@ -576,7 +576,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void shouldCreateAttributeFiltersWhenFilterHasMultipleValuesAndValueHasDelimiter()
+    void shouldCreateFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
         throws BadRequestException,
         ForbiddenException
     {
@@ -587,8 +587,7 @@ class TrackerTrackedEntityCriteriaMapperTest
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            new QueryFilter( QueryOperator.EQ, "2" ) ), actualFilters );
+            new QueryFilter( QueryOperator.LIKE, "project:x:eq:2" ) ), actualFilters );
     }
 
     @Test
@@ -598,5 +597,21 @@ class TrackerTrackedEntityCriteriaMapperTest
         BadRequestException exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenFilterHasDatesFormat()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000:lt:01-01-2001" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001" ) ), actualFilters );
     }
 }

@@ -66,6 +66,8 @@ public enum QueryOperator
 
     private static final Set<QueryOperator> LIKE_OPERATORS = Set.of( LIKE, NLIKE, ILIKE, NILIKE );
 
+    private static final Set<QueryOperator> COMPARISON_OPERATORS = Set.of( GT, GE, LT, LE );
+
     private final String value;
 
     private final boolean nullAllowed;
@@ -104,5 +106,10 @@ public enum QueryOperator
     public boolean isIn()
     {
         return IN == this;
+    }
+
+    public boolean isComparison()
+    {
+        return COMPARISON_OPERATORS.contains( this );
     }
 }
