@@ -28,6 +28,9 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -69,6 +73,8 @@ public class DefaultAppManager
     implements AppManager
 {
     public static final String INVALID_FILTER_MSG = "Invalid filter: ";
+
+    private static final Set<String> EXCLUSION_APPS = unmodifiableSet( new HashSet<>( asList( "Line Listing" ) ) );
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -116,8 +122,20 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
-            .collect( Collectors.toList() );
+        return getApps( contextPath, false );
+    }
+
+    @Override
+    public List<App> getApps( String contextPath, boolean skipCore )
+    {
+        Predicate<App> filter = app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS;
+
+        if ( skipCore )
+        {
+            filter = filter.and( app -> !EXCLUSION_APPS.contains( trimToEmpty( app.getName() ) ) && !app.isCoreApp() );
+        }
+
+        List<App> apps = appCache.getAll().filter( filter ).collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -128,6 +146,15 @@ public class DefaultAppManager
     public List<App> getApps( AppType appType, int max )
     {
         return getApps( null ).stream()
+            .filter( app -> appType == app.getAppType() )
+            .limit( max )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getApps( AppType appType, int max, boolean skipCore )
+    {
+        return getApps( null, skipCore ).stream()
             .filter( app -> appType == app.getAppType() )
             .limit( max )
             .collect( Collectors.toList() );
