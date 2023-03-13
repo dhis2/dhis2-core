@@ -223,7 +223,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         setup();
         programA.setPublicAccess( AccessStringHelper.newInstance()
             .enable( AccessStringHelper.Permission.DATA_READ ).enable( AccessStringHelper.Permission.READ ).build() );
-        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
