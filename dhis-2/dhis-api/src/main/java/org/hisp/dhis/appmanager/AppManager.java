@@ -87,7 +87,7 @@ public interface AppManager
      * Returns a list of all installed apps.
      *
      * @param contextPath the context path of this instance.
-     * @return list of installed apps
+     * @return list of installed apps.
      */
     List<App> getApps( String contextPath );
 
@@ -96,7 +96,7 @@ public interface AppManager
      *
      * @param contextPath the context path of this instance.
      * @param skipCore if true, core apps will be filtered out.
-     * @return list of installed apps
+     * @return list of installed apps.
      */
     List<App> getApps( String contextPath, boolean skipCore );
 
