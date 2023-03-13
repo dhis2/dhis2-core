@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -557,7 +557,7 @@ public class DataSet
             return false;
         }
         Date date = now != null ? now : new Date();
-        return !Period.isDateInTimeFrame( null, addDays( period.getEndDate(), expiryDays ), date );
+        return !Period.isDateInTimeFrame( null, getDateAfterAddition( period.getEndDate(), expiryDays ), date );
     }
 
     /**

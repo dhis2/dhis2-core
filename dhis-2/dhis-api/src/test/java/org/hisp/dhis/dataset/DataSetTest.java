@@ -128,25 +128,25 @@ public class DataSetTest
     }
 
     @Test
-    void testIsLocked_BeforeFirstDayOfPeriod()
+    public void testIsLocked_BeforeFirstDayOfPeriod()
     {
         assertIsLocked( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
     }
 
     @Test
-    void testIsLocked_FirstDayOfPeriod()
+    public void testIsLocked_FirstDayOfPeriod()
     {
         assertIsLocked( false, Period::getStartDate );
     }
 
     @Test
-    void testIsLocked_LastDayOfPeriod()
+    public void testIsLocked_LastDayOfPeriod()
     {
         assertIsLocked( false, Period::getEndDate );
     }
 
     @Test
-    void testIsLocked_AfterLastDayOfPeriod()
+    public void testIsLocked_AfterLastDayOfPeriod()
     {
         // expiryDays is 1 so 1 extra day after the end is still ok
         assertIsLocked( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );

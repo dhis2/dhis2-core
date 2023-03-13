@@ -184,25 +184,25 @@ public class DataElementTest
     }
 
     @Test
-    void testIsExpired_BeforeFirstDayOfPeriod()
+    public void testIsExpired_BeforeFirstDayOfPeriod()
     {
         assertIsExpired( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
     }
 
     @Test
-    void testIsExpired_FirstDayOfPeriod()
+    public void testIsExpired_FirstDayOfPeriod()
     {
         assertIsExpired( false, Period::getStartDate );
     }
 
     @Test
-    void testIsExpired_LastDayOfPeriod()
+    public void testIsExpired_LastDayOfPeriod()
     {
         assertIsExpired( false, Period::getEndDate );
     }
 
     @Test
-    void testIsExpired_AfterLastDayOfPeriod()
+    public void testIsExpired_AfterLastDayOfPeriod()
     {
         // expiryDays is 1 so 1 extra day after the end is still ok
         assertIsExpired( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );

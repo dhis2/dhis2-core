@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataelement;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
-import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -494,7 +494,7 @@ public class DataElement extends BaseDimensionalItemObject
         {
             return false;
         }
-        return !Period.isDateInTimeFrame( null, addDays( period.getEndDate(), expiryDays ), now );
+        return !Period.isDateInTimeFrame( null, getDateAfterAddition( period.getEndDate(), expiryDays ), now );
     }
 
     /**
