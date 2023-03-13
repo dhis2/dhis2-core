@@ -115,7 +115,7 @@ public class EnrollmentSecurityTest
     protected void setUpTest()
     {
         userService = _userService;
-
+        User admin = createAndInjectAdminUser();
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
 
@@ -144,6 +144,7 @@ public class EnrollmentSecurityTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setTrackedEntityType( trackedEntityType );
+        programA.getSharing().setOwner( admin );
         manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
@@ -153,7 +154,7 @@ public class EnrollmentSecurityTest
 
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
-
+        programStageA.getSharing().setOwner( admin );
         programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementB );
         programStageDataElement.setProgramStage( programStageB );
@@ -187,7 +188,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
+     * program = FULL access orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testUserWithDataReadWrite()
@@ -226,7 +227,7 @@ public class EnrollmentSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadWriteNoOrgUnit()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.getSharing().setPublicAccess( AccessStringHelper.FULL );
         manager.updateNoAcl( programA );
 
         User user = createUser( "user1" );
@@ -256,7 +257,8 @@ public class EnrollmentSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadOrgUnit()
     {
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ )
+            .enable( AccessStringHelper.Permission.DATA_READ ).build() );
         manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )

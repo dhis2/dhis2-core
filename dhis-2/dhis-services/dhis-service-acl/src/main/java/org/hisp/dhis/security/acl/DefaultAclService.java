@@ -146,7 +146,7 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.READ );
             }
 
-            if ( !schema.isShareable() || object.getPublicAccess() == null || checkUser( user, object )
+            if ( !schema.isShareable() || object.getPublicAccess() == null
                 || checkSharingPermission( user, object, Permission.READ ) )
             {
                 return true;
@@ -310,7 +310,7 @@ public class DefaultAclService implements AclService
             return writeCommonCheck( schema, user, object, objType );
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
-            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
+            && (checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -351,13 +351,13 @@ public class DefaultAclService implements AclService
             }
 
             if ( checkSharingAccess( user, object, objType ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
+                (checkSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
             }
         }
         else if ( schema.isImplicitPrivateAuthority()
-            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
+            && (checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -660,8 +660,7 @@ public class DefaultAclService implements AclService
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
-        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object )
-            || checkSharingPermission( user, object, Permission.WRITE ) )
+        if ( !schema.isImplicitPrivateAuthority() || checkSharingPermission( user, object, Permission.WRITE ) )
         {
             return errorReports;
         }
@@ -759,6 +758,11 @@ public class DefaultAclService implements AclService
             return true;
         }
 
+        if ( checkUser( user, object ) )
+        {
+            return true;
+        }
+
         if ( sharing.getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             for ( UserGroupAccess userGroupAccess : sharing.getUserGroups().values() )
@@ -831,8 +835,8 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        return checkSharingAccess( user, object, objType ) &&
-            (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ));
+        return checkSharingAccess( user, object, objType )
+            && (checkSharingPermission( user, object, Permission.WRITE ));
     }
 
     private boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )

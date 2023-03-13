@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.security.acl.AccessStringHelper.Permission.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -136,6 +137,7 @@ public class EnrollmentSecurityImportValidationTest
 
     private void setupMetadata()
     {
+        User admin = userService.getUser( ADMIN_USER_UID );
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -157,9 +159,11 @@ public class EnrollmentSecurityImportValidationTest
         manager.save( programStageB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
+        programA.getSharing().setOwner( admin );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
 
         trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.getSharing().setOwner( admin );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
         TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType( 'C' );
@@ -236,7 +240,7 @@ public class EnrollmentSecurityImportValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUserId( user.getUid() );
-
+        injectSecurityContext( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
@@ -267,14 +271,11 @@ public class EnrollmentSecurityImportValidationTest
         throws IOException
     {
         setupMetadata();
-
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_WRITE ).build() );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
-        manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        manager.update( programA );
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
 
@@ -298,8 +299,7 @@ public class EnrollmentSecurityImportValidationTest
         throws IOException
     {
         setupMetadata();
-
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_READ ).build() );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
@@ -354,9 +354,7 @@ public class EnrollmentSecurityImportValidationTest
         throws IOException
     {
         setupMetadata();
-
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_WRITE ).build() );
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 

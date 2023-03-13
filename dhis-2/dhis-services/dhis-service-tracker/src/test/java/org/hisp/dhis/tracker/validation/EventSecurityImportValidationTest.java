@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -101,6 +102,9 @@ public class EventSecurityImportValidationTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private UserService _userService;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -129,8 +133,10 @@ public class EventSecurityImportValidationTest
     protected void initTest()
         throws IOException
     {
+        userService = _userService;
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
-
+        User adminUser = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( adminUser );
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
@@ -281,13 +287,10 @@ public class EventSecurityImportValidationTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
     @Test

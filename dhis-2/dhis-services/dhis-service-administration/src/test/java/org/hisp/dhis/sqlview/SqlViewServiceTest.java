@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -310,11 +311,16 @@ public class SqlViewServiceTest
     @Test
     public void testGetGridRequiresDataReadSharing()
     {
-        createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
+        createAndInjectAdminUser( "ALL" );
 
         // we have the right to create the view
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );
+
+        User userA = createUser( 'A', List.of( "F_SQLVIEW_PUBLIC_ADD" ) );
+        userService.addUser( userA );
+
+        injectSecurityContext( userA );
 
         // but we lack sharing to view the result grid
         assertIllegalQueryEx(

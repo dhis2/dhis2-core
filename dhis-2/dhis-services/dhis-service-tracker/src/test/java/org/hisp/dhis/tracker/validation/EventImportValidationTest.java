@@ -110,7 +110,9 @@ public class EventImportValidationTest
     {
         renderService = _renderService;
         userService = _userService;
-
+        User userSetup = createUser( "A", "ALL" );
+        userService.addUser( userSetup );
+        injectSecurityContext( userSetup );
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -241,20 +243,12 @@ public class EventImportValidationTest
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 4, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1099 ) ) ) );
 
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
     }
 
     @Test
