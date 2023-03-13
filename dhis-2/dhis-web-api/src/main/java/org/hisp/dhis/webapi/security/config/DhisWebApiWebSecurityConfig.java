@@ -748,8 +748,8 @@ public class DhisWebApiWebSecurityConfig
         DhisSwitchUserFilter filter = new DhisSwitchUserFilter( dhisConfig );
         filter.setUserDetailsService( userDetailsService );
         filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
-        filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "GET", true, new UrlPathHelper() ) );
-        filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "GET", true, new UrlPathHelper() ) );
+        filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "POST", true, new UrlPathHelper() ) );
+        filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "POST", true, new UrlPathHelper() ) );
         filter.setSwitchFailureUrl( "/dhis-web-dashboard" );
         filter.setTargetUrl( "/dhis-web-dashboard" );
         return filter;
