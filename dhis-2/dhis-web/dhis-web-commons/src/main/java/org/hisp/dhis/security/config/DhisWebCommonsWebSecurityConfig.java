@@ -192,8 +192,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
                 .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
-                .antMatchers( "/dhis-web-commons/security/impersonateUser.action" )
-                .hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
 
                 .antMatchers( "/api/staticContent/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
@@ -256,8 +254,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .formLogin()
                 .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
                 .loginPage( "/dhis-web-commons/security/login.action" )
-                .usernameParameter( "j_username" )
-                .passwordParameter( "j_password" )
+                .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
                 .failureHandler( customAuthFailureHandler )
                 .successHandler( authenticationSuccessHandler() )
@@ -358,7 +355,6 @@ public class DhisWebCommonsWebSecurityConfig
                 "dhis-web-api-mobile",
                 "dhis-web-portal",
                 "dhis-web-uaa" ) );
-
             return voter;
         }
 
@@ -393,6 +389,5 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( List.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
-
     }
 }

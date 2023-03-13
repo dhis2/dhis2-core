@@ -129,11 +129,6 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <action name="impersonateUser" class="org.hisp.dhis.useraccount.action.ImpersonateUserAction">
-      <result name="success" type="velocity">/dhis-web-commons/useraccount/impersonateUser.vm</result>
-      <result name="error" type="redirect">impersonateUser.action</result>
-    </action>
-
     <action name="loginStrings" class="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction">
       <result name="success" type="velocity-json">/dhis-web-commons/security/loginStrings.vm</result>
     </action>
