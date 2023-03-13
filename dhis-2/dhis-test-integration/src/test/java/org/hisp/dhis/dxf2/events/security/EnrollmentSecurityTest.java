@@ -173,7 +173,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     }
 
     /**
-     * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
+     * program = FULL access orgUnit = Accessible status = SUCCESS
      */
     @Test
     void testUserWithDataReadWrite()

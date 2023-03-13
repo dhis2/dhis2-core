@@ -198,7 +198,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
         manager.updateNoAcl( programA );
@@ -221,7 +221,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.newInstance()
+            .enable( AccessStringHelper.Permission.DATA_READ ).enable( AccessStringHelper.Permission.READ ).build() );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
@@ -234,7 +235,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, ValidationCode.E1069 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1091 );
     }
 
     @Test
@@ -267,7 +268,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
         manager.flush();
