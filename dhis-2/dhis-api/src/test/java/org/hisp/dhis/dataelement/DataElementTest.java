@@ -29,8 +29,8 @@ package org.hisp.dhis.dataelement;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -217,7 +217,7 @@ public class DataElementTest
         DataElement de = new DataElement();
         DataSet ds = new DataSet();
         ds.setExpiryDays( 1 );
-        de.setDataSetElements( Set.of( new DataSetElement( ds, de ) ) );
+        de.setDataSetElements( Collections.singleton( new DataSetElement( ds, de ) ) );
         assertEquals( expected, de.isExpired( thisMonth, actual.apply( thisMonth ) ) );
     }
 }
