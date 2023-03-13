@@ -31,12 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -145,5 +148,13 @@ public class JsonAssertions
     public static void assertHasMember( JsonObject json, String name )
     {
         assertTrue( json.has( name ), String.format( "member \"%s\" should be in %s", name, json ) );
+    }
+
+    public static <E extends JsonValue, T> void assertContainsAll( Collection<T> expected, JsonList<E> actual,
+        Function<E, T> toValue )
+    {
+        assertFalse( actual.isEmpty(), () -> String.format( "expected %s instead actual is empty", expected ) );
+        assertTrue( actual.containsAll( toValue, expected ),
+            () -> String.format( "expected %s instead got %s", expected, actual ) );
     }
 }

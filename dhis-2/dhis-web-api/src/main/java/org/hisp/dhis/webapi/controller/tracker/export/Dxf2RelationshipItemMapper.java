@@ -27,21 +27,59 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+/**
+ * tracker.export is currently made independent of dxf2. We are in a transition
+ * period where some mappers are duplicated. This mapper will be removed once
+ * tracker.export is independent of dxf2.
+ */
 @Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    NoteMapper.class,
+    AttributeMapper.class,
     DataValueMapper.class,
+    ProgramOwnerMapper.class,
+    NoteMapper.class,
     InstantMapper.class,
-    UserMapper.class } )
-interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+    UserMapper.class,
+} )
+interface Dxf2RelationshipItemMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "event", source = "event" )
+    @Override
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+
     @Mapping( target = "occurredAt", source = "eventDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
@@ -52,8 +90,7 @@ interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, 
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+    RelationshipItem.Event from( org.hisp.dhis.dxf2.events.event.Event event );
 
     @Named( "toUserInfo" )
     default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
@@ -63,7 +100,6 @@ interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, 
             .username( event.getAssignedUserUsername() )
             .firstName( event.getAssignedUserFirstName() )
             .surname( event.getAssignedUserSurname() )
-            .displayName( event.getAssignedUserDisplayName() )
             .build();
     }
 }

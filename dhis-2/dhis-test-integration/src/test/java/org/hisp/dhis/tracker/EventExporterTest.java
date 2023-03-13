@@ -541,7 +541,7 @@ class EventExporterTest extends TrackerTest
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
                 () -> assertEquals( "multi-program", e.getProgram() ),
                 () -> assertEquals( "multi-stage", e.getProgramStage() ),
-                () -> assertEquals( "DiszpKrYNg8", e.getOrgUnit() ), // TODO(ivo): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
+                () -> assertEquals( "DiszpKrYNg8", e.getOrgUnit() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452", e.getAttributeOptionCombo() ),
                 () -> assertEquals( "xwZ2u3WyQR0;M58XdOfhiJ7", e.getAttributeCategoryOptions() ) ) )
             .collect( Collectors.toList() );
@@ -568,7 +568,7 @@ class EventExporterTest extends TrackerTest
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
                 () -> assertEquals( "multi-program-attribute", e.getProgram() ),
                 () -> assertEquals( "multi-program-stage-attribute", e.getProgramStage() ),
-                () -> assertEquals( "DiszpKrYNg8", e.getOrgUnit() ), // TODO(ivo): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
+                () -> assertEquals( "DiszpKrYNg8", e.getOrgUnit() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452-attribute", e.getAttributeOptionCombo() ),
                 () -> assertEquals( "xwZ2u3WyQR0;M58XdOfhiJ7", e.getAttributeCategoryOptions() ) ) )
             .collect( Collectors.toList() );
