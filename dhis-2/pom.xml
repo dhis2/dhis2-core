@@ -166,7 +166,7 @@
         <jetty.version>10.0.8</jetty.version>
 
         <!-- Div. utils -->
-        <version.debezium>1.9.5.Final</version.debezium>
+        <version.debezium>2.1.3.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
         <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
