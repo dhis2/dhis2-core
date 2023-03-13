@@ -1187,7 +1187,6 @@ class AclServiceTest extends TransactionalIntegrationTest
         User userA = makeUser( "A" );
         manager.save( userA );
         CategoryOption categoryOption = createCategoryOption( 'A' );
-        // set sharing with public='--------' and owner=userA /
         categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         categoryOption.getSharing().setOwner( userA );
         manager.save( categoryOption );
@@ -1201,7 +1200,6 @@ class AclServiceTest extends TransactionalIntegrationTest
         User userA = makeUser( "A" );
         manager.save( userA );
         CategoryOption categoryOption = createCategoryOption( 'A' );
-        // set sharing with public='--------' and owner=userA /
         categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         categoryOption.getSharing().setOwner( userA );
         manager.save( categoryOption );

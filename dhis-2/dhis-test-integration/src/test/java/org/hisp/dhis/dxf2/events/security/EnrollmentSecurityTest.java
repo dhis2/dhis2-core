@@ -115,6 +115,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     protected void setUpTest()
     {
         userService = _userService;
+        User admin = createAndInjectAdminUser();
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -136,6 +137,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setTrackedEntityType( trackedEntityType );
+        programA.getSharing().setOwner( admin );
         manager.save( programA );
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
@@ -143,6 +145,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
+        programStageA.getSharing().setOwner( admin );
         programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementB );
         programStageDataElement.setProgramStage( programStageB );
@@ -205,9 +208,11 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
+        ImportSummary importReport = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
+        assertEquals( ImportStatus.ERROR, importReport.getStatus() );
+        assertEquals( "Program can not be null", importReport.getDescription() );
     }
 
     /**
@@ -220,12 +225,11 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertEquals( ImportStatus.ERROR,
-            enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
-        assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleB.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
+        ImportSummary importReport = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
+        assertEquals( ImportStatus.ERROR, importReport.getStatus() );
+        assertEquals( "Program can not be null", importReport.getDescription() );
     }
 
     /**
@@ -238,12 +242,11 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertEquals( ImportStatus.ERROR,
-            enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
-        assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleB.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
+        ImportSummary importReport = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
+        assertEquals( ImportStatus.ERROR, importReport.getStatus() );
+        assertEquals( "Program can not be null", importReport.getDescription() );
     }
 
     /**
@@ -256,9 +259,11 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.update( programA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
-                ImportOptions.getDefaultImportOptions() ).getStatus() );
+        ImportSummary importReport = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
+        assertEquals( ImportStatus.ERROR, importReport.getStatus() );
+        assertEquals( "Program can not be null", importReport.getDescription() );
     }
 
     /**
