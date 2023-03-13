@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
@@ -298,11 +299,16 @@ class SqlViewServiceTest extends TransactionalIntegrationTest
     @Test
     void testGetGridRequiresDataReadSharing()
     {
-        createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
+        createAndInjectAdminUser( "ALL" );
 
         // we have the right to create the view
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );
+
+        User userA = makeUser( "A", List.of( "F_SQLVIEW_PUBLIC_ADD" ) );
+        userService.addUser( userA );
+
+        injectSecurityContext( userA );
 
         // but we lack sharing to view the result grid
         assertIllegalQueryEx(
