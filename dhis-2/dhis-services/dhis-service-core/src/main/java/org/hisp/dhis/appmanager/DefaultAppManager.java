@@ -28,6 +28,8 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.File;
@@ -72,7 +74,7 @@ public class DefaultAppManager
 {
     public static final String INVALID_FILTER_MSG = "Invalid filter: ";
 
-    private static final Set<String> EXCLUSION_APPS = Set.of( "Line Listing" );
+    private static final Set<String> EXCLUSION_APPS = unmodifiableSet( new HashSet<>( asList( "Line Listing" ) ) );
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 

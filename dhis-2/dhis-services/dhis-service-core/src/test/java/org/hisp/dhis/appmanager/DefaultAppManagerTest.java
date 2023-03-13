@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 import static org.hisp.dhis.appmanager.AppType.DASHBOARD_WIDGET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
@@ -146,12 +148,11 @@ class DefaultAppManagerTest
 
     private Stream<App> stubApps()
     {
-        return List
-            .of(
-                stubApp( "Line Listing", false ),
-                stubApp( "Data Visualizer", true ),
-                stubApp( "App 3", false ) )
-            .stream();
+        return unmodifiableList( asList(
+            stubApp( "Line Listing", false ),
+            stubApp( "Data Visualizer", true ),
+            stubApp( "App 3", false ) ) )
+                .stream();
     }
 
     private App stubApp( String name, boolean isCoreApp )
