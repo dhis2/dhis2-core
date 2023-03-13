@@ -92,6 +92,15 @@ public interface AppManager
     List<App> getApps( String contextPath );
 
     /**
+     * Returns a list of all installed apps.
+     *
+     * @param contextPath the context path of this instance.
+     * @param skipCore if true, core apps will be filtered out.
+     * @return list of installed apps
+     */
+    List<App> getApps( String contextPath, boolean skipCore );
+
+    /**
      * Returns a list of installed apps.
      *
      * @param appType the app type filter.
@@ -99,6 +108,16 @@ public interface AppManager
      * @return a list of apps.
      */
     List<App> getApps( AppType appType, int max );
+
+    /**
+     * Returns a list of installed apps.
+     *
+     * @param appType the app type filter.
+     * @param max the max number of apps to return.
+     * @param skipCore if true, core apps will be filtered out.
+     * @return a list of apps.
+     */
+    List<App> getApps( AppType appType, int max, boolean skipCore );
 
     App getApp( String appName );
 
