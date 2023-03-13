@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Service;
  * BaseDimensionalItemObjects.
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ExpressionDimensionItemService
 {
     //valid expressions fbfJHSPpUQD, fbfJHSPpUQD.pq2XI5kz2BY, fbfJHSPpUQD.pq2XI5kz2BY.pq2XI5kz2BZ
