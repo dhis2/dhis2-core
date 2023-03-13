@@ -147,9 +147,6 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
-
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
      * endpoint and /authorize endpoint. This config is a modification of the
@@ -743,9 +740,10 @@ public class DhisWebApiWebSecurityConfig
     }
 
     @Bean( "switchUserProcessingFilter" )
-    public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService )
+    public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService,
+        @Qualifier( "dhisConfigurationProvider" ) DhisConfigurationProvider config )
     {
-        DhisSwitchUserFilter filter = new DhisSwitchUserFilter( dhisConfig );
+        DhisSwitchUserFilter filter = new DhisSwitchUserFilter( config );
         filter.setUserDetailsService( userDetailsService );
         filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
         filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "POST", true, new UrlPathHelper() ) );
