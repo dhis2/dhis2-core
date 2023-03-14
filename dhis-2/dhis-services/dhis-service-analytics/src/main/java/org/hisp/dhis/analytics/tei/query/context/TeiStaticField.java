@@ -52,7 +52,8 @@ public enum TeiStaticField implements TeiHeaderProvider
     LONGITUDE( "longitude", "Longitude", NUMBER ),
     LATITUDE( "latitude", "Latitude", NUMBER ),
     ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
-    ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
+    ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT ),
+    ORG_UNIT_NAME_HIERARCHY( "ounamehierarchy", "Organisation unit hierarchy", TEXT );
 
     private final String alias;
 
