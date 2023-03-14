@@ -150,7 +150,7 @@
     <sms-compression.version>0.2.1.1</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0.CR1</aerogear-otp-java.version>
-    <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
+    <javax.interceptor-api.version>1.2.2</javax.interceptor-api.version>
     <jsmpp.version>2.3.7</jsmpp.version>
     <rxtx.version>2.1.7</rxtx.version>
     <json-path.version>2.4.0</json-path.version>
