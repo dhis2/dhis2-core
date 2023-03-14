@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
 
 import java.io.IOException;
 import java.util.List;

@@ -36,11 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.ValidationReport;
@@ -266,16 +264,6 @@ public class Assertions
     {
         assertNotNull( report );
         assertFalse( report.hasErrors(), errorMessage( "Expected no validation errors, instead got:\n", report ) );
-    }
-
-    public static void assertNoErrors( ObjectBundleValidationReport report )
-    {
-        assertNotNull( report );
-        List<String> errors = new ArrayList<>();
-        report.forEachErrorReport( err -> {
-            errors.add( err.toString() );
-        } );
-        assertFalse( report.hasErrorReports(), String.format( "Expected no errors, instead got: %s\n", errors ) );
     }
 
     private static Supplier<String> errorMessage( String errorTitle, ValidationReport report )
