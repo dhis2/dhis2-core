@@ -59,7 +59,7 @@ public final class Assertions
         for ( E e : expected )
         {
             assertTrue( actual.contains( e ),
-                String.format( "Expected value %s not found in %s", e.toString(), actual.toString() ) );
+                String.format( "Expected value %s not found in %s", e.toString(), actual ) );
         }
 
         assertEquals( expected.length, actual.size() );
@@ -70,25 +70,24 @@ public final class Assertions
         for ( Map.Entry<K, V> e : expected.entrySet() )
         {
             assertEquals( e.getValue(), actual.get( e.getKey() ),
-                String.format( "Expected value not found in %s", actual.toString() ) );
+                String.format( "Expected value not found in %s", actual ) );
         }
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
             assertEquals( e.getValue(), expected.get( e.getKey() ),
-                String.format( "Did not expect value in %s", actual.toString() ) );
+                String.format( "Did not expect value in %s", actual ) );
         }
     }
 
     /**
      * Asserts that the given collection is not null and empty.
      *
-     * @param <E>
      * @param actual the collection.
      */
-    public static <E> void assertIsEmpty( Collection<E> actual )
+    public static void assertIsEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
-        assertTrue( actual.isEmpty() );
+        assertTrue( actual.isEmpty(), actual.toString() );
     }
 
     /**
@@ -114,6 +113,23 @@ public final class Assertions
             .format( "expected string to start with '%s', got null instead", expected ) );
         assertTrue( actual.startsWith( expected ), () -> String
             .format( "expected string to start with '%s', got '%s' instead", expected, actual ) );
+    }
+
+    /**
+     * Asserts that the given character sequence is contained within the actual
+     * string.
+     *
+     * @param expected expected character sequence to be contained within the
+     *        actual string
+     * @param actual actual string which should contain the expected character
+     *        sequence
+     */
+    public static void assertContains( CharSequence expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected actual to contain '%s', got null instead", expected ) );
+        assertTrue( actual.contains( expected ), () -> String
+            .format( "expected actual to contain '%s', got '%s' instead", expected, actual ) );
     }
 
     /**
