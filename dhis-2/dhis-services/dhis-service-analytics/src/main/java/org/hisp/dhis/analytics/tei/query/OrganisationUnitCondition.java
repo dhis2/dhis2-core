@@ -145,7 +145,7 @@ public class OrganisationUnitCondition extends BaseRenderable
                     dimensionIdentifier,
                     OULEVEL + organisationUnit.getLevel() ),
                 IN,
-                Collections.singletonList( organisationUnit.getUid() ),
+                List.of( organisationUnit.getUid() ),
                 STRING,
                 queryContext ) );
         }
