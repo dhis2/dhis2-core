@@ -49,6 +49,12 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor( access = PRIVATE )
 public class RenderableHelper
 {
+
+    /**
+     * A {@link Renderable} object that always returns "false".
+     */
+    public static final Renderable FALSE_CONDITION = () -> "false";
+
     /**
      * Joins the given {@link Renderable} objects using the given delimiter.
      *

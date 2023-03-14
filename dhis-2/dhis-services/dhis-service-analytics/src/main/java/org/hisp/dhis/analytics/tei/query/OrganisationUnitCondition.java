@@ -27,25 +27,40 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.analytics.common.CommonQueryRequest.DEFAULT_ORG_UNIT_SELECTION_MODE;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
+import static org.hisp.dhis.analytics.common.query.RenderableHelper.FALSE_CONDITION;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * Provides methods responsible for generating SQL statements on top of
@@ -54,6 +69,13 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 @RequiredArgsConstructor( staticName = "of" )
 public class OrganisationUnitCondition extends BaseRenderable
 {
+    private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES = List.of(
+        DESCENDANTS,
+        CHILDREN,
+        SELECTED );
+
+    public static final String OULEVEL = "uidlevel";
+
     private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
@@ -70,20 +92,87 @@ public class OrganisationUnitCondition extends BaseRenderable
     @Override
     public String render()
     {
-        List<Renderable> orgUnitConditions = new ArrayList<>();
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-            BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.ofDimensionIdentifier( dimensionIdentifier ),
-                IN,
-                item.getValues(),
-                STRING,
-                queryContext );
-            orgUnitConditions.add( condition );
-        }
-
-        return AndCondition.of( orgUnitConditions ).render();
+        return getCondition().render();
     }
 
+    public Renderable getCondition()
+    {
+        OrganisationUnitSelectionMode ouMode = getOuMode();
+
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits();
+
+        if ( ouMode == SELECTED )
+        {
+
+            List<String> items = organisationUnits.stream()
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+
+            return isEmpty( items ) ? FALSE_CONDITION
+                : BinaryConditionRenderer.of(
+                    Field.ofDimensionIdentifier( dimensionIdentifier ),
+                    IN,
+                    items,
+                    STRING,
+                    queryContext );
+
+        }
+        else if ( ouMode == CHILDREN )
+        {
+
+            List<String> items = organisationUnits.stream()
+                .map( OrganisationUnit::getChildren )
+                .flatMap( Collection::stream )
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+
+            return isEmpty( items ) ? FALSE_CONDITION
+                : BinaryConditionRenderer.of(
+                    Field.ofDimensionIdentifier( dimensionIdentifier ),
+                    IN,
+                    items,
+                    STRING,
+                    queryContext );
+        }
+
+        // ouMode = Descendants
+        List<Renderable> orgUnitConditions = new ArrayList<>();
+
+        for ( OrganisationUnit organisationUnit : organisationUnits )
+        {
+            String prefix = dimensionIdentifier.getPrefix();
+            String fieldName = OULEVEL + organisationUnit.getLevel();
+
+            orgUnitConditions.add( BinaryConditionRenderer.of(
+                Field.ofRenamedDimensionIdentifier( dimensionIdentifier, fieldName ),
+                IN,
+                Collections.singletonList( organisationUnit.getUid() ),
+                STRING,
+                queryContext ) );
+        }
+
+        return isEmpty( orgUnitConditions ) ? FALSE_CONDITION : OrCondition.of( orgUnitConditions );
+    }
+
+    private OrganisationUnitSelectionMode getOuMode()
+    {
+        return Optional.of( queryContext )
+            .map( QueryContext::getTeiQueryParams )
+            .map( TeiQueryParams::getCommonParams )
+            .map( CommonParams::getOuMode )
+            .filter( ACCEPTED_OU_MODES::contains )
+            .orElse( DEFAULT_ORG_UNIT_SELECTION_MODE );
+    }
+
+    private List<OrganisationUnit> getOrganisationUnits()
+    {
+        return Optional.of( dimensionIdentifier )
+            .map( DimensionIdentifier::getDimension )
+            .map( DimensionParam::getDimensionalObject )
+            .map( DimensionalObject::getItems )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .map( OrganisationUnit.class::cast )
+            .collect( Collectors.toList() );
+    }
 }

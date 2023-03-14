@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,8 +49,6 @@ import org.hisp.dhis.program.ProgramStage;
 @Builder
 public class PrefixedDimension
 {
-    public static final String PREFIX_DELIMITER = ".";
-
     private final Program program;
 
     private final ProgramStage programStage;
@@ -67,6 +67,6 @@ public class PrefixedDimension
         return Stream.of( program, programStage )
             .filter( Objects::nonNull )
             .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.joining( PREFIX_DELIMITER ) );
+            .collect( Collectors.joining( DIMENSION_IDENTIFIER_SEP ) );
     }
 }

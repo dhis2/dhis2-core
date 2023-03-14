@@ -75,6 +75,12 @@ public class Field extends BaseRenderable
         return of( getPrefix( dimensionIdentifier ), () -> dimensionIdentifier.getDimension().getUid(), EMPTY );
     }
 
+    public static Field ofRenamedDimensionIdentifier( DimensionIdentifier<DimensionParam> dimensionIdentifier,
+        String actualName )
+    {
+        return of( getPrefix( dimensionIdentifier ), () -> actualName, EMPTY );
+    }
+
     /**
      * Static constructor for a field which double quote "name" when rendered.
      *
