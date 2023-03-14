@@ -226,8 +226,7 @@ class DashboardServiceTest extends TransactionalIntegrationTest
     {
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
-        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), VISUALIZATION,
-            vzA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), VISUALIZATION, vzA.getUid() );
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
@@ -259,29 +258,43 @@ class DashboardServiceTest extends TransactionalIntegrationTest
             visualization.setName( randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
         } );
+
         range( 1, 30 ).forEach( i -> {
             EventVisualization eventVisualization = createEventVisualization( "A", prA );
             eventVisualization.setName( randomAlphabetic( 5 ) );
             eventVisualizationService.save( eventVisualization );
         } );
+
+        // Non Line List event visualization should be ignored when we search
+        // for EVENT_VISUALIZATION:
+        EventVisualization eventVisualization = createEventVisualization( "A", prA );
+        eventVisualization.setName( randomAlphabetic( 5 ) );
+        eventVisualization.setType( COLUMN );
+        eventVisualizationService.save( eventVisualization );
+
         range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
         range( 1, 20 ).forEach( i -> eventReportService.saveEventReport( createEventReport( prA ) ) );
 
         DashboardSearchResult result = dashboardService.search( Set.of( VISUALIZATION ) );
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 6 ) );
+
         result = dashboardService.search( Set.of( VISUALIZATION ), 3, null );
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
+
         result = dashboardService.search( Set.of( VISUALIZATION ), 3, 29 );
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
+
         result = dashboardService.search( Set.of( EVENT_VISUALIZATION ), 3, 29 );
         assertThat( result.getEventVisualizationCount(), is( 29 ) );
         assertThat( result.getEventReportCount(), is( 3 ) );
+
         result = dashboardService.search( Set.of( EVENT_VISUALIZATION ), 3, 30 );
         assertThat( result.getEventVisualizationCount(), is( 30 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
+
         result = dashboardService.search( Set.of( EVENT_REPORT ), 3, 29 );
         assertThat( result.getEventVisualizationCount(), is( 3 ) );
         assertThat( result.getEventReportCount(), is( 19 ) );

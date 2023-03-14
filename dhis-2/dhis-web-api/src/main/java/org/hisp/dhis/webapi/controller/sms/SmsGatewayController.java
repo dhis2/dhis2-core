@@ -44,6 +44,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfiguration;
@@ -107,7 +108,7 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ObjectNode> getGatewayConfiguration( @PathVariable String uid,
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
         throws WebMessageException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );

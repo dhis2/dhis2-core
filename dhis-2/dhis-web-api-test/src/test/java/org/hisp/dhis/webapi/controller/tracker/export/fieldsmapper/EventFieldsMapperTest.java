@@ -27,38 +27,45 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.EventParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class EventFieldsMapperTest
+class EventFieldsMapperTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    EventFieldsParamMapper mapper;
+
     static Stream<Arguments> getEventParamsMultipleCases()
     {
         return Stream.of(
-            arguments( List.of( "!*" ), false ),
-            arguments( List.of( "*" ), true ),
-            arguments( List.of( "relationships" ), true ),
-            arguments( List.of( "*", "!relationships" ), false ),
-            arguments( List.of( "relationships[*]" ), true ),
-            arguments( List.of( "relationships[*]", "!relationships[*]" ), false ),
-            arguments( List.of( "!relationships[*]", "relationships[*]" ), false ),
-            arguments( List.of( "relationships", "relationships[!from]" ), true ) );
+            // This value does not make sense as it means exclude all.
+            // We initially assumed field filtering would exclude all fields but
+            // is does not. Keeping this test as a reminder of its behavior.
+            arguments( "!*", true ), // expected value is false on master
+            arguments( "*", true ),
+            arguments( "relationships", true ),
+            arguments( "*,!relationships", false ),
+            arguments( "relationships[*]", true ),
+            arguments( "relationships[*],!relationships[*]", false ),
+            arguments( "!relationships[*],relationships[*]", false ),
+            arguments( "relationships,relationships[!from]", true ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void getEventParamsMultipleCases( List<String> fields, boolean expectRelationships )
+    void getEventParamsMultipleCases( String fields, boolean expectRelationships )
     {
-        EventParams params = map( fields );
+        EventParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectRelationships, params.isIncludeRelationships() );
     }

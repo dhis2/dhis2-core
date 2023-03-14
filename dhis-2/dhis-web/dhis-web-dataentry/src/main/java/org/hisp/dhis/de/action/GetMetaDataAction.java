@@ -64,6 +64,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -213,7 +214,7 @@ public class GetMetaDataAction
         Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
         CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
-        Date lastUpdated = DateUtils.max( Set.of(
+        Date lastUpdated = DateUtils.max( Sets.newHashSet(
             identifiableObjectManager.getLastUpdated( DataElement.class ),
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
