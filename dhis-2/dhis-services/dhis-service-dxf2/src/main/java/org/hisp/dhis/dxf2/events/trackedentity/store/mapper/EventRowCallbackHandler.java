@@ -73,7 +73,7 @@ public class EventRowCallbackHandler
         event.setEnrollmentStatus(
             EnrollmentStatus.fromStatusString( rs.getString( getColumnName( COLUMNS.ENROLLMENT_STATUS ) ) ) );
         event.setStatus( EventStatus.valueOf( rs.getString( getColumnName( COLUMNS.STATUS ) ) ) );
-        event.setEventDate( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( COLUMNS.EXECUTION_DATE ) ) ) );
+        event.setEventDate( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.EXECUTION_DATE ) ) ) );
         event.setDueDate( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( COLUMNS.DUE_DATE ) ) ) );
         event.setStoredBy( rs.getString( getColumnName( COLUMNS.STOREDBY ) ) );
         event.setCompletedBy( rs.getString( getColumnName( COLUMNS.COMPLETEDBY ) ) );
