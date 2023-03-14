@@ -740,7 +740,9 @@ public enum ConfigurationKey
      */
     LINKED_ACCOUNTS_ENABLED( "linked_accounts.enabled", Constants.OFF, false ),
 
-    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false );
+    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false ),
+    SWITCH_USER_FEATURE_ENABLED( "switch_user_feature.enabled", Constants.OFF, false ),
+    SWITCH_USER_ALLOW_LISTED_IPS( "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false );
 
     private final String key;
 
