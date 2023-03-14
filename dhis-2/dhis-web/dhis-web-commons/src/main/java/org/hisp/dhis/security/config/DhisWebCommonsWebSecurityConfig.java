@@ -187,7 +187,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/fonts/**" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
-                .antMatchers( "/favicon.ico" );
+                .antMatchers( "/favicon.ico" )
+                .antMatchers( "/api/ping" );
         }
 
         @Override
