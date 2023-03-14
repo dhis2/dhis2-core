@@ -433,8 +433,6 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Calendar calendar = PeriodType.getCalendar();
-
         Collections.sort( dataYears );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
