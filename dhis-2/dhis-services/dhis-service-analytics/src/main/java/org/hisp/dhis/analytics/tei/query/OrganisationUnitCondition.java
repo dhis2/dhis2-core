@@ -38,7 +38,6 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -103,7 +102,6 @@ public class OrganisationUnitCondition extends BaseRenderable
 
         if ( ouMode == SELECTED )
         {
-
             List<String> items = organisationUnits.stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
@@ -115,7 +113,6 @@ public class OrganisationUnitCondition extends BaseRenderable
                     items,
                     STRING,
                     queryContext );
-
         }
         else if ( ouMode == CHILDREN )
         {
@@ -169,7 +166,7 @@ public class OrganisationUnitCondition extends BaseRenderable
             .map( DimensionIdentifier::getDimension )
             .map( DimensionParam::getDimensionalObject )
             .map( DimensionalObject::getItems )
-            .orElse( Collections.emptyList() )
+            .orElse( List.of() )
             .stream()
             .map( OrganisationUnit.class::cast )
             .collect( Collectors.toList() );
