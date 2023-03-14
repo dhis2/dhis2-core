@@ -65,29 +65,38 @@ class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    private static final String MULTI_OPERAND_VALUES_REG_EX = "^a-zA-Z" + DIMENSION_NAME_SEP;
+    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
+        .filter( QueryOperator::isComparison ).map( Enum::toString )
+        .collect( Collectors.joining( "|" ) );
 
-    private static final String MULTIPLE_OPERAND_REG_EX = "(?i)(" +
-        EnumSet.allOf( QueryOperator.class ).stream()
-            .filter( QueryOperator::isComparison ).map( Enum::toString )
-            .collect( Collectors.joining( "|" ) )
-        + ")" +
-        DIMENSION_NAME_SEP + "([" + MULTI_OPERAND_VALUES_REG_EX + "]+)";
+    /**
+     * For multi operand, we support digits and dates
+     * {@link org.hisp.dhis.util.DateUtils}.
+     */
+    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
+
+    private static final Pattern MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN = Pattern
+        .compile( "(?i)(" + COMPARISON_OPERATOR + ")" + DIMENSION_NAME_SEP
+            + DIGITS_DATES_VALUES_REG_EX + "(?!" + "(?i)(" + COMPARISON_OPERATOR + ")"
+            + ")" );
+
+    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
+        + DIMENSION_NAME_SEP
+        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
 
     /**
      * RegEx to search and validate multiple operand
-     * {identifier}:{operator}:{value}[:{operator}:{value}], We allow comparison
-     * for digits and dates, Thus, we exclude letters and the delimiter
+     * {operator}:{value}[:{operator}:{value}], We allow comparison for digits
+     * and dates,
      */
-    private static final String MULTI_OPERAND_FILTER_REG_EX = MULTIPLE_OPERAND_REG_EX
-        + DIMENSION_NAME_SEP
-        + MULTIPLE_OPERAND_REG_EX;
-
-    private static final Pattern MULTI_OPERAND_FILTER_PATTERN = Pattern
-        .compile( MULTI_OPERAND_FILTER_REG_EX );
+    private static final Pattern MULTI_OPERAND_VALUE_PATTERN = Pattern
+        .compile(
+            MULTI_OPERAND_VALUE_REG_EX
+                + DIMENSION_NAME_SEP
+                + MULTI_OPERAND_VALUE_REG_EX );
 
     /**
-     * RegEx to validate {operator}:{value} in a query filter
+     * RegEx to validate and match {operator}:{value} in a filter
      */
     private static final String SINGLE_OPERAND_REG_EX = "(?i)("
         + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
@@ -227,22 +236,21 @@ class RequestParamUtils
     public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
         throws BadRequestException
     {
-        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP );
+        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP ) + 1;
 
-        if ( identifierIndex == -1 || fullPath.length() - 1 == identifierIndex )
+        if ( identifierIndex == 0 || fullPath.length() == identifierIndex )
         {
             return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
+        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex - 1 ) );
 
-        String filter = fullPath.substring( identifierIndex + 1 );
+        String filter = fullPath.substring( identifierIndex );
 
-        if ( MULTI_OPERAND_FILTER_PATTERN
+        if ( MULTI_OPERAND_VALUE_PATTERN
             .matcher( filter ).matches() )
         {
-            Matcher matcher = Pattern
-                .compile( MULTIPLE_OPERAND_REG_EX ).matcher( filter );
+            Matcher matcher = MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN.matcher( filter );
 
             while ( matcher.find() )
             {
