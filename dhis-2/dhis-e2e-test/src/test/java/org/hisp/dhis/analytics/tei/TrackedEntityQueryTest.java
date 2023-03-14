@@ -72,7 +72,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 0 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 100 ) )
@@ -97,7 +97,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 0 ) )
             .body( "width", equalTo( 0 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate headers
         validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
@@ -113,11 +113,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
-        validateHeader( response, 10, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
     }
 
     @Test
@@ -136,7 +137,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -159,8 +160,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions", hasKey( "cejWyOfXge6" ) )
             .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate headers
         validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
@@ -176,11 +177,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
-        validateHeader( response, 10, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -193,6 +195,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Evelyn",
                 "Jackson",
                 "Female",
@@ -208,6 +211,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "John",
                 "Thomson",
                 "Female",
@@ -223,6 +227,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Tom",
                 "Johson",
                 "",
@@ -247,7 +252,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 10 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 10 ) )
@@ -270,8 +275,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions", hasKey( "cejWyOfXge6" ) )
             .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
             .body( "height", equalTo( 10 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate headers
         validateHeader( response, 0, "trackedentityinstanceuid", "Tracked entity instance", "TEXT", "java.lang.String",
@@ -287,11 +292,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
-        validateHeader( response, 10, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "IpHINAT79UW.lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -304,6 +310,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Evelyn",
                 "Jackson",
                 "Female",
@@ -319,6 +326,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "John",
                 "Thomson",
                 "Female",
@@ -334,6 +342,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Tom",
                 "Johson",
                 "",
@@ -722,13 +731,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 14 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "BV4IomHvri4" ) )
             .body( "height", equalTo( 14 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -741,6 +750,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Angela",
                 "Wright",
                 "Female",
@@ -756,6 +766,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Brenda",
                 "Morgan",
                 "Female",
@@ -771,6 +782,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Edward",
                 "Murray",
                 "Male",
@@ -794,7 +806,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 4 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "a04CZxe0PSe" ) )
@@ -802,8 +814,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasItem( "a1E6QWBTEwX" ) )
             .body( "metaData.dimensions.ou", hasItem( "a5glgtnXJRG" ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -816,6 +828,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Jean",
                 "Washington",
                 "Female",
@@ -831,6 +844,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Brian",
                 "Austin",
                 "Male",
@@ -846,6 +860,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Robert",
                 "Adams",
                 "Male",
@@ -869,13 +884,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 14 ) ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
             .body( "rows", hasSize( equalTo( 14 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "BV4IomHvri4" ) )
             .body( "height", equalTo( 14 ) )
-            .body( "width", equalTo( 14 ) )
-            .body( "headerWidth", equalTo( 14 ) );
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -888,6 +903,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Angela",
                 "Wright",
                 "Female",
@@ -904,6 +920,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Brenda",
                 "Morgan",
                 "Female",
@@ -920,6 +937,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Edward",
                 "Murray",
                 "Male",
@@ -944,13 +962,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 14 ) ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
             .body( "rows", hasSize( equalTo( 14 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "BV4IomHvri4" ) )
             .body( "height", equalTo( 14 ) )
-            .body( "width", equalTo( 14 ) )
-            .body( "headerWidth", equalTo( 14 ) );
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -963,6 +981,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Angela",
                 "Wright",
                 "Female",
@@ -979,6 +998,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Brenda",
                 "Morgan",
                 "Female",
@@ -995,6 +1015,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ahmadiyya Muslim Hospital",
                 "OU_268246",
+                "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
                 "Edward",
                 "Murray",
                 "Male",
@@ -1018,7 +1039,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
             .body( "metaData.dimensions", hasKey( "pe" ) )
@@ -1028,8 +1049,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.items.2021.name", equalTo( "2021" ) )
             .body( "metaData.items.LAST_YEAR.name", equalTo( "Last year" ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -1042,6 +1063,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Anna",
                 "Jones",
                 "Female",
@@ -1057,6 +1079,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Masoko MCHP",
                 "OU_268158",
+                "Sierra Leone / Tonkolili / Kholifa Rowalla / Masoko MCHP",
                 "Diane",
                 "Bryant",
                 "Female",
@@ -1072,6 +1095,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Govt. Hospital Moyamba",
                 "OU_247056",
+                "Sierra Leone / Moyamba / Kaiyamba / Govt. Hospital Moyamba",
                 "Randy",
                 "Reyes",
                 "Male",
@@ -1094,7 +1118,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
             .body( "metaData.dimensions", hasKey( "pe" ) )
@@ -1112,8 +1136,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.items.2022.name", equalTo( "2022" ) )
             .body( "metaData.items.LAST_5_YEARS.name", equalTo( "Last 5 years" ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -1126,6 +1150,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "John",
                 "Kelly",
                 "Male",
@@ -1141,6 +1166,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Anna",
                 "Jones",
                 "Female",
@@ -1156,6 +1182,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Masoko MCHP",
                 "OU_268158",
+                "Sierra Leone / Tonkolili / Kholifa Rowalla / Masoko MCHP",
                 "Diane",
                 "Bryant",
                 "Female",
@@ -1178,7 +1205,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
             .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
             .body( "metaData.dimensions", hasKey( "pe" ) )
@@ -1196,8 +1223,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.items.2021.name", equalTo( "2021" ) )
             .body( "metaData.items.LAST_5_YEARS.name", equalTo( "Last 5 years" ) )
             .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -1210,6 +1237,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Filona",
                 "Ryder",
                 "Female",
@@ -1225,6 +1253,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Frank",
                 "Fjordsen",
                 "Male",
@@ -1240,6 +1269,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Gertrude",
                 "Fjordsen",
                 "Female",
@@ -1263,7 +1293,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 14 ) ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
             .body( "rows", hasSize( equalTo( 1 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -1274,8 +1304,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions", hasKey( "pe" ) )
             .body( "metaData.items.GQY2lXrypjO.name", equalTo( "MCH Infant Weight  (g)" ) )
             .body( "height", equalTo( 1 ) )
-            .body( "width", equalTo( 14 ) )
-            .body( "headerWidth", equalTo( 14 ) );
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -1288,6 +1318,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Ngelehun CHC",
                 "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "Tom",
                 "Johson",
                 "",
