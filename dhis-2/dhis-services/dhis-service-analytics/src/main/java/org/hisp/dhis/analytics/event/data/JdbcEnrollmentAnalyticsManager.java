@@ -122,7 +122,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else
         {
-            withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
+            withExceptionHandling( () -> getEnrollments( params, grid, sql, maxLimit == 0 ) );
         }
     }
 
@@ -133,8 +133,9 @@ public class JdbcEnrollmentAnalyticsManager
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
      * @param sql the SQL statement used to retrieve events.
+     * @param unlimitedPaging if true, will ignore any paging limit.
      */
-    private void getEnrollments( EventQueryParams params, Grid grid, String sql )
+    private void getEnrollments( EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging )
     {
         log.debug( String.format( "Analytics enrollment query SQL: %s", sql ) );
 
@@ -146,7 +147,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() && !unlimitedPaging )
             {
                 grid.setLastDataRow( false );
 

@@ -47,6 +47,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -187,16 +188,20 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
     @Test
     void verifyGetEventSqlWithProgram()
     {
+        Grid grid = createGrid();
+        int unlimited = 0;
+
         mockEmptyRowSet();
 
-        subject.getEvents( createRequestParams(), createGrid(), 100 );
+        subject.getEvents( createRequestParams(), grid, unlimited );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') ";
 
         assertSql( expected, sql.getValue() );
+        assertTrue( grid.hasLastDataRow() );
     }
 
     @Test
