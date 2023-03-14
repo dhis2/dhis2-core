@@ -83,7 +83,7 @@ public class RouteController
             throw new ForbiddenException( "User not authorized" );
         }
 
-        ResponseEntity<String> entity = routeService.exec( route, request );
+        ResponseEntity<String> entity = routeService.exec( route, user, request );
 
         if ( entity.getStatusCode().is4xxClientError() )
         {
