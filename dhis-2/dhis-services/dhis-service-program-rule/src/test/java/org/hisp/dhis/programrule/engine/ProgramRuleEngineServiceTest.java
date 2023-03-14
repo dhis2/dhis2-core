@@ -174,7 +174,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
-        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of( programRuleA ) );
+        when( programRuleEngine.getProgramRules( any() ) ).thenReturn( List.of( programRuleA ) );
 
         setProgramRuleActionType_SendMessage();
 
