@@ -236,20 +236,16 @@ public class TrackerImportController
 
     @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
     public TrackerImportReport getJobReport( @PathVariable String uid,
-        @RequestParam( defaultValue = "errors", required = false ) String reportMode,
+        @RequestParam( defaultValue = "ERRORS", required = false ) TrackerBundleReportMode reportMode,
         HttpServletResponse response )
         throws HttpStatusCodeException,
         NotFoundException
     {
-        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
-            .getTrackerBundleReportMode( reportMode );
-
         setNoStore( response );
 
         return Optional.ofNullable( notifier
             .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report,
-                trackerBundleReportMode ) )
+            .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report, reportMode ) )
             .orElseThrow( () -> NotFoundException.notFoundUid( uid ) );
     }
 }

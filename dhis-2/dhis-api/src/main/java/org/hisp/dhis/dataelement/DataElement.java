@@ -30,6 +30,7 @@ package org.hisp.dhis.dataelement;
 import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +65,6 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -525,9 +525,11 @@ public class DataElement extends BaseDimensionalItemObject
     public boolean isExpired( Period period, Date now )
     {
         int expiryDays = getExpiryDays();
-
-        return expiryDays != DataSet.NO_EXPIRY
-            && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
+        if ( expiryDays == DataSet.NO_EXPIRY )
+        {
+            return false;
+        }
+        return !Period.isDateInTimeFrame( null, addDays( period.getEndDate(), expiryDays ), now );
     }
 
     /**

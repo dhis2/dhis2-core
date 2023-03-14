@@ -168,7 +168,7 @@ public class DefaultDataSetMetadataExportService
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( Set.of( filters ) )
+            .filters( filters )
             .skipSharing( true )
             .build();
 

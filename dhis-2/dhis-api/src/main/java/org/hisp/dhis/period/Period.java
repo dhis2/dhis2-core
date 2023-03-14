@@ -28,8 +28,14 @@
 package org.hisp.dhis.period;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.Function;
+
+import javax.annotation.CheckForNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -58,6 +64,31 @@ public class Period
     extends BaseDimensionalItemObject
 {
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+
+    /**
+     * Check if a date is within the date range as provided by a period.
+     *
+     * @param start inclusive, null is open to any time before end
+     * @param end inclusive, null is open to any time after start
+     * @param checked the date checked, maybe null
+     * @return true, if the checked date is non-null and is between start and
+     *         end date (ignoring time both ends inclusive)
+     */
+    public static boolean isDateInTimeFrame( @CheckForNull Date start, @CheckForNull Date end,
+        @CheckForNull Date checked )
+    {
+        if ( checked == null )
+        {
+            return false;
+        }
+        ZoneId zoneId = ZoneId.systemDefault();
+        Function<Date, ZonedDateTime> toZonedDate = date -> ZonedDateTime.ofInstant( date.toInstant(), zoneId )
+            .with( LocalTime.MIN );
+        ZonedDateTime from = start == null ? null : toZonedDate.apply( start );
+        ZonedDateTime to = end == null ? null : toZonedDate.apply( end );
+        ZonedDateTime sample = toZonedDate.apply( checked );
+        return (from == null || !sample.isBefore( from )) && (to == null || !sample.isAfter( to ));
+    }
 
     /**
      * Required.
@@ -278,16 +309,6 @@ public class Period
         }
 
         return true;
-    }
-
-    /**
-     * Determines whether this is a future period relative to the current time.
-     *
-     * @return true if this period ends in the future, false otherwise.
-     */
-    public boolean isFuture()
-    {
-        return getEndDate().after( new Date() );
     }
 
     /**

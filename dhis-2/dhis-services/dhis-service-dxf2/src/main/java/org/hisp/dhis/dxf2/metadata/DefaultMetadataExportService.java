@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -219,7 +218,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( metadata.get( klass ) ) )
-                .filters( new HashSet<>( params.getFields( klass ) ) )
+                .filters( params.getFields( klass ) )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 

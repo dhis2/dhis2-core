@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -81,5 +84,36 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
         JsonArray groups = info.getArray( "groups" );
         assertTrue( groups.isArray() );
         assertEquals( 1, groups.size() );
+    }
+
+    /**
+     * When updating DataSet, compulsoryDataElementOperand should be deleted if
+     * the referenced DataElement is removed from the DataSet.
+     */
+    @Test
+    void testRemoveDataElement()
+    {
+        DataElement deA = createDataElement( 'A' );
+        deA.setUid( "cYeuwXTCPkU" );
+        DataElement deB = createDataElement( 'B' );
+        deB.setUid( "fbfJHSPpUQD" );
+        manager.save( deA );
+        manager.save( deB );
+
+        String dataSetId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", Body( "dataset/dataset_with_compulsoryDataElementOperand.json" ) ) );
+
+        DataSet dataSet = manager.get( DataSet.class, dataSetId );
+
+        assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/dataSets/{id}", dataSetId,
+                Body( "dataset/dataset_with_compulsoryDataElementOperand_update.json" ) ) );
+
+        dataSet = manager.get( DataSet.class, dataSetId );
+
+        assertEquals( 0, dataSet.getCompulsoryDataElementOperands().size() );
+
     }
 }

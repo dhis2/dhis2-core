@@ -1214,6 +1214,8 @@ public class JdbcEventStore implements EventStore
                 .append( getMediumDateString( dateAfterEndDate ) ).append( "')) " );
         }
 
+        sqlBuilder.append( addDueDateFilters( params, hlp ) );
+
         if ( params.getProgramType() != null )
         {
             sqlBuilder.append( hlp.whereAnd() ).append( " p.type = '" ).append( params.getProgramType() )
@@ -1425,17 +1427,7 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT ).append( skipChangedBefore ).append( "' " );
         }
 
-        if ( params.getDueDateStart() != null )
-        {
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.duedate is not null and psi.duedate >= '" )
-                .append( DateUtils.getLongDateString( params.getDueDateStart() ) ).append( "' " );
-        }
-
-        if ( params.getDueDateEnd() != null )
-        {
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.duedate is not null and psi.duedate <= '" )
-                .append( DateUtils.getLongDateString( params.getDueDateEnd() ) ).append( "' " );
-        }
+        sqlBuilder.append( addDueDateFilters( params, hlp ) );
 
         if ( !params.isIncludeDeleted() )
         {
@@ -1813,15 +1805,8 @@ public class JdbcEventStore implements EventStore
 
         ps.setLong( 1, programStageInstance.getProgramInstance().getId() );
         ps.setLong( 2, programStageInstance.getProgramStage().getId() );
-        ps.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
-        if ( programStageInstance.getExecutionDate() != null )
-        {
-            ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
-        }
-        else
-        {
-            ps.setObject( 4, null );
-        }
+        ps.setTimestamp( 3, JdbcEventSupport.toTimestamp( programStageInstance.getDueDate() ) );
+        ps.setTimestamp( 4, JdbcEventSupport.toTimestamp( programStageInstance.getExecutionDate() ) );
         ps.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
         ps.setString( 6, programStageInstance.getStatus().toString() );
         ps.setTimestamp( 7, JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) );
@@ -2017,5 +2002,24 @@ public class JdbcEventStore implements EventStore
         }
 
         return orgUnitSql.toString();
+    }
+
+    private String addDueDateFilters( EventSearchParams params, SqlHelper hlp )
+    {
+        StringBuilder sqlBuilder = new StringBuilder();
+
+        if ( params.getDueDateStart() != null )
+        {
+            sqlBuilder.append( hlp.whereAnd() ).append( " psi.duedate is not null and psi.duedate >= '" )
+                .append( DateUtils.getLongDateString( params.getDueDateStart() ) ).append( "' " );
+        }
+
+        if ( params.getDueDateEnd() != null )
+        {
+            sqlBuilder.append( hlp.whereAnd() ).append( " psi.duedate is not null and psi.duedate <= '" )
+                .append( DateUtils.getLongDateString( params.getDueDateEnd() ) ).append( "' " );
+        }
+
+        return sqlBuilder.toString();
     }
 }

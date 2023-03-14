@@ -30,9 +30,15 @@ package org.hisp.dhis.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
@@ -105,5 +111,41 @@ class DataSetTest
         assertEquals( 1, indicatorB.getDataSets().size() );
         assertTrue( indicatorA.getDataSets().contains( dsA ) );
         assertTrue( indicatorB.getDataSets().contains( dsA ) );
+    }
+
+    @Test
+    void testIsLocked_BeforeFirstDayOfPeriod()
+    {
+        assertIsLocked( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
+    }
+
+    @Test
+    void testIsLocked_FirstDayOfPeriod()
+    {
+        assertIsLocked( false, Period::getStartDate );
+    }
+
+    @Test
+    void testIsLocked_LastDayOfPeriod()
+    {
+        assertIsLocked( false, Period::getEndDate );
+    }
+
+    @Test
+    void testIsLocked_AfterLastDayOfPeriod()
+    {
+        // expiryDays is 1 so 1 extra day after the end is still ok
+        assertIsLocked( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );
+        // but 2 is too much
+        assertIsLocked( true, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 2 ) ) );
+    }
+
+    private static void assertIsLocked( boolean expected, Function<Period, Date> actual )
+    {
+        Date now = new Date();
+        Period thisMonth = new MonthlyPeriodType().createPeriod( now );
+        DataSet ds = new DataSet();
+        ds.setExpiryDays( 1 );
+        assertEquals( expected, ds.isLocked( null, thisMonth, actual.apply( thisMonth ) ) );
     }
 }

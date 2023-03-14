@@ -87,6 +87,9 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     @Mock
     private DimensionService dimensionService;
 
+    @Mock
+    private I18n i18n;
+
     private StatementBuilder statementBuilder;
 
     private CommonExpressionVisitor subject;
@@ -321,7 +324,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( new I18n( null, null ) )
+            .i18nSupplier( () -> new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( ITEM_GET_SQL )
             .params( params )
