@@ -857,75 +857,75 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
     {
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
-                .add( "program=IpHINAT79UW" )
-                .add( "dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG" )
-                .add( "lastUpdated=LAST_10_YEARS" )
-                .add( "ouMode=SELECTED" )
-                .add( "desc=lastupdated" )
-                .add( "relativePeriodDate=2022-09-27" );
+            .add( "program=IpHINAT79UW" )
+            .add( "dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG" )
+            .add( "lastUpdated=LAST_10_YEARS" )
+            .add( "ouMode=SELECTED" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2022-09-27" );
 
         // When
         ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
 
         // Then
         response.validate()
-                .statusCode( 200 )
-                .body( "headers", hasSize( equalTo( 13 ) ) )
-                .body( "rows", hasSize( equalTo( 50 ) ) )
-                .body( "metaData.dimensions.ou", hasSize( equalTo( 4 ) ) )
-                .body( "metaData.dimensions.ou", hasItem( "a04CZxe0PSe" ) )
-                .body( "metaData.dimensions.ou", hasItem( "a1dP5m3Clw4" ) )
-                .body( "metaData.dimensions.ou", hasItem( "a1E6QWBTEwX" ) )
-                .body( "metaData.dimensions.ou", hasItem( "a5glgtnXJRG" ) )
-                .body( "height", equalTo( 50 ) )
-                .body( "width", equalTo( 13 ) )
-                .body( "headerWidth", equalTo( 13 ) );
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 4 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "a04CZxe0PSe" ) )
+            .body( "metaData.dimensions.ou", hasItem( "a1dP5m3Clw4" ) )
+            .body( "metaData.dimensions.ou", hasItem( "a1E6QWBTEwX" ) )
+            .body( "metaData.dimensions.ou", hasItem( "a5glgtnXJRG" ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 13 ) )
+            .body( "headerWidth", equalTo( 13 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-                List.of( "giN9xZLKzOT",
-                        "2015-08-07 15:47:29.243",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Magbanabom MCHP",
-                        "OU_268177",
-                        "Jean",
-                        "Washington",
-                        "Female",
-                        "" ) );
+            List.of( "giN9xZLKzOT",
+                "2015-08-07 15:47:29.243",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Magbanabom MCHP",
+                "OU_268177",
+                "Jean",
+                "Washington",
+                "Female",
+                "" ) );
 
         validateRow( response, 1,
-                List.of( "iP8ISoPBLaA",
-                        "2015-08-07 15:47:29.146",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Magbanabom MCHP",
-                        "OU_268177",
-                        "Brian",
-                        "Austin",
-                        "Male",
-                        "" ) );
+            List.of( "iP8ISoPBLaA",
+                "2015-08-07 15:47:29.146",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Magbanabom MCHP",
+                "OU_268177",
+                "Brian",
+                "Austin",
+                "Male",
+                "" ) );
 
         validateRow( response, 2,
-                List.of( "GZrFV0JMmSV",
-                        "2015-08-07 15:47:28.657",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Magbanabom MCHP",
-                        "OU_268177",
-                        "Robert",
-                        "Adams",
-                        "Male",
-                        "" ) );
+            List.of( "GZrFV0JMmSV",
+                "2015-08-07 15:47:28.657",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Magbanabom MCHP",
+                "OU_268177",
+                "Robert",
+                "Adams",
+                "Male",
+                "" ) );
     }
 
     @Test
@@ -933,74 +933,74 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
     {
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
-                .add( "program=IpHINAT79UW" )
-                .add( "dimension=ou:l0ccv2yzfF3;r06ohri9wA9;GWTIxJO9pRo" )
-                .add( "lastUpdated=LAST_10_YEARS" )
-                .add( "ouMode=CHILDREN" )
-                .add( "desc=lastupdated" )
-                .add( "relativePeriodDate=2022-09-27" );
+            .add( "program=IpHINAT79UW" )
+            .add( "dimension=ou:l0ccv2yzfF3;r06ohri9wA9;GWTIxJO9pRo" )
+            .add( "lastUpdated=LAST_10_YEARS" )
+            .add( "ouMode=CHILDREN" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2022-09-27" );
 
         // When
         ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
 
         // Then
         response.validate()
-                .statusCode( 200 )
-                .body( "headers", hasSize( equalTo( 13 ) ) )
-                .body( "rows", hasSize( equalTo( 50 ) ) )
-                .body( "metaData.dimensions.ou", hasSize( equalTo( 3 ) ) )
-                .body( "metaData.dimensions.ou", hasItem( "l0ccv2yzfF3" ) )
-                .body( "metaData.dimensions.ou", hasItem( "r06ohri9wA9" ) )
-                .body( "metaData.dimensions.ou", hasItem( "GWTIxJO9pRo" ) )
-                .body( "height", equalTo( 50 ) )
-                .body( "width", equalTo( 13 ) )
-                .body( "headerWidth", equalTo( 13 ) );
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 3 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "l0ccv2yzfF3" ) )
+            .body( "metaData.dimensions.ou", hasItem( "r06ohri9wA9" ) )
+            .body( "metaData.dimensions.ou", hasItem( "GWTIxJO9pRo" ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 13 ) )
+            .body( "headerWidth", equalTo( 13 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-                List.of( "FZUETGg4CqK",
-                        "2015-08-07 15:47:29.256",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Matholey MCHP",
-                        "OU_268180",
-                        "Willie",
-                        "Bailey",
-                        "Male",
-                        "" ) );
+            List.of( "FZUETGg4CqK",
+                "2015-08-07 15:47:29.256",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Matholey MCHP",
+                "OU_268180",
+                "Willie",
+                "Bailey",
+                "Male",
+                "" ) );
 
         validateRow( response, 1,
-                List.of( "giN9xZLKzOT",
-                        "2015-08-07 15:47:29.243",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Magbanabom MCHP",
-                        "OU_268177",
-                        "Jean",
-                        "Washington",
-                        "Female",
-                        "" ) );
+            List.of( "giN9xZLKzOT",
+                "2015-08-07 15:47:29.243",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Magbanabom MCHP",
+                "OU_268177",
+                "Jean",
+                "Washington",
+                "Female",
+                "" ) );
 
         validateRow( response, 2,
-                List.of( "BQuVMcT4dcI",
-                        "2015-08-07 15:47:29.152",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "Moribaya MCHP",
-                        "OU_211254",
-                        "Louise",
-                        "Reed",
-                        "Female",
-                        "" ) );
+            List.of( "BQuVMcT4dcI",
+                "2015-08-07 15:47:29.152",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Moribaya MCHP",
+                "OU_211254",
+                "Louise",
+                "Reed",
+                "Female",
+                "" ) );
     }
 
     @Test
