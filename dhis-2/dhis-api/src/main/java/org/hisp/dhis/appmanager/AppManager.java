@@ -112,6 +112,20 @@ public interface AppManager
     List<App> getDashboardPlugins( String contextPath, int max );
 
     /**
+     * Returns a list of installed apps with plugins. Includes both
+     * {@link AppType.DASHBOARD_WIDGET} app types and {@link AppType.APP} app
+     * types with a pluginLaunchPath.
+     *
+     * @param contextPath the context path of this instance.
+     * @param max the maximum number of apps to return, -1 to return all.
+     * @param skipCore if true, all core apps will be removed from the result
+     *        list.
+     *
+     * @return a list of {@link App}.
+     */
+    List<App> getDashboardPlugins( String contextPath, int max, boolean skipCore );
+
+    /**
      * Returns the installed app with a given name
      *
      * @param appName the name of the app to return.
