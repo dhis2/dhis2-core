@@ -267,7 +267,7 @@ public class DimensionParam implements UidObject
     {
         OUNAME( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME ),
         OUCODE( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE ),
-
+        OUNAMEHIERARCHY( TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME_HIERARCHY ),
         ENROLLMENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         ENDDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         INCIDENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
