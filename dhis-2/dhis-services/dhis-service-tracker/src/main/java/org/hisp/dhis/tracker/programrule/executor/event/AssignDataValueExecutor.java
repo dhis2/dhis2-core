@@ -85,6 +85,7 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event>
             .findAny()
             .orElse( null );
 
+        // Hopefully we will be able to remove this special case once rule engine will support optionSets
         if ( dataElement.isOptionSetValue() && !dataElement.getOptionSet().getOptionValues().contains( value ) )
         {
             return assignInvalidOptionDataElement( payloadDataValue, canOverwrite, event );
