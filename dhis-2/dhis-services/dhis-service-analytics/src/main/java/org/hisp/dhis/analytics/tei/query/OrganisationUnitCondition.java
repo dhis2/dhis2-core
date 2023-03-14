@@ -140,11 +140,10 @@ public class OrganisationUnitCondition extends BaseRenderable
 
         for ( OrganisationUnit organisationUnit : organisationUnits )
         {
-            String prefix = dimensionIdentifier.getPrefix();
-            String fieldName = OULEVEL + organisationUnit.getLevel();
-
             orgUnitConditions.add( BinaryConditionRenderer.of(
-                Field.ofRenamedDimensionIdentifier( dimensionIdentifier, fieldName ),
+                Field.ofRenamedDimensionIdentifier(
+                    dimensionIdentifier,
+                    OULEVEL + organisationUnit.getLevel() ),
                 IN,
                 Collections.singletonList( organisationUnit.getUid() ),
                 STRING,
