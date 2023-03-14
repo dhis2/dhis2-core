@@ -31,6 +31,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_S
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anySet;
@@ -155,7 +156,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet() );
+        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet(), List.of( programRuleA ) );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -171,7 +172,8 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-        when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of( programRuleA ) );
 
         setProgramRuleActionType_SendMessage();
 
@@ -189,7 +191,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
@@ -213,18 +215,18 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of( programRuleA ) );
+        when( programRuleEngine.evaluate( any(), any(), anySet(), anyList() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
-
-        ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( any(), argumentCaptor.capture(), any() );
-        assertEquals( programStageInstance, argumentCaptor.getValue() );
+        verify( programRuleEngine, times( 1 ) )
+            .evaluate( programInstance, programStageInstance, programInstance.getProgramStageInstances(),
+                List.of( programRuleA ) );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
