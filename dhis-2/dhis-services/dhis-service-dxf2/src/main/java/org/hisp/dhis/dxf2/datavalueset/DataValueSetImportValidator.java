@@ -476,8 +476,13 @@ public class DataValueSetImportValidator
     private static void checkDataValueStrictDataElement( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        if ( context.isStrictDataElements()
-            && !dataSetContext.getDataSetDataElements().contains( valueContext.getDataElement() ) )
+        if ( !context.isStrictDataElements() )
+        {
+            return;
+        }
+        List<DataSet> targets = context.getTargetDataSets( dataSetContext, valueContext );
+        if ( targets.stream()
+            .noneMatch( dataSet -> dataSet.getDataElements().contains( valueContext.getDataElement() ) ) )
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.DATA_ELEMENT_STRICT,
