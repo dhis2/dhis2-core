@@ -113,7 +113,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String",
+            false, true );
         validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
         validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
@@ -137,7 +138,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 14) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -177,7 +178,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String",
+            false, true );
         validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
         validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
@@ -292,7 +294,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         validateHeader( response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 9, "ounamehierarchy", "Organisation unit hierarchy", "TEXT", "java.lang.String",
+            false, true );
         validateHeader( response, 10, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false,
             true );
         validateHeader( response, 11, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
