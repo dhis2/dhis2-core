@@ -39,8 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
@@ -52,7 +50,6 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -73,18 +70,13 @@ import com.google.gson.JsonElement;
  *
  * @author Jan Bernitt
  */
-@Slf4j
 class UserControllerTest extends DhisControllerConvenienceTest
 {
-
     @Autowired
     private MessageSender messageSender;
 
     @Autowired
     private SecurityService securityService;
-
-    @Autowired
-    private UserGroupService userGroupService;
 
     private User peter;
 
@@ -188,8 +180,6 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
         UserGroup userGroupB = createUserGroup( 'B', emptySet() );
         manager.save( userGroupB );
-
-        User peterBefore = userService.getUser( this.peter.getUid() );
 
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op':'add','path':'/userGroups','value':[{'id':'" + userGroupA.getUid() + "'},{'id':'"
@@ -421,6 +411,30 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
                     .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    void testPatchUserGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', Set.of() );
+        userGroupA.setUid( "GZSvMCVowAx" );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', Set.of() );
+        userGroupB.setUid( "B6JNeAQ6akX" );
+        manager.save( userGroupB );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body(
+                "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]" ) ) );
+
+        JsonResponse response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 2, response.getArray( "userGroups" ).size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' } ] } ]" ) ) );
+        response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        assertEquals( 1, response.getArray( "userGroups" ).size() );
     }
 
     private String extractTokenFromEmailText( String message )

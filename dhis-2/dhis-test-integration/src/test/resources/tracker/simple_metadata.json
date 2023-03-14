@@ -1,4 +1,377 @@
 {
+  "attributes": [
+    {
+      "id": "j45AR9cBQKc",
+      "name": "some attribute",
+      "sharing": {
+        "owner": "PQD6wXJ2r5j",
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "valueType": "TEXT",
+      "mandatory": false,
+      "unique": true,
+      "programAttribute": true,
+      "programStageAttribute": true,
+      "trackedEntityTypeAttribute": true,
+      "trackedEntityAttributeAttribute": true,
+      "organisationUnitAttribute": true,
+      "dataElementAttribute": true,
+      "relationshipTypeAttribute": true,
+      "categoryOptionAttribute": true,
+      "categoryOptionComboAttribute": true
+    }
+  ],
+  "categoryOptions": [
+    {
+      "id": "xYerKDKCefk",
+      "name": "default",
+      "code": "default",
+      "shortName": "default"
+    },
+    {
+      "id": "xwZ2u3WyQR0",
+      "name": "Unicef",
+      "code": "Unicef",
+      "shortName": "Unicef",
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {},
+        "public": "rwr-----"
+      }
+    },
+    {
+      "id": "xEunk8LPzkb",
+      "name": "World Relief",
+      "code": "World Relief",
+      "shortName": "World Relief",
+      "description": "sharing.public data 'r' needs to be set to test this sharing case",
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {},
+        "public": "rwr-----"
+      }
+    },
+    {
+      "id": "i4Nbp8S2G6A",
+      "name": "Improve access to clean water",
+      "code": "Project01",
+      "shortName": "Improve access to clean water",
+      "description": "used to test sharing when owner is null",
+      "sharing": {
+        "owner": null,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      }
+    },
+    {
+      "id": "OUUdG3sdOqb",
+      "name": "Provide access to primary health care",
+      "code": "Project02",
+      "shortName": "Provide access to primary health care",
+      "description": "used to test non public data access. only super user or user with data access should get access",
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "users": {
+          "o1HMTIzBGo7": {
+            "displayName": "foofi",
+            "access": "--r-----",
+            "id": "o1HMTIzBGo7"
+          }
+        },
+        "userGroups": {},
+        "public": "rw------"
+      }
+    },
+    {
+      "id": "yMj2MnmNI8L",
+      "name": "Improve access to medicines",
+      "code": "Project03",
+      "shortName": "Improve access to medicines",
+      "description": "used to test non public data access. only super user or owner should get access",
+      "sharing": {
+        "owner": "o1HMTIzBGo7",
+        "users": {},
+        "userGroups": {},
+        "public": "--------"
+      }
+    },
+    {
+      "id": "M58XdOfhiJ7",
+      "name": "Provide access to basic education",
+      "code": "Project04",
+      "shortName": "Provide access to basic education",
+      "description": "used to test sharing when public is null",
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {},
+        "public": null
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": "GLevLNI9wkl",
+      "name": "default",
+      "code": "default",
+      "shortName": "default",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": false,
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ]
+    },
+    {
+      "id": "LFsZ8v5v7rq",
+      "name": "Implementing Partner",
+      "code": "IMPL_PARTNER",
+      "shortName": "Implementing Partner",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "categoryOptions": [
+        {
+          "id": "xwZ2u3WyQR0"
+        },
+        {
+          "id": "xEunk8LPzkb"
+        }
+      ]
+    },
+    {
+      "id": "yY2bQYqNt0o",
+      "name": "Project",
+      "code": "PROJECT",
+      "shortName": "Project",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "categoryOptions": [
+        {
+          "id": "i4Nbp8S2G6A"
+        },
+        {
+          "id": "OUUdG3sdOqb"
+        },
+        {
+          "id": "yMj2MnmNI8L"
+        },
+        {
+          "id": "M58XdOfhiJ7"
+        }
+      ]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "id": "bjDvmb4bfuf",
+      "code": "default",
+      "name": "default",
+      "dataDimensionType": "DISAGGREGATION",
+      "sharing": {
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "skipTotal": false,
+      "categories": [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ]
+    },
+    {
+      "id": "O4VaNks6tta",
+      "name": "Implementing Partner and Projects",
+      "dataDimensionType": "ATTRIBUTE",
+      "skipTotal": false,
+      "categories": [
+        {
+          "id": "LFsZ8v5v7rq"
+        },
+        {
+          "id": "yY2bQYqNt0o"
+        }
+      ]
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "id": "HllvX50cXC0",
+      "name": "default",
+      "code": "default",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ]
+    },
+    {
+      "id": "tzsPhPtE94U",
+      "name": "World Relief, Provide access to basic education",
+      "code": "COC_1153413",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "categoryOptions": [
+        {
+          "id": "xEunk8LPzkb"
+        },
+        {
+          "id": "M58XdOfhiJ7"
+        }
+      ]
+    },
+    {
+      "id": "UcWQppzD1it",
+      "name": "World Relief, Improve access to medicines",
+      "code": "COC_1153405",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xEunk8LPzkb"
+        },
+        {
+          "id": "yMj2MnmNI8L"
+        }
+      ]
+    },
+    {
+      "id": "i3HQ1ziPjC7",
+      "name": "World Relief, Improve access to clean water",
+      "code": "COC_1153403",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "categoryOptions": [
+        {
+          "id": "i4Nbp8S2G6A"
+        },
+        {
+          "id": "xEunk8LPzkb"
+        }
+      ]
+    },
+    {
+      "id": "AeOORUC0ISH",
+      "name": "World Relief, Provide access to primary health care",
+      "code": "COC_1153408",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xEunk8LPzkb"
+        },
+        {
+          "id": "OUUdG3sdOqb"
+        }
+      ]
+    },
+    {
+      "id": "cr89ebDZrac",
+      "name": "Unicef, Provide access to basic education",
+      "code": "COC_1153452",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "categoryOptions": [
+        {
+          "id": "xwZ2u3WyQR0"
+        },
+        {
+          "id": "M58XdOfhiJ7"
+        }
+      ],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "COC_1153452-attribute"
+        }
+      ]
+    },
+    {
+      "id": "V2gbpszLQJm",
+      "name": "Unicef, Improve access to medicines",
+      "code": "COC_1153434",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xwZ2u3WyQR0"
+        },
+        {
+          "id": "yMj2MnmNI8L"
+        }
+      ]
+    },
+    {
+      "id": "SeWJkpLAyLt",
+      "name": "Unicef, Improve access to clean water",
+      "code": "COC_1153438",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xwZ2u3WyQR0"
+        },
+        {
+          "id": "i4Nbp8S2G6A"
+        }
+      ]
+    },
+    {
+      "id": "B81quHGEY7H",
+      "name": "Unicef, Provide access to primary health care",
+      "code": "COC_1153446",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xwZ2u3WyQR0"
+        },
+        {
+          "id": "OUUdG3sdOqb"
+        }
+      ]
+    }
+  ],
   "trackedEntityTypes": [
     {
       "created": "2020-05-31T08:59:52.758",
@@ -242,6 +615,22 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    },
+    {
+      "id": "GieVkTxp4HH",
+      "code": "DE_240794",
+      "lastUpdated": "2015-03-31T11:22:51.642",
+      "created": "2015-03-31T10:27:46.069",
+      "name": "Height in cm",
+      "shortName": "Height in cm",
+      "aggregationType": "AVERAGE",
+      "domainType": "TRACKER",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "url": "",
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      }
     }
   ],
   "options": [
@@ -654,6 +1043,80 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
+    },
+    {
+      "id": "qLZC0lvvxQH",
+      "name": "Program stage for multiple categories program",
+      "code": "multi-stage",
+      "lastUpdated": "2022-04-22T05:57:59.849",
+      "created": "2022-04-22T05:57:48.383",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "iS7eutanDry"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "id": "j4bu9hXjR6n",
+          "created": "2022-04-22T05:57:48.383",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "skipAnalytics": false,
+          "allowFutureDate": false,
+          "sharing": {
+            "users": {},
+            "userGroups": {}
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": false,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "dataElement": {
+            "id": "GieVkTxp4HH"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "multi-program-stage-attribute"
+        }
+      ],
+      "programStageSections": []
     }
   ],
   "users": [
@@ -753,18 +1216,123 @@
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"
+        },
+        {
+          "id": "DiszpKrYNg8"
         }
       ],
       "dataViewOrganisationUnits": []
+    },
+    {
+      "id": "o1HMTIzBGo7",
+      "created": "2020-05-31T08:57:59.048",
+      "surname": "foofi",
+      "email": "foofi@dhis2.org",
+      "firstName": "foofi",
+      "password": "Test123###...",
+      "phoneNumber": "+4740332255",
+      "name": "foofi",
+      "displayName": "foofi",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "foofi",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [],
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ]
+    },
+    {
+      "id": "CYVgFNKCaUS",
+      "created": "2020-05-31T08:57:59.048",
+      "surname": "aaaa",
+      "email": "aaaa@dhis2.org",
+      "firstName": "aaaa",
+      "password": "Test123###...",
+      "phoneNumber": "+4740332255",
+      "name": "aaaa",
+      "displayName": "aaaa",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "aaaa",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [],
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ]
     }
   ],
   "organisationUnits": [
     {
+      "id": "h4w96yEMlzO",
+      "name": "test-orgunit",
       "level": 1,
       "created": "2020-05-31T08:56:15.922",
       "lastUpdated": "2020-05-31T11:41:22.384",
-      "name": "test-orgunit",
-      "id": "h4w96yEMlzO",
       "publicAccess": "rwrw----",
       "shortName": "test-orgunit",
       "description": "test-orgunit",
@@ -780,11 +1348,11 @@
       "translations": []
     },
     {
+      "id": "uoNW0E3xXUy",
+      "name": "test-orgunit-2",
       "level": 2,
       "created": "2020-05-31T09:05:34.570",
       "lastUpdated": "2020-05-31T11:41:22.385",
-      "name": "test-orgunit-2",
-      "id": "uoNW0E3xXUy",
       "shortName": "test-program-rule",
       "path": "/h4w96yEMlzO/uoNW0E3xXUy",
       "closedDate": "2020-12-27T00:00:00.000",
@@ -800,15 +1368,43 @@
       },
       "attributeValues": [],
       "translations": []
+    },
+    {
+      "id": "DiszpKrYNg8",
+      "name": "test-orgunit-3",
+      "code": "org3",
+      "level": 1,
+      "created": "2020-05-31T08:56:15.922",
+      "lastUpdated": "2020-05-31T11:41:22.384",
+      "publicAccess": "rwrw----",
+      "shortName": "test-orgunit-3",
+      "description": "test-orgunit-3",
+      "path": "/DiszpKrYNg8",
+      "openingDate": "2020-05-31T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "multi-org-attribute"
+        }
+      ],
+      "translations": []
     }
   ],
   "programs": [
     {
-      "lastUpdated": "2020-05-31T11:41:22.438",
       "id": "BFcipDERJnf",
-      "created": "2020-05-31T09:02:52.718",
       "name": "test-program",
       "shortName": "test-program",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
       "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
@@ -859,11 +1455,11 @@
       "userAccesses": []
     },
     {
-      "lastUpdated": "2019-01-28T11:23:20.906",
       "id": "BFcipDERJne",
-      "created": "2019-01-28T11:23:20.906",
       "name": "ProgramA",
       "shortName": "ProgramA",
+      "lastUpdated": "2019-01-28T11:23:20.906",
+      "created": "2019-01-28T11:23:20.906",
       "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
@@ -906,6 +1502,54 @@
         }
       ],
       "userAccesses": []
+    },
+    {
+      "id": "iS7eutanDry",
+      "name": "Program with multiple categories",
+      "code": "multi-program",
+      "shortName": "Program with multiple categories",
+      "lastUpdated": "2022-04-22T05:57:59.829",
+      "created": "2022-04-22T05:57:48.409",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 1,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "programSections": [],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "multi-program-attribute"
+        }
+      ],
+      "programStages": [
+        {
+          "id": "qLZC0lvvxQH"
+        }
+      ]
     }
   ],
   "userRoles": [
@@ -962,6 +1606,27 @@
       ],
       "translations": [],
       "userAccesses": []
+    },
+    {
+      "id": "UbhT3bXWUyb",
+      "name": "Basic",
+      "created": "2020-04-17T14:32:31.826",
+      "lastUpdated": "2020-04-17T14:32:31.826",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "authorities": [
+        "M_dhis-web-capture",
+        "M_dhis-web-tracker-capture"
+      ],
+      "translations": []
     }
   ],
   "trackedEntityAttributes": [

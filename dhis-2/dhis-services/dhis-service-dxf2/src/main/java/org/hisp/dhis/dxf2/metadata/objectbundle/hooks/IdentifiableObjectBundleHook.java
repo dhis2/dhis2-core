@@ -96,7 +96,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        if ( !schema.havePersistedProperty( "attributeValues" ) )
+        if ( !schema.hasPersistedProperty( "attributeValues" ) )
             return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
@@ -142,7 +142,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
         {
             object.setCreatedBy( object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser() );
         }
-        else if ( !IdentifiableObjectUtils.equalByUID( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
+        else if ( !IdentifiableObjectUtils.equalsByUid( object.getCreatedBy(), persistedObject.getCreatedBy() ) )
         {
             object.setCreatedBy( persistedObject.getCreatedBy() );
             bundle.getPreheat().put( PreheatIdentifier.UID, object.getCreatedBy() );

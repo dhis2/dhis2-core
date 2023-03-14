@@ -64,7 +64,7 @@ class ProgramSupplierTest extends AbstractSupplierTest<Program>
     private CacheProvider cacheProvider;
 
     @Mock
-    private Cache cache;
+    private Cache<Object> cache;
 
     private static Stream<Arguments> data()
     {

@@ -432,7 +432,7 @@ public final class QueryUtils
     private static boolean isValid( OrderCriteria orderCriteria, Schema schema )
     {
         Property property = schema.getProperty( orderCriteria.getField() );
-        return schema.haveProperty( orderCriteria.getField() ) && validProperty( property );
+        return schema.hasProperty( orderCriteria.getField() ) && validProperty( property );
     }
 
     /**
@@ -470,7 +470,7 @@ public final class QueryUtils
             String propertyName = split[0];
             Property property = schema.getProperty( propertyName );
 
-            if ( result.containsKey( propertyName ) || !schema.haveProperty( propertyName )
+            if ( result.containsKey( propertyName ) || !schema.hasProperty( propertyName )
                 || !validProperty( property ) || !validDirection( direction ) )
             {
                 continue;

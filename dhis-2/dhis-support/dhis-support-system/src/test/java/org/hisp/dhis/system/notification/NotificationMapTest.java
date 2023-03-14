@@ -110,6 +110,6 @@ class NotificationMapTest
 
     private Notification newNotification( JobConfiguration config, int no )
     {
-        return new Notification( NotificationLevel.INFO, config.getJobType(), new Date(), "" + no, false );
+        return new Notification( NotificationLevel.INFO, config.getJobType(), new Date(), "" + no, false, null, null );
     }
 }

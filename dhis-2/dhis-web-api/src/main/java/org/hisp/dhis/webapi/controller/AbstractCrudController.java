@@ -67,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -164,6 +165,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     private TranslationsCheck translationsCheck;
 
+    @Autowired
+    protected EventHookPublisher eventHookPublisher;
+
     // --------------------------------------------------------------------------
     // OLD PATCH
     // --------------------------------------------------------------------------
@@ -228,7 +232,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         BadRequestException,
         IOException,
         JsonPatchException
-
     {
         WebOptions options = new WebOptions( rpParameters );
 
@@ -239,7 +242,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new NotFoundException( getEntityClass(), pvUid );
         }
 
-        if ( !getSchema().haveProperty( pvProperty ) )
+        if ( !getSchema().hasProperty( pvProperty ) )
         {
             throw new NotFoundException( "Property " + pvProperty + " does not exist on " + getEntityName() );
         }

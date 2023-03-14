@@ -155,9 +155,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
@@ -842,6 +840,19 @@ public abstract class DhisConvenienceTest
         group.setCode( "DataElementCode" + uniqueCharacter );
 
         return group;
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param dataElements Data elements to go in the group.
+     */
+    public static DataElementGroup createDataElementGroup( char uniqueCharacter, DataElement... dataElements )
+    {
+        DataElementGroup deg = createDataElementGroup( uniqueCharacter );
+
+        Arrays.stream( dataElements ).forEach( deg::addDataElement );
+
+        return deg;
     }
 
     /**
@@ -2215,33 +2226,6 @@ public abstract class DhisConvenienceTest
         return ptea;
     }
 
-    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar,
-        Set<ProgramTrackedEntityAttribute> attributes )
-    {
-        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
-        attributeGroup.setAutoFields();
-
-        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setCode( "ProgramTrackedEntityAttributeGroupCode" + uniqueChar );
-        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
-        attributes.forEach( attributeGroup::addAttribute );
-        attributeGroup.setUniqunessType( UniqunessType.NONE );
-
-        return attributeGroup;
-    }
-
-    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar )
-    {
-        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
-        attributeGroup.setAutoFields();
-
-        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
-        attributeGroup.setUniqunessType( UniqunessType.NONE );
-
-        return attributeGroup;
-    }
-
     /**
      * @param uniqueChar A unique character to identify the object.
      * @param content The content of the file
@@ -2312,6 +2296,7 @@ public abstract class DhisConvenienceTest
         constant.setAutoFields();
 
         constant.setName( "Constant" + uniqueCharacter );
+        constant.setShortName( constant.getName() );
         constant.setValue( value );
 
         return constant;
@@ -2897,11 +2882,13 @@ public abstract class DhisConvenienceTest
     }
 
     protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
-        OrganisationUnit dataViewOrganisationUnits, String... auths )
+        OrganisationUnit dataViewOrganisationUnit, String... auths )
     {
-        User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
-            dataViewOrganisationUnits != null ? newHashSet( dataViewOrganisationUnits ) : newHashSet( orgUnit ),
-            auths );
+        Set<OrganisationUnit> organisationUnits = orgUnit == null ? new HashSet<>() : newHashSet( orgUnit );
+        Set<OrganisationUnit> dataViewOrganisationUnits = dataViewOrganisationUnit != null
+            ? newHashSet( dataViewOrganisationUnit )
+            : new HashSet<>( organisationUnits );
+        User user = _createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
 
         persistUserAndRoles( user );
 

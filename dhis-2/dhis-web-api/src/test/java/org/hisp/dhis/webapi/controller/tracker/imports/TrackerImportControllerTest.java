@@ -49,6 +49,7 @@ import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -61,10 +62,9 @@ import org.hisp.dhis.tracker.report.PersistenceReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +89,10 @@ class TrackerImportControllerTest
     private DefaultTrackerImportService trackerImportService;
 
     @Mock
-    private TrackerImporter importStrategy;
+    private TrackerSyncImporter syncImporter;
+
+    @Mock
+    private TrackerAsyncImporter asyncImporter;
 
     @Mock
     private CsvEventService<Event> csvEventService;
@@ -107,10 +110,13 @@ class TrackerImportControllerTest
             mock( SchemaService.class ) );
 
         // Controller under test
-        final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            csvEventService, new DefaultContextService(), notifier );
+        final TrackerImportController controller = new TrackerImportController( syncImporter, asyncImporter,
+            trackerImportService,
+            csvEventService, notifier );
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+        mockMvc = MockMvcBuilders.standaloneSetup( controller )
+            .setControllerAdvice( new CrudControllerAdvice() )
+            .build();
     }
 
     @Test
@@ -142,7 +148,7 @@ class TrackerImportControllerTest
             .andExpect( content().contentType( "application/json" ) );
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( asyncImporter ).importTracker( any(), any(), any() );
     }
 
     @Test
@@ -150,7 +156,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
             ValidationReport.emptyReport(),
@@ -169,7 +175,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -186,7 +192,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
             ValidationReport.emptyReport(),
@@ -205,7 +211,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -223,7 +229,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
             ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
@@ -239,7 +245,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -257,7 +263,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
+        when( syncImporter.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
             ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
@@ -273,7 +279,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
 
         try
         {
@@ -370,7 +376,7 @@ class TrackerImportControllerTest
         mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) ).andExpect( status().isNotFound() )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }

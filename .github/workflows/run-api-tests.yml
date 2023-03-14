@@ -15,9 +15,9 @@ concurrency:
 jobs:
   api-test:
     env:
-      CORE_IMAGE_NAME: "dhis2/core-dev:local"
-      PR_NUMBER: ${{ github.event.number }}
-      DOCKER_CHANNEL: "dhis2/core-pr"
+      # We only publish to Dockerhub on PRs from https://github.com/dhis2/dhis2-core. PRs from forks or dependabot cannot access secrets.
+      DOCKERHUB_PUSH: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      CORE_IMAGE_NAME: "dhis2/core-pr:${{ github.event_name == 'pull_request' && github.event.number || 'local' }}"
     
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
@@ -29,24 +29,31 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-      - name: Build core image
-        run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
-          mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Login to Docker Hub
-        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+        if: ${{ env.DOCKERHUB_PUSH == 'true' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
 
-      - name: Publish docker image
-        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+      - name: Build war
         run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
-          docker push $DOCKER_CHANNEL:$PR_NUMBER
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
+
+      - name: Build container image
+        run: |
+          if [ "$DOCKERHUB_PUSH" = "true" ]; then
+            # build and publish multi-arch images using Jib. Image is used for api tests in
+            # this workflow and can be pulled from Dockerhub by devs to run locally, ...
+            mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
+          else
+            # only build image for running api tests in this workflow i.e. master, 2.39, ...
+            mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild \
+                -Djib.to.image=$CORE_IMAGE_NAME
+          fi
 
       - name: Run tests
         run: |

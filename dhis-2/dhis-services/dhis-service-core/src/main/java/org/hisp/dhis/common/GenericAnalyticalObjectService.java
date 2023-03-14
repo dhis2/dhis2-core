@@ -32,6 +32,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,6 +56,13 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
     public void update( T object )
     {
         getAnalyticalObjectStore().update( object );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<T> getAnalyticalObjects( ExpressionDimensionItem expressionDimensionItem )
+    {
+        return getAnalyticalObjectStore().getAnalyticalObjects( expressionDimensionItem );
     }
 
     @Override

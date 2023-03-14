@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.40-SNAPSHOT</version>
+    <version>2.41-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-dxf2</artifactId>
@@ -69,6 +69,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-event-hook</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp</groupId>

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,8 +82,6 @@ class ClassBasedSupplierTest
     {
         classBasedSupplier = new ClassBasedSupplier( identifierCollector, strategiesMap );
         classBasedSupplier.setApplicationContext( applicationContext );
-
-        TrackerPreheat trackerPreheat = new TrackerPreheat();
 
         when( identifierCollector.collect( trackerImportParams ) )
             .thenReturn( new HashMap<>()

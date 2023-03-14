@@ -37,14 +37,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
 @Getter
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 class ColumnAndAlias
 {
     public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
 
-    private final String column;
+    protected final String column;
 
-    private final String alias;
+    protected final String alias;
 
     static ColumnAndAlias ofColumn( String column )
     {

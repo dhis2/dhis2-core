@@ -29,22 +29,22 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class UserRoleDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole>
 {
     private final UserService userService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( User.class, this::deleteUser );
     }

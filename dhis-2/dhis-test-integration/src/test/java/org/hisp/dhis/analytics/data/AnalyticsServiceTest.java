@@ -105,8 +105,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.Lists;
-
 /**
  * Tests aggregation of data in analytics tables.
  *
@@ -259,6 +257,7 @@ class AnalyticsServiceTest
     // 32, deD, peJan
     //
     // --------------------------------------------------------------------
+
     @Override
     public void setUpTest()
         throws IOException,
@@ -620,6 +619,66 @@ class AnalyticsServiceTest
     }
 
     @Test
+    void testMaxAndMinSumOrgUnit()
+    {
+        withIndicator( inA, "#{" + deA.getUid() + "}.aggregationType(MAX_SUM_ORG_UNIT)" );
+        withIndicator( inB, "#{" + deA.getUid() + "}.aggregationType(MIN_SUM_ORG_UNIT)" );
+
+        // Find max and min values inside periods within each orgUnit
+        // over a larger period:
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghD-2017Q1", 233.0,
+                "indicatorBB-ouabcdefghD-2017Q1", 66.0,
+                "indicatorAA-ouabcdefghE-2017Q1", 1.0,
+                "indicatorBB-ouabcdefghE-2017Q1", 1.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouD, ouE ) )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+
+        // Find max and min values inside periods within each orgUnit
+        // with a period filter that skips a period between start and end:
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghD", 66.0,
+                "indicatorBB-ouabcdefghD", 66.0,
+                "indicatorAA-ouabcdefghE", 1.0,
+                "indicatorBB-ouabcdefghE", 1.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouD, ouE ) )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withFilterPeriods( List.of( peJan, peMar ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+
+        // Sum the max/min values across different orgUnits
+        // over a larger period:
+        // (Note: orgUnit B is parent of D and E and also has value 1.)
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghB-2017Q1", 235.0,
+                "indicatorBB-ouabcdefghB-2017Q1", 68.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouB )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+
+        // Sum the max/min values across different orgUnits
+        // with a list of periods in the filter:
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghB", 235.0,
+                "indicatorBB-ouabcdefghB", 68.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouB )
+                .withIndicators( List.of( inA, inB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withFilterPeriods( List.of( peJan, peFeb, peMar ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
     void test_de_avg_2017_03()
     {
         List<DataElement> dataElements = List.of( deA, deB, deC, deD, deE );
@@ -792,7 +851,7 @@ class AnalyticsServiceTest
             Map.of( "indicatorAA-ouabcdefghA-201707", 3.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriod( peJul )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -811,7 +870,7 @@ class AnalyticsServiceTest
                 "indicatorAA-ouabcdefghA-201709", 7.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -829,7 +888,7 @@ class AnalyticsServiceTest
                 "indicatorAA-ouabcdefghA-201709", 7.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -848,7 +907,7 @@ class AnalyticsServiceTest
                 "indicatorAA-ouabcdefghA-201709", 7.0 + 9 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -866,7 +925,7 @@ class AnalyticsServiceTest
                 "indicatorAA-ouabcdefghA-201709", 7.0 + 8 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -907,7 +966,7 @@ class AnalyticsServiceTest
                 "indicatorAA-ouabcdefghA-201709", 7.0 + 12 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -922,7 +981,7 @@ class AnalyticsServiceTest
             Map.of( "indicatorAA-ouabcdefghA-201701", 1.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peJan, peFeb ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -937,7 +996,7 @@ class AnalyticsServiceTest
             Map.of( "indicatorAA-ouabcdefghA-201701", 3.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peJan, peFeb ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -952,7 +1011,7 @@ class AnalyticsServiceTest
             Map.of( "indicatorAA-ouabcdefghA-201701", 5.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peJan, peFeb ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -967,7 +1026,7 @@ class AnalyticsServiceTest
             Map.of( "indicatorAA-ouabcdefghA-201701", 7.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
-                .withIndicators( Lists.newArrayList( inA ) )
+                .withIndicators( List.of( inA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
                 .withPeriods( List.of( peJan, peFeb ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -992,8 +1051,8 @@ class AnalyticsServiceTest
         assertDataValues(
             Map.of( "deabcdefghD-201704", 10.5 ),
             DataQueryParams.newBuilder()
-                .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE ) )
-                .withDataElements( Lists.newArrayList( deA, deB, deD ) )
+                .withFilterOrganisationUnits( List.of( ouC, ouE ) )
+                .withDataElements( List.of( deA, deB, deD ) )
                 .withAggregationType( AnalyticsAggregationType.AVERAGE )
                 .withPeriod( peApr )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
@@ -1005,7 +1064,7 @@ class AnalyticsServiceTest
         assertDataValues(
             Map.of( "deabcdefghA-ouabcdefghB", 68L ),
             DataQueryParams.newBuilder()
-                .withDataElements( Lists.newArrayList( deA, deB ) )
+                .withDataElements( List.of( deA, deB ) )
                 .withOrganisationUnit( ouB )
                 .withStartDate( getDate( 2017, 1, 1 ) )
                 .withEndDate( getDate( 2017, 2, 20 ) )

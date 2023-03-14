@@ -49,6 +49,7 @@ import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
@@ -225,11 +226,11 @@ public class WebTestConfiguration
     @Bean
     @Primary
     public SchedulingManager synchronousSchedulingManager( JobService jobService,
-        JobConfigurationService jobConfigurationService,
-        MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
+        JobConfigurationService jobConfigurationService, MessageService messageService, Notifier notifier,
+        EventHookPublisher eventHookPublisher, LeaderManager leaderManager, CacheProvider cacheProvider )
     {
         return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
-            leaderManager, cacheProvider );
+            eventHookPublisher, leaderManager, cacheProvider );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -239,9 +240,11 @@ public class WebTestConfiguration
         private boolean isRunning = false;
 
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
+            MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
+            LeaderManager leaderManager, CacheProvider cacheProvider )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
+            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
+                cacheProvider );
         }
 
         @Override

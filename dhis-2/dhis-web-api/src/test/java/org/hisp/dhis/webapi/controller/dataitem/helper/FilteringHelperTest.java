@@ -59,8 +59,8 @@ import org.junit.jupiter.api.Test;
  */
 class FilteringHelperTest
 {
-
     @Test
+    @SuppressWarnings( "unchecked" )
     void testExtractEntitiesFromInFilter()
     {
         // Given
@@ -96,6 +96,7 @@ class FilteringHelperTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testExtractEntitiesFromInFilterWhenFilterIsNotFullyDefined()
     {
         // Given

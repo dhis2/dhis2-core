@@ -79,6 +79,27 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         assertImportedAndIgnored( msg, 7, 8 );
         assertReportError( msg, ErrorCode.E7708, List.of( 7, 8, 9, 10, 11, 12, 13, 14 ) );
         assertGeometryIsNotNull( ouIds, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
+
+    }
+
+    @Test
+    void testPostImport_NameAsIdentifierWithCoordinateTriplets()
+    {
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
+
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "WARNING", "Import partially successful.",
+            POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
+                "geo-json/sierra-leone-districts-triplets.geojson" ).content() );
+
+        assertImportedAndIgnored( msg, 7, 8 );
+        assertReportError( msg, ErrorCode.E7708, List.of( 7, 8, 9, 10, 11, 12, 13, 14 ) );
+        assertGeometryIsNotNull( ouIds, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
+
+        // check triplet became a pair
+        JsonObject unit = GET( "/organisationUnits/{uid}/gist?fields=code,geometry", ouIds.get( 0 ) ).content();
+        assertEquals( "KAR", unit.getString( "code" ).string() );
+        assertEquals( "[[[[-12.644405338,9.013335116],[-12.6461979,9.0122874],[-12.644405338,9.013335116]]]]",
+            unit.getObject( "geometry" ).getArray( "coordinates" ).node().getDeclaration() );
     }
 
     @Test
@@ -227,9 +248,21 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
-                "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid'} }]}" )
+                "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid', 'coordinates':[1,2]} }]}" )
                     .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7707, List.of( 0 ) );
+    }
+
+    @Test
+    void testPostImport_ErrorGeometryCoordinatesAreEmpty()
+    {
+        postNewOrganisationUnits( IntStream.of( 0 ) );
+
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
+            POST( "/organisationUnits/geometry",
+                "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Polygon', 'coordinates':[]} }]}" )
+                    .content( HttpStatus.OK ) );
+        assertReportError( msg, ErrorCode.E7712, List.of( 0 ) );
     }
 
     @Test

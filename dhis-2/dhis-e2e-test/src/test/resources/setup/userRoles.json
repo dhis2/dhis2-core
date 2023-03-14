@@ -6,7 +6,10 @@
       "lastUpdated": "2019-04-17T11:27:44.297",
       "name": "TA Superuser",
       "id": "yrB6vc5Ip7r",
-      "publicAccess": "--------",
+      "sharing": {
+        "public": "--------",
+        "external": false
+      },
       "description": "TA Superuser",
       "authorities": [
         "ALL"
@@ -18,7 +21,6 @@
       "name": "TA Admin",
       "displayName": "TA admin",
       "description": "TA admin",
-      "userGroupAccesses": [],
       "authorities": [
         "F_PROGRAM_INDICATOR_PUBLIC_ADD",
         "F_SQLVIEW_EXECUTE",

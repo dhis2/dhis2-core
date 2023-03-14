@@ -41,6 +41,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class AnalyticsTableColumn
 {
+    public enum Collate
+    {
+        C
+    }
+
     /**
      * The column name.
      */
@@ -60,6 +65,11 @@ public class AnalyticsTableColumn
      * The column SQL alias.
      */
     private String alias;
+
+    /**
+     * Sets a custom collate for the column if one is defined.
+     */
+    private Collate collate;
 
     /**
      * Date of creation of the underlying data dimension.
@@ -99,6 +109,22 @@ public class AnalyticsTableColumn
         this.dataType = dataType;
         this.notNull = ColumnNotNullConstraint.NULL;
         this.alias = alias;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     */
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, String alias, Collate collate )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.notNull = ColumnNotNullConstraint.NULL;
+        this.alias = alias;
+        this.collate = collate;
     }
 
     /**
@@ -193,6 +219,16 @@ public class AnalyticsTableColumn
     public String getAlias()
     {
         return alias;
+    }
+
+    public Collate getCollate()
+    {
+        return collate;
+    }
+
+    public boolean hasCollate()
+    {
+        return collate != null;
     }
 
     public ColumnNotNullConstraint getNotNull()

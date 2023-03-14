@@ -45,8 +45,6 @@ import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -117,10 +115,6 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouD = addOrganisationUnit( 'D', ouB );
         // 3
         OrganisationUnit ouE = addOrganisationUnit( 'E', ouB );
-        // 3
-        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC );
-        // 3
-        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC );
         Program prA = addProgram( 'A', ouA, ouB, ouC, ouE );
         Program prB = addProgram( 'B', ouA, ouD, ouE );
         assertContainsOnly( List.of( ouA, ouB, ouC, ouE ), unitStore.getOrganisationUnitsWithProgram( prA ) );
@@ -154,48 +148,48 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
             createParams( OrganisationUnitQueryParams::setQuery, "OrganisationUnitCodeA" ) ) );
         // Parents
         assertContainsOnly( List.of( ouC, ouF, ouG ), unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setParents, Sets.newHashSet( ouC, ouF ) ) ) );
+            createParams( OrganisationUnitQueryParams::setParents, Set.of( ouC, ouF ) ) ) );
         // Groups
         assertContainsOnly( List.of( ouD, ouF ), unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA ) ) ) );
+            createParams( OrganisationUnitQueryParams::setGroups, Set.of( ougA ) ) ) );
         // Groups
         assertContainsOnly( List.of( ouD, ouF, ouE, ouG ), unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA, ougB ) ) ) );
+            createParams( OrganisationUnitQueryParams::setGroups, Set.of( ougA, ougB ) ) ) );
         // Levels
         assertContainsOnly( List.of( ouB, ouC ), unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2 ) ) ) );
+            createParams( OrganisationUnitQueryParams::setLevels, Set.of( 2 ) ) ) );
         // Levels
         assertContainsOnly( List.of( ouB, ouC, ouD, ouE, ouF, ouG ), unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2, 3 ) ) ) );
+            createParams( OrganisationUnitQueryParams::setLevels, Set.of( 2, 3 ) ) ) );
         // Levels and groups
         assertContainsOnly( List.of( ouD, ouF ), unitStore.getOrganisationUnits( createParams( params -> {
-            params.setLevels( Sets.newHashSet( 3 ) );
-            params.setGroups( Sets.newHashSet( ougA ) );
+            params.setLevels( Set.of( 3 ) );
+            params.setGroups( Set.of( ougA ) );
         } ) ) );
         // Parents and groups
         assertContainsOnly( List.of( ouG ), unitStore.getOrganisationUnits( createParams( params -> {
-            params.setParents( Sets.newHashSet( ouC ) );
-            params.setGroups( Sets.newHashSet( ougB ) );
+            params.setParents( Set.of( ouC ) );
+            params.setGroups( Set.of( ougB ) );
         } ) ) );
         // Parents and max levels
         assertContainsOnly( List.of( ouA, ouB, ouC ), unitStore.getOrganisationUnits( createParams( params -> {
-            params.setParents( Sets.newHashSet( ouA ) );
+            params.setParents( Set.of( ouA ) );
             params.setMaxLevels( 2 );
         } ) ) );
         // Parents and max levels
         assertContainsOnly( List.of( ouA, ouB, ouC, ouD, ouE, ouF, ouG ),
             unitStore.getOrganisationUnits( createParams( params -> {
-                params.setParents( Sets.newHashSet( ouA ) );
+                params.setParents( Set.of( ouA ) );
                 params.setMaxLevels( 3 );
             } ) ) );
         // Parents and max levels
         assertContainsOnly( List.of( ouA ), unitStore.getOrganisationUnits( createParams( params -> {
-            params.setParents( Sets.newHashSet( ouA ) );
+            params.setParents( Set.of( ouA ) );
             params.setMaxLevels( 1 );
         } ) ) );
         // Parents and max levels
         assertContainsOnly( List.of( ouB, ouD, ouE ), unitStore.getOrganisationUnits( createParams( params -> {
-            params.setParents( Sets.newHashSet( ouB ) );
+            params.setParents( Set.of( ouB ) );
             params.setMaxLevels( 3 );
         } ) ) );
     }

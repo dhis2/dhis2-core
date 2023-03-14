@@ -27,10 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,13 +44,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.CheckedFunction;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request
@@ -57,6 +64,35 @@ class RequestParamUtils
     {
         throw new IllegalStateException( "Utility class" );
     }
+
+    private static final String OPERATOR_GROUP = EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
+        .collect( Collectors.joining( "|" ) );
+
+    /**
+     * RegEx to search and validate
+     * {identifier}:{operator}:{value}[:{operator}:{value}] for attributes
+     * filters. It is operator case-insensitive using (?i) and has ?! for lookup
+     * to include until another operator:value definition. This will allow to
+     * define a filter value with any character
+     */
+    private static final String OPERATOR_VALUE_ITEM_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
+        DIMENSION_NAME_SEP + "(.(?i)(?!" + OPERATOR_GROUP + "))+";
+
+    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN = Pattern
+        .compile(
+            "(.*)" + DIMENSION_NAME_SEP + OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+
+    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_PATTERN = Pattern
+        .compile( OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+
+    /**
+     * RegEx to validate {operator}:{value} in a query filter
+     */
+    private static final String OPERATOR_VALUE_QUERY_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
+        DIMENSION_NAME_SEP + "(.)+";
+
+    private static final Pattern OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN = Pattern
+        .compile( OPERATOR_VALUE_QUERY_FILTER_REG_EX );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -111,8 +147,8 @@ class RequestParamUtils
     /**
      * Parse request parameter to filter tracked entity attributes using
      * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, Function)} for details on the expected
-     * item format.
+     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
+     * expected item format.
      *
      * @param items query item strings each composed of identifier, operator and
      *        value
@@ -123,17 +159,22 @@ class RequestParamUtils
      */
     public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
         Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
-        return items.stream()
-            .map( i -> parseAttributeQueryItem( i, attributes ) )
-            .collect( Collectors.toList() );
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String item : items )
+        {
+            itemList.add( parseAttributeQueryItem( item, attributes ) );
+        }
+
+        return itemList;
     }
 
     /**
      * Parse request parameter to filter tracked entity attributes using
      * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, Function)} for details on the expected
-     * item format.
+     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
+     * expected item format.
      *
      * @param item query item string composed of identifier, operator and value
      * @param attributes tracked entity attribute map from identifiers to
@@ -141,22 +182,25 @@ class RequestParamUtils
      * @return query item of tracked entity attribute with attached query
      *         filters
      */
+
     public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
     }
 
     private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
+        throws BadRequestException
     {
         if ( attributes.isEmpty() )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         TrackedEntityAttribute at = attributes.get( identifier );
         if ( at == null )
         {
-            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + identifier );
         }
 
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
@@ -166,33 +210,76 @@ class RequestParamUtils
      * Creates a QueryItem with QueryFilters from the given item string.
      * Expected item format is
      * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed.
+     * is mandatory. Multiple operator:value pairs are allowed, and it is
+     * validated by a regular expression.
      * <p>
      * The identifier is passed to given map function which translates the
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
      * then added to this QueryItem.
+     *
+     * @throws BadRequestException given invalid query item
      */
-    public static QueryItem parseQueryItem( String item, Function<String, QueryItem> map )
+    public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
+        throws BadRequestException
     {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
+        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP );
 
-        if ( split.length % 2 != 1 )
+        if ( identifierIndex == -1 || fullPath.length() - 1 == identifierIndex )
         {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+            return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( split[0] );
+        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
 
-        if ( split.length > 1 ) // Filters specified
+        if ( !OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN
+            .matcher( fullPath ).matches() )
         {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
+            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
+        }
+
+        Matcher matcher = OPERATOR_VALUE_ITEM_FILTER_PATTERN.matcher( fullPath );
+
+        while ( matcher.find() )
+        {
+            String[] operatorValueSplit = matcher.group().split( DIMENSION_NAME_SEP, 2 );
+
+            queryItem.getFilters()
+                .add( new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] ) );
         }
 
         return queryItem;
     }
 
+    /**
+     * Creates a QueryFilter from the given query string. Query is on format
+     * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
+     * QueryOperator is used as operator if not specified. We split the query at
+     * the first delimiter, so the filter value can be any sequence of
+     * characters
+     *
+     * @throws BadRequestException given invalid query string
+     */
+    public static QueryFilter parseQueryFilter( String query )
+        throws BadRequestException
+    {
+        if ( query == null || query.isEmpty() )
+        {
+            return null;
+        }
+
+        if ( !query.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
+        {
+            return new QueryFilter( QueryOperator.EQ, query );
+        }
+
+        if ( !OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN
+            .matcher( query ).matches() )
+        {
+            throw new BadRequestException( "Query has invalid format: " + query );
+        }
+
+        String[] operatorValueSplit = query.split( DIMENSION_NAME_SEP, 2 );
+
+        return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+    }
 }

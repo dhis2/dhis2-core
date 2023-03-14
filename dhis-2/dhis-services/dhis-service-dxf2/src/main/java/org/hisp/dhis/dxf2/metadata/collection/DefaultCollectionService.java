@@ -35,7 +35,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -68,8 +67,6 @@ public class DefaultCollectionService implements CollectionService
     private final IdentifiableObjectManager manager;
 
     private final DbmsManager dbmsManager;
-
-    private final HibernateCacheManager cacheManager;
 
     private final AclService aclService;
 
@@ -286,7 +283,7 @@ public class DefaultCollectionService implements CollectionService
             throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !schema.haveProperty( propertyName ) )
+        if ( !schema.hasProperty( propertyName ) )
         {
             throw new NotFoundException(
                 "Property " + propertyName + " does not exist on " + object.getClass().getName() );

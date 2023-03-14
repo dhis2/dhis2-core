@@ -333,6 +333,7 @@ public class HibernateDbmsManager
         emptyTable( "fileresource" );
         emptyTable( "trackedentitycomment" );
         emptyTable( "userinfo" );
+        emptyTable( "route" );
 
         dropTable( "_orgunitstructure" );
         dropTable( "_datasetorganisationunitcategory" );
@@ -351,6 +352,7 @@ public class HibernateDbmsManager
         emptyTable( "sequentialnumbercounter" );
 
         emptyTable( "audit" );
+        emptyTable( "eventhook" );
 
         log.debug( "Cleared database contents" );
 

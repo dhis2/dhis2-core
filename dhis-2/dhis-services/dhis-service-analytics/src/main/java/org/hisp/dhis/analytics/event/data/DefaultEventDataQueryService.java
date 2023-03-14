@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDA
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
@@ -306,7 +307,7 @@ public class DefaultEventDataQueryService
                     List<String> items = getDimensionItemsFromParam( dim );
 
                     GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
-                        items, request.getRelativePeriodDate(), userOrgUnits, true, idScheme );
+                        items, request.getRelativePeriodDate(), userOrgUnits, true, null, idScheme );
 
                     if ( groupableItem != null )
                     {
@@ -378,7 +379,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                getDimensionalItemIds( dimension.getItems() ), date, null, true, idScheme );
+                getDimensionalItemIds( dimension.getItems() ), date, null, true, null, idScheme );
 
             if ( dimObj != null )
             {
@@ -394,7 +395,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject filter : object.getFilters() )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                getDimensionalItemIds( filter.getItems() ), date, null, true, idScheme );
+                getDimensionalItemIds( filter.getItems() ), date, null, true, null, idScheme );
 
             if ( dimObj != null )
             {
@@ -590,6 +591,7 @@ public class DefaultEventDataQueryService
         EVENT_DATE( ITEM_EVENT_DATE, COL_NAME_EVENTDATE ),
         SCHEDULED_DATE( ITEM_SCHEDULED_DATE, COL_NAME_DUEDATE ),
         ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME ),
+        ORG_UNIT_NAME_HIERARCHY( ITEM_ORG_UNIT_NAME_HIERARCHY ),
         ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE ),
         PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS_EVENTS, COL_NAME_PROGRAM_STATUS_ENROLLMENTS ),
         EVENT_STATUS( ITEM_EVENT_STATUS, COL_NAME_EVENT_STATUS ),

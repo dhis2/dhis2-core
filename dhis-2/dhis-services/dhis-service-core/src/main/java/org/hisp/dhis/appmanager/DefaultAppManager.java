@@ -28,6 +28,8 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -54,8 +57,7 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -70,9 +72,9 @@ public class DefaultAppManager
 {
     public static final String INVALID_FILTER_MSG = "Invalid filter: ";
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+    private static final Set<String> EXCLUSION_APPS = Set.of( "Line Listing" );
 
-    private final CurrentUserService currentUserService;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final AppStorageService localAppStorageService;
 
@@ -87,20 +89,17 @@ public class DefaultAppManager
     private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
-        CurrentUserService currentUserService,
         @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
         @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
         DatastoreService datastoreService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
-        checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( datastoreService );
         checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
-        this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.datastoreService = datastoreService;
@@ -113,24 +112,90 @@ public class DefaultAppManager
     // AppManagerService implementation
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<App> getApps( String contextPath )
+    private Stream<App> getAppsStream()
     {
-        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
-            .collect( Collectors.toList() );
+        return appCache.getAll()
+            .filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS );
+    }
 
-        apps.forEach( a -> a.init( contextPath ) );
-
-        return apps;
+    private Stream<App> getAccessibleAppsStream()
+    {
+        return getAppsStream()
+            .filter( this::isAccessible );
     }
 
     @Override
-    public List<App> getApps( AppType appType, int max )
+    public List<App> getApps( String contextPath, int max )
     {
-        return getApps( null ).stream()
-            .filter( app -> appType == app.getAppType() )
-            .limit( max )
-            .collect( Collectors.toList() );
+        return getAppsList( getAccessibleAppsStream(), max, contextPath );
+    }
+
+    private Boolean isDashboardPluginType( App app )
+    {
+        return app.hasPluginEntrypoint()
+            && (app.getPluginType() == null
+                || app.getPluginType().equalsIgnoreCase( AppManager.DASHBOARD_PLUGIN_TYPE ));
+    }
+
+    @Override
+    public List<App> getDashboardPlugins( String contextPath, int max )
+    {
+        Predicate<App> filter = defaultFilter();
+
+        return getAppsList( getAccessibleAppsStream().filter( filter ), max, contextPath );
+    }
+
+    @Override
+    public List<App> getDashboardPlugins( String contextPath, int max, boolean skipCore )
+    {
+        Predicate<App> filter = defaultFilter();
+
+        if ( skipCore )
+        {
+            filter = filter.and( app -> !EXCLUSION_APPS.contains( trimToEmpty( app.getName() ) ) && !app.isCoreApp() );
+        }
+
+        return getAppsList( getAccessibleAppsStream().filter( filter ), max, contextPath );
+    }
+
+    /**
+     * Builds the default {@link Predicate} filter to be applied on a list of
+     * {@link App} objects.
+     *
+     * @return the filter as {@link Predicate}.
+     */
+    private Predicate<App> defaultFilter()
+    {
+        return app -> app.getAppType() == AppType.DASHBOARD_WIDGET || isDashboardPluginType( app );
+    }
+
+    /**
+     * This method will initialize the {@link App} objects based on the given
+     * "contextPath" and return the list of {@link App} respecting the "max"
+     * size requested.
+     *
+     * @param stream the {@link Stream} of {@link App} objects.
+     * @param max the max elements to be returned.
+     * @param contextPath the path used to initialize each {@link App}.
+     * @return the list of {@link App}.
+     */
+    private List<App> getAppsList( Stream<App> stream, int max, String contextPath )
+    {
+        if ( max >= 0 )
+        {
+            stream = stream.limit( max );
+        }
+
+        return stream.map( app -> {
+            app.init( contextPath );
+            return app;
+        } ).collect( toList() );
+    }
+
+    @Override
+    public List<App> getApps( String contextPath )
+    {
+        return this.getApps( contextPath, -1 );
     }
 
     @Override
@@ -139,50 +204,14 @@ public class DefaultAppManager
         // Checks for app.getUrlFriendlyName which is the key of AppMap
 
         Optional<App> appOptional = appCache.getIfPresent( appName );
-        if ( appOptional.isPresent() )
+        if ( appOptional.isPresent() && this.isAccessible( appOptional.get() ) )
         {
             return appOptional.get();
         }
 
         // If no apps are found, check for original name
-        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
-    }
-
-    @Override
-    public List<App> getAppsByType( AppType appType, Collection<App> apps )
-    {
-        return apps.stream()
-            .filter( app -> app.getAppType() == appType )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream().filter(
-            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
-                ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByShortName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream()
-            .filter( app -> (("ilike".equalsIgnoreCase( operator )
-                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
-    {
-        return apps
-            .stream()
-            .filter( app -> app.isBundled() == isBundled )
-            .collect( Collectors.toList() );
+        return getAccessibleAppsStream().filter( app -> app.getShortName().equals( appName ) ).findFirst()
+            .orElse( null );
     }
 
     private void applyFilter( Set<App> apps, String key, String operator, String value )
@@ -190,20 +219,24 @@ public class DefaultAppManager
         if ( "appType".equalsIgnoreCase( key ) )
         {
             String appType = value != null ? value.toUpperCase() : null;
-            apps.retainAll( getAppsByType( AppType.valueOf( appType ), apps ) );
+            apps.retainAll( AppManager.filterAppsByType( AppType.valueOf( appType ), apps ) );
         }
         else if ( "name".equalsIgnoreCase( key ) )
         {
-            apps.retainAll( getAppsByName( value, apps, operator ) );
+            apps.retainAll( AppManager.filterAppsByName( value, apps, operator ) );
         }
         else if ( "shortName".equalsIgnoreCase( key ) )
         {
-            apps.retainAll( getAppsByShortName( value, apps, operator ) );
+            apps.retainAll( AppManager.filterAppsByShortName( value, apps, operator ) );
+        }
+        else if ( "pluginType".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( AppManager.filterAppsByPluginType( value, apps ) );
         }
         else if ( "bundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
-            apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
+            apps.retainAll( AppManager.filterAppsByIsBundled( isBundled, apps ) );
         }
     }
 
@@ -254,13 +287,6 @@ public class DefaultAppManager
         }
 
         return null;
-    }
-
-    @Override
-    public List<App> getAccessibleApps( String contextPath, User user )
-    {
-        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) )
-            .collect( Collectors.toList() );
     }
 
     @Override
@@ -359,22 +385,8 @@ public class DefaultAppManager
     @Override
     public boolean isAccessible( App app )
     {
-        return isAccessible( app, currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public boolean isAccessible( App app, User user )
-    {
-        if ( app == null || app.getShortName() == null || user == null )
-        {
-            return false;
-        }
-
-        Set<String> auths = user.getAllAuthorities();
-
-        return auths.contains( "ALL" ) ||
-            auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||
-            auths.contains( app.getSeeAppAuthority() );
+        return CurrentUserUtil.hasAnyAuthority(
+            List.of( "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() ) );
     }
 
     @Override

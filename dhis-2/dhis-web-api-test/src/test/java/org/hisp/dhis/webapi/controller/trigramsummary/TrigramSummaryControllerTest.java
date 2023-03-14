@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.trigramsummary;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController.DEFAULT_FIELDS_PARAM;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,7 +41,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -69,6 +72,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @ExtendWith( MockitoExtension.class )
 class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
 {
+
+    private static final List<FieldPath> DEFAULT_FIELDS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -200,7 +205,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
         when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( new ArrayList<>() );
 
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
 
         assertNotNull( trigramSummary );
         assertAttributeList( trigramSummary.getIndexableAttributes(),
@@ -216,7 +221,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
         when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( List.of( teaB.getId() ) );
 
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
 
         assertNotNull( trigramSummary );
         assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
@@ -230,7 +235,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
 
         when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( List.of( teaB.getId(), teaC.getId() ) );
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
 
         assertNotNull( trigramSummary );
         assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );

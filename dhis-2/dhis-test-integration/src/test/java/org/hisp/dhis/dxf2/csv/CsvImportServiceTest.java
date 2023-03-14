@@ -37,11 +37,19 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +66,15 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private MetadataImportService importService;
+
+    @Autowired
+    private SchemaService schemaService;
 
     private InputStream inputBasicObjects;
 
@@ -163,5 +180,43 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( "Gender and Age", genderAge.getName() );
         assertEquals( DataDimensionType.DISAGGREGATION, genderAge.getDataDimensionType() );
         assertEquals( DataDimensionType.ATTRIBUTE, partner.getDataDimensionType() );
+    }
+
+    @Test
+    void testImportIndicator()
+        throws IOException
+    {
+        IndicatorType indicatorType = createIndicatorType( 'A' );
+        indicatorType.setUid( "sqGRzCziswD" );
+        manager.save( indicatorType );
+        InputStream in = new ClassPathResource( "csv/indicators.csv" ).getInputStream();
+        Metadata metadata = csvImportService.fromCsv( in,
+            new CsvImportOptions().setImportClass( CsvImportClass.INDICATOR ).setFirstRowIsHeader( true ) );
+
+        assertEquals( 2, metadata.getIndicators().size() );
+        MetadataImportParams params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Indicator indicatorA = manager.get( Indicator.class, "yiAKjiZVoOU" );
+        assertNotNull( indicatorA );
+        assertEquals( "Indicator A", indicatorA.getName() );
+        assertEquals( "CodeA", indicatorA.getCode() );
+        assertEquals( "Indicator A description", indicatorA.getDescription() );
+        assertEquals( "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}", indicatorA.getDenominator() );
+        assertEquals(
+            "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}-#{Jtf34kNZhzP.pq2XI5kz2BY}-#{Jtf34kNZhzP.PT59n8BQbqM}",
+            indicatorA.getNumerator() );
+
+        assertEquals( indicatorType.getUid(), indicatorA.getIndicatorType().getUid() );
+        Indicator indicatorB = manager.get( Indicator.class, "Uvn6LCg7dVU" );
+        assertNotNull( indicatorB );
+        assertEquals( "Indicator B", indicatorB.getName() );
+        assertEquals( "CodeB", indicatorB.getCode() );
+        assertEquals( "Indicator B description", indicatorB.getDescription() );
+        assertEquals( "#{fbfJHSPpUQD}", indicatorB.getDenominator() );
+        assertEquals( "#{h0xKKjijTdI}", indicatorB.getNumerator() );
+        assertEquals( indicatorType.getUid(), indicatorB.getIndicatorType().getUid() );
     }
 }

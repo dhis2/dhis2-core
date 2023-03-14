@@ -82,6 +82,17 @@ public interface IdentifiableObjectManager
     Optional<? extends IdentifiableObject> find( @Nonnull String uid );
 
     /**
+     * Look up objects which have property createdBy or lastUpdatedBy linked to
+     * given {@link User}
+     *
+     * @param type the object class type.
+     * @param user the User which is linked to createdBy or lastUpdatedBy
+     *        property.
+     * @return The list of {@link IdentifiableObject} found
+     */
+    <T extends IdentifiableObject> List<T> findByUser( Class<T> type, @Nonnull User user );
+
+    /**
      * Lookup objects of a specific type by database ID.
      *
      * @param type the object class type.

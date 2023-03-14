@@ -72,9 +72,8 @@ public class DefaultReservedValueService
 
     @Override
     @Transactional
-    public List<ReservedValue> reserve( TrackedEntityAttribute trackedEntityAttribute, int numberOfReservations,
-        Map<String, String> values,
-        Date expires )
+    public List<ReservedValue> reserve( TrackedEntityAttribute trackedEntityAttribute,
+        int numberOfReservations, Map<String, String> values, Date expires )
         throws ReserveValueException,
         TextPatternGenerationException
     {

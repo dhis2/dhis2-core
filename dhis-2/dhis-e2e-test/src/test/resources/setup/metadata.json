@@ -8,9 +8,7 @@
       "dataDimensionType": "ATTRIBUTE",
       "dimensionType": "CATEGORY_OPTION_GROUP_SET",
       "displayName": "TA category option group set",
-      "publicAccess": "rw------",
       "displayShortName": "TA cat opt group set",
-      "externalAccess": false,
       "dimension": "a3DyYqCZrJ5",
       "allItems": false,
       "displayFormName": "TA category option group set",
@@ -33,10 +31,8 @@
       },
       "favorites": [],
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
       "categoryOptionGroups": [],
-      "userAccesses": [],
       "items": []
     }
   ],
@@ -70,17 +66,16 @@
       "name": "default",
       "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "userGroups": {
+          "OPVIvvXzNTw" : {
+            "id" : "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
         }
-      ],
+      },
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "GLevLNI9wkl"
@@ -119,9 +114,7 @@
           "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
         }
       ],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
       "items": [
         {
           "id": "fjvZIRlTBrp",
@@ -2783,9 +2776,9 @@
     {
       "id": "tMbbjys8mS6",
       "name": "TA org unit group",
+      "shortName": "TA org unit group",
       "code": "TA_OU_GROUP",
       "displayName": "TA org unit group",
-      "publicAccess": "rw------",
       "organisationUnits": [
         {
           "id": "g8upMTyEZGZ",
@@ -2808,13 +2801,14 @@
           "code": "OU_539"
         }
       ],
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rw------"
         }
-      ]
+      }
     }
   ],
   "organisationUnitLevels": [
@@ -2890,6 +2884,7 @@
     {
       "id": "fjvZIRlTBrp",
       "name": "TA category option A",
+      "shortName": "TA_CATOPT_A",
       "code": "TA_CATOPT_A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2021-06-02T15:43:13.212",
@@ -2929,13 +2924,14 @@
       "lastUpdated": "2021-03-08T13:15:58.740",
       "name": "TA Yes/No ",
       "id": "ZGkmoWb77MW",
-      "userGroupAccesses": [
-        {
-          "access": "rw------",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "OPVIvvXzNTw": {
+          "id": "OPVIvvXzNTw",
+          "access": "rw------"
         }
-      ],
+      },
       "version": 3,
       "valueType": "TEXT",
       "attributeValues": [],

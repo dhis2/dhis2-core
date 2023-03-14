@@ -190,7 +190,7 @@ public class Schema implements Ordered, Klass
 
     /**
      * Are any properties on this class being persisted, if false, this file
-     * does not have any hbm file attached to it.
+     * does not have any Hibernate mapping file attached to it.
      */
     private boolean persisted;
 
@@ -404,7 +404,7 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShareable()
     {
-        return shareable != null ? shareable : havePersistedProperty( "sharing" );
+        return shareable != null ? shareable : hasPersistedProperty( "sharing" );
     }
 
     public void setShareable( boolean shareable )
@@ -472,7 +472,7 @@ public class Schema implements Ordered, Klass
         this.apiEndpoint = apiEndpoint;
     }
 
-    public boolean haveApiEndpoint()
+    public boolean hasApiEndpoint()
     {
         return getRelativeApiEndpoint() != null || getApiEndpoint() != null;
     }
@@ -505,21 +505,21 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTranslatable()
     {
-        return isIdentifiableObject() && havePersistedProperty( "translations" );
+        return isIdentifiableObject() && hasPersistedProperty( "translations" );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavoritable()
     {
-        return isIdentifiableObject() && havePersistedProperty( "favorites" );
+        return isIdentifiableObject() && hasPersistedProperty( "favorites" );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSubscribable()
     {
-        return isSubscribableObject() && havePersistedProperty( "subscribers" );
+        return isSubscribableObject() && hasPersistedProperty( "subscribers" );
     }
 
     @JsonProperty
@@ -590,14 +590,14 @@ public class Schema implements Ordered, Klass
         this.uniqueMultiPropertiesExctractors = uniqueMultiPropertiesExctractors;
     }
 
-    public boolean haveProperty( String propertyName )
+    public boolean hasProperty( String propertyName )
     {
         return getPropertyMap().containsKey( propertyName );
     }
 
-    public boolean havePersistedProperty( String propertyName )
+    public boolean hasPersistedProperty( String propertyName )
     {
-        return haveProperty( propertyName ) && getProperty( propertyName ).isPersisted();
+        return hasProperty( propertyName ) && getProperty( propertyName ).isPersisted();
     }
 
     public Property propertyByRole( String role )
@@ -718,6 +718,11 @@ public class Schema implements Ordered, Klass
         persistedProperties.clear();
         nonPersistedProperties.clear();
         references = null;
+    }
+
+    public boolean hasAttributeValues()
+    {
+        return hasPersistedProperty( "attributeValues" );
     }
 
     @JsonIgnore

@@ -129,6 +129,16 @@ class CollectionUtilsTest
     }
 
     @Test
+    void testConcat()
+    {
+        List<String> collection1 = List.of( "a", "b", "c" );
+        List<String> collection2 = List.of( "c", "d", "e" );
+        List<String> concat = CollectionUtils.concat( collection1, collection2 );
+
+        assertEquals( List.of( "a", "b", "c", "c", "d", "e" ), concat );
+    }
+
+    @Test
     void testMapToList()
     {
         List<String> collection = Lists.newArrayList( "1", "2", "3" );

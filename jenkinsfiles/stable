@@ -142,7 +142,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendTimedoutMessage(30)
+                slack.sendTimedoutMessage()
             }
         }
     }

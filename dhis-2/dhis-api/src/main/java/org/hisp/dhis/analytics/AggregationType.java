@@ -52,6 +52,8 @@ public enum AggregationType
     VARIANCE( "variance", true ),
     MIN( "min", true ),
     MAX( "max", true ),
+    MIN_SUM_ORG_UNIT( "min_sum_org_unit", true ),
+    MAX_SUM_ORG_UNIT( "max_sum_org_unit", true ),
     NONE( "none", true ), // Aggregatable for text only
     CUSTOM( "custom", false ),
     DEFAULT( "default", false );

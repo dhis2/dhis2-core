@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper.map;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +43,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -79,18 +78,17 @@ class TrackedEntitiesSupportService
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @SneakyThrows
-    public TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
+    public TrackedEntityInstance getTrackedEntityInstance( String id, String pr,
+        TrackedEntityInstanceParams trackedEntityInstanceParams )
     {
         User user = currentUserService.getCurrentUser();
-
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
             trackedEntityInstanceParams );
 
         if ( trackedEntityInstance == null )
         {
-            throw new NotFoundException( "TrackedEntityInstance", id );
+            throw new NotFoundException( TrackedEntityInstance.class, id );
         }
 
         if ( pr != null )
@@ -99,7 +97,7 @@ class TrackedEntitiesSupportService
 
             if ( program == null )
             {
-                throw new NotFoundException( "Program", pr );
+                throw new NotFoundException( Program.class, pr );
             }
 
             List<String> errors = trackerAccessManager.canRead( user,

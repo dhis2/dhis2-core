@@ -84,7 +84,7 @@ public class MeDto
         this.introduction = user.getIntroduction();
         this.birthday = user.getBirthday();
         this.nationality = user.getNationality();
-        this.education = user.getNationality();
+        this.education = user.getEducation();
         this.interests = user.getInterests();
         this.whatsApp = user.getWhatsApp();
         this.facebookMessenger = user.getFacebookMessenger();
@@ -224,6 +224,9 @@ public class MeDto
 
     @JsonProperty( )
     private List<String> dataSets;
+
+    @JsonProperty( )
+    private String impersonation;
 
     @JsonProperty( )
     private UserCredentialsDto userCredentials;

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -62,8 +63,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -564,7 +563,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        UserGroup userGroup = createUserGroup( 'A', Set.of( user1, user2 ) );
         manager.save( userGroup );
         user1.getGroups().add( userGroup );
         user2.getGroups().add( userGroup );
@@ -597,7 +596,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User user2 = createUserWithAuth( "user222", "F_DATAELEMENT_PRIVATE_ADD" );
         manager.save( user1 );
         manager.save( user2 );
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        UserGroup userGroup = createUserGroup( 'A', Set.of( user1, user2 ) );
         manager.save( userGroup );
         user1.getGroups().add( userGroup );
         user2.getGroups().add( userGroup );
@@ -633,7 +632,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User user2 = createUserWithAuth( "user2A", "F_DATAELEMENT_PRIVATE_ADD" );
         manager.save( user1 );
         manager.save( user2 );
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        UserGroup userGroup = createUserGroup( 'A', Set.of( user1, user2 ) );
         manager.save( userGroup );
         user1.getGroups().add( userGroup );
         user2.getGroups().add( userGroup );
@@ -755,7 +754,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User user1 = createUserWithAuth( "user11A", "F_DATAELEMENT_PRIVATE_ADD" );
         User user2 = createUserWithAuth( "user22A", "F_DATAELEMENT_PRIVATE_ADD" );
         User user3 = createUserWithAuth( "user33A", "ALL" );
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
+        UserGroup userGroup = createUserGroup( 'A', Set.of( user1, user2 ) );
         manager.save( userGroup );
         user1.getGroups().add( userGroup );
         user2.getGroups().add( userGroup );
@@ -1151,6 +1150,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         CategoryOption categoryOption = new CategoryOption();
         categoryOption.setAutoFields();
         categoryOption.setName( "coA" );
+        categoryOption.setShortName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setCreatedBy( user1 );
         categoryOption.getSharing().setOwner( user1 );
@@ -1179,5 +1179,59 @@ class AclServiceTest extends TransactionalIntegrationTest
         SqlRowSet row = jdbcTemplate.queryForRowSet( sql );
         assertEquals( true, row.next() );
         assertEquals( de.getUid(), row.getString( "uid" ) );
+    }
+
+    @Test
+    void testOwnerDataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerDataReadFail()
+    {
+        User admin = createAndAddAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = makeUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataReadFail()
+    {
+        User admin = createAndAddAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = makeUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canRead( userA, categoryOption ) );
     }
 }

@@ -179,4 +179,10 @@ public class ProgramTrackedEntityAttributeDimensionItem
     {
         return program.getDisplayName() + " " + attribute.getDisplayName();
     }
+
+    @Override
+    public String getDisplayShortName()
+    {
+        return program.getDisplayShortName() + " " + attribute.getDisplayShortName();
+    }
 }

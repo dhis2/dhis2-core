@@ -60,6 +60,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -111,7 +112,8 @@ class SchedulingManagerTest
 
         schedulingManager = new DefaultSchedulingManager( new DefaultJobService( applicationContext ),
             jobConfigurationService, mock( MessageService.class ), mock( Notifier.class ),
-            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ), cacheProvider );
+            mock( EventHookPublisher.class ), mock( LeaderManager.class ), taskScheduler,
+            mock( AsyncTaskExecutor.class ), cacheProvider );
     }
 
     @TestFactory

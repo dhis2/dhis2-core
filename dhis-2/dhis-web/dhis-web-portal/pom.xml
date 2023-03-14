@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-web</artifactId>
-        <version>2.40-SNAPSHOT</version>
+        <version>2.41-SNAPSHOT</version>
     </parent>
 
     <artifactId>dhis-web-portal</artifactId>
@@ -15,13 +15,13 @@
 
     <profiles>
         <profile>
+            <!-- used to build and push multi-architecture images -->
             <id>jibBuild</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
-                        <version>${jib.version}</version>
                         <configuration>
                             <from>
                                 <platforms>
@@ -40,10 +40,41 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <!-- used to automatically build images for arm64 on Mac without users needing to configure Jib -->
+            <id>jibBuildArmOnly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <configuration>
+                            <from>
+                                <platforms>
+                                    <platform>
+                                        <architecture>arm64</architecture>
+                                        <os>linux</os>
+                                    </platform>
+                                </platforms>
+                            </from>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
         <finalName>dhis</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>

@@ -51,7 +51,7 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}" ) );
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
         assertStatus( HttpStatus.OK, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
@@ -65,10 +65,20 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testAddLockException_UnauthorizedUser()
+    {
+        switchToNewUser( "guest", "F_DATASET_PUBLIC_ADD" );
+
+        assertWebMessage( "Forbidden", 403, "ERROR",
+            "You can only add a lock exceptions to your data capture organisation units.",
+            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId ).content( HttpStatus.FORBIDDEN ) );
+    }
+
+    @Test
     void testAddLockException_DataSetNotLinked()
     {
         String dsId2 = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+            POST( "/dataSets/", "{'name':'My data set2', 'shortName':'MDS2', 'periodType':'Monthly'}" ) );
         assertWebMessage( "Conflict", 409, "ERROR",
             format( "None of the target organisation unit(s) %s is linked to the specified data set: %s",
                 ouId, dsId2 ),

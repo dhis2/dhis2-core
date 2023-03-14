@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -60,6 +61,9 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private PeriodService periodService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     @BeforeEach
     void setUp()
     {
@@ -79,8 +83,9 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
             POST( "/dataApprovalWorkflows/", "{'name':'W1', 'periodType':'Monthly', " + "'dataApprovalLevels':[{'id':'"
                 + level1Id + "'}, {'id':'" + level2Id + "'}]}" ) );
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " + "'workflow': {'id':'" + wfId + "'},"
-                + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId + "'}]" + "}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', "
+                + "'workflow': {'id':'" + wfId + "'}," + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId
+                + "'}]" + "}" ) );
 
         getSuperUser().addOrganisationUnit( manager.get( OrganisationUnit.class, ouId ) );
     }
@@ -129,6 +134,18 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     {
         JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
             .content( HttpStatus.OK );
+        assertTrue( statuses.isArray() );
+        assertEquals( 1, statuses.size() );
+
+        statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}&ouFilter={ou}", ouId, wfId,
+            ouId ).content( HttpStatus.OK );
+        assertTrue( statuses.isArray() );
+        assertEquals( 1, statuses.size() );
+
+        String aocId = categoryService.getDefaultCategoryOptionCombo().getUid();
+
+        statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}&aoc={ou}", ouId, wfId,
+            aocId ).content( HttpStatus.OK );
         assertTrue( statuses.isArray() );
         assertEquals( 1, statuses.size() );
     }

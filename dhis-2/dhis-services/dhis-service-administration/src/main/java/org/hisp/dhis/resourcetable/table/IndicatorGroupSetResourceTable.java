@@ -88,16 +88,19 @@ public class IndicatorGroupSetResourceTable
             sql += "(" +
                 "select ig.name from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on " +
+                "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " +
+                groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select ig.uid from indicatorgroup ig " +
-                "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-                + groupSet.getId() + " " +
+                "inner join indicatorgroupmembers igm on " +
+                "igm.indicatorgroupid = ig.indicatorgroupid " +
+                "inner join indicatorgroupsetmembers igsm on " +
+                "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " +
+                groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

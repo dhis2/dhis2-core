@@ -151,7 +151,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     @Test
     void getEnrollmentByIdNotFound()
     {
-        assertEquals( "Enrollment not found for uid: Hq3Kc6HK4OZ",
+        assertEquals( "Enrollment with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/enrollments/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );

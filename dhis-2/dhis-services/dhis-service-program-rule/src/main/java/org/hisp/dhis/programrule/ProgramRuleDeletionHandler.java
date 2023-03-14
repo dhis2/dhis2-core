@@ -30,7 +30,7 @@ package org.hisp.dhis.programrule;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  * @author markusbekken
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProgramRuleDeletionHandler extends DeletionHandler
 {
     private final ProgramRuleService programRuleService;

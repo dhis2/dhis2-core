@@ -33,35 +33,32 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@AllArgsConstructor
-public class DataSetDeletionHandler extends DeletionHandler
+@RequiredArgsConstructor
+public class DataSetDeletionHandler extends IdObjectDeletionHandler<DataSet>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     private final DataSetService dataSetService;
 
     private final CategoryService categoryService;
 
     @Override
-    protected void register()
+    protected void registerHandler()
     {
         whenDeleting( DataElement.class, this::deleteDataElement );
         whenDeleting( Indicator.class, this::deleteIndicator );

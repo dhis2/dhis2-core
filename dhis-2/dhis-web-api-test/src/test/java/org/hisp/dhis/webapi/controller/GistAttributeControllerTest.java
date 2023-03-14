@@ -31,12 +31,19 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,18 +66,54 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
      */
     private String group1Id;
 
-    /**
-     * Another group having the text attribute but with a different value
-     */
-    private String group2Id;
-
     @BeforeEach
     void setUp()
     {
         // create user group with custom attribute value
         attrId = postNewAttribute( "extra", ValueType.TEXT, Attribute.ObjectType.USER_GROUP );
         group1Id = postNewUserGroupWithAttributeValue( "G1", attrId, "extra-value" );
-        group2Id = postNewUserGroupWithAttributeValue( "G2", attrId, "different" );
+        postNewUserGroupWithAttributeValue( "G2", attrId, "different" );
+    }
+
+    @Test
+    void testAttributeValues_SingleObjectOnlyField()
+    {
+        assertMapEquals( Map.of( attrId, "extra-value" ),
+            GET( "/userGroups/{id}/gist?fields=attributeValues", group1Id ).content().asMap( JsonString.class ) );
+    }
+
+    @Test
+    void testAttributeValues_SingleObjectProperty()
+    {
+        assertMapEquals( Map.of( attrId, "extra-value" ),
+            GET( "/userGroups/{id}/attributeValues/gist", group1Id ).content().asMap( JsonString.class ) );
+    }
+
+    @Test
+    void testAttributeValues_SingleObjectOneOfManyFields()
+    {
+        assertMapEquals( Map.of( attrId, "extra-value" ),
+            GET( "/userGroups/{id}/gist?fields=id,name,attributeValues&headless=true", group1Id )
+                .content().getMap( "attributeValues", JsonString.class ) );
+    }
+
+    @Test
+    void testAttributeValues_ListOnlyField()
+    {
+        assertListOfMapEquals( List.of( Map.of( attrId, "extra-value" ), Map.of( attrId, "different" ) ),
+            GET( "/userGroups/gist?fields=attributeValues&headless=true&order=name" ).content()
+                .asList( JsonMap.class ) );
+    }
+
+    @Test
+    void testAttributeValues_ListOneOfManyFields()
+    {
+        JsonArray list = GET( "/userGroups/gist?fields=id,name,attributeValues&headless=true&order=name" ).content();
+        assertEquals( 2, list.size() );
+        assertMapEquals( Map.of( attrId, "extra-value" ),
+            list.getObject( 0 ).getMap( "attributeValues", JsonString.class ) );
+        assertMapEquals( Map.of( attrId, "different" ),
+            list.getObject( 1 ).getMap( "attributeValues", JsonString.class ) );
     }
 
     @Test
@@ -176,5 +219,30 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
     {
         return assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'" + name + "', "
             + "'valueType':'" + valueType.name() + "', " + "'" + objectType.getPropertyName() + "':true}" ) );
+    }
+
+    private static void assertListOfMapEquals( List<Map<String, String>> expected, JsonList<?> actual )
+    {
+        assertEquals( expected.size(), actual.size() );
+        int i = 0;
+        for ( JsonValue e : actual )
+        {
+            assertMapEquals( expected.get( i++ ), e.asMap( JsonString.class ) );
+        }
+    }
+
+    private static void assertMapEquals( Map<String, String> expected, JsonMap<JsonString> actual )
+    {
+        assertEquals( expected, toMap( actual ) );
+    }
+
+    private static Map<String, String> toMap( JsonMap<JsonString> actual )
+    {
+        Map<String, String> res = new HashMap<>();
+        for ( String key : actual.keys() )
+        {
+            res.put( key, actual.get( key ).string() );
+        }
+        return res;
     }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -47,8 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.attribute.AttributeService" )
-public class DefaultAttributeService
-    implements AttributeService
+public class DefaultAttributeService implements AttributeService
 {
     private final Cache<Attribute> attributeCache;
 
@@ -128,28 +126,7 @@ public class DefaultAttributeService
     @Transactional( readOnly = true )
     public List<Attribute> getAllAttributes()
     {
-        return new ArrayList<>( attributeStore.getAll() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Attribute> getAttributes( Class<?> klass )
-    {
-        return new ArrayList<>( attributeStore.getAttributes( klass ) );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Attribute> getMandatoryAttributes( Class<?> klass )
-    {
-        return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Attribute> getUniqueAttributes( Class<?> klass )
-    {
-        return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
+        return attributeStore.getAll();
     }
 
     // -------------------------------------------------------------------------

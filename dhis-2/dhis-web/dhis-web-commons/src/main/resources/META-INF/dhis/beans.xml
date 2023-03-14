@@ -235,22 +235,8 @@
 
   <bean id="org.hisp.dhis.about.action.AboutAction" class="org.hisp.dhis.about.action.AboutAction" scope="prototype" />
 
-  <bean id="org.hisp.dhis.about.action.HelpAction" class="org.hisp.dhis.about.action.HelpAction" scope="prototype">
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
-  </bean>
-
-  <bean id="org.hisp.dhis.help.action.GetHelpContentAction" class="org.hisp.dhis.help.action.GetHelpContentAction"
-    scope="prototype">
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
-  </bean>
-
   <bean id="org.hisp.dhis.about.action.RedirectAction" class="org.hisp.dhis.about.action.RedirectAction"
     scope="prototype" />
-
-  <bean id="org.hisp.dhis.help.action.GetHelpItemsAction" class="org.hisp.dhis.help.action.GetHelpItemsAction"
-    scope="prototype">
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
-  </bean>
 
   <!-- Common actions -->
 

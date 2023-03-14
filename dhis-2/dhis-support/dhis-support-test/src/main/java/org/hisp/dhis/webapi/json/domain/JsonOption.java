@@ -44,5 +44,4 @@ public interface JsonOption extends JsonIdentifiableObject
     {
         return getNumber( "sortOrder" ).number();
     }
-
 }

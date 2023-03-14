@@ -93,7 +93,8 @@ public class DefaultAdminUserPopulator
         "F_ORG_UNIT_PROFILE_ADD",
         "F_TRACKED_ENTITY_MERGE",
         "F_DATAVALUE_ADD",
-        "F_DATAVALUE_DELETE" );
+        "F_DATAVALUE_DELETE",
+        "F_IMPERSONATE_USER" );
 
     public static final Set<String> ALL_RESTRICTIONS = Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME );
 

@@ -82,7 +82,7 @@ public class DefaultJpaQueryParser
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
 
-                if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
+                if ( split[0].equals( IDENTIFIABLE ) && !schema.hasProperty( IDENTIFIABLE ) )
                 {
                     handleIdentifiablePath( schema, split[1], filter.substring( index ), query.addDisjunction() );
                 }
@@ -105,7 +105,7 @@ public class DefaultJpaQueryParser
         disjunction.add( getRestriction( schema, "code", operator, arg ) );
         disjunction.add( getRestriction( schema, "name", operator, arg ) );
 
-        if ( schema.havePersistedProperty( "shortName" ) )
+        if ( schema.hasPersistedProperty( "shortName" ) )
         {
             disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
         }
@@ -127,6 +127,7 @@ public class DefaultJpaQueryParser
         return getRestriction( property, property.getKlass(), path, operator, arg );
     }
 
+    @SuppressWarnings( "unchecked" )
     private Restriction getRestriction( Property property, Class<?> valueType, String path, String operator,
         Object arg )
         throws QueryParserException
@@ -289,7 +290,7 @@ public class DefaultJpaQueryParser
 
         for ( int i = 0; i < paths.length; i++ )
         {
-            if ( !currentSchema.haveProperty( paths[i] ) )
+            if ( !currentSchema.hasProperty( paths[i] ) )
             {
                 return null;
             }

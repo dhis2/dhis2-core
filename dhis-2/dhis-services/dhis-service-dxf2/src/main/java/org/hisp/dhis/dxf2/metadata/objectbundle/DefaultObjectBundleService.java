@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -49,6 +50,8 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -91,6 +94,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private final MergeService mergeService;
 
     private final ObjectBundleHooks objectBundleHooks;
+
+    private final EventHookPublisher eventHookPublisher;
 
     @Override
     @Transactional( readOnly = true )
@@ -257,8 +262,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach( object -> objectBundleHooks.getObjectHooks( object )
-            .forEach( hook -> hook.postCreate( object, bundle ) ) );
+        objects.forEach( object -> {
+            objectBundleHooks.getObjectHooks( object )
+                .forEach( hook -> hook.postCreate( object, bundle ) );
+            eventHookPublisher.publishEvent( EventUtils.metadataCreate( (BaseIdentifiableObject) object ) );
+        } );
 
         return typeReport;
     }
@@ -340,8 +348,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         objects.forEach( object -> {
             T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.getObjectHooks( object )
-                .forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
+            objectBundleHooks.getObjectHooks( object ).forEach(
+                hook -> hook.postUpdate( persistedObject, bundle ) );
+            eventHookPublisher.publishEvent( EventUtils.metadataUpdate( (BaseIdentifiableObject) object ) );
         } );
 
         return typeReport;
@@ -392,6 +401,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 session.flush();
             }
         }
+
+        objects.forEach(
+            object -> eventHookPublisher.publishEvent( EventUtils.metadataDelete( klass, object.getUid() ) ) );
 
         return typeReport;
     }

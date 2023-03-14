@@ -161,6 +161,12 @@ public class AnalyticsAggregationType
         case FIRST_FIRST_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
             break;
+        case MAX_SUM_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MAX );
+            break;
+        case MIN_SUM_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MIN );
+            break;
         default:
             analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );
         }
@@ -202,6 +208,12 @@ public class AnalyticsAggregationType
     public boolean isFirstOrLastOrLastInPeriodAggregationType()
     {
         return isFirstPeriodAggregationType() || isLastPeriodAggregationType() || isLastInPeriodAggregationType();
+    }
+
+    public boolean isMinOrMaxInPeriodAggregationType()
+    {
+        return periodAggregationType != aggregationType &&
+            (AggregationType.MIN == periodAggregationType || AggregationType.MAX == periodAggregationType);
     }
 
     public boolean isNumericDataType()

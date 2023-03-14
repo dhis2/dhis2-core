@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -53,7 +54,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
-import static org.hisp.dhis.common.DisplayProperty.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -126,7 +126,7 @@ public class DefaultDataQueryService
         if ( isNotEmpty( request.getFilter() ) )
         {
             params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), inputIdScheme ) );
+                request.getUserOrgUnit(), request.getDisplayProperty(), inputIdScheme ) );
         }
 
         if ( isNotEmpty( request.getMeasureCriteria() ) )
@@ -199,19 +199,19 @@ public class DefaultDataQueryService
         for ( DimensionalObject column : object.getColumns() )
         {
             params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         for ( DimensionalObject row : object.getRows() )
         {
             params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         for ( DimensionalObject filter : object.getFilters() )
         {
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date,
-                userOrgUnits, false, idScheme ) );
+                userOrgUnits, false, null, idScheme ) );
         }
 
         return params
@@ -234,9 +234,11 @@ public class DefaultDataQueryService
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
+        IdScheme inputIdScheme )
     {
-        return getDimension( dimension, items, relativePeriodDate, NAME, userOrgUnits, allowNull, inputIdScheme );
+        return getDimension( dimension, items, relativePeriodDate, displayProperty,
+            userOrgUnits, allowNull, inputIdScheme );
     }
 
     @Override
@@ -291,7 +293,7 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension(
+                    addIgnoreNull( list, getDimension(
                         dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
                         userOrgUnits, false, firstNonNull( request.getInputIdScheme(), UID ) ) );
                 }

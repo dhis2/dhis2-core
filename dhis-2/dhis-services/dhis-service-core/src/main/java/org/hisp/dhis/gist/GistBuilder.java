@@ -31,8 +31,11 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -61,6 +64,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -133,6 +137,8 @@ final class GistBuilder
     private static final String SHARING_PROPERTY = "sharing";
 
     private static final String ATTRIBUTES_PROPERTY = "attributeValues";
+
+    private static final String OBJECT_TYPES = "objectTypes";
 
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
         GistBuilderSupport support )
@@ -213,6 +219,13 @@ final class GistBuilder
             return query.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
         }
 
+        // flags on Attribute map to/from objectTypes set
+        if ( query.getElementType() == Attribute.class && isAttributeFlagProperty( p )
+            && !existsSameParentField( query, f, OBJECT_TYPES ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), OBJECT_TYPES ) );
+        }
+
         return addFromTransformationSupportFields( query, f );
     }
 
@@ -256,19 +269,36 @@ final class GistBuilder
         final String id;
     }
 
-    public void transform( List<Object[]> rows )
+    public List<?> transform( List<?> rows )
     {
-        if ( fieldResultTransformers.isEmpty() )
+        if ( fieldResultTransformers.isEmpty() || rows.isEmpty() )
         {
-            return;
+            return rows;
         }
-        for ( Object[] row : rows )
+        @SuppressWarnings( "unchecked" )
+        List<Object> rowsObjects = (List<Object>) rows;
+        for ( int i = 0; i < rowsObjects.size(); i++ )
         {
-            for ( Consumer<Object[]> transformer : fieldResultTransformers )
+            Object rowValue = rowsObjects.get( i );
+            if ( rowValue != null && rowValue.getClass() == Object[].class )
             {
-                transformer.accept( row );
+                Object[] row = (Object[]) rowValue;
+                for ( Consumer<Object[]> transformer : fieldResultTransformers )
+                {
+                    transformer.accept( row );
+                }
+            }
+            else if ( rowValue != null )
+            {
+                Object[] row = new Object[] { rowValue };
+                for ( Consumer<Object[]> transformer : fieldResultTransformers )
+                {
+                    transformer.accept( row );
+                }
+                rowsObjects.set( i, row[0] );
             }
         }
+        return rowsObjects;
     }
 
     private void addTransformer( Consumer<Object[]> transformer )
@@ -290,6 +320,22 @@ final class GistBuilder
             }
         }
         return null;
+    }
+
+    private Map<String, String> attributeValues( Object attributeValues )
+    {
+        @SuppressWarnings( "unchecked" )
+        Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
+        return values == null || values.isEmpty()
+            ? Map.of()
+            : values.stream().collect( toMap( value -> value.getAttribute().getUid(), AttributeValue::getValue ) );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private boolean isObjectTypeAttribute( String name, Object objectTypes )
+    {
+        Set<String> set = (Set<String>) objectTypes;
+        return set != null && set.contains( name );
     }
 
     private Object translate( Object value, String property, Object translations )
@@ -422,6 +468,20 @@ final class GistBuilder
             return HQL_NULL;
         }
         Property property = context.resolveMandatory( path );
+        if ( isAttributeValuesProperty( property ) )
+        {
+            addTransformer( row -> row[index] = attributeValues( row[index] ) );
+        }
+        if ( query.getElementType() == Attribute.class && isAttributeFlagProperty( property ) )
+        {
+            int objectTypesFieldIndex = getSameParentFieldIndex( path, OBJECT_TYPES );
+            String name = stream( ObjectType.values() )
+                .filter( type -> type.getPropertyName().equals( property.getName() ) )
+                .map( ObjectType::name )
+                .findFirst().orElse( "" );
+            addTransformer( row -> row[index] = isObjectTypeAttribute( name, row[objectTypesFieldIndex] ) );
+            return HQL_NULL;
+        }
         if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
             int translationsFieldIndex = getSameParentFieldIndex( path, TRANSLATIONS_PROPERTY );

@@ -374,6 +374,12 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attributeUid );
     }
 
+    public String getAttributeValueString( Attribute attribute )
+    {
+        AttributeValue attributeValue = getAttributeValue( attribute );
+        return attributeValue != null ? attributeValue.getValue() : null;
+    }
+
     @Gist( included = Include.FALSE )
     @Override
     @JsonProperty

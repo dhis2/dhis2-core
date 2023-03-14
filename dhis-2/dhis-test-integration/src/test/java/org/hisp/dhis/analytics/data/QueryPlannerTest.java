@@ -281,10 +281,12 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withDataElements( desA )
             .withOrganisationUnits( ousA )
-            .withPeriods( pesA ).build();
+            .withPeriods( pesA )
+            .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder( paramsA )
             .withOrganisationUnits( ousB )
-            .withPeriods( pesB ).build();
+            .withPeriods( pesB )
+            .build();
         assertEquals( desA, paramsA.getDataElements() );
         assertEquals( ousA, paramsA.getOrganisationUnits() );
         assertEquals( pesA, paramsA.getPeriods() );
@@ -514,6 +516,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -535,11 +538,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 6, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -575,11 +580,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3" ) )
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 5, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 5, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -609,6 +616,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -631,11 +639,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -663,6 +673,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 3, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -684,11 +695,13 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE )
+            .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
@@ -717,6 +730,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 12, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 6, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -743,6 +757,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 4, queries.size() );
+
         for ( DataQueryParams query : queries )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -771,6 +786,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 8, queryGroups.getAllQueries().size() );
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertDimensionNameNotNull( query );
@@ -798,6 +814,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -886,6 +903,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         List<DataQueryParams> queries = queryGroups.getAllQueries();
         assertEquals( 4, queries.size() );
+
         for ( DataQueryParams query : queries )
         {
             assertEquals( 1, query.getPeriods().size() );
@@ -919,6 +937,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 4, queries.size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queries )
         {
             assertNull( query.getStartDate() );
@@ -955,6 +974,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 2, queries.size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 2, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queries )
         {
             assertNull( query.getStartDate() );
@@ -985,6 +1005,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 2, queryGroups.getAllQueries().size() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
@@ -1015,6 +1036,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .build();
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
         assertEquals( 2, queryGroups.getAllQueries().size() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
@@ -1044,6 +1066,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -1075,6 +1098,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         assertEquals( 2, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 2, queryGroups.getLargestGroupSize() );
+
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertTrue( samePeriodType( query.getPeriods() ) );
@@ -1090,7 +1114,8 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withStartDate( getDate( 2014, 4, 1 ) )
-            .withEndDate( getDate( 2016, 8, 1 ) ).build();
+            .withEndDate( getDate( 2016, 8, 1 ) )
+            .build();
         assertTrue( params.hasStartEndDate() );
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withTableType( ANALYTICS_TABLE_TYPE )
@@ -1116,6 +1141,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         while ( periods.hasNext() )
         {
             PeriodType next = ((Period) periods.next()).getPeriodType();
+
             if ( !first.equals( next ) )
             {
                 return false;

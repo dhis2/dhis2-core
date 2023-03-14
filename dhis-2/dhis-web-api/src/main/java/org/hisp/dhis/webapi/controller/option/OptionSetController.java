@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
@@ -78,12 +79,14 @@ public class OptionSetController
 
     @Override
     protected void preCreateEntity( OptionSet entity )
+        throws ConflictException
     {
         optionService.validateOptionSet( entity );
     }
 
     @Override
     protected void preUpdateEntity( OptionSet entity, OptionSet newEntity )
+        throws ConflictException
     {
         optionService.validateOptionSet( newEntity );
     }

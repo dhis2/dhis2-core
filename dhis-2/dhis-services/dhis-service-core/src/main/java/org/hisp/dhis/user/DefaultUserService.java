@@ -35,7 +35,9 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -52,6 +54,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -609,7 +612,8 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public User getUserByOpenId( String openId )
+    @CheckForNull
+    public User getUserByOpenId( @Nonnull String openId )
     {
         User user = userStore.getUserByOpenId( openId );
 
@@ -906,7 +910,9 @@ public class DefaultUserService
             .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
-            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
+            .userGroupIds( user.getUid() == null
+                ? Set.of()
+                : currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
             .isSuper( user.isSuper() )
             .build();
     }
@@ -999,6 +1005,32 @@ public class DefaultUserService
             || !currentUser.canModifyUser( userToModify ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
+    }
+
+    @Override
+    @Nonnull
+    @Transactional( readOnly = true )
+    public List<User> getLinkedUserAccounts( @Nonnull User actingUser )
+    {
+        return userStore.getLinkedUserAccounts( actingUser );
+    }
+
+    @Override
+    @Transactional
+    public void setActiveLinkedAccounts( @Nonnull User actingUser, @Nonnull String activeUsername )
+    {
+        Instant oneHourAgo = Instant.now().minus( 1, ChronoUnit.HOURS );
+        Instant oneHourInTheFuture = Instant.now().plus( 1, ChronoUnit.HOURS );
+
+        List<User> linkedUserAccounts = getLinkedUserAccounts( actingUser );
+        for ( User user : linkedUserAccounts )
+        {
+            user.setLastLogin( user.getUsername().equals( activeUsername )
+                ? Date.from( oneHourInTheFuture )
+                : Date.from( oneHourAgo ) );
+
+            updateUser( user );
         }
     }
 }

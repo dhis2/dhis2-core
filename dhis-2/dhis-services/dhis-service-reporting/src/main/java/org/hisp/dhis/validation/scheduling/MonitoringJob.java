@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -65,7 +65,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MonitoringJob implements Job
 {
     private final ValidationService validationService;
