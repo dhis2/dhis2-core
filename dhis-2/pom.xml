@@ -90,7 +90,7 @@
         <lettuce.version>6.2.2.RELEASE</lettuce.version>
 
         <!--DBMS -->
-        <flyway-core.version>8.5.1</flyway-core.version>
+        <flyway-core.version>9.15.2</flyway-core.version>
         <hibernate.version>5.4.28.Final</hibernate.version>
         <hibernate-types.version>2.14.0</hibernate-types.version>
         <!-- Data sources,db pools and db drivers-->
