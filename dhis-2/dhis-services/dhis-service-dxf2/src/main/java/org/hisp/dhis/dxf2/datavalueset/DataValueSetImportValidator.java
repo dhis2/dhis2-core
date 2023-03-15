@@ -471,7 +471,10 @@ public class DataValueSetImportValidator
         {
             return;
         }
-        List<DataSet> targets = context.getTargetDataSets( dataSetContext, valueContext );
+        List<DataSet> targets = dataSetContext.getDataSet() != null
+            ? List.of( dataSetContext.getDataSet() )
+            : context.getValueContextDataSets().get( dataValue.getDataElement(),
+                () -> List.copyOf( valueContext.getDataElement().getDataSets() ) );
         if ( targets.stream()
             .noneMatch( dataSet -> dataSet.getDataElements().contains( valueContext.getDataElement() ) ) )
         {
