@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasNoMember;
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasOnlyMembers;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

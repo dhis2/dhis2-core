@@ -58,6 +58,16 @@ public interface JsonRelationshipItem extends JsonObject
             return getString( "trackedEntity" ).string();
         }
 
+        default String getTrackedEntityType()
+        {
+            return getString( "trackedEntityType" ).string();
+        }
+
+        default String getOrgUnit()
+        {
+            return getString( "orgUnit" ).string();
+        }
+
         default JsonList<JsonAttribute> getAttributes()
         {
             return get( "attributes" ).asList( JsonAttribute.class );
@@ -76,6 +86,21 @@ public interface JsonRelationshipItem extends JsonObject
             return getString( "enrollment" ).string();
         }
 
+        default String getTrackedEntity()
+        {
+            return getString( "trackedEntity" ).string();
+        }
+
+        default String getProgram()
+        {
+            return getString( "program" ).string();
+        }
+
+        default String getOrgUnit()
+        {
+            return getString( "orgUnit" ).string();
+        }
+
         default JsonList<JsonNote> getNotes()
         {
             return get( "notes" ).asList( JsonNote.class );
@@ -87,6 +112,21 @@ public interface JsonRelationshipItem extends JsonObject
         default String getEvent()
         {
             return getString( "event" ).string();
+        }
+
+        default String getStatus()
+        {
+            return getString( "status" ).string();
+        }
+
+        default String getProgramStage()
+        {
+            return getString( "programStage" ).string();
+        }
+
+        default String getEnrollment()
+        {
+            return getString( "enrollment" ).string();
         }
 
         default JsonList<JsonNote> getNotes()

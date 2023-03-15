@@ -34,7 +34,6 @@ import org.hisp.dhis.jsontree.JsonObject;
  */
 public interface JsonNote extends JsonObject
 {
-
     default String getNote()
     {
         return getString( "note" ).string();
