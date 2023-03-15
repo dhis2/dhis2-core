@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of a
+ * Representation of
  * {@link org.hisp.dhis.webapi.controller.tracker.view.Attribute}.
  */
 public interface JsonAttribute extends JsonObject

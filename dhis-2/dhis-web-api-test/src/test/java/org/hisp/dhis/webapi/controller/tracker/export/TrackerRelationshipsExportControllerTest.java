@@ -63,11 +63,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
+import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -149,8 +151,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject relationship = GET( "/tracker/relationships/{uid}", r.getUid() )
-            .content( HttpStatus.OK );
+        JsonRelationship relationship = GET( "/tracker/relationships/{uid}", r.getUid() )
+            .content( HttpStatus.OK ).as( JsonRelationship.class );
 
         assertHasOnlyMembers( relationship, "relationship", "relationshipType", "from", "to" );
         assertRelationship( r, relationship );
@@ -257,6 +259,24 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
+    void getRelationshipsByEventWithNotes()
+    {
+        TrackedEntityInstance to = trackedEntityInstance();
+        ProgramStageInstance from = programStageInstance( programInstance( to ) );
+        from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
+        relationship( from, to );
+
+        JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?event={uid}&fields=from[event[notes]]",
+            from.getUid() )
+                .content( HttpStatus.OK ).getList( "instances", JsonRelationship.class );
+
+        JsonNote jsonNote = relationships.get( 0 ).getFrom().getEvent().getNotes().get( 0 );
+        assertEquals( "oqXG28h988k", jsonNote.getNote() );
+        assertEquals( "my notes", jsonNote.getValue() );
+        assertEquals( owner.getUid(), jsonNote.getStoredBy() );
+    }
+
+    @Test
     void getRelationshipsByEventNotFound()
     {
         assertEquals( "No event 'Hq3Kc6HK4OZ' found.",
@@ -298,6 +318,24 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
         assertEnrollmentWithinRelationship( from, jsonRelationship.getObject( "from" ) );
         assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
+    }
+
+    @Test
+    void getRelationshipsByEnrollmentWithNotes()
+    {
+        TrackedEntityInstance to = trackedEntityInstance();
+        ProgramInstance from = programInstance( to );
+        from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
+        relationship( from, to );
+
+        JsonList<JsonRelationship> relationships = GET(
+            "/tracker/relationships?enrollment={uid}&fields=from[enrollment[notes]]", from.getUid() )
+                .content( HttpStatus.OK ).getList( "instances", JsonRelationship.class );
+
+        JsonNote jsonNote = relationships.get( 0 ).getFrom().getEnrollment().getNotes().get( 0 );
+        assertEquals( "oqXG28h988k", jsonNote.getNote() );
+        assertEquals( "my notes", jsonNote.getValue() );
+        assertEquals( owner.getUid(), jsonNote.getStoredBy() );
     }
 
     @Test
@@ -349,14 +387,14 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     void getRelationshipsByTrackedEntityWithAttributes()
     {
         TrackedEntityInstance to = trackedEntityInstance( orgUnit );
-        to.setTrackedEntityAttributeValues( Set.of( new TrackedEntityAttributeValue( tea, to, "12" ) ) );
+        to.setTrackedEntityAttributeValues( Set.of( attributeValue( tea, to, "12" ) ) );
         manager.save( to, false );
-
         ProgramInstance from = programInstance( to );
         relationship( from, to );
 
-        JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?trackedEntity=" + to.getUid()
-            + "&fields=to[trackedEntity[attributes[attribute,value]]]" )
+        JsonList<JsonRelationship> relationships = GET(
+            "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[attributes[attribute,value]]]",
+            to.getUid() )
                 .content( HttpStatus.OK ).getList( "instances", JsonRelationship.class );
 
         JsonAttribute jsonAttribute = relationships.get( 0 ).getTo().getTrackedEntity().getAttributes().get( 0 );
@@ -498,7 +536,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     private TrackedEntityInstance trackedEntityInstance( OrganisationUnit orgUnit )
     {
-        return trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntityInstance tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        manager.save( tei, false );
+        return tei;
     }
 
     private TrackedEntityInstance trackedEntityInstance( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
@@ -626,6 +666,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     private Relationship relationship( ProgramInstance from, TrackedEntityInstance to )
     {
+        manager.save( from, false );
+        manager.save( to, false );
+
         Relationship r = new Relationship();
 
         RelationshipItem fromItem = new RelationshipItem();
@@ -652,4 +695,17 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         return r;
     }
 
+    private TrackedEntityAttributeValue attributeValue( TrackedEntityAttribute tea, TrackedEntityInstance tei,
+        String value )
+    {
+        return new TrackedEntityAttributeValue( tea, tei, value );
+    }
+
+    private TrackedEntityComment note( String note, String value, String storedBy )
+    {
+        TrackedEntityComment comment = new TrackedEntityComment( value, storedBy );
+        comment.setUid( note );
+        manager.save( comment, false );
+        return comment;
+    }
 }

@@ -31,32 +31,22 @@ import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.Relationship}.
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner}.
  */
-public interface JsonRelationship extends JsonObject
+public interface JsonProgramOwner extends JsonObject
 {
-    default String getRelationship()
+    default String getOrgUnit()
     {
-        return getString( "relationship" ).string();
+        return getString( "orgUnit" ).string();
     }
 
-    default String getRelationshipName()
+    default String getTrackedEntity()
     {
-        return getString( "relationshipName" ).string();
+        return getString( "trackedEntity" ).string();
     }
 
-    default String getRelationshipType()
+    default String getProgram()
     {
-        return getString( "relationshipType" ).string();
-    }
-
-    default JsonRelationshipItem getFrom()
-    {
-        return get( "from" ).as( JsonRelationshipItem.class );
-    }
-
-    default JsonRelationshipItem getTo()
-    {
-        return get( "to" ).as( JsonRelationshipItem.class );
+        return getString( "program" ).string();
     }
 }

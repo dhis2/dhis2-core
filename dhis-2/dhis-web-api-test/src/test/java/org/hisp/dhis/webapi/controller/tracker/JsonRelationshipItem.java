@@ -31,7 +31,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of a
+ * Representation of
  * {@link org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem}.
  */
 public interface JsonRelationshipItem extends JsonObject
@@ -62,6 +62,11 @@ public interface JsonRelationshipItem extends JsonObject
         {
             return get( "attributes" ).asList( JsonAttribute.class );
         }
+
+        default JsonList<JsonProgramOwner> getProgramOwners()
+        {
+            return get( "programOwners" ).asList( JsonProgramOwner.class );
+        }
     }
 
     interface JsonEnrollment extends JsonObject
@@ -70,6 +75,11 @@ public interface JsonRelationshipItem extends JsonObject
         {
             return getString( "enrollment" ).string();
         }
+
+        default JsonList<JsonNote> getNotes()
+        {
+            return get( "notes" ).asList( JsonNote.class );
+        }
     }
 
     interface JsonEvent extends JsonObject
@@ -77,6 +87,11 @@ public interface JsonRelationshipItem extends JsonObject
         default String getEvent()
         {
             return getString( "event" ).string();
+        }
+
+        default JsonList<JsonNote> getNotes()
+        {
+            return get( "notes" ).asList( JsonNote.class );
         }
     }
 }

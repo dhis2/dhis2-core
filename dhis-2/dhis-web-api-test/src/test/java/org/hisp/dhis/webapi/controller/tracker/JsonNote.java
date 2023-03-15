@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,23 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.Relationship}.
+ * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Note}.
  */
-public interface JsonRelationship extends JsonObject
+public interface JsonNote extends JsonObject
 {
-    default String getRelationship()
+
+    default String getNote()
     {
-        return getString( "relationship" ).string();
+        return getString( "note" ).string();
     }
 
-    default String getRelationshipName()
+    default String getValue()
     {
-        return getString( "relationshipName" ).string();
+        return getString( "value" ).string();
     }
 
-    default String getRelationshipType()
+    default String getStoredBy()
     {
-        return getString( "relationshipType" ).string();
-    }
-
-    default JsonRelationshipItem getFrom()
-    {
-        return get( "from" ).as( JsonRelationshipItem.class );
-    }
-
-    default JsonRelationshipItem getTo()
-    {
-        return get( "to" ).as( JsonRelationshipItem.class );
+        return getString( "storedBy" ).string();
     }
 }
