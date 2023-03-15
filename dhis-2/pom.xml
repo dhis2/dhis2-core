@@ -1728,6 +1728,10 @@
         <version>${jasperreports.version}</version>
         <exclusions>
           <exclusion>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
           </exclusion>
