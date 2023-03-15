@@ -150,23 +150,35 @@ public class HibernateConfig
         return factory.getObject();
     }
 
+    /**
+     * Returns additional properties to be used by the
+     * {@link LocalContainerEntityManagerFactoryBean}
+     *
+     * @param config {@link DhisConfigurationProvider}
+     */
     private Properties getAdditionalProperties( DhisConfigurationProvider config )
     {
         Properties additionalProperties = new Properties();
         additionalProperties.put( "hibernate.current_session_context_class",
             "org.springframework.orm.hibernate5.SpringSessionContext" );
+
+        // TODO: this is anti-pattern and should be turn off
         additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
 
         return additionalProperties;
     }
 
+    /**
+     * Loads all the hibernate mapping files from the classpath
+     *
+     * @return Array of Strings representing the mapping files
+     */
     private String[] loadResources()
     {
         try
         {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource[] resources = resolver.getResources( "classpath*:org/hisp/dhis/**/*.hbm.xml" );
-            //            Resource[] resources =  classLoader.getResources( "classpath*:org/hisp/dhis/**/hibernate/*.hbm.xml" );
 
             List<String> list = new ArrayList<>();
             for ( Resource resource : resources )
@@ -178,20 +190,8 @@ public class HibernateConfig
         }
         catch ( IOException e )
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return ArrayUtils.EMPTY_STRING_ARRAY;
-    }
-
-    private String[] getMappingResources( List<Resource> jarResources )
-        throws IOException
-    {
-        List<String> files = new ArrayList<>();
-        for ( Resource resource : jarResources )
-        {
-            files.add( resource.getFile().getAbsolutePath() );
-        }
-        return files.toArray( new String[files.size()] );
     }
 }
