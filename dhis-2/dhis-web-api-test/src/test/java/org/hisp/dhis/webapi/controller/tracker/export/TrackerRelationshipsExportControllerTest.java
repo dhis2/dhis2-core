@@ -37,8 +37,10 @@ import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAs
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertTrackedEntityWithinRelationship;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -56,8 +58,11 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -85,6 +90,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     private User user;
 
     private TrackedEntityType trackedEntityType;
+
+    private TrackedEntityAttribute tea;
 
     @BeforeEach
     void setUp()
@@ -115,7 +122,21 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         programStage.getSharing().addUserAccess( userAccess() );
         manager.save( programStage, false );
 
+        tea = createTrackedEntityAttribute( 'A' );
+        tea.getSharing().setOwner( owner );
+        tea.getSharing().addUserAccess( userAccess() );
+        manager.save( tea, false );
+
         trackedEntityType = trackedEntityTypeAccessible();
+
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute( trackedEntityType,
+            tea );
+        trackedEntityTypeAttribute.getSharing().setOwner( owner );
+        trackedEntityTypeAttribute.getSharing().addUserAccess( userAccess() );
+        manager.save( trackedEntityTypeAttribute );
+
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
+        manager.save( trackedEntityType );
     }
 
     @Test
@@ -321,6 +342,42 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
         assertHasOnlyUid( from.getUid(), "enrollment", jsonRelationship.getObject( "from" ) );
         assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
+    }
+
+    // TODO test attributes on tei
+    // TODO test enrollments on tei
+    // TODO test programOwners on tei
+    // TODO test notes on enrollment?
+    // TODO test notes on event
+    // TODO test dataValues on event
+    // TODO test events on enrollments
+    // TODO test other things on enrollments?
+    // TODO service integration test showing that the TEI will not include attributes the user does not have read access to
+    @Test
+    void getRelationshipsByTrackedEntityWithAttributes()
+    {
+        TrackedEntityInstance to = trackedEntityInstance( orgUnit );
+        to.setTrackedEntityAttributeValues( Set.of( new TrackedEntityAttributeValue( tea, to, "12" ) ) );
+        manager.save( to, false );
+
+        ProgramInstance from = programInstance( to );
+        Relationship r = relationship( from, to );
+
+        JsonObject json = GET( "/tracker/relationships?trackedEntity=" + to.getUid()
+            + "&fields=relationship,relationshipType,to[trackedEntity[attributes[attribute,value]]]" )
+                .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        JsonArray relationships = json.getArray( "instances" );
+        JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
+        // TODO(ivo) assert on from attributes; make sure error messages are clear and test is readable
+        // can I maybe reuse the assertFirstRelationship for assertFirstXXX for attributes passing in the field string
+        JsonArray attributes = jsonRelationship.getObject( "to" ).getObject( "trackedEntity" ).getArray( "attributes" );
+        JsonObject attribute = attributes.getObject( 0 );
+        assertTrue( attribute.has( "attribute", "value" ) );
+        // TODO how to assert on the value
+        assertEquals( tea.getUid(), attribute.get( "attribute" ).node() );
+        assertEquals( "12", attribute.get( "value" ) );
     }
 
     @Test
