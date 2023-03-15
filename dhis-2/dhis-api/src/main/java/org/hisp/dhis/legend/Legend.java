@@ -57,135 +57,146 @@ import org.hisp.dhis.translation.Translation;
  */
 @JacksonXmlRootElement(localName = "legend", namespace = DxfNamespaces.DXF_2_0)
 @Entity
-@Table(
-    name = "maplegend",
-    indexes = {
-      @Index(name = "maplegend_startvalue", columnList = "startValue"),
-      @Index(name = "maplegend_endvalue", columnList = "endvalue")
-    })
-public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
+@Table( name = "maplegend", indexes = { @Index( name = "maplegend_startvalue", columnList = "startValue" ),
+    @Index( name = "maplegend_endvalue", columnList = "endvalue" ) } )
+public class Legend
+    extends BaseIdentifiableObject implements EmbeddedObject
+{
+    @Id
+    @Column( name = "maplegendid" )
+    @GeneratedValue( strategy = GenerationType.AUTO )
+    private long id;
 
-  @Id
-  @Column(name = "maplegendid")
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long id;
+    @Column( length = 11, nullable = false, unique = true )
+    protected String uid;
 
-  @Column(name = "uid", length = 11, nullable = false, unique = true)
-  protected String uid;
+    @Column( nullable = false )
+    private Double startValue;
 
-  @Column(name = "startValue", nullable = false)
-  private Double startValue;
+    @Column( nullable = false )
+    private Double endValue;
 
-  @Column(name = "endvalue", nullable = false)
-  private Double endValue;
+    @Column( length = 230, nullable = false )
+    private String name;
 
-  @Column(name = "name", length = 230, nullable = false)
-  private String name;
+    private String color;
 
-  @Column private String color;
+    private String image;
 
-  @Column private String image;
+    @ManyToOne
+    @JoinColumn( name = "maplegendsetid", referencedColumnName = "maplegendsetid", foreignKey = @ForeignKey( name = "fk_maplegend_maplegendsetid" ) )
+    private LegendSet legendSet;
 
-  @ManyToOne
-  @JoinColumn(
-      name = "maplegendsetid",
-      referencedColumnName = "maplegendsetid",
-      foreignKey = @ForeignKey(name = "fk_maplegend_maplegendsetid"))
-  private LegendSet legendSet;
+    @Column( name = "translations" )
+    @Type( type = "jblTranslations" )
+    protected Set<Translation> translations = new HashSet<>();
 
-  @Column(name = "translations")
-  @Type(type = "jblTranslations")
-  protected Set<Translation> translations = new HashSet<>();
+    public Legend()
+    {
+    }
 
-  public Legend() {}
+    public Legend( String name, Double startValue, Double endValue, String color, String image )
+    {
+        this.name = name;
+        this.startValue = startValue;
+        this.endValue = endValue;
+        this.color = color;
+        this.image = image;
+    }
 
-  public Legend(String name, Double startValue, Double endValue, String color, String image) {
-    this.name = name;
-    this.startValue = startValue;
-    this.endValue = endValue;
-    this.color = color;
-    this.image = image;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
+    public Double getStartValue()
+    {
+        return startValue;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = Integer.MIN_VALUE)
-  public Double getStartValue() {
-    return startValue;
-  }
+    public void setStartValue( Double startValue )
+    {
+        this.startValue = startValue;
+    }
 
-  public void setStartValue(Double startValue) {
-    this.startValue = startValue;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
+    public Double getEndValue()
+    {
+        return endValue;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = Integer.MIN_VALUE)
-  public Double getEndValue() {
-    return endValue;
-  }
+    public void setEndValue( Double endValue )
+    {
+        this.endValue = endValue;
+    }
 
-  public void setEndValue(Double endValue) {
-    this.endValue = endValue;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColor()
+    {
+        return color;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getColor() {
-    return color;
-  }
+    public void setColor( String color )
+    {
+        this.color = color;
+    }
 
-  public void setColor(String color) {
-    this.color = color;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getImage()
+    {
+        return image;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getImage() {
-    return image;
-  }
+    public void setImage( String image )
+    {
+        this.image = image;
+    }
 
-  public void setImage(String image) {
-    this.image = image;
-  }
+    public LegendSet getLegendSet()
+    {
+        return legendSet;
+    }
 
-  public LegendSet getLegendSet() {
-    return legendSet;
-  }
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
+    }
 
-  public void setLegendSet(LegendSet legendSet) {
-    this.legendSet = legendSet;
-  }
+    @Override
+    @JsonProperty( value = "id" )
+    @JacksonXmlProperty( localName = "id", isAttribute = true )
+    @Description( "The Unique Identifier for this Object." )
+    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.FALSE )
+    @PropertyRange( min = 11, max = 11 )
+    public String getUid()
+    {
+        return uid;
+    }
 
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Description("The Unique Identifier for this Object.")
-  @Property(value = PropertyType.IDENTIFIER, required = Property.Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
-  }
+    @Override
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
 
-  @Override
-  public void setUid(String uid) {
-    this.uid = uid;
-  }
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The name of this Object. Required and unique." )
+    @PropertyRange( min = 1 )
+    public String getName()
+    {
+        return name;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The name of this Object. Required and unique.")
-  @PropertyRange(min = 1)
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 }
