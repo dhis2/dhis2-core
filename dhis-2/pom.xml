@@ -133,7 +133,7 @@
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
-        <poi.version>5.2.0</poi.version>
+        <poi.version>5.2.3</poi.version>
         <itext.version>2.1.7</itext.version>
         <antlr.version>4.9.3</antlr.version>
 
