@@ -30,148 +30,133 @@ package org.hisp.dhis.common;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 
-public abstract class AbstractIdentifiableObject implements IdentifiableObject
-{
-    /**
-     * Cache of attribute values which allows for lookup by attribute
-     * identifier.
-     */
-    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+public abstract class AbstractIdentifiableObject implements IdentifiableObject {
+  /** Cache of attribute values which allows for lookup by attribute identifier. */
+  protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
-    /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
-     */
-    private Map<String, String> translationCache = new ConcurrentHashMap<>();
+  /**
+   * Cache for object translations, where the cache key is a combination of locale and translation
+   * property, and value is the translated value.
+   */
+  private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
-    /**
-     * Access information for this object. Applies to current user.
-     */
-    protected transient Access access;
+  /** Access information for this object. Applies to current user. */
+  protected transient Access access;
 
-    // -------------------------------------------------------------------------
-    // Comparable implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Comparable implementation
+  // -------------------------------------------------------------------------
 
-    /**
-     * Compares objects based on display name. A null display name is ordered
-     * after a non-null display name.
-     */
-    @Override
-    public int compareTo( IdentifiableObject object )
-    {
-        if ( this.getDisplayName() == null )
-        {
-            return object.getDisplayName() == null ? 0 : 1;
-        }
-
-        return object.getDisplayName() == null ? -1
-            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+  /**
+   * Compares objects based on display name. A null display name is ordered after a non-null display
+   * name.
+   */
+  @Override
+  public int compareTo(IdentifiableObject object) {
+    if (this.getDisplayName() == null) {
+      return object.getDisplayName() == null ? 0 : 1;
     }
 
-    public AttributeValue getAttributeValue( Attribute attribute )
-    {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attribute.getUid() );
+    return object.getDisplayName() == null
+        ? -1
+        : this.getDisplayName().compareToIgnoreCase(object.getDisplayName());
+  }
+
+  public AttributeValue getAttributeValue(Attribute attribute) {
+    loadAttributeValuesCacheIfEmpty();
+    return cacheAttributeValues.get(attribute.getUid());
+  }
+
+  public AttributeValue getAttributeValue(String attributeUid) {
+    loadAttributeValuesCacheIfEmpty();
+    return cacheAttributeValues.get(attributeUid);
+  }
+
+  public String getAttributeValueString(Attribute attribute) {
+    AttributeValue attributeValue = getAttributeValue(attribute);
+    return attributeValue != null ? attributeValue.getValue() : null;
+  }
+
+  /**
+   * Returns the value of the property referred to by the given IdScheme.
+   *
+   * @param idScheme the IdScheme.
+   * @return the value of the property referred to by the IdScheme.
+   */
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getName();
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return getId() > 0 ? String.valueOf(getId()) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      for (AttributeValue attributeValue : getAttributeValues()) {
+        if (idScheme.getAttribute().equals(attributeValue.getAttribute().getUid())) {
+          return attributeValue.getValue();
+        }
+      }
     }
 
-    public AttributeValue getAttributeValue( String attributeUid )
-    {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attributeUid );
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return "{"
+        + "\"class\":\""
+        + getClass()
+        + "\", "
+        + "\"id\":\""
+        + getId()
+        + "\", "
+        + "\"uid\":\""
+        + getUid()
+        + "\", "
+        + "\"code\":\""
+        + getCode()
+        + "\", "
+        + "\"name\":\""
+        + getName()
+        + "\", "
+        + "\"created\":\""
+        + getCreated()
+        + "\", "
+        + "\"lastUpdated\":\""
+        + getLastUpdated()
+        + "\" "
+        + "}";
+  }
+
+  private void loadAttributeValuesCacheIfEmpty() {
+    if (cacheAttributeValues.isEmpty() && getAttributeValues() != null) {
+      getAttributeValues().forEach(av -> cacheAttributeValues.put(av.getAttribute().getUid(), av));
+    }
+  }
+
+  /**
+   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
+   *
+   * @return Translation value if exists, otherwise return default value.
+   */
+  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+    for (Translation translation : getTranslations()) {
+      if (locale.equals(translation.getLocale())
+          && translationKey.equals(translation.getProperty())
+          && !StringUtils.isEmpty(translation.getValue())) {
+        return translation.getValue();
+      }
     }
 
-    public String getAttributeValueString( Attribute attribute )
-    {
-        AttributeValue attributeValue = getAttributeValue( attribute );
-        return attributeValue != null ? attributeValue.getValue() : null;
-    }
-
-    /**
-     * Returns the value of the property referred to by the given IdScheme.
-     *
-     * @param idScheme the IdScheme.
-     * @return the value of the property referred to by the IdScheme.
-     */
-    @Override
-    public String getPropertyValue( IdScheme idScheme )
-    {
-        if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )
-        {
-            return getUid();
-        }
-        else if ( idScheme.is( IdentifiableProperty.CODE ) )
-        {
-            return getCode();
-        }
-        else if ( idScheme.is( IdentifiableProperty.NAME ) )
-        {
-            return getName();
-        }
-        else if ( idScheme.is( IdentifiableProperty.ID ) )
-        {
-            return getId() > 0 ? String.valueOf( getId() ) : null;
-        }
-        else if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
-        {
-            for ( AttributeValue attributeValue : getAttributeValues() )
-            {
-                if ( idScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) )
-                {
-                    return attributeValue.getValue();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + getId() + "\", " +
-            "\"uid\":\"" + getUid() + "\", " +
-            "\"code\":\"" + getCode() + "\", " +
-            "\"name\":\"" + getName() + "\", " +
-            "\"created\":\"" + getCreated() + "\", " +
-            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
-            "}";
-    }
-
-    private void loadAttributeValuesCacheIfEmpty()
-    {
-        if ( cacheAttributeValues.isEmpty() && getAttributeValues() != null )
-        {
-            getAttributeValues().forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
-        }
-    }
-
-    /**
-     * Get Translation value from {@code Set<Translation>} by given locale and
-     * translationKey
-     *
-     * @return Translation value if exists, otherwise return default value.
-     */
-    private String getTranslationValue( String locale, String translationKey, String defaultValue )
-    {
-        for ( Translation translation : getTranslations() )
-        {
-            if ( locale.equals( translation.getLocale() ) && translationKey.equals( translation.getProperty() ) &&
-                !StringUtils.isEmpty( translation.getValue() ) )
-            {
-                return translation.getValue();
-            }
-        }
-
-        return defaultValue;
-    }
+    return defaultValue;
+  }
 }
