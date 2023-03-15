@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG">
+<Configuration status="WARN">
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t]) %X{sessionId} %X{xRequestID}%n"/>
@@ -18,10 +18,9 @@
         <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="false"/>
         <Logger name="org.apache.activemq" level="ERROR" additivity="false"/>
         <Logger name="org.hibernate" level="ERROR" additivity="false"/>
-        <Logger name="org.springframework" level="DEBUG" additivity="false"/>
         <Logger name="io.debezium.connector.postgresql.PostgresTaskContext" level="ERROR" additivity="false"/>
 
-        <Root level="DEBUG">
+        <Root level="WARN">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>

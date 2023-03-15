@@ -19,8 +19,6 @@
         <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="false"/>
         <Logger name="org.apache.activemq" level="ERROR" additivity="false"/>
         <Logger name="org.hibernate" level="ERROR" additivity="false"/>
-        <Logger name="org.springframework" level="DEBUG" additivity="false"/>
-
         <Logger name="io.debezium.connector.postgresql.PostgresTaskContext" level="ERROR" additivity="false"/>
 
         <Root level="WARN">
