@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -96,7 +97,22 @@ public class AssignValueImplementer
 
         for ( EventActionRule actionRule : eventClasses.getValue() )
         {
-            if ( !actionRule.getDataValue().isPresent() ||
+            DataElement dataElement = bundle.getPreheat().getDataElement( actionRule.getField() );
+
+            DataValue payloadDataValue = actionRule.getDataValues().stream()
+                .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
+                .findAny()
+                .orElse( null );
+
+            // Hopefully we will be able to remove this special case once rule
+            // engine will support optionSets
+            if ( dataElement.isOptionSetValue()
+                && !dataElement.getOptionSet().getOptionCodes().contains( actionRule.getData() ) )
+            {
+                return assignInvalidOptionDataElement( actionRule, payloadDataValue, canOverwrite, event );
+            }
+
+            if ( getDataValue( actionRule, preheat ).isEmpty() ||
                 Boolean.TRUE.equals( canOverwrite ) ||
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
@@ -143,6 +159,39 @@ public class AssignValueImplementer
         return issues;
     }
 
+    private List<ProgramRuleIssue> assignInvalidOptionDataElement( EventActionRule actionRule,
+        DataValue payloadDataValue, Boolean canOverwrite, Event event )
+    {
+        List<ProgramRuleIssue> issues = Lists.newArrayList();
+        if ( payloadDataValue == null || payloadDataValue.getValue() == null )
+        {
+            issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1308,
+                Lists.newArrayList( actionRule.getField(), event.getEvent() ), IssueType.WARNING ) );
+            return issues;
+        }
+
+        if ( Boolean.TRUE.equals( canOverwrite ) )
+        {
+            payloadDataValue.setValue( null );
+            issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1308,
+                Lists.newArrayList( actionRule.getField(), event.getEvent() ), IssueType.WARNING ) );
+            return issues;
+        }
+
+        issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1307,
+            Lists.newArrayList( actionRule.getField(), actionRule.getData() ), IssueType.ERROR ) );
+        return issues;
+    }
+
+    private Optional<Attribute> getAttribute( EnrollmentActionRule actionRule, TrackerPreheat preheat )
+    {
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
+        return actionRule.getAttributes()
+            .stream()
+            .filter( at -> at.getAttribute().isEqualTo( attribute ) )
+            .findAny();
+    }
+
     private boolean isTheSameValue( EventActionRule actionRule, TrackerPreheat preheat )
     {
         DataElement dataElement = preheat.get( DataElement.class, actionRule.getField() );
@@ -185,15 +234,17 @@ public class AssignValueImplementer
      */
     protected boolean isEqual( String value1, String value2, ValueType valueType )
     {
+        if ( Objects.equals( value1, value2 ) )
+        {
+            return true;
+        }
+
         if ( valueType.isNumeric() )
         {
             return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
                 MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
         }
-        else
-        {
-            return value1 != null && value1.equals( value2 );
-        }
+        return false;
     }
 
     private void addOrOverwriteDataValue( EventActionRule actionRule, TrackerBundle bundle )
