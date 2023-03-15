@@ -260,11 +260,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
         registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
-        //
-        //        OpenEntityManagerInViewInterceptor interceptor = new OpenEntityManagerInViewInterceptor();
-        //        interceptor.setEntityManagerFactory( entityManagerFactory );
-        //
-        //        registry.addWebRequestInterceptor( interceptor );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

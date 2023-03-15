@@ -461,9 +461,9 @@
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
   </bean>
 
-<!--  <bean id="org.hisp.dhis.interceptor.ContextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor">-->
-<!--    <property name="databaseInfoProvider" ref="databaseInfoProvider" />-->
-<!--  </bean>-->
+  <bean id="org.hisp.dhis.interceptor.ContextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor">
+    <property name="databaseInfoProvider" ref="databaseInfoProvider" />
+  </bean>
 
   <bean id="org.hisp.dhis.interceptor.CacheInterceptor" class="org.hisp.dhis.interceptor.CacheInterceptor" />
 

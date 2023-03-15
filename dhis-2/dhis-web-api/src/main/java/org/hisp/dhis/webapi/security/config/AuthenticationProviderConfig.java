@@ -65,7 +65,7 @@ public class AuthenticationProviderConfig
     private DhisConfigurationProvider configurationProvider;
 
     @Autowired
-    private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+    TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
     @Qualifier( "ldapUserDetailsService" )
