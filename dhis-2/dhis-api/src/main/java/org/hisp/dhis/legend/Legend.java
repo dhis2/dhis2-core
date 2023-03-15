@@ -65,28 +65,25 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Legend
     extends BaseIdentifiableObject implements EmbeddedObject
 {
-
     @Id
     @Column( name = "maplegendid" )
     @GeneratedValue( strategy = GenerationType.AUTO )
     private long id;
 
-    @Column( name = "uid", length = 11, nullable = false, unique = true )
+    @Column( length = 11, nullable = false, unique = true )
     protected String uid;
 
-    @Column( name = "startValue", nullable = false )
+    @Column( nullable = false )
     private Double startValue;
 
-    @Column( name = "endvalue", nullable = false )
+    @Column( nullable = false )
     private Double endValue;
 
-    @Column( name = "name", length = 230, nullable = false )
+    @Column( length = 230, nullable = false )
     private String name;
 
-    @Column
     private String color;
 
-    @Column
     private String image;
 
     @ManyToOne
