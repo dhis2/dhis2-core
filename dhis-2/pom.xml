@@ -82,7 +82,7 @@
     <lettuce.version>6.2.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>7.0.4</flyway-core.version>
+    <flyway-core.version>9.15.2</flyway-core.version>
     <hibernate.version>5.4.28.Final</hibernate.version>
     <hibernate-types.version>2.10.4</hibernate-types.version>
     <!-- Keep in sync with Hibernate! -->
