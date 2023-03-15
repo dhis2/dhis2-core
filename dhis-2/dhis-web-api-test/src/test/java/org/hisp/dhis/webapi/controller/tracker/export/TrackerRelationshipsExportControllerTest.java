@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertEnrollmentWithinRelationship;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertEventWithinRelationship;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertFirstRelationship;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyUid;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertNoRelationships;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertTrackedEntityWithinRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertEnrollmentWithinRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertEventWithinRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertFirstRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasOnlyMembers;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasOnlyUid;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertNoRelationships;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertTrackedEntityWithinRelationship;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 

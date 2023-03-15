@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertHasOnlyMembers;
+import static org.hisp.dhis.webapi.controller.tracker.export.TrackerControllerAssertions.assertRelationship;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
