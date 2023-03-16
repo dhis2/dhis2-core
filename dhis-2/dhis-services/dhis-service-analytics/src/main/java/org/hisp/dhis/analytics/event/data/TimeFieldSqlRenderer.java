@@ -74,7 +74,7 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getAggregatedConditionForPeriods( params ) );
         }
 
-        return sql.toString();
+        return "(" + sql + ")";
     }
 
     /**
