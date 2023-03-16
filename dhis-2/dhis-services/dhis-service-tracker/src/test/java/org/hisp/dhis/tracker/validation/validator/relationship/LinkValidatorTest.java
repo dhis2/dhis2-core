@@ -53,7 +53,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class LinkValidatorTest
 {
-
     private LinkValidator validator;
 
     @Mock

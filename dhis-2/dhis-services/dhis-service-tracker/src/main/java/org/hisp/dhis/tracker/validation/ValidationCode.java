@@ -149,7 +149,7 @@ public enum ValidationCode
     E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),
     E4003( "There are duplicated relationships." ),
     E4004( "Missing required relationship property: 'relationshipType'." ),
-    E4005( "RelationShip: `{0}`, do not exist." ),
+    E4005( "RelationShip: `{0}`, does not exist." ),
     E4006( "Could not find relationship Type: `{0}`." ),
     E4007( "Missing required relationship property: 'from'." ),
     E4008( "Missing required relationship property: 'to'." ),
@@ -162,6 +162,7 @@ public enum ValidationCode
     E4016( "Relationship: `{0}`, do not exist." ),
     E4017( "Relationship: `{0}`, is already deleted and cannot be modified." ),
     E4018( "Relationship: `{0}`, linking {1}: `{2}` to {3}: `{4}` already exists." ),
+    E4019( "Relationship Type `{0}` is missing value type." ),
     E5000( "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted." ),
     E5001( "\"{0}\" `{1}` cannot be deleted because \"{2}\" `{3}` referenced by it cannot be deleted." ),
     E9999( "N/A" );

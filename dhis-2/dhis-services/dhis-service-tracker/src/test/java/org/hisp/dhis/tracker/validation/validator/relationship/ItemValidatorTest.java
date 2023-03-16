@@ -34,8 +34,6 @@ import static org.hisp.dhis.tracker.validation.validator.AssertValidations.asser
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -54,10 +52,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class ConstraintValueTypeValidatorTest
+class ItemValidatorTest
 {
 
-    private ConstraintValueTypeValidator validator;
+    private ItemValidator validator;
 
     @Mock
     private TrackerBundle bundle;
@@ -70,7 +68,7 @@ class ConstraintValueTypeValidatorTest
     @BeforeEach
     public void setUp()
     {
-        validator = new ConstraintValueTypeValidator();
+        validator = new ItemValidator();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
@@ -82,22 +80,23 @@ class ConstraintValueTypeValidatorTest
     void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndFromConstraintIsMissingTrackedEntity()
     {
         String relationshipUid = "nBx6auGDUHG";
-        String reltypeUid = CodeGenerator.generateUid();
+        String relTypeUid = CodeGenerator.generateUid();
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( relTypeUid );
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
-            .relationshipType( MetadataIdentifier.ofUid( reltypeUid ) )
+            .relationshipType( metadataIdentifier )
             .from( RelationshipItem.builder().build() )
             .to( trackedEntityRelationshipItem() )
             .build();
 
         RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( reltypeUid );
+        relationshipType.setUid( relTypeUid );
         RelationshipConstraint constraint = new RelationshipConstraint();
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
         relationshipType.setToConstraint( constraint );
-        when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
+
+        when( bundle.getPreheat().getRelationshipType( metadataIdentifier ) ).thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 
@@ -110,6 +109,7 @@ class ConstraintValueTypeValidatorTest
     {
         String relationshipUid = "nBx6auGDUHG";
         String relTypeUid = CodeGenerator.generateUid();
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( relTypeUid );
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
             .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
@@ -120,8 +120,7 @@ class ConstraintValueTypeValidatorTest
         RelationshipType relationshipType = createRelTypeConstraint( PROGRAM_STAGE_INSTANCE );
         relationshipType.setUid( relTypeUid );
 
-        when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
+        when( bundle.getPreheat().getRelationshipType( metadataIdentifier ) ).thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 
@@ -138,6 +137,7 @@ class ConstraintValueTypeValidatorTest
     {
         String relationshipUid = "nBx6auGDUHG";
         String relTypeUid = CodeGenerator.generateUid();
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( relTypeUid );
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
             .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
@@ -148,8 +148,7 @@ class ConstraintValueTypeValidatorTest
         RelationshipType relationshipType = createRelTypeConstraint( PROGRAM_INSTANCE );
         relationshipType.setUid( relTypeUid );
 
-        when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
+        when( bundle.getPreheat().getRelationshipType( metadataIdentifier ) ).thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 

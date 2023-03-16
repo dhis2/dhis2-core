@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
-import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -44,15 +43,14 @@ import org.hisp.dhis.tracker.validation.Validator;
 
 public class LinkValidator implements Validator<Relationship>
 {
-
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        validateRelationshipLinksOnlyTwoEntities( reporter, relationship );
+        validateRelationshipItemsContainOnlyOneEntity( reporter, relationship );
         validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
     }
 
-    private void validateRelationshipLinksOnlyTwoEntities( Reporter reporter,
+    private void validateRelationshipItemsContainOnlyOneEntity( Reporter reporter,
         Relationship relationship )
     {
         reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getFrom() ),
@@ -63,8 +61,7 @@ public class LinkValidator implements Validator<Relationship>
 
     private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
     {
-        if ( relationshipItemValueType( relationship.getFrom() ) != null
-            && Objects.equals( relationship.getFrom(), relationship.getTo() ) )
+        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
             reporter.addError( relationship, E4000, relationship.getRelationship() );
         }

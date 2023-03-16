@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
@@ -104,8 +102,11 @@ class MandatoryFieldsValidatorTest
                 .trackedEntity( trackedEntity() )
                 .build() )
             .build();
+
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
+        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) )
+            .thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 
@@ -161,25 +162,6 @@ class MandatoryFieldsValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertMissingProperty( reporter, relationship, "relationshipType" );
-    }
-
-    @Test
-    void shouldFailWhenInvalidRelationshipTypeProvided()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( "do-not-exist" ) )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, E4009 );
     }
 
     private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
