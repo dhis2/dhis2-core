@@ -49,6 +49,7 @@ public class ExpressionDimensionItemController extends AbstractCrudController<Ex
     protected void preCreateEntity( ExpressionDimensionItem expressionDimensionItem )
         throws ConflictException
     {
+        // Very particular case for this entity. We need to make it read-only to the public only, by default.
         expressionDimensionItem.setPublicAccess( "r-------" );
     }
 }
