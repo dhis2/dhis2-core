@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.validator.relationship;
 import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -39,23 +38,19 @@ import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 
-public class ConstraintValueTypeValidator implements Validator<Relationship>
+public class ItemValidator implements Validator<Relationship>
 {
 
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-
-        bundle.getPreheat().getAll( RelationshipType.class ).stream()
-            .filter( relationship.getRelationshipType()::isEqualTo ).findFirst().ifPresent( relationshipType -> {
-                validateValueTypeExists( reporter, relationship, "from", relationship.getFrom(),
-                    relationshipType.getFromConstraint() );
-                validateValueTypeExists( reporter, relationship, "to", relationship.getTo(),
-                    relationshipType.getToConstraint() );
-            } );
+        validateItemValueTypeExists( reporter, relationship, "from", relationship.getFrom(),
+            bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ).getFromConstraint() );
+        validateItemValueTypeExists( reporter, relationship, "to", relationship.getTo(),
+            bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ).getToConstraint() );
     }
 
-    private void validateValueTypeExists( Reporter reporter, Relationship relationship, String relSide,
+    private void validateItemValueTypeExists( Reporter reporter, Relationship relationship, String relSide,
         RelationshipItem item, RelationshipConstraint constraint )
     {
         if ( relationshipItemValueType( item ) == null )

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4012;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.enrollmentExist;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.eventExist;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.trackedEntityInstanceExist;
 import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.relationship.RelationshipConstraint;
@@ -54,19 +54,13 @@ public class ConstraintEntityValidator implements Validator<Relationship>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
-            relationship.getRelationshipType() ).ifPresent( relationshipType -> {
-                validateRelationshipConstraintEntity( reporter, bundle, relationship, "from", relationship.getFrom(),
-                    relationshipType.getFromConstraint() );
-                validateRelationshipConstraintEntity( reporter, bundle, relationship, "to", relationship.getTo(),
-                    relationshipType.getToConstraint() );
-            } );
-    }
+        RelationshipType relationshipType = bundle.getPreheat()
+            .getRelationshipType( relationship.getRelationshipType() );
 
-    private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
-        MetadataIdentifier relationshipType )
-    {
-        return relationshipsTypes.stream().filter( relationshipType::isEqualTo ).findFirst();
+        validateRelationshipConstraintEntity( reporter, bundle, relationship, "from", relationship.getFrom(),
+            relationshipType.getFromConstraint() );
+        validateRelationshipConstraintEntity( reporter, bundle, relationship, "to", relationship.getTo(),
+            relationshipType.getToConstraint() );
     }
 
     private void validateRelationshipConstraintEntity( Reporter reporter, TrackerBundle bundle,
@@ -75,39 +69,82 @@ public class ConstraintEntityValidator implements Validator<Relationship>
         RelationshipItem item,
         RelationshipConstraint constraint )
     {
-        if ( constraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        switch ( constraint.getRelationshipEntity() )
         {
-            if ( item.getTrackedEntity() == null )
-            {
-                reporter.addError( relationship, ValidationCode.E4010, relSide,
-                    TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ) );
-            }
-            else
-            {
-                getRelationshipTypeUidFromTrackedEntity( bundle,
-                    item.getTrackedEntity() )
-                        .ifPresent( type -> {
-
-                            if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
-                            {
-                                reporter.addError( relationship, ValidationCode.E4014, relSide,
-                                    type.identifierOf( constraint.getTrackedEntityType() ), type );
-                            }
-
-                        } );
-            }
+        case TRACKED_ENTITY_INSTANCE:
+            validateTrackedEntityInstanceRelationship( item, reporter, relationship, relSide, bundle, constraint );
+            break;
+        case PROGRAM_INSTANCE:
+            validateProgramInstanceRelationship( item, reporter, relationship, relSide, bundle );
+            break;
+        case PROGRAM_STAGE_INSTANCE:
+            validateProgramStageInstanceRelationship( item, reporter, relationship, relSide, bundle );
+            break;
+        default:
+            break;
         }
-        else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) && item.getEnrollment() == null )
-        {
-            reporter.addError( relationship, ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
-                relationshipItemValueType( item ) );
+    }
 
-        }
-        else if ( constraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) && item.getEvent() == null )
+    private void validateTrackedEntityInstanceRelationship( RelationshipItem item, Reporter reporter,
+        Relationship relationship, String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
+    {
+        if ( item.getTrackedEntity() == null )
         {
             reporter.addError( relationship, ValidationCode.E4010, relSide,
-                TrackerType.EVENT.getName(), relationshipItemValueType( item ) );
+                TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
         }
+        else if ( !trackedEntityInstanceExist( bundle, item.getTrackedEntity() ) )
+        {
+            reporter.addError( relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity() );
+        }
+        else
+        {
+            validateTrackedEntityInstanceType( item, reporter, relationship, relSide, bundle, constraint );
+        }
+    }
+
+    private void validateProgramInstanceRelationship( RelationshipItem item, Reporter reporter,
+        Relationship relationship, String relSide, TrackerBundle bundle )
+    {
+        if ( item.getEnrollment() == null )
+        {
+            reporter.addError( relationship, ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
+                relationshipItemValueType( item ).getName() );
+        }
+        else if ( !enrollmentExist( bundle, item.getEnrollment() ) )
+        {
+            reporter.addError( relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment() );
+        }
+    }
+
+    private static void validateProgramStageInstanceRelationship( RelationshipItem item, Reporter reporter,
+        Relationship relationship, String relSide, TrackerBundle bundle )
+    {
+        if ( item.getEvent() == null )
+        {
+            reporter.addError( relationship, ValidationCode.E4010, relSide,
+                TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
+        }
+        else if ( !eventExist( bundle, item.getEvent() ) )
+        {
+            reporter.addError( relationship, E4012, TrackerType.EVENT.getName(), item.getEvent() );
+        }
+    }
+
+    private void validateTrackedEntityInstanceType( RelationshipItem item, Reporter reporter, Relationship relationship,
+        String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
+    {
+        getRelationshipTypeUidFromTrackedEntity( bundle,
+            item.getTrackedEntity() )
+                .ifPresent( type -> {
+
+                    if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
+                    {
+                        reporter.addError( relationship, ValidationCode.E4014, relSide,
+                            type.identifierOf( constraint.getTrackedEntityType() ), type );
+                    }
+
+                } );
     }
 
     private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )

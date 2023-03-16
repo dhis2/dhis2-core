@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import java.util.Optional;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
@@ -45,26 +43,25 @@ class ValidationUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static String relationshipItemValueType( RelationshipItem item )
+    public static TrackerType relationshipItemValueType( RelationshipItem item )
     {
         if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
         {
-            return TrackerType.TRACKED_ENTITY.getName();
+            return TrackerType.TRACKED_ENTITY;
         }
         else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
         {
-            return TrackerType.ENROLLMENT.getName();
+            return TrackerType.ENROLLMENT;
         }
         else if ( StringUtils.isNotEmpty( item.getEvent() ) )
         {
-            return TrackerType.EVENT.getName();
+            return TrackerType.EVENT;
         }
         return null;
     }
 
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
+    public static String getUidFromRelationshipItem( RelationshipItem item )
     {
-        return Optional
-            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
+        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
     }
 }

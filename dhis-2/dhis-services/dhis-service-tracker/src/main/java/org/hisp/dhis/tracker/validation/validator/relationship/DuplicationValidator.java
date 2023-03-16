@@ -48,9 +48,9 @@ public class DuplicationValidator implements Validator<Relationship>
             reporter.addError( relationship, E4018,
                 relationship.getRelationship(),
                 relationshipItemValueType( relationship.getFrom() ),
-                getUidFromRelationshipItem( relationship.getFrom() ).orElse( null ),
+                getUidFromRelationshipItem( relationship.getFrom() ),
                 relationshipItemValueType( relationship.getTo() ),
-                getUidFromRelationshipItem( relationship.getTo() ).orElse( null ) );
+                getUidFromRelationshipItem( relationship.getTo() ) );
         }
     }
 
