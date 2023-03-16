@@ -261,12 +261,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testSendMessageForEnrollment()
     {
-        setUpSendMessageForEnrollment();
-
+        ProgramRule programRule = setUpSendMessageForEnrollment();
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
-
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
-
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet(),
+            Lists.newArrayList( programRule ) );
         assertEquals( 1, ruleEffects.size() );
 
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
@@ -281,8 +279,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testSendMessageForEnrollmentAndEvents()
     {
-        setUpSendMessageForEnrollment();
-
+        ProgramRule programRule = setUpSendMessageForEnrollment();
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
 
         List<RuleEffects> ruleEffects = programRuleEngine
@@ -308,12 +305,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testNotificationWhenUsingD2HasValueWithTEA()
     {
-        setUpNotificationForD2HasValue();
-
+        ProgramRule programRule = setUpNotificationForD2HasValue();
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
-
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
-
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet(),
+            Lists.newArrayList( programRule ) );
         assertEquals( 1, ruleEffects.size() );
 
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
@@ -368,13 +363,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testSendMessageForEvent()
     {
-        setUpSendMessageForEnrollment();
-
+        ProgramRule programRule = setUpSendMessageForEnrollment();
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet() );
-
+            programStageInstance, Sets.newHashSet(), Lists.newArrayList( programRule ) );
         assertEquals( 1, ruleEffects.size() );
 
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
@@ -518,13 +511,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testAssignValueTypeDate()
     {
-        setUpAssignValueDate();
-
+        ProgramRule programRule = setUpAssignValueDate();
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet() );
-
+            programStageInstance, Sets.newHashSet(), Lists.newArrayList( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -551,13 +542,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Test
     public void testAssignValueTypeAge()
     {
-        setUpAssignValueAge();
-
+        ProgramRule programRule = setUpAssignValueAge();
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet() );
-
+            programStageInstance, Sets.newHashSet(), Lists.newArrayList( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -827,7 +816,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
     }
 
-    private void setUpSendMessageForEnrollment()
+    private ProgramRule setUpSendMessageForEnrollment()
     {
         ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
         pnt.setName( "Test-PNT" );
@@ -848,9 +837,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleC.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
+        return programRuleC;
     }
 
-    private void setUpNotificationForD2HasValue()
+    private ProgramRule setUpNotificationForD2HasValue()
     {
         ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
         pnt.setName( "Test-PNT" );
@@ -872,9 +862,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleE );
+
+        return programRuleE;
     }
 
-    private void setUpScheduleMessage()
+    private ProgramRule setUpScheduleMessage()
     {
         scheduledDate = "2018-04-17";
 
@@ -890,9 +882,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleS.setProgramRuleActions( Sets.newHashSet( programRuleActionForScheduleMessage ) );
         programRuleService.updateProgramRule( programRuleS );
+
+        return programRuleS;
     }
 
-    private void setUpAssignValueDate()
+    private ProgramRule setUpAssignValueDate()
     {
         ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
@@ -906,9 +900,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueDate ) );
         programRuleA2.setCondition( " d2:hasValue(#{DOB})" );
         programRuleService.updateProgramRule( programRuleA2 );
+
+        return programRuleA2;
     }
 
-    private void setUpAssignValueAge()
+    private ProgramRule setUpAssignValueAge()
     {
         ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
@@ -921,6 +917,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueAge ) );
         programRuleService.updateProgramRule( programRuleA2 );
+
+        return programRuleA2;
     }
 
     private ProgramNotificationTemplate createNotification()
