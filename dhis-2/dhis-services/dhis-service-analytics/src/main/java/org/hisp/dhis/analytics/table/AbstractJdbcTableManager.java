@@ -57,7 +57,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -70,6 +69,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -134,6 +134,8 @@ public abstract class AbstractJdbcTableManager
     protected final JdbcTemplate jdbcTemplate;
 
     protected final AnalyticsExportSettings analyticsExportSettings;
+
+    protected final PeriodDataProvider periodDataProvider;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
@@ -430,16 +432,14 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Calendar calendar = PeriodType.getCalendar();
-
         Collections.sort( dataYears );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         for ( Integer year : dataYears )
         {
-            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                PartitionUtils.getEndDate( calendar, year ) );
+            table.addPartitionTable( year, PartitionUtils.getStartDate( year ),
+                PartitionUtils.getEndDate( year ) );
         }
 
         return table;
