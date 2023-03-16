@@ -31,6 +31,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_S
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anySet;
@@ -55,6 +56,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -155,7 +157,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet() );
+        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet(), List.of( programRuleA ) );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -171,7 +173,8 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-        when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any() ) ).thenReturn( List.of( programRuleA ) );
 
         setProgramRuleActionType_SendMessage();
 
@@ -189,7 +192,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
@@ -213,24 +216,82 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of( programRuleA ) );
+        when( programRuleEngine.evaluate( any(), any(), anySet(), anyList() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
-
-        ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluate( any(), argumentCaptor.capture(), any() );
-        assertEquals( programStageInstance, argumentCaptor.getValue() );
+        verify( programRuleEngine, times( 1 ) )
+            .evaluate( programInstance, programStageInstance, programInstance.getProgramStageInstances(),
+                List.of( programRuleA ) );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    void shouldNotRetrieveEventsWhenEvaluatingAProgramEvent()
+    {
+        doAnswer( invocationOnMock -> {
+            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
+            return ruleEffects;
+        } ).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
+
+        List<RuleEffect> effects = new ArrayList<>();
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        Program program = createProgram( 'A' );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        ProgramStageInstance programEvent = createProgramStageInstance( programStage, programInstance,
+            createOrganisationUnit( 'A' ) );
+
+        when( programStageInstanceService.getProgramStageInstance( programEvent.getUid() ) ).thenReturn( programEvent );
+
+        when( programRuleEngine.getProgramRules( program, List.of( programStage ) ) )
+            .thenReturn( List.of( programRuleA ) );
+        when( programRuleEngine.evaluateProgramEvent( programEvent, program, List.of( programRuleA ) ) )
+            .thenReturn( effects );
+
+        setProgramRuleActionType_SendMessage();
+
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programEvent.getUid() );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        verify( programRuleEngine, times( 1 ) )
+            .evaluateProgramEvent( programEvent, program, List.of( programRuleA ) );
+
+        verify( programInstanceService, never() ).getProgramInstance( any() );
+
+        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
+
+        assertEquals( 1, this.ruleEffects.size() );
+        assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+    }
+
+    @Test
+    void shouldNotTryToEvaluateWhenThereAreNoRulesToRun()
+    {
+        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
+        when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of() );
+
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
+
+        assertEquals( 0, ruleEffects.size() );
+
+        verify( programRuleEngine, never() ).evaluateProgramEvent( any(), any(), anyList() );
+        verify( programRuleEngine, never() ).evaluate( any(), any(), anyList() );
+        verify( programInstanceService, never() ).getProgramInstance( any() );
     }
 
     @Test
