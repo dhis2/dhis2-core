@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 public enum RelationshipEntity
 {
-    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
+    TRACKED_ENTITY_INSTANCE( "trackedEntity" ),
     PROGRAM_INSTANCE( "enrollment" ),
     PROGRAM_STAGE_INSTANCE( "event" );
 
