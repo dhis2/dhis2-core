@@ -154,7 +154,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.4</jsoup.version>
-    <jetty.version>10.0.11</jetty.version>
+    <jetty.version>10.0.14</jetty.version>
 
     <!-- Div. utils -->
     <version.debezium>2.0.0.Final</version.debezium>
