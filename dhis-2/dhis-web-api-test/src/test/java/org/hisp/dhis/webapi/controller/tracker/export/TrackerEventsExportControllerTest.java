@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -63,6 +63,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,16 +153,14 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        JsonArray rels = json.getArray( "relationships" );
-        assertFalse( rels.isEmpty() );
-        assertEquals( 1, rels.size() );
-        assertRelationship( r, rels.getObject( 0 ) );
-        assertEventWithinRelationship( from, rels.getObject( 0 ).getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, rels.getObject( 0 ).getObject( "to" ) );
+        assertFalse( relationships.isEmpty() );
+        assertEquals( 1, relationships.size() );
+        JsonRelationship relationship = assertFirstRelationship( r, relationships );
+        assertEventWithinRelationship( from, relationship.getFrom() );
+        assertTrackedEntityWithinRelationship( to, relationship.getTo() );
     }
 
     @Test
@@ -172,11 +171,9 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( relationshipTypeNotAccessible(), from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 0, relationships.size() );
     }
 
@@ -189,11 +186,9 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 0, relationships.size() );
     }
 
@@ -219,11 +214,9 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", to.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/events/{id}?fields=relationships", to.getUid() )
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 0, relationships.size() );
     }
 
