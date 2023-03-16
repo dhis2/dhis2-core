@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.security.switchuser;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 /**
- * CRUD Controller for ExpressionDimensionItem entity
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags( "analytics" )
-@Controller
-@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
+@RequiredArgsConstructor
+public class DhisSwitchUserFilter extends SwitchUserFilter
 {
+    private final DhisConfigurationProvider config;
+
     @Override
-    protected void preCreateEntity( ExpressionDimensionItem expressionDimensionItem )
-        throws ConflictException
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
+        throws IOException,
+        ServletException
     {
-        // Very particular case for this entity. We need to make it read-only to the public only, by default.
-        expressionDimensionItem.setPublicAccess( "r-------" );
+        boolean enabled = config.isEnabled( ConfigurationKey.SWITCH_USER_FEATURE_ENABLED );
+        if ( enabled && isAllowListedIp( request.getRemoteAddr() ) )
+        {
+            super.doFilter( request, response, chain );
+            return;
+        }
+
+        chain.doFilter( request, response );
+    }
+
+    private boolean isAllowListedIp( String remoteAddr )
+    {
+        String property = config.getProperty( ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS );
+        for ( String ip : property.split( "," ) )
+        {
+            if ( ip.trim().equalsIgnoreCase( remoteAddr ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -25,31 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * CRUD Controller for ExpressionDimensionItem entity
+ * Representation of
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.Relationship}.
  */
-@OpenApi.Tags( "analytics" )
-@Controller
-@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
+public interface JsonRelationship extends JsonObject
 {
-    @Override
-    protected void preCreateEntity( ExpressionDimensionItem expressionDimensionItem )
-        throws ConflictException
+    default String getRelationship()
     {
-        // Very particular case for this entity. We need to make it read-only to the public only, by default.
-        expressionDimensionItem.setPublicAccess( "r-------" );
+        return getString( "relationship" ).string();
+    }
+
+    default String getRelationshipName()
+    {
+        return getString( "relationshipName" ).string();
+    }
+
+    default String getRelationshipType()
+    {
+        return getString( "relationshipType" ).string();
+    }
+
+    default JsonRelationshipItem getFrom()
+    {
+        return get( "from" ).as( JsonRelationshipItem.class );
+    }
+
+    default JsonRelationshipItem getTo()
+    {
+        return get( "to" ).as( JsonRelationshipItem.class );
     }
 }

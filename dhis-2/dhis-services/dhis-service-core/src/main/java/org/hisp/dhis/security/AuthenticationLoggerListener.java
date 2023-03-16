@@ -41,6 +41,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.session.SessionFixationProtectionEvent;
+import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
 import org.springframework.util.ClassUtils;
 
 import com.google.common.base.Charsets;
@@ -62,6 +63,14 @@ public class AuthenticationLoggerListener
         if ( !log.isWarnEnabled() )
         {
             return;
+        }
+
+        if ( AuthenticationSwitchUserEvent.class.isAssignableFrom( event.getClass() ) )
+        {
+            AuthenticationSwitchUserEvent switchUserEvent = (AuthenticationSwitchUserEvent) event;
+            log.info( "Authentication event: AuthenticationSwitchUserEvent; username: {}; targetUser: {}",
+                switchUserEvent.getAuthentication().getName(),
+                switchUserEvent.getTargetUser().getUsername() );
         }
 
         if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||

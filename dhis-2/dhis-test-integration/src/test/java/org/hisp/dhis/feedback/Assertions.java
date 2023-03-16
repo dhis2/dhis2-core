@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.feedback;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
 /**
- * CRUD Controller for ExpressionDimensionItem entity
+ * Assertions for feedback like metadata validation reports.
  */
-@OpenApi.Tags( "analytics" )
-@Controller
-@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
+public class Assertions
 {
-    @Override
-    protected void preCreateEntity( ExpressionDimensionItem expressionDimensionItem )
-        throws ConflictException
+    public static void assertNoErrors( ObjectBundleValidationReport report )
     {
-        // Very particular case for this entity. We need to make it read-only to the public only, by default.
-        expressionDimensionItem.setPublicAccess( "r-------" );
+        assertNotNull( report );
+        List<String> errors = new ArrayList<>();
+        report.forEachErrorReport( err -> {
+            errors.add( err.toString() );
+        } );
+        assertFalse( report.hasErrorReports(), String.format( "Expected no errors, instead got: %s\n", errors ) );
     }
+
 }

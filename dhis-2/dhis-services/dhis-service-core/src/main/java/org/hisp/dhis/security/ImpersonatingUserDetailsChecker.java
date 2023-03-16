@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.security;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * CRUD Controller for ExpressionDimensionItem entity
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags( "analytics" )
-@Controller
-@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
+public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker
 {
     @Override
-    protected void preCreateEntity( ExpressionDimensionItem expressionDimensionItem )
-        throws ConflictException
+    public void check( UserDetails userToImpersonate )
     {
-        // Very particular case for this entity. We need to make it read-only to the public only, by default.
-        expressionDimensionItem.setPublicAccess( "r-------" );
+        CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+        if ( currentUser == null )
+        {
+            throw new InsufficientAuthenticationException( "User is not authenticated." );
+        }
+
+        if ( currentUser.getUsername().equals( userToImpersonate.getUsername() ) )
+        {
+            throw new InsufficientAuthenticationException( "User can not impersonate itself." );
+        }
+
+        boolean userToImpersonateIsSuper = userToImpersonate.getAuthorities().stream()
+            .anyMatch( grantedAuthority -> grantedAuthority.getAuthority().equals( "ALL" ) );
+
+        if ( (!currentUser.isSuper() && userToImpersonateIsSuper) )
+        {
+            throw new InsufficientAuthenticationException( "User is not authorized to impersonate super user." );
+        }
     }
 }

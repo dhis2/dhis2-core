@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.Date;
 
@@ -110,7 +111,7 @@ public class ExpirationDaysCheck implements Checker
                 }
 
                 if ( (new Date()).after(
-                    DateUtils.addDays( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
+                    addDays( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
                 {
                     return error(
                         "The event's completeness date has expired. Not possible to make changes to this event",
@@ -139,7 +140,7 @@ public class ExpirationDaysCheck implements Checker
                 }
 
                 Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-                if ( today.after( DateUtils.addDays( period.getEndDate(), program.getExpiryDays() ) ) )
+                if ( !Period.isDateInTimeFrame( null, addDays( period.getEndDate(), program.getExpiryDays() ), today ) )
                 {
                     return error(
                         "The program's expiry date has passed. It is not possible to make changes to this event",
