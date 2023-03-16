@@ -36,7 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 class QuarterlyNovemberPeriodTypeTest
 {
