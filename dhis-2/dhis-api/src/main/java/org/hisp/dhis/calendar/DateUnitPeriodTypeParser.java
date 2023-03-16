@@ -215,7 +215,25 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
                 return null;
             }
 
-            int monthOffset = -2;
+            int monthOffset = -2; // this is because first quarter (of financial November) starts 2 months back from the start of the year
+
+            /**
+             * Q1
+             * month = ((1-1)*3) + 1 = 1
+             * month = 1 + (-2) = -1
+             * month = -1 + 12
+             * month = 11
+             * year = year - 1
+             * => first quarter starts on Month 11 of previous year
+             *
+             * Q2
+             * month = ((2-1)*3) + 1 = 4
+             * month = 4 + (-2) = 2
+             * month = 2
+             * year = year
+             * => second quarter starts on Month 2 of same year
+             */
+
             int month = ((quarter - 1) * 3) + 1;
             month = month + monthOffset;
 
