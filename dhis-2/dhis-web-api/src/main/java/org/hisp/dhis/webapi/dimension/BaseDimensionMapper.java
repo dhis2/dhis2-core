@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.common.PrefixedDimension.PREFIX_DELIMITER;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -69,7 +69,7 @@ public abstract class BaseDimensionMapper implements DimensionMapper
     {
         if ( StringUtils.isNotBlank( prefix ) )
         {
-            return prefix + PREFIX_DELIMITER + uid;
+            return prefix + DIMENSION_IDENTIFIER_SEP + uid;
         }
         return uid;
     }

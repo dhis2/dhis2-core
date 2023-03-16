@@ -89,12 +89,14 @@ public class CommonQueryRequest
      */
     private Set<String> headers = new LinkedHashSet<>();
 
+    public static final OrganisationUnitSelectionMode DEFAULT_ORG_UNIT_SELECTION_MODE = DESCENDANTS;
+
     /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning
      * all sub units in the hierarchy. CHILDREN refers to immediate children in
      * the hierarchy; SELECTED refers to the selected organisation units only.
      */
-    private OrganisationUnitSelectionMode ouMode = DESCENDANTS;
+    private OrganisationUnitSelectionMode ouMode = DEFAULT_ORG_UNIT_SELECTION_MODE;
 
     /**
      * Id scheme to be used for data, more specifically data elements and

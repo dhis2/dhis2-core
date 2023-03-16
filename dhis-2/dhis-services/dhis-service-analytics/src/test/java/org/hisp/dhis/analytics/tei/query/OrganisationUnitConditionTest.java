@@ -27,23 +27,33 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.apache.commons.collections4.CollectionUtils.isEqualCollection;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -63,7 +73,13 @@ class OrganisationUnitConditionTest
             ous, null, null );
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
+        QueryContext queryContext = QueryContext.of(
+            TeiQueryParams.builder()
+                .commonParams( CommonParams.builder()
+                    .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                    .build() )
+                .build(),
+            sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
@@ -77,6 +93,107 @@ class OrganisationUnitConditionTest
     }
 
     @Test
+    void testChildrenOuModeProduceCorrectSql()
+    {
+        // Given
+        List<String> ous = List.of( "ou1", "ou2" );
+
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+            ous, null, null, ouId -> {
+
+                OrganisationUnit organisationUnit = mock( OrganisationUnit.class );
+                when( organisationUnit.getUid() ).thenReturn( ouId );
+                when( organisationUnit.getChildren() ).thenReturn( Set.of(
+                    newOrganisationalUnit( ouId + "_children1" ),
+                    newOrganisationalUnit( ouId + "_children2" ) ) );
+                return organisationUnit;
+            } );
+
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of(
+            TeiQueryParams.builder()
+                .commonParams( CommonParams.builder()
+                    .ouMode( OrganisationUnitSelectionMode.CHILDREN )
+                    .build() )
+                .build(),
+            sqlParameterManager );
+
+        OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
+            queryContext );
+
+        // When
+        String render = organisationUnitCondition.render();
+
+        List<String> expected = ous.stream()
+            .flatMap( ouId -> Stream.of( ouId + "_children1", ouId + "_children2" ) )
+            .collect( Collectors.toList() );
+
+        // Then
+        assertEquals( "t_1.\"ou\" in (:1)", render );
+        assertTrue( isEqualCollection( expected, (Collection<?>) queryContext.getParametersPlaceHolder().get( "1" ) ) );
+    }
+
+    @Test
+    void testDescendandOuModeProduceCorrectSql()
+    {
+        // Given
+        List<String> ous = List.of( "ou1", "ou2" );
+
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+            ous, null, null, ouId -> {
+
+                OrganisationUnit organisationUnit = mock( OrganisationUnit.class );
+                when( organisationUnit.getUid() ).thenReturn( ouId );
+                when( organisationUnit.getLevel() ).thenReturn( 1 );
+                return organisationUnit;
+            } );
+
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of(
+            TeiQueryParams.builder()
+                // Descendant is default ouMode
+                .build(),
+            sqlParameterManager );
+
+        OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
+            queryContext );
+
+        // When
+        String render = organisationUnitCondition.render();
+
+        // Then
+        assertEquals( "(t_1.\"uidlevel1\" = :1 or t_1.\"uidlevel1\" = :2)", render );
+    }
+
+    @Test
+    void testEmptyOuProduceFalse()
+    {
+        // Given
+        List<String> ous = List.of();
+        DimensionIdentifier<DimensionParam> dimensionIdentifier = stubDimensionIdentifier(
+            ous, null, null );
+
+        SqlParameterManager sqlParameterManager = new SqlParameterManager();
+        QueryContext queryContext = QueryContext.of(
+            TeiQueryParams.builder()
+                .commonParams( CommonParams.builder()
+                    .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                    .build() )
+                .build(),
+            sqlParameterManager );
+
+        OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
+            queryContext );
+
+        // When
+        String render = organisationUnitCondition.render();
+
+        // Then
+        assertEquals( "false", render );
+        assertTrue( queryContext.getParametersPlaceHolder().isEmpty() );
+    }
+
+    @Test
     void testTeiOuSingleOusProduceCorrectSql()
     {
         // Given
@@ -86,7 +203,13 @@ class OrganisationUnitConditionTest
             ous, null, null );
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
-        QueryContext queryContext = QueryContext.of( null, sqlParameterManager );
+        QueryContext queryContext = QueryContext.of(
+            TeiQueryParams.builder()
+                .commonParams( CommonParams.builder()
+                    .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                    .build() )
+                .build(),
+            sqlParameterManager );
 
         OrganisationUnitCondition organisationUnitCondition = OrganisationUnitCondition.of( dimensionIdentifier,
             queryContext );
@@ -109,6 +232,9 @@ class OrganisationUnitConditionTest
             ous, "Z8z5uu61HAb", "tO8L1aBitDm" );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
+            .commonParams( CommonParams.builder()
+                .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                .build() )
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
@@ -134,6 +260,9 @@ class OrganisationUnitConditionTest
             ous, "Z8z5uu61HAb", "tO8L1aBitDm" );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
+            .commonParams( CommonParams.builder()
+                .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                .build() )
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
@@ -161,6 +290,9 @@ class OrganisationUnitConditionTest
             ous, "Z8z5uu61HAb", null );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
+            .commonParams( CommonParams.builder()
+                .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                .build() )
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
@@ -187,6 +319,9 @@ class OrganisationUnitConditionTest
             ous, "Z8z5uu61HAb", null );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
+            .commonParams( CommonParams.builder()
+                .ouMode( OrganisationUnitSelectionMode.SELECTED )
+                .build() )
             .trackedEntityType( stubTrackedEntityType( "T2d3uj69RAb" ) ).build();
 
         SqlParameterManager sqlParameterManager = new SqlParameterManager();
@@ -214,16 +349,22 @@ class OrganisationUnitConditionTest
     private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
         String programUid, String programStageUid )
     {
+        return stubDimensionIdentifier( ous, programUid, programStageUid, this::newOrganisationalUnit );
+    }
+
+    private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
+        String programUid, String programStageUid, Function<String, OrganisationUnit> orgUnitCreator )
+    {
         DimensionParam dimensionParam = DimensionParam.ofObject(
             new BaseDimensionalObject( "ou", ORGANISATION_UNIT,
                 ous.stream()
-                    .map( BaseDimensionalItemObject::new )
+                    .map( orgUnitCreator )
                     .collect( Collectors.toList() ) ),
             DIMENSIONS,
             ous );
 
-        ElementWithOffset program = emptyElementWithOffset();
-        ElementWithOffset programStage = emptyElementWithOffset();
+        ElementWithOffset<Program> program = emptyElementWithOffset();
+        ElementWithOffset<ProgramStage> programStage = emptyElementWithOffset();
 
         if ( isNotBlank( programUid ) )
         {
@@ -240,5 +381,12 @@ class OrganisationUnitConditionTest
         }
 
         return DimensionIdentifier.of( program, programStage, dimensionParam );
+    }
+
+    private OrganisationUnit newOrganisationalUnit( String ous )
+    {
+        OrganisationUnit organisationUnit = new OrganisationUnit();
+        organisationUnit.setUid( ous );
+        return organisationUnit;
     }
 }

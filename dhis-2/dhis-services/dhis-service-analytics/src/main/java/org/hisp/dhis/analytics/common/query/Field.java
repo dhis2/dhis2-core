@@ -72,7 +72,13 @@ public class Field extends BaseRenderable
 
     public static Field ofDimensionIdentifier( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
-        return of( getPrefix( dimensionIdentifier ), () -> dimensionIdentifier.getDimension().getUid(), EMPTY );
+        return ofRenamedDimensionIdentifier( dimensionIdentifier, dimensionIdentifier.getDimension().getUid() );
+    }
+
+    public static Field ofRenamedDimensionIdentifier( DimensionIdentifier<DimensionParam> dimensionIdentifier,
+        String actualName )
+    {
+        return of( getPrefix( dimensionIdentifier ), () -> actualName, EMPTY );
     }
 
     /**
