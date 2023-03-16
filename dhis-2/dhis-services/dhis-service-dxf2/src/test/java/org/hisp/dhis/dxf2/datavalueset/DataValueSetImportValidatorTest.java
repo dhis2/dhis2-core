@@ -162,17 +162,6 @@ class DataValueSetImportValidatorTest
     }
 
     @Test
-    void testValidateDataSetExistsStrictDataElements()
-    {
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
-        DataValueSet dataValueSet = new DataValueSet();
-        ImportContext context = createMinimalImportContext( null ).strictDataElements( true ).build();
-        DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
-        assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( ErrorCode.E7602, "A valid dataset is required", context );
-    }
-
-    @Test
     void testValidateDataSetOrgUnitExists()
     {
         when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
@@ -415,7 +404,7 @@ class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
         ImportContext context = createMinimalImportContext( valueContext ).strictDataElements( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( ErrorCode.E7633, "Data element: `<object1>` is not part of dataset: `<object2>`", context,
+        assertConflict( ErrorCode.E7633, "Data element: `<object1>` is not part of dataset(s): `<object2>`", context,
             dataValue.getDataElement(), dataValueSet.getDataSet() );
     }
 
