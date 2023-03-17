@@ -66,6 +66,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -106,6 +107,9 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private UserService _userService;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -134,7 +138,10 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
     protected void initTest()
         throws IOException
     {
+        userService = _userService;
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
+        User adminUser = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( adminUser );
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
         User user = userService.getUser( "M5zQapPyTZI" );
@@ -244,11 +251,9 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
     @Test

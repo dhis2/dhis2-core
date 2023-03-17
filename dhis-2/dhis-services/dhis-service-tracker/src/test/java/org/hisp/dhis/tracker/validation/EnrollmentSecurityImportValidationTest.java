@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.security.acl.AccessStringHelper.Permission.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -82,7 +83,7 @@ import com.google.common.collect.Sets;
  */
 class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTest
 {
-
+    //
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -136,6 +137,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
 
     private void setupMetadata()
     {
+        User admin = userService.getUser( ADMIN_USER_UID );
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -152,8 +154,10 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         manager.save( programStageA );
         manager.save( programStageB );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
+        programA.getSharing().setOwner( admin );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.getSharing().setOwner( admin );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType( 'C' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeFromProgram );
@@ -210,9 +214,9 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         assertFalse( commit.hasErrorReports() );
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
-        User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUserId( user.getUid() );
-        injectSecurityContext( user );
+        User admin = userService.getUser( ADMIN_USER_UID );
+        trackerBundleParams.setUserId( admin.getUid() );
+        injectSecurityContext( admin );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
@@ -240,10 +244,10 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         clearSecurityContext();
 
         setupMetadata();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_WRITE ).build() );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
-        manager.updateNoAcl( programA );
+        manager.update( programA );
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
@@ -263,7 +267,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         clearSecurityContext();
 
         setupMetadata();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_READ ).build() );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
@@ -307,7 +311,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         clearSecurityContext();
 
         setupMetadata();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.newInstance().enable( READ ).enable( DATA_WRITE ).build() );
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
         manager.flush();
