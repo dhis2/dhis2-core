@@ -1218,4 +1218,58 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertEquals( true, row.next() );
         assertEquals( de.getUid(), row.getString( "uid" ) );
     }
+
+    @Test
+    void testOwnerDataRead()
+    {
+        User userA = createUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerDataReadFail()
+    {
+        User admin = createAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = createUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataRead()
+    {
+        User userA = createUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataReadFail()
+    {
+        User admin = createAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = createUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canRead( userA, categoryOption ) );
+    }
 }
