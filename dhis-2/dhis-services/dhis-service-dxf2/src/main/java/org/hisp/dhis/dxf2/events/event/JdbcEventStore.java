@@ -182,7 +182,8 @@ public class JdbcEventStore implements EventStore
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
         .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
-        .put( "eventDate", "psi_executiondate" ).put( "followup", "pi_followup" ).put( "status", "psi_status" )
+        .put( "eventDate", "psi_executiondate" ).put( "occurredAt", "psi_executiondate" )
+        .put( "followup", "pi_followup" ).put( "status", "psi_status" )
         .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" )
         .put( "lastUpdatedByUserInfo", "psi_lastupdatedbyuserinfo" ).put( "createdByUserInfo", "psi_createdbyuserinfo" )
         .put( "created", "psi_created" )
@@ -195,54 +196,54 @@ public class JdbcEventStore implements EventStore
 
     private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
     // @formatter:off
-        "programstageinstanceid, " +    // 0
-        "programinstanceid, " +         // 1
-        "programstageid, " +            // 2
-        "duedate, " +                   // 3
-        "executiondate, " +             // 4
-        "organisationunitid, " +        // 5
-        "status, " +                    // 6
-        "completeddate, " +             // 7
-        "uid, " +                       // 8
-        "created, " +                   // 9
-        "lastupdated, " +               // 10
-        "attributeoptioncomboid, " +    // 11
-        "storedby, " +                  // 12
-        "createdbyuserinfo, " +         // 13
-        "lastupdatedbyuserinfo, " +     // 14
-        "completedby, " +               // 15
-        "deleted, " +                   // 16
-        "code, " +                      // 17
-        "createdatclient, " +           // 18
-        "lastupdatedatclient, " +       // 19
-        "geometry, " +                  // 20
-        "assigneduserid, " +            // 21
-        "eventdatavalues) " +           // 22
-        // @formatter:on
+            "programstageinstanceid, " +    // 0
+            "programinstanceid, " +         // 1
+            "programstageid, " +            // 2
+            "duedate, " +                   // 3
+            "executiondate, " +             // 4
+            "organisationunitid, " +        // 5
+            "status, " +                    // 6
+            "completeddate, " +             // 7
+            "uid, " +                       // 8
+            "created, " +                   // 9
+            "lastupdated, " +               // 10
+            "attributeoptioncomboid, " +    // 11
+            "storedby, " +                  // 12
+            "createdbyuserinfo, " +         // 13
+            "lastupdatedbyuserinfo, " +     // 14
+            "completedby, " +               // 15
+            "deleted, " +                   // 16
+            "code, " +                      // 17
+            "createdatclient, " +           // 18
+            "lastupdatedatclient, " +       // 19
+            "geometry, " +                  // 20
+            "assigneduserid, " +            // 21
+            "eventdatavalues) " +           // 22
+            // @formatter:on
         "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
     // @formatter:off
-        "programinstanceid = ?, " +         // 1
-        "programstageid = ?, " +            // 2
-        "duedate = ?, " +                   // 3
-        "executiondate = ?, " +             // 4
-        "organisationunitid = ?, " +        // 5
-        "status = ?, " +                    // 6
-        "completeddate = ?, " +             // 7
-        "lastupdated = ?, " +               // 8
-        "attributeoptioncomboid = ?, " +    // 9
-        "storedby = ?, " +                  // 10
-        "lastupdatedbyuserinfo = ?, " +     // 11
-        "completedby = ?, " +               // 12
-        "deleted = ?, " +                   // 13
-        "code = ?, " +                      // 14
-        "createdatclient = ?, " +           // 15
-        "lastupdatedatclient = ?, " +       // 16
-        "geometry = ?, " +                  // 17
-        "assigneduserid = ?, " +            // 18
-        "eventdatavalues = ? " +            // 19
-        "where uid = ?;";                   // 20
+            "programinstanceid = ?, " +         // 1
+            "programstageid = ?, " +            // 2
+            "duedate = ?, " +                   // 3
+            "executiondate = ?, " +             // 4
+            "organisationunitid = ?, " +        // 5
+            "status = ?, " +                    // 6
+            "completeddate = ?, " +             // 7
+            "lastupdated = ?, " +               // 8
+            "attributeoptioncomboid = ?, " +    // 9
+            "storedby = ?, " +                  // 10
+            "lastupdatedbyuserinfo = ?, " +     // 11
+            "completedby = ?, " +               // 12
+            "deleted = ?, " +                   // 13
+            "code = ?, " +                      // 14
+            "createdatclient = ?, " +           // 15
+            "lastupdatedatclient = ?, " +       // 16
+            "geometry = ?, " +                  // 17
+            "assigneduserid = ?, " +            // 18
+            "eventdatavalues = ? " +            // 19
+            "where uid = ?;";                   // 20
     // @formatter:on
 
     /**
@@ -317,7 +318,6 @@ public class JdbcEventStore implements EventStore
 
         setAccessiblePrograms( user, params );
 
-        Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
         List<Long> relationshipIds = new ArrayList<>();
 
@@ -332,8 +332,7 @@ public class JdbcEventStore implements EventStore
 
         while ( rowSet.next() )
         {
-            if ( rowSet.getString( "psi_uid" ) == null
-                || (params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet )) )
+            if ( rowSet.getString( "psi_uid" ) == null )
             {
                 continue;
             }
@@ -342,95 +341,76 @@ public class JdbcEventStore implements EventStore
 
             Event event;
 
-            if ( !eventUidToEventMap.containsKey( psiUid ) )
+            validateIdentifiersPresence( rowSet, params.getIdSchemes(), true );
+
+            event = new Event();
+
+            if ( !params.isSkipEventId() )
             {
-                validateIdentifiersPresence( rowSet, params.getIdSchemes(), true );
-
-                event = new Event();
-                eventUidToEventMap.put( psiUid, event );
-
-                if ( !params.isSkipEventId() )
-                {
-                    event.setUid( psiUid );
-                    event.setEvent( psiUid );
-                }
-
-                event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
-                event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
-
-                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
-
-                event.setProgram( rowSet.getString( "p_identifier" ) );
-                event.setProgramType( programType );
-                event.setProgramStage( rowSet.getString( "ps_identifier" ) );
-                event.setOrgUnit( rowSet.getString( "ou_uid" ) );
-                event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
-
-                if ( programType != ProgramType.WITHOUT_REGISTRATION )
-                {
-                    event.setEnrollment( rowSet.getString( "pi_uid" ) );
-                    event.setEnrollmentStatus( EnrollmentStatus
-                        .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
-                    event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
-                }
-
-                if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
-                {
-                    event.setOptionSize( rowSet.getInt( "option_size" ) );
-                }
-
-                event.setAttributeOptionCombo( rowSet.getString( "coc_identifier" ) );
-                event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
-                event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
-
-                event.setStoredBy( rowSet.getString( "psi_storedby" ) );
-                event.setOrgUnitName( rowSet.getString( "ou_name" ) );
-                event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
-                event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
-                event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
-                event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyuserinfo" ), jsonMapper ) );
-                event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
-                event.setLastUpdatedByUserInfo(
-                    jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyuserinfo" ), jsonMapper ) );
-
-                event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
-                event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
-
-                if ( rowSet.getObject( "psi_geometry" ) != null )
-                {
-                    try
-                    {
-                        Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
-
-                        event.setGeometry( geom );
-                    }
-                    catch ( ParseException e )
-                    {
-                        log.error( "Unable to read geometry for event '" + event.getUid() + "': ", e );
-                    }
-                }
-
-                if ( rowSet.getObject( "user_assigned" ) != null )
-                {
-                    event.setAssignedUser( rowSet.getString( "user_assigned" ) );
-                    event.setAssignedUserUsername( rowSet.getString( "user_assigned_username" ) );
-                    event.setAssignedUserDisplayName( rowSet.getString( "user_assigned_name" ) );
-                }
-
-                events.add( event );
+                event.setUid( psiUid );
+                event.setEvent( psiUid );
             }
-            else
-            {
-                event = eventUidToEventMap.get( psiUid );
-                String attributeCategoryCombination = event.getAttributeCategoryOptions();
-                String currentAttributeCategoryCombination = rowSet.getString( "deco_uid" );
 
-                if ( !attributeCategoryCombination.contains( currentAttributeCategoryCombination ) )
+            event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
+            event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
+
+            ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
+
+            event.setProgram( rowSet.getString( "p_identifier" ) );
+            event.setProgramType( programType );
+            event.setProgramStage( rowSet.getString( "ps_identifier" ) );
+            event.setOrgUnit( rowSet.getString( "ou_uid" ) );
+            event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
+
+            if ( programType != ProgramType.WITHOUT_REGISTRATION )
+            {
+                event.setEnrollment( rowSet.getString( "pi_uid" ) );
+                event.setEnrollmentStatus( EnrollmentStatus
+                    .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
+                event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
+            }
+
+            event.setAttributeOptionCombo( rowSet.getString( "coc_identifier" ) );
+            event.setAttributeCategoryOptions( rowSet.getString( "co_uids" ) );
+            event.setOptionSize( rowSet.getInt( "option_size" ) );
+
+            event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
+
+            event.setStoredBy( rowSet.getString( "psi_storedby" ) );
+            event.setOrgUnitName( rowSet.getString( "ou_name" ) );
+            event.setDueDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_duedate" ) ) );
+            event.setEventDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_executiondate" ) ) );
+            event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
+            event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyuserinfo" ), jsonMapper ) );
+            event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
+            event.setLastUpdatedByUserInfo(
+                jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyuserinfo" ), jsonMapper ) );
+
+            event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
+            event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
+
+            if ( rowSet.getObject( "psi_geometry" ) != null )
+            {
+                try
                 {
-                    event.setAttributeCategoryOptions(
-                        attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
+                    Geometry geom = new WKTReader().read( rowSet.getString( "psi_geometry" ) );
+
+                    event.setGeometry( geom );
+                }
+                catch ( ParseException e )
+                {
+                    log.error( "Unable to read geometry for event '" + event.getUid() + "': ", e );
                 }
             }
+
+            if ( rowSet.getObject( "user_assigned" ) != null )
+            {
+                event.setAssignedUser( rowSet.getString( "user_assigned" ) );
+                event.setAssignedUserUsername( rowSet.getString( "user_assigned_username" ) );
+                event.setAssignedUserDisplayName( rowSet.getString( "user_assigned_name" ) );
+            }
+
+            events.add( event );
 
             if ( !StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
             {
@@ -633,8 +613,7 @@ public class JdbcEventStore implements EventStore
 
         while ( rowSet.next() )
         {
-            if ( rowSet.getString( "psi_uid" ) == null
-                || (params.getCategoryOptionCombo() == null && !isSuper( user ) && !userHasAccess( rowSet )) )
+            if ( rowSet.getString( "psi_uid" ) == null )
             {
                 continue;
             }
@@ -970,23 +949,16 @@ public class JdbcEventStore implements EventStore
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
             + getEventSelectIdentifiersByIdScheme( params )
             + " psi.uid as psi_uid, "
-            + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
+            + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
             + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
-            + "auc.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
-
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
-            && !isSuper( user ) )
-        {
-            sqlBuilder.append( "CASE WHEN " )
-                .append( JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing", user,
-                    AclService.LIKE_READ_DATA ) )
-                .append( " THEN true ELSE false END as decoa_can_access" )
-                .append( ", cocount.option_size AS option_size, " );
-        }
+            + "auc.username as user_assigned_username, "
+            + "coc.uid as coc_uid, "
+            + "coc_agg.co_uids AS co_uids, "
+            + "coc_agg.co_count AS option_size, " );
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
@@ -1101,7 +1073,7 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        sqlBuilder.append( getCategoryOptionSharingForUser( user, params ) );
+        sqlBuilder.append( getCategoryOptionComboQuery( user ) );
 
         if ( !eventDataValuesWhereSql.isEmpty() )
         {
@@ -1262,7 +1234,6 @@ public class JdbcEventStore implements EventStore
             + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
-            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
             + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
@@ -1476,22 +1447,47 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
-    private String getCategoryOptionSharingForUser( User user, EventSearchParams params )
+    /**
+     * Returns the joins and sub-queries needed to fulfill all the needs
+     * regarding category option combo and category options. Category option
+     * combos (COC) are composed of category options (CO), one per category of
+     * the COCs category combination (CC).
+     *
+     * Important constraints leading to this query:
+     * <ul>
+     * <li>While COCs are pre-computed and can be seen as a de-normalization of
+     * the possible permutations the COs in a COC are stored in a normalized
+     * way. The final event should have its attributeCategoryOptions field
+     * populated with a semicolon separated string of its COCs COs. We thus need
+     * to aggregate these COs for each event.</li>
+     * <li>COCs should be returned in the user specified idScheme. So in order
+     * to have access to uid, code, name, attributes we need another join as all
+     * of these fields cannot be added to the above aggregation. IdSchemes
+     * SELECT are handled in {@link #getEventSelectIdentifiersByIdScheme}.</li>
+     * <li>A user must have access to all COs of the events COC to have access
+     * to an event.</li>
+     * </ul>
+     */
+    private String getCategoryOptionComboQuery( User user )
     {
-        String joinCondition = "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid=cocco.categoryoptioncomboid "
-            + " inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid ";
+        String joinCondition = "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
+            +
+            " inner join (select coc.categoryoptioncomboid as id," +
+            " string_agg(co.uid, ';') as co_uids, count(co.categoryoptionid) as co_count" +
+            " from categoryoptioncombo coc " +
+            " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
+            +
+            " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid" +
+            " group by coc.categoryoptioncomboid ";
 
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
-            && !isSuper( user ) )
+        if ( !isSuper( user ) )
         {
-            return joinCondition +
-                " inner join ( " +
-                "select categoryoptioncomboid, COUNT(categoryoptioncomboid) as option_size " +
-                "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid ";
+            joinCondition = joinCondition + " having bool_and(case when "
+                + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AclService.LIKE_READ_DATA )
+                + " then true else false end) = True ";
         }
 
-        return joinCondition;
+        return joinCondition + ") as coc_agg on coc_agg.id = psi.attributeoptioncomboid ";
     }
 
     private String getEventPagingQuery( EventSearchParams params )
@@ -1678,9 +1674,9 @@ public class JdbcEventStore implements EventStore
 
             // @formatter:off
             return batch.stream()
-                .filter( psi -> persisted.containsKey( psi.getUid() ) )
-                .peek( psi -> psi.setId( persisted.get( psi.getUid() ) ) )
-                .collect( Collectors.toList() );
+                    .filter( psi -> persisted.containsKey( psi.getUid() ) )
+                    .peek( psi -> psi.setId( persisted.get( psi.getUid() ) ) )
+                    .collect( Collectors.toList() );
             // @formatter:on
         }
         else
@@ -1699,7 +1695,7 @@ public class JdbcEventStore implements EventStore
         Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
             .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
                 .sorted() // make sure the list is sorted, to prevent
-                          // deadlocks
+                // deadlocks
                 .map( s -> "'" + s + "'" )
                 .collect( Collectors.joining( ", " ) ), user ) );
     }
@@ -1805,16 +1801,6 @@ public class JdbcEventStore implements EventStore
 
         ps.setObject( 19, eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper ) );
         ps.setString( 20, programStageInstance.getUid() );
-    }
-
-    private boolean userHasAccess( SqlRowSet rowSet )
-    {
-        if ( rowSet.wasNull() )
-        {
-            return true;
-        }
-
-        return rowSet.getBoolean( "decoa_can_access" );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )

@@ -28,9 +28,11 @@
 package org.hisp.dhis.tracker;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -108,8 +110,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
+        assertNoErrors( objectBundleValidationService.validate( bundle ) );
 
         objectBundleService.commit( bundle );
 
@@ -149,6 +150,14 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected void assertNoImportErrors( TrackerImportReport report )
     {
         assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
+    }
+
+    public static void assertNoErrors( ObjectBundleValidationReport report )
+    {
+        assertNotNull( report );
+        List<String> errors = new ArrayList<>();
+        report.forEachErrorReport( err -> errors.add( err.toString() ) );
+        assertFalse( String.format( "Expected no errors, instead got: %s\n", errors ), report.hasErrorReports() );
     }
 
     @Override
