@@ -29,9 +29,9 @@ package org.hisp.dhis.apphub;
 
 import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
 import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
+import static org.hisp.dhis.apphub.AppHubUtils.sanitizeUuid;
 import static org.hisp.dhis.apphub.AppHubUtils.validateApiVersion;
 import static org.hisp.dhis.apphub.AppHubUtils.validateQuery;
-import static org.hisp.dhis.apphub.AppHubUtils.validateUuid;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -50,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.http.HttpMethod;
@@ -107,12 +108,13 @@ public class DefaultAppHubService implements AppHubService
 
     @Override
     public AppVersion getWebAppVersion( String versionId )
+        throws IllegalQueryException
     {
-        validateUuid( versionId );
+        String sanitizedVersionId = sanitizeUuid( versionId );
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
         String appVersionEndpoint = "v2/appVersions";
-        String url = String.format( "%s/%s/%s", appHubApiUrl, appVersionEndpoint, versionId );
+        String url = String.format( "%s/%s/%s", appHubApiUrl, appVersionEndpoint, sanitizedVersionId );
 
         return restTemplate.getForObject( url, AppVersion.class );
     }

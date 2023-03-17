@@ -96,7 +96,7 @@ public class AppHubUtils
      * @throws IllegalQueryException if the UUID is invalid
      */
 
-    public static void validateUuid( String uuid )
+    public static String sanitizeUuid( String uuid )
         throws IllegalQueryException
     {
         if ( uuid == null || uuid.isEmpty() )
@@ -106,8 +106,12 @@ public class AppHubUtils
 
         try
         {
+            String sanitizedUuid = UUID.fromString( uuid ).toString();
+
             // need to check equality because fromString converts strings like 1-1-1-1-1 to a valid UUID
-            checkArgument( UUID.fromString( uuid ).toString().equals( uuid ) );
+            checkArgument( sanitizedUuid.equals( uuid ) );
+
+            return sanitizedUuid;
         }
         catch ( IllegalArgumentException e )
         {
