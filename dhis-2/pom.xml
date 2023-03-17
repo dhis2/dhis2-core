@@ -82,7 +82,7 @@
     <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.24</spring.version>
+    <spring.version>5.3.25</spring.version>
     <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
