@@ -528,7 +528,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 tei = trackedEntityInstanceService
-                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.FALSE );
+                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.TRUE );
             }
 
             relationshipItem.setTrackedEntityInstance( tei );
@@ -546,8 +546,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(),
-                    EnrollmentParams.FALSE );
+                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), EnrollmentParams.TRUE );
             }
 
             relationshipItem.setEnrollment( enrollment );
