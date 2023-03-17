@@ -73,6 +73,11 @@ public interface JsonRelationshipItem extends JsonObject
             return get( "attributes" ).asList( JsonAttribute.class );
         }
 
+        default JsonList<JsonEnrollment> getEnrollments()
+        {
+            return get( "enrollments" ).asList( JsonEnrollment.class );
+        }
+
         default JsonList<JsonProgramOwner> getProgramOwners()
         {
             return get( "programOwners" ).asList( JsonProgramOwner.class );
@@ -101,6 +106,16 @@ public interface JsonRelationshipItem extends JsonObject
             return getString( "orgUnit" ).string();
         }
 
+        default JsonList<JsonEvent> getEvents()
+        {
+            return get( "events" ).asList( JsonEvent.class );
+        }
+
+        default JsonList<JsonAttribute> getAttributes()
+        {
+            return get( "attributes" ).asList( JsonAttribute.class );
+        }
+
         default JsonList<JsonNote> getNotes()
         {
             return get( "notes" ).asList( JsonNote.class );
@@ -127,6 +142,16 @@ public interface JsonRelationshipItem extends JsonObject
         default String getEnrollment()
         {
             return getString( "enrollment" ).string();
+        }
+
+        default JsonUser getAssignedUser()
+        {
+            return get( "assignedUser" ).as( JsonUser.class );
+        }
+
+        default JsonList<JsonDataValue> getDataValues()
+        {
+            return get( "dataValues" ).asList( JsonDataValue.class );
         }
 
         default JsonList<JsonNote> getNotes()
