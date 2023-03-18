@@ -160,7 +160,7 @@ public class AppOverrideFilter
             }
 
             response.setContentLength( (int) resource.contentLength() );
-            response.setHeader( "etag", etag );
+            response.setHeader( "ETag", etag );
 
             StreamUtils.copyThenCloseInputStream( resource.getInputStream(), response.getOutputStream() );
         }
