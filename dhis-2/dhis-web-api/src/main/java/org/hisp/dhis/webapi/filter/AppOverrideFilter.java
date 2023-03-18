@@ -135,7 +135,6 @@ public class AppOverrideFilter
         {
             // Retrieve file
             Resource resource = appManager.getAppResource( app, resourcePath );
-
             if ( resource == null )
             {
                 response.sendError( HttpServletResponse.SC_NOT_FOUND );
@@ -143,7 +142,6 @@ public class AppOverrideFilter
             }
 
             String etag = CodecUtils.md5Hex( String.valueOf( resource.lastModified() ) );
-
             if ( new ServletWebRequest( request, response ).checkNotModified( etag ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
