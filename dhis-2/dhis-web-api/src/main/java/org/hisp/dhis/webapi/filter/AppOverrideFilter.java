@@ -143,8 +143,7 @@ public class AppOverrideFilter
             }
 
             String filename = resource.getFilename();
-            // TODO: use hash of app bundle in case two different bundles are installed with same version number
-            String etag = CodecUtils.md5Hex( filename + app.getVersion() );
+            String etag = CodecUtils.md5Hex( String.valueOf( resource.lastModified() ) );
 
             if ( new ServletWebRequest( request, response ).checkNotModified( etag ) )
             {
