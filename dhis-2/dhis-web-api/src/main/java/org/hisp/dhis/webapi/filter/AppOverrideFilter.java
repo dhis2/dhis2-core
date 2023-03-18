@@ -142,7 +142,6 @@ public class AppOverrideFilter
                 return;
             }
 
-            String filename = resource.getFilename();
             String etag = CodecUtils.md5Hex( String.valueOf( resource.lastModified() ) );
 
             if ( new ServletWebRequest( request, response ).checkNotModified( etag ) )
@@ -151,6 +150,7 @@ public class AppOverrideFilter
                 return;
             }
 
+            String filename = resource.getFilename();
             log.debug( String.format( "App filename: '%s'", filename ) );
 
             String mimeType = request.getSession().getServletContext().getMimeType( filename );
