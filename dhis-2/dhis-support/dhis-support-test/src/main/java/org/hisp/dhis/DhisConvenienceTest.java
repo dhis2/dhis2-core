@@ -1910,6 +1910,12 @@ public abstract class DhisConvenienceTest
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType,
         Program program, String expression, String filter )
     {
+        return createProgramIndicator( uniqueCharacter, analyticsType, program, expression, filter, null, 0 );
+    }
+
+    public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType,
+        Program program, String expression, String filter, PeriodType afterStartPeriodType, int afterStartPeriods )
+    {
         ProgramIndicator indicator = new ProgramIndicator();
         indicator.setAutoFields();
         indicator.setName( "Indicator" + uniqueCharacter );
@@ -1927,14 +1933,16 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
                 AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
-                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, afterStartPeriodType,
+                afterStartPeriods ) );
         }
         else if ( analyticsType == AnalyticsType.ENROLLMENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
                 AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
-                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, afterStartPeriodType,
+                afterStartPeriods ) );
         }
 
         for ( AnalyticsPeriodBoundary boundary : boundaries )
