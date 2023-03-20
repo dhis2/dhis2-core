@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToSet;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
@@ -109,7 +108,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -323,7 +321,7 @@ public class JdbcEventStore implements EventStore
         UPDATE_EVENT_SQL = "update programstageinstance set " +
             UPDATE_COLUMNS.stream()
                 .map( column -> column + " = ?" )
-                .limit( UPDATE_COLUMNS.size() - 1 )
+                .limit( UPDATE_COLUMNS.size() - 1L )
                 .collect( Collectors.joining( "," ) )
             + " where uid = ?;";
     }
@@ -547,13 +545,6 @@ public class JdbcEventStore implements EventStore
                 .collect( Collectors.toList() );
             populateCache( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
             convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
-        }
-
-        if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
-        {
-            return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null
-                && splitToSet( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() )
-                .collect( Collectors.toList() );
         }
 
         return events;
