@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.security;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
- *
- * @author Jan Bernitt
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
+public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker
 {
-
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
-
-    private final ErrorCode errorCode;
-
-    private String property;
-
-    private Class<?>[] objectTypes;
-
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
-    {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
-    }
-
     @Override
-    public Class<?>[] getObjectTypes()
+    public void check( UserDetails userToImpersonate )
     {
-        return objectTypes;
-    }
+        CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+        if ( currentUser == null )
+        {
+            throw new InsufficientAuthenticationException( "User is not authenticated." );
+        }
 
-    @Override
-    public String getProperty()
-    {
-        return property;
-    }
+        if ( currentUser.getUsername().equals( userToImpersonate.getUsername() ) )
+        {
+            throw new InsufficientAuthenticationException( "User can not impersonate itself." );
+        }
 
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        boolean userToImpersonateIsSuper = userToImpersonate.getAuthorities().stream()
+            .anyMatch( grantedAuthority -> grantedAuthority.getAuthority().equals( "ALL" ) );
+
+        if ( (!currentUser.isSuper() && userToImpersonateIsSuper) )
+        {
+            throw new InsufficientAuthenticationException( "User is not authorized to impersonate super user." );
+        }
     }
 }
