@@ -29,9 +29,11 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
+import static org.apache.commons.lang3.time.DateUtils.truncate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -84,15 +86,22 @@ public class JdbcOwnershipWriter
 
     /**
      * Write a row to an analytics_ownership temp table. Work on a copy of the
-     * row so we do not change the original row. We cannot use immutable maps
+     * row, so we do not change the original row. We cannot use immutable maps
      * because the orgUnit levels contain nulls when the orgUnit is not at the
-     * lowest level, and immutable maps do not allow null values.
+     * lowest level, and immutable maps do not allow null values. Also, the end
+     * date is null in the last record for each TEI.
      *
      * @param row map of values to write
      */
     public void write( Map<String, Object> row )
     {
         newRow = new HashMap<>( row );
+
+        if ( newRow.get( ENDDATE ) != null )
+        {
+            // Remove the time of day portion of the ENDDATE.
+            newRow.put( ENDDATE, truncate( newRow.get( ENDDATE ), Calendar.DATE ) );
+        }
 
         if ( prevRow == null )
         {
@@ -124,11 +133,20 @@ public class JdbcOwnershipWriter
     }
 
     /**
-     * Combine the current row with the previous row by udating the previous
-     * row's end date. If this is the last row for this TEI, write it out.
+     * Combine the current row with the previous row by updating the previous
+     * row's OU and ENDDATE. If the ENDDATE is the same this means there were
+     * multiple assignments during a day, and we want to record only the last OU
+     * assignment for the day. If the OU is the same this means there were
+     * successive assignments to the same OU (possibly after collapsing the same
+     * ENDDATE assignments such as if a TEI was switched during a day to a
+     * different OU and then switched back again.) In this case we can combine
+     * the two successive records for the same OU into a single record.
+     * <p>
+     * If this is the last (and not only) row for this TEI, write it out.
      */
     private void combineWithPreviousRow()
     {
+        prevRow.put( OU, newRow.get( OU ) );
         prevRow.put( ENDDATE, newRow.get( ENDDATE ) );
 
         writeRowIfLast( prevRow );
@@ -155,8 +173,8 @@ public class JdbcOwnershipWriter
      * end date to far in the future and write it out. However, if this is the
      * only row for this TEI (from the beginning of time to the end of time),
      * then don't write it because the ownership never changed and analytics
-     * queries can always use the enrollement orgUnit.
-     *
+     * queries can always use the enrollment orgUnit.
+     * <p>
      * After, there will be no previous row for this TEI.
      */
     private void writeRowIfLast( Map<String, Object> row )
