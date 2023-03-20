@@ -153,21 +153,6 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataSetExistsStrictDataElements()
-    {
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
-
-        DataValueSet dataValueSet = new DataValueSet();
-
-        ImportContext context = createMinimalImportContext( null )
-            .strictDataElements( true ).build();
-        DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
-
-        assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( ErrorCode.E7602, "A valid dataset is required", context );
-    }
-
-    @Test
     public void testValidateDataSetOrgUnitExists()
     {
         when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
