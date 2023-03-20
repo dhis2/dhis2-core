@@ -62,6 +62,8 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Sets;
+
 /**
  * @author Chau Thu Tran
  */
@@ -107,8 +109,6 @@ class TrackedEntityInstanceServiceTest
 
     private Program program;
 
-    private ProgramStage programStage;
-
     private TrackedEntityInstance entityInstanceA1;
 
     private TrackedEntityInstance entityInstanceB1;
@@ -121,13 +121,11 @@ class TrackedEntityInstanceServiceTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityAttribute trackedEntityAttribute;
+    private TrackedEntityAttribute filtH;
 
     private final static String ATTRIBUTE_VALUE = "Value";
 
     private User superUser;
-
-    private User user;
 
     @Override
     public void setUpTest()
@@ -137,37 +135,63 @@ class TrackedEntityInstanceServiceTest
         this.superUser = preCreateInjectAdminUser();
 
         trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityAttribute = createTrackedEntityAttribute( 'H' );
+        TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+        TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+        TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+        TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
+        filtH = createTrackedEntityAttribute( 'H' );
 
-        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrD );
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrE );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtF );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtG );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtH );
 
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
+        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
+        organisationUnitService.addOrganisationUnit( organisationUnitB );
+        TrackedEntityAttribute entityInstanceAttribute = createTrackedEntityAttribute( 'A' );
+        attributeService.addTrackedEntityAttribute( entityInstanceAttribute );
         entityInstanceA1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceB1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceC1 = createTrackedEntityInstance( organisationUnit );
         entityInstanceD1 = createTrackedEntityInstance( organisationUnit );
-
-        entityInstanceA1.setTrackedEntityType( trackedEntityType );
-        entityInstanceB1.setTrackedEntityType( trackedEntityType );
-        entityInstanceC1.setTrackedEntityType( trackedEntityType );
-        entityInstanceD1.setTrackedEntityType( trackedEntityType );
-
+        entityInstanceA1.setUid( "UID-A1" );
+        entityInstanceB1.setUid( "UID-B1" );
+        entityInstanceC1.setUid( "UID-C1" );
+        entityInstanceD1.setUid( "UID-D1" );
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
-        programStage = createProgramStage( 'A', program );
-        programStage.setSortOrder( 1 );
-        programStageService.saveProgramStage( programStage );
-        program.setProgramStages( Set.of( programStage ) );
+        ProgramStage stageA = createProgramStage( 'A', program );
+        stageA.setSortOrder( 1 );
+        programStageService.saveProgramStage( stageA );
+        Set<ProgramStage> programStages = new HashSet<>();
+        programStages.add( stageA );
+        program.setProgramStages( programStages );
         programService.updateProgram( program );
+        DateTime enrollmentDate = DateTime.now();
+        enrollmentDate.withTimeAtStartOfDay();
+        enrollmentDate = enrollmentDate.minusDays( 70 );
+        DateTime incidentDate = DateTime.now();
+        incidentDate.withTimeAtStartOfDay();
+        programInstance = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
+            program );
+        programInstance.setUid( "UID-A" );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance = new ProgramStageInstance( programInstance, stageA );
+        programInstance.setUid( "UID-PSI-A" );
+        programInstance.setOrganisationUnit( organisationUnit );
 
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+        attributeService.addTrackedEntityAttribute( attrD );
+        attributeService.addTrackedEntityAttribute( attrE );
+        attributeService.addTrackedEntityAttribute( filtF );
+        attributeService.addTrackedEntityAttribute( filtG );
 
-        user = createUserWithAuth( "testUser" );
-        user.setTeiSearchOrganisationUnits( Set.of( organisationUnit ) );
+        User user = createUserWithAuth( "testUser" );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         injectSecurityContext( user );
     }
 
@@ -201,12 +225,10 @@ class TrackedEntityInstanceServiceTest
     void testDeleteTrackedEntityInstanceAndLinkedEnrollmentsAndEvents()
     {
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        programInstance = createProgramInstance( program, entityInstanceA1, organisationUnit );
         long psIdA = programInstanceService.addProgramInstance( programInstance );
-        programStageInstance = new ProgramStageInstance( programInstance, programStage );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstance );
-        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
-        entityInstanceA1.setProgramInstances( Set.of( programInstance ) );
+        programInstance.setProgramStageInstances( Sets.newHashSet( programStageInstance ) );
+        entityInstanceA1.setProgramInstances( Sets.newHashSet( programInstance ) );
         programInstanceService.updateProgramInstance( programInstance );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
         TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
@@ -264,11 +286,11 @@ class TrackedEntityInstanceServiceTest
     void testTrackedEntityAttributeFilter()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
 
-        User user = createAndAddUser( false, "attributeFilterUser", Set.of( organisationUnit ),
-            Set.of( organisationUnit ) );
+        User user = createAndAddUser( false, "attributeFilterUser", Sets.newHashSet( organisationUnit ),
+            Sets.newHashSet( organisationUnit ) );
         injectSecurityContext( user );
 
         entityInstanceA1.setTrackedEntityType( trackedEntityType );
@@ -276,14 +298,14 @@ class TrackedEntityInstanceServiceTest
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
 
-        trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
+        trackedEntityAttributeValue.setAttribute( filtH );
         trackedEntityAttributeValue.setEntityInstance( entityInstanceA1 );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
         params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
@@ -299,7 +321,7 @@ class TrackedEntityInstanceServiceTest
         injectSecurityContext( superUser );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
         params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
@@ -312,11 +334,11 @@ class TrackedEntityInstanceServiceTest
     void testTrackedEntityInstanceGridWithNoDisplayAttributes()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( false );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( false );
+        attributeService.addTrackedEntityAttribute( filtH );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
         params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
@@ -328,16 +350,16 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldOrderEntitiesByIdWhenParamCreatedAtSupplied()
     {
+        injectSecurityContext( superUser );
+
         entityInstanceA1.setCreated( DateTime.now().plusDays( 1 ).toDate() );
         entityInstanceB1.setCreated( DateTime.now().toDate() );
         entityInstanceC1.setCreated( DateTime.now().minusDays( 1 ).toDate() );
         entityInstanceD1.setCreated( DateTime.now().plusDays( 2 ).toDate() );
-
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        addEntityInstances();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "createdAt", OrderParam.SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -349,16 +371,17 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldOrderEntitiesByIdWhenParamUpdatedAtSupplied()
     {
+        injectSecurityContext( superUser );
+
         entityInstanceA1.setLastUpdated( DateTime.now().plusDays( 1 ).toDate() );
         entityInstanceB1.setLastUpdated( DateTime.now().toDate() );
         entityInstanceC1.setLastUpdated( DateTime.now().minusDays( 1 ).toDate() );
         entityInstanceD1.setLastUpdated( DateTime.now().plusDays( 2 ).toDate() );
 
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        addEntityInstances();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "updatedAt", OrderParam.SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -370,16 +393,12 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldOrderEntitiesByIdWhenParamTrackedEntitySupplied()
     {
-        entityInstanceD1.setUid( "UID-D" );
-        entityInstanceC1.setUid( "UID-C" );
-        entityInstanceB1.setUid( "UID-B" );
-        entityInstanceA1.setUid( "UID-A" );
+        injectSecurityContext( superUser );
 
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        addEntityInstances();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "trackedEntity", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -391,16 +410,16 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldOrderEntitiesByLastUpdatedAtClientWhenParamUpdatedAtClientSupplied()
     {
+        injectSecurityContext( superUser );
+
         entityInstanceA1.setLastUpdatedAtClient( DateTime.now().plusDays( 1 ).toDate() );
         entityInstanceB1.setLastUpdatedAtClient( DateTime.now().toDate() );
         entityInstanceC1.setLastUpdatedAtClient( DateTime.now().minusDays( 1 ).toDate() );
         entityInstanceD1.setLastUpdatedAtClient( DateTime.now().plusDays( 2 ).toDate() );
-
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        addEntityInstances();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "updatedAtClient", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -412,20 +431,16 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldOrderEntitiesByEnrollmentDateWhenParamEnrolledAtSupplied()
     {
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        injectSecurityContext( superUser );
 
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceA1, program,
-            DateTime.now().minusDays( 3 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceB1, program,
-            DateTime.now().plusDays( 2 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceC1, program,
-            DateTime.now().minusDays( 2 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceD1, program,
-            DateTime.now().plusDays( 1 ).toDate(), new Date(), organisationUnit );
+        addEntityInstances();
+        programInstanceService.addProgramInstance( programInstance );
+        addEnrollment( entityInstanceB1, DateTime.now().plusDays( 2 ).toDate(), 'B' );
+        addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
+        addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -437,25 +452,20 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldSortEntitiesAndKeepOrderOfParamsWhenMultipleStaticFieldsSupplied()
     {
+        injectSecurityContext( superUser );
         entityInstanceA1.setInactive( true );
         entityInstanceB1.setInactive( true );
         entityInstanceC1.setInactive( false );
         entityInstanceD1.setInactive( false );
+        addEntityInstances();
 
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
-
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceA1, program,
-            DateTime.now().minusDays( 1 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceB1, program,
-            DateTime.now().plusDays( 2 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceC1, program,
-            DateTime.now().minusDays( 2 ).toDate(), new Date(), organisationUnit );
-        programInstanceService.enrollTrackedEntityInstance( entityInstanceD1, program,
-            DateTime.now().plusDays( 1 ).toDate(), new Date(), organisationUnit );
+        programInstanceService.addProgramInstance( programInstance );
+        addEnrollment( entityInstanceB1, DateTime.now().plusDays( 2 ).toDate(), 'B' );
+        addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
+        addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ),
             new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
 
@@ -468,11 +478,11 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldSortEntitiesByIdWhenNoOrderParamProvided()
     {
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        injectSecurityContext( superUser );
+        addEntityInstances();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -484,21 +494,18 @@ class TrackedEntityInstanceServiceTest
     void shouldOrderByNonStaticFieldWhenNonStaticFieldProvided()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
 
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
-
-        saveTeav( entityInstanceA1, trackedEntityAttribute, "3-Attribute Value A1" );
-        saveTeav( entityInstanceB1, trackedEntityAttribute, "1-Attribute Value B1" );
-        saveTeav( entityInstanceC1, trackedEntityAttribute, "4-Attribute Value C1" );
-        saveTeav( entityInstanceD1, trackedEntityAttribute, "2-Attribute Value D1" );
+        setUpEntityAndAttributeValue( entityInstanceA1, "3-Attribute Value A1" );
+        setUpEntityAndAttributeValue( entityInstanceB1, "1-Attribute Value B1" );
+        setUpEntityAndAttributeValue( entityInstanceC1, "4-Attribute Value C1" );
+        setUpEntityAndAttributeValue( entityInstanceD1, "2-Attribute Value D1" );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), OrderParam.SortDirection.ASC ) ) );
-        params.setAttributes( List.of( new QueryItem( trackedEntityAttribute ) ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.ASC ) ) );
+        params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -510,27 +517,24 @@ class TrackedEntityInstanceServiceTest
     void shouldSortEntitiesAndKeepOrderOfParamsWhenStaticAndNonStaticFieldsSupplied()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
 
         entityInstanceA1.setInactive( true );
         entityInstanceB1.setInactive( false );
         entityInstanceC1.setInactive( true );
         entityInstanceD1.setInactive( false );
 
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
-
-        saveTeav( entityInstanceA1, trackedEntityAttribute, "2-Attribute Value" );
-        saveTeav( entityInstanceB1, trackedEntityAttribute, "2-Attribute Value" );
-        saveTeav( entityInstanceC1, trackedEntityAttribute, "1-Attribute Value" );
-        saveTeav( entityInstanceD1, trackedEntityAttribute, "1-Attribute Value" );
+        setUpEntityAndAttributeValue( entityInstanceA1, "2-Attribute Value" );
+        setUpEntityAndAttributeValue( entityInstanceB1, "2-Attribute Value" );
+        setUpEntityAndAttributeValue( entityInstanceC1, "1-Attribute Value" );
+        setUpEntityAndAttributeValue( entityInstanceD1, "1-Attribute Value" );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), OrderParam.SortDirection.DESC ),
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.DESC ),
             new OrderParam( "inactive", OrderParam.SortDirection.ASC ) ) );
-        params.setAttributes( List.of( new QueryItem( trackedEntityAttribute ) ) );
+        params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -541,17 +545,20 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldSortEntitiesByAttributeDescendingWhenAttributeDescendingProvided()
     {
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        injectSecurityContext( superUser );
 
-        saveTeav( entityInstanceA1, trackedEntityAttribute, "A" );
-        saveTeav( entityInstanceB1, trackedEntityAttribute, "D" );
-        saveTeav( entityInstanceC1, trackedEntityAttribute, "C" );
-        saveTeav( entityInstanceD1, trackedEntityAttribute, "B" );
+        TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+        addEntityInstances();
+
+        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), OrderParam.SortDirection.DESC ) ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders( List.of( new OrderParam( tea.getUid(), OrderParam.SortDirection.DESC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -562,17 +569,20 @@ class TrackedEntityInstanceServiceTest
     @Test
     void shouldSortEntitiesByAttributeAscendingWhenAttributeAscendingProvided()
     {
-        List.of( entityInstanceA1, entityInstanceB1, entityInstanceC1, entityInstanceD1 )
-            .forEach( entityInstanceService::addTrackedEntityInstance );
+        injectSecurityContext( superUser );
 
-        saveTeav( entityInstanceA1, trackedEntityAttribute, "A" );
-        saveTeav( entityInstanceB1, trackedEntityAttribute, "D" );
-        saveTeav( entityInstanceC1, trackedEntityAttribute, "C" );
-        saveTeav( entityInstanceD1, trackedEntityAttribute, "B" );
+        TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+        addEntityInstances();
+
+        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), OrderParam.SortDirection.ASC ) ) );
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setOrders( List.of( new OrderParam( tea.getUid(), OrderParam.SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -601,7 +611,60 @@ class TrackedEntityInstanceServiceTest
         assertEquals( 0, trackedEntitiesCounter );
     }
 
-    private void saveTeav( TrackedEntityInstance trackedEntityInstance,
+    private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
+    {
+        ProgramStage stage = createProgramStage( programStage, program );
+        stage.setSortOrder( 1 );
+        programStageService.saveProgramStage( stage );
+
+        Set<ProgramStage> programStages = new HashSet<>();
+        programStages.add( stage );
+        program.setProgramStages( programStages );
+        programService.updateProgram( program );
+
+        programInstance = new ProgramInstance( enrollmentDate, DateTime.now().toDate(), entityInstance, program );
+        programInstance.setUid( "UID-" + programStage );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance = new ProgramStageInstance( programInstance, stage );
+        programInstance.setUid( "UID-PSI-" + programStage );
+        programInstance.setOrganisationUnit( organisationUnit );
+
+        programInstanceService.addProgramInstance( programInstance );
+    }
+
+    private void addEntityInstances()
+    {
+        entityInstanceA1.setTrackedEntityType( trackedEntityType );
+        entityInstanceB1.setTrackedEntityType( trackedEntityType );
+        entityInstanceC1.setTrackedEntityType( trackedEntityType );
+        entityInstanceD1.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceC1 );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceD1 );
+    }
+
+    private void setUpEntityAndAttributeValue( TrackedEntityInstance entityInstance, String attributeValue )
+    {
+        entityInstance.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntityInstance( entityInstance );
+
+        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+        trackedEntityAttributeValue.setAttribute( filtH );
+        trackedEntityAttributeValue.setEntityInstance( entityInstance );
+        trackedEntityAttributeValue.setValue( attributeValue );
+        attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
+    }
+
+    private TrackedEntityAttribute createTrackedEntityAttribute()
+    {
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'X' );
+        attributeService.addTrackedEntityAttribute( tea );
+
+        return tea;
+    }
+
+    private void createTrackedEntityInstanceAttribute( TrackedEntityInstance trackedEntityInstance,
         TrackedEntityAttribute attribute, String value )
     {
         TrackedEntityAttributeValue trackedEntityAttributeValueA1 = new TrackedEntityAttributeValue();
