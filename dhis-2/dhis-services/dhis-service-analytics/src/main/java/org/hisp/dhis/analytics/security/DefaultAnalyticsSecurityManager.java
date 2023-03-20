@@ -61,7 +61,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -88,8 +87,6 @@ public class DefaultAnalyticsSecurityManager
     private final AclService aclService;
 
     private final CurrentUserService currentUserService;
-
-    private final OrganisationUnitService organisationUnitService;
 
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
@@ -127,9 +124,9 @@ public class DefaultAnalyticsSecurityManager
 
         for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
         {
-            boolean notDescendant = !organisationUnitService.isDescendant( queryOrgUnit, viewOrgUnits );
+            boolean descendant = queryOrgUnit.isDescendant( viewOrgUnits );
 
-            if ( notDescendant )
+            if ( !descendant )
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }

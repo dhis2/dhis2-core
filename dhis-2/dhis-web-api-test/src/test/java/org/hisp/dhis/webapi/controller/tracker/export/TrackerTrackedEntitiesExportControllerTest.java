@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -61,14 +61,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 {
+
+    private static final String EVENT_DATE = "2023-03-23T12:23:00.000";
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -202,15 +206,13 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         Relationship r = relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> rels = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        JsonArray rels = json.getArray( "relationships" );
-        assertFalse( rels.isEmpty(), "relationships are returned if `fields` contains relationships" );
         assertEquals( 1, rels.size() );
-        assertRelationship( r, rels.getObject( 0 ) );
-        assertTrackedEntityWithinRelationship( from, rels.getObject( 0 ).getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, rels.getObject( 0 ).getObject( "to" ) );
+        JsonRelationship relationship = assertFirstRelationship( r, rels );
+        assertTrackedEntityWithinRelationship( from, relationship.getFrom() );
+        assertTrackedEntityWithinRelationship( to, relationship.getTo() );
     }
 
     @Test
@@ -221,12 +223,11 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         relationship( relationshipTypeNotAccessible(), fromTrackedEntity( from ), toTrackedEntity( to ) );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/trackedEntities/{id}?fields=relationships",
+            from.getUid() )
+                .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        assertTrue( json.getArray( "relationships" ).isEmpty(),
-            "user needs access to relationship type to access the relationship" );
+        assertEquals( 0, relationships.size(), "user needs access to relationship type to access the relationship" );
     }
 
     @Test
@@ -237,12 +238,11 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
-            .content( HttpStatus.OK );
+        JsonList<JsonRelationship> relationships = GET( "/tracker/trackedEntities/{id}?fields=relationships",
+            from.getUid() )
+                .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
-        assertFalse( json.isEmpty() );
-        assertTrue( json.getArray( "relationships" ).isEmpty(),
-            "user needs access to from and to items to access the relationship" );
+        assertEquals( 0, relationships.size(), "user needs access to from and to items to access the relationship" );
     }
 
     @Test
@@ -404,6 +404,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         ProgramStageInstance programStageInstance = new ProgramStageInstance( programInstance, programStage,
             programInstance.getOrganisationUnit() );
         programStageInstance.setAutoFields();
+        programStageInstance.setExecutionDate( DateUtils.parseDate( EVENT_DATE ) );
 
         dataElement = createDataElement( 'A' );
         dataElement.setValueType( ValueType.TEXT );
@@ -465,6 +466,8 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertEquals( orgUnit.getName(), event.getString( "orgUnitName" ).string() );
         assertFalse( event.getBoolean( "deleted" ).booleanValue() );
         assertHasMember( event, "createdAt" );
+        assertHasMember( event, "occurredAt" );
+        assertEquals( EVENT_DATE, event.getString( "occurredAt" ).string() );
         assertHasMember( event, "createdAtClient" );
         assertHasMember( event, "updatedAt" );
         assertHasMember( event, "notes" );

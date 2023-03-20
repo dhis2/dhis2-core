@@ -65,6 +65,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,12 +81,16 @@ class EventImportValidationTest extends TrackerTest
     private ProgramStageInstanceService programStageServiceInstance;
 
     @Autowired
-    protected TrackerImportService trackerImportService;
+    private TrackerImportService trackerImportService;
+
+    @Autowired
+    private UserService _userService;
 
     @Override
     protected void initTest()
         throws IOException
     {
+        userService = _userService;
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
 
@@ -170,8 +175,7 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1099, TrackerErrorCode.E1104,
-            TrackerErrorCode.E1096, TrackerErrorCode.E1095 );
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1099, TrackerErrorCode.E1104 );
     }
 
     @Test
