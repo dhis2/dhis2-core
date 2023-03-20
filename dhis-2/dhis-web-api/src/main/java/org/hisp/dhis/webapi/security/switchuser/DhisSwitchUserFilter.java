@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.webapi.security.switchuser;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
- *
- * @author Jan Bernitt
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
+@RequiredArgsConstructor
+public class DhisSwitchUserFilter extends SwitchUserFilter
 {
-
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
-
-    private final ErrorCode errorCode;
-
-    private String property;
-
-    private Class<?>[] objectTypes;
-
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
-    {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
-    }
+    private final DhisConfigurationProvider config;
 
     @Override
-    public Class<?>[] getObjectTypes()
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
+        throws IOException,
+        ServletException
     {
-        return objectTypes;
+        boolean enabled = config.isEnabled( ConfigurationKey.SWITCH_USER_FEATURE_ENABLED );
+        if ( enabled && isAllowListedIp( request.getRemoteAddr() ) )
+        {
+            super.doFilter( request, response, chain );
+            return;
+        }
+
+        chain.doFilter( request, response );
     }
 
-    @Override
-    public String getProperty()
+    private boolean isAllowListedIp( String remoteAddr )
     {
-        return property;
-    }
+        String property = config.getProperty( ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS );
+        for ( String ip : property.split( "," ) )
+        {
+            if ( ip.trim().equalsIgnoreCase( remoteAddr ) )
+            {
+                return true;
+            }
+        }
 
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        return false;
     }
 }
