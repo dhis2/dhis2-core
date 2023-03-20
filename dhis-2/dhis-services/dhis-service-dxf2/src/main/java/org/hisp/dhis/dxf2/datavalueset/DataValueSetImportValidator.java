@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -128,7 +130,6 @@ public class DataValueSetImportValidator
         // DataSet Validations
         register( DataValueSetImportValidator::validateDataSetExists );
         register( this::validateDataSetIsAccessibleByUser );
-        register( DataValueSetImportValidator::validateDataSetExistsStrictDataElements );
         register( DataValueSetImportValidator::validateDataSetOrgUnitExists );
         register( DataValueSetImportValidator::validateDataSetAttrOptionComboExists );
 
@@ -201,15 +202,6 @@ public class DataValueSetImportValidator
         if ( dataSet != null && !aclService.canDataWrite( context.getCurrentUser(), dataSet ) )
         {
             context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_ACCESSIBLE, dataValueSet.getDataSet() );
-        }
-    }
-
-    private static void validateDataSetExistsStrictDataElements( DataValueSet dataValueSet, ImportContext context,
-        DataSetContext dataSetContext )
-    {
-        if ( dataSetContext.getDataSet() == null && context.isStrictDataElements() )
-        {
-            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_VALID );
         }
     }
 
@@ -465,12 +457,19 @@ public class DataValueSetImportValidator
     private static void checkDataValueStrictDataElement( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        if ( context.isStrictDataElements()
-            && !dataSetContext.getDataSetDataElements().contains( valueContext.getDataElement() ) )
+        if ( !context.isStrictDataElements() )
+        {
+            return;
+        }
+        Set<DataSet> targets = dataSetContext.getDataSet() != null
+            ? Collections.singleton( dataSetContext.getDataSet() )
+            : valueContext.getDataElement().getDataSets();
+        if ( targets.stream()
+            .noneMatch( dataSet -> dataSet.getDataElements().contains( valueContext.getDataElement() ) ) )
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.DATA_ELEMENT_STRICT,
-                dataValue.getDataElement(), dataSetContext.getDataSet().getUid() );
+                dataValue.getDataElement(), targets.stream().map( DataSet::getUid ).collect( joining( "," ) ) );
         }
     }
 
