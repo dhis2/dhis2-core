@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -461,7 +462,7 @@ public class DataValueSetImportValidator
             return;
         }
         Set<DataSet> targets = dataSetContext.getDataSet() != null
-            ? Set.of( dataSetContext.getDataSet() )
+            ? Collections.singleton( dataSetContext.getDataSet() )
             : valueContext.getDataElement().getDataSets();
         if ( targets.stream()
             .noneMatch( dataSet -> dataSet.getDataElements().contains( valueContext.getDataElement() ) ) )
