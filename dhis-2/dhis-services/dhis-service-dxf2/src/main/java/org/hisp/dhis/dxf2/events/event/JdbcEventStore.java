@@ -321,7 +321,7 @@ public class JdbcEventStore implements EventStore
         UPDATE_EVENT_SQL = "update programstageinstance set " +
             UPDATE_COLUMNS.stream()
                 .map( column -> column + " = ?" )
-                .limit( UPDATE_COLUMNS.size() - 1 )
+                .limit( UPDATE_COLUMNS.size() - 1L )
                 .collect( Collectors.joining( "," ) )
             + " where uid = ?;";
     }
