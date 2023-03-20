@@ -53,9 +53,9 @@ public class LinkValidator implements Validator<Relationship>
     private void validateRelationshipItemsContainOnlyOneEntity( Reporter reporter,
         Relationship relationship )
     {
-        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getFrom() ),
+        reporter.addErrorIf( () -> hasUnexpectedReferences( relationship.getFrom() ),
             relationship, E4001, "from", relationship.getRelationship() );
-        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getTo() ),
+        reporter.addErrorIf( () -> hasUnexpectedReferences( relationship.getTo() ),
             relationship, E4001, "to", relationship.getRelationship() );
     }
 
@@ -67,11 +67,11 @@ public class LinkValidator implements Validator<Relationship>
         }
     }
 
-    private boolean hasMoreThanOneReference( RelationshipItem item )
+    private boolean hasUnexpectedReferences( RelationshipItem item )
     {
         return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
             .filter( StringUtils::isNotBlank )
-            .count() > 1;
+            .count() != 1;
     }
 
     @Override

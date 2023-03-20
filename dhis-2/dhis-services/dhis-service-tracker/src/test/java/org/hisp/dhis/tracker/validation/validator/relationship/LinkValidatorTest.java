@@ -35,7 +35,6 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -116,13 +115,6 @@ class LinkValidatorTest
                 .build() )
             .build();
 
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relTypeUid );
-        RelationshipConstraint constraint = new RelationshipConstraint();
-        constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        relationshipType.setFromConstraint( constraint );
-        relationshipType.setToConstraint( constraint );
-
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4001,
@@ -144,12 +136,41 @@ class LinkValidatorTest
             .to( trackedEntityRelationshipItem() )
             .build();
 
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relTypeUid );
-        RelationshipConstraint constraint = new RelationshipConstraint();
-        constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        relationshipType.setFromConstraint( constraint );
-        relationshipType.setToConstraint( constraint );
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, ValidationCode.E4001,
+            "Relationship Item `from` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+    }
+
+    @Test
+    void shouldFailWhenToHasNoEntities()
+    {
+        String relationshipUid = "nBx6auGDUHG";
+        String relTypeUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
+            .from( trackedEntityRelationshipItem() )
+            .to( RelationshipItem.builder().build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, ValidationCode.E4001,
+            "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+    }
+
+    @Test
+    void shouldFailWhenFromHasNoEntities()
+    {
+        String relationshipUid = "nBx6auGDUHG";
+        String relTypeUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
+            .from( RelationshipItem.builder().build() )
+            .to( trackedEntityRelationshipItem() )
+            .build();
 
         validator.validate( reporter, bundle, relationship );
 
