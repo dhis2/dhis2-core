@@ -25,57 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
- *
- * @author Jan Bernitt
+ * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.User}.
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
+public interface JsonUser extends JsonObject
 {
-
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
-
-    private final ErrorCode errorCode;
-
-    private String property;
-
-    private Class<?>[] objectTypes;
-
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
+    default String getUid()
     {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
+        return getString( "uid" ).string();
     }
 
-    @Override
-    public Class<?>[] getObjectTypes()
+    default String getUsername()
     {
-        return objectTypes;
+        return getString( "username" ).string();
     }
 
-    @Override
-    public String getProperty()
+    default String getFirstName()
     {
-        return property;
+        return getString( "firstName" ).string();
     }
 
-    @Override
-    public ErrorCode getErrorCode()
+    default String getSurname()
     {
-        return errorCode;
+        return getString( "surname" ).string();
+    }
+
+    default String getDisplayName()
+    {
+        return getString( "displayName" ).string();
     }
 }

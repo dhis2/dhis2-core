@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.feedback;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
- *
- * @author Jan Bernitt
+ * Assertions for feedback like metadata validation reports.
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
+public class Assertions
 {
-
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
-
-    private final ErrorCode errorCode;
-
-    private String property;
-
-    private Class<?>[] objectTypes;
-
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
+    public static void assertNoErrors( ObjectBundleValidationReport report )
     {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
+        assertNotNull( report );
+        List<String> errors = new ArrayList<>();
+        report.forEachErrorReport( err -> {
+            errors.add( err.toString() );
+        } );
+        assertFalse( report.hasErrorReports(), String.format( "Expected no errors, instead got: %s\n", errors ) );
     }
 
-    @Override
-    public Class<?>[] getObjectTypes()
-    {
-        return objectTypes;
-    }
-
-    @Override
-    public String getProperty()
-    {
-        return property;
-    }
-
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
 }
