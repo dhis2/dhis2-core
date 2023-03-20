@@ -86,7 +86,7 @@ class RelationshipTypeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPostingRelationshipTypes()
+    void shouldMaintainOrderInTrackerDataView()
     {
         String relationshipTypeId = assertStatus( HttpStatus.CREATED,
             POST( "/relationshipTypes/",
