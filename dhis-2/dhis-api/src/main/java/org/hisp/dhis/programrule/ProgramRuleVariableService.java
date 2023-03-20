@@ -92,8 +92,6 @@ public interface ProgramRuleVariableService
      */
     boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement );
 
-    List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement );
-
     /**
      *
      * @return all ProgramRuleVariables which are linked to {@link DataElement}.

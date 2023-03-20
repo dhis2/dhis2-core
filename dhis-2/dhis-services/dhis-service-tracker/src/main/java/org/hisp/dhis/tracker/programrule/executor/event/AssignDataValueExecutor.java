@@ -80,31 +80,50 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event>
 
         DataElement dataElement = bundle.getPreheat().getDataElement( dataElementUid );
 
-        Optional<DataValue> payloadDataValue = dataValues.stream()
+        DataValue payloadDataValue = dataValues.stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
-            .findAny();
+            .findAny()
+            .orElse( null );
 
-        if ( payloadDataValue.isEmpty() ||
-            Boolean.TRUE.equals( canOverwrite ) ||
-            isEqual( value, payloadDataValue.get().getValue(), dataElement.getValueType() ) )
+        // Hopefully we will be able to remove this special case once rule engine will support optionSets
+        if ( dataElement.isOptionSetValue() && !dataElement.getOptionSet().getOptionValues().contains( value ) )
         {
-            addOrOverwriteDataValue( event, bundle );
+            return assignInvalidOptionDataElement( payloadDataValue, canOverwrite, event );
+        }
+
+        if ( payloadDataValue == null ||
+            Boolean.TRUE.equals( canOverwrite ) ||
+            isEqual( value, payloadDataValue.getValue(), dataElement.getValueType() ) )
+        {
+            addOrOverwriteDataValue( event, bundle, dataElement, payloadDataValue );
             return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
         }
         return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, value ) );
     }
 
-    private void addOrOverwriteDataValue( Event event, TrackerBundle bundle )
+    private Optional<ProgramRuleIssue> assignInvalidOptionDataElement( DataValue payloadDataValue, Boolean canOverwrite,
+        Event event )
     {
-        DataElement dataElement = bundle.getPreheat().getDataElement( dataElementUid );
-
-        Optional<DataValue> dataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
-            .findAny();
-
-        if ( dataValue.isPresent() )
+        if ( payloadDataValue == null || payloadDataValue.getValue() == null )
         {
-            dataValue.get().setValue( value );
+            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
+        }
+
+        if ( Boolean.TRUE.equals( canOverwrite ) )
+        {
+            payloadDataValue.setValue( null );
+            return Optional.of( warning( ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent() ) );
+        }
+
+        return Optional.of( error( ruleUid, ValidationCode.E1307, dataElementUid, "" ) );
+    }
+
+    private void addOrOverwriteDataValue( Event event, TrackerBundle bundle, DataElement dataElement,
+        DataValue payloadDataValue )
+    {
+        if ( payloadDataValue != null )
+        {
+            payloadDataValue.setValue( value );
         }
         else
         {
