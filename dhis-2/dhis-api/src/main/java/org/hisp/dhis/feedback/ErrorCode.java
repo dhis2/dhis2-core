@@ -138,7 +138,7 @@ public enum ErrorCode
     E2200( "At least one data element must be specified" ),
     E2201( "Start date and end date must be specified" ),
     E2202( "Start date must be before end date" ),
-    E2203( "At least one organisation unit must be specified" ),
+    E2203( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),
     E2204( "Threshold must be a positive number" ),
     E2205( "Max results must be a positive number" ),
     E2206( "Max results exceeds the allowed max limit: `{0}`" ),
@@ -283,7 +283,7 @@ public enum ErrorCode
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`" ),
-    E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}" ),
+    E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}" ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found" ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
@@ -391,9 +391,10 @@ public enum ErrorCode
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
     E7135( "Date time is not parsable: `{0}`" ),
+    E7136( "Program is not specified" ),
 
     /* Event analytics */
-    E7200( "At least one organisation unit must be specified" ),
+    E7200( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),
     E7201( "Dimensions cannot be specified more than once: `{0}`" ),
     E7202( "Query items cannot be specified more than once: `{0}`" ),
     E7203( "Value dimension cannot also be specified as an item or item filter" ),
@@ -428,8 +429,11 @@ public enum ErrorCode
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
     E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
 
+    /* TEI analytics */
+    E7250( "Dimension is not a fully qualified: `{0}`" ),
+
     /* Org unit analytics */
-    E7300( "At least one organisation unit must be specified" ),
+    E7300( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),
     E7301( "At least one organisation unit group set must be specified" ),
 
     /* Debug analytics */
@@ -465,7 +469,7 @@ public enum ErrorCode
     E7630( "Category option combo is required but is not specified" ),
     E7631( "Attribute option combo is required but is not specified" ),
     E7632( "Period type of period: `{0}` not valid for data element: `{1}`" ),
-    E7633( "Data element: `{0}` is not part of dataset: `{1}`" ),
+    E7633( "Data element: `{0}` is not part of dataset(s): `{1}`" ),
     E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
     E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
     E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),
@@ -510,5 +514,10 @@ public enum ErrorCode
     public String getMessage()
     {
         return message;
+    }
+
+    private static class Constants
+    {
+        public static final String AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED = "At least one organisation unit must be specified";
     }
 }

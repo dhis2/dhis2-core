@@ -57,12 +57,13 @@ public class EventQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
     {
         // Given
-        QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
             .add( "stage=dBwrot7S420" )
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
             .add( "totalPages=false" )
+            .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -71,7 +72,7 @@ public class EventQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 16 ) ) )
+            .body( "headers", hasSize( equalTo( 17 ) ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -87,8 +88,8 @@ public class EventQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 16 ) )
-            .body( "headerWidth", equalTo( 16 ) );
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -105,25 +106,28 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "A7vnB73x5Xw",
+            List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-07 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:16.957",
+                "2018-04-12 16:05:41.933",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -138,28 +142,30 @@ public class EventQueryTest extends AnalyticsApiTest
                 "",
                 "2018-04-12 16:05:28.015",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 2,
-            List.of( "ohAH6BXIMad",
+            List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
-                "2022-04-07 00:00:00.0",
+                "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:41.933",
+                "2018-04-12 16:05:16.957",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -170,11 +176,12 @@ public class EventQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefault()
     {
         // Given
-        QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
             .add( "stage=dBwrot7S420" )
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-22" );
 
         // When
@@ -183,7 +190,7 @@ public class EventQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 16 ) ) )
+            .body( "headers", hasSize( equalTo( 17 ) ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -199,8 +206,8 @@ public class EventQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 16 ) )
-            .body( "headerWidth", equalTo( 16 ) );
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -217,25 +224,28 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "A7vnB73x5Xw",
+            List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-07 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:16.957",
+                "2018-04-12 16:05:41.933",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -250,28 +260,30 @@ public class EventQueryTest extends AnalyticsApiTest
                 "",
                 "2018-04-12 16:05:28.015",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 2,
-            List.of( "ohAH6BXIMad",
+            List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
-                "2022-04-07 00:00:00.0",
+                "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:41.933",
+                "2018-04-12 16:05:16.957",
                 "",
-                "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
+                "",
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",

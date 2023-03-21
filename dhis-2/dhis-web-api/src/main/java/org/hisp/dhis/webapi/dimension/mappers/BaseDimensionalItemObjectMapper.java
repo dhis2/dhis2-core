@@ -33,6 +33,8 @@ import lombok.Getter;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -49,15 +51,22 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
         ProgramIndicator.class,
         TrackedEntityAttribute.class );
 
+    /**
+     * adds dimensionType on top of base mapper and, if the dimension is
+     * ValueTyped it also adds valueType and OptionSet (if present)
+     */
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
-        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
-            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
-        if ( dimension instanceof ValueTypedDimensionalItemObject )
+        DimensionItemType dimensionItemType = ((BaseDimensionalItemObject) prefixedDimension.getItem())
+            .getDimensionItemType();
+
+        DimensionResponse responseWithDimensionType = super.map( prefixedDimension, prefix )
+            .withDimensionType( dimensionTypeOrElse( prefixedDimension, dimensionItemType.name() ) );
+        if ( prefixedDimension.getItem() instanceof ValueTypedDimensionalItemObject )
         {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
+            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) prefixedDimension
+                .getItem();
             return responseWithDimensionType
                 .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
                 .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
