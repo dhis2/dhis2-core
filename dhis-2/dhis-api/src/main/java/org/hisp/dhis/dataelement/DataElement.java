@@ -184,10 +184,7 @@ public class DataElement extends BaseDimensionalItemObject
 
     public void updateDataElementGroups( Set<DataElementGroup> updates )
     {
-        for ( DataElementGroup 
-        
-        
-        group : new HashSet<>( groups ) )
+        for ( DataElementGroup group : new HashSet<>( groups ) )
         {
             if ( !updates.contains( group ) )
             {
