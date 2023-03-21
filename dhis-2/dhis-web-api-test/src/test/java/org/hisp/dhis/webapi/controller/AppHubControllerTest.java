@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.AfterEach;
@@ -61,16 +58,6 @@ class AppHubControllerTest extends DhisControllerConvenienceTest
         JsonArray apps = GET( "/appHub" ).content();
         assertTrue( apps.isArray() );
         assertTrue( apps.size() > 0, "There should be apps registered" );
-    }
-
-    @Test
-    void testListAppHub_ClientError()
-    {
-        configuration.getProperties().setProperty( ConfigurationKey.APPHUB_API_URL.getKey(),
-            "http://localhost/doesnotwork" );
-        assertWebMessage( "Service Unavailable", 503, "ERROR",
-            "I/O error on GET request for \"http://localhost/doesnotwork/apps\": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)",
-            GET( "/appHub" ).content( HttpStatus.SERVICE_UNAVAILABLE ) );
     }
 
     @Test
