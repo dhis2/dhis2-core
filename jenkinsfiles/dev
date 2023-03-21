@@ -204,10 +204,10 @@ pipeline {
                 script {
                     if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                            dir('im-db-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                            dir('im-manager') {
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
-                                dir('scripts') {
+                                dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
                                             script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
@@ -216,12 +216,8 @@ pipeline {
                                     sh '[ -n "$DATABASE_ID" ]'
                                     echo "DATABASE_ID is ${env.DATABASE_ID}"
                                 }
-                            }
 
-                            dir('im-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
-
-                                dir('scripts') {
+                                dir('scripts/instances') {
                                     echo 'Creating DHIS2 instance on IM...'
                                     sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
                                     timeout(5) {
