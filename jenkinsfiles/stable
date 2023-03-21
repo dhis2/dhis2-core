@@ -4,7 +4,7 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     options {
@@ -18,7 +18,7 @@ pipeline {
         DOCKER_IMAGE_NAME_DEV = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core"
         DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre17" // source of image to publish to Dockerhub (one of the matrix axes)
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
     }
 
@@ -54,7 +54,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre11', '8.5-jre11'
+                        values '9.0-jre17', '9.0-jre11', '8.5-jre11'
                     }
                 }
 
