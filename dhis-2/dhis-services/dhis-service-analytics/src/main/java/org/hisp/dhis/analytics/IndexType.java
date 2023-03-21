@@ -37,7 +37,8 @@ public enum IndexType
     BTREE( "btree" ),
     GIST( "gist" ),
     HASH( "hash" ),
-    BLOOM( "bloom" );
+    BLOOM( "bloom" ),
+    GIN( "gin" );
 
     private String keyword;
 

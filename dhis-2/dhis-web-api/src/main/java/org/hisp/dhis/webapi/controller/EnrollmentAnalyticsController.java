@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -57,6 +58,7 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -141,13 +143,13 @@ public class EnrollmentAnalyticsController
         return analyticsService.getEnrollments( params );
     }
 
+    @SneakyThrows
     @GetMapping( "/query/{program}.xml" )
     public void getQueryXml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
-        throws Exception
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
@@ -157,13 +159,13 @@ public class EnrollmentAnalyticsController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
+    @SneakyThrows
     @GetMapping( "/query/{program}.xls" )
     public void getQueryXls(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
-        throws Exception
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
@@ -173,13 +175,13 @@ public class EnrollmentAnalyticsController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
+    @SneakyThrows
     @GetMapping( "/query/{program}.csv" )
     public void getQueryCsv(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
-        throws Exception
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
@@ -189,13 +191,13 @@ public class EnrollmentAnalyticsController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
+    @SneakyThrows
     @GetMapping( "/query/{program}.html" )
     public void getQueryHtml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
-        throws Exception
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
@@ -205,13 +207,13 @@ public class EnrollmentAnalyticsController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
+    @SneakyThrows
     @GetMapping( "/query/{program}.html+css" )
     public void getQueryHtmlCss(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
-        throws Exception
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
@@ -234,7 +236,8 @@ public class EnrollmentAnalyticsController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programId ) ),
+                    enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId( programId ),
+                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );
     }
@@ -252,7 +255,8 @@ public class EnrollmentAnalyticsController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ) ),
+                    enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ),
+                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );
     }

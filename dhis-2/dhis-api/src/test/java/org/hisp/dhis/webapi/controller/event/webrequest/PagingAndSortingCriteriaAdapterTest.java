@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import lombok.SneakyThrows;
 
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 
 class PagingAndSortingCriteriaAdapterTest
@@ -101,9 +101,9 @@ class PagingAndSortingCriteriaAdapterTest
                 return Optional.of( dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName );
             }
         };
-        tested.setOrder( List.of( OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
-            OrderCriteria.of( "field2", OrderParam.SortDirection.ASC ),
-            OrderCriteria.of( "field3", OrderParam.SortDirection.ASC ) ) );
+        tested.setOrder( List.of( OrderCriteria.of( "field1", SortDirection.ASC ),
+            OrderCriteria.of( "field2", SortDirection.ASC ),
+            OrderCriteria.of( "field3", SortDirection.ASC ) ) );
         Collection<String> orderField = tested.getOrder().stream().map( OrderCriteria::getField )
             .collect( Collectors.toList() );
         assertThat( orderField, hasSize( 2 ) );

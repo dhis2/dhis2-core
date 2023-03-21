@@ -76,7 +76,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -429,7 +429,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
         params.setProgram( program );
 
-        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
         params.setPage( 1 );
         params.setPageSize( 3 );
 
@@ -443,7 +443,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
         params.setProgram( program );
 
-        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
         params.setPage( 2 );
         params.setPageSize( 3 );
 
@@ -457,7 +457,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
         params.setProgram( program );
 
-        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
         params.setPage( 3 );
         params.setPageSize( 3 );
 
@@ -474,7 +474,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
         params.setProgram( program );
 
-        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
         params.setPage( 1 );
         params.setPageSize( 2 );
         params.setTotalPages( true );
@@ -1116,11 +1116,11 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
-        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
 
-        params.addOrders( List.of( new OrderParam( "dueDate", OrderParam.SortDirection.DESC ),
-            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ),
-            new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "dueDate", SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", SortDirection.DESC ),
+            new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -1135,10 +1135,10 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
-        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
 
-        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
-            new OrderParam( "DATAEL00006", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
+            new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
