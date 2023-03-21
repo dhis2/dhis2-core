@@ -888,7 +888,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 4 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "a04CZxe0PSe" ) )
@@ -896,8 +896,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasItem( "a1E6QWBTEwX" ) )
             .body( "metaData.dimensions.ou", hasItem( "a5glgtnXJRG" ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -910,6 +910,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Jean",
                 "Washington",
                 "Female",
@@ -925,6 +926,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Brian",
                 "Austin",
                 "Male",
@@ -940,6 +942,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Robert",
                 "Adams",
                 "Male",
@@ -964,15 +967,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 13 ) ) )
+            .body( "headers", hasSize( equalTo( 14 ) ) )
             .body( "rows", hasSize( equalTo( 50 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 3 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "l0ccv2yzfF3" ) )
             .body( "metaData.dimensions.ou", hasItem( "r06ohri9wA9" ) )
             .body( "metaData.dimensions.ou", hasItem( "GWTIxJO9pRo" ) )
             .body( "height", equalTo( 50 ) )
-            .body( "width", equalTo( 13 ) )
-            .body( "headerWidth", equalTo( 13 ) );
+            .body( "width", equalTo( 14 ) )
+            .body( "headerWidth", equalTo( 14 ) );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
@@ -985,6 +988,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Matholey MCHP",
                 "OU_268180",
+                "Sierra Leone / Tonkolili / Kunike / Matholey MCHP",
                 "Willie",
                 "Bailey",
                 "Male",
@@ -1000,6 +1004,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Magbanabom MCHP",
                 "OU_268177",
+                "Sierra Leone / Tonkolili / Kunike / Magbanabom MCHP",
                 "Jean",
                 "Washington",
                 "Female",
@@ -1015,6 +1020,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Moribaya MCHP",
                 "OU_211254",
+                "Sierra Leone / Kambia / Samu / Moribaya MCHP",
                 "Louise",
                 "Reed",
                 "Female",
