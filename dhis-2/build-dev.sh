@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds DHIS2 war and Docker image for development use
 
+set -e
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 D2CLUSTER="${1:-}"

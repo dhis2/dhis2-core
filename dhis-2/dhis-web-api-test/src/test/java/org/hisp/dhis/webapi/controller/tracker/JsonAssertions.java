@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,36 +35,37 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-public class TrackerControllerAssertions
+public class JsonAssertions
 {
 
-    public static JsonObject assertFirstRelationship( Relationship expected, JsonArray json )
+    public static JsonRelationship assertFirstRelationship( Relationship expected, JsonList<JsonRelationship> actual )
     {
-        return assertNthRelationship( expected, 0, json );
+        return assertNthRelationship( expected, 0, actual );
     }
 
-    public static JsonObject assertNthRelationship( Relationship expected, int n, JsonArray json )
+    public static JsonRelationship assertNthRelationship( Relationship expected, int n,
+        JsonList<JsonRelationship> actual )
     {
-        assertFalse( json.isEmpty(), "relationships should not be empty" );
-        assertTrue( json.size() >= n,
-            String.format( "element %d does not exist in %d relationships elements", n, json.size() ) );
-        JsonObject jsonRelationship = json.get( n ).as( JsonObject.class );
+        assertFalse( actual.isEmpty(), "relationships should not be empty" );
+        assertTrue( actual.size() >= n,
+            String.format( "element %d does not exist in %d relationships elements", n, actual.size() ) );
+        JsonRelationship jsonRelationship = actual.get( n );
         assertRelationship( expected, jsonRelationship );
         return jsonRelationship;
     }
 
-    public static void assertRelationship( Relationship expected, JsonObject json )
+    public static void assertRelationship( Relationship expected, JsonRelationship actual )
     {
-        assertFalse( json.isEmpty(), "relationship should not be empty" );
-        assertEquals( expected.getUid(), json.getString( "relationship" ).string(), "relationship UID" );
-        assertEquals( expected.getRelationshipType().getUid(), json.getString( "relationshipType" ).string(),
-            "relationshipType UID" );
+        assertFalse( actual.isEmpty(), "relationship should not be empty" );
+        assertEquals( expected.getUid(), actual.getRelationship(), "relationship UID" );
+        assertEquals( expected.getRelationshipType().getUid(), actual.getRelationshipType(), "relationshipType UID" );
     }
 
     public static void assertNoRelationships( JsonObject json )
@@ -74,29 +75,28 @@ public class TrackerControllerAssertions
         assertTrue( rels.isEmpty(), "instances should not contain any relationships" );
     }
 
-    public static void assertEventWithinRelationship( ProgramStageInstance expected, JsonObject json )
+    public static void assertEventWithinRelationshipItem( ProgramStageInstance expected, JsonRelationshipItem actual )
     {
-        JsonObject jsonEvent = json.getObject( "event" );
+        JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
         assertFalse( jsonEvent.isEmpty(), "event should not be empty" );
-        assertEquals( expected.getUid(), jsonEvent.getString( "event" ).string(), "event UID" );
+        assertEquals( expected.getUid(), jsonEvent.getEvent(), "event UID" );
 
-        assertEquals( expected.getStatus().toString(), jsonEvent.getString( "status" ).string(), "event status" );
-        assertEquals( expected.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string(),
-            "event programStage UID" );
-        assertEquals( expected.getProgramInstance().getUid(),
-            jsonEvent.getString( "enrollment" ).string(), "event programInstance UID" );
+        assertEquals( expected.getStatus().toString(), jsonEvent.getStatus(), "event status" );
+        assertEquals( expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID" );
+        assertEquals( expected.getProgramInstance().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
         assertFalse( jsonEvent.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
-    public static void assertTrackedEntityWithinRelationship( TrackedEntityInstance expected, JsonObject json )
+    public static void assertTrackedEntityWithinRelationshipItem( TrackedEntityInstance expected,
+        JsonRelationshipItem actual )
     {
-        JsonObject jsonTEI = json.getObject( "trackedEntity" );
+        JsonRelationshipItem.JsonTrackedEntity jsonTEI = actual.getTrackedEntity();
         assertFalse( jsonTEI.isEmpty(), "trackedEntity should not be empty" );
-        assertEquals( expected.getUid(), jsonTEI.getString( "trackedEntity" ).string(), "trackedEntity UID" );
-        assertEquals( expected.getTrackedEntityType().getUid(), jsonTEI.getString( "trackedEntityType" ).string(),
+        assertEquals( expected.getUid(), jsonTEI.getTrackedEntity(), "trackedEntity UID" );
+        assertEquals( expected.getTrackedEntityType().getUid(), jsonTEI.getTrackedEntityType(),
             "trackedEntityType UID" );
-        assertEquals( expected.getOrganisationUnit().getUid(), jsonTEI.getString( "orgUnit" ).string(), "orgUnit UID" );
-        assertTrue( jsonTEI.getArray( "attributes" ).isEmpty(), "attributes should be empty" );
+        assertEquals( expected.getOrganisationUnit().getUid(), jsonTEI.getOrgUnit(), "orgUnit UID" );
+        assertTrue( jsonTEI.getAttributes().isEmpty(), "attributes should be empty" );
         assertFalse( jsonTEI.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
@@ -108,16 +108,14 @@ public class TrackerControllerAssertions
         assertEquals( expectedUid, j.getString( member ).string(), member + " UID" );
     }
 
-    public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonObject json )
+    public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonRelationshipItem actual )
     {
-        JsonObject jsonEnrollment = json.getObject( "enrollment" );
+        JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );
-        assertEquals( expected.getUid(), jsonEnrollment.getString( "enrollment" ).string(), "enrollment UID" );
-        assertEquals( expected.getEntityInstance().getUid(),
-            jsonEnrollment.getString( "trackedEntity" ).string(), "trackedEntity UID" );
-        assertEquals( expected.getProgram().getUid(), jsonEnrollment.getString( "program" ).string(), "program UID" );
-        assertEquals( expected.getOrganisationUnit().getUid(), jsonEnrollment.getString( "orgUnit" ).string(),
-            "orgUnit UID" );
+        assertEquals( expected.getUid(), jsonEnrollment.getEnrollment(), "enrollment UID" );
+        assertEquals( expected.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
+        assertEquals( expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID" );
+        assertEquals( expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID" );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty(), "events should be empty" );
         assertFalse( jsonEnrollment.has( "relationships" ), "relationships is not returned within relationship items" );
     }

@@ -469,7 +469,7 @@ public enum ErrorCode
     E7630( "Category option combo is required but is not specified" ),
     E7631( "Attribute option combo is required but is not specified" ),
     E7632( "Period type of period: `{0}` not valid for data element: `{1}`" ),
-    E7633( "Data element: `{0}` is not part of dataset: `{1}`" ),
+    E7633( "Data element: `{0}` is not part of dataset(s): `{1}`" ),
     E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
     E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
     E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),
