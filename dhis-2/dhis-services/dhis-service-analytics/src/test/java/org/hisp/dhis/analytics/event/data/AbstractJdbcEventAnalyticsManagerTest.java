@@ -711,8 +711,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
-        BigDecimal expected = bigDecimalObject.stripTrailingZeros();
-        assertTrue( grid.getColumn( 0 ).contains( expected ), "Should contain value " + expected );
+        String expected = bigDecimalObject.stripTrailingZeros().toPlainString();
+        assertEquals( grid.getColumn( 0 ).get( 0 ), expected, "Should contain value " + expected );
     }
 
     @Test
