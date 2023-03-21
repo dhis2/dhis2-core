@@ -30,27 +30,65 @@ package org.hisp.dhis.system.notification;
 import java.util.Deque;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Lars Helge Overland
+ * @author Jan Bernitt (pulled up default methods)
  */
 public interface Notifier
 {
-    Notifier notify( JobConfiguration id, String message );
+    default Notifier notify( JobConfiguration id, String message )
+    {
+        return notify( id, NotificationLevel.INFO, message, false );
+    }
 
-    Notifier notify( JobConfiguration id, NotificationLevel level, String message );
+    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message )
+    {
+        return notify( id, level, message, false );
+    }
 
-    Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed );
+    default Notifier notify( JobConfiguration id, String message, boolean completed )
+    {
+        return notify( id, NotificationLevel.INFO, message, completed );
+    }
 
-    Notifier update( JobConfiguration id, String message );
+    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    {
+        return notify( id, level, message, completed, null, null );
+    }
 
-    Notifier update( JobConfiguration id, String message, boolean completed );
+    Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed,
+        NotificationDataType dataType, JsonNode data );
 
-    Notifier update( JobConfiguration id, NotificationLevel level, String message );
+    default Notifier update( JobConfiguration id, String message )
+    {
+        return update( id, NotificationLevel.INFO, message, false );
+    }
 
-    Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
+    default Notifier update( JobConfiguration id, String message, boolean completed )
+    {
+        return update( id, NotificationLevel.INFO, message, completed );
+    }
+
+    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message )
+    {
+        return update( id, level, message, false );
+    }
+
+    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    {
+        if ( id != null && !level.isOff() )
+        {
+            notify( id, level, message, completed );
+        }
+        return this;
+    }
 
     Map<JobType, Map<String, Deque<Notification>>> getNotifications();
 
@@ -60,9 +98,12 @@ public interface Notifier
 
     Notifier clear( JobConfiguration id );
 
-    Notifier addJobSummary( JobConfiguration id, Object taskSummary, Class<?> jobSummaryType );
+    default <T> Notifier addJobSummary( JobConfiguration id, T jobSummary, Class<T> jobSummaryType )
+    {
+        return addJobSummary( id, NotificationLevel.INFO, jobSummary, jobSummaryType );
+    }
 
-    Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary, Class<?> jobSummaryType );
+    <T> Notifier addJobSummary( JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType );
 
     Map<String, Object> getJobSummariesForJobType( JobType jobType );
 
