@@ -68,6 +68,8 @@ public class TextUtils
 
     private static final String OPTION_SEP = ";";
 
+    private static final Character DOUBLE_QUOTE = '\"';
+
     /**
      * Remove all non-alphanumeric characters within string
      *
@@ -391,6 +393,33 @@ public class TextUtils
         }
 
         return null;
+    }
+
+    /**
+     * This method will double quote the given value, if this is not
+     * double-quoted nor blank. If the value is already double-quoted, it
+     * returns the same value.
+     *
+     * @param value the string to be double-quoted.
+     * @return a double quoted value, or empty.
+     */
+    public static String doubleQuote( String value )
+    {
+        if ( StringUtils.isBlank( value ) )
+        {
+            return EMPTY;
+        }
+
+        value = value.trim();
+
+        if ( value.startsWith( "\"" ) && value.endsWith( "\"" ) )
+        {
+            return value;
+        }
+        else
+        {
+            return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
+        }
     }
 
     /**
