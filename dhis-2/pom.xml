@@ -50,7 +50,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <minimum-maven.version>3.6.0</minimum-maven.version>
-    <minimum-java.version>11</minimum-java.version>
+    <minimum-java.version>17</minimum-java.version>
 
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
