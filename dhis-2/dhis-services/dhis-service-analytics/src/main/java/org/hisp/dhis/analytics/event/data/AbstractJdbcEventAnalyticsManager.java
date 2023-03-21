@@ -58,6 +58,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -990,6 +991,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( isDouble && !Double.isNaN( (Double) value ) )
             {
                 addGridDoubleTypeValue( (Double) value, grid, header, params );
+            }
+            else if ( value instanceof BigDecimal )
+            {
+                // Special handling of double is here not of use. Option in OptionSet can be only floating type 'Number' which is internally Double.
+                // toPlainString method prevents scientific notation (3E+2)
+                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
             }
             else
             {

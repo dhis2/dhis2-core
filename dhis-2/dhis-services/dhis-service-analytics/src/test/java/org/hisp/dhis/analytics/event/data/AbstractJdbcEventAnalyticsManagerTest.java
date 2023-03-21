@@ -56,6 +56,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -678,6 +679,40 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         assertTrue( grid.getColumn( 0 ).contains( doubleObject ), "Should contain value " + doubleObject );
+    }
+
+    @Test
+    void testAddGridValueForBigDecimalObject()
+        throws SQLException
+    {
+        // Given
+        BigDecimal bigDecimalObject = new BigDecimal( "123.00000000" );
+        int index = 1;
+
+        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "col-1" );
+        metaData.setColumnName( 2, "col-2" );
+
+        ResultSet resultSet = mock( ResultSet.class );
+        when( resultSet.getObject( index ) ).thenReturn( bigDecimalObject );
+        when( resultSet.getMetaData() ).thenReturn( metaData );
+
+        EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+        GridHeader header = new GridHeader( "header-1", NUMBER );
+        Grid grid = new ListGrid();
+        grid.addHeader( header );
+        grid.addRow();
+
+        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+
+        // When
+        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
+
+        // Then
+        BigDecimal expected = bigDecimalObject.stripTrailingZeros();
+        assertTrue( grid.getColumn( 0 ).contains( expected ), "Should contain value " + expected );
     }
 
     @Test
