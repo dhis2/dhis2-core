@@ -191,6 +191,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .accessDecisionManager( accessDecisionManager() )
                 .requestMatchers( analyticsPluginResources() ).permitAll()
 
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
+
                 .antMatchers( "/api/staticContent/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/javascripts/**" ).permitAll()

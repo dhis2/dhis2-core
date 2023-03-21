@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -126,7 +127,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest
         programA.getProgramStages().add( programStageA );
         manager.update( programStageA );
         manager.update( programA );
-        createUserAndInjectSecurityContext( true );
+        createUserAndInjectSecurityContext( new HashSet<>( Arrays.asList( organisationUnitA ) ), true );
     }
 
     @Test
@@ -155,6 +156,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest
         assertEquals( 1, events.getEvents().size() );
         // Get by user without access
         User user = createUserWithAuth( "A" );
+        user.addOrganisationUnit( organisationUnitA );
         userService.addUser( user );
         injectSecurityContext( user );
         events = eventService.getEvents( new EventSearchParams().setProgram( programA )

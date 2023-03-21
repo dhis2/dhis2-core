@@ -47,16 +47,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Dhis2Response
 {
     @JsonProperty
-    private Status status;
+    protected Status status;
 
     @JsonProperty
-    private Integer httpStatusCode;
+    protected Integer httpStatusCode;
 
     @JsonProperty
-    private ErrorCode errorCode;
+    protected ErrorCode errorCode;
 
     @JsonProperty
-    private String message;
+    protected String message;
 
     public HttpStatus getHttpStatus()
     {
