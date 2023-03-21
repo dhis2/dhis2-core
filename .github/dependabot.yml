@@ -38,7 +38,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -160,7 +160,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -225,7 +225,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
