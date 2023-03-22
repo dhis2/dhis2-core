@@ -86,7 +86,7 @@ public class DefaultSecurityService
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
-    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 24;
+    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 16;
 
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
@@ -245,7 +245,7 @@ public class DefaultSecurityService
             user.setUsername( username );
         }
 
-        String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
+        String rawPassword = "Inv!t3#" + CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
