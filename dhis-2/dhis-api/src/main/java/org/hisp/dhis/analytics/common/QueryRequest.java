@@ -30,8 +30,14 @@ package org.hisp.dhis.analytics.common;
 import lombok.Builder;
 import lombok.Data;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-
+/**
+ * Represent a query request object used by analytics endpoints. It encapsulates
+ * common request objects and is bound to a specific request object represented
+ * by T. T depends on the type of analytics endpoint and its related query
+ * params.
+ *
+ * @param <T> the specific query request object
+ */
 @Data
 @Builder( toBuilder = true )
 public class QueryRequest<T>
@@ -39,6 +45,4 @@ public class QueryRequest<T>
     private final T request;
 
     private final CommonQueryRequest commonQueryRequest;
-
-    private final AnalyticsPagingCriteria pagingCriteria;
 }

@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.DimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 
@@ -65,7 +66,9 @@ public class DimensionMapperTestSupport
 
         assertAll( assertingPairs.stream()
             .map( functionObjectPair -> Pair.<Supplier<?>, Object> of(
-                () -> functionObjectPair.getKey().apply( dimensionMapper.map( item, prefix ) ),
+                () -> functionObjectPair.getKey().apply( dimensionMapper.map( PrefixedDimension.builder()
+                    .item( item )
+                    .build(), prefix ) ),
                 functionObjectPair.getRight() ) )
             .collect( Collectors.toList() ) );
     }
