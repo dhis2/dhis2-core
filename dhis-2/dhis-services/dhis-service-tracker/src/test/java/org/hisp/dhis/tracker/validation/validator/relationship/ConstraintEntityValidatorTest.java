@@ -85,7 +85,7 @@ class ConstraintEntityValidatorTest
     }
 
     @Test
-    void shouldWorkWhenRelationshipTypeIsCorrectlySetAndEntitiesExist()
+    void shouldBeValidWhenRelationshipTypeIsCorrectlySetAndEntitiesExist()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
         TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -129,7 +129,7 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4010,
-            "Relationship Type `to` constraint requires a trackedEntity but a enrollment was found." );
+            "Relationship type `to` constraint requires a trackedEntity but a enrollment was found." );
     }
 
     @Test
@@ -150,7 +150,7 @@ class ConstraintEntityValidatorTest
 
         assertHasError( reporter, relationship, E4012,
             "Could not find `trackedEntity`: `" + relationship.getFrom().getTrackedEntity()
-                + "`, linked to Relationship." );
+                + "`, linked to relationship." );
     }
 
     @Test
@@ -170,7 +170,7 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4010,
-            "Relationship Type `to` constraint requires a event but a enrollment was found." );
+            "Relationship type `to` constraint requires a event but a enrollment was found." );
     }
 
     @Test
@@ -200,7 +200,7 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4014,
-            "Relationship Type `from` constraint requires a Tracked Entity having type `madeUpUid` but `" + uid
+            "Relationship type `from` constraint requires a tracked entity having type `madeUpUid` but `" + uid
                 + "` was found." );
     }
 
@@ -221,7 +221,7 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4012,
-            "Could not find `enrollment`: `" + relationship.getFrom().getEnrollment() + "`, linked to Relationship." );
+            "Could not find `enrollment`: `" + relationship.getFrom().getEnrollment() + "`, linked to relationship." );
     }
 
     @Test
@@ -243,7 +243,7 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4010,
-            "Relationship Type `from` constraint requires a enrollment but a event was found." );
+            "Relationship type `from` constraint requires a enrollment but a event was found." );
     }
 
     @Test
@@ -265,28 +265,13 @@ class ConstraintEntityValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4012,
-            "Could not find `event`: `" + relationship.getFrom().getEvent() + "`, linked to Relationship." );
+            "Could not find `event`: `" + relationship.getFrom().getEvent() + "`, linked to relationship." );
     }
 
     private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
     {
         RelationshipType relType = new RelationshipType();
         relType.setUid( CodeGenerator.generateUid() );
-        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-        relationshipConstraintFrom.setRelationshipEntity( from );
-        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-        relationshipConstraintTo.setRelationshipEntity( to );
-
-        relType.setFromConstraint( relationshipConstraintFrom );
-        relType.setToConstraint( relationshipConstraintTo );
-
-        return relType;
-    }
-
-    private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to, String uid )
-    {
-        RelationshipType relType = new RelationshipType();
-        relType.setUid( uid );
         RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
         relationshipConstraintFrom.setRelationshipEntity( from );
         RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
