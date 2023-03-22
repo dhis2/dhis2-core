@@ -44,19 +44,23 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
@@ -422,5 +426,55 @@ class EventExporterTest extends TrackerTest
             () -> assertEquals( pageNumber, pager.getPage(), "number of current page" ),
             () -> assertEquals( pageSize, pager.getPageSize(), "page size" ),
             () -> assertEquals( totalCount, pager.getTotal(), "total page count" ) );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00001" ) ) );
+
+        params.setGridOrders(
+            List.of( OrderParam.builder().field( "DATAEL00001" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "orgUnitName" ).direction( OrderParam.SortDirection.DESC ).build(),
+                OrderParam.builder().field( "DATAEL00001" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.addDataElements( List.of( queryItem( "DATAEL00002" ) ) );
+
+        params.setGridOrders(
+            List.of( OrderParam.builder().field( "DATAEL00002" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "DATAEL00002" ).direction( OrderParam.SortDirection.DESC ).build(),
+                OrderParam.builder().field( "storedBy" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
+    }
+
+    private static QueryItem queryItem( String teaUid )
+    {
+        TrackedEntityAttribute at = new TrackedEntityAttribute();
+        at.setUid( teaUid );
+        at.setValueType( ValueType.TEXT );
+        at.setAggregationType( AggregationType.NONE );
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(),
+            at.isUnique() );
     }
 }
