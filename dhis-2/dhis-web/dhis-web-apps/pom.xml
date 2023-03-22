@@ -20,7 +20,7 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.6</version>
+        <version>1.12.1</version>
         <configuration>
           <installDirectory>target</installDirectory>
           <environmentVariables>
@@ -67,6 +67,14 @@
 
     </plugins>
   </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <properties>
     <rootDir>../../</rootDir>
