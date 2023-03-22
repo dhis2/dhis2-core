@@ -155,9 +155,9 @@ public class EventSearchParams
 
     private boolean includeRelationships;
 
-    private List<OrderParam> orders;
+    private List<OrderParam> orders = Collections.emptyList();
 
-    private List<OrderParam> gridOrders;
+    private List<OrderParam> gridOrders = Collections.emptyList();
 
     private boolean includeAttributes;
 
