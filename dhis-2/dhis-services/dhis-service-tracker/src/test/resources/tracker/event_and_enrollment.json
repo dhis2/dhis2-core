@@ -88,12 +88,29 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": "HllvX50cXC0",
       "completedBy": "admin",
-      "dataValues": []
+      "dataValues": [
+        {
+          "dataElement": "DATAEL00001",
+          "value": "88",
+          "createdAt": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "updatedAt": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": "DATAEL00002",
+          "value": "88",
+          "createdAt": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "updatedAt": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        }
+      ]
     },
     {
       "event": "D9PbzJY8bJM",
       "enrollment": "TvctPPhpD8z",
-      "storedBy": "admin",
+      "storedBy": "tracker",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "program": "BFcipDERJnf",
       "programStage": "NpsdDv6kKSO",
@@ -106,7 +123,24 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": "HllvX50cXC0",
       "completedBy": "admin",
-      "dataValues": []
+      "dataValues": [
+        {
+          "dataElement": "DATAEL00001",
+          "value": "89",
+          "createdAt": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "updatedAt": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": "DATAEL00002",
+          "value": "88",
+          "createdAt": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "updatedAt": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        }
+      ]
     }
   ]
 }
