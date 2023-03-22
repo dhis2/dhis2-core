@@ -92,7 +92,8 @@ class RelationshipValidatorTest
         validator.validate( reporter, bundle, bundle );
 
         assertEquals( 1, reporter.getErrors().size(),
-            "Expected just one error when uid not correct, but " + reporter.getErrors().size() + " found" );
+            "Expected just one error when uid not correct, but " + reporter.getErrors().size() + " found. Errors: "
+                + reporter.getErrors() );
         assertHasError( reporter, relationship, E1048, "uid: `wrong uid`, has an invalid uid format." );
     }
 
@@ -109,7 +110,8 @@ class RelationshipValidatorTest
         validator.validate( reporter, bundle, bundle );
 
         assertEquals( 1, reporter.getErrors().size(),
-            "Expected just one error when from constraint not set, but " + reporter.getErrors().size() + " found" );
+            "Expected just one error when from constraint not set, but " + reporter.getErrors().size()
+                + " found. Errors: " + reporter.getErrors() );
         assertHasError( reporter, relationship, E1124, "Missing required relationship property: `from`." );
     }
 
@@ -126,9 +128,10 @@ class RelationshipValidatorTest
         validator.validate( reporter, bundle, bundle );
 
         assertEquals( 1, reporter.getErrors().size(),
-            "Expected just one error when from item type not set, but " + reporter.getErrors().size() + " found" );
-        assertHasError( reporter, relationship, E4001, "Relationship Item `from` for Relationship `" + uid
-            + "` is invalid: an Item can link only one Tracker entity." );
+            "Expected just one error when from item type not set, but " + reporter.getErrors().size()
+                + " found. Errors: " + reporter.getErrors() );
+        assertHasError( reporter, relationship, E4001, "Relationship item `from` for relationship `" + uid
+            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test
@@ -144,12 +147,12 @@ class RelationshipValidatorTest
         validator.validate( reporter, bundle, bundle );
 
         assertEquals( 1, reporter.getErrors().size(), "Expected just one error when relationship links to itself, but "
-            + reporter.getErrors().size() + " found" );
+            + reporter.getErrors().size() + " found. Errors: " + reporter.getErrors() );
         assertHasError( reporter, relationship, E4000, "Relationship: `" + uid + "` cannot link to itself" );
     }
 
     @Test
-    void shouldFailWhenRelationshipLinksProgramsAndRelationshipTypeIsNotSet()
+    void shouldFailWhenRelationshipLinksProgramsAndEnrollmentDoesNotExistRelationshipTypeIsNotSet()
     {
         String uid = CodeGenerator.generateUid();
         Relationship relationship = createProgramRelationship( "first enrollment", uid );
@@ -161,9 +164,10 @@ class RelationshipValidatorTest
         validator.validate( reporter, bundle, bundle );
 
         assertEquals( 2, reporter.getErrors().size(),
-            "Expected two errors when relationship type is not set, but " + reporter.getErrors().size() + " found" );
+            "Expected two errors when relationship type is not set, but " + reporter.getErrors().size()
+                + " found. Errors: " + reporter.getErrors() );
         assertHasError( reporter, relationship, E4012,
-            "Could not find `enrollment`: `first enrollment`, linked to Relationship." );
+            "Could not find `enrollment`: `first enrollment`, linked to relationship." );
     }
 
     private Relationship createProgramRelationship( String enrollment, String uid )

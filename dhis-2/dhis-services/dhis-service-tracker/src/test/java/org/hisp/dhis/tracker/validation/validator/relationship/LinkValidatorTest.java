@@ -118,7 +118,7 @@ class LinkValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, E4001,
-            "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+            "Relationship item `to` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test
@@ -139,7 +139,7 @@ class LinkValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship Item `from` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+            "Relationship item `from` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test
@@ -157,7 +157,7 @@ class LinkValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+            "Relationship item `to` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test
@@ -175,7 +175,7 @@ class LinkValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship Item `from` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." );
+            "Relationship item `from` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     private RelationshipType createRelTypeConstraint()

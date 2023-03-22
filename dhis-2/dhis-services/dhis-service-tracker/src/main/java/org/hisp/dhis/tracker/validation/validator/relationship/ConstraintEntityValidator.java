@@ -72,21 +72,21 @@ public class ConstraintEntityValidator implements Validator<Relationship>
         switch ( constraint.getRelationshipEntity() )
         {
         case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityInstanceRelationship( item, reporter, relationship, relSide, bundle, constraint );
+            validateTrackedEntityInstanceRelationship( reporter, bundle, relationship, item, relSide, constraint );
             break;
         case PROGRAM_INSTANCE:
-            validateProgramInstanceRelationship( item, reporter, relationship, relSide, bundle );
+            validateProgramInstanceRelationship( reporter, bundle, relationship, item, relSide );
             break;
         case PROGRAM_STAGE_INSTANCE:
-            validateProgramStageInstanceRelationship( item, reporter, relationship, relSide, bundle );
+            validateProgramStageInstanceRelationship( reporter, bundle, relationship, item, relSide );
             break;
         default:
             break;
         }
     }
 
-    private void validateTrackedEntityInstanceRelationship( RelationshipItem item, Reporter reporter,
-        Relationship relationship, String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
+    private void validateTrackedEntityInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship, RelationshipItem item, String relSide, RelationshipConstraint constraint )
     {
         if ( item.getTrackedEntity() == null )
         {
@@ -103,8 +103,8 @@ public class ConstraintEntityValidator implements Validator<Relationship>
         }
     }
 
-    private void validateProgramInstanceRelationship( RelationshipItem item, Reporter reporter,
-        Relationship relationship, String relSide, TrackerBundle bundle )
+    private void validateProgramInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship, RelationshipItem item, String relSide )
     {
         if ( item.getEnrollment() == null )
         {
@@ -117,8 +117,8 @@ public class ConstraintEntityValidator implements Validator<Relationship>
         }
     }
 
-    private static void validateProgramStageInstanceRelationship( RelationshipItem item, Reporter reporter,
-        Relationship relationship, String relSide, TrackerBundle bundle )
+    private static void validateProgramStageInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship, RelationshipItem item, String relSide )
     {
         if ( item.getEvent() == null )
         {
@@ -134,17 +134,14 @@ public class ConstraintEntityValidator implements Validator<Relationship>
     private void validateTrackedEntityInstanceType( RelationshipItem item, Reporter reporter, Relationship relationship,
         String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
     {
-        getRelationshipTypeUidFromTrackedEntity( bundle,
-            item.getTrackedEntity() )
-                .ifPresent( type -> {
-
-                    if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
-                    {
-                        reporter.addError( relationship, ValidationCode.E4014, relSide,
-                            type.identifierOf( constraint.getTrackedEntityType() ), type );
-                    }
-
-                } );
+        getRelationshipTypeUidFromTrackedEntity( bundle, item.getTrackedEntity() )
+            .ifPresent( type -> {
+                if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
+                {
+                    reporter.addError( relationship, ValidationCode.E4014, relSide,
+                        type.identifierOf( constraint.getTrackedEntityType() ), type );
+                }
+            } );
     }
 
     private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
@@ -165,8 +162,7 @@ public class ConstraintEntityValidator implements Validator<Relationship>
 
     private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
     {
-        final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
-            .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
+        final Optional<TrackedEntity> payloadTei = bundle.findTrackedEntityByUid( uid );
         return payloadTei.map( TrackedEntity::getTrackedEntityType );
     }
 
