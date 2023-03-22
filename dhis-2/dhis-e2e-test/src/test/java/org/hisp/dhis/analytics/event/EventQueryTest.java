@@ -303,7 +303,7 @@ public class EventQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "dimension=ou:ImspTQPwCqd" )
             .add( "stage=Zj7UnCAulEk" )
-            .add( "headers=eventdate,ouname" )
+            .add( "headers=eventdate,ouname,lastupdated" )
             .add( "totalPages=false" )
             .add( "eventDate=202204,202207" )
             .add( "displayProperty=NAME" )
@@ -312,7 +312,6 @@ public class EventQueryTest extends AnalyticsApiTest
             .add( "pageSize=100" )
             .add( "page=1" )
             .add( "includeMetadataDetails=true" )
-            .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-22" );
 
         // When
@@ -321,9 +320,9 @@ public class EventQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 2 ) ) )
-            .body( "width", equalTo( 2 ) )
-            .body( "headerWidth", equalTo( 2 ) )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) )
             .body( "rows", hasSize( equalTo( 100 ) ) )
             .body( "height", equalTo( 100 ) )
 
@@ -361,19 +360,23 @@ public class EventQueryTest extends AnalyticsApiTest
         // Validate headers.
         validateHeader( response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "2022-04-28 00:00:00.0",
-                "Ngelehun CHC" ) );
+                "Ngelehun CHC",
+                "2018-05-26 11:21:44.908" ) );
 
         validateRow( response, 1,
             List.of( "2022-04-20 00:00:00.0",
-                "Ngelehun CHC" ) );
+                "Ngelehun CHC",
+                "2018-05-26 11:21:43.574" ) );
 
         validateRow( response, 2,
             List.of( "2022-04-02 00:00:00.0",
-                "Njandama MCHP" ) );
+                "Njandama MCHP",
+                "2018-05-26 11:21:43.417" ) );
     }
 
     @Test
