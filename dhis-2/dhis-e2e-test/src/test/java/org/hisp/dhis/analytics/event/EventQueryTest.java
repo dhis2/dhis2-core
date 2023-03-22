@@ -364,19 +364,19 @@ public class EventQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "2022-04-28 00:00:00.0",
-                "Ngelehun CHC",
-                "2018-05-26 11:21:44.908" ) );
+            List.of( "2022-04-03 00:00:00.0",
+                "Kayongoro MCHP",
+                "2018-04-21 14:07:16.471" ) );
 
         validateRow( response, 1,
-            List.of( "2022-04-20 00:00:00.0",
-                "Ngelehun CHC",
-                "2018-05-26 11:21:43.574" ) );
+            List.of( "2022-04-23 00:00:00.0",
+                "Bendu (Yawei) CHP",
+                "2018-04-21 14:07:16.233" ) );
 
         validateRow( response, 2,
-            List.of( "2022-04-02 00:00:00.0",
-                "Njandama MCHP",
-                "2018-05-26 11:21:43.417" ) );
+            List.of( "2022-07-31 00:00:00.0",
+                "Mendekelema CHP",
+                "2018-04-21 14:07:16.214" ) );
     }
 
     @Test
