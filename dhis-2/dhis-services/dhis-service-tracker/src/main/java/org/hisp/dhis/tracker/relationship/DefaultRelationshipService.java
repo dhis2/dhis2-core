@@ -271,7 +271,8 @@ public class DefaultRelationshipService implements RelationshipService
             // tei owns all attributes in trackedEntityAttributeValues while programs only present a subset of them
             // the program attributes are the ones attached to the enrollment
             tei.setTrackedEntityAttributeValues(
-                enrollment.getAttributes().stream().map( this::map ).collect( Collectors.toSet() ) );
+                enrollment.getAttributes().stream().map( this::map )
+                    .collect( Collectors.toSet() ) );
 
             result.setEntityInstance( tei );
         }
@@ -413,8 +414,10 @@ public class DefaultRelationshipService implements RelationshipService
         // NOTE: skipping mapping of event.relationships as /tracker/relationships models do not include the
         // relationships fields of each of its nested entities as relationship items would then end in an infinite recursion
 
-        result.setEventDataValues( event.getDataValues().stream().map( this::map ).collect( Collectors.toSet() ) );
-        result.setComments( event.getNotes().stream().map( this::map ).collect( Collectors.toList() ) );
+        result.setEventDataValues(
+            event.getDataValues().stream().map( this::map ).collect( Collectors.toSet() ) );
+        result.setComments(
+            event.getNotes().stream().map( this::map ).collect( Collectors.toList() ) );
 
         return result;
     }

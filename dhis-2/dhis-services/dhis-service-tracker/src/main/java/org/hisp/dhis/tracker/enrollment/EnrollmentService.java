@@ -25,29 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.enrollment;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
-@Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    AttributeMapper.class,
-    Dxf2EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
+public interface EnrollmentService
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    ProgramInstance getEnrollment( String uid, EnrollmentParams params );
+
+    Enrollments getEnrollments( ProgramInstanceQueryParams params );
 }

@@ -25,29 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.enrollment;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.Value;
+import lombok.With;
 
-@Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    AttributeMapper.class,
-    Dxf2EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
+import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
+
+@With
+@Value
+public class EnrollmentParams
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false,
+        false );
+
+    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
+        false, false );
+
+    EnrollmentEventsParams enrollmentEventsParams;
+
+    boolean includeRelationships;
+
+    boolean includeAttributes;
+
+    boolean includeDeleted;
+
+    boolean dataSynchronizationQuery;
+
+    public boolean isIncludeEvents()
+    {
+        return enrollmentEventsParams.isIncludeEvents();
+    }
+
+    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    {
+        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
+            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
+                this.includeRelationships, this.includeAttributes, this.includeDeleted,
+                this.dataSynchronizationQuery );
+    }
 }
