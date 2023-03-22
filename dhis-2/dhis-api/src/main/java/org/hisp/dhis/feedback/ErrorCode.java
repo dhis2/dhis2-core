@@ -392,6 +392,7 @@ public enum ErrorCode
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
     E7135( "Date time is not parsable: `{0}`" ),
     E7136( "Program is not specified" ),
+    E7137( "Expression is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),
