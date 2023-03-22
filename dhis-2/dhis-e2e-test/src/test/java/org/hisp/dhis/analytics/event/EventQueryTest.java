@@ -312,6 +312,7 @@ public class EventQueryTest extends AnalyticsApiTest
             .add( "pageSize=100" )
             .add( "page=1" )
             .add( "includeMetadataDetails=true" )
+            .add( "desc=lastupdated" )
             .add( "relativePeriodDate=2022-09-22" );
 
         // When
