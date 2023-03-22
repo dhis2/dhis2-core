@@ -42,7 +42,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.dxf2;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -117,7 +117,7 @@ public class AppOverrideFilter
             String filename = resource.getFilename();
             log.debug( String.format( "App filename: '%s'", filename ) );
 
-            String etag = CodecUtils.md5Hex( String.valueOf( resource.lastModified() ) );
+            String etag = HashCodeGenerator.getHashCode( String.valueOf( resource.lastModified() ) );
             if ( new ServletWebRequest( request, response ).checkNotModified( etag ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
