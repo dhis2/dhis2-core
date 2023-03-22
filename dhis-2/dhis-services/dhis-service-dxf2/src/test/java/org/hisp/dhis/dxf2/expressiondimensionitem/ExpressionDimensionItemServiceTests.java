@@ -25,26 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expressiondimensionitem;
+package org.hisp.dhis.dxf2.expressiondimensionitem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 
 /**
- * Test for {@link ExpressionDimensionItemHelper}
+ * Test for {@link ExpressionDimensionItemService}
  */
-class ExpressionDimensionItemHelperTests
+@ExtendWith( org.mockito.junit.jupiter.MockitoExtension.class )
+class ExpressionDimensionItemServiceTests
 {
     @Mock
     private IdentifiableObjectManager manager;
+
+    @Mock
+    private IdentifiableObject object;
+
+    private ExpressionDimensionItemService sut;
+
+    @BeforeEach
+    void initialize()
+    {
+        sut = new ExpressionDimensionItemService( manager );
+    }
 
     @Test
     void testGetExpressionItemsReturnsEmptyCollectionWhenCalledWithNullExpressionDimensionItem()
@@ -52,7 +72,7 @@ class ExpressionDimensionItemHelperTests
         // Given
         // When
         // Then
-        assertEquals( 0, ExpressionDimensionItemHelper.getExpressionItems( manager, new DataDimensionItem() ).size(),
+        assertEquals( 0, sut.getExpressionItems( new DataDimensionItem() ).size(),
             "NPE assertion failed" );
     }
 
@@ -64,12 +84,42 @@ class ExpressionDimensionItemHelperTests
     {
         // Given
         // When
-        List<String> tokens = ExpressionDimensionItemHelper.getExpressionTokens( ExpressionDimensionItemHelper.pattern,
+        List<String> tokens = sut.getExpressionTokens( ExpressionDimensionItemService.pattern,
             "#{" + token1 + "/#{" + token2 + "}" );
 
         // Then
         assertEquals( 2, tokens.size() );
         assertEquals( token1, tokens.get( 0 ) );
         assertEquals( token2, tokens.get( 1 ) );
+    }
+
+    @ParameterizedTest
+    @CsvSource( { "'fbfJHSPpUQD.pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'fbfJHSPpUQD.PT59n8BQbqM'",
+        "'pq2XI5kz2BY', 'PT59n8BQbqM'" } )
+    void testValidateExpressionItemsReturnsTrue( String token1, String token2 )
+    {
+        // Given
+        //noinspection unchecked
+        when( manager.get( (Class<IdentifiableObject>) any(), anyString() ) ).thenReturn( object );
+
+        // When
+        boolean valid = sut.isValidExpressionItems( "#{" + token1 + "/#{" + token2 + "}" );
+
+        // Then
+        assertTrue( valid );
+    }
+
+    @ParameterizedTest
+    @CsvSource( { "'fbfJHSPpUQD.pq2XI5kz2BY.fbfJHSPpUQD.PT59n8BQbqM', 'fbfJHSPpUQD.pq2XI5kz2BY'",
+        "'fbfJHSPpUQD.pq2XI5kz2BY', ''" } )
+    void testValidateExpressionItemsReturnsFalse( String token1, String token2 )
+    {
+        // Given
+        // When
+        boolean valid = sut.isValidExpressionItems( "#{" + token1 + "/#{" + token2 + "}" );
+
+        // Then
+        assertFalse( valid );
     }
 }
