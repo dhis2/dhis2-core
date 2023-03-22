@@ -102,20 +102,23 @@ class ProgramStageInstanceMapperTest
         this.event = event;
 
         // Initialize workContext, mapper and event.
-        return new ProgramStageInstanceMapper(getWorkContext(programStageInstanceMap, dataElementMap, dataValuesMap));
+        return new ProgramStageInstanceMapper(
+            getWorkContext( programStageInstanceMap, dataElementMap, dataValuesMap ) );
     }
 
-    private static WorkContext getWorkContext(Map<String, ProgramStageInstance> programStageInstanceMap, Map<String, DataElement> dataElementMap, Map<String, Set<EventDataValue>> dataValuesMap) {
+    private static WorkContext getWorkContext( Map<String, ProgramStageInstance> programStageInstanceMap,
+        Map<String, DataElement> dataElementMap, Map<String, Set<EventDataValue>> dataValuesMap )
+    {
         return WorkContext.builder()
-                .dataElementMap(dataElementMap)
-                .programStageInstanceMap(programStageInstanceMap)
-                .programInstanceMap(new HashMap<>())
-                .programsMap(new HashMap<>())
-                .organisationUnitMap(new HashMap<>())
-                .categoryOptionComboMap(new HashMap<>())
-                .eventDataValueMap(dataValuesMap)
-                .importOptions(ImportOptions.getDefaultImportOptions().setIdScheme("CODE"))
-                .build();
+            .dataElementMap( dataElementMap )
+            .programStageInstanceMap( programStageInstanceMap )
+            .programInstanceMap( new HashMap<>() )
+            .programsMap( new HashMap<>() )
+            .organisationUnitMap( new HashMap<>() )
+            .categoryOptionComboMap( new HashMap<>() )
+            .eventDataValueMap( dataValuesMap )
+            .importOptions( ImportOptions.getDefaultImportOptions().setIdScheme( "CODE" ) )
+            .build();
     }
 
     @Test

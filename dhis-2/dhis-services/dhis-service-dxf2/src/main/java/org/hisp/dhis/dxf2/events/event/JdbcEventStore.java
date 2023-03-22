@@ -583,7 +583,7 @@ public class JdbcEventStore implements EventStore
             {
                 try
                 {
-                    parameters[i] = bindEventParamsForUpdate( programStageInstances.get( i ) );
+                    parameters[i] = getSqlParametersForUpdate( programStageInstances.get( i ) );
                 }
                 catch ( SQLException | JsonProcessingException e )
                 {
@@ -2097,7 +2097,7 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private MapSqlParameterSource bindEventParamsForUpdate( ProgramStageInstance programStageInstance )
+    private MapSqlParameterSource getSqlParametersForUpdate( ProgramStageInstance programStageInstance )
         throws SQLException,
         JsonProcessingException
     {
