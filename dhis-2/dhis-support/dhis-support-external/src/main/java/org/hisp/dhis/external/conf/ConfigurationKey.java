@@ -83,12 +83,6 @@ public enum ConfigurationKey
     SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
 
     /**
-     * Percentage cap limit for all cache memory usages. If set to 0, no limit
-     * is set. (default: 0).
-     */
-    SYSTEM_CACHE_CAP_PERCENTAGE( "system.cache.cap.percentage", "0", false ),
-
-    /**
      * Node identifier, optional, useful in clusters.
      */
     NODE_ID( "node.id", "", false ),
