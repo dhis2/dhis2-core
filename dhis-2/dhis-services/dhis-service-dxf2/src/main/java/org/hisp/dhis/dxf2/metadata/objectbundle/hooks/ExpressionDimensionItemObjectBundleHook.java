@@ -56,7 +56,7 @@ public class ExpressionDimensionItemObjectBundleHook extends AbstractObjectBundl
 
         if ( !expressionDimensionItemService.isValidExpressionItems( expression ) )
         {
-            addReports.accept( new ErrorReport( ExpressionDimensionItem.class, ErrorCode.E7136, expression,
+            addReports.accept( new ErrorReport( ExpressionDimensionItem.class, ErrorCode.E7137, expression,
                 "Not a valid expression" ) );
         }
 
