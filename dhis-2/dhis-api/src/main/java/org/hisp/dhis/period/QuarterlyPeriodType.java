@@ -27,13 +27,8 @@
  */
 package org.hisp.dhis.period;
 
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
-
-import com.google.common.collect.Lists;
 
 /**
  * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
@@ -41,10 +36,9 @@ import com.google.common.collect.Lists;
  * the same quarter.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: QuarterlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class QuarterlyPeriodType
-    extends CalendarPeriodType
+    extends QuarterlyAbstractPeriodType
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -53,18 +47,7 @@ public class QuarterlyPeriodType
 
     private static final String ISO_FORMAT = "yyyyQn";
 
-    private static final String ISO8601_DURATION = "P3M";
-
-    private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
-
-    /**
-     * The name of the QuarterlyPeriodType, which is "Quarterly".
-     */
     public static final String NAME = "Quarterly";
-
-    public static final int FREQUENCY_ORDER = 91;
-
-    public static final String SQL_INTERVAL = "3 months";
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
@@ -74,6 +57,15 @@ public class QuarterlyPeriodType
     public String getName()
     {
         return NAME;
+    }
+
+    /**
+     * n refers to the quarter, can be [1-4].
+     */
+    @Override
+    public String getIsoFormat()
+    {
+        return ISO_FORMAT;
     }
 
     @Override
@@ -97,81 +89,9 @@ public class QuarterlyPeriodType
         return toIsoPeriod( start, end, calendar );
     }
 
-    @Override
-    public int getFrequencyOrder()
-    {
-        return FREQUENCY_ORDER;
-    }
-
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
-    }
-
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
-    @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
-    {
-        return calendar.plusMonths( dateTimeUnit, offset * 3 );
-    }
-
-    /**
-     * Generates quarterly Periods for the whole year in which the given
-     * Period's startDate exists.
-     */
-    @Override
-    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
-    {
-        org.hisp.dhis.calendar.Calendar cal = getCalendar();
-
-        dateTimeUnit.setMonth( 1 );
-        dateTimeUnit.setDay( 1 );
-
-        int year = dateTimeUnit.getYear();
-        List<Period> periods = Lists.newArrayList();
-
-        while ( year == dateTimeUnit.getYear() )
-        {
-            periods.add( createPeriod( dateTimeUnit, cal ) );
-            dateTimeUnit = cal.plusMonths( dateTimeUnit, 3 );
-        }
-
-        return periods;
-    }
-
-    /**
-     * Generates the last 4 quarters where the last one is the quarter which the
-     * given date is inside.
-     */
-    @Override
-    public List<Period> generateRollingPeriods( Date date )
-    {
-        date = createPeriod( date ).getStartDate();
-
-        return generateRollingPeriods( createLocalDateUnitInstance( date ), getCalendar() );
-    }
-
-    @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        dateTimeUnit.setDay( 1 );
-
-        DateTimeUnit iterationDateTimeUnit = calendar.minusMonths( dateTimeUnit, 9 );
-
-        List<Period> periods = Lists.newArrayList();
-
-        for ( int i = 0; i < 4; i++ )
-        {
-            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
-            iterationDateTimeUnit = calendar.plusMonths( iterationDateTimeUnit, 3 );
-        }
-
-        return periods;
-    }
 
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
@@ -196,34 +116,5 @@ public class QuarterlyPeriodType
         default:
             throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
         }
-    }
-
-    /**
-     * n refers to the quarter, can be [1-4].
-     */
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
-
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
-    @Override
-    public Date getRewindedDate( Date date, Integer rewindedPeriods )
-    {
-        Calendar cal = getCalendar();
-
-        date = date != null ? date : new Date();
-        rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
-
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
-        dateTimeUnit = cal.minusMonths( dateTimeUnit, rewindedPeriods * 3 );
-
-        return cal.toIso( dateTimeUnit ).toJdkDate();
     }
 }

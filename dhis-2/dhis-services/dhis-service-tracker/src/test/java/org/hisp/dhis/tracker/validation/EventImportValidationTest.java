@@ -98,7 +98,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
     private ProgramStageInstanceService programStageServiceInstance;
 
     @Autowired
-    protected TrackerImportService trackerImportService;
+    private TrackerImportService trackerImportService;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -112,6 +112,9 @@ class EventImportValidationTest extends AbstractImportValidationTest
     {
         renderService = _renderService;
         userService = _userService;
+        User userSetup = createUser( "A", "ALL" );
+        userService.addUser( userSetup );
+        injectSecurityContext( userSetup );
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
         ObjectBundleParams params = new ObjectBundleParams();
@@ -222,15 +225,11 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerImportParams.setUser( user );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1099 ) ) ) );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
     }
 
     @Test

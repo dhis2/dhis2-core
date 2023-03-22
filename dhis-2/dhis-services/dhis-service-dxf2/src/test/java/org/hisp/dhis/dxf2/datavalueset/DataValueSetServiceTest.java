@@ -208,6 +208,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         userService = _userService;
+        createAndInjectAdminUser( "ALL" );
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -1039,8 +1040,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.READ );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.READ );
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ );
         in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
