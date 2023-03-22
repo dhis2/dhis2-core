@@ -204,13 +204,13 @@ public class EventQueryTest extends AnalyticsApiTest
             .body( "metaData.pager.total", equalTo( 3 ) )
             .body( "metaData.pager.pageCount", equalTo( 1 ) )
             .body( "metaData.pager", not( hasKey( "isLastPage" ) ) )
-                
+
             .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
             .body( "metaData.items.dBwrot7S420.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
             .body( "metaData.items.lxAQ7Zs9VYR.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.LAST_12_MONTHS.name", equalTo( "Last 12 months" ) )
-                
+
             .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) );
