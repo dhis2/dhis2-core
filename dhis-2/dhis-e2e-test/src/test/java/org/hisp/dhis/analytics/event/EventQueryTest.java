@@ -73,23 +73,26 @@ public class EventQueryTest extends AnalyticsApiTest
         response.validate()
             .statusCode( 200 )
             .body( "headers", hasSize( equalTo( 17 ) ) )
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "height", equalTo( 3 ) )
+
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
             .body( "metaData.pager.isLastPage", is( true ) )
             .body( "metaData.pager", not( hasKey( "total" ) ) )
             .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+
             .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
             .body( "metaData.items.dBwrot7S420.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
             .body( "metaData.items.lxAQ7Zs9VYR.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.LAST_12_MONTHS.name", equalTo( "Last 12 months" ) )
+
             .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
-            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
-            .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 17 ) )
-            .body( "headerWidth", equalTo( 17 ) );
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -191,23 +194,26 @@ public class EventQueryTest extends AnalyticsApiTest
         response.validate()
             .statusCode( 200 )
             .body( "headers", hasSize( equalTo( 17 ) ) )
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "height", equalTo( 3 ) )
+
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
             .body( "metaData.pager.total", equalTo( 3 ) )
             .body( "metaData.pager.pageCount", equalTo( 1 ) )
             .body( "metaData.pager", not( hasKey( "isLastPage" ) ) )
+                
             .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
             .body( "metaData.items.dBwrot7S420.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
             .body( "metaData.items.lxAQ7Zs9VYR.name", equalTo( "Antenatal care visit" ) )
             .body( "metaData.items.LAST_12_MONTHS.name", equalTo( "Last 12 months" ) )
+                
             .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
-            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
-            .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 17 ) )
-            .body( "headerWidth", equalTo( 17 ) );
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -288,5 +294,196 @@ public class EventQueryTest extends AnalyticsApiTest
                 "ACTIVE",
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingFixedPeriods()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=ou:ImspTQPwCqd" )
+            .add( "stage=Zj7UnCAulEk" )
+            .add( "headers=eventdate,ouname" )
+            .add( "totalPages=false" )
+            .add( "eventDate=202204,202207" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "includeMetadataDetails=true" )
+            .add( "relativePeriodDate=2022-09-22" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "eBAyeGv0exc", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 2 ) ) )
+            .body( "width", equalTo( 2 ) )
+            .body( "headerWidth", equalTo( 2 ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) )
+            .body( "height", equalTo( 100 ) )
+
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 100 ) )
+            .body( "metaData.pager.total", equalTo( null ) )
+            .body( "metaData.pager.pageCount", equalTo( null ) )
+            .body( "metaData.pager.isLastPage", equalTo( false ) )
+
+            .body( "metaData.items.202204.name", equalTo( "April 2022" ) )
+            .body( "metaData.items.202207.name", equalTo( "July 2022" ) )
+
+            .body( "metaData.items.ImspTQPwCqd.uid", equalTo( "ImspTQPwCqd" ) )
+            .body( "metaData.items.ImspTQPwCqd.code", equalTo( "OU_525" ) )
+            .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
+            .body( "metaData.items.ImspTQPwCqd.dimensionItemType", equalTo( "ORGANISATION_UNIT" ) )
+            .body( "metaData.items.ImspTQPwCqd.valueType", equalTo( "NUMBER" ) )
+            .body( "metaData.items.ImspTQPwCqd.totalAggregationType", equalTo( "SUM" ) )
+
+            .body( "metaData.items.eBAyeGv0exc.uid", equalTo( "eBAyeGv0exc" ) )
+            .body( "metaData.items.eBAyeGv0exc.name", equalTo( "Inpatient morbidity and mortality" ) )
+
+            .body( "metaData.items.ou.uid", equalTo( "ou" ) )
+            .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
+            .body( "metaData.items.ou.dimensionType", equalTo( "ORGANISATION_UNIT" ) )
+
+            .body( "metaData.items.Zj7UnCAulEk.uid", equalTo( "Zj7UnCAulEk" ) )
+            .body( "metaData.items.Zj7UnCAulEk.name", equalTo( "Inpatient morbidity and mortality" ) )
+            .body( "metaData.items.Zj7UnCAulEk.description", equalTo( "Anonymous and ICD-10 coded inpatient data" ) )
+
+            .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) );
+
+        // Validate headers.
+        validateHeader( response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "2022-04-28 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 1,
+            List.of( "2022-04-20 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 2,
+            List.of( "2022-04-02 00:00:00.0",
+                "Njandama MCHP" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingRelativePeriod()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=ou:ImspTQPwCqd" )
+            .add( "stage=Zj7UnCAulEk" )
+            .add( "headers=eventdate,ouname" )
+            .add( "totalPages=false" )
+            .add( "eventDate=LAST_12_MONTHS" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "includeMetadataDetails=true" )
+            .add( "relativePeriodDate=2022-09-22" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "eBAyeGv0exc", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 2 ) ) )
+            .body( "width", equalTo( 2 ) )
+            .body( "headerWidth", equalTo( 2 ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) )
+            .body( "height", equalTo( 100 ) )
+
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 100 ) )
+            .body( "metaData.pager.total", equalTo( null ) )
+            .body( "metaData.pager.pageCount", equalTo( null ) )
+            .body( "metaData.pager.isLastPage", equalTo( false ) )
+
+            .body( "metaData.items.LAST_12_MONTHS.name", equalTo( "Last 12 months" ) );
+
+        // Validate headers.
+        validateHeader( response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "2022-08-02 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 1,
+            List.of( "2022-08-02 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 2,
+            List.of( "2022-08-01 00:00:00.0",
+                "Ngelehun CHC" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingStartEndDates()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=ou:ImspTQPwCqd" )
+            .add( "stage=Zj7UnCAulEk" )
+            .add( "headers=eventdate,ouname" )
+            .add( "totalPages=false" )
+            .add( "eventDate=2021-03-02_2022-03-13" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "includeMetadataDetails=true" )
+            .add( "relativePeriodDate=2022-09-22" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "eBAyeGv0exc", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 2 ) ) )
+            .body( "width", equalTo( 2 ) )
+            .body( "headerWidth", equalTo( 2 ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) )
+            .body( "height", equalTo( 100 ) )
+
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 100 ) )
+            .body( "metaData.pager.total", equalTo( null ) )
+            .body( "metaData.pager.pageCount", equalTo( null ) )
+            .body( "metaData.pager.isLastPage", equalTo( false ) )
+
+            .body( "metaData.items.2021-03-02_2022-03-13.name", equalTo( "2021-03-02 - 2022-03-13" ) );
+
+        // Validate headers.
+        validateHeader( response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "2021-11-04 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 1,
+            List.of( "2021-10-07 00:00:00.0",
+                "Ngelehun CHC" ) );
+
+        validateRow( response, 2,
+            List.of( "2021-11-05 00:00:00.0",
+                "Ngelehun CHC" ) );
     }
 }
