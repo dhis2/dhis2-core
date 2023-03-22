@@ -860,14 +860,6 @@
       <param name="javascripts">../dhis-web-commons/about/help.js</param>
     </action>
 
-    <action name="getHelpContent" class="org.hisp.dhis.help.action.GetHelpContentAction">
-      <result name="success" type="outputStreamResult" />
-    </action>
-
-    <action name="getHelpItems" class="org.hisp.dhis.help.action.GetHelpItemsAction">
-      <result name="success" type="outputStreamResult" />
-    </action>
-
     <action name="modules" class="org.hisp.dhis.commons.action.NoAction">
       <result name="success" type="redirect">/dhis-web-menu-management/</result>
     </action>

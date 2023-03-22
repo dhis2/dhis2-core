@@ -82,15 +82,19 @@ public class AnalyticsTablePartition
     // Logic
     // -------------------------------------------------------------------------
 
-    public String getTableName()
+    public String getTableName( boolean forTempTable )
     {
-        String name = masterTable.getBaseName();
+        String name = forTempTable ? masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX
+            : masterTable.getBaseName();
 
         if ( masterTable.getProgram() != null )
         {
             name = PartitionUtils.getTableName( name, masterTable.getProgram() );
         }
-
+        else if ( masterTable.getTrackedEntityType() != null )
+        {
+            name += PartitionUtils.SEP + masterTable.getTrackedEntityType().getUid().toLowerCase();
+        }
         if ( year != null )
         {
             name += PartitionUtils.SEP + year;
@@ -99,21 +103,14 @@ public class AnalyticsTablePartition
         return name;
     }
 
+    public String getTableName()
+    {
+        return getTableName( false );
+    }
+
     public String getTempTableName()
     {
-        String name = masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
-
-        if ( masterTable.getProgram() != null )
-        {
-            name = PartitionUtils.getTableName( name, masterTable.getProgram() );
-        }
-
-        if ( year != null )
-        {
-            name += PartitionUtils.SEP + year;
-        }
-
-        return name;
+        return getTableName( true );
     }
 
     public boolean isLatestPartition()

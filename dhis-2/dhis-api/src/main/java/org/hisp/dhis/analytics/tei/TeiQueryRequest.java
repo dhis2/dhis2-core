@@ -32,6 +32,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.With;
 
+/**
+ * Groups all request attributes specifically related to tracked entity types.
+ */
 @Getter
 @Setter
 @With
@@ -39,5 +42,4 @@ import lombok.With;
 public class TeiQueryRequest
 {
     private String trackedEntityType;
-
 }
