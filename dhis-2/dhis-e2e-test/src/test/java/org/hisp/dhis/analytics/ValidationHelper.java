@@ -60,8 +60,8 @@ public class ValidationHelper
      * @param hidden
      * @param meta
      */
-    public static void validateHeader( final ApiResponse response, final int headerIndex, final String name,
-        final String column, final String valueType, final String type, final boolean hidden, final boolean meta )
+    public static void validateHeader( ApiResponse response, int headerIndex, String name,
+        String column, String valueType, String type, boolean hidden, boolean meta )
     {
         response.validate()
             .body( "headers[" + headerIndex + "].name", equalTo( name ) )
@@ -79,7 +79,7 @@ public class ValidationHelper
      * @param response
      * @param expectedValues
      */
-    public static void validateRow( final ApiResponse response, final int rowIndex, final List<String> expectedValues )
+    public static void validateRow( ApiResponse response, int rowIndex, List<String> expectedValues )
     {
         response.validate()
             .body( "rows[" + rowIndex + "]", equalTo( expectedValues ) );

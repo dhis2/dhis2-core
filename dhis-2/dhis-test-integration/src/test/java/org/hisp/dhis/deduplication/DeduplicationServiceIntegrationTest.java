@@ -41,7 +41,7 @@ import java.util.List;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -255,7 +255,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
         PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-        criteria.setOrder( List.of( OrderCriteria.of( "field", OrderParam.SortDirection.ASC ) ) );
+        criteria.setOrder( List.of( OrderCriteria.of( "field", SortDirection.ASC ) ) );
         assertThrows( IllegalArgumentException.class, () -> deduplicationService.getPotentialDuplicates( criteria ) );
     }
 }
