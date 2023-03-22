@@ -297,7 +297,7 @@ public class EventQueryTest extends AnalyticsApiTest
     }
 
     @Test
-    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingFixedPeriods()
+    public void queryWithProgramAndProgramStageFilteringByEventDateUsingFixedPeriods()
     {
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
@@ -376,7 +376,7 @@ public class EventQueryTest extends AnalyticsApiTest
     }
 
     @Test
-    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingRelativePeriod()
+    public void queryWithProgramAndProgramStageFilteringByEventDateUsingRelativePeriod()
     {
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
@@ -432,7 +432,7 @@ public class EventQueryTest extends AnalyticsApiTest
     }
 
     @Test
-    public void queryWithProgramAndProgramStageWhenFilteringByEventDateUsingStartEndDates()
+    public void queryWithProgramAndProgramStageFilteringByEventDateUsingStartEndDates()
     {
         // Given
         QueryParamsBuilder params = new QueryParamsBuilder()
@@ -485,5 +485,153 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 2,
             List.of( "2021-11-05 00:00:00.0",
                 "Ngelehun CHC" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndProgramStageAndProgramIndicatorFilteringByEventDateUsingRelativePeriod()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=ou:USER_ORGUNIT,p2Zxg0wcPQ3" )
+            .add( "stage=A03MvHHogjR" )
+            .add( "headers=ouname,p2Zxg0wcPQ3,eventdate" )
+            .add( "totalPages=false" )
+            .add( "eventDate=LAST_12_MONTHS" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "includeMetadataDetails=true" )
+            .add( "relativePeriodDate=2022-09-22" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "IpHINAT79UW", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) )
+            .body( "height", equalTo( 100 ) )
+
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 100 ) )
+            .body( "metaData.pager.total", equalTo( null ) )
+            .body( "metaData.pager.pageCount", equalTo( null ) )
+            .body( "metaData.pager.isLastPage", equalTo( false ) )
+
+            .body( "metaData.items.LAST_12_MONTHS.name", equalTo( "Last 12 months" ) )
+
+            .body( "metaData.items.ImspTQPwCqd.uid", equalTo( "ImspTQPwCqd" ) )
+            .body( "metaData.items.ImspTQPwCqd.code", equalTo( "OU_525" ) )
+            .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
+            .body( "metaData.items.ImspTQPwCqd.dimensionItemType", equalTo( "ORGANISATION_UNIT" ) )
+            .body( "metaData.items.ImspTQPwCqd.valueType", equalTo( "NUMBER" ) )
+            .body( "metaData.items.ImspTQPwCqd.totalAggregationType", equalTo( "SUM" ) )
+
+            .body( "metaData.items.p2Zxg0wcPQ3.uid", equalTo( "p2Zxg0wcPQ3" ) )
+            .body( "metaData.items.p2Zxg0wcPQ3.code", equalTo( "BCG_DOSE" ) )
+            .body( "metaData.items.p2Zxg0wcPQ3.name", equalTo( "BCG doses" ) )
+            .body( "metaData.items.p2Zxg0wcPQ3.dimensionItemType", equalTo( "PROGRAM_INDICATOR" ) )
+            .body( "metaData.items.p2Zxg0wcPQ3.valueType", equalTo( "NUMBER" ) )
+            .body( "metaData.items.p2Zxg0wcPQ3.totalAggregationType", equalTo( "SUM" ) )
+
+            .body( "metaData.items.IpHINAT79UW.uid", equalTo( "IpHINAT79UW" ) )
+            .body( "metaData.items.IpHINAT79UW.name", equalTo( "Child Programme" ) )
+
+            .body( "metaData.items.ou.uid", equalTo( "ou" ) )
+            .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
+            .body( "metaData.items.ou.dimensionType", equalTo( "ORGANISATION_UNIT" ) )
+
+            .body( "metaData.items.A03MvHHogjR.uid", equalTo( "A03MvHHogjR" ) )
+            .body( "metaData.items.A03MvHHogjR.name", equalTo( "Birth" ) )
+            .body( "metaData.items.A03MvHHogjR.description", equalTo( "Birth of the baby" ) )
+
+            .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
+            .body( "metaData.dimensions.p2Zxg0wcPQ3", hasSize( equalTo( 0 ) ) );
+
+        // Validate headers.
+        validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "Ngelehun CHC",
+                "0",
+                "2022-02-27 00:00:00.0" ) );
+
+        validateRow( response, 1,
+            List.of( "Ngelehun CHC",
+                "0",
+                "2022-05-27 00:00:00.0" ) );
+
+        validateRow( response, 2,
+            List.of( "Ngelehun CHC",
+                "1",
+                "2022-01-19 00:00:00.0" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndProgramStageAndProgramIndicatorFilteringByEventDateUsingFixedDates()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=ou:USER_ORGUNIT,p2Zxg0wcPQ3" )
+            .add( "stage=A03MvHHogjR" )
+            .add( "headers=ouname,p2Zxg0wcPQ3,eventdate" )
+            .add( "totalPages=false" )
+            .add( "eventDate=2021-03-02_2023-03-01" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=lastupdated" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "includeMetadataDetails=true" )
+            .add( "relativePeriodDate=2022-09-22" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "IpHINAT79UW", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) )
+            .body( "height", equalTo( 100 ) )
+
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 100 ) )
+            .body( "metaData.pager.total", equalTo( null ) )
+            .body( "metaData.pager.pageCount", equalTo( null ) )
+            .body( "metaData.pager.isLastPage", equalTo( false ) );
+
+        // Validate headers.
+        validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "Ngelehun CHC",
+                "0",
+                "2022-02-27 00:00:00.0" ) );
+
+        validateRow( response, 1,
+            List.of( "Ngelehun CHC",
+                "1",
+                "2022-12-29 00:00:00.0" ) );
+
+        validateRow( response, 2,
+            List.of( "Ngelehun CHC",
+                "0",
+                "2021-08-15 00:00:00.0" ) );
     }
 }
