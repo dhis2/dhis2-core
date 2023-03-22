@@ -994,7 +994,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( value instanceof BigDecimal )
             {
-                // Special handling of double is here not of use. Option in OptionSet can be only floating type 'Number' which is internally Double.
                 // toPlainString method prevents scientific notation (3E+2)
                 grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
             }
