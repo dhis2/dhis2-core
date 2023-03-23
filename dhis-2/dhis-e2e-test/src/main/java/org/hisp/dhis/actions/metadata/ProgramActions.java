@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.utils.DataGenerator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hisp.dhis.utils.SharingUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -81,10 +83,12 @@ public class ProgramActions
     {
         String programId = this.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, orgUnits ).extractUid();
 
+        JsonObject sharingObject = SharingUtils.createSharingObject( null, "rwrw----", Map.of(), Map.of() );
+
         JsonObject program = this.get( programId )
             .getBodyAsJsonBuilder()
             .addProperty( "accessLevel", accessLevel )
-            .addProperty( "publicAccess", "rwrw----" )
+            .addObject( "sharing", sharingObject )
             .addProperty( "onlyEnrollOnce", "false" )
             .build();
 
@@ -135,7 +139,7 @@ public class ProgramActions
             .addProperty( "name", programStageName )
             .addProperty( "code", programStageName )
             .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
-            .addProperty( "publicAccess", "rwrw----" ).build();
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) ).build();
 
         ApiResponse response = programStageActions.post( programStage );
 
@@ -201,7 +205,7 @@ public class ProgramActions
             .addProperty( "shortName", "AutoTest program " + random )
             .addProperty( "code", "TA_PROGRAM_" + random )
             .addUserGroupAccess()
-            .addProperty( "publicAccess", "rwrw----" )
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) )
             .build();
 
         return object;
@@ -212,7 +216,7 @@ public class ProgramActions
         return new JsonObjectBuilder( buildProgram() )
             .addProperty( "programType", programType )
             .addProperty( "displayFrontPageList", "true" )
-            .addProperty( "publicAccess", "rwrw----" )
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) )
             .build();
     }
 
