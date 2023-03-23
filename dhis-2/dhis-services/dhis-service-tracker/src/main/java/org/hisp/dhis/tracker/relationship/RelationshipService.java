@@ -25,28 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.relationship;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import java.util.List;
+import java.util.Optional;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-/**
- * Tests the {@link CacheController}.
- *
- * Mostly that only users with proper authority can use it.
- *
- * @author Jan Bernitt
- */
-class CacheControllerTest extends DhisControllerConvenienceTest
+public interface RelationshipService
 {
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter criteria );
 
-    @Test
-    void testInvalidate()
-    {
-        switchToNewUser( "no-special-authority-user" );
-        assertStatus( HttpStatus.FORBIDDEN, POST( "/caches/invalidate" ) );
-    }
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter criteria );
+
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+
+    Optional<Relationship> findRelationshipByUid( String id );
 }

@@ -55,7 +55,6 @@ import com.google.gson.JsonObject;
  */
 public class AnalyticsSetupExtension implements BeforeAllCallback
 {
-
     private static final Logger logger = getLogger( AnalyticsSetupExtension.class.getName() );
 
     /**
