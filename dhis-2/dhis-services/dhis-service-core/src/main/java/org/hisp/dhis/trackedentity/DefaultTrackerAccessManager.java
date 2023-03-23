@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.dxf2.events.TrackerAccessManager" )
+@Component
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
