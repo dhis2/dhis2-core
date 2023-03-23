@@ -27,43 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
+/**
+ * tracker.export is currently made independent of dxf2. We are in a transition
+ * period where some mappers are duplicated. This mapper will be removed once
+ * tracker.export is independent of dxf2.
+ */
 @Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+    Dxf2RelationshipItemMapper.class,
+    InstantMapper.class } )
+interface Dxf2RelationshipMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
-    @Mapping( target = "occurredAt", source = "eventDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
-
-    @Named( "toUserInfo" )
-    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
-    {
-        return User.builder()
-            .uid( event.getAssignedUser() )
-            .username( event.getAssignedUserUsername() )
-            .firstName( event.getAssignedUserFirstName() )
-            .surname( event.getAssignedUserSurname() )
-            .displayName( event.getAssignedUserDisplayName() )
-            .build();
-    }
+    @Override
+    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
 }
