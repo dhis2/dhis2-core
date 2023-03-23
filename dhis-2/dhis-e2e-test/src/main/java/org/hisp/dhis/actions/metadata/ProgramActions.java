@@ -42,10 +42,10 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.SharingUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.utils.SharingUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
