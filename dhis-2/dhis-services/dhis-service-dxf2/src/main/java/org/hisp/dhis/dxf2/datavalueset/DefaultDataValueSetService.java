@@ -901,9 +901,8 @@ public class DefaultDataValueSetService
 
                 if ( actualDataValue != null )
                 {
-                    FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
-
-                    fileResourceService.updateFileResource( fr );
+                    fileResourceService.deleteFileResource(
+                        fileResourceService.getFileResource( actualDataValue.getValue() ) );
                 }
             }
 
@@ -959,12 +958,20 @@ public class DefaultDataValueSetService
             if ( valueContext.getDataElement().isFileType() )
             {
                 FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+                if ( auditType == AuditType.DELETE )
+                {
+                    fileResourceService.deleteFileResource( fr );
+                }
+                else
+                {
+                    if ( fr != null && !fr.isAssigned() )
+                    {
+                        fr.setAssigned( true );
 
-                fr.setAssigned( true );
-
-                fileResourceService.updateFileResource( fr );
+                        fileResourceService.updateFileResource( fr );
+                    }
+                }
             }
-
         }
     }
 

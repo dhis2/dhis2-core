@@ -97,7 +97,7 @@ public class WebClientUtils
         {
             if ( expected.series() == actualStatus.series() )
             {
-                String msg = actual.error( actualStatus.series() ).getMessage();
+                String msg = actual.error( actualStatus.series() ).summary();
                 assertEquals( expected, actualStatus, msg );
             }
             else
