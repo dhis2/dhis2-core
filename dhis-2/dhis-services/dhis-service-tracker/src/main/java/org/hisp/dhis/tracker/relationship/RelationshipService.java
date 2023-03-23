@@ -39,16 +39,13 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public interface RelationshipService
 {
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter criteria,
-        boolean skipAccessValidation );
+        PagingAndSortingCriteriaAdapter criteria );
 
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter criteria,
-        boolean skipAccessValidation );
+        PagingAndSortingCriteriaAdapter criteria );
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation );
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     Optional<Relationship> findRelationshipByUid( String id );
 }

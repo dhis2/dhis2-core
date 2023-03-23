@@ -228,7 +228,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         relationship( teiA, inaccessibleTei, teiToInaccessibleTeiType );
 
         List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntityInstance( teiA,
-            new Paging(), false );
+            new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
             relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
@@ -241,7 +241,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         relationship( teiB, piA, teiToPiInaccessibleType );
 
         List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( piA,
-            new Paging(), false );
+            new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
             relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
@@ -254,7 +254,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         relationship( psiA, inaccessiblePsi );
 
         List<Relationship> relationships = relationshipService.getRelationshipsByProgramStageInstance( psiA,
-            new Paging(), false );
+            new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
             relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );

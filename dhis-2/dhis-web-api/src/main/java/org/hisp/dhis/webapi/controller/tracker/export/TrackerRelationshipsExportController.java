@@ -119,13 +119,13 @@ public class TrackerRelationshipsExportController
             .<Class<?>, BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>> builder()
             .put( TrackedEntityInstance.class,
                 ( o, criteria ) -> relationshipService
-                    .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria, false ) )
+                    .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria ) )
             .put( ProgramInstance.class,
-                ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o, criteria,
-                    false ) )
+                ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o,
+                    criteria ) )
             .put( ProgramStageInstance.class,
                 ( o, criteria ) -> relationshipService.getRelationshipsByProgramStageInstance( (ProgramStageInstance) o,
-                    criteria, false ) )
+                    criteria ) )
             .build();
     }
 

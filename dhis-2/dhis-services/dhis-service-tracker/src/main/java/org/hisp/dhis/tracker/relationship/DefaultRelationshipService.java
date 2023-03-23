@@ -64,14 +64,11 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.tracker.relationship.RelationshipService" )
-@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-@Transactional
+@Transactional( readOnly = true )
 @RequiredArgsConstructor
 public class DefaultRelationshipService implements RelationshipService
 {
@@ -79,7 +76,7 @@ public class DefaultRelationshipService implements RelationshipService
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private final org.hisp.dhis.relationship.RelationshipService relationshipService;
+    private final org.hisp.dhis.relationship.RelationshipStore relationshipStore;
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -88,58 +85,51 @@ public class DefaultRelationshipService implements RelationshipService
     private final EventService eventService;
 
     @Override
-    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
         TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation )
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService
-            .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+        return relationshipStore
+            .getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter )
             .stream()
-            .filter( r -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
+            .filter( r -> trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( this::map )
             .collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation )
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService
-            .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
-            .filter( r -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
+        return relationshipStore
+            .getByProgramInstance( pi, pagingAndSortingCriteriaAdapter ).stream()
+            .filter( r -> trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( this::map )
             .collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation )
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService
-            .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+        return relationshipStore
+            .getByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter )
             .stream()
-            .filter( r -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
+            .filter( r -> trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( this::map )
             .collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public Optional<Relationship> findRelationshipByUid( String id )
+    public Optional<Relationship> findRelationshipByUid( String uid )
     {
-        Relationship relationship = relationshipService.getRelationship( id );
+        Relationship relationship = relationshipStore.getByUid( uid );
 
         if ( relationship == null )
         {
