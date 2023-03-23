@@ -58,9 +58,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class ConstraintEntityValidatorTest
+class ConstraintValidatorTest
 {
-    private ConstraintEntityValidator validator;
+    private ConstraintValidator validator;
 
     @Mock
     private TrackerBundle bundle;
@@ -76,7 +76,7 @@ class ConstraintEntityValidatorTest
     @BeforeEach
     public void setUp()
     {
-        validator = new ConstraintEntityValidator();
+        validator = new ConstraintValidator();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 

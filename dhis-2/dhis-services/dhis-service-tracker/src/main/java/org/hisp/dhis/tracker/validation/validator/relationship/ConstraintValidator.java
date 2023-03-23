@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 
-public class ConstraintEntityValidator implements Validator<Relationship>
+public class ConstraintValidator implements Validator<Relationship>
 {
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
@@ -57,13 +57,13 @@ public class ConstraintEntityValidator implements Validator<Relationship>
         RelationshipType relationshipType = bundle.getPreheat()
             .getRelationshipType( relationship.getRelationshipType() );
 
-        validateRelationshipConstraintEntity( reporter, bundle, relationship, "from", relationship.getFrom(),
+        validateRelationshipConstraint( reporter, bundle, relationship, "from", relationship.getFrom(),
             relationshipType.getFromConstraint() );
-        validateRelationshipConstraintEntity( reporter, bundle, relationship, "to", relationship.getTo(),
+        validateRelationshipConstraint( reporter, bundle, relationship, "to", relationship.getTo(),
             relationshipType.getToConstraint() );
     }
 
-    private void validateRelationshipConstraintEntity( Reporter reporter, TrackerBundle bundle,
+    private void validateRelationshipConstraint( Reporter reporter, TrackerBundle bundle,
         Relationship relationship,
         String relSide,
         RelationshipItem item,
