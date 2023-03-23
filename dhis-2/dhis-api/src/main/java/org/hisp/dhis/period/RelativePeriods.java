@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.period;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 
 import java.io.Serializable;
@@ -34,7 +36,12 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.ArrayUtils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
@@ -43,17 +50,44 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@Accessors( chain = true )
+@EqualsAndHashCode
+@ToString
 @JacksonXmlRootElement( localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
-public class RelativePeriods
-    implements Serializable
+public class RelativePeriods implements Serializable
 {
-    public static final String[] MONTH_NAMES = {
+    private static final String THISDAY = "thisDay";
+
+    private static final String YESTERDAY = "yesterday";
+
+    private static final String LAST_WEEK = "last_week";
+
+    private static final String LAST_BIWEEK = "last_biweek";
+
+    private static final String LAST_MONTH = "reporting_month";
+
+    private static final String LAST_BIMONTH = "reporting_bimonth";
+
+    private static final String LAST_QUARTER = "reporting_quarter";
+
+    private static final String LAST_SIXMONTH = "last_sixmonth";
+
+    private static final String THIS_YEAR = "year";
+
+    private static final String LAST_YEAR = "last_year";
+
+    private static final String THIS_FINANCIAL_YEAR = "financial_year";
+
+    private static final String LAST_FINANCIAL_YEAR = "last_financial_year";
+
+    private static final List<String> MONTHS_THIS_YEAR = List.of(
         "january",
         "february",
         "march",
@@ -65,207 +99,214 @@ public class RelativePeriods
         "september",
         "october",
         "november",
-        "december" };
-
-    public static final String THISDAY = "thisDay";
-
-    public static final String YESTERDAY = "yesterday";
-
-    public static final String LAST_WEEK = "last_week";
-
-    public static final String LAST_BIWEEK = "last_biweek";
-
-    public static final String LAST_MONTH = "reporting_month";
-
-    public static final String LAST_BIMONTH = "reporting_bimonth";
-
-    public static final String LAST_QUARTER = "reporting_quarter";
-
-    public static final String LAST_SIXMONTH = "last_sixmonth";
-
-    public static final String THIS_YEAR = "year";
-
-    public static final String LAST_YEAR = "last_year";
-
-    public static final String THIS_FINANCIAL_YEAR = "financial_year";
-
-    public static final String LAST_FINANCIAL_YEAR = "last_financial_year";
-
-    public static final String[] MONTHS_THIS_YEAR = {
-        "january",
-        "february",
-        "march",
-        "april",
-        "may",
-        "june",
-        "july",
-        "august",
-        "september",
-        "october",
-        "november",
-        "december" };
+        "december" );
 
     // Generates an array containing Strings "day1" -> "day365"
-    public static final String[] DAYS_IN_YEAR = streamToStringArray( IntStream.rangeClosed( 1, 365 ).boxed(), "day",
-        "" );
+    private static final List<String> DAYS_IN_YEAR = patternList1ToN( 365, "day%d" );
 
     // Generates an array containing Strings "january_last_year" ->
     // "december_last_year"
-    public static final String[] MONTHS_LAST_YEAR = streamToStringArray( Arrays.stream( MONTHS_THIS_YEAR ), "",
-        "_last_year" );
+    private static final List<String> MONTHS_LAST_YEAR = MONTHS_THIS_YEAR.stream().map( name -> name + "_last_year" )
+        .collect( toUnmodifiableList() );
 
     // Generates an array containing Strings "month1" -> "month12"
-    public static final String[] MONTHS_LAST_12 = streamToStringArray( IntStream.rangeClosed( 1, 12 ).boxed(), "month",
-        "" );
+    private static final List<String> MONTHS_LAST_12 = patternList1ToN( 12, "month%d" );
 
     // Generates an array containing Strings "bimonth1" -> "bimonth6"
-    public static final String[] BIMONTHS_LAST_6 = streamToStringArray( IntStream.rangeClosed( 1, 6 ).boxed(),
-        "bimonth", "" );
+    private static final List<String> BIMONTHS_LAST_6 = patternList1ToN( 6, "bimonth%d" );
 
     // Generates an array containing Strings "bimonth1" -> "bimonth6"
-    public static final String[] BIMONTHS_THIS_YEAR = streamToStringArray( IntStream.rangeClosed( 1, 6 ).boxed(),
-        "bimonth", "" );
+    private static final List<String> BIMONTHS_THIS_YEAR = patternList1ToN( 6, "bimonth%d" );
 
     // Generates an array containing Strings "quarter1" -> "quarter4"
-    public static final String[] QUARTERS_THIS_YEAR = streamToStringArray( IntStream.rangeClosed( 1, 4 ).boxed(),
-        "quarter", "" );
+    private static final List<String> QUARTERS_THIS_YEAR = patternList1ToN( 4, "quarter%d" );
 
     // Generates an array containing Strings "sixmonth1" and "sixmonth2"
-    public static final String[] SIXMONHTS_LAST_2 = streamToStringArray( IntStream.rangeClosed( 1, 2 ).boxed(),
-        "sixmonth", "" );
+    private static final List<String> SIXMONHTS_LAST_2 = patternList1ToN( 2, "sixmonth%d" );
 
     // Generates an array containing Strings "quarter1_last_year" ->
     // "quarter4_last_year"
-    public static final String[] QUARTERS_LAST_YEAR = streamToStringArray( IntStream.rangeClosed( 1, 4 ).boxed(),
-        "quarter", "_last_year" );
+    private static final List<String> QUARTERS_LAST_YEAR = patternList1ToN( 4, "quarter%d_last_year" );
 
     // Generates an array containing "year_minus_4" -> "year_minus_1" +
     // "year_this"
-    public static final String[] LAST_5_YEARS = (String[]) ArrayUtils.addAll(
-        streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "year_minus_", "" ),
-        Collections.singletonList( "year_this" ).toArray() );
+    private static final List<String> LAST_5_YEARS = patternListNTo1( 4, "year_minus_%d", "year_this" );
 
     // Generates an array containing "year_minus_9" -> "year_minus_1" +
     // "year_this"
-    public static final String[] LAST_10_YEARS = (String[]) ArrayUtils.addAll(
-        streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "year_minus_", "" ),
-        Collections.singletonList( "year_this" ).toArray() );
+    private static final List<String> LAST_10_YEARS = patternListNTo1( 9, "year_minus_%d", "year_this" );
 
     // Generates an array containing "financial_year_minus_4" ->
     // "financial_year_minus_1" + "financial_year_this"
-    public static final String[] LAST_5_FINANCIAL_YEARS = (String[]) ArrayUtils.addAll(
-        streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "financial_year_minus_", "" ),
-        Collections.singletonList( "financial_year_this" ).toArray() );
+    private static final List<String> LAST_5_FINANCIAL_YEARS = patternListNTo1( 4, "financial_year_minus_%d",
+        "financial_year_this" );
 
     // Generates an array containing "financial_year_minus_9" ->
     // "financial_year_minus_1" + "financial_year_this"
-    public static final String[] LAST_10_FINANCIAL_YEARS = (String[]) ArrayUtils.addAll(
-        streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "financial_year_minus_", "" ),
-        Collections.singletonList( "financial_year_this" ).toArray() );
+    private static final List<String> LAST_10_FINANCIAL_YEARS = patternListNTo1( 9, "financial_year_minus_%d",
+        "financial_year_this" );
 
     // Generates and array containing "biweek1" -> "biweek26"
-    public static final String[] BIWEEKS_LAST_26 = streamToStringArray( IntStream.rangeClosed( 1, 26 ).boxed(),
-        "biweek", "" );
+    private static final List<String> BIWEEKS_LAST_26 = patternList1ToN( 26, "biweek%d" );
 
     // Generates an array containing "w1" -> "w52"
-    public static final String[] WEEKS_LAST_52 = streamToStringArray( IntStream.rangeClosed( 1, 52 ).boxed(), "w", "" );
+    private static final List<String> WEEKS_LAST_52 = patternList1ToN( 52, "w%d" );
 
     // Generates an array containing "w1" -> "w53"
-    public static final String[] WEEKS_THIS_YEAR = streamToStringArray( IntStream.rangeClosed( 1, 53 ).boxed(), "w",
-        "" );
+    private static final List<String> WEEKS_THIS_YEAR = patternList1ToN( 53, "w%d" );
 
     private static final int MONTHS_IN_YEAR = 12;
 
+    private static List<String> patternList1ToN( int n, String pattern )
+    {
+        return IntStream.rangeClosed( 1, n ).mapToObj( nr -> format( pattern, nr ) )
+            .collect( toUnmodifiableList() );
+    }
+
+    private static List<String> patternListNTo1( int n, String pattern, String specialValue )
+    {
+        return Stream.concat(
+            IntStream.rangeClosed( 1, n ).map( i -> n - i + 1 ).mapToObj( nr -> format( pattern, nr ) ),
+            Stream.of( specialValue ) )
+            .collect( toUnmodifiableList() );
+    }
+
+    @EqualsAndHashCode.Exclude
     private int id;
 
+    @JsonProperty
     private boolean thisDay = false;
 
+    @JsonProperty
     private boolean yesterday = false;
 
+    @JsonProperty
     private boolean last3Days = false;
 
+    @JsonProperty
     private boolean last7Days = false;
 
+    @JsonProperty
     private boolean last14Days = false;
 
+    @JsonProperty
     private boolean last30Days = false;
 
+    @JsonProperty
     private boolean last60Days = false;
 
+    @JsonProperty
     private boolean last90Days = false;
 
+    @JsonProperty
     private boolean last180Days = false;
 
+    @JsonProperty
     private boolean thisMonth = false;
 
+    @JsonProperty
     private boolean lastMonth = false;
 
+    @JsonProperty
     private boolean thisBimonth = false;
 
+    @JsonProperty
     private boolean lastBimonth = false;
 
+    @JsonProperty
     private boolean thisQuarter = false;
 
+    @JsonProperty
     private boolean lastQuarter = false;
 
+    @JsonProperty
     private boolean thisSixMonth = false;
 
+    @JsonProperty
     private boolean lastSixMonth = false;
 
+    @JsonProperty
     private boolean weeksThisYear = false;
 
+    @JsonProperty
     private boolean monthsThisYear = false;
 
+    @JsonProperty
     private boolean biMonthsThisYear = false;
 
+    @JsonProperty
     private boolean quartersThisYear = false;
 
+    @JsonProperty
     private boolean thisYear = false;
 
+    @JsonProperty
     private boolean monthsLastYear = false;
 
+    @JsonProperty
     private boolean quartersLastYear = false;
 
+    @JsonProperty
     private boolean lastYear = false;
 
+    @JsonProperty
     private boolean last5Years = false;
 
+    @JsonProperty
     private boolean last10Years = false;
 
+    @JsonProperty
     private boolean last12Months = false;
 
+    @JsonProperty
     private boolean last6Months = false;
 
+    @JsonProperty
     private boolean last3Months = false;
 
+    @JsonProperty
     private boolean last6BiMonths = false;
 
+    @JsonProperty
     private boolean last4Quarters = false;
 
+    @JsonProperty
     private boolean last2SixMonths = false;
 
+    @JsonProperty
     private boolean thisFinancialYear = false;
 
+    @JsonProperty
     private boolean lastFinancialYear = false;
 
+    @JsonProperty
     private boolean last5FinancialYears = false;
 
+    @JsonProperty
     private boolean last10FinancialYears = false;
 
+    @JsonProperty
     private boolean thisWeek = false;
 
+    @JsonProperty
     private boolean lastWeek = false;
 
+    @JsonProperty
     private boolean thisBiWeek = false;
 
+    @JsonProperty
     private boolean lastBiWeek = false;
 
+    @JsonProperty
     private boolean last4Weeks = false;
 
+    @JsonProperty
     private boolean last4BiWeeks = false;
 
+    @JsonProperty
     private boolean last12Weeks = false;
 
+    @JsonProperty
     private boolean last52Weeks = false;
 
     // -------------------------------------------------------------------------
@@ -689,7 +730,7 @@ public class RelativePeriods
      * @param format the I18nFormat.
      * @return a list of periods.
      */
-    private List<Period> getRelativePeriodList( CalendarPeriodType periodType, String[] periodNames, Date date,
+    private List<Period> getRelativePeriodList( CalendarPeriodType periodType, List<String> periodNames, Date date,
         boolean dynamicNames, I18nFormat format )
     {
         return getRelativePeriodList( periodType.generatePeriods( date ), periodNames, dynamicNames, format );
@@ -707,7 +748,8 @@ public class RelativePeriods
      * @param format the I18nFormat.
      * @return a list of periods.
      */
-    private List<Period> getRollingRelativePeriodList( CalendarPeriodType periodType, String[] periodNames, Date date,
+    private List<Period> getRollingRelativePeriodList( CalendarPeriodType periodType, List<String> periodNames,
+        Date date,
         boolean dynamicNames, I18nFormat format )
     {
         return getRelativePeriodList( periodType.generateRollingPeriods( date ), periodNames, dynamicNames, format );
@@ -723,7 +765,7 @@ public class RelativePeriods
      * @param format the I18nFormat.
      * @return a list of periods.
      */
-    private List<Period> getRelativePeriodList( List<Period> relatives, String[] periodNames, boolean dynamicNames,
+    private List<Period> getRelativePeriodList( List<Period> relatives, List<String> periodNames, boolean dynamicNames,
         I18nFormat format )
     {
         List<Period> periods = new ArrayList<>();
@@ -732,7 +774,7 @@ public class RelativePeriods
 
         for ( Period period : relatives )
         {
-            periods.add( setName( period, periodNames[c++], dynamicNames, format ) );
+            periods.add( setName( period, periodNames.get( c++ ), dynamicNames, format ) );
         }
 
         return periods;
@@ -970,878 +1012,9 @@ public class RelativePeriods
         return this;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters & setters
-    // -------------------------------------------------------------------------
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisDay()
-    {
-        return thisDay;
-    }
-
-    public RelativePeriods setThisDay( boolean thisDay )
-    {
-        this.thisDay = thisDay;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast3Days()
-    {
-        return last3Days;
-    }
-
-    public RelativePeriods setLast3Days( boolean last3Days )
-    {
-        this.last3Days = last3Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast7Days()
-    {
-        return last7Days;
-    }
-
-    public RelativePeriods setLast7Days( boolean last7Days )
-    {
-        this.last7Days = last7Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast14Days()
-    {
-        return last14Days;
-    }
-
-    public RelativePeriods setLast14Days( boolean last14Days )
-    {
-        this.last14Days = last14Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast30Days()
-    {
-        return last30Days;
-    }
-
-    public RelativePeriods setLast30Days( boolean last30Days )
-    {
-        this.last30Days = last30Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast60Days()
-    {
-        return last60Days;
-    }
-
-    public RelativePeriods setLast60Days( boolean last60Days )
-    {
-        this.last60Days = last60Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast90Days()
-    {
-        return last90Days;
-    }
-
-    public RelativePeriods setLast90Days( boolean last90Days )
-    {
-        this.last90Days = last90Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast180Days()
-    {
-        return last180Days;
-    }
-
-    public RelativePeriods setLast180Days( boolean last180Days )
-    {
-        this.last180Days = last180Days;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isYesterday()
-    {
-        return yesterday;
-    }
-
-    public RelativePeriods setYesterday( boolean yesterday )
-    {
-        this.yesterday = yesterday;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisMonth()
-    {
-        return thisMonth;
-    }
-
-    public RelativePeriods setThisMonth( boolean thisMonth )
-    {
-        this.thisMonth = thisMonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastMonth()
-    {
-        return lastMonth;
-    }
-
-    public RelativePeriods setLastMonth( boolean lastMonth )
-    {
-        this.lastMonth = lastMonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisBimonth()
-    {
-        return thisBimonth;
-    }
-
-    public RelativePeriods setThisBimonth( boolean thisBimonth )
-    {
-        this.thisBimonth = thisBimonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastBimonth()
-    {
-        return lastBimonth;
-    }
-
-    public RelativePeriods setLastBimonth( boolean reportingBimonth )
-    {
-        this.lastBimonth = reportingBimonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisQuarter()
-    {
-        return thisQuarter;
-    }
-
-    public RelativePeriods setThisQuarter( boolean thisQuarter )
-    {
-        this.thisQuarter = thisQuarter;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastQuarter()
-    {
-        return lastQuarter;
-    }
-
-    public RelativePeriods setLastQuarter( boolean reportingQuarter )
-    {
-        this.lastQuarter = reportingQuarter;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisSixMonth()
-    {
-        return thisSixMonth;
-    }
-
-    public RelativePeriods setThisSixMonth( boolean thisSixMonth )
-    {
-        this.thisSixMonth = thisSixMonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastSixMonth()
-    {
-        return lastSixMonth;
-    }
-
-    public RelativePeriods setLastSixMonth( boolean lastSixMonth )
-    {
-        this.lastSixMonth = lastSixMonth;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isWeeksThisYear()
-    {
-        return weeksThisYear;
-    }
-
-    public RelativePeriods setWeeksThisYear( boolean weeksThisYear )
-    {
-        this.weeksThisYear = weeksThisYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMonthsThisYear()
-    {
-        return monthsThisYear;
-    }
-
-    public RelativePeriods setMonthsThisYear( boolean monthsThisYear )
-    {
-        this.monthsThisYear = monthsThisYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isBiMonthsThisYear()
-    {
-        return biMonthsThisYear;
-    }
-
-    public RelativePeriods setBiMonthsThisYear( boolean biMonthsThisYear )
-    {
-        this.biMonthsThisYear = biMonthsThisYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isQuartersThisYear()
-    {
-        return quartersThisYear;
-    }
-
-    public RelativePeriods setQuartersThisYear( boolean quartersThisYear )
-    {
-        this.quartersThisYear = quartersThisYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisYear()
-    {
-        return thisYear;
-    }
-
-    public RelativePeriods setThisYear( boolean thisYear )
-    {
-        this.thisYear = thisYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMonthsLastYear()
-    {
-        return monthsLastYear;
-    }
-
-    public RelativePeriods setMonthsLastYear( boolean monthsLastYear )
-    {
-        this.monthsLastYear = monthsLastYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isQuartersLastYear()
-    {
-        return quartersLastYear;
-    }
-
-    public RelativePeriods setQuartersLastYear( boolean quartersLastYear )
-    {
-        this.quartersLastYear = quartersLastYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastYear()
-    {
-        return lastYear;
-    }
-
-    public RelativePeriods setLastYear( boolean lastYear )
-    {
-        this.lastYear = lastYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast5Years()
-    {
-        return last5Years;
-    }
-
-    public RelativePeriods setLast5Years( boolean last5Years )
-    {
-        this.last5Years = last5Years;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast10Years()
-    {
-        return last10Years;
-    }
-
-    public RelativePeriods setLast10Years( boolean last10Years )
-    {
-        this.last10Years = last10Years;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast12Months()
-    {
-        return last12Months;
-    }
-
-    public RelativePeriods setLast12Months( boolean last12Months )
-    {
-        this.last12Months = last12Months;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast6Months()
-    {
-        return last6Months;
-    }
-
-    public RelativePeriods setLast6Months( boolean last6Months )
-    {
-        this.last6Months = last6Months;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast3Months()
-    {
-        return last3Months;
-    }
-
-    public RelativePeriods setLast3Months( boolean last3Months )
-    {
-        this.last3Months = last3Months;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast6BiMonths()
-    {
-        return last6BiMonths;
-    }
-
-    public RelativePeriods setLast6BiMonths( boolean last6BiMonths )
-    {
-        this.last6BiMonths = last6BiMonths;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast4Quarters()
-    {
-        return last4Quarters;
-    }
-
-    public RelativePeriods setLast4Quarters( boolean last4Quarters )
-    {
-        this.last4Quarters = last4Quarters;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast2SixMonths()
-    {
-        return last2SixMonths;
-    }
-
-    public RelativePeriods setLast2SixMonths( boolean last2SixMonths )
-    {
-        this.last2SixMonths = last2SixMonths;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisFinancialYear()
-    {
-        return thisFinancialYear;
-    }
-
-    public RelativePeriods setThisFinancialYear( boolean thisFinancialYear )
-    {
-        this.thisFinancialYear = thisFinancialYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastFinancialYear()
-    {
-        return lastFinancialYear;
-    }
-
-    public RelativePeriods setLastFinancialYear( boolean lastFinancialYear )
-    {
-        this.lastFinancialYear = lastFinancialYear;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast5FinancialYears()
-    {
-        return last5FinancialYears;
-    }
-
-    public RelativePeriods setLast5FinancialYears( boolean last5FinancialYears )
-    {
-        this.last5FinancialYears = last5FinancialYears;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast10FinancialYears()
-    {
-        return last10FinancialYears;
-    }
-
-    public RelativePeriods setLast10FinancialYears( boolean last10FinancialYears )
-    {
-        this.last10FinancialYears = last10FinancialYears;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisWeek()
-    {
-        return thisWeek;
-    }
-
-    public RelativePeriods setThisWeek( boolean thisWeek )
-    {
-        this.thisWeek = thisWeek;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastWeek()
-    {
-        return lastWeek;
-    }
-
-    public RelativePeriods setLastWeek( boolean lastWeek )
-    {
-        this.lastWeek = lastWeek;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isThisBiWeek()
-    {
-        return thisBiWeek;
-    }
-
-    public RelativePeriods setThisBiWeek( boolean thisBiWeek )
-    {
-        this.thisBiWeek = thisBiWeek;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLastBiWeek()
-    {
-        return lastBiWeek;
-    }
-
-    public RelativePeriods setLastBiWeek( boolean lastBiWeek )
-    {
-        this.lastBiWeek = lastBiWeek;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast4Weeks()
-    {
-        return last4Weeks;
-    }
-
-    public RelativePeriods setLast4Weeks( boolean last4Weeks )
-    {
-        this.last4Weeks = last4Weeks;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast4BiWeeks()
-    {
-        return last4BiWeeks;
-    }
-
-    public RelativePeriods setLast4BiWeeks( boolean last4BiWeeks )
-    {
-        this.last4BiWeeks = last4BiWeeks;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast12Weeks()
-    {
-        return last12Weeks;
-    }
-
-    public RelativePeriods setLast12Weeks( boolean last12Weeks )
-    {
-        this.last12Weeks = last12Weeks;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isLast52Weeks()
-    {
-        return last52Weeks;
-    }
-
-    public RelativePeriods setLast52Weeks( boolean last52Weeks )
-    {
-        this.last52Weeks = last52Weeks;
-        return this;
-    }
-
     public boolean isThisFinancialPeriod()
     {
         return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears() || isLast10FinancialYears();
-    }
-
-    // -------------------------------------------------------------------------
-    // Equals, hashCode, and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + (thisDay ? 1 : 0);
-        result = prime * result + (yesterday ? 1 : 0);
-        result = prime * result + (last3Days ? 1 : 0);
-        result = prime * result + (last7Days ? 1 : 0);
-        result = prime * result + (last14Days ? 1 : 0);
-        result = prime * result + (last30Days ? 1 : 0);
-        result = prime * result + (last60Days ? 1 : 0);
-        result = prime * result + (last90Days ? 1 : 0);
-        result = prime * result + (last180Days ? 1 : 0);
-        result = prime * result + (lastMonth ? 1 : 0);
-        result = prime * result + (lastBimonth ? 1 : 0);
-        result = prime * result + (lastQuarter ? 1 : 0);
-        result = prime * result + (lastSixMonth ? 1 : 0);
-        result = prime * result + (weeksThisYear ? 1 : 0);
-        result = prime * result + (monthsThisYear ? 1 : 0);
-        result = prime * result + (biMonthsThisYear ? 1 : 0);
-        result = prime * result + (quartersThisYear ? 1 : 0);
-        result = prime * result + (thisYear ? 1 : 0);
-        result = prime * result + (monthsLastYear ? 1 : 0);
-        result = prime * result + (quartersLastYear ? 1 : 0);
-        result = prime * result + (lastYear ? 1 : 0);
-        result = prime * result + (last5Years ? 1 : 0);
-        result = prime * result + (last10Years ? 1 : 0);
-        result = prime * result + (last12Months ? 1 : 0);
-        result = prime * result + (last6Months ? 1 : 0);
-        result = prime * result + (last3Months ? 1 : 0);
-        result = prime * result + (last6BiMonths ? 1 : 0);
-        result = prime * result + (last4Quarters ? 1 : 0);
-        result = prime * result + (last2SixMonths ? 1 : 0);
-        result = prime * result + (thisFinancialYear ? 1 : 0);
-        result = prime * result + (lastFinancialYear ? 1 : 0);
-        result = prime * result + (last5FinancialYears ? 1 : 0);
-        result = prime * result + (last10FinancialYears ? 1 : 0);
-        result = prime * result + (last4Weeks ? 1 : 0);
-        result = prime * result + (last4BiWeeks ? 1 : 0);
-        result = prime * result + (last12Weeks ? 1 : 0);
-        result = prime * result + (last52Weeks ? 1 : 0);
-
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        final RelativePeriods other = (RelativePeriods) object;
-
-        if ( !thisDay == other.thisDay )
-        {
-            return false;
-        }
-
-        if ( !yesterday == other.yesterday )
-        {
-            return false;
-        }
-
-        if ( !last3Days == other.last3Days )
-        {
-            return false;
-        }
-
-        if ( !last7Days == other.last7Days )
-        {
-            return false;
-        }
-
-        if ( !last14Days == other.last14Days )
-        {
-            return false;
-        }
-
-        if ( !last30Days == other.last30Days )
-        {
-            return false;
-        }
-
-        if ( !last60Days == other.last60Days )
-        {
-            return false;
-        }
-
-        if ( !last90Days == other.last90Days )
-        {
-            return false;
-        }
-
-        if ( !last180Days == other.last180Days )
-        {
-            return false;
-        }
-
-        if ( !lastMonth == other.lastMonth )
-        {
-            return false;
-        }
-
-        if ( !lastBimonth == other.lastBimonth )
-        {
-            return false;
-        }
-
-        if ( !lastQuarter == other.lastQuarter )
-        {
-            return false;
-        }
-
-        if ( !lastSixMonth == other.last2SixMonths )
-        {
-            return false;
-        }
-
-        if ( !weeksThisYear == other.weeksThisYear )
-        {
-            return false;
-        }
-
-        if ( !monthsThisYear == other.monthsThisYear )
-        {
-            return false;
-        }
-
-        if ( !biMonthsThisYear == other.biMonthsThisYear )
-        {
-            return false;
-        }
-
-        if ( !quartersThisYear == other.quartersThisYear )
-        {
-            return false;
-        }
-
-        if ( !thisYear == other.thisYear )
-        {
-            return false;
-        }
-
-        if ( !monthsLastYear == other.monthsLastYear )
-        {
-            return false;
-        }
-
-        if ( !quartersLastYear == other.quartersLastYear )
-        {
-            return false;
-        }
-
-        if ( !lastYear == other.lastYear )
-        {
-            return false;
-        }
-
-        if ( !last5Years == other.last5Years )
-        {
-            return false;
-        }
-
-        if ( !last10Years == other.last10Years )
-        {
-            return false;
-        }
-
-        if ( !last12Months == other.last12Months )
-        {
-            return false;
-        }
-
-        if ( !last6Months == other.last6Months )
-        {
-            return false;
-        }
-
-        if ( !last3Months == other.last3Months )
-        {
-            return false;
-        }
-
-        if ( !last6BiMonths == other.last6BiMonths )
-        {
-            return false;
-        }
-
-        if ( !last4Quarters == other.last4Quarters )
-        {
-            return false;
-        }
-
-        if ( !last2SixMonths == other.last2SixMonths )
-        {
-            return false;
-        }
-
-        if ( !thisFinancialYear == other.thisFinancialYear )
-        {
-            return false;
-        }
-
-        if ( !lastFinancialYear == other.lastFinancialYear )
-        {
-            return false;
-        }
-
-        if ( !last5FinancialYears == other.last5FinancialYears )
-        {
-            return false;
-        }
-
-        if ( !last10FinancialYears == other.last10FinancialYears )
-        {
-            return false;
-        }
-
-        if ( !lastWeek == other.lastWeek )
-        {
-            return false;
-        }
-
-        if ( !lastBiWeek == other.lastBiWeek )
-        {
-            return false;
-        }
-
-        if ( !last4Weeks == other.last4Weeks )
-        {
-            return false;
-        }
-
-        if ( !last4BiWeeks == other.last4BiWeeks )
-        {
-            return false;
-        }
-
-        if ( !last12Weeks == other.last12Weeks )
-        {
-            return false;
-        }
-
-        if ( !last52Weeks == other.last52Weeks )
-        {
-            return false;
-        }
-
-        return true;
     }
 
     // -------------------------------------------------------------------------
@@ -1854,10 +1027,5 @@ public class RelativePeriods
         {
             list.add( element );
         }
-    }
-
-    private static <T> String[] streamToStringArray( Stream<T> stream, String prefix, String suffix )
-    {
-        return stream.map( o -> prefix + o.toString() + suffix ).toArray( String[]::new );
     }
 }
