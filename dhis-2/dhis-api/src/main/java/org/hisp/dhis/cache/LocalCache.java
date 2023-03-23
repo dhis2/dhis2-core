@@ -47,9 +47,9 @@ public class LocalCache<V> implements Cache<V>
 {
     private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-    private org.cache2k.Cache<String, V> cache2kInstance;
+    private final org.cache2k.Cache<String, V> cache2kInstance;
 
-    private V defaultValue;
+    private final V defaultValue;
 
     /**
      * Constructor to instantiate LocalCache object.
@@ -64,16 +64,9 @@ public class LocalCache<V> implements Cache<V>
         if ( cacheBuilder.isExpiryEnabled() )
         {
             builder.eternal( false );
-            if ( cacheBuilder.isRefreshExpiryOnAccess() )
-            {
-                // TODO https://github.com/cache2k/cache2k/issues/39 is still
-                // Open. Once the issue is resolved it can be updated here
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
-            }
-            else
-            {
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
-            }
+            // TODO cacheBuilder.isRefreshExpiryOnAccess() cannot be considered
+            // because of issue https://github.com/cache2k/cache2k/issues/39 which is resolved in 2.5.3
+            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
         }
         else
         {
