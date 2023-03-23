@@ -32,6 +32,7 @@ import java.util.Map;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
+import org.hisp.dhis.dxf2.events.trackedentity.store.TwoParamFunction;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -90,10 +91,10 @@ public class EnrollmentQuery
         .put( COLUMNS.PROGRAM_FEATURE_TYPE, new TableColumn( "p", "featuretype", "program_feature_type" ) )
         .put( COLUMNS.TEI_TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
         .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
-        .put( COLUMNS.ORGUNIT_NAME, new TableColumn( "o", "name", "ou_name" ) )
+        .put( COLUMNS.ORGUNIT_NAME, new TwoParamFunction( "coalesce", "ou_displayname.value", "o.name", "ou_name" ) )
         .build();
 
-    public static String getQuery()
+    public static String getQuery( String userLocale )
     {
         return getSelect() +
             "from programinstance pi " +
@@ -101,6 +102,8 @@ public class EnrollmentQuery
             "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
             "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
             "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
+            "join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
+            + userLocale + "' and ou_displayname.property='NAME' " +
             "where pi.trackedentityinstanceid in (:ids) ";
     }
 

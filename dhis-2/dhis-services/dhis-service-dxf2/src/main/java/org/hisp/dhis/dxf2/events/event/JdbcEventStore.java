@@ -85,6 +85,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -131,7 +132,9 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -1081,7 +1084,7 @@ public class JdbcEventStore implements EventStore
 
         return selectBuilder.append(
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, " )
-            .append( "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, " )
+            .append( "p.type as p_type, ps.uid as ps_uid, coalesce(ou_displayname.value, ou.name) as ou_name, " )
             .append(
                 "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive " )
             .append( getFromWhereClause( params, mapSqlParameterSource, user, hlp,
@@ -1105,6 +1108,10 @@ public class JdbcEventStore implements EventStore
     private StringBuilder getFromWhereClause( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
         User user, SqlHelper hlp, StringBuilder dataElementAndFiltersSql )
     {
+        Locale locale = CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
+
+        String localeCode = locale == null ? "locale" : locale.toString();
+
         StringBuilder fromBuilder = new StringBuilder( " from programstageinstance psi " )
             .append( "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid " )
             .append( "inner join program p on p.programid=pi.programid " )
@@ -1126,6 +1133,9 @@ public class JdbcEventStore implements EventStore
         fromBuilder
             .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid " )
             .append( "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) " )
+            .append(
+                "left join jsonb_to_recordset(ou.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
+                    + localeCode + "' and ou_displayname.property='NAME' " )
             .append( "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
 
         if ( !params.getFilterAttributes().isEmpty() )

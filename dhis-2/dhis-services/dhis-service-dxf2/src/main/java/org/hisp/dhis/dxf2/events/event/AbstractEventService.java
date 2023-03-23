@@ -623,7 +623,7 @@ public abstract class AbstractEventService implements EventService
         if ( ou != null )
         {
             event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
+            event.setOrgUnitName( ou.getDisplayName() );
         }
 
         Program program = programStageInstance.getProgramInstance().getProgram();

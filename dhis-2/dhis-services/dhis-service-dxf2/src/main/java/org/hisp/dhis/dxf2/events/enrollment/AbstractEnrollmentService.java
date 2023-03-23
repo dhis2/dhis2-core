@@ -322,7 +322,7 @@ public abstract class AbstractEnrollmentService
         if ( programInstance.getOrganisationUnit() != null )
         {
             enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-            enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
+            enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getDisplayName() );
         }
 
         if ( programInstance.getGeometry() != null )

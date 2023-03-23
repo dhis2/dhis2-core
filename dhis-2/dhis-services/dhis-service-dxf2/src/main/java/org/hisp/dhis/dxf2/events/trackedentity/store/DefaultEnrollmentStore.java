@@ -52,8 +52,6 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
 {
-    private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
-
     private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
     private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
@@ -85,9 +83,11 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIdsPartitioned( List<Long> ids,
         AggregateContext ctx )
     {
+        String enrollmentSql = EnrollmentQuery.getQuery( ctx.getUserLocale() );
+
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
 
-        jdbcTemplate.query( getQuery( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)",
+        jdbcTemplate.query( getQuery( enrollmentSql, ctx, " pi.programid IN (:programIds)",
             FILTER_OUT_DELETED_ENROLLMENTS ),
             createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
 

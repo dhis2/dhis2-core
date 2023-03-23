@@ -58,8 +58,6 @@ public class DefaultEventStore
     implements
     EventStore
 {
-    private static final String GET_EVENTS_SQL = EventQuery.getQuery();
-
     private static final String GET_DATAVALUES_SQL = "select psi.uid as key, " +
         "psi.eventdatavalues " +
         "from programstageinstance psi " +
@@ -125,6 +123,8 @@ public class DefaultEventStore
     private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
         AggregateContext ctx )
     {
+        String eventSql = EventQuery.getQuery( ctx.getUserLocale() );
+
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
 
         List<Long> programStages = ctx.getProgramStages();
@@ -134,7 +134,7 @@ public class DefaultEventStore
         if ( programStages.isEmpty() )
         {
             jdbcTemplate.query(
-                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql, FILTER_OUT_DELETED_EVENTS ),
+                getQuery( eventSql, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programIds", ctx.getPrograms() ),
@@ -143,7 +143,7 @@ public class DefaultEventStore
         else
         {
             jdbcTemplate.query(
-                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + aocSql, FILTER_OUT_DELETED_EVENTS ),
+                getQuery( eventSql, ctx, ACL_FILTER_SQL + aocSql, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )

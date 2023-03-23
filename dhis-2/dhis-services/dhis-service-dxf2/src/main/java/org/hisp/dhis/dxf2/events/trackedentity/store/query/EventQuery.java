@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
+import org.hisp.dhis.dxf2.events.trackedentity.store.TwoParamFunction;
 
 import com.google.common.collect.ImmutableList;
 
@@ -74,7 +75,7 @@ public class EventQuery
         PROGRAM_UID( new TableColumn( "p", "uid", "prguid" ) ),
         PROGRAM_STAGE_UID( new TableColumn( "ps", "uid", "prgstguid" ) ),
         ORGUNIT_UID( new TableColumn( "o", "uid", "ou_uid" ) ),
-        ORGUNIT_NAME( new TableColumn( "o", "name", "ou_name" ) ),
+        ORGUNIT_NAME( new TwoParamFunction( "coalesce", "ou_displayname.value", "o.name", "ou_name" ) ),
         COC_UID( new TableColumn( "coc", "uid", "cocuid" ) ),
         CAT_OPTIONS( new Subselect( "( " +
             "SELECT string_agg(opt.uid::text, ',') " +
@@ -96,6 +97,10 @@ public class EventQuery
             {
                 return ((TableColumn) queryElement).getColumn();
             }
+            if ( queryElement instanceof TwoParamFunction )
+            {
+                return ((TwoParamFunction) queryElement).getColumn();
+            }
             if ( queryElement instanceof Function )
             {
                 return ((Function) queryElement).getColumn();
@@ -113,7 +118,7 @@ public class EventQuery
             .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
     }
 
-    public static String getQuery()
+    public static String getQuery( String userLocale )
     {
         return getSelect() +
             "from programstageinstance psi " +
@@ -122,6 +127,8 @@ public class EventQuery
             "join program p on pi.programid = p.programid " +
             "join programstage ps on psi.programstageid = ps.programstageid " +
             "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
+            "join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
+            + userLocale + "' and ou_displayname.property='NAME' " +
             "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
             "left join userinfo ui on psi.assigneduserid = ui.userinfoid " +
             "where pi.programinstanceid in (:ids)";

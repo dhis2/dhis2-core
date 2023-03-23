@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,75 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.aggregates;
+package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author Luciano Fiandesio
+ * @author abyot
+ *
  */
-@Value
-@Builder( toBuilder = true )
-public class AggregateContext
+@Getter
+@AllArgsConstructor
+public class TwoParamFunction implements QueryElement
 {
-    /**
-     * returns true if user is Super User
-     */
-    boolean superUser;
+    private String function;
 
-    /**
-     * The current user id
-     */
-    Long userId;
+    private String column;
 
-    /**
-     * The current user uid
-     */
-    String userUid;
+    private String fallbackColumn;
 
-    /**
-     * A list of group ID to which the user belongs
-     */
-    List<String> userGroups;
+    private String alias;
 
-    /**
-     * A List of Tracked Entity Types ID to which the user has READ ONLY access
-     */
-    List<Long> trackedEntityTypes;
+    @Override
+    public String useInSelect()
+    {
+        return this.function + "(" + column + " , " + fallbackColumn + ") as " + alias;
+    }
 
-    /**
-     * A List of Programs ID to which the user has READ ONLY access
-     */
-    List<Long> programs;
-
-    /**
-     * A List of Program Stages ID to which the user has READ ONLY access
-     */
-    List<Long> programStages;
-
-    /**
-     * A List of Relationship ID to which the user has READ ONLY access
-     */
-    List<Long> relationshipTypes;
-
-    /**
-     * The tei params to specify depth of tei graph
-     */
-    TrackedEntityInstanceParams params;
-
-    /**
-     * The query parameters to filter teis
-     */
-    TrackedEntityInstanceQueryParams queryParams;
-
-    /**
-     * The current user locale
-     */
-    String userLocale;
+    @Override
+    public String getResultsetValue()
+    {
+        return alias == null ? column : alias;
+    }
 }

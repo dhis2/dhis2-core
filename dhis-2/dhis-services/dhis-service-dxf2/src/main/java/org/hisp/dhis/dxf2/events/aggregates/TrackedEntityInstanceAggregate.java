@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -64,7 +65,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -128,6 +131,10 @@ public class TrackedEntityInstanceAggregate
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
+        Locale locale = CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
+
+        String localeCode = locale == null ? "locale" : locale.toString();
+
         user.ifPresent( u -> {
             if ( userGroupUIDCache.get( user.get().getUid() ).isEmpty()
                 && !CollectionUtils.isEmpty( user.get().getGroups() ) )
@@ -148,6 +155,7 @@ public class TrackedEntityInstanceAggregate
             .toBuilder()
             .userId( u.getId() )
             .userUid( u.getUid() )
+            .userLocale( localeCode )
             .userGroups( userGroupUIDCache.get( u.getUid() )
                 .orElse( Collections.emptyList() ) )
             .superUser( u.isSuper() ) )
