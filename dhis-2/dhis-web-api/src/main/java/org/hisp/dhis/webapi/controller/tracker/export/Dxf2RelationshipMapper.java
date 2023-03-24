@@ -25,43 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
- * @author Enrico Colasante
+ * tracker.export is currently made independent of dxf2. We are in a transition
+ * period where some mappers are duplicated. This mapper will be removed once
+ * tracker.export is independent of dxf2.
  */
-class ValidationUtils
+@Mapper( uses = {
+    Dxf2RelationshipItemMapper.class,
+    InstantMapper.class } )
+interface Dxf2RelationshipMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
-
-    private ValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
-
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
-    }
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Override
+    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
 }

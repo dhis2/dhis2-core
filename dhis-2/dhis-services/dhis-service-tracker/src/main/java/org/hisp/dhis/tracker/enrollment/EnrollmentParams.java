@@ -25,43 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.tracker.enrollment;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import lombok.Value;
+import lombok.With;
 
-/**
- * @author Enrico Colasante
- */
-class ValidationUtils
+import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
+
+@With
+@Value
+public class EnrollmentParams
 {
+    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false,
+        false );
 
-    private ValidationUtils()
+    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
+        false, false );
+
+    EnrollmentEventsParams enrollmentEventsParams;
+
+    boolean includeRelationships;
+
+    boolean includeAttributes;
+
+    boolean includeDeleted;
+
+    boolean dataSynchronizationQuery;
+
+    public boolean isIncludeEvents()
     {
-        throw new IllegalStateException( "Utility class" );
+        return enrollmentEventsParams.isIncludeEvents();
     }
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
+    public EnrollmentParams withIncludeEvents( boolean includeEvents )
     {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
+        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
+            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
+                this.includeRelationships, this.includeAttributes, this.includeDeleted,
+                this.dataSynchronizationQuery );
     }
 }

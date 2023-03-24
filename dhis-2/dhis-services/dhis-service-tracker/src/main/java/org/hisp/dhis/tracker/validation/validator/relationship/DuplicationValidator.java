@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,62 +27,36 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4012;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
-import java.util.Optional;
-
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class DataRelationsValidator
-    implements Validator<Relationship>
+public class DuplicationValidator implements Validator<Relationship>
 {
+
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        validateRelationshipReference( reporter, bundle, relationship, relationship.getFrom() );
-        validateRelationshipReference( reporter, bundle, relationship, relationship.getTo() );
-    }
-
-    private void validateRelationshipReference( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship,
-        RelationshipItem item )
-    {
-        Optional<String> uid = getUidFromRelationshipItem( item );
-        TrackerType trackerType = relationshipItemValueType( item );
-
-        if ( TRACKED_ENTITY.equals( trackerType ) )
+        if ( bundle.getPreheat().isDuplicate( relationship ) )
         {
-            if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( bundle, uid.get() ) )
-            {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-            }
-        }
-        else if ( ENROLLMENT.equals( trackerType ) )
-        {
-            if ( uid.isPresent() && !ValidationUtils.enrollmentExist( bundle, uid.get() ) )
-            {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-            }
-        }
-        else if ( EVENT.equals( trackerType ) && uid.isPresent() && !ValidationUtils.eventExist( bundle, uid.get() ) )
-        {
-            reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
+            reporter.addError( relationship, E4018,
+                relationship.getRelationship(),
+                relationshipItemValueType( relationship.getFrom() ),
+                getUidFromRelationshipItem( relationship.getFrom() ),
+                relationshipItemValueType( relationship.getTo() ),
+                getUidFromRelationshipItem( relationship.getTo() ) );
         }
     }
 
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy.isCreate();
+    }
 }

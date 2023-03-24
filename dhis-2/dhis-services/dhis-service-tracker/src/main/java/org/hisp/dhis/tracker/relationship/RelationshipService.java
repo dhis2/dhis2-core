@@ -25,43 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.tracker.relationship;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * @author Enrico Colasante
- */
-class ValidationUtils
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+public interface RelationshipService
 {
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter criteria );
 
-    private ValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter criteria );
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
-    }
+    Optional<Relationship> findRelationshipByUid( String id );
 }
