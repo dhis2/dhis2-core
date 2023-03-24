@@ -34,9 +34,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
+    Dxf2RelationshipMapper.class,
     AttributeMapper.class,
-    EnrollmentMapper.class,
+    Dxf2EnrollmentMapper.class,
     ProgramOwnerMapper.class,
     InstantMapper.class,
     UserMapper.class } )

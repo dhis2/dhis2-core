@@ -17,7 +17,7 @@
     <finalName>dhis-web-apps</finalName>
 
     <plugins>
-      <plugin>
+      <plugin>	
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.12.1</version>

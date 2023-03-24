@@ -30,7 +30,6 @@ package org.hisp.dhis.email;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 public enum EmailResponse
 {
     SENT( "Email sent successfully" ),
@@ -39,7 +38,7 @@ public enum EmailResponse
     NOT_CONFIGURED( "Configuration not found" ),
     HOST_CONFIG_NOT_FOUND( "Host configuration not found" );
 
-    private String responseMessage;
+    private final String responseMessage;
 
     EmailResponse( String responseMessage )
     {
@@ -49,10 +48,5 @@ public enum EmailResponse
     public String getResponseMessage()
     {
         return responseMessage;
-    }
-
-    public void setResponseMessage( String responseMessage )
-    {
-        this.responseMessage = responseMessage;
     }
 }

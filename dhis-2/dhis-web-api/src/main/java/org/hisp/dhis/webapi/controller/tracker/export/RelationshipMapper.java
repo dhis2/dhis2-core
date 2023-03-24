@@ -36,9 +36,14 @@ import org.mapstruct.Mapping;
     RelationshipItemMapper.class,
     InstantMapper.class } )
 interface RelationshipMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+    extends ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship>
 {
+    @Mapping( target = "relationship", source = "uid" )
+    @Mapping( target = "relationshipType", source = "relationshipType.uid" )
+    @Mapping( target = "relationshipName", source = "relationshipType.name" )
+    @Mapping( target = "bidirectional", source = "relationshipType.bidirectional" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    @Override
+    Relationship from( org.hisp.dhis.relationship.Relationship relationship );
 }
