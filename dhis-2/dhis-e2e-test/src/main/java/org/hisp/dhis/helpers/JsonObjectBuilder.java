@@ -30,6 +30,7 @@ package org.hisp.dhis.helpers;
 import java.util.List;
 
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.utils.SharingUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -38,7 +39,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
-import org.hisp.dhis.utils.SharingUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -209,7 +209,7 @@ public class JsonObjectBuilder
     public JsonObjectBuilder addUserGroupAccess()
     {
         JsonObject sharing = jsonObject.getAsJsonObject( "sharing" );
-        
+
         if ( sharing == null )
         {
             sharing = SharingUtils.createSharingObject( "rw------" );
