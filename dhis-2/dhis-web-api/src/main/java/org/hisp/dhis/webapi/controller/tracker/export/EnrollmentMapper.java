@@ -33,7 +33,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
+    Dxf2RelationshipMapper.class,
     AttributeMapper.class,
     NoteMapper.class,
     EventMapper.class,

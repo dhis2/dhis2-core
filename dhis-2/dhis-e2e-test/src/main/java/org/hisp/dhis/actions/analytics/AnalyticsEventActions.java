@@ -40,7 +40,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 public class AnalyticsEventActions
     extends RestApiActions
 {
-
     public AnalyticsEventActions()
     {
         super( "/analytics/events" );

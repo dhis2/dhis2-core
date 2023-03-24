@@ -88,7 +88,7 @@ public class EventChartDeletionHandler
 
         for ( EventChart chart : charts )
         {
-            if ( chart.getProgramStage().equals( programStage ) )
+            if ( chart.getProgramStage() != null && chart.getProgramStage().equals( programStage ) )
             {
                 service.deleteEventChart( chart );
             }
@@ -101,7 +101,7 @@ public class EventChartDeletionHandler
 
         for ( EventChart chart : charts )
         {
-            if ( chart.getProgram().equals( program ) )
+            if ( chart.getProgram() != null && chart.getProgram().equals( program ) )
             {
                 service.deleteEventChart( chart );
             }

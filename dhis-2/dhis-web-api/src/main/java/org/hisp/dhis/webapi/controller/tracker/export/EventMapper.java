@@ -35,7 +35,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
+    Dxf2RelationshipMapper.class,
     NoteMapper.class,
     DataValueMapper.class,
     InstantMapper.class,
