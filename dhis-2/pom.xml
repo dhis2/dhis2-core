@@ -632,6 +632,7 @@
           <version>${lombok-maven-plugin.version}</version>
         </plugin>
         <plugin>
+          <!-- Note: Remove /.mvn/jvm.config when replacing speedy-spotless -->
           <groupId>io.committed</groupId>
           <artifactId>speedy-spotless-maven-plugin</artifactId>
           <version>${speedy-spotless-maven-plugin.version}</version>

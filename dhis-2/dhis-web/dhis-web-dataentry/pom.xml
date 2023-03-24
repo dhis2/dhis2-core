@@ -55,12 +55,14 @@
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
+    <!--
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
+    -->
+    
     <!-- Other -->
 
     <dependency>
@@ -84,7 +86,12 @@
       <artifactId>spring-beans</artifactId>
     </dependency>
 
-
+    <!-- Test -->    
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
