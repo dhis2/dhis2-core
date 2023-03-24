@@ -54,7 +54,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre17', '9.0-jre11', '8.5-jre11'
+                        values '9.0-jre17', '8.5-jre17'
                     }
                 }
 
