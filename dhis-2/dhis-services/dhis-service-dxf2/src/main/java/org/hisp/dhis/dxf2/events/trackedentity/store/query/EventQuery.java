@@ -127,7 +127,7 @@ public class EventQuery
             "join program p on pi.programid = p.programid " +
             "join programstage ps on psi.programstageid = ps.programstageid " +
             "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
-            "join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
+            "left join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
             + userLocale + "' and ou_displayname.property='NAME' " +
             "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
             "left join userinfo ui on psi.assigneduserid = ui.userinfoid " +

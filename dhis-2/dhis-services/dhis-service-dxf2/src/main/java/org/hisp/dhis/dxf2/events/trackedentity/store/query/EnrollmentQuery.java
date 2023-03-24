@@ -102,7 +102,7 @@ public class EnrollmentQuery
             "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
             "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid " +
             "join organisationunit o on tei.organisationunitid = o.organisationunitid " +
-            "join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
+            "left join jsonb_to_recordset(o.translations) as ou_displayname(locale text, property text, value text) on ou_displayname.locale = '"
             + userLocale + "' and ou_displayname.property='NAME' " +
             "where pi.trackedentityinstanceid in (:ids) ";
     }
