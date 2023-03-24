@@ -81,6 +81,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
 
+    private static DhisConfigurationProvider instance = null;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -157,6 +159,23 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         catch ( IOException ex )
         {
             warn( log, "Could not load credential from dhis-google-auth.json", ex );
+        }
+
+        if ( instance == null )
+        {
+            instance = this;
+        }
+    }
+
+    public static DhisConfigurationProvider getInstance()
+    {
+        if ( instance != null )
+        {
+            return instance;
+        }
+        else
+        {
+            throw new IllegalStateException( "The DefaultDhisConfigurationProvider is not initialized yet" );
         }
     }
 

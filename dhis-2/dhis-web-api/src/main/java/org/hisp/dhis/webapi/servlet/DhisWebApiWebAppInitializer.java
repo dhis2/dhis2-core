@@ -40,7 +40,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.hisp.dhis.system.startup.StartupListener;
+import org.hisp.dhis.security.apikey.DhisHttpSessionListener;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
@@ -75,8 +75,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
         AnnotationConfigWebApplicationContext annotationConfigWebApplicationContext = new AnnotationConfigWebApplicationContext();
         annotationConfigWebApplicationContext.register( WebMvcConfig.class );
 
+        context.addListener( new DhisHttpSessionListener() );
         context.addListener( new ContextLoaderListener( annotationConfigWebApplicationContext ) );
-        context.addListener( new StartupListener() );
 
         setupServlets( context, annotationConfigWebApplicationContext );
     }

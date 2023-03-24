@@ -25,14 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.apikey;
+package org.hisp.dhis.security.apikey;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
