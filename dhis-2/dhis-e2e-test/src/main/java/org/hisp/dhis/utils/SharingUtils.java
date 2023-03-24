@@ -71,6 +71,13 @@ public class SharingUtils
         return sharing;
     }
 
+    public static JsonObject addUserGroupAccess( JsonObject sharingObject, String uid, String accessString )
+    {
+        JsonObject userGroupAccess = sharingObject.getAsJsonObject( "userGroups" );
+        userGroupAccess.add( uid, createAccessObject( uid, accessString ) );
+        return sharingObject;
+    }
+
     public static JsonObject createAccessObject( String uid, String accessString )
     {
         JsonObject access = new JsonObject();

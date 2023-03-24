@@ -204,8 +204,8 @@ public class ProgramActions
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
             .addProperty( "code", "TA_PROGRAM_" + random )
-            .addUserGroupAccess()
             .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) )
+            .addUserGroupAccess()
             .build();
 
         return object;

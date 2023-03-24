@@ -38,6 +38,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import org.hisp.dhis.utils.SharingUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -207,18 +208,15 @@ public class JsonObjectBuilder
 
     public JsonObjectBuilder addUserGroupAccess()
     {
-        JsonArray userGroupAccesses = new JsonArray();
+        JsonObject sharing = jsonObject.getAsJsonObject( "sharing" );
+        
+        if ( sharing == null )
+        {
+            sharing = SharingUtils.createSharingObject( "rw------" );
+            jsonObject.add( "sharing", sharing );
+        }
 
-        JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
-            .build();
-
-        userGroupAccesses.add( userGroupAccess );
-
-        jsonObject.add( "userGroupAccesses", userGroupAccesses );
-
+        jsonObject = SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" );
         return this;
     }
 
