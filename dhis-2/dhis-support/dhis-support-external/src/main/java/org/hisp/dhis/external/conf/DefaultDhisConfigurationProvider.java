@@ -161,22 +161,34 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
             warn( log, "Could not load credential from dhis-google-auth.json", ex );
         }
 
-        if ( instance == null )
+        StaticSingletonHolder.getInstance().setHolder( this );
+    }
+
+    private static class StaticSingletonHolder
+    {
+        public static final StaticSingletonHolder INSTANCE = new StaticSingletonHolder();
+
+        private DhisConfigurationProvider holder;
+
+        public static StaticSingletonHolder getInstance()
         {
-            instance = this;
+            return INSTANCE;
+        }
+
+        public DhisConfigurationProvider getHolder()
+        {
+            return holder;
+        }
+
+        public void setHolder( DhisConfigurationProvider holder )
+        {
+            this.holder = holder;
         }
     }
 
     public static DhisConfigurationProvider getInstance()
     {
-        if ( instance != null )
-        {
-            return instance;
-        }
-        else
-        {
-            throw new IllegalStateException( "The DefaultDhisConfigurationProvider is not initialized yet" );
-        }
+        return StaticSingletonHolder.getInstance().getHolder();
     }
 
     // -------------------------------------------------------------------------
