@@ -43,7 +43,7 @@ class UidValidator
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
+        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship.getRelationship(),
             relationship.getRelationship() );
     }
 
