@@ -50,7 +50,6 @@ public class DhisHttpSessionListener implements HttpSessionListener
     @Override
     public void sessionCreated( HttpSessionEvent sessionEvent )
     {
-        log.debug( "-------Session Created--------" );
         DhisConfigurationProvider singleton = DefaultDhisConfigurationProvider.getInstance();
         if ( singleton != null )
         {
@@ -76,11 +75,5 @@ public class DhisHttpSessionListener implements HttpSessionListener
                 log.error( "Could not parse session timeout from config" );
             }
         }
-    }
-
-    @Override
-    public void sessionDestroyed( HttpSessionEvent sessionEvent )
-    {
-        log.debug( "-------Session Destroyed--------" );
     }
 }
