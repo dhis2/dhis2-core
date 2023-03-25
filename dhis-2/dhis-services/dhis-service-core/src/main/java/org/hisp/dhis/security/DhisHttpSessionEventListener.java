@@ -61,7 +61,7 @@ public class DhisHttpSessionEventListener
         {
             session.setMaxInactiveInterval(
                 Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
-            log.error( "Could not parse session timeout value from config", e );
+            log.error( "Could not read session timeout value from config", e );
         }
     }
 }
