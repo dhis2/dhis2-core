@@ -119,7 +119,6 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -756,11 +755,5 @@ public class DhisWebApiWebSecurityConfig
         filter.setSwitchFailureUrl( "/dhis-web-dashboard" );
         filter.setTargetUrl( "/dhis-web-dashboard" );
         return filter;
-    }
-
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher()
-    {
-        return new HttpSessionEventPublisher();
     }
 }

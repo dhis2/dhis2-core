@@ -39,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
-import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.IpAllowedList;
 import org.hisp.dhis.security.apikey.MethodAllowedList;
@@ -48,7 +47,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.core.log.LogMessage;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
-import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -78,8 +76,6 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
     private final ApiTokenService apiTokenService;
 
-    private final AuthenticationEventPublisher eventPublisher;
-
     public Dhis2ApiTokenFilter( ApiTokenService apiTokenService, ApiTokenAuthManager apiTokenAuthManager,
         AuthenticationEntryPoint authenticationEntryPoint,
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
@@ -89,8 +85,6 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
         this.apiTokenAuthManager = apiTokenAuthManager;
         this.authenticationFailureHandler = getAuthenticationFailureHandler( authenticationEntryPoint,
             defaultAuthenticationEventPublisher );
-
-        this.eventPublisher = defaultAuthenticationEventPublisher;
     }
 
     @Override
@@ -140,11 +134,6 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
             if ( this.logger.isDebugEnabled() )
             {
                 this.logger.debug( LogMessage.format( "Set SecurityContextHolder to %s", authenticationToken ) );
-            }
-
-            if ( this.eventPublisher != null )
-            {
-                this.eventPublisher.publishAuthenticationSuccess( authenticationToken );
             }
 
             filterChain.doFilter( request, response );

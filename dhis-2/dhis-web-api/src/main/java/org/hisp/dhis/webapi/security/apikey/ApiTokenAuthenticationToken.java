@@ -25,13 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.webapi.security.apikey;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
@@ -144,5 +146,24 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken imp
     public Map<String, Serializable> getUserSettings()
     {
         return user.getUserSettings();
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        if ( !super.equals( o ) )
+            return false;
+        ApiTokenAuthenticationToken that = (ApiTokenAuthenticationToken) o;
+        return Objects.equals( tokenKey, that.tokenKey ) && Objects.equals( tokenRef, that.tokenRef );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), tokenKey, tokenRef );
     }
 }

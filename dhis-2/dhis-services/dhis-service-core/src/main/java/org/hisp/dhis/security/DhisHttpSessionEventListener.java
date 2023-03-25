@@ -25,55 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.security;
 
-import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Component
 @Slf4j
-@WebListener
-public class DhisHttpSessionListener implements HttpSessionListener
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
-    public static final String JLI_SESSION_VARIABLE = "JLI";
+    private final DefaultDhisConfigurationProvider config;
 
-    @Override
-    public void sessionCreated( HttpSessionEvent sessionEvent )
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
     {
-        DhisConfigurationProvider singleton = DefaultDhisConfigurationProvider.getInstance();
-        if ( singleton != null )
+        HttpSession session = event.getSession();
+        try
         {
-            if ( sessionEvent == null || sessionEvent.getSession() == null )
-            {
-                log.error( "Session is null in DhisHttpSessionListener" );
-                return;
-            }
-
-            HttpSession session = sessionEvent.getSession();
-            session.setAttribute( JLI_SESSION_VARIABLE, Boolean.TRUE );
-
-            try
-            {
-                String property = singleton.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
-                session.setMaxInactiveInterval( Integer.parseInt( property ) );
-            }
-            catch ( Exception e )
-            {
-                session.setMaxInactiveInterval(
-                    Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
-                // An exception not caught here could cause the request to fail completely, so we catch all.
-                log.error( "Could not parse session timeout from config" );
-            }
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
+        }
+        catch ( Exception e )
+        {
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not parse session timeout from config" );
         }
     }
 }

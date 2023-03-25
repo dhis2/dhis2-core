@@ -31,9 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -81,11 +79,6 @@ public class AuthenticationLoggerListener
             return;
         }
 
-        logAuthenticationEvent( event );
-    }
-
-    private void logAuthenticationEvent( AbstractAuthenticationEvent event )
-    {
         String eventClassName = String.format( "Authentication event: %s; ",
             ClassUtils.getShortName( event.getClass() ) );
         String authName = StringUtils.firstNonEmpty( event.getAuthentication().getName(), "" );
@@ -134,15 +127,6 @@ public class AuthenticationLoggerListener
             {
                 UserDetails user = principal.getUser();
                 authName = user.getUsername();
-            }
-        }
-        else if ( ApiTokenAuthenticationToken.class.isAssignableFrom( event.getSource().getClass() ) )
-        {
-            ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) event.getSource();
-            CurrentUserDetails principal = authenticationToken.getPrincipal();
-            if ( principal != null )
-            {
-                authName = principal.getUsername();
             }
         }
 
