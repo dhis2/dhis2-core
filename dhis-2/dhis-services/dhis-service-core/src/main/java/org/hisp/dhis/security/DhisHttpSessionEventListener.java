@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.web.session.HttpSessionCreatedEvent;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DhisHttpSessionEventListener
 {
-    private final DefaultDhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
 
     @EventListener
     public void sessionCreated( HttpSessionCreatedEvent event )
