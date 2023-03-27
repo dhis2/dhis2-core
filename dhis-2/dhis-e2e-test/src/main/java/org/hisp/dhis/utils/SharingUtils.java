@@ -74,6 +74,13 @@ public class SharingUtils
     public static JsonObject addUserGroupAccess( JsonObject sharingObject, String uid, String accessString )
     {
         JsonObject userGroupAccess = sharingObject.getAsJsonObject( "userGroups" );
+
+        if ( userGroupAccess == null )
+        {
+            userGroupAccess = new JsonObject();
+            sharingObject.add( "userGroups", userGroupAccess );
+        }
+
         userGroupAccess.add( uid, createAccessObject( uid, accessString ) );
         return sharingObject;
     }

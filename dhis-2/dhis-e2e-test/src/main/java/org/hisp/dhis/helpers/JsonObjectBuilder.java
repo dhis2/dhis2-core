@@ -213,10 +213,10 @@ public class JsonObjectBuilder
         if ( sharing == null )
         {
             sharing = SharingUtils.createSharingObject( "rw------" );
-            jsonObject.add( "sharing", sharing );
         }
 
-        jsonObject = SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" );
+        sharing = SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" );
+        jsonObject.add( "sharing", sharing );
         return this;
     }
 
