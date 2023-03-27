@@ -89,7 +89,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
@@ -146,6 +146,12 @@ public class DhisWebApiWebSecurityConfig
 
     @Autowired
     public DataSource dataSource;
+
+    @Bean
+    public SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -382,9 +388,6 @@ public class DhisWebApiWebSecurityConfig
         private ApiTokenService apiTokenService;
 
         @Autowired
-        private SessionRegistry sessionRegistry;
-
-        @Autowired
         private UserService userService;
 
         @Autowired
@@ -532,8 +535,7 @@ public class DhisWebApiWebSecurityConfig
                     .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                     .enableSessionUrlRewriting( false )
                     .maximumSessions(
-                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                    .sessionRegistry( sessionRegistry );
+                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) );
 
                 http
                     .formLogin()
