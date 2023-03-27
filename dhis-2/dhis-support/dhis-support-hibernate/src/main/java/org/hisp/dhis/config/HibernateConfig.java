@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -119,13 +118,6 @@ public class HibernateConfig
         return hibernateDbmsManager;
     }
 
-    @Bean( "sessionFactory" )
-    @Primary
-    public SessionFactory sessionFactory( @Qualifier( "entityManagerFactory" ) EntityManagerFactory entityManager )
-    {
-        return entityManager.unwrap( SessionFactory.class );
-    }
-
     @Bean( "entityManagerFactory" )
     @DependsOn( { "flyway" } )
     public EntityManagerFactory entityManagerFactoryBean( DhisConfigurationProvider config,
@@ -163,7 +155,7 @@ public class HibernateConfig
             "org.springframework.orm.hibernate5.SpringSessionContext" );
 
         // TODO: this is anti-pattern and should be turn off
-        additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
+        //        additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
 
         return additionalProperties;
     }
