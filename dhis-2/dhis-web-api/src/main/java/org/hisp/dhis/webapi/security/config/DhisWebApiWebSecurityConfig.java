@@ -77,6 +77,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
@@ -84,7 +85,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -110,6 +111,7 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
 
 import com.google.common.collect.ImmutableList;
@@ -139,6 +141,12 @@ public class DhisWebApiWebSecurityConfig
 
     @Autowired
     public DataSource dataSource;
+
+    @Bean
+    public SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -374,9 +382,6 @@ public class DhisWebApiWebSecurityConfig
         private ApiTokenService apiTokenService;
 
         @Autowired
-        private SessionRegistry sessionRegistry;
-
-        @Autowired
         private UserService userService;
 
         @Autowired
@@ -495,39 +500,46 @@ public class DhisWebApiWebSecurityConfig
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
-            // Special handling if we are running in embedded Jetty mode
-            if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
-            {
-                // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form) Using the default based
-                // "EmbeddedJettyBasicAuthenticationEntryPoint"
-                http.antMatcher( "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
+            http.securityContext( httpSecuritySecurityContextConfigurer -> httpSecuritySecurityContextConfigurer
+                .requireExplicitSave( true ) );
 
-                /*
-                 * Setup session handling, this is configured normally in
-                 * DhisWebCommonsWebSecurityConfig when running in non-embedded
-                 * Jetty mode.
-                 */
-                http
-                    .sessionManagement()
-                    .sessionFixation().migrateSession()
-                    .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                    .enableSessionUrlRewriting( false )
-                    .maximumSessions(
-                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                    .sessionRegistry( sessionRegistry );
+            http.antMatcher( apiContextPath + "/**" )
+                .authorizeRequests( this::configureAccessRestrictions )
+                .httpBasic()
+                .authenticationEntryPoint( getBasicAuthenticationEntryPoint( activeProfiles ) )
+                .addObjectPostProcessor( new ObjectPostProcessor<BasicAuthenticationFilter>()
+                {
+                    @Override
+                    public <O extends BasicAuthenticationFilter> O postProcess( O filter )
+                    {
+                        // Explicitly set security context repository on http
+                        // basic, is NullSecurityContextRepository by default
+                        // now.
+                        filter.setSecurityContextRepository( new HttpSessionSecurityContextRepository() );
+                        return filter;
+                    }
+                } );
+
+            http
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
+                .sessionFixation().migrateSession()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions(
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
+        }
+
+        private AuthenticationEntryPoint getBasicAuthenticationEntryPoint( String[] activeProfiles )
+        {
+            if ( !Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
+            {
+                return formLoginBasicAuthenticationEntryPoint();
             }
             else
             {
-                // This config will redirect unauthorized requests to the
-                // default login form webpage
-                http.antMatcher( apiContextPath + "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
+                return embeddedJettyBasicAuthenticationEntryPoint();
             }
         }
 
