@@ -30,6 +30,8 @@ package org.hisp.dhis.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * @author Lars Helge Overland
  */
@@ -139,6 +141,11 @@ public class CombinationGenerator<T>
             int index = indexes[i];
 
             List<T> object = objects.get( i );
+
+            if ( CollectionUtils.isEmpty( object ) )
+            {
+                continue;
+            }
 
             current.add( object.get( index ) );
         }
