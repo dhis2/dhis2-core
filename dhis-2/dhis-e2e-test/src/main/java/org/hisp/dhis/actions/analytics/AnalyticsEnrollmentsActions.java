@@ -40,7 +40,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 public class AnalyticsEnrollmentsActions
     extends RestApiActions
 {
-
     public AnalyticsEnrollmentsActions()
     {
         super( "/analytics/enrollments" );

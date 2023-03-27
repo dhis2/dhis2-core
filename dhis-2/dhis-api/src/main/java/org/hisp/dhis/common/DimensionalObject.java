@@ -85,7 +85,7 @@ public interface DimensionalObject
 
     String ITEM_SEP = "-";
 
-    String PROGRAMSTAGE_SEP = ".";
+    String DIMENSION_IDENTIFIER_SEP = ".";
 
     String VALUE_COLUMN_NAME = "value";
 

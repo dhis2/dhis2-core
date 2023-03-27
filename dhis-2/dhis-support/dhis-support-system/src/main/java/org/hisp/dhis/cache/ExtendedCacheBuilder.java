@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.cache;
 
-import static java.lang.Integer.parseInt;
-
-import java.util.function.Function;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -54,15 +50,12 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
 
     private boolean forceInMemory;
 
-    private final Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory;
-
     public ExtendedCacheBuilder( RedisTemplate<String, ?> redisTemplate,
-        DhisConfigurationProvider configuration, Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory )
+        DhisConfigurationProvider configuration )
     {
         this.configuration = configuration;
         this.redisTemplate = redisTemplate;
         this.forceInMemory = false;
-        this.cappedLocalCacheFactory = cappedLocalCacheFactory;
     }
 
     /**
@@ -106,11 +99,6 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         }
         if ( forceInMemory )
         {
-            int capPercentage = parseInt( configuration.getProperty( ConfigurationKey.SYSTEM_CACHE_CAP_PERCENTAGE ) );
-            if ( capPercentage > 0 )
-            {
-                return cappedLocalCacheFactory.apply( this );
-            }
             log.debug( String.format( "Local Cache (forced) instance created for region:'%s'", getRegion() ) );
             return new LocalCache<>( this );
         }
@@ -118,11 +106,6 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         {
             log.debug( String.format( "Redis Cache instance created for region:'%s'", getRegion() ) );
             return new RedisCache<>( this );
-        }
-        int capPercentage = parseInt( configuration.getProperty( ConfigurationKey.SYSTEM_CACHE_CAP_PERCENTAGE ) );
-        if ( capPercentage > 0 )
-        {
-            return cappedLocalCacheFactory.apply( this );
         }
         log.debug( String.format( "Local Cache instance created for region:'%s'", getRegion() ) );
         return new LocalCache<>( this );

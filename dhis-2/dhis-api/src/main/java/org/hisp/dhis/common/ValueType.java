@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static java.util.stream.Collectors.toSet;
 
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -284,6 +285,40 @@ public enum ValueType
         return ValueType.TEXT;
     }
 
+    /**
+     * Returns a valid ValueType based on the given SQL type.
+     *
+     * @see java.sql.Types for valid integer values.
+     *
+     * @param type of the java.sql.Types
+     * @return the respective ValueType
+     */
+    public static ValueType getValueTypeFromSqlType( int type )
+    {
+        switch ( type )
+        {
+        case Types.INTEGER:
+            return ValueType.INTEGER;
+        case Types.DECIMAL:
+        case Types.DOUBLE:
+        case Types.NUMERIC:
+        case Types.BIGINT:
+        case Types.FLOAT:
+            return ValueType.NUMBER;
+        case Types.BOOLEAN:
+            return ValueType.BOOLEAN;
+        case Types.DATE:
+            return ValueType.DATE;
+        case Types.TIMESTAMP_WITH_TIMEZONE:
+            return ValueType.DATETIME;
+        case Types.TIME:
+        case Types.TIME_WITH_TIMEZONE:
+            return ValueType.TIME;
+        default:
+            return ValueType.TEXT;
+        }
+    }
+
     public static ValueType fromString( String valueType )
         throws IllegalArgumentException
     {
@@ -296,5 +331,4 @@ public enum ValueType
         return Arrays.stream( ValueType.values() )
             .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregatable ) ).collect( toSet() );
     }
-
 }

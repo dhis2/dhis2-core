@@ -27,82 +27,107 @@
  */
 package org.hisp.dhis.analytics.security;
 
+import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.program.Program;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
+/**
+ * Provides specific methods responsible checking or matching {@link Category}
+ * and {@link DimensionalObject} objects.
+ */
+@NoArgsConstructor( access = PRIVATE )
 public class CategorySecurityUtils
 {
     /**
-     * Returns the categories the user is constrained to. If the user is super
-     * user, an empty set is returned. If the user is not super user, the
-     * categories of the program category combo are returned if present.
+     * Iterates through all {@link Category} in the given {@link Program} and
+     * returns the ones that do not match any object in the list of
+     * {@link DimensionalObject}.
      *
-     * @param params the data query parameters.
-     * @return the categories the user is constrained to.
+     * @param program the {@link Program} where we get the categories from.
+     * @param dimensionalObjects the list of {@link DimensionalObject} objects.
+     * @return the list of {@link Category} matched.
      */
-    static Collection<Category> getCategoriesWithoutRestrictions( DataQueryParams params )
+    public static List<Category> getConstrainedCategories( Program program,
+        List<DimensionalObject> dimensionalObjects )
     {
-        return Optional.of( params )
-            .map( DataQueryParams::getProgram )
+        List<Program> programs = Optional.ofNullable( program )
+            .map( Collections::singletonList )
+            .orElse( List.of() );
+
+        return getConstrainedCategories( programs, dimensionalObjects );
+    }
+
+    /**
+     * Iterates through all {@link Category} in the given list of
+     * {@link Program} and returns the ones that do not match any object in the
+     * list of {@link DimensionalObject}.
+     *
+     * @param programs the list of {@link Program}. Where we get the categories
+     *        from.
+     * @param dimensionalObjects the list of {@link DimensionalObject} objects.
+     * @return the list of {@link Category} matched.
+     */
+    public static List<Category> getConstrainedCategories( List<Program> programs,
+        List<DimensionalObject> dimensionalObjects )
+    {
+        return programs.stream()
             .filter( Program::hasNonDefaultCategoryCombo )
             .map( Program::getCategoryCombo )
             .map( CategoryCombo::getCategories )
-            .orElse( Collections.emptyList() )
-            .stream()
+            .flatMap( Collection::stream )
             /*
-             * If the user has selected a category option, we do not want to
-             * apply any constraints
+             * If the user has selected a category, we do not want to apply any
+             * constraints.
              */
-            .filter( category -> !hasUserSelectedCategoryOption( category, params ) )
-            .collect( Collectors.toList() );
+            .filter( category -> !matchDimensionsForCategory( category, dimensionalObjects ) )
+            .collect( toList() );
     }
 
     /**
-     * Returns true if the user has selected a category option for the given
-     * category.
+     * Checks if the given list of {@link DimensionalObject} has elements of
+     * type {@link DimensionType.CATEGORY} and its uid matches the given
+     * {@link Category} uid. Also checks that each {@link DimensionalObject}
+     * object has category options associated.
      *
-     * @param category the category
-     * @param params the data query parameters.
-     * @return true if the user has selected a category option for the given
-     *         category.
+     * @param category the {@link Category} to check.
+     * @param dimensionalObjects the list of {@link DimensionalObject} objects.
+     * @return true if any match is found in the list of
+     *         {@link DimensionalObject}.
      */
-    private static boolean hasUserSelectedCategoryOption( Category category, DataQueryParams params )
+    private static boolean matchDimensionsForCategory( Category category,
+        List<DimensionalObject> dimensionalObjects )
     {
-        Stream<DimensionalObject> dimensionalObjects = Stream.concat(
-            params.getDimensions().stream(),
-            params.getFilters().stream() );
-
-        return dimensionalObjects
-            .anyMatch( dimensionalObject -> hasUserConstraints( dimensionalObject, category ) );
+        return dimensionalObjects.stream()
+            .anyMatch( dimensionalObject -> matchDimensionForCategory( category, dimensionalObject ) );
     }
 
     /**
-     * Returns true if the given dimensionalObject contains any constraint on
-     * the given Category
+     * Checks if the given {@link DimensionalObject} is of type
+     * {@link DimensionType.CATEGORY} and its uid matches the given
+     * {@link Category} uid. Also checks that the {@link DimensionalObject} has
+     * category options.
      *
-     * @param dimensionalObject the dimensional object
-     * @param category the category
-     * @return true if the given dimensionalObject contains any constraint on
-     *         the given Category
+     * @param category the {@link Category} to match.
+     * @param dimensionalObject the {@link DimensionalObject} object to match.
+     * @return true if the conditions match, false otherwise.
      */
-    private static boolean hasUserConstraints( DimensionalObject dimensionalObject, Category category )
+    private static boolean matchDimensionForCategory( Category category, DimensionalObject dimensionalObject )
     {
         return dimensionalObject.getDimensionType() == DimensionType.CATEGORY &&
             dimensionalObject.getUid().equals( category.getUid() ) &&
-            !dimensionalObject.getItems().isEmpty();
+            isNotEmpty( dimensionalObject.getItems() ); // Items represent the category options.
     }
 }

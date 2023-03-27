@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import org.hisp.dhis.actions.LoginActions;
@@ -57,7 +58,7 @@ import io.restassured.http.ContentType;
  *
  * All tests are written on top of the database Sierra Leone 2.39.0. It can be
  * downloaded at
- * https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz
+ * https://databases.dhis2.org/sierra-leone/2.39.0/analytics_be/dhis2-db-sierra-leone.sql.gz
  *
  * If some test is failing and some investigation is needed, we can simply
  * download the database version above and run the respective WAR of the DHIS2
@@ -68,13 +69,13 @@ import io.restassured.http.ContentType;
 @TestInstance( PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
-@Timeout( AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS )
+@Timeout( value = AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME, unit = MINUTES )
 @Tag( "analytics" )
 public abstract class AnalyticsApiTest
 {
-    protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 2;
+    protected static final int DEFAULT_LIMIT_EXECUTION_TIME = 30;
 
-    protected final String JSON = ContentType.JSON.toString();
+    protected static final String JSON = ContentType.JSON.toString();
 
     @BeforeAll
     public void beforeAll()

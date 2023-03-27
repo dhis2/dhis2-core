@@ -29,17 +29,25 @@ package org.hisp.dhis.webapi.dimension;
 
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 public interface DimensionMapper
 {
-    DimensionResponse map( BaseIdentifiableObject dimension, String prefix );
+    DimensionResponse map( PrefixedDimension dimension, String prefix );
 
     Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
 
     default boolean supports( BaseIdentifiableObject dimension )
     {
         return getSupportedClasses().contains( HibernateProxyUtils.getRealClass( dimension ) );
+    }
+
+    default String dimensionTypeOrElse( PrefixedDimension prefixedDimension, String ifMissing )
+    {
+        return StringUtils.isEmpty( prefixedDimension.getDimensionType() ) ? ifMissing
+            : prefixedDimension.getDimensionType();
     }
 }
