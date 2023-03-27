@@ -137,7 +137,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       commitHooks.forEach(hook -> hook.postCommit(bundle));
     }
 
-    bundle.setObjectBundleStatus(ObjectBundleStatus.COMMITTED);
+        bundle.setObjectBundleStatus( ObjectBundleStatus.COMMITTED );
 
     return commitReport;
   }
