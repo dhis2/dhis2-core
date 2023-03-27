@@ -101,8 +101,8 @@ public class DataItemQueryController
      * @return the list of items found in JSON format
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<RootNode> getJson( @RequestParam
-    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
+    public ResponseEntity<RootNode> getJson( @RequestParam final Map<String, String> urlParameters,
+        OrderParams orderParams, @CurrentUser User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
@@ -116,8 +116,8 @@ public class DataItemQueryController
      * @return the list of items found in XML format
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
-    public ResponseEntity<RootNode> getXml( @RequestParam
-    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
+    public ResponseEntity<RootNode> getXml( @RequestParam final Map<String, String> urlParameters,
+        OrderParams orderParams, @CurrentUser User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 
