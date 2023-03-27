@@ -49,5 +49,4 @@ class MandatoryFieldsValidator
         reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
             "relationshipType" );
     }
-
 }

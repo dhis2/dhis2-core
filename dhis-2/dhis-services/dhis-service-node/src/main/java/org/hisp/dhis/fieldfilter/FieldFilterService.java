@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.hisp.dhis.node.types.CollectionNode;
@@ -38,7 +37,7 @@ import org.hisp.dhis.node.types.ComplexNode;
  */
 public interface FieldFilterService
 {
-    List<String> SHARING_FIELDS = Arrays.asList(
+    List<String> SHARING_FIELDS = List.of(
         "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
 
     /**

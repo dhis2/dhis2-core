@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,32 @@
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Enrico Colasante
- */
 @ExtendWith( MockitoExtension.class )
-class DataRelationsValidatorTest extends DhisConvenienceTest
+class DuplicationValidatorTest
 {
 
-    private DataRelationsValidator validator;
+    private DuplicationValidator validator;
 
     @Mock
     private TrackerBundle bundle;
@@ -71,9 +64,9 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
     private Reporter reporter;
 
     @BeforeEach
-    void setUp()
+    public void setUp()
     {
-        validator = new DataRelationsValidator();
+        validator = new DuplicationValidator();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
@@ -82,54 +75,60 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
+    void shouldFailWhenRelationshipIsDuplicated()
     {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+            .relationshipType( MetadataIdentifier.ofUid( createRelTypeConstraint().getUid() ) )
+            .from( trackedEntityRelationshipItem() )
+            .to( trackedEntityRelationshipItem() )
             .build();
+
+        when( preheat.isDuplicate( relationship ) ).thenReturn( true );
 
         validator.validate( reporter, bundle, relationship );
 
-        assertHasError( reporter, relationship, ValidationCode.E4012,
-            "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." );
-        assertHasError( reporter, relationship, ValidationCode.E4012,
-            "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." );
+        assertHasError( reporter, relationship, E4018 );
     }
 
     @Test
-    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
+    void shouldBeValidWhenRelationshipIsNotDuplicated()
     {
-
-        TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
-        validTrackedEntity.setUid( "validTrackedEntity" );
-        when( preheat.getTrackedEntity( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
-
-        when( bundle.findTrackedEntityByUid( "anotherValidTrackedEntity" ) )
-            .thenReturn( Optional.of( TrackedEntity.builder().build() ) );
-
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
+            .relationshipType( MetadataIdentifier.ofUid( createRelTypeConstraint().getUid() ) )
+            .from( trackedEntityRelationshipItem() )
+            .to( trackedEntityRelationshipItem() )
             .build();
+
+        when( preheat.isDuplicate( relationship ) ).thenReturn( false );
 
         validator.validate( reporter, bundle, relationship );
 
         assertIsEmpty( reporter.getErrors() );
     }
 
-    private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
+    private RelationshipType createRelTypeConstraint()
+    {
+        RelationshipType relType = new RelationshipType();
+        relType.setUid( CodeGenerator.generateUid() );
+
+        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+        relationshipConstraintFrom.setRelationshipEntity( TRACKED_ENTITY_INSTANCE );
+
+        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+        relationshipConstraintTo.setRelationshipEntity( TRACKED_ENTITY_INSTANCE );
+
+        relType.setFromConstraint( relationshipConstraintFrom );
+        relType.setToConstraint( relationshipConstraintTo );
+
+        return relType;
+    }
+
+    private RelationshipItem trackedEntityRelationshipItem()
     {
         return RelationshipItem.builder()
-            .trackedEntity( trackedEntityUid )
+            .trackedEntity( CodeGenerator.generateUid() )
             .build();
     }
 }
