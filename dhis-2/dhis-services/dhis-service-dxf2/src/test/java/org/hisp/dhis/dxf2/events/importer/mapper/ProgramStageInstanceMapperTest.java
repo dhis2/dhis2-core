@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.importer.mapper;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +43,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 
 class ProgramStageInstanceMapperTest
@@ -48,11 +51,18 @@ class ProgramStageInstanceMapperTest
 
     private final ProgramStageInstanceMapper programStageInstanceMapper;
 
-    private final Event event;
+    private Event event;
 
-    private final String dataElementUid = "ABC12345678";
+    private final static String DATA_ELEMENT_UID = "ABC12345678";
+
+    private final static String EVENT_UID = "ABC23456789";
 
     ProgramStageInstanceMapperTest()
+    {
+        this.programStageInstanceMapper = setup( Collections.emptyMap() );
+    }
+
+    ProgramStageInstanceMapper setup( Map<String, ProgramStageInstance> programStageInstanceMap )
     {
         // Identifiers
         String dataElementCode = "DE_CODE";
@@ -60,7 +70,7 @@ class ProgramStageInstanceMapperTest
 
         // Set up DataElement
         DataElement de = new DataElement();
-        de.setUid( dataElementUid );
+        de.setUid( DATA_ELEMENT_UID );
         de.setCode( dataElementCode );
 
         // Set up DataValue; identifier is CODE.
@@ -89,19 +99,26 @@ class ProgramStageInstanceMapperTest
             return edv;
         } ).collect( Collectors.toSet() ) );
 
+        this.event = event;
+
         // Initialize workContext, mapper and event.
-        this.programStageInstanceMapper = new ProgramStageInstanceMapper( WorkContext.builder()
+        return new ProgramStageInstanceMapper(
+            getWorkContext( programStageInstanceMap, dataElementMap, dataValuesMap ) );
+    }
+
+    private static WorkContext getWorkContext( Map<String, ProgramStageInstance> programStageInstanceMap,
+        Map<String, DataElement> dataElementMap, Map<String, Set<EventDataValue>> dataValuesMap )
+    {
+        return WorkContext.builder()
             .dataElementMap( dataElementMap )
-            .programStageInstanceMap( new HashMap<>() )
+            .programStageInstanceMap( programStageInstanceMap )
             .programInstanceMap( new HashMap<>() )
             .programsMap( new HashMap<>() )
             .organisationUnitMap( new HashMap<>() )
             .categoryOptionComboMap( new HashMap<>() )
             .eventDataValueMap( dataValuesMap )
             .importOptions( ImportOptions.getDefaultImportOptions().setIdScheme( "CODE" ) )
-            .build() );
-
-        this.event = event;
+            .build();
     }
 
     @Test
@@ -109,6 +126,39 @@ class ProgramStageInstanceMapperTest
     {
         ProgramStageInstance psi = programStageInstanceMapper.map( event );
 
-        assertTrue( psi.getEventDataValues().stream().anyMatch( dv -> dv.getDataElement().equals( dataElementUid ) ) );
+        assertTrue(
+            psi.getEventDataValues().stream().anyMatch( dv -> dv.getDataElement().equals( DATA_ELEMENT_UID ) ) );
+    }
+
+    @Test
+    void mapShouldUseCreatedAtClientAndLastUpdatedAtClientIfNew()
+    {
+        ProgramStageInstance psi = programStageInstanceMapper.map( event );
+        assertEquals( psi.getCreatedAtClient(), DateUtils.parseDate( event.getCreatedAtClient() ) );
+        assertEquals( psi.getLastUpdatedAtClient(), DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
+    }
+
+    @Test
+    void mapShouldNotUseCreatedAtClientIfUpdate()
+    {
+        ProgramStageInstance existingPsi = mockProgramStageInstance( EVENT_UID,
+            "2020-01-01T00:00:00.000",
+            "2020-01-02T00:00:00.000" );
+
+        ProgramStageInstanceMapper tested = setup( Map.of( EVENT_UID, existingPsi ) );
+
+        ProgramStageInstance psi = tested.map( event );
+
+        assertEquals( psi.getCreatedAtClient(), existingPsi.getCreatedAtClient() );
+        assertEquals( psi.getLastUpdatedAtClient(), DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
+    }
+
+    private ProgramStageInstance mockProgramStageInstance( String uid, String createdAtClient, String updatedAtClient )
+    {
+        ProgramStageInstance psi = new ProgramStageInstance();
+        psi.setUid( uid );
+        psi.setCreatedAtClient( DateUtils.parseDate( createdAtClient ) );
+        psi.setLastUpdatedAtClient( DateUtils.parseDate( updatedAtClient ) );
+        return psi;
     }
 }

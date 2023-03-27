@@ -25,29 +25,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
-@Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    AttributeMapper.class,
-    Dxf2EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
+/**
+ * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Event}.
+ */
+public interface JsonEvent extends JsonObject
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    default String getEvent()
+    {
+        return getString( "event" ).string();
+    }
+
+    default String getStatus()
+    {
+        return getString( "status" ).string();
+    }
+
+    default String getProgram()
+    {
+        return getString( "program" ).string();
+    }
+
+    default String getProgramStage()
+    {
+        return getString( "programStage" ).string();
+    }
+
+    default String getEnrollment()
+    {
+        return getString( "enrollment" ).string();
+    }
+
+    default String getTrackedEntity()
+    {
+        return getString( "trackedEntity" ).string();
+    }
+
+    default String getOrgUnit()
+    {
+        return getString( "orgUnit" ).string();
+    }
+
+    default String getOrgUnitName()
+    {
+        return getString( "orgUnitName" ).string();
+    }
+
+    default Boolean getDeleted()
+    {
+        return getBoolean( "deleted" ).bool();
+    }
+
+    default JsonUser getAssignedUser()
+    {
+        return get( "assignedUser" ).as( JsonUser.class );
+    }
+
+    default JsonList<JsonDataValue> getDataValues()
+    {
+        return get( "dataValues" ).asList( JsonDataValue.class );
+    }
+
+    default JsonList<JsonNote> getNotes()
+    {
+        return get( "notes" ).asList( JsonNote.class );
+    }
 }

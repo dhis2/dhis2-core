@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -36,18 +35,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -133,16 +129,11 @@ public class TrackerRelationshipsExportController
     PagingWrapper<ObjectNode> getInstances(
         TrackerRelationshipCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws WebMessageException
+        throws NotFoundException,
+        BadRequestException
     {
-
-        String identifier = criteria.getIdentifierParam();
-        String identifierName = criteria.getIdentifierName();
         List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships = tryGetRelationshipFrom(
-            identifier,
-            criteria.getIdentifierClass(),
-            () -> notFound( "No " + identifierName + " '" + identifier + "' found." ),
-            criteria );
+            criteria.getIdentifierClass(), criteria.getIdentifierParam(), criteria.getIdentifierName(), criteria );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
         if ( criteria.isPagingRequest() )
@@ -164,37 +155,42 @@ public class TrackerRelationshipsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-
         org.hisp.dhis.webapi.controller.tracker.view.Relationship relationship = RELATIONSHIP_MAPPER
             .from( relationshipService.findRelationshipByUid( id ).orElse( null ) );
+
         if ( relationship == null )
         {
             throw new NotFoundException( Relationship.class, id );
         }
+
         return ResponseEntity.ok( fieldFilterService.toObjectNode( relationship, fields ) );
     }
 
-    @SneakyThrows
     private List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> tryGetRelationshipFrom(
-        String identifier,
-        Class<?> type,
-        Supplier<WebMessage> notFoundMessageSupplier,
+        Class<?> type, String identifier, String identifierName,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
+        throws NotFoundException
     {
-        if ( identifier != null )
+        if ( identifier == null )
         {
-            Object object = getObjectRetriever( type ).apply( identifier );
-            if ( object != null )
-            {
-                return RELATIONSHIP_MAPPER
-                    .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
-            }
-            else
-            {
-                throw new WebMessageException( notFoundMessageSupplier.get() );
-            }
+            return null;
         }
-        return null;
+
+        Object object = getObjectRetriever( type ).apply( identifier );
+        if ( object == null )
+        {
+            throw new NotFoundException( identifierName + " with id " + identifier + " could not be found." );
+        }
+
+        return RELATIONSHIP_MAPPER
+            .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
+    }
+
+    private Function<String, ?> getObjectRetriever( Class<?> type )
+    {
+        return Optional.ofNullable( type )
+            .map( objectRetrievers::get )
+            .orElseThrow( () -> new IllegalArgumentException( "Unable to detect object retriever from " + type ) );
     }
 
     private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(
@@ -204,12 +200,5 @@ public class TrackerRelationshipsExportController
             .map( relationshipRetrievers::get )
             .orElseThrow(
                 () -> new IllegalArgumentException( "Unable to detect relationship retriever from " + type ) );
-    }
-
-    private Function<String, ?> getObjectRetriever( Class<?> type )
-    {
-        return Optional.ofNullable( type )
-            .map( objectRetrievers::get )
-            .orElseThrow( () -> new IllegalArgumentException( "Unable to detect object retriever from " + type ) );
     }
 }
