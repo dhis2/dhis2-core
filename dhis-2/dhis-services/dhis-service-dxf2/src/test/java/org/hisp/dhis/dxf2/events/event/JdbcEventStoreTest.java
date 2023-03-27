@@ -48,7 +48,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -94,9 +93,6 @@ class JdbcEventStoreTest
     @Mock
     private SkipLockedProvider skipLockedProvider;
 
-    @Mock
-    private OrganisationUnitStore organisationUnitStore;
-
     @BeforeEach
     public void setUp()
     {
@@ -108,7 +104,7 @@ class JdbcEventStoreTest
             } );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(),
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(),
             namedParameterJdbcTemplate, objectMapper, currentUserService, manager, eventStore, skipLockedProvider );
     }
 
@@ -118,7 +114,7 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }
@@ -129,7 +125,7 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }

@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.filter;
 import static java.util.regex.Pattern.compile;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -142,7 +141,8 @@ public class AppOverrideFilter
                 return;
             }
 
-            if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
+            String etag = CodecUtils.md5Hex( String.valueOf( resource.lastModified() ) );
+            if ( new ServletWebRequest( request, response ).checkNotModified( etag ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
                 return;
@@ -158,7 +158,7 @@ public class AppOverrideFilter
             }
 
             response.setContentLength( (int) resource.contentLength() );
-            response.setHeader( "Last-Modified", DateUtils.getHttpDateString( new Date( resource.lastModified() ) ) );
+            response.setHeader( "ETag", etag );
 
             StreamUtils.copyThenCloseInputStream( resource.getInputStream(), response.getOutputStream() );
         }
