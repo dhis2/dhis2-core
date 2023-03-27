@@ -783,7 +783,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return program;
     }
 
-    private TrackedEntityType trackedEntityType( @SuppressWarnings( "SameParameterValue" ) String uid )
+    private TrackedEntityType trackedEntityType( String uid )
     {
         return trackedEntityType( uid, 'A' );
     }
@@ -795,14 +795,14 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return trackedEntityType;
     }
 
-    private ProgramStage programStage( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
+    private ProgramStage programStage( String uid, Program program )
     {
         ProgramStage programStage = createProgramStage( 'A', program );
         programStage.setUid( uid );
         return programStage;
     }
 
-    private ProgramInstance programInstance( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
+    private ProgramInstance programInstance( String uid, Program program )
     {
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( uid );

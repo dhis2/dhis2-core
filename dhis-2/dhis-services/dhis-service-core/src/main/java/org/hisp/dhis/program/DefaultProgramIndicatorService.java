@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -123,6 +124,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -379,9 +381,25 @@ public class DefaultProgramIndicatorService
         return expression
             + "|" + dataType.name()
             + "|" + programIndicator.getUid()
-            + "|" + startDate.getTime()
-            + "|" + endDate.getTime()
+            + dateIfPresent( startDate )
+            + dateIfPresent( endDate )
             + "|" + (tableAlias == null ? "" : tableAlias);
+    }
+
+    /**
+     * Returns the time in milliseconds if the date is present, otherwise an
+     * empty string.
+     *
+     * @param date the date
+     * @return the time in milliseconds if the date is present, otherwise an
+     *         empty string.
+     */
+    private String dateIfPresent( Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( Date::getTime )
+            .map( millis -> "|" + millis )
+            .orElse( StringUtils.EMPTY );
     }
 
     private String _getAnalyticsSql( String expression, DataType dataType, ProgramIndicator programIndicator,
@@ -504,7 +522,7 @@ public class DefaultProgramIndicatorService
             .programIndicatorService( this )
             .programStageService( programStageService )
             .statementBuilder( statementBuilder )
-            .i18n( i18nManager.getI18n() )
+            .i18nSupplier( Suppliers.memoize( i18nManager::getI18n ) )
             .constantMap( expressionService.getConstantMap() )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )

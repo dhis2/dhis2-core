@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.config;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Slf4j
 public class H2DhisConfigurationProvider extends TestConfigurationProvider
 {
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";

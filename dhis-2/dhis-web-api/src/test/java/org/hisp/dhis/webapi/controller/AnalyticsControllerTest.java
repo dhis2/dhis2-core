@@ -55,6 +55,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -90,6 +91,9 @@ class AnalyticsControllerTest
     @Mock
     private DimensionService dimensionService;
 
+    @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
     @BeforeEach
     public void setUp()
     {
@@ -101,7 +105,7 @@ class AnalyticsControllerTest
 
         // Controller under test
         AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
-            contextUtils );
+            contextUtils, dhisConfigurationProvider );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
 

@@ -34,8 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
@@ -54,7 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 class ApiTokenControllerTest extends DhisControllerConvenienceTest
 {
 
@@ -173,7 +170,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     void testCantModifyKeyPatch()
     {
         final ApiToken newToken = createNewEmptyToken();
-        final HttpResponse patch = PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
+        PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
             newToken.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op':'replace','path':'/key','value':'MY NEW VALUE'}]" ) );
         final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );

@@ -291,7 +291,7 @@ public class GridUtils
      * given OutputStream.
      */
     public static void toXls( Grid grid, OutputStream out )
-        throws Exception
+        throws IOException
     {
         Workbook workbook = new HSSFWorkbook();
 

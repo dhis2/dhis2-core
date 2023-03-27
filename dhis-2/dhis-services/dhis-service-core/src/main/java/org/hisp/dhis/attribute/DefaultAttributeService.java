@@ -29,7 +29,6 @@ package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -127,7 +126,7 @@ public class DefaultAttributeService implements AttributeService
     @Transactional( readOnly = true )
     public List<Attribute> getAllAttributes()
     {
-        return new ArrayList<>( attributeStore.getAll() );
+        return attributeStore.getAll();
     }
 
     // -------------------------------------------------------------------------

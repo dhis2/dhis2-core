@@ -290,8 +290,6 @@ public abstract class AbstractEventService implements EventService
 
         validate( params, user );
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
@@ -302,16 +300,16 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.isSkipPaging() )
         {
-            events.setEvents( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+            events.setEvents( eventStore.getEvents( params, emptyMap() ) );
             return events;
         }
 
         Pager pager;
-        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+        eventList.addAll( eventStore.getEvents( params, emptyMap() ) );
 
         if ( params.isTotalPages() )
         {
-            int count = eventStore.getEventCount( params, organisationUnits );
+            int count = eventStore.getEventCount( params );
             pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
         }
         else
@@ -366,6 +364,8 @@ public abstract class AbstractEventService implements EventService
     {
         User user = currentUserService.getCurrentUser();
 
+        validate( params, user );
+
         if ( params.getProgramStage() == null || params.getProgramStage().getProgram() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null" );
@@ -375,8 +375,6 @@ public abstract class AbstractEventService implements EventService
         {
             throw new IllegalQueryException( "Program stage should have at least one data element" );
         }
-
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
         // ---------------------------------------------------------------------
         // If includeAllDataElements is set to true, return all data elements.
@@ -426,7 +424,7 @@ public abstract class AbstractEventService implements EventService
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
         }
 
-        List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
+        List<Map<String, String>> events = eventStore.getEventsGrid( params );
 
         // ---------------------------------------------------------------------
         // Grid rows
@@ -455,7 +453,7 @@ public abstract class AbstractEventService implements EventService
 
             if ( params.isTotalPages() )
             {
-                int count = eventStore.getEventCount( params, organisationUnits );
+                int count = eventStore.getEventCount( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
@@ -513,7 +511,7 @@ public abstract class AbstractEventService implements EventService
         EventSearchParams params = new EventSearchParams().setProgramType( ProgramType.WITHOUT_REGISTRATION )
             .setIncludeDeleted( true ).setSynchronizationQuery( true ).setSkipChangedBefore( skipChangedBefore );
 
-        return eventStore.getEventCount( params, null );
+        return eventStore.getEventCount( params );
     }
 
     @Override
@@ -529,7 +527,7 @@ public abstract class AbstractEventService implements EventService
             .setSkipChangedBefore( skipChangedBefore );
 
         Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, null, psdesWithSkipSyncTrue );
+        List<Event> events = eventStore.getEvents( params, psdesWithSkipSyncTrue );
         anonymousEvents.setEvents( events );
         return anonymousEvents;
     }
@@ -540,11 +538,9 @@ public abstract class AbstractEventService implements EventService
     {
         User user = currentUserService.getCurrentUser();
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
         EventRows eventRows = new EventRows();
 
-        List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
+        List<EventRow> eventRowList = eventStore.getEventRows( params );
 
         EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
 
@@ -895,130 +891,6 @@ public abstract class AbstractEventService implements EventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
-
-    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params, User user )
-    {
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( orgUnitSelectionMode == null )
-        {
-            if ( params.getOrgUnit() != null )
-            {
-                return Collections.emptyList();
-            }
-
-            return getAccessibleOrgUnits( params, user );
-        }
-
-        List<OrganisationUnit> organisationUnits;
-
-        switch ( orgUnitSelectionMode )
-        {
-        case ALL:
-            organisationUnits = getAllOrgUnits( params, user );
-            break;
-        case CHILDREN:
-            organisationUnits = getChildrenOrgUnits( params );
-            break;
-        case DESCENDANTS:
-            organisationUnits = getDescendantOrgUnits( params );
-            break;
-        case CAPTURE:
-            organisationUnits = getCaptureOrgUnits( params, user );
-            break;
-        case SELECTED:
-            organisationUnits = getSelectedOrgUnits( params );
-            break;
-        default:
-            organisationUnits = getAccessibleOrgUnits( params, user );
-            break;
-        }
-
-        return organisationUnits;
-    }
-
-    private List<OrganisationUnit> getAllOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
-
-        if ( !userCanSearchOuModeALL( user ) )
-        {
-            throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
-        }
-
-        return Collections.emptyList();
-    }
-
-    private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use CHILDREN scope." );
-        }
-
-        return Arrays.asList( params.getOrgUnit() );
-    }
-
-    private List<OrganisationUnit> getSelectedOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
-        }
-
-        return Collections.emptyList();
-    }
-
-    private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
-        }
-
-        return Arrays.asList( params.getOrgUnit() );
-    }
-
-    private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
-
-        if ( user == null )
-        {
-            throw new IllegalQueryException( "User is required to use CAPTURE scope." );
-        }
-
-        return user.getOrganisationUnits().stream().collect( Collectors.toList() );
-    }
-
-    private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
-
-        if ( user == null )
-        {
-            throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
-        }
-
-        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE );
-
-        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
-        {
-            return user.getOrganisationUnits().stream().collect( Collectors.toList() );
-        }
-
-        return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect( Collectors.toList() );
-    }
-
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
         String storedBy )
     {
@@ -1136,8 +1008,10 @@ public abstract class AbstractEventService implements EventService
                 : "Current user is not authorized to query across all organisation units";
             break;
         case ACCESSIBLE:
+            violation = getAccessibleScopeValidation( user, params );
+            break;
         case CAPTURE:
-            violation = user == null ? "User is required for ouMode: " + params.getOrgUnitSelectionMode() : null;
+            violation = getCaptureScopeValidation( user );
             break;
         case CHILDREN:
         case SELECTED:
@@ -1149,6 +1023,46 @@ public abstract class AbstractEventService implements EventService
         default:
             violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
             break;
+        }
+
+        return violation;
+    }
+
+    private String getCaptureScopeValidation( User user )
+    {
+        String violation = null;
+
+        if ( user == null )
+        {
+            violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
+        }
+        else if ( user.getOrganisationUnits().isEmpty() )
+        {
+            violation = "User needs to be assigned data capture orgunits";
+        }
+
+        return violation;
+    }
+
+    private String getAccessibleScopeValidation( User user, EventSearchParams params )
+    {
+        String violation = null;
+
+        if ( user == null )
+        {
+            return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
+        }
+
+        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
+        {
+            violation = user.getOrganisationUnits().isEmpty() ? "User needs to be assigned data capture orgunits"
+                : null;
+        }
+        else
+        {
+            violation = user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
+                ? "User needs to be assigned either TEI search, data view or data capture org units"
+                : null;
         }
 
         return violation;

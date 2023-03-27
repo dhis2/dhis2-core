@@ -34,10 +34,10 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -46,7 +46,6 @@ import org.hisp.dhis.programstagefilter.EventDataFilter;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Represents the filtering/sorting criteria to be used when querying program
@@ -55,6 +54,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class ProgramStageQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -62,173 +62,98 @@ public class ProgramStageQueryCriteria implements Serializable
     /**
      * Property indicating which event status types to filter
      */
-    private EventStatus status;
+    @JsonProperty
+    private EventStatus eventStatus;
 
     /**
      * Property to filter events based on their created dates
      */
+    @JsonProperty
     private DateFilterPeriod eventCreatedAt;
+
+    /**
+     * Property to filter events based on their occurred dates
+     */
+    @JsonProperty
+    private DateFilterPeriod eventOccurredAt;
 
     /**
      * Property to filter events based on their scheduled dates
      */
-    private DateFilterPeriod scheduledAt;
+    @JsonProperty
+    private DateFilterPeriod eventScheduledAt;
 
     /**
      * Property indicating which enrollment status types to filter
      */
+    @JsonProperty
     private ProgramStatus enrollmentStatus;
 
     /**
      * Property to filter events based on their enrolment dates
      */
+    @JsonProperty
     private DateFilterPeriod enrolledAt;
 
     /**
      * Property to filter events based on enrollment incident dates
      */
+    @JsonProperty
     private DateFilterPeriod enrollmentOccurredAt;
 
     /**
      * Property which contains the required field ordering along with its
      * direction (asc/desc)
      */
+    @JsonProperty
     private String order;
 
     /**
      * Property which contains the order of output columns
      */
+    @JsonProperty
+    @Builder.Default
     private List<String> displayColumnOrder = Collections.emptyList();
 
     /**
      * Property indicating the OU for the filter.
      */
+    @JsonProperty
     private String orgUnit;
 
     /**
      * Property indicating the OU selection mode for the event filter
      */
+    @JsonProperty
     private OrganisationUnitSelectionMode ouMode;
 
     /**
      * Property indicating the assigned user selection mode for the event
      * filter.
      */
+    @JsonProperty
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
      * Property which contains the required assigned user ids to be used in the
      * event filter.
      */
+    @JsonProperty
+    @Builder.Default
     private Set<String> assignedUsers = Collections.emptySet();
 
     /**
      * Property which contains the filters to be used when querying events.
      */
+    @JsonProperty
+    @Builder.Default
     private List<EventDataFilter> dataFilters = Collections.emptyList();
 
     /**
      * Property to filter tracked entity instances based on tracked entity
      * attribute values
      */
+    @JsonProperty
+    @Builder.Default
     private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventStatus getStatus()
-    {
-        return status;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEventCreatedAt()
-    {
-        return eventCreatedAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getScheduledAt()
-    {
-        return scheduledAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStatus getEnrollmentStatus()
-    {
-        return enrollmentStatus;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEnrolledAt()
-    {
-        return enrolledAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateFilterPeriod getEnrollmentOccurredAt()
-    {
-        return enrollmentOccurredAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOrder()
-    {
-        return order;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getDisplayColumnOrder()
-    {
-        return displayColumnOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOrgUnit()
-    {
-        return orgUnit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnitSelectionMode getOuMode()
-    {
-        return ouMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AssignedUserSelectionMode getAssignedUserMode()
-    {
-        return assignedUserMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getAssignedUsers()
-    {
-        return assignedUsers;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventDataFilter> getDataFilters()
-    {
-        return dataFilters;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<AttributeValueFilter> getAttributeValueFilters()
-    {
-        return attributeValueFilters;
-    }
-
 }

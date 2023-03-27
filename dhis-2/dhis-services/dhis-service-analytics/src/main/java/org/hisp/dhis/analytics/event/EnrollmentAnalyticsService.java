@@ -61,6 +61,8 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_ORG_UNIT_NAME = "ouname";
 
+    String ITEM_ORG_UNIT_NAME_HIERARCHY = "ounamehierarchy";
+
     String ITEM_ORG_UNIT_CODE = "oucode";
 
     String ITEM_PROGRAM_STATUS = "programstatus";

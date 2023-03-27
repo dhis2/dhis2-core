@@ -44,6 +44,7 @@ import java.util.function.Function;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -77,18 +78,17 @@ public final class Assertions
                 () -> String.format( "Expected %s or actual %s contains unexpected duplicates", expected, actual ) ) );
     }
 
+    /**
+     * Asserts that two maps contain all the same entries.
+     *
+     * @param <K> the map key type.
+     * @param <V> the map value type.
+     * @param expected the expected map.
+     * @param actual the actual map.
+     */
     public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
     {
-        for ( Map.Entry<K, V> e : expected.entrySet() )
-        {
-            assertEquals( e.getValue(), actual.get( e.getKey() ),
-                String.format( "Expected value not found in %s", actual ) );
-        }
-        for ( Map.Entry<K, V> e : actual.entrySet() )
-        {
-            assertEquals( e.getValue(), expected.get( e.getKey() ),
-                String.format( "Did not expect value in %s", actual ) );
-        }
+        assertContainsOnly( expected.entrySet(), actual.entrySet() );
     }
 
     /**
@@ -234,5 +234,21 @@ public final class Assertions
             assertStartsWith( expected.substring( 0, paramsStart + 1 ), actual );
             assertContainsOnly( toParameterList.apply( expected ), toParameterList.apply( actual ) );
         }
+    }
+
+    public static void assertErrorReport( List<ErrorReport> actualErrors, ErrorCode expectedErrorCode )
+    {
+        assertErrorReport( actualErrors, expectedErrorCode, "" );
+    }
+
+    public static void assertErrorReport( List<ErrorReport> actualErrors, ErrorCode expectedErrorCode,
+        String expectedMessage )
+    {
+        assertFalse( actualErrors.isEmpty(), expectedMessage + " not found as error report list is empty" );
+
+        assertTrue( actualErrors.stream().anyMatch( er -> er.getMessage().contains( expectedMessage )
+            && er.getErrorCode() == expectedErrorCode ),
+            String.format( "Error report with code %s and and message '%s' not found in %s", expectedErrorCode,
+                expectedMessage, actualErrors ) );
     }
 }

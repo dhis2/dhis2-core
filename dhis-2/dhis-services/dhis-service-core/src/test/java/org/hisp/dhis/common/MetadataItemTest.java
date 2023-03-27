@@ -29,12 +29,15 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,5 +75,24 @@ class MetadataItemTest
         assertEquals( "MIA", miA.getName() );
         assertEquals( ValueType.BOOLEAN, miA.getValueType() );
         assertEquals( AggregationType.COUNT, miA.getAggregationType() );
+    }
+
+    @Test
+    void testIconUrlForIndicator()
+    {
+        String serverBaseUrl = "http://localhost:8080/dhis";
+
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        Indicator indicator = createIndicator( 'A', new IndicatorType() );
+        indicator.setStyle( style );
+
+        MetadataItem item = new MetadataItem( "any-name", serverBaseUrl, indicator );
+
+        assertEquals( "any-name", item.getName() );
+        assertEquals( serverBaseUrl, item.getServerBaseUrl() );
+        assertEquals( style.getIcon(), indicator.getStyle().getIcon() );
+        assertEquals( "http://localhost:8080/dhis/api/icons/icon-name/icon.svg", indicator.getStyle().getIcon() );
     }
 }

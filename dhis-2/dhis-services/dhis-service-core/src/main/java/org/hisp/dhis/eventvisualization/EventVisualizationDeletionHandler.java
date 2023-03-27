@@ -73,7 +73,7 @@ public class EventVisualizationDeletionHandler
     {
         final List<EventVisualization> eventVisualizations = service.getAnalyticalObjectsByDataDimension( dataElement );
 
-        for ( final EventVisualization eventVisualization : eventVisualizations )
+        for ( EventVisualization eventVisualization : eventVisualizations )
         {
             eventVisualization.getDataElementDimensions()
                 .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
@@ -85,26 +85,26 @@ public class EventVisualizationDeletionHandler
 
     private void deleteProgramStage( ProgramStage programStage )
     {
-        final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
+        final Collection<EventVisualization> visualizations = service.getAllEventVisualizations();
 
-        for ( EventVisualization eventVisualization : eventVisualizations )
+        for ( EventVisualization visualization : visualizations )
         {
-            if ( eventVisualization.getProgramStage().equals( programStage ) )
+            if ( visualization.getProgramStage() != null && visualization.getProgramStage().equals( programStage ) )
             {
-                service.delete( eventVisualization );
+                service.delete( visualization );
             }
         }
     }
 
     private void deleteProgram( Program program )
     {
-        final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
+        final Collection<EventVisualization> visualizations = service.getAllEventVisualizations();
 
-        for ( final EventVisualization eventVisualization : eventVisualizations )
+        for ( EventVisualization visualization : visualizations )
         {
-            if ( eventVisualization.getProgram().equals( program ) )
+            if ( visualization.getProgram() != null && visualization.getProgram().equals( program ) )
             {
-                service.delete( eventVisualization );
+                service.delete( visualization );
             }
         }
     }

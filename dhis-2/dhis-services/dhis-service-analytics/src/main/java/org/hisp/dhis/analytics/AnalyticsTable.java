@@ -33,6 +33,7 @@ import java.util.List;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
 
 /**
@@ -62,6 +63,8 @@ public class AnalyticsTable
      */
     private Program program;
 
+    private TrackedEntityType trackedEntityType;
+
     /**
      * Analytics table partitions for this base analytics table.
      */
@@ -88,6 +91,13 @@ public class AnalyticsTable
     {
         this( tableType, dimensionColumns, valueColumns );
         this.program = program;
+    }
+
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns, TrackedEntityType trackedEntityType )
+    {
+        this( tableType, dimensionColumns, valueColumns );
+        this.trackedEntityType = trackedEntityType;
     }
 
     // -------------------------------------------------------------------------
@@ -126,6 +136,10 @@ public class AnalyticsTable
         {
             name = PartitionUtils.getTableName( name, program );
         }
+        else if ( trackedEntityType != null )
+        {
+            name += PartitionUtils.SEP + trackedEntityType.getUid().toLowerCase();
+        }
 
         return name;
     }
@@ -138,6 +152,10 @@ public class AnalyticsTable
         {
             name = PartitionUtils.getTableName( name, program );
         }
+        else if ( trackedEntityType != null )
+        {
+            name += PartitionUtils.SEP + trackedEntityType.getUid().toLowerCase();
+        }
 
         return name;
     }
@@ -145,6 +163,11 @@ public class AnalyticsTable
     public boolean hasProgram()
     {
         return program != null;
+    }
+
+    public boolean hasTrackedEntityType()
+    {
+        return trackedEntityType != null;
     }
 
     public boolean hasPartitionTables()
@@ -183,6 +206,11 @@ public class AnalyticsTable
         return program;
     }
 
+    public TrackedEntityType getTrackedEntityType()
+    {
+        return trackedEntityType;
+    }
+
     public List<AnalyticsTablePartition> getTablePartitions()
     {
         return tablePartitions;
@@ -199,6 +227,7 @@ public class AnalyticsTable
         int result = 1;
         result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());
+        result = prime * result + ((trackedEntityType == null) ? 0 : trackedEntityType.hashCode());
         return result;
     }
 
@@ -242,6 +271,18 @@ public class AnalyticsTable
             }
         }
         else if ( !program.equals( other.program ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityType == null )
+        {
+            if ( other.trackedEntityType != null )
+            {
+                return false;
+            }
+        }
+        else if ( !trackedEntityType.equals( other.trackedEntityType ) )
         {
             return false;
         }

@@ -1381,7 +1381,7 @@ class ValidationServiceTest extends IntegrationTestBase
     @Test
     void testInstructionTranslation()
     {
-        User user = createUserAndInjectSecurityContext( true );
+        createUserAndInjectSecurityContext( true );
         Locale locale = Locale.FRENCH;
         CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, locale );
 

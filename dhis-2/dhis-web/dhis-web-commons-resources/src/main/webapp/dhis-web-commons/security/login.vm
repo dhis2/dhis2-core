@@ -6,7 +6,7 @@
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="shortcut icon" href="../../favicon.ico"/>
-    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.2.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.3.min.js"></script>
     <script nonce="$cspNonce">
         $.ajaxSetup( {
             beforeSend: function(xhr) {
@@ -148,7 +148,7 @@
     </div>
     <div id="rightFooterArea" class="innerFooterArea">
         <span id="applicationRightFooter">$!{keyApplicationRightFooter}</span>
-        <select id="localeSelect" onchange="login.localeChanged()" class="marginLeftClass">
+        <select id="localeSelect" class="marginLeftClass">
             <option value="">[ $i18n.getString( "change_language" ) ]</option>
             #foreach( $locale in $availableLocales )
                 <option value="${locale.language}">${locale.displayName}</option>

@@ -41,6 +41,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class AnalyticsTableColumn
 {
+    public enum Collate
+    {
+        C
+    }
+
     /**
      * The column name.
      */
@@ -59,7 +64,12 @@ public class AnalyticsTableColumn
     /**
      * The column SQL alias.
      */
-    private String alias;
+    private final String alias;
+
+    /**
+     * Sets a custom collate for the column if one is defined.
+     */
+    private Collate collate;
 
     /**
      * Date of creation of the underlying data dimension.
@@ -70,6 +80,11 @@ public class AnalyticsTableColumn
      * Whether to skip building an index for this column.
      */
     private boolean skipIndex = false;
+
+    /**
+     * Whether to skip column and just build an index based on column name.
+     */
+    private boolean virtual = false;
 
     /**
      * Explicit index type, defaults to database default type
@@ -97,8 +112,23 @@ public class AnalyticsTableColumn
     {
         this.name = name;
         this.dataType = dataType;
+        this.alias = alias;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     */
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, String alias, Collate collate )
+    {
+        this.name = name;
+        this.dataType = dataType;
         this.notNull = ColumnNotNullConstraint.NULL;
         this.alias = alias;
+        this.collate = collate;
     }
 
     /**
@@ -113,6 +143,21 @@ public class AnalyticsTableColumn
     {
         this( name, dataType, alias );
         this.notNull = notNull;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param name
+     * @param dataType
+     * @param virtual
+     */
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, boolean virtual )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.virtual = virtual;
+        this.alias = "";
     }
 
     // -------------------------------------------------------------------------
@@ -195,6 +240,16 @@ public class AnalyticsTableColumn
         return alias;
     }
 
+    public Collate getCollate()
+    {
+        return collate;
+    }
+
+    public boolean hasCollate()
+    {
+        return collate != null;
+    }
+
     public ColumnNotNullConstraint getNotNull()
     {
         return notNull;
@@ -218,5 +273,10 @@ public class AnalyticsTableColumn
     public List<String> getIndexColumns()
     {
         return indexColumns;
+    }
+
+    public boolean isVirtual()
+    {
+        return virtual;
     }
 }

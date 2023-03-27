@@ -57,6 +57,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -396,7 +397,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         // Get all
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrders(
-            List.of( new OrderParam( TrackedEntityInstanceQueryParams.CREATED_ID, OrderParam.SortDirection.ASC ) ) );
+            List.of( new OrderParam( TrackedEntityInstanceQueryParams.CREATED_ID, SortDirection.ASC ) ) );
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 2, teis.size() );
         assertEquals( teiA.getUid(), teis.get( 0 ).getUid() );

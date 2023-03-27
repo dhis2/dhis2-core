@@ -229,6 +229,9 @@ public class MeDto
     private List<String> dataSets;
 
     @JsonProperty( )
+    private String impersonation;
+
+    @JsonProperty( )
     private UserCredentialsDto userCredentials;
 
     protected void setUserCredentials( UserCredentialsDto userCredentialsDto )

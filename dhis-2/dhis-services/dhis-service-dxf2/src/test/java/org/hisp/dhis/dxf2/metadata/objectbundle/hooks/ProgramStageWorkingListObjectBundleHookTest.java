@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.feedback.ErrorCode.E4062;
+import static org.hisp.dhis.feedback.ErrorCode.E4063;
+import static org.hisp.dhis.feedback.ErrorCode.E4064;
+import static org.hisp.dhis.feedback.ErrorCode.E4065;
+import static org.hisp.dhis.feedback.ErrorCode.E4066;
+import static org.hisp.dhis.feedback.ErrorCode.E4067;
+import static org.hisp.dhis.feedback.ErrorCode.E4068;
+import static org.hisp.dhis.feedback.ErrorCode.E7500;
+import static org.hisp.dhis.utils.Assertions.assertErrorReport;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +112,9 @@ class ProgramStageWorkingListObjectBundleHookTest
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
             .eventCreatedAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
-            .scheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+            .eventOccurredAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
+                DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.ABSOLUTE ) )
+            .eventScheduledAt( createDatePeriod( DateTime.now().minusDays( 1 ).toDate(),
                 DateTime.now().plusDays( 1 ).toDate(), DatePeriodType.RELATIVE ) )
             .assignedUsers( Collections.singleton( "User" ) )
             .assignedUserMode( AssignedUserSelectionMode.PROVIDED )
@@ -120,7 +131,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 0, errorReports.size() );
+        assertIsEmpty( errorReports );
     }
 
     @Test
@@ -133,10 +144,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentCreatedDate`",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4062, "EnrollmentCreatedDate" );
     }
 
     @Test
@@ -149,10 +157,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EnrollmentIncidentDate`",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4062, "EnrollmentIncidentDate" );
     }
 
     @Test
@@ -165,26 +170,33 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventDate`",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4062, "EventCreatedDate" );
+    }
+
+    @Test
+    void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForEventOccurredAt()
+    {
+        ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
+            .eventOccurredAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .build();
+        programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
+
+        List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
+
+        assertErrorReport( errorReports, E4062, "EventOccurredDate" );
     }
 
     @Test
     void shouldFailWhenDatePeriodAbsoluteAndNoStartNorEndDateSpecifiedForScheduledAt()
     {
         ProgramStageQueryCriteria queryCriteria = ProgramStageQueryCriteria.builder()
-            .scheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
+            .eventScheduledAt( createDatePeriod( null, null, DatePeriodType.ABSOLUTE ) )
             .build();
         programStageWorkingList.setProgramStageQueryCriteria( queryCriteria );
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals(
-            "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `EventScheduledDate`",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4062, "EventScheduledDate" );
     }
 
     @Test
@@ -198,9 +210,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4063 );
     }
 
     @Test
@@ -214,9 +224,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Assigned users cannot be empty when assigned user mode is set to PROVIDED",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4063 );
     }
 
     @Test
@@ -230,8 +238,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Organisation unit does not exist: `fakeOrgUnit`", errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E7500, "fakeOrgUnit" );
     }
 
     @Test
@@ -244,9 +251,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Organisation Unit cannot be empty with `SELECTED` org unit mode",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4064, "SELECTED" );
     }
 
     @Test
@@ -259,8 +264,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Data item UID is missing in filter", errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4065 );
     }
 
     @Test
@@ -276,8 +280,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "No data element found for item: `DataItem`", errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4066, "DataItem" );
     }
 
     @Test
@@ -290,8 +293,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "Attribute UID is missing in filter", errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4067 );
     }
 
     @Test
@@ -308,9 +310,7 @@ class ProgramStageWorkingListObjectBundleHookTest
 
         List<ErrorReport> errorReports = workingListHook.validate( programStageWorkingList, bundle );
 
-        assertEquals( 1, errorReports.size() );
-        assertEquals( "No tracked entity attribute found for attribute: `attribute`",
-            errorReports.get( 0 ).getMessage() );
+        assertErrorReport( errorReports, E4068, "attribute" );
     }
 
     private DateFilterPeriod createDatePeriod( Date startDate, Date endDate, DatePeriodType dateType )

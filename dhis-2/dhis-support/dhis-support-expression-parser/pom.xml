@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.40-SNAPSHOT</version>
+    <version>2.41-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-support-expression-parser</artifactId>
@@ -34,10 +34,6 @@
     </dependency>
 
     <!-- Application -->
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr4-runtime</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>

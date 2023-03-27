@@ -51,7 +51,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
@@ -89,9 +88,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     private DataApprovalService dataApprovalService;
 
     @Autowired
-    private DataApprovalStore dataApprovalStore;
-
-    @Autowired
     private DataApprovalLevelService dataApprovalLevelService;
 
     @Autowired
@@ -99,9 +95,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private HibernateCategoryOptionGroupStore hibernateCategoryOptionGroupStore;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

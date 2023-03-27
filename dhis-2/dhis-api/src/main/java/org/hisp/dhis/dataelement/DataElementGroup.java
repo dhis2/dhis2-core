@@ -67,6 +67,7 @@ public class DataElementGroup
     public DataElementGroup( String name )
     {
         this.name = name;
+        this.shortName = name;
     }
 
     // -------------------------------------------------------------------------

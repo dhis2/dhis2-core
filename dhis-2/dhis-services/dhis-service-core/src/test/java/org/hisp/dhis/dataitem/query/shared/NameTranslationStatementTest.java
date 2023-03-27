@@ -102,8 +102,6 @@ class NameTranslationStatementTest
     @Test
     void testTranslationNamesColumnsForWhenTableIsNull()
     {
-        // Given
-        final String nullTable = null;
         // When
         final String actualStatement = translationNamesJoinsOn( null );
         // Then

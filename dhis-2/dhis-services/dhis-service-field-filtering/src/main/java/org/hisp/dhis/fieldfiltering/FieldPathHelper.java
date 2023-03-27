@@ -28,12 +28,15 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Predicate.not;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -62,22 +65,20 @@ public class FieldPathHelper
 {
     private final SchemaService schemaService;
 
-    public void apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
+    public List<FieldPath> apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
     {
-        if ( rootKlass == null || fieldPaths.isEmpty() )
+        if ( fieldPaths.isEmpty() || rootKlass == null )
         {
-            return;
+            return List.of();
         }
 
-        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
-        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
-
-        fieldPaths.removeIf( FieldPath::isPreset );
-        fieldPaths.removeIf( FieldPath::isExclude );
-
-        Map<String, FieldPath> fieldPathMap = getFieldPathMap( fieldPaths );
+        Map<String, FieldPath> fieldPathMap = fieldPaths.stream()
+            .filter( not( FieldPath::isPreset ).and( not( FieldPath::isExclude ) ) )
+            .collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
 
         applyProperties( fieldPathMap.values(), rootKlass );
+
+        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
         applyPresets( presets, fieldPathMap, rootKlass );
 
         calculatePathCount( fieldPathMap.values() ).forEach( ( k, v ) -> {
@@ -89,10 +90,10 @@ public class FieldPathHelper
             applyDefaults( fieldPathMap.get( k ), rootKlass, fieldPathMap );
         } );
 
+        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
         applyExclusions( exclusions, fieldPathMap );
 
-        fieldPaths.clear();
-        fieldPaths.addAll( fieldPathMap.values() );
+        return new ArrayList<>( fieldPathMap.values() );
     }
 
     /**
@@ -198,8 +199,7 @@ public class FieldPathHelper
      *        populated.
      * @param rootKlass the root class type of the entity.
      */
-    public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap,
-        Class<?> rootKlass )
+    public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap, Class<?> rootKlass )
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
 
@@ -301,12 +301,27 @@ public class FieldPathHelper
         }
     }
 
+    /**
+     * Returns included field paths. Included paths are not explicitly excluded
+     * (full-path matches exclusion) and not indirectly excluded via a parent
+     * field path.
+     */
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
     {
+        Set<String> excludedPaths = new HashSet<>();
         for ( FieldPath exclusion : exclusions )
         {
-            fieldPathMap.remove( exclusion.toFullPath() );
+            excludedPaths.add( exclusion.toFullPath() );
+
+            for ( String path : fieldPathMap.keySet() )
+            {
+                if ( path.startsWith( exclusion.toFullPath() ) )
+                {
+                    excludedPaths.add( path );
+                }
+            }
         }
+        fieldPathMap.keySet().removeAll( excludedPaths );
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -372,11 +387,6 @@ public class FieldPathHelper
         fieldPath.setProperty( property );
 
         return fieldPath;
-    }
-
-    private Map<String, FieldPath> getFieldPathMap( List<FieldPath> fieldPaths )
-    {
-        return fieldPaths.stream().collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
     }
 
     private Schema getSchemaByPath( List<String> paths, Class<?> klass )

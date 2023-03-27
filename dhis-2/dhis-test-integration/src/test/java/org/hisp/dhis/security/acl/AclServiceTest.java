@@ -1150,6 +1150,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         CategoryOption categoryOption = new CategoryOption();
         categoryOption.setAutoFields();
         categoryOption.setName( "coA" );
+        categoryOption.setShortName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setCreatedBy( user1 );
         categoryOption.getSharing().setOwner( user1 );
@@ -1178,5 +1179,59 @@ class AclServiceTest extends TransactionalIntegrationTest
         SqlRowSet row = jdbcTemplate.queryForRowSet( sql );
         assertEquals( true, row.next() );
         assertEquals( de.getUid(), row.getString( "uid" ) );
+    }
+
+    @Test
+    void testOwnerDataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerDataReadFail()
+    {
+        User admin = createAndAddAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = makeUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canDataRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataRead()
+    {
+        User userA = makeUser( "A" );
+        manager.save( userA );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( userA );
+        manager.save( categoryOption );
+
+        assertTrue( aclService.canRead( userA, categoryOption ) );
+    }
+
+    @Test
+    void testOwnerMetadataReadFail()
+    {
+        User admin = createAndAddAdminUser( "ALL" );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        categoryOption.getSharing().setOwner( admin );
+        manager.save( categoryOption );
+        User userA = makeUser( "A" );
+        manager.save( userA );
+
+        assertFalse( aclService.canRead( userA, categoryOption ) );
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -40,11 +41,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,9 +93,6 @@ class JdbcEventStoreTest
     @Mock
     private SkipLockedProvider skipLockedProvider;
 
-    @Mock
-    private OrganisationUnitStore organisationUnitStore;
-
     @BeforeEach
     public void setUp()
     {
@@ -101,7 +104,7 @@ class JdbcEventStoreTest
             } );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(),
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(),
             namedParameterJdbcTemplate, objectMapper, currentUserService, manager, eventStore, skipLockedProvider );
     }
 
@@ -111,7 +114,7 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }
@@ -122,9 +125,24 @@ class JdbcEventStoreTest
     {
         EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
+        List<EventRow> rows = subject.getEventRows( eventSearchParams );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
+    }
+
+    @Test
+    void shouldUpdateEventsWhenDateFieldsAreNotSet()
+    {
+        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+        ProgramStageInstance psi = new ProgramStageInstance( new ProgramInstance(), new ProgramStage(),
+            new OrganisationUnit() );
+        psi.setStatus( EventStatus.ACTIVE );
+        psi.setAttributeOptionCombo( new CategoryOptionCombo() );
+        programStageInstances.add( psi );
+
+        List<ProgramStageInstance> instances = subject.updateEvents( programStageInstances );
+
+        assertNotEmpty( instances );
     }
 
     private void mockRowSet()

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -148,11 +147,11 @@ public class PredictorController extends AbstractCrudController<Predictor>
     @ResponseBody
     public WebMessage getExpressionDescription( @RequestBody String expression )
     {
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_EXPRESSION );
+        ExpressionValidationOutcome result = predictionService.expressionIsValid( expression );
 
         return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
             .setDescription( result::isValid,
-                () -> expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) )
+                () -> predictionService.getExpressionDescription( expression ) )
             .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 

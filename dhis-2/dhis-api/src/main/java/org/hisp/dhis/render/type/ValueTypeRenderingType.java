@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.render.type;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * This class represents all the different ways ValueTypes can be rendered.
@@ -53,31 +54,38 @@ public enum ValueTypeRenderingType
     AUTOCOMPLETE,
     QR_CODE,
     BAR_CODE,
-    GS1_DATAMATRIX;
+    GS1_DATAMATRIX,
+    CANVAS;
 
     /**
      * RenderingTypes supported by OptionSet ValueTypes
      */
-    public static final ImmutableSet<ValueTypeRenderingType> OPTION_SET_TYPES = ImmutableSet
+    public static final Set<ValueTypeRenderingType> OPTION_SET_TYPES = EnumSet
         .of( DEFAULT, DROPDOWN, VERTICAL_RADIOBUTTONS, HORIZONTAL_RADIOBUTTONS, VERTICAL_CHECKBOXES,
             HORIZONTAL_CHECKBOXES, SHARED_HEADER_RADIOBUTTONS, ICONS_AS_BUTTONS, SPINNER, ICON );
 
     /**
      * RenderingTypes supported by boolean ValueTypes
      */
-    public static final ImmutableSet<ValueTypeRenderingType> BOOLEAN_TYPES = ImmutableSet
+    public static final Set<ValueTypeRenderingType> BOOLEAN_TYPES = EnumSet
         .of( DEFAULT, VERTICAL_RADIOBUTTONS, HORIZONTAL_RADIOBUTTONS, VERTICAL_CHECKBOXES,
             HORIZONTAL_CHECKBOXES, TOGGLE );
 
     /**
      * RenderingTypes supported by numerical ValueTypes
      */
-    public static final ImmutableSet<ValueTypeRenderingType> NUMERIC_TYPES = ImmutableSet
+    public static final Set<ValueTypeRenderingType> NUMERIC_TYPES = EnumSet
         .of( DEFAULT, VALUE, SLIDER, LINEAR_SCALE, SPINNER );
 
     /**
      * RenderingTypes supported by textual valueTypes
      */
-    public static final ImmutableSet<ValueTypeRenderingType> TEXT_TYPES = ImmutableSet
+    public static final Set<ValueTypeRenderingType> TEXT_TYPES = EnumSet
         .of( DEFAULT, VALUE, AUTOCOMPLETE, QR_CODE, BAR_CODE, GS1_DATAMATRIX );
+
+    /**
+     * RenderingTypes supported by IMAGE valueTypes
+     */
+    public static final Set<ValueTypeRenderingType> IMAGE_TYPES = EnumSet
+        .of( DEFAULT, CANVAS );
 }
