@@ -196,7 +196,7 @@ public final class DatastoreQuery
         @Override
         public String toString()
         {
-            return alias == path ? path : path + "(" + alias + ")";
+            return alias.equals( path ) ? path : path + "(" + alias + ")";
         }
     }
 

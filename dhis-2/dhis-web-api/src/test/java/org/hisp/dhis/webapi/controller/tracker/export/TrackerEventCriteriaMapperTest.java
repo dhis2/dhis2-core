@@ -74,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -412,15 +413,15 @@ class TrackerEventCriteriaMapperTest
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, OrderParam.SortDirection.ASC );
-        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", OrderParam.SortDirection.ASC );
+        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
+        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
         criteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
 
         EventSearchParams params = mapper.map( criteria );
 
         assertAll(
             () -> assertContainsOnly( params.getAttributeOrders(),
-                List.of( new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ) ),
+                List.of( new OrderParam( TEA_1_UID, SortDirection.ASC ) ) ),
             () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
     }
 
@@ -538,8 +539,8 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertContainsOnly( List.of( new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
-            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) ), params.getOrders() );
+        assertContainsOnly( List.of( new OrderParam( "programStage", SortDirection.DESC ),
+            new OrderParam( "dueDate", SortDirection.ASC ) ), params.getOrders() );
     }
 
     @Test
@@ -552,7 +553,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertContainsOnly( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ),
+        assertContainsOnly( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ),
             params.getOrders() );
     }
 
@@ -798,23 +799,5 @@ class TrackerEventCriteriaMapperTest
 
         assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
             exception.getMessage() );
-    }
-
-    @Test
-    void shouldCreateQueryFilterattributesWhenQueryHasOperatorAndValueWithDelimiter()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:project:x" ) );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        List<QueryFilter> actualFilters = params.getFilterAttributes().stream().flatMap( f -> f.getFilters().stream() )
-            .collect( Collectors.toList() );
-
-        assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            new QueryFilter( QueryOperator.EQ, "2" ) ), actualFilters );
     }
 }

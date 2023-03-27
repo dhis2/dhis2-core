@@ -134,7 +134,7 @@ public class GridHeader
      * @param column readable header title.
      * @param valueType header value type.
      * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is meta data.
+     * @param meta indicates whether header is metadata.
      */
     public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta )
     {
@@ -150,7 +150,7 @@ public class GridHeader
      * @param column readable header title.
      * @param valueType header value type.
      * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is meta data.
+     * @param meta indicates whether header is metadata.
      * @param optionSet option set.
      * @param legendSet legend set.
      */
@@ -167,7 +167,7 @@ public class GridHeader
      * @param column readable header title.
      * @param valueType header value type.
      * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is meta data.
+     * @param meta indicates whether header is metadata.
      * @param optionSet option set.
      * @param legendSet legend set.
      * @param programStage program stage.
