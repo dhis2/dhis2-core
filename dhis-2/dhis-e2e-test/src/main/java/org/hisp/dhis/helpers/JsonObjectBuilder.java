@@ -30,6 +30,7 @@ package org.hisp.dhis.helpers;
 import java.util.List;
 
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.utils.SharingUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -207,18 +208,14 @@ public class JsonObjectBuilder
 
     public JsonObjectBuilder addUserGroupAccess()
     {
-        JsonArray userGroupAccesses = new JsonArray();
+        JsonObject sharing = jsonObject.getAsJsonObject( "sharing" );
 
-        JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
-            .build();
+        if ( sharing == null )
+        {
+            sharing = SharingUtils.createSharingObject( "rw------" );
+        }
 
-        userGroupAccesses.add( userGroupAccess );
-
-        jsonObject.add( "userGroupAccesses", userGroupAccesses );
-
+        jsonObject.add( "sharing", SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" ) );
         return this;
     }
 

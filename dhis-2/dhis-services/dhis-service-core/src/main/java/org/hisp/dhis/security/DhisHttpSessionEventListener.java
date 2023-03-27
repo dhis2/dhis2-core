@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.handler;
+package org.hisp.dhis.security;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * Since ActionContext is not available at this point, we set a mark in the
- * session that signals that login has just occurred, and that LoginInterceptor
- * should be run.
- *
- * @author mortenoh
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Component
 @Slf4j
-public class DefaultAuthenticationSuccessHandler
-    extends SavedRequestAwareAuthenticationSuccessHandler
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
-    public static final String JLI_SESSION_VARIABLE = "JLI";
+    private final DhisConfigurationProvider config;
 
-    @Override
-    public void onAuthenticationSuccess( HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication )
-        throws ServletException,
-        IOException
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
     {
-        HttpSession session = request.getSession();
-        final String username = authentication.getName();
-        session.setAttribute( "userIs", username );
-        session.setAttribute( JLI_SESSION_VARIABLE, Boolean.TRUE );
-
-        super.onAuthenticationSuccess( request, response, authentication );
+        HttpSession session = event.getSession();
+        try
+        {
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
+        }
+        catch ( Exception e )
+        {
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not read session timeout value from config", e );
+        }
     }
 }
