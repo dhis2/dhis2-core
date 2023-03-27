@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ public class EnrollmentsTests
 
         JsonObject object = programActions.get( multipleEnrollmentsProgram ).getBodyAsJsonBuilder()
             .addProperty( "onlyEnrollOnce", "false" )
-            .addProperty( "publicAccess", "rwrw----" ).build();
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) ).build();
 
         programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
 
@@ -213,7 +214,7 @@ public class EnrollmentsTests
 
         JsonObject object = programActions.get( program ).getBodyAsJsonBuilder()
             .addProperty( "onlyEnrollOnce", shouldEnrollOnce )
-            .addProperty( "publicAccess", "rwrw----" ).build();
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) ).build();
 
         programActions.update( program, object ).validateStatus( 200 );
 

@@ -58,6 +58,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,8 +84,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
@@ -990,6 +991,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( isDouble && !Double.isNaN( (Double) value ) )
             {
                 addGridDoubleTypeValue( (Double) value, grid, header, params );
+            }
+            else if ( value instanceof BigDecimal )
+            {
+                // toPlainString method prevents scientific notation (3E+2)
+                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
             }
             else
             {

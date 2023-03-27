@@ -37,6 +37,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
@@ -63,6 +64,7 @@ import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +82,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
@@ -87,7 +90,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -112,8 +116,12 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
@@ -140,6 +148,12 @@ public class DhisWebApiWebSecurityConfig
 
     @Autowired
     public DataSource dataSource;
+
+    @Bean
+    public SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
@@ -376,9 +390,6 @@ public class DhisWebApiWebSecurityConfig
         private ApiTokenService apiTokenService;
 
         @Autowired
-        private SessionRegistry sessionRegistry;
-
-        @Autowired
         private UserService userService;
 
         @Autowired
@@ -467,6 +478,9 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
+
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
                 .antMatchers( "/index.html" ).permitAll()
 
@@ -508,24 +522,40 @@ public class DhisWebApiWebSecurityConfig
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
+            http.securityContext( httpSecuritySecurityContextConfigurer -> httpSecuritySecurityContextConfigurer
+                .requireExplicitSave( true ) );
+
+            http.antMatcher( apiContextPath + "/**" )
+                .authorizeRequests( this::configureAccessRestrictions )
+                .httpBasic()
+
+                .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
+                .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() )
+
+                .addObjectPostProcessor( new ObjectPostProcessor<BasicAuthenticationFilter>()
+                {
+                    @Override
+                    public <O extends BasicAuthenticationFilter> O postProcess( O filter )
+                    {
+                        // Explicitly set security context repository on http basic, is NullSecurityContextRepository by default now.
+                        filter.setSecurityContextRepository( new HttpSessionSecurityContextRepository() );
+                        return filter;
+                    }
+                } );
+
+            http
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
+                .sessionFixation().migrateSession()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions(
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
+
             // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
-                http.antMatcher( "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( strutsLessFormLoginBasicAuthenticationEntryPoint() );
-
-                http
-                    .sessionManagement()
-                    .sessionFixation().migrateSession()
-                    .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                    .enableSessionUrlRewriting( false )
-                    .maximumSessions(
-                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                    .sessionRegistry( sessionRegistry );
-
                 http
                     .formLogin()
                     .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
@@ -543,16 +573,6 @@ public class DhisWebApiWebSecurityConfig
                     .logoutSuccessUrl( "/" )
                     .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                     .deleteCookies( "JSESSIONID" );
-            }
-            else
-            {
-                // This config will redirect unauthorized requests to the
-                // default login form webpage
-                http.antMatcher( apiContextPath + "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }
 
@@ -728,5 +748,19 @@ public class DhisWebApiWebSecurityConfig
             .xssProtection()
             .and()
             .httpStrictTransportSecurity();
+    }
+
+    @Bean( "switchUserProcessingFilter" )
+    public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService,
+        @Qualifier( "dhisConfigurationProvider" ) DhisConfigurationProvider config )
+    {
+        DhisSwitchUserFilter filter = new DhisSwitchUserFilter( config );
+        filter.setUserDetailsService( userDetailsService );
+        filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
+        filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "POST", true, new UrlPathHelper() ) );
+        filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "POST", true, new UrlPathHelper() ) );
+        filter.setSwitchFailureUrl( "/dhis-web-dashboard" );
+        filter.setTargetUrl( "/dhis-web-dashboard" );
+        return filter;
     }
 }

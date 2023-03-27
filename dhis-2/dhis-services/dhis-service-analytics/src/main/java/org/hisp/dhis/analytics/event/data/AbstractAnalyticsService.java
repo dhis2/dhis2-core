@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
+import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -288,7 +289,6 @@ public abstract class AbstractAnalyticsService
         if ( params.hasHeaders() )
         {
             grid.retainColumns( params.getHeaders() );
-            grid.repositionColumns( grid.repositionHeaders( new ArrayList<>( params.getHeaders() ) ) );
         }
     }
 
@@ -317,7 +317,7 @@ public abstract class AbstractAnalyticsService
         if ( !params.isSkipMeta() )
         {
             Map<String, Object> metadata = new HashMap<>();
-            Map<String, List<Option>> optionsPresentInGrid = getItemOptions( grid, params );
+            Map<String, List<Option>> optionsPresentInGrid = getItemOptions( grid, params.getItems() );
             Set<Option> optionItems = new LinkedHashSet<>();
             boolean hasResults = isNotEmpty( grid.getRows() );
 
@@ -328,7 +328,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                optionItems.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
+                optionItems.addAll( getItemOptionsAsFilter( params.getItemOptions(), params.getItems() ) );
             }
 
             metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems, grid ) );

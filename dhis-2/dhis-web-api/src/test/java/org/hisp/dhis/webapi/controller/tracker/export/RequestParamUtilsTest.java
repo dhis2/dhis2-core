@@ -160,14 +160,6 @@ class RequestParamUtilsTest
             RequestParamUtils.parseQueryFilter( "like:project:x" ) );
     }
 
-    @Test
-    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValue()
-        throws BadRequestException
-    {
-        assertEquals( new QueryFilter( QueryOperator.EQ, "project" ),
-            RequestParamUtils.parseQueryFilter( "eq:project" ) );
-    }
-
     private TrackedEntityAttribute trackedEntityAttribute( String uid )
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();

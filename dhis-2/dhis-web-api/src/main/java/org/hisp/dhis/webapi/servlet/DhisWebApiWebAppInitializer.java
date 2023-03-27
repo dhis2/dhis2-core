@@ -44,6 +44,7 @@ import org.hisp.dhis.system.startup.StartupListener;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -77,6 +78,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
 
         context.addListener( new ContextLoaderListener( annotationConfigWebApplicationContext ) );
         context.addListener( new StartupListener() );
+        context.addListener( new HttpSessionEventPublisher() );
 
         setupServlets( context, annotationConfigWebApplicationContext );
     }
@@ -123,6 +125,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
             .addMappingForUrlPatterns( null, true, "/*" );
 
         context.addFilter( "AppOverrideFilter", new DelegatingFilterProxy( "appOverrideFilter" ) )
+            .addMappingForUrlPatterns( null, true, "/*" );
+
+        context.addFilter( "SwitchUserProcessingFilter", new DelegatingFilterProxy( "switchUserProcessingFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
     }
 }
