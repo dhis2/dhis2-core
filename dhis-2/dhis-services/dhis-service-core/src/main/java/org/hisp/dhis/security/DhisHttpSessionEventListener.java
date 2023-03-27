@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.security;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import javax.servlet.http.HttpSession;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Enrico Colasante
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ValidationUtils
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
+    private final DhisConfigurationProvider config;
 
-    private ValidationUtils()
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
     {
-        throw new IllegalStateException( "Utility class" );
-    }
-
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
+        HttpSession session = event.getSession();
+        try
         {
-            return TrackerType.TRACKED_ENTITY;
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
         }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
+        catch ( Exception e )
         {
-            return TrackerType.ENROLLMENT;
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not read session timeout value from config", e );
         }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
     }
 }

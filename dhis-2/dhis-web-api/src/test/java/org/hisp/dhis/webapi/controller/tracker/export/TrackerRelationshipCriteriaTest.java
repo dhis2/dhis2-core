@@ -29,9 +29,8 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -41,7 +40,7 @@ class TrackerRelationshipCriteriaTest
 {
     @Test
     void getIdentifierParamIfTrackedEntityIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -53,7 +52,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierParamIfTeiIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -64,7 +63,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierNameIfTrackedEntityIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -75,7 +74,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierNameIfTeiIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -86,7 +85,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierClassIfTrackedEntityIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -97,7 +96,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierClassIfTeiIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -108,7 +107,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierParamIfEnrollmentIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -119,7 +118,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierNameIfEnrollmentIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -130,7 +129,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierClassIfEnrollmentIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -141,7 +140,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierParamIfEventIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -152,7 +151,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierNameIfEventIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -163,7 +162,7 @@ class TrackerRelationshipCriteriaTest
 
     @Test
     void getIdentifierClassIfEventIsSet()
-        throws WebMessageException
+        throws BadRequestException
     {
 
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
@@ -177,11 +176,10 @@ class TrackerRelationshipCriteriaTest
     {
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierParam );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -189,11 +187,10 @@ class TrackerRelationshipCriteriaTest
     {
         TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierName );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierName );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -205,11 +202,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierParam );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -221,11 +217,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierName );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierName );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -237,11 +232,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierClass );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -251,11 +245,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierParam );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -265,11 +258,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierParam );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -279,11 +271,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierClass );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -293,11 +284,10 @@ class TrackerRelationshipCriteriaTest
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierClass );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 
     @Test
@@ -307,10 +297,9 @@ class TrackerRelationshipCriteriaTest
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
-        WebMessageException exception = assertThrows( WebMessageException.class, criteria::getIdentifierParam );
+        BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
-        assertEquals( BAD_REQUEST.value(), exception.getWebMessage().getHttpStatusCode() );
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            exception.getWebMessage().getMessage() );
+            exception.getMessage() );
     }
 }

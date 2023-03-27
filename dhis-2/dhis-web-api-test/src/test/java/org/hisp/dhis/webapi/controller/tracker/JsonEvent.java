@@ -25,43 +25,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Enrico Colasante
+ * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Event}.
  */
-class ValidationUtils
+public interface JsonEvent extends JsonObject
 {
-
-    private ValidationUtils()
+    default String getEvent()
     {
-        throw new IllegalStateException( "Utility class" );
+        return getString( "event" ).string();
     }
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
+    default String getStatus()
     {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
+        return getString( "status" ).string();
     }
 
-    public static String getUidFromRelationshipItem( RelationshipItem item )
+    default String getProgram()
     {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
+        return getString( "program" ).string();
+    }
+
+    default String getProgramStage()
+    {
+        return getString( "programStage" ).string();
+    }
+
+    default String getEnrollment()
+    {
+        return getString( "enrollment" ).string();
+    }
+
+    default String getTrackedEntity()
+    {
+        return getString( "trackedEntity" ).string();
+    }
+
+    default String getOrgUnit()
+    {
+        return getString( "orgUnit" ).string();
+    }
+
+    default String getOrgUnitName()
+    {
+        return getString( "orgUnitName" ).string();
+    }
+
+    default Boolean getDeleted()
+    {
+        return getBoolean( "deleted" ).bool();
+    }
+
+    default JsonUser getAssignedUser()
+    {
+        return get( "assignedUser" ).as( JsonUser.class );
+    }
+
+    default JsonList<JsonDataValue> getDataValues()
+    {
+        return get( "dataValues" ).asList( JsonDataValue.class );
+    }
+
+    default JsonList<JsonNote> getNotes()
+    {
+        return get( "notes" ).asList( JsonNote.class );
     }
 }
