@@ -215,8 +215,7 @@ public class JsonObjectBuilder
             sharing = SharingUtils.createSharingObject( "rw------" );
         }
 
-        sharing = SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" );
-        jsonObject.add( "sharing", sharing );
+        jsonObject.add( "sharing", SharingUtils.addUserGroupAccess( sharing, Constants.USER_GROUP_ID, "rwrw----" ) );
         return this;
     }
 

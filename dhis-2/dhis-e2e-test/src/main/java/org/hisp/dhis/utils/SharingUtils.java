@@ -31,6 +31,9 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
+/**
+ * Utility methods for creation and update Sharing object.
+ */
 public class SharingUtils
 {
     public static JsonObject createSharingObject( String publicAccess )
