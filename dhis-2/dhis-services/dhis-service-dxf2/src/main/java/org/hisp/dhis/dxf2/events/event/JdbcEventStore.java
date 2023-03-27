@@ -1546,17 +1546,34 @@ public class JdbcEventStore implements EventStore
     {
         ArrayList<String> orderFields = new ArrayList<>();
 
-        for ( OrderParam order : params.getOrders() )
+        if ( params.getGridOrders() != null )
         {
-            if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
+            for ( OrderParam order : params.getGridOrders() )
             {
-                String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
-                orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
-                orderFields.add( orderText );
+
+                Set<QueryItem> items = params.getDataElements();
+
+                for ( QueryItem item : items )
+                {
+                    if ( order.getField().equals( item.getItemId() ) )
+                    {
+                        orderFields.add( order.getField() + " " + order.getDirection() );
+                        break;
+                    }
+                }
             }
-            else if ( params.getGridOrders().contains( order ) )
+        }
+
+        if ( params.getOrders() != null )
+        {
+            for ( OrderParam order : params.getOrders() )
             {
-                orderFields.add( getDataElementsOrder( params.getDataElements(), order ) );
+                if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
+                {
+                    String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
+                    orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
+                    orderFields.add( orderText );
+                }
             }
         }
 
@@ -1568,19 +1585,6 @@ public class JdbcEventStore implements EventStore
         {
             return "order by psi_lastupdated desc ";
         }
-    }
-
-    private String getDataElementsOrder( Set<QueryItem> dataElements, OrderParam order )
-    {
-        for ( QueryItem item : dataElements )
-        {
-            if ( order.getField().equals( item.getItemId() ) )
-            {
-                return order.getField() + " " + order.getDirection();
-            }
-        }
-
-        return "";
     }
 
     private String getAttributeValueQuery()
