@@ -575,4 +575,93 @@ class TrackerTrackedEntityCriteriaMapperTest
             () -> mapper.map( criteria ) );
         assertEquals( "Invalid order property: invalid", e.getMessage() );
     }
+
+    @Test
+    void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setFilter( Set.of( TEA_2_UID + ":like:project:x:eq:2" ) );
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "project:x:eq:2" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":lke:value" ) );
+        BadRequestException exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatWithHours()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000 00:00:01:lt:01-01-2001 00:00:01" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000 00:00:01" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001 00:00:01" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatYearMonthDay()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000:lt:01-01-2001" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:2020-01-01T00:00:00 +05:30:lt:2021-01-01T00:00:00 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "2020-01-01T00:00:00 +05:30" ),
+            new QueryFilter( QueryOperator.LT, "2021-01-01T00:00:00 +05:30" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria
+            .setFilter( Set.of( TEA_1_UID + ":ge:2020-01-01T00:00:00.001 +05:30:le:2021-01-01T00:00:00.001 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30" ),
+            new QueryFilter( QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30" ) ), actualFilters );
+    }
 }
