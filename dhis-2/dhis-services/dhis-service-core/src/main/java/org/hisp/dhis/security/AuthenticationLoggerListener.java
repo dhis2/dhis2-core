@@ -103,7 +103,8 @@ public class AuthenticationLoggerListener
         }
         else if ( authentication.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails )
         {
-            ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) authentication.getDetails();
+            ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) authentication
+                .getDetails();
             ipAddress = String.format( "ip: %s; ", authDetails.getIp() );
             sessionId = hashSessionId( authDetails.getSessionId() );
         }
