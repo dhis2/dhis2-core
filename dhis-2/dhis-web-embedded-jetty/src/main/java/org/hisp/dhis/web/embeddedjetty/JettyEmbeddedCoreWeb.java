@@ -41,6 +41,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
@@ -99,6 +100,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
         StartupListener startupListener = new StartupListener();
         contextHandler.addEventListener( startupListener );
+        contextHandler.addEventListener( new HttpSessionEventPublisher() );
 
         // Spring Security Filter
         contextHandler.addFilter(
