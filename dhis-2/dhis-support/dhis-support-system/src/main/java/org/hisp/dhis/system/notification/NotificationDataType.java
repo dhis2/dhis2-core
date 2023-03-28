@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.system.notification;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
+ * A {@link Notification} can have a
+ * {@link com.fasterxml.jackson.databind.JsonNode} data object attached for
+ * additional information. The {@link NotificationDataType} indicates what data
+ * the value represents. This is purely for clarity and ease of processing the
+ * data programmatically.
  *
  * @author Jan Bernitt
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
+public enum NotificationDataType
 {
-
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
-
-    private final ErrorCode errorCode;
-
-    private String property;
-
-    private Class<?>[] objectTypes;
-
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
-    {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
-    }
-
-    @Override
-    public Class<?>[] getObjectTypes()
-    {
-        return objectTypes;
-    }
-
-    @Override
-    public String getProperty()
-    {
-        return property;
-    }
-
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+    PARAMETERS
 }

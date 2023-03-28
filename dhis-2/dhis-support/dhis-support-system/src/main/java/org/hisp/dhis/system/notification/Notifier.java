@@ -30,8 +30,12 @@ package org.hisp.dhis.system.notification;
 import java.util.Deque;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
@@ -44,12 +48,23 @@ public interface Notifier
         return notify( id, NotificationLevel.INFO, message, false );
     }
 
-    default Notifier notify( JobConfiguration id, NotificationLevel level, String message )
+    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message )
     {
         return notify( id, level, message, false );
     }
 
-    Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed );
+    default Notifier notify( JobConfiguration id, String message, boolean completed )
+    {
+        return notify( id, NotificationLevel.INFO, message, completed );
+    }
+
+    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    {
+        return notify( id, level, message, completed, null, null );
+    }
+
+    Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed,
+        NotificationDataType dataType, JsonNode data );
 
     default Notifier update( JobConfiguration id, String message )
     {
@@ -61,14 +76,14 @@ public interface Notifier
         return update( id, NotificationLevel.INFO, message, completed );
     }
 
-    default Notifier update( JobConfiguration id, NotificationLevel level, String message )
+    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message )
     {
         return update( id, level, message, false );
     }
 
-    default Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed )
+    default Notifier update( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
     {
-        if ( id != null && !(level != null && level.isOff()) )
+        if ( id != null && !level.isOff() )
         {
             notify( id, level, message, completed );
         }
