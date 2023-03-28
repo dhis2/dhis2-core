@@ -1298,10 +1298,10 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
-        if ( !isGridQuery || !sortableAttributesAndFilters.isEmpty() )
+        if ( !isGridQuery || !params.getAttributes().isEmpty() )
         {
             List<String> orderFields = new ArrayList<>();
+            Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
 
             for ( OrderParam order : params.getOrders() )
             {
