@@ -80,4 +80,9 @@ public interface MaintenanceStore
      * @return the number of deleted tracked entity instances
      */
     int deleteSoftDeletedTrackedEntityInstances();
+
+    /**
+     * Deletes periods which do not have data values associated with them.
+     */
+    void prunePeriods();
 }

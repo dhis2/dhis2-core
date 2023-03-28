@@ -304,6 +304,30 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         return result;
     }
 
+    @Override
+    public void prunePeriods()
+    {
+        String sql = "with period_ids(periodid) as (\n"
+            + "  select distinct periodid from completedatasetregistration\n"
+            + "  union select distinct periodid from dataapproval\n"
+            + "  union select distinct periodid from dataapprovalaudit\n"
+            + "  union select distinct periodid from datainputperiod\n"
+            + "  union select distinct periodid from datainputperiod\n"
+            + "  union select distinct periodid from datavalue\n"
+            + "  union select distinct periodid from datavalueaudit\n"
+            + "  union select distinct periodid from eventchart_periods\n"
+            + "  union select distinct periodid from eventreport_periods\n"
+            + "  union select distinct periodid from eventvisualization_periods\n"
+            + "  union select distinct periodid from interpretation\n"
+            + "  union select distinct periodid from lockexception\n"
+            + "  union select distinct periodid from mapview_periods\n"
+            + "  union select distinct periodid from validationresult\n"
+            + "  union select distinct periodid from visualization_periods)\n"
+            + "delete from period where periodid not in (\n"
+            + "  select periodid from period_ids);";
+        jdbcTemplate.batchUpdate( sql );
+    }
+
     private List<String> getDeletionEntities( String entitySql )
     {
         /*
