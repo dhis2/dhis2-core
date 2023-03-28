@@ -25,11 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.apikey;
+package org.hisp.dhis.security.apikey;
 
 import java.util.Collections;
 
-import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.User;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -83,5 +82,24 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
     public ApiToken getToken()
     {
         return this.tokenRef;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        if ( !super.equals( o ) )
+            return false;
+        ApiTokenAuthenticationToken that = (ApiTokenAuthenticationToken) o;
+        return Objects.equals( tokenKey, that.tokenKey ) && Objects.equals( tokenRef, that.tokenRef );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), tokenKey, tokenRef );
     }
 }
