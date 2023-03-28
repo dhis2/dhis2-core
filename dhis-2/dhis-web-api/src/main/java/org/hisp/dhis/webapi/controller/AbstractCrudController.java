@@ -94,6 +94,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -1107,13 +1109,23 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     protected Patch diff( HttpServletRequest request )
         throws IOException,
-        WebMessageException
+        WebMessageException,
+        BadRequestException
     {
         ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
         if ( mapper == null )
         {
             throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+        JsonNode jsonNode = mapper.readTree( request.getInputStream() );
+        for ( JsonNode node : jsonNode )
+        {
+            if ( node.isContainerNode() )
+            {
+                throw new BadRequestException( "Payload can not contain objects or arrays." );
+            }
+        }
+
+        return patchService.diff( new PatchParams( jsonNode ) );
     }
 }
