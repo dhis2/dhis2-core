@@ -503,7 +503,7 @@ public class UserController
         credentialsReplica.setCreated( new Date() );
         credentialsReplica.setLdapId( null );
         credentialsReplica.setOpenId( null );
-
+        credentialsReplica.setLastLogin( null );        
         credentialsReplica.setUsername( username );
         userService.encodeAndSetPassword( credentialsReplica, password );
 
