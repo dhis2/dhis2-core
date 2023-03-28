@@ -1265,7 +1265,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             if ( node.isContainerNode() )
             {
-                throw new BadRequestException( "Patch payload must be operating on the endpoint object only." );
+                throw new BadRequestException( "Payload can not contain objects or arrays." );
             }
         }
 
