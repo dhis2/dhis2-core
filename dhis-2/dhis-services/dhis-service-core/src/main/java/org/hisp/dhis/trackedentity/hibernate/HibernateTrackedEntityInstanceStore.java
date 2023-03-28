@@ -553,7 +553,7 @@ public class HibernateTrackedEntityInstanceStore
 
     /**
      * Get a set of QueryItem that contains sortable attributes also defined as
-     * filers
+     * filters
      *
      * @param params
      * @return List of QueryItem
@@ -1253,9 +1253,9 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
-        if ( !isGridQuery || !sortableAttributesAndFilters.isEmpty() )
+        if ( !isGridQuery || !params.getAttributes().isEmpty() )
         {
+            Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
             List<String> orderFields = params.getOrders().stream()
                 .map( orderParam -> buildOrderByStatement( orderParam, innerOrder, sortableAttributesAndFilters ) )
                 .filter( Optional::isPresent )
