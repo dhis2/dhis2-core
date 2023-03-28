@@ -1485,4 +1485,47 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "12" ) );
     }
+
+    @Test
+    public void queryWithProgramAndEnrollmentDateAndEnrollmentOffset()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "enrollmentDate=IpHINAT79UW[-1].LAST_YEAR" )
+            .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) );
+
+        // Validate headers
+        validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "Rokolon MCHP",
+                "Justin",
+                "Hayes" ) );
+
+        validateRow( response, 1,
+            List.of( "Pejewa CHC",
+                "Nancy",
+                "Jones" ) );
+
+        validateRow( response, 2,
+            List.of( "Gbangba MCHP",
+                "James",
+                "Jordan" ) );
+    }
 }
