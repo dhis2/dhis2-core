@@ -615,8 +615,8 @@ class TrackedEntityInstanceServiceTest
     void shouldSortGridByTrackedEntityInstanceIdAscendingWhenParamCreatedAscendingProvided()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
 
         User user = createAndAddUser( false, "attributeFilterUser", Set.of( organisationUnit ),
             Set.of( organisationUnit ) );
@@ -628,7 +628,7 @@ class TrackedEntityInstanceServiceTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
-        params.setOrders( List.of( new OrderParam( "created", SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) );
         params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
 
         Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
@@ -643,8 +643,8 @@ class TrackedEntityInstanceServiceTest
     void shouldSortGridByTrackedEntityInstanceIdDescendingWhenParamCreatedDescendingProvided()
     {
         injectSecurityContext( superUser );
-        trackedEntityAttribute.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
 
         User user = createAndAddUser( false, "attributeFilterUser", Set.of( organisationUnit ),
             Set.of( organisationUnit ) );
@@ -656,7 +656,7 @@ class TrackedEntityInstanceServiceTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
-        params.setOrders( List.of( new OrderParam( "created", SortDirection.DESC ) ) );
+        params.setOrders( List.of( new OrderParam( "created", OrderParam.SortDirection.DESC ) ) );
         params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
 
         Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
@@ -677,7 +677,7 @@ class TrackedEntityInstanceServiceTest
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( TrackedEntityInstance trackedEntityInstance )
     {
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-        trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
+        trackedEntityAttributeValue.setAttribute( filtH );
         trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
