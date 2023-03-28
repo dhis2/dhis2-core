@@ -123,7 +123,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
-        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate + INTERVAL '1 min' * 1439" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
 

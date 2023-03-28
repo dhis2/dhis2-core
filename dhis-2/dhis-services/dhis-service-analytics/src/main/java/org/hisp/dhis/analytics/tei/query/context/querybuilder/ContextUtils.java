@@ -51,13 +51,16 @@ class ContextUtils
     static String enrollmentSelect( ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType, SqlParameterManager sqlParameterManager )
     {
+        int offset = program.hasOffset() ? program.getOffset() : 1;
+
         return "select innermost_enr.*" +
             " from (select *," +
-            " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn " +
+            " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
+            + (offset > 0 ? "desc" : "asc") + ") as rn " +
             " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +
             " where " + P_UID + " = " + sqlParameterManager.bindParamAndGetIndex( program.getElement().getUid() )
             + ") innermost_enr" +
-            " where innermost_enr.rn = 1";
+            " where innermost_enr.rn = " + Math.abs( offset );
     }
 
     static String eventSelect( ElementWithOffset<Program> program,

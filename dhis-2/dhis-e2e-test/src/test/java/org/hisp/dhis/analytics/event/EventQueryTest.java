@@ -120,7 +120,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 0,
             List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
-                "2022-04-07 00:00:00.0",
+                "2022-04-07 23:59:00.0",
                 "",
                 "",
                 "",
@@ -130,7 +130,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -139,7 +139,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 1,
             List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-01 23:59:00.0",
                 "",
                 "",
                 "",
@@ -149,7 +149,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -158,7 +158,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 2,
             List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-01 23:59:00.0",
                 "",
                 "",
                 "",
@@ -168,7 +168,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -241,7 +241,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 0,
             List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
-                "2022-04-07 00:00:00.0",
+                "2022-04-07 23:59:00.0",
                 "",
                 "",
                 "",
@@ -251,7 +251,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -260,7 +260,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 1,
             List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-01 23:59:00.0",
                 "",
                 "",
                 "",
@@ -270,7 +270,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -279,7 +279,7 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 2,
             List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
-                "2022-04-01 00:00:00.0",
+                "2022-04-01 23:59:00.0",
                 "",
                 "",
                 "",
@@ -289,7 +289,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "0.0",
                 "0.0",
                 "Ngelehun CHC",
-                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Sierra Leone / Bo / Badija / Ngelehun CHC",
                 "OU_559",
                 "ACTIVE",
                 "ACTIVE",
@@ -364,17 +364,17 @@ public class EventQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "2022-04-03 00:00:00.0",
+            List.of( "2022-04-03 23:59:00.0",
                 "Kayongoro MCHP",
                 "2018-04-21 14:07:16.471" ) );
 
         validateRow( response, 1,
-            List.of( "2022-04-23 00:00:00.0",
+            List.of( "2022-04-23 23:59:00.0",
                 "Bendu (Yawei) CHP",
                 "2018-04-21 14:07:16.233" ) );
 
         validateRow( response, 2,
-            List.of( "2022-07-31 00:00:00.0",
+            List.of( "2022-07-31 23:59:00.0",
                 "Mendekelema CHP",
                 "2018-04-21 14:07:16.214" ) );
     }
@@ -423,15 +423,15 @@ public class EventQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "2022-08-02 00:00:00.0",
+            List.of( "2022-08-02 23:59:00.0",
                 "Ngelehun CHC" ) );
 
         validateRow( response, 1,
-            List.of( "2022-08-02 00:00:00.0",
+            List.of( "2022-08-02 23:59:00.0",
                 "Ngelehun CHC" ) );
 
         validateRow( response, 2,
-            List.of( "2022-08-01 00:00:00.0",
+            List.of( "2022-08-01 23:59:00.0",
                 "Ngelehun CHC" ) );
     }
 
@@ -479,15 +479,15 @@ public class EventQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "2021-11-04 00:00:00.0",
+            List.of( "2021-11-04 23:59:00.0",
                 "Ngelehun CHC" ) );
 
         validateRow( response, 1,
-            List.of( "2021-10-07 00:00:00.0",
+            List.of( "2021-10-07 23:59:00.0",
                 "Ngelehun CHC" ) );
 
         validateRow( response, 2,
-            List.of( "2021-11-05 00:00:00.0",
+            List.of( "2021-11-05 23:59:00.0",
                 "Ngelehun CHC" ) );
     }
 
@@ -568,17 +568,17 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
                 "0",
-                "2022-02-27 00:00:00.0" ) );
+                "2022-02-27 23:59:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
                 "0",
-                "2022-05-27 00:00:00.0" ) );
+                "2022-05-27 23:59:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
                 "1",
-                "2022-01-19 00:00:00.0" ) );
+                "2022-01-19 23:59:00.0" ) );
     }
 
     @Test
@@ -626,16 +626,16 @@ public class EventQueryTest extends AnalyticsApiTest
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
                 "0",
-                "2022-02-27 00:00:00.0" ) );
+                "2022-02-27 23:59:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
                 "1",
-                "2022-12-29 00:00:00.0" ) );
+                "2022-12-29 23:59:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
                 "0",
-                "2021-08-15 00:00:00.0" ) );
+                "2021-08-15 23:59:00.0" ) );
     }
 }
