@@ -30,6 +30,7 @@ package org.hisp.dhis.actions.metadata;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.SharingUtils;
 
 import com.google.gson.JsonObject;
 
@@ -49,7 +50,7 @@ public class RelationshipTypeActions
         boolean bidirectional )
     {
         JsonObject object = new JsonObjectBuilder()
-            .addProperty( "publicAccess", "rwrw----" )
+            .addObject( "sharing", SharingUtils.createSharingObject( "rwrw----" ) )
             .addProperty( "name", "TA_RELATIONSHIP_TYPE " + DataGenerator.randomString() )
             .addProperty( "fromToName", "Test to" )
             .addProperty( "toFromName", "Test from" )
