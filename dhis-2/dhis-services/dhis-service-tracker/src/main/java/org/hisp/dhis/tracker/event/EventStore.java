@@ -25,48 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
-
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+package org.hisp.dhis.tracker.event;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.ProgramStageInstance;
 
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.event.EventParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public interface EventStore
 {
-    private final FieldFilterService fieldFilterService;
+    List<ProgramStageInstance> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
-    public EventParams map( List<FieldPath> fields )
-    {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
-    }
+    List<Map<String, String>> getEventsGrid( EventSearchParams params );
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
-        }
-        return params;
-    }
+    int getEventCount( EventSearchParams params );
 }

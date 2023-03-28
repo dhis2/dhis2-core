@@ -25,48 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.tracker.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+import java.io.IOException;
 
-import java.util.List;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.event.EventParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+@Slf4j
+public class EventUtils
 {
-    private final FieldFilterService fieldFilterService;
-
-    public EventParams map( List<FieldPath> fields )
+    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
-    }
-
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
+        try
         {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
+            if ( StringUtils.isNotEmpty( userInfoAsString ) )
             {
-                params = EventParams.TRUE;
+                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
             }
+            return null;
         }
-        return params;
+        catch ( IOException e )
+        {
+            log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
+            throw new IllegalArgumentException( e );
+        }
     }
 }
