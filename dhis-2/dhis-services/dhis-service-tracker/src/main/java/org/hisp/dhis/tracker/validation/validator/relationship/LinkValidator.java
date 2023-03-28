@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,56 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
-/**
- * @author Enrico Colasante
- */
-class MandatoryFieldsValidator
-    implements Validator<Relationship>
+public class LinkValidator implements Validator<Relationship>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
+    {
+        validateRelationshipItemsContainOnlyOneEntity( reporter, relationship );
+        validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
+    }
+
+    private void validateRelationshipItemsContainOnlyOneEntity( Reporter reporter,
         Relationship relationship )
     {
-        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
-        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
-        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
-            "relationshipType" );
+        reporter.addErrorIf( () -> hasUnexpectedReferences( relationship.getFrom() ),
+            relationship, E4001, "from", relationship.getRelationship() );
+        reporter.addErrorIf( () -> hasUnexpectedReferences( relationship.getTo() ),
+            relationship, E4001, "to", relationship.getRelationship() );
+    }
+
+    private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
+    {
+        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
+        {
+            reporter.addError( relationship, E4000, relationship.getRelationship() );
+        }
+    }
+
+    private boolean hasUnexpectedReferences( RelationshipItem item )
+    {
+        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
+            .filter( StringUtils::isNotBlank )
+            .count() != 1;
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy.isCreate();
     }
 }

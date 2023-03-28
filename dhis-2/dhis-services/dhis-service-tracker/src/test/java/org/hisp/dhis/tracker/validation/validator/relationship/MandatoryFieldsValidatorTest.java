@@ -30,7 +30,10 @@ package org.hisp.dhis.tracker.validation.validator.relationship;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -85,9 +88,13 @@ class MandatoryFieldsValidatorTest
     @Test
     void verifyRelationshipValidationSuccess()
     {
+        String relTypeUid = CodeGenerator.generateUid();
+        RelationshipType relationshipType = new RelationshipType();
+        relationshipType.setUid( relTypeUid );
+
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )
@@ -95,6 +102,11 @@ class MandatoryFieldsValidatorTest
                 .trackedEntity( trackedEntity() )
                 .build() )
             .build();
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relationshipType ) );
+        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) )
+            .thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 
