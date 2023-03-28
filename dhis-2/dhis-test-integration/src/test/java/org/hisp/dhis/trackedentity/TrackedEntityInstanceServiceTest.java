@@ -611,6 +611,79 @@ class TrackedEntityInstanceServiceTest
         assertEquals( 0, trackedEntitiesCounter );
     }
 
+    @Test
+    void shouldSortGridByTrackedEntityInstanceIdAscendingWhenParamCreatedAscendingProvided()
+    {
+        injectSecurityContext( superUser );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        User user = createAndAddUser( false, "attributeFilterUser", Set.of( organisationUnit ),
+            Set.of( organisationUnit ) );
+        injectSecurityContext( user );
+
+        initializeEntityInstance( entityInstanceA1 );
+        initializeEntityInstance( entityInstanceB1 );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityType );
+        params.setOrders( List.of( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) );
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( 2, grid.getRows().size(),
+            "Expected to find 2 rows in the grid, but found " + grid.getRows().size() + " instead" );
+        assertEquals( "UID-A1", grid.getRows().get( 0 ).get( 0 ) );
+        assertEquals( "UID-B1", grid.getRows().get( 1 ).get( 0 ) );
+    }
+
+    @Test
+    void shouldSortGridByTrackedEntityInstanceIdDescendingWhenParamCreatedDescendingProvided()
+    {
+        injectSecurityContext( superUser );
+        filtH.setDisplayInListNoProgram( true );
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        User user = createAndAddUser( false, "attributeFilterUser", Set.of( organisationUnit ),
+            Set.of( organisationUnit ) );
+        injectSecurityContext( user );
+
+        initializeEntityInstance( entityInstanceA1 );
+        initializeEntityInstance( entityInstanceB1 );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Set.of( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityType );
+        params.setOrders( List.of( new OrderParam( "created", OrderParam.SortDirection.DESC ) ) );
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( 2, grid.getRows().size(),
+            "Expected to find 2 rows in the grid, but found " + grid.getRows().size() + " instead" );
+        assertEquals( "UID-B1", grid.getRows().get( 0 ).get( 0 ) );
+        assertEquals( "UID-A1", grid.getRows().get( 1 ).get( 0 ) );
+    }
+
+    private void initializeEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        entityInstance.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        attributeValueService.addTrackedEntityAttributeValue( createTrackedEntityAttributeValue( entityInstance ) );
+    }
+
+    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( TrackedEntityInstance trackedEntityInstance )
+    {
+        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+        trackedEntityAttributeValue.setAttribute( filtH );
+        trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
+
+        return trackedEntityAttributeValue;
+    }
+
     private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
     {
         ProgramStage stage = createProgramStage( programStage, program );
