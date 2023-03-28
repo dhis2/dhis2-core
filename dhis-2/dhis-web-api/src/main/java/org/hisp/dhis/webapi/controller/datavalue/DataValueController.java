@@ -341,7 +341,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType().isFile() )
+            if ( dataElement.getValueType().isFile() && value != null )
             {
                 String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
                     attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
