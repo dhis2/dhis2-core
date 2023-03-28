@@ -39,7 +39,6 @@ import org.springframework.security.authentication.event.AbstractAuthenticationE
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -98,8 +97,7 @@ public class AuthenticationLoggerListener
 
         if ( event instanceof AbstractAuthenticationFailureEvent )
         {
-            exceptionMessage = "exception: "
-                + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
+            exceptionMessage = "exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
         }
         else if ( authentication.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails )
         {
@@ -111,15 +109,7 @@ public class AuthenticationLoggerListener
         else if ( authentication instanceof OAuth2LoginAuthenticationToken )
         {
             OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) authentication;
-
-            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-
-            if ( principal != null )
-            {
-                UserDetails user = principal.getUser();
-                authName = user.getUsername();
-            }
-
+            authName = getUsernameFromPrincipal( authenticationToken.getPrincipal() );
             WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
             ipAddress = String.format( "ip: %s; ", oauthDetails.getRemoteAddress() );
             sessionId = hashSessionId( oauthDetails.getSessionId() );
@@ -127,13 +117,7 @@ public class AuthenticationLoggerListener
         else if ( event.getSource() instanceof OAuth2AuthenticationToken )
         {
             OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) event.getSource();
-            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-
-            if ( principal != null )
-            {
-                UserDetails user = principal.getUser();
-                authName = user.getUsername();
-            }
+            authName = getUsernameFromPrincipal( authenticationToken.getPrincipal() );
         }
         else if ( event.getSource() instanceof ApiTokenAuthenticationToken )
         {
@@ -146,10 +130,18 @@ public class AuthenticationLoggerListener
         }
 
         String usernamePrefix = Strings.isNullOrEmpty( authName ) ? "" : String.format( "username: %s; ", authName );
-
         String msg = TextUtils.removeNonEssentialChars(
             eventClassName + usernamePrefix + ipAddress + sessionId + exceptionMessage );
         log.info( StringUtils.removeEnd( msg.stripTrailing(), ";" ) );
+    }
+
+    private String getUsernameFromPrincipal( Object principal )
+    {
+        if ( principal instanceof DhisOidcUser )
+        {
+            return ((DhisOidcUser) principal).getUsername();
+        }
+        return "";
     }
 
     private String hashSessionId( String sessionId )
