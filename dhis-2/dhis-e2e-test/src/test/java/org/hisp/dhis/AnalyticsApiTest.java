@@ -67,7 +67,7 @@ import io.restassured.http.ContentType;
  */
 @TestInstance( PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
-//@ExtendWith( AnalyticsSetupExtension.class )
+@ExtendWith( AnalyticsSetupExtension.class )
 @Timeout( value = AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME, unit = MINUTES )
 @Tag( "analytics" )
 public abstract class AnalyticsApiTest
