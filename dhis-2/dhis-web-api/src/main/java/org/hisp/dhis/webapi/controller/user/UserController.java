@@ -528,6 +528,7 @@ public class UserController
         userReplica.setLdapId( null );
         userReplica.setOpenId( null );
         userReplica.setUsername( username );
+        userReplica.setLastLogin( null );
         userService.encodeAndSetPassword( userReplica, password );
 
         userService.addUser( userReplica );
