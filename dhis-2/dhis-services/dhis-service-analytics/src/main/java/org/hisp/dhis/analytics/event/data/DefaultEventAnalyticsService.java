@@ -68,7 +68,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -194,9 +194,9 @@ public class DefaultEventAnalyticsService
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        SchemaIdResponseMapper schemaIdResponseMapper )
+        SchemeIdResponseMapper schemeIdResponseMapper )
     {
-        super( securityManager, queryValidator, schemaIdResponseMapper );
+        super( securityManager, queryValidator, schemeIdResponseMapper );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );
@@ -205,7 +205,7 @@ public class DefaultEventAnalyticsService
         checkNotNull( queryPlanner );
         checkNotNull( databaseInfo );
         checkNotNull( analyticsCache );
-        checkNotNull( schemaIdResponseMapper );
+        checkNotNull( schemeIdResponseMapper );
 
         this.dataElementService = dataElementService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -627,7 +627,7 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        applyIdScheme( params, grid );
+        schemeIdResponseMapper.applyIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
         // Meta-ata

@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.common.params;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
@@ -118,7 +119,7 @@ public class CommonParamsDelegator
      * Retrieves all {@link DimensionalObject} objects present in the current
      * "dimensionIdentifiers".
      *
-     * @return the list of {@link QueryItem}.
+     * @return the list of {@link DimensionalObject}.
      */
     public List<DimensionalObject> getAllDimensionalObjects()
     {
@@ -130,10 +131,27 @@ public class CommonParamsDelegator
     }
 
     /**
+     * Retrieves all {@link DimensionalItemObject} objects present in the
+     * current "dimensionIdentifiers".
+     *
+     * @return the list of {@link DimensionalItemObject}.
+     */
+    public Set<DimensionalItemObject> getAllDimensionalItemObjects()
+    {
+        return dimensionIdentifiers.stream()
+            .filter( dimParam -> dimParam != null && dimParam.getDimension() != null )
+            .map( DimensionIdentifier::getDimension )
+            .filter( DimensionParam::isDimensionalObject )
+            .map( DimensionParam::getDimensionalObject )
+            .map( DimensionalObject::getItems )
+            .flatMap( List::stream ).collect( toSet() );
+    }
+
+    /**
      * Retrieves all {@link DimensionalItemObject} present in the current
      * "dimensionIdentifiers" that represents a "pe" dimension.
      *
-     * @return the list of {@link QueryItem}.
+     * @return the list of {@link DimensionalItemObject}.
      */
     public List<DimensionalItemObject> getPeriodDimensionOrFilterItems()
     {
@@ -142,13 +160,24 @@ public class CommonParamsDelegator
 
     /**
      * Retrieves all {@link DimensionalItemObject} present in the current
-     * "dimensionIdentifiers" that represents a "ou" dimension.
+     * "dimensionIdentifiers" that represents an "ou" dimension.
      *
-     * @return the list of {@link QueryItem}.
+     * @return the list of {@link DimensionalItemObject}.
      */
     public List<DimensionalItemObject> getOrgUnitDimensionOrFilterItems()
     {
         return getDimensionOptions( ORGUNIT_DIM_ID, getAllDimensionalObjects() );
+    }
+
+    /**
+     * Retrieves all {@link DimensionalItemObject} present in the current
+     * "dimensionIdentifiers" that represents a "dx" dimension.
+     *
+     * @return the list of {@link DimensionalItemObject}.
+     */
+    public List<DimensionalItemObject> getAllDataElements()
+    {
+        return getDimensionOptions( DATA_X_DIM_ID, getAllDimensionalObjects() );
     }
 
     /**
