@@ -72,11 +72,11 @@ class DimensionIdentifierConverterTest
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( "1", dimensionIdentifier.getProgram().getOffset(),
+        assertEquals( 1, dimensionIdentifier.getProgram().getOffset(),
             "Program offset should be 1" );
         assertEquals( "RaMbOrTys0n", dimensionIdentifier.getProgramStage().getElement().getUid(),
             "Stage uid should be RaMbOrTys0n" );
-        assertEquals( "4", dimensionIdentifier.getProgramStage().getOffset(),
+        assertEquals( 4, dimensionIdentifier.getProgramStage().getOffset(),
             "Stage offset should be 4" );
     }
 

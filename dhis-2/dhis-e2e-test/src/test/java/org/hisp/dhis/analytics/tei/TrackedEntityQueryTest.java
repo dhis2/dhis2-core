@@ -1444,7 +1444,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO:eq:12" )
             .add( "lastUpdated=LAST_10_YEARS" )
-            .add( "desc=lastupdated" )
+            .add( "asc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -1484,5 +1484,113 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "",
                 "12" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "enrollmentDate=IpHINAT79UW[-1].LAST_YEAR" )
+            .add( "desc=lastupdated" )
+            .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) );
+
+        // Validate headers
+        validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "Ngelehun CHC",
+                "John",
+                "Kelly" ) );
+
+        validateRow( response, 1,
+            List.of( "Ngelehun CHC",
+                "Anna",
+                "Jones" ) );
+
+        validateRow( response, 2,
+            List.of( "Masoko MCHP",
+                "Diane",
+                "Bryant" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndEnrollmentDateAndPositiveEnrollmentOffset()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "enrollmentDate=IpHINAT79UW[1].LAST_MONTH" )
+            .add( "desc=lastupdated" )
+            .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 3 ) )
+            .body( "headerWidth", equalTo( 3 ) );
+
+        // Validate headers
+        validateHeader( response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "IpHINAT79UW.w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "IpHINAT79UW.zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "Falaba MCHP",
+                "Julie",
+                "Ortiz" ) );
+
+        validateRow( response, 1,
+            List.of( "Mindohun CHP",
+                "Howard",
+                "Chapman" ) );
+
+        validateRow( response, 2,
+            List.of( "Mayakie MCHP",
+                "Jacqueline",
+                "Ellis" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndEnrollmentDateAndInvalidEnrollmentOffset()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "enrollmentDate=IpHINAT79UW[0].LAST_YEAR" )
+            .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "message", equalTo( "Invalid offset: `IpHINAT79UW[0]`" ) )
+            .body( "errorCode", equalTo( "E7138" ) );
     }
 }
