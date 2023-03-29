@@ -95,17 +95,8 @@ public class WebClientUtils
         HttpStatus actualStatus = actual.status();
         if ( expected != actualStatus )
         {
-            if ( expected.series() == actualStatus.series() )
-            {
-                String msg = actual.error( actualStatus.series() ).summary();
-                assertEquals( expected, actualStatus, msg );
-            }
-            else
-            {
-                // OBS! we use the actual state to not fail the check in error
-                String msg = actual.error( actualStatus.series() ).summary();
-                assertEquals( expected, actualStatus, msg );
-            }
+            // OBS! we use the actual state to not fail the check in error
+            assertEquals( expected, actualStatus, actual.error( actualStatus.series() ).summary() );
         }
         assertValidLocation( actual );
         return getCreatedId( actual );
