@@ -108,8 +108,8 @@ class CommonQueryRequestMapperTest
         List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ),
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ),
             StringUid.of( "yLIPuJHRgey" ) );
 
         BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
@@ -144,9 +144,9 @@ class CommonQueryRequestMapperTest
         assertEquals( "yLIPuJHRgey",
             params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
+        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
+        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -169,11 +169,11 @@ class CommonQueryRequestMapperTest
         List<Program> programs = List.of( program1, program2 );
 
         DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ), null, StringUid.of( null ) );
+            ElementWithOffset.of( program1, 1 ), null, StringUid.of( null ) );
 
         DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItem ) );
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ), StringUid.of( queryItem ) );
 
         BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
@@ -206,9 +206,9 @@ class CommonQueryRequestMapperTest
         assertNull(
             params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
+        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
+        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -232,12 +232,12 @@ class CommonQueryRequestMapperTest
         List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItemDimension ) );
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ), StringUid.of( queryItemDimension ) );
 
         DimensionIdentifier<StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), StringUid.of( orgUnitDimension ) );
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ), StringUid.of( orgUnitDimension ) );
 
         BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
@@ -282,9 +282,9 @@ class CommonQueryRequestMapperTest
         assertEquals( "EQ:john",
             params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject().getDimension(),
             "Dimension identifier should be yLIPuJHRgey." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
+        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
+        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -347,8 +347,8 @@ class CommonQueryRequestMapperTest
         List<Program> programs = asList( program1, program2 );
 
         DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ),
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ),
             StringUid.of( "yLIPuJHRgey" ) );
 
         CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
@@ -381,9 +381,9 @@ class CommonQueryRequestMapperTest
             "Should contain 1 program stage." );
         assertNull( params.getDimensionIdentifiers().get( 0 ).getDimension().getDimensionalObject(),
             "Dimensional object should be null." );
-        assertEquals( "1", params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
+        assertEquals( 1, params.getDimensionIdentifiers().get( 0 ).getProgram().getOffset(),
             "Program offset should be 1." );
-        assertEquals( "2", params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
+        assertEquals( 2, params.getDimensionIdentifiers().get( 0 ).getProgramStage().getOffset(),
             "ProgramStage offset should be 2." );
         assertFalse( params.getPagingParams().isEmpty(), "Paging and sorting should not be empty." );
     }
@@ -448,8 +448,8 @@ class CommonQueryRequestMapperTest
         List<Program> programs = List.of( program1, program2 );
 
         DimensionIdentifier<StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ),
+            ElementWithOffset.of( program1, 1 ),
+            ElementWithOffset.of( programStage1, 2 ),
             StringUid.of( "yLIPuJHRgey" ) );
 
         BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
