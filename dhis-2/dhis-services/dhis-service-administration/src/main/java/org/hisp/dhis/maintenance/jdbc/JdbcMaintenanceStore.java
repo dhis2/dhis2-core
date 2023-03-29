@@ -304,26 +304,33 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         return result;
     }
 
+    /**
+     * This SQL needs to consider any other table that has a foreign key
+     * reference to the period table. Following the DHIS2 convention this should
+     * mean they have a column named {@code periodid}. When such tables are
+     * dropped they need to be removed from the union here. When such new tables
+     * are added they need to be added to the union here.
+     */
     @Override
     public void prunePeriods()
     {
-        String sql = "with period_ids(periodid) as (\n"
-            + "  select distinct periodid from completedatasetregistration\n"
-            + "  union select distinct periodid from dataapproval\n"
-            + "  union select distinct periodid from dataapprovalaudit\n"
-            + "  union select distinct periodid from datainputperiod\n"
-            + "  union select distinct periodid from datainputperiod\n"
-            + "  union select distinct periodid from datavalue\n"
-            + "  union select distinct periodid from datavalueaudit\n"
-            + "  union select distinct periodid from eventchart_periods\n"
-            + "  union select distinct periodid from eventreport_periods\n"
-            + "  union select distinct periodid from eventvisualization_periods\n"
-            + "  union select distinct periodid from interpretation\n"
-            + "  union select distinct periodid from lockexception\n"
-            + "  union select distinct periodid from mapview_periods\n"
-            + "  union select distinct periodid from validationresult\n"
-            + "  union select distinct periodid from visualization_periods)\n"
-            + "delete from period where periodid not in (\n"
+        String sql = "with period_ids(periodid) as ("
+            + "  select distinct periodid from completedatasetregistration"
+            + "  union select distinct periodid from dataapproval"
+            + "  union select distinct periodid from dataapprovalaudit"
+            + "  union select distinct periodid from datainputperiod"
+            + "  union select distinct periodid from datainputperiod"
+            + "  union select distinct periodid from datavalue"
+            + "  union select distinct periodid from datavalueaudit"
+            + "  union select distinct periodid from eventchart_periods"
+            + "  union select distinct periodid from eventreport_periods"
+            + "  union select distinct periodid from eventvisualization_periods"
+            + "  union select distinct periodid from interpretation"
+            + "  union select distinct periodid from lockexception"
+            + "  union select distinct periodid from mapview_periods"
+            + "  union select distinct periodid from validationresult"
+            + "  union select distinct periodid from visualization_periods)"
+            + "delete from period where periodid not in ("
             + "  select periodid from period_ids);";
         jdbcTemplate.batchUpdate( sql );
     }

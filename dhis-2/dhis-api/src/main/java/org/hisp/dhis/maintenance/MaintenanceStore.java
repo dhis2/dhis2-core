@@ -82,7 +82,7 @@ public interface MaintenanceStore
     int deleteSoftDeletedTrackedEntityInstances();
 
     /**
-     * Deletes periods which do not have data values associated with them.
+     * Deletes periods which are not associated with any other table.
      */
     void prunePeriods();
 }
