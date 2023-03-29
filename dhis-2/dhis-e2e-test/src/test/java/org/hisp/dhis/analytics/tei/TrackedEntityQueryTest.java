@@ -1493,7 +1493,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[-1].LAST_YEAR" )
-            .add( "desc=ouname" )
+            .add( "desc=lastupdated" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1515,19 +1515,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Zimmi CHC",
-                "Randy",
-                "Hall" ) );
+            List.of( "Ngelehun CHC",
+                "John",
+                "Kelly" ) );
 
         validateRow( response, 1,
-            List.of( "Zimmi CHC",
-                "Sharon",
-                "Nguyen" ) );
+            List.of( "Ngelehun CHC",
+                "Anna",
+                "Jones" ) );
 
         validateRow( response, 2,
-            List.of( "Zimmi CHC",
-                "Debra",
-                "Little" ) );
+            List.of( "Masoko MCHP",
+                "Diane",
+                "Bryant" ) );
     }
 
     @Test
@@ -1537,7 +1537,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[1].LAST_MONTH" )
-            .add( "desc=ouname" )
+            .add( "desc=lastupdated" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1559,19 +1559,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Yoyema MCHP",
-                "Ruth",
-                "Ruiz" ) );
+            List.of( "Falaba MCHP",
+                "Julie",
+                "Ortiz" ) );
 
         validateRow( response, 1,
-            List.of( "Youndu CHP",
-                "Norma",
-                "Turner" ) );
+            List.of( "Mindohun CHP",
+                "Howard",
+                "Chapman" ) );
 
         validateRow( response, 2,
-            List.of( "Yorgbofore MCHP",
-                "Carolyn",
-                "Day" ) );
+            List.of( "Mayakie MCHP",
+                "Jacqueline",
+                "Ellis" ) );
     }
 
     @Test
