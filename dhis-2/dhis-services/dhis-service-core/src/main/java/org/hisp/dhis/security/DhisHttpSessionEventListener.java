@@ -25,60 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.params.dimension;
+package org.hisp.dhis.security;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import javax.servlet.http.HttpSession;
 
-import java.util.Objects;
-
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * Encapsulates and element T with its offset.
- *
- * @param <T> the dimension type.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@RequiredArgsConstructor( staticName = "of" )
-public class ElementWithOffset<T extends UidObject>
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
-    @SuppressWarnings( "rawtypes" )
-    private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET = ElementWithOffset.of( null, null );
+    private final DhisConfigurationProvider config;
 
-    private final T element;
-
-    private final Integer offset;
-
-    public boolean hasOffset()
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
     {
-        return Objects.nonNull( offset );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset()
-    {
-        return EMPTY_ELEMENT_WITH_OFFSET;
-    }
-
-    public boolean isPresent()
-    {
-        return Objects.nonNull( element );
-    }
-
-    @Override
-    public String toString()
-    {
-        if ( isPresent() )
+        HttpSession session = event.getSession();
+        try
         {
-            if ( hasOffset() )
-            {
-                return element.getUid() + "[" + offset + "]";
-            }
-            return element.getUid();
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
         }
-        return EMPTY;
+        catch ( Exception e )
+        {
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not read session timeout value from config", e );
+        }
     }
 }
