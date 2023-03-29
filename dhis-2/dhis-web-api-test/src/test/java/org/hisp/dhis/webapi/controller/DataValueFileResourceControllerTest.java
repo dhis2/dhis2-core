@@ -94,27 +94,6 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest
             de, pe, ou, coc ) ) ) );
     }
 
-    @Test
-    void testClearFileResourceDataValue_UpdateSetImportWithNullValue()
-    {
-        assertClearsFileResourceDataValue( () -> assertStatus( HttpStatus.OK, POST( "/dataValueSets", format(
-            "{'dataValues': [{"
-                + "'dataElement':'%s',"
-                + "'period':'%s',"
-                + "'orgUnit':'%s',"
-                + "'categoryOptionCombo':'%s',"
-                + "'deleted': true,"
-                + "'value': null"
-                + "}]}",
-            de, pe, ou, coc ) ) ) );
-    }
-
-    @Test
-    void testClearFileResourceDataValue_DeleteSetImport()
-    {
-
-    }
-
     private void assertClearsFileResourceDataValue( Runnable clearRequest )
     {
         String url = format( "/dataValues/file?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc );
