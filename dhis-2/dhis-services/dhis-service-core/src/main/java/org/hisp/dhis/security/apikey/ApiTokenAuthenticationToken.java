@@ -28,6 +28,7 @@
 package org.hisp.dhis.security.apikey;
 
 import java.util.Collections;
+import java.util.Objects;
 
 import org.hisp.dhis.user.User;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -93,13 +94,20 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
             return false;
         if ( !super.equals( o ) )
             return false;
+
         ApiTokenAuthenticationToken that = (ApiTokenAuthenticationToken) o;
-        return Objects.equals( tokenKey, that.tokenKey ) && Objects.equals( tokenRef, that.tokenRef );
+
+        if ( !Objects.equals( tokenKey, that.tokenKey ) )
+            return false;
+        return Objects.equals( tokenRef, that.tokenRef );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( super.hashCode(), tokenKey, tokenRef );
+        int result = super.hashCode();
+        result = 31 * result + (tokenKey != null ? tokenKey.hashCode() : 0);
+        result = 31 * result + (tokenRef != null ? tokenRef.hashCode() : 0);
+        return result;
     }
 }
