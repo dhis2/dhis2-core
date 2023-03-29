@@ -56,7 +56,7 @@ class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     void testValidateSchema_NoSuchType()
     {
-        assertWebMessage( "Not Found", 404, "ERROR", "404 Type xyz does not exist.",
+        assertWebMessage( "Not Found", 404, "ERROR", "Type xyz does not exist.",
             POST( "/schemas/xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
