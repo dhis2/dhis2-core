@@ -69,7 +69,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -109,24 +108,18 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisConfigurationProvider dhisConfig;
 
-        @Bean
-        public static SessionRegistryImpl sessionRegistry()
-        {
-            return new org.springframework.security.core.session.SessionRegistryImpl();
-        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
         {
             http
                 .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
                 .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
                 .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                .expiredUrl( "/dhis-web-commons-security/logout.action" )
-                .sessionRegistry( sessionRegistry() );
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
         }
     }
 
@@ -297,11 +290,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
-            {
-                successHandler.setSessionTimeout(
-                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
-            }
 
             return successHandler;
         }

@@ -39,6 +39,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -87,6 +88,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
         contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
         contextHandler.addEventListener( new StartupListener() );
+        contextHandler.addEventListener( new HttpSessionEventPublisher() );
 
         // Spring Security Filter
         contextHandler.addFilter(
@@ -95,6 +97,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
             EnumSet.allOf( DispatcherType.class ) );
 
         ContextHandler.Context context = contextHandler.getServletContext();
+
         setupServlets( context, webApplicationContext );
 
         return contextHandler;
