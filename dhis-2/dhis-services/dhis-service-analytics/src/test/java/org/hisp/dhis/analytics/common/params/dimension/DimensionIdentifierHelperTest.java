@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -54,12 +55,25 @@ class DimensionIdentifierHelperTest
             "Dimension uid should be bh1Edk21e2n" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( "1", dimensionIdentifier.getProgram().getOffset(),
+        assertEquals( 1, dimensionIdentifier.getProgram().getOffset(),
             "Program offset should be 1" );
         assertEquals( "RaMbOrTys0n", dimensionIdentifier.getProgramStage().getElement().getUid(),
             "Stage uid should be RaMbOrTys0n" );
-        assertEquals( "4", dimensionIdentifier.getProgramStage().getOffset(),
+        assertEquals( 4, dimensionIdentifier.getProgramStage().getOffset(),
             "Stage offset should be 4" );
+    }
+
+    @Test
+    void testFromDimensionIdWithUnsupportedOffset()
+    {
+        // Given
+        String dimensionIdWithNumberOffset = "lxAQ7Zs9VYR[0].bh1Edk21e2n";
+        String dimensionIdWithStringOffset = "lxAQ7Zs9VYR[X].bh1Edk21e2n";
+
+        // When
+        // Then
+        assertThrows( IllegalQueryException.class, () -> fromFullDimensionId( dimensionIdWithNumberOffset ) );
+        assertThrows( IllegalQueryException.class, () -> fromFullDimensionId( dimensionIdWithStringOffset ) );
     }
 
     @Test
