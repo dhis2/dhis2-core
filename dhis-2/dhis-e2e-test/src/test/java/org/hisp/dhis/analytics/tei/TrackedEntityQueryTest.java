@@ -1444,7 +1444,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "program=IpHINAT79UW" )
             .add( "dimension=IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO:eq:12" )
             .add( "lastUpdated=LAST_10_YEARS" )
-            .add( "desc=lastupdated" )
+            .add( "asc=lastupdated" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -1493,6 +1493,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[-1].LAST_YEAR" )
+            .add( "desc=ouname" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1514,19 +1515,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Rokolon MCHP",
-                "Justin",
-                "Hayes" ) );
+            List.of( "Zimmi CHC",
+                "Randy",
+                "Hall" ) );
 
         validateRow( response, 1,
-            List.of( "Pejewa CHC",
-                "Nancy",
-                "Jones" ) );
+            List.of( "Zimmi CHC",
+                "Sharon",
+                "Nguyen" ) );
 
         validateRow( response, 2,
-            List.of( "Gbangba MCHP",
-                "James",
-                "Jordan" ) );
+            List.of( "Zimmi CHC",
+                "Debra",
+                "Little" ) );
     }
 
     @Test
@@ -1536,6 +1537,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         QueryParamsBuilder params = new QueryParamsBuilder()
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[1].LAST_MONTH" )
+            .add( "desc=ouname" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1557,19 +1559,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Mabineh MCHP",
-                "Arthur",
-                "Alexander" ) );
+            List.of( "Yoyema MCHP",
+                "Ruth",
+                "Ruiz" ) );
 
         validateRow( response, 1,
-            List.of( "Mattru UBC Hospital",
-                "Martin",
-                "Shaw" ) );
+            List.of( "Youndu CHP",
+                "Norma",
+                "Turner" ) );
 
         validateRow( response, 2,
-            List.of( "Kabonka MCHP",
-                "Philip",
-                "Stewart" ) );
+            List.of( "Yorgbofore MCHP",
+                "Carolyn",
+                "Day" ) );
     }
 
     @Test
