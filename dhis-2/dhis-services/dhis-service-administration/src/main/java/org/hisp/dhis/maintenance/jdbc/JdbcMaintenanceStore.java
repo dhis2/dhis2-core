@@ -315,23 +315,22 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     public void prunePeriods()
     {
         String sql = "with period_ids(periodid) as ("
-            + "  select distinct periodid from completedatasetregistration"
-            + "  union select distinct periodid from dataapproval"
-            + "  union select distinct periodid from dataapprovalaudit"
-            + "  union select distinct periodid from datainputperiod"
-            + "  union select distinct periodid from datainputperiod"
-            + "  union select distinct periodid from datavalue"
-            + "  union select distinct periodid from datavalueaudit"
-            + "  union select distinct periodid from eventchart_periods"
-            + "  union select distinct periodid from eventreport_periods"
-            + "  union select distinct periodid from eventvisualization_periods"
-            + "  union select distinct periodid from interpretation"
-            + "  union select distinct periodid from lockexception"
-            + "  union select distinct periodid from mapview_periods"
-            + "  union select distinct periodid from validationresult"
-            + "  union select distinct periodid from visualization_periods)"
+            + "    select distinct periodid from completedatasetregistration"
+            + "    union select distinct periodid from dataapproval"
+            + "    union select distinct periodid from dataapprovalaudit"
+            + "    union select distinct periodid from datainputperiod"
+            + "    union select distinct periodid from datavalue"
+            + "    union select distinct periodid from datavalueaudit"
+            + "    union select distinct periodid from eventchart_periods"
+            + "    union select distinct periodid from eventreport_periods"
+            + "    union select distinct periodid from eventvisualization_periods"
+            + "    union select distinct periodid from interpretation where periodid is not null"
+            + "    union select distinct periodid from lockexception where periodid is not null"
+            + "    union select distinct periodid from mapview_periods"
+            + "    union select distinct periodid from validationresult where periodid is not null"
+            + "    union select distinct periodid from visualization_periods)"
             + "delete from period where periodid not in ("
-            + "  select periodid from period_ids);";
+            + "    select periodid from period_ids)";
         jdbcTemplate.batchUpdate( sql );
     }
 
