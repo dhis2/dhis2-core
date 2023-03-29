@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.schema.Property;
@@ -51,7 +53,6 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +61,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -101,35 +101,26 @@ public class SchemaController
     @GetMapping( "/{type}" )
     public ResponseEntity<ObjectNode> getSchema( @PathVariable String type,
         @RequestParam( defaultValue = "*" ) List<String> fields )
+        throws NotFoundException
     {
         Schema schema = getSchemaFromType( type );
 
-        if ( schema != null )
-        {
-            linkService.generateSchemaLinks( schema );
+        linkService.generateSchemaLinks( schema );
 
-            FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
-            List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+        FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
 
-            return ResponseEntity.ok( objectNodes.get( 0 ) );
-        }
-
-        throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
+        return ResponseEntity.ok( objectNodes.get( 0 ) );
     }
 
     @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public WebMessage validateSchema( @PathVariable String type, HttpServletRequest request,
         HttpServletResponse response )
-        throws IOException
+        throws IOException,
+        NotFoundException
     {
         Schema schema = getSchemaFromType( type );
-
-        if ( schema == null )
-        {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
-        }
-
         Object object = objectMapper.readValue( request.getInputStream(), schema.getKlass() );
         List<ErrorReport> validationViolations = schemaValidator.validate( object );
 
@@ -138,36 +129,27 @@ public class SchemaController
 
     @GetMapping( "/{type}/{property}" )
     public Property getSchemaProperty( @PathVariable String type, @PathVariable String property )
+        throws NotFoundException
     {
         Schema schema = getSchemaFromType( type );
-
-        if ( schema == null )
-        {
-            throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
-        }
-
         if ( schema.hasProperty( property ) )
         {
             return schema.getProperty( property );
         }
 
-        throw new HttpClientErrorException( HttpStatus.NOT_FOUND,
+        throw new NotFoundException(
             "Property " + property + " does not exist on type " + type + "." );
     }
 
+    @Nonnull
     private Schema getSchemaFromType( String type )
+        throws NotFoundException
     {
         Schema schema = schemaService.getSchemaBySingularName( type );
 
         if ( schema == null )
         {
-            try
-            {
-                schema = schemaService.getSchema( Class.forName( type ) );
-            }
-            catch ( ClassNotFoundException ignored )
-            {
-            }
+            throw new NotFoundException( "Type " + type + " does not exist." );
         }
 
         return schema;
