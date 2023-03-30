@@ -35,6 +35,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
