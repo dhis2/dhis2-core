@@ -96,7 +96,15 @@ public class WebClientUtils
         if ( expected != actualStatus )
         {
             // OBS! we use the actual state to not fail the check in error
-            assertEquals( expected, actualStatus, actual.error( actualStatus.series() ).summary() );
+            JsonError error = actual.error( actualStatus.series() );
+            if ( error.getMessage() != null && expected.series() == actualStatus.series() )
+            {
+                assertEquals( expected, actualStatus, error.getMessage() );
+            }
+            else
+            {
+                assertEquals( expected, actualStatus, error.summary() );
+            }
         }
         assertValidLocation( actual );
         return getCreatedId( actual );
