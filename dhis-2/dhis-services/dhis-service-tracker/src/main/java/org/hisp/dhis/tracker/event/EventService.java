@@ -27,23 +27,14 @@
  */
 package org.hisp.dhis.tracker.event;
 
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventService
 {
-    // -------------------------------------------------------------------------
-    // READ
-    // -------------------------------------------------------------------------
-
-    @Transactional( readOnly = true )
-    Grid getEventsGrid( EventSearchParams params );
-
     Events getEvents( EventSearchParams params );
 
     ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );

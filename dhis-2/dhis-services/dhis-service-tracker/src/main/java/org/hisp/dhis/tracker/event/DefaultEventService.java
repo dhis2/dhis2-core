@@ -32,12 +32,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-import static org.hisp.dhis.tracker.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.tracker.event.JdbcEventStore.STATIC_EVENT_COLUMNS;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,21 +44,16 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -84,117 +76,6 @@ public class DefaultEventService implements EventService
     private final TrackerAccessManager trackerAccessManager;
 
     private final DataElementService dataElementService;
-
-    @Transactional( readOnly = true )
-    @Override
-    public Grid getEventsGrid( EventSearchParams params )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        validate( params, user );
-
-        if ( params.getProgramStage() == null || params.getProgramStage().getProgram() == null )
-        {
-            throw new IllegalQueryException( "Program stage can not be null" );
-        }
-
-        if ( params.getProgramStage().getProgramStageDataElements() == null )
-        {
-            throw new IllegalQueryException( "Program stage should have at least one data element" );
-        }
-
-        // ---------------------------------------------------------------------
-        // If includeAllDataElements is set to true, return all data elements.
-        // If no data element is specified, use those set as display in report.
-        // ---------------------------------------------------------------------
-
-        if ( params.isIncludeAllDataElements() )
-        {
-            for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
-            {
-                QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                    pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                    pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                params.getDataElements().add( qi );
-            }
-        }
-        else
-        {
-            if ( params.getDataElements().isEmpty() )
-            {
-                for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
-                {
-                    if ( pde.getDisplayInReports() )
-                    {
-                        QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                            pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                            pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                        params.getDataElements().add( qi );
-                    }
-                }
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Grid headers
-        // ---------------------------------------------------------------------
-
-        Grid grid = new ListGrid();
-
-        for ( String col : STATIC_EVENT_COLUMNS )
-        {
-            grid.addHeader( new GridHeader( col, col ) );
-        }
-
-        for ( QueryItem item : params.getDataElements() )
-        {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
-        }
-
-        List<Map<String, String>> events = eventStore.getEventsGrid( params );
-
-        // ---------------------------------------------------------------------
-        // Grid rows
-        // ---------------------------------------------------------------------
-
-        for ( Map<String, String> event : events )
-        {
-            grid.addRow();
-
-            for ( String col : STATIC_EVENT_COLUMNS )
-            {
-                grid.addValue( event.get( col ) );
-            }
-
-            for ( QueryItem item : params.getDataElements() )
-            {
-                grid.addValue( event.get( item.getItemId() ) );
-            }
-        }
-
-        Map<String, Object> metaData = new HashMap<>();
-
-        if ( params.isPaging() )
-        {
-            final Pager pager;
-
-            if ( params.isTotalPages() )
-            {
-                int count = eventStore.getEventCount( params );
-                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            }
-            else
-            {
-                pager = handleLastPageFlag( params, grid );
-            }
-
-            metaData.put( PAGER_META_KEY, pager );
-        }
-
-        grid.setMetaData( metaData );
-
-        return grid;
-    }
 
     @Transactional( readOnly = true )
     @Override
@@ -235,41 +116,6 @@ public class DefaultEventService implements EventService
         events.setEvents( eventList );
 
         return events;
-    }
-
-    /**
-     * This method will apply the logic related to the parameter
-     * 'totalPages=false'. This works in conjunction with the method:
-     * {@link JdbcEventStore#getEventPagingQuery(EventSearchParams)}
-     *
-     * This is needed because we need to query (pageSize + 1) at DB level. The
-     * resulting query will allow us to evaluate if we are in the last page or
-     * not. And this is what his method does, returning the respective Pager
-     * object.
-     *
-     * @param params the request params
-     * @param grid the populated Grid object
-     * @return the populated SlimPager instance
-     */
-    private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
-    {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
-        boolean isLastPage = false;
-
-        if ( isNotEmpty( grid.getRows() ) )
-        {
-            isLastPage = grid.getRows().size() <= originalPageSize;
-            if ( !isLastPage )
-            {
-                // Get the same number of elements of the pageSize, forcing
-                // the removal of the last additional element added at querying
-                // time.
-                grid.getRows().retainAll( grid.getRows().subList( 0, originalPageSize ) );
-            }
-        }
-
-        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     /**

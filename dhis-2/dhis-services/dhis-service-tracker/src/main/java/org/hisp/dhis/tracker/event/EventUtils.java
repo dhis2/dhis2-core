@@ -39,6 +39,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Slf4j
 public class EventUtils
 {
+    private EventUtils()
+    {
+        throw new UnsupportedOperationException( "Utility class" );
+    }
+
     public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
         try

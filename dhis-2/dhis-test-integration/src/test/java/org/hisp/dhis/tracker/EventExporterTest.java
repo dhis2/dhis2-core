@@ -113,14 +113,6 @@ class EventExporterTest extends TrackerTest
         .getEvents()
         .stream().map( ProgramStageInstance::getUid ).collect( Collectors.toList() );
 
-    /**
-     * EVENT_ID is at position 0 in column headers in events grid
-     */
-    final Function<EventSearchParams, List<String>> eventsGridFunction = ( params ) -> eventService
-        .getEventsGrid( params )
-        .getRows()
-        .stream().map( r -> r.get( 0 ).toString() ).collect( Collectors.toList() );
-
     private TrackedEntityInstance trackedEntityInstance;
 
     @Override
@@ -154,7 +146,6 @@ class EventExporterTest extends TrackerTest
     private Stream<Arguments> getEventsFunctions()
     {
         return Stream.of(
-            Arguments.of( eventsGridFunction ),
             Arguments.of( eventsFunction ) );
     }
 

@@ -85,7 +85,7 @@ public class DefaultCsvEventService
                 .setOccurredAt( event.getExecutionDate() == null ? null : event.getExecutionDate().toString() );
             templateDataValue.setScheduledAt( event.getDueDate() == null ? null : event.getDueDate().toString() );
             templateDataValue
-                .setFollowup( event.getProgramInstance() != null ? event.getProgramInstance().getFollowup() : false );
+                .setFollowup( event.getProgramInstance() != null && event.getProgramInstance().getFollowup() );
             templateDataValue.setDeleted( event.isDeleted() );
             templateDataValue.setCreatedAt( event.getCreated() == null ? null : event.getCreated().toString() );
             templateDataValue.setCreatedAtClient(
