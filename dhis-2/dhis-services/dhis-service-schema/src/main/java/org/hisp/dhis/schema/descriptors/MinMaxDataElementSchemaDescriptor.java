@@ -53,7 +53,7 @@ public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
 
         schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
 
         return schema;
     }

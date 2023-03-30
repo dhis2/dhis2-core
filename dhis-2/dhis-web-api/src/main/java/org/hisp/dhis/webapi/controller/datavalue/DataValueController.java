@@ -441,7 +441,7 @@ public class DataValueController
     // DELETE
     // ---------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_DELETE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataValue(
