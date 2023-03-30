@@ -97,9 +97,10 @@ public class WebClientUtils
         {
             // OBS! we use the actual state to not fail the check in error
             JsonError error = actual.error( actualStatus.series() );
-            if ( error.getMessage() != null && expected.series() == actualStatus.series() )
+            String msg = error.getMessage();
+            if ( msg != null && expected.series() == actualStatus.series() )
             {
-                assertEquals( expected, actualStatus, error.getMessage() );
+                assertEquals( expected, actualStatus, msg );
             }
             else
             {

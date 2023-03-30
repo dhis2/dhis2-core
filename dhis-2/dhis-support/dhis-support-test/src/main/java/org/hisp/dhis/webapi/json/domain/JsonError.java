@@ -53,7 +53,6 @@ public interface JsonError extends JsonObject
         return getNumber( "httpStatusCode" ).intValue();
     }
 
-    @Expected
     default String getStatus()
     {
         return getString( "status" ).string();
@@ -69,7 +68,6 @@ public interface JsonError extends JsonObject
         return getString( "devMessage" ).string();
     }
 
-    @Expected
     default ErrorCode getErrorCode()
     {
         return getString( "errorCode" ).parsed( ErrorCode::valueOf );
