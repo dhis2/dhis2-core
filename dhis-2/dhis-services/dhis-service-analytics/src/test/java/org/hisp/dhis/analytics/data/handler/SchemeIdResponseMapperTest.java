@@ -53,6 +53,7 @@ import static org.hisp.dhis.common.IdScheme.UUID;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -533,7 +534,7 @@ class SchemeIdResponseMapperTest
         Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( commonParams );
 
         // Uid is the default, so conversion is not needed. The map will not contain any conversion on this case.
-        assertEquals( responseMap.get( program.getUid() ), null );
+        assertNull( responseMap.get( program.getUid() ) );
     }
 
     private CommonParams stubCommonParams( Program program, IdScheme idScheme )
