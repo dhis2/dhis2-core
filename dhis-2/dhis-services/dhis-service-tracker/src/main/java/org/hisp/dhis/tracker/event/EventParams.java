@@ -25,36 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.event;
 
-import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import lombok.Value;
+import lombok.With;
 
-import com.google.common.collect.Lists;
-
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
-public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
+@With
+@Value
+public class EventParams
 {
-    public static final String SINGULAR = "minMaxDataElement";
+    public static final EventParams TRUE = new EventParams( true );
 
-    public static final String PLURAL = "minMaxDataElements";
+    public static final EventParams FALSE = new EventParams( false );
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MinMaxDataElement.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-
-        return schema;
-    }
+    private boolean includeRelationships;
 }

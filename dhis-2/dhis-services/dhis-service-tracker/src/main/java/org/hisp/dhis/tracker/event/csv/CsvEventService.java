@@ -25,36 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.event.csv;
 
-import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
+public interface CsvEventService<T>
 {
-    public static final String SINGULAR = "minMaxDataElement";
-
-    public static final String PLURAL = "minMaxDataElements";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MinMaxDataElement.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-
-        return schema;
-    }
+    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
+        throws IOException;
 }
