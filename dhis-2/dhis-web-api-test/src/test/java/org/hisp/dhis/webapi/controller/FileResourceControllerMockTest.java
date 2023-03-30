@@ -32,8 +32,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -67,8 +65,7 @@ class FileResourceControllerMockTest
 
     @Test
     void testGetOrgUnitImage()
-        throws WebMessageException,
-        IOException
+        throws Exception
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils, dhisConfig );
         FileResource fileResource = new FileResource();
