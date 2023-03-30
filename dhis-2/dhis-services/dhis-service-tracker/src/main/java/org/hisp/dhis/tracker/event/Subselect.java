@@ -25,48 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
+package org.hisp.dhis.tracker.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.event.EventParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class EventFieldsParamMapper
+/**
+ * @author Luciano Fiandesio
+ */
+@Getter
+@AllArgsConstructor
+public class Subselect implements QueryElement
 {
-    private final FieldFilterService fieldFilterService;
+    private String query;
 
-    public EventParams map( List<FieldPath> fields )
+    private String alias;
+
+    @Override
+    public String useInSelect()
     {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
+        return query + " as " + alias;
     }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    @Override
+    public String getResultsetValue()
     {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
-        }
-        return params;
+        return alias;
     }
 }
