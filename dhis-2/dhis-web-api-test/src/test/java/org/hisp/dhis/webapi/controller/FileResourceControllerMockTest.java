@@ -32,8 +32,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -92,7 +92,7 @@ class FileResourceControllerMockTest
 
         when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
 
-        assertThrows( WebMessageException.class,
+        assertThrows( ForbiddenException.class,
             () -> controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
                 currentUserService.getCurrentUser() ) );
     }
