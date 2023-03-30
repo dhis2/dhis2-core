@@ -25,36 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.event;
 
-import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.user.User;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor
+public interface EventService
 {
-    public static final String SINGULAR = "minMaxDataElement";
+    Events getEvents( EventSearchParams params );
 
-    public static final String PLURAL = "minMaxDataElements";
+    ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+        boolean skipOwnershipCheck, EventParams eventParams );
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MinMaxDataElement.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_MINMAX_DATAELEMENT_ADD" ) ) );
-
-        return schema;
-    }
+    void validate( EventSearchParams params, User user );
 }
