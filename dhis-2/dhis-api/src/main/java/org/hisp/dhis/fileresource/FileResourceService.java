@@ -34,7 +34,9 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -48,6 +50,10 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
+    Optional<FileResource> findByStorageKey( @CheckForNull String storageKey );
+
+    List<FileResourceOwner> findOwnersByStorageKey( @CheckForNull String storageKey );
+
     void saveFileResource( FileResource fileResource, File file );
 
     String saveFileResource( FileResource fileResource, byte[] bytes );
@@ -60,12 +66,6 @@ public interface FileResourceService
 
     /**
      * Copy fileResource content to outputStream and Return File content length
-     *
-     * @param fileResource
-     * @param outputStream
-     * @return
-     * @throws IOException
-     * @throws NoSuchElementException
      */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException,
@@ -73,11 +73,6 @@ public interface FileResourceService
 
     /**
      * Copy fileResource content to a byte array
-     *
-     * @param fileResource
-     * @return a byte array of the content
-     * @throws IOException
-     * @throws NoSuchElementException
      */
     byte[] copyFileResourceContent( FileResource fileResource )
         throws IOException,

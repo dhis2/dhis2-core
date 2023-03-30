@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,53 @@
  */
 package org.hisp.dhis.fileresource;
 
-import java.util.List;
-import java.util.Optional;
-
-import javax.annotation.Nonnull;
-
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.joda.time.DateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
+/**
+ * Backwards reference from a storage key to the object that is associated with
+ * the {@link FileResource}.
+ *
+ * A {@link FileResourceDomain#DATA_VALUE} uses the 4 data value keys
+ * {@link #de}, {@link #ou}, {@link #pe} and {@link #co}, all other types use
+ * only the {@link #id}.
+ *
+ * @author Jan Bernitt
+ */
+@Value
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class FileResourceOwner
 {
-    List<FileResource> getExpiredFileResources( DateTime expires );
+    @JsonProperty
+    FileResourceDomain domain;
 
-    List<FileResource> getAllUnProcessedImages();
+    // for data values
+    @JsonProperty
+    String de;
 
-    Optional<FileResource> findByStorageKey( @Nonnull String storageKey );
+    @JsonProperty
+    String ou;
 
-    /**
-     * Returns the organisation unit UID(s) with an image that links to the
-     * {@link FileResource} with the provided uid.
-     *
-     * @param uid of the file resource UID for the organisation unit image
-     * @return usually none or exactly one but in theory it could be multiple
-     *         linked to the same file resource
-     */
-    List<String> findOrganisationUnitsByImageFileResource( @Nonnull String uid );
+    @JsonProperty
+    String pe;
 
-    List<String> findUsersByAvatarFileResource( @Nonnull String uid );
+    @JsonProperty
+    String co;
 
-    List<String> findDocumentsByFileResource( @Nonnull String uid );
+    // for any other domain
+    @JsonProperty
+    String id;
 
-    List<String> findMessagesByFileResource( @Nonnull String uid );
-
-    @Value
-    @Accessors( fluent = true )
-    class DataValueKey
+    public FileResourceOwner( FileResourceDomain domain, String id )
     {
-        String de;
-
-        String ou;
-
-        long pe;
-
-        String co;
+        this( domain, null, null, null, null, id );
     }
 
-    List<DataValueKey> findDataValuesByFileResourceValue( @Nonnull String uid );
+    public FileResourceOwner( String de, String ou, String pe, String co )
+    {
+        this( FileResourceDomain.DATA_VALUE, de, ou, pe, co, null );
+    }
 }

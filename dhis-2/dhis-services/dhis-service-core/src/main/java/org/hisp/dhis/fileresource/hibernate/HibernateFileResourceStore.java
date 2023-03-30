@@ -28,7 +28,11 @@
 package org.hisp.dhis.fileresource.hibernate;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -42,18 +46,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ImmutableSet;
-
 @Repository( "org.hisp.dhis.fileresource.FileResourceStore" )
 public class HibernateFileResourceStore
     extends HibernateIdentifiableObjectStore<FileResource>
     implements FileResourceStore
 {
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
+    private static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
+        "image/jpg",
+        "image/png",
+        "image/jpeg" );
 
     public HibernateFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -90,5 +91,57 @@ public class HibernateFileResourceStore
                 .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
                 .setParameter( "hasMultipleStorageFiles", false )
                 .setMaxResults( 50 ).getResultList();
+    }
+
+    @Override
+    public Optional<FileResource> findByStorageKey( @Nonnull String storageKey )
+    {
+        return getSession()
+            .createNativeQuery( "select fr.* from fileresource fr where fr.storagekey = :key", FileResource.class )
+            .setParameter( "key", storageKey )
+            .getResultStream().findFirst();
+    }
+
+    @Override
+    public List<String> findOrganisationUnitsByImageFileResource( @Nonnull String uid )
+    {
+        String sql = "select o.uid from organisationunit o left join fileresource fr on fr.fileresourceid = o.image where fr.uid = :uid";
+        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+    }
+
+    @Override
+    public List<String> findUsersByAvatarFileResource( @Nonnull String uid )
+    {
+        String sql = "select u.uid from userinfo u left join fileresource fr on fr.fileresourceid = u.avatar where fr.uid = :uid";
+        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+    }
+
+    @Override
+    public List<String> findDocumentsByFileResource( @Nonnull String uid )
+    {
+        String sql = "select d.uid from document d left join fileresource fr on fr.fileresourceid = d.fileresource where fr.uid = :uid";
+        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+    }
+
+    @Override
+    public List<String> findMessagesByFileResource( @Nonnull String uid )
+    {
+        String sql = "select m.uid from message m "
+            + "left join messageattachments ma on m.messageid = ma.messageid "
+            + "left join fileresource fr on fr.fileresourceid = ma.fileresourceid where fr.uid = :uid";
+        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+    }
+
+    @Override
+    public List<DataValueKey> findDataValuesByFileResourceValue( @Nonnull String uid )
+    {
+        String sql = "select de.uid, o.uid, dv.periodid, co.uid from dataelement de"
+            + " inner JOIN datavalue dv ON de.dataelementid = dv.dataelementid"
+            + " inner join organisationunit o on dv.sourceid = o.organisationunitid"
+            + " inner join categoryoptioncombo co on dv.categoryoptioncomboid = co.categoryoptioncomboid"
+            + " where de.valuetype = 'FILE_RESOURCE' and dv.value = :uid";
+        return getSession().createNativeQuery( sql, Object[].class ).setParameter( "uid", uid ).stream()
+            .map( col -> new DataValueKey( (String) col[0], (String) col[1], (long) col[2], (String) col[3] ) )
+            .collect( Collectors.toUnmodifiableList() );
     }
 }
