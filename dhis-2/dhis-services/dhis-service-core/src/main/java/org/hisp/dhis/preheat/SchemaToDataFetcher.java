@@ -37,12 +37,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
@@ -59,16 +57,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SchemaToDataFetcher
 {
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    private SessionFactory sessionFactory;
-
-    public SchemaToDataFetcher( SessionFactory sessionFactory )
+    public SchemaToDataFetcher( EntityManager entityManager )
     {
-        checkNotNull( sessionFactory );
+        checkNotNull( entityManager );
 
-        this.sessionFactory = sessionFactory;
+        this.entityManager = entityManager;
     }
 
     /**

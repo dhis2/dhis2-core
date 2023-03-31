@@ -45,11 +45,14 @@ import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -106,6 +109,13 @@ public class HibernateConfig
         return cacheManager;
     }
 
+    @Bean( "sessionFactory" )
+    @Primary
+    public SessionFactory sessionFactory( @Qualifier( "entityManagerFactory" ) EntityManagerFactory entityManager )
+    {
+        return entityManager.unwrap( SessionFactory.class );
+    }
+
     @Bean
     public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate,
         EntityManagerFactory entityManagerFactory,
@@ -116,6 +126,12 @@ public class HibernateConfig
         hibernateDbmsManager.setSessionFactory( entityManagerFactory.unwrap( SessionFactory.class ) );
         hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
         return hibernateDbmsManager;
+    }
+
+    @Bean
+    public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor()
+    {
+        return new EntityManagerBeanDefinitionRegistrarPostProcessor();
     }
 
     @Bean( "entityManagerFactory" )

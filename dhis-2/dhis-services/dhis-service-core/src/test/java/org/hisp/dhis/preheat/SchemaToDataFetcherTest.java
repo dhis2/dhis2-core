@@ -33,6 +33,8 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,9 +44,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.persistence.EntityManager;
+
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -74,10 +76,7 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest
     private SchemaToDataFetcher subject;
 
     @Mock
-    private SessionFactory sessionFactory;
-
-    @Mock
-    private Session session;
+    private EntityManager entityManager;
 
     @Mock
     private Query query;
@@ -85,8 +84,7 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
-        subject = new SchemaToDataFetcher( sessionFactory );
+        subject = new SchemaToDataFetcher( entityManager );
     }
 
     @Test
@@ -204,7 +202,7 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         subject.fetch( schema );
 
-        verify( sessionFactory, times( 0 ) ).getCurrentSession();
+        verify( entityManager, times( 0 ) ).createQuery( anyString() );
     }
 
     @Test
@@ -217,13 +215,13 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         subject.fetch( schema );
 
-        verify( sessionFactory, times( 0 ) ).getCurrentSession();
+        verify( entityManager, times( 0 ) ).createQuery( anyString() );
     }
 
     private void mockSession( String hql )
     {
-        when( session.createQuery( hql ) ).thenReturn( query );
-        when( query.setReadOnly( true ) ).thenReturn( query );
+        when( entityManager.createQuery( hql ) ).thenReturn( query );
+        when( query.setHint( any(), any() ) ).thenReturn( query );
     }
 
     private Schema createSchema( Class<? extends IdentifiableObject> klass, String singularName,

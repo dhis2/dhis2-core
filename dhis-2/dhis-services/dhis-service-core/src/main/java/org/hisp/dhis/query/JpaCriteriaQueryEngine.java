@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -66,8 +65,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
     private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     private final QueryCacheManager queryCacheManager;
 
@@ -75,17 +73,19 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
     public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
         List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory,
-        QueryCacheManager queryCacheManager )
+        QueryCacheManager queryCacheManager, EntityManager entityManager )
     {
         checkNotNull( currentUserService );
         checkNotNull( queryPlanner );
         checkNotNull( hibernateGenericStores );
         checkNotNull( sessionFactory );
+        checkNotNull( entityManager );
 
         this.currentUserService = currentUserService;
         this.queryPlanner = queryPlanner;
         this.hibernateGenericStores = hibernateGenericStores;
         this.queryCacheManager = queryCacheManager;
+        this.entityManager = entityManager;
     }
 
     @Override
