@@ -205,19 +205,22 @@ public class SchemeIdResponseMapper
      */
     public void applyOptionAndLegendSetMapping( Grid grid, IdScheme idScheme )
     {
-        for ( int i = 0; i < grid.getHeaders().size(); i++ )
+        if ( idScheme != null )
         {
-            GridHeader header = grid.getHeaders().get( i );
+            for ( int i = 0; i < grid.getHeaders().size(); i++ )
+            {
+                GridHeader header = grid.getHeaders().get( i );
 
-            if ( header.hasOptionSet() )
-            {
-                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( idScheme );
-                grid.substituteMetaData( i, i, optionMap );
-            }
-            else if ( header.hasLegendSet() )
-            {
-                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( idScheme );
-                grid.substituteMetaData( i, i, legendMap );
+                if ( header.hasOptionSet() )
+                {
+                    Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( idScheme );
+                    grid.substituteMetaData( i, i, optionMap );
+                }
+                else if ( header.hasLegendSet() )
+                {
+                    Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( idScheme );
+                    grid.substituteMetaData( i, i, legendMap );
+                }
             }
         }
     }

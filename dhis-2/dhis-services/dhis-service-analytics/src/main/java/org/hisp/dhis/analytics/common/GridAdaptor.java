@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
@@ -94,7 +93,8 @@ public class GridAdaptor
             rowsCount );
 
         schemeIdResponseMapper.applyCustomIdScheme( teiQueryParams.getCommonParams(), grid );
-        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid,
+            teiQueryParams.getCommonParams().getDataIdScheme() );
 
         return grid;
     }
