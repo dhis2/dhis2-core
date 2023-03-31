@@ -51,7 +51,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -63,7 +62,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
  * @author <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcOrgUnitAssociationsStoreTest
+class JdbcOrgUnitAssociationsStoreTest
 {
     private JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
@@ -124,10 +123,10 @@ public class JdbcOrgUnitAssociationsStoreTest
 
                     when( resultSet.next() ).thenReturn( true, false );
 
-                    Mockito.when( resultSet.getString( ArgumentMatchers.eq( 1 ) ) )
+                    Mockito.when( resultSet.getString( 1 ) )
                         .thenReturn( program );
 
-                    Mockito.when( resultSet.getArray( ArgumentMatchers.eq( 2 ) ) )
+                    Mockito.when( resultSet.getArray( 2 ) )
                         .thenReturn( orgUnitArray );
 
                     return resultSetExtractor.extractData( resultSet );
@@ -180,10 +179,10 @@ public class JdbcOrgUnitAssociationsStoreTest
 
                     when( resultSet.next() ).thenReturn( true, false );
 
-                    Mockito.when( resultSet.getString( ArgumentMatchers.eq( 1 ) ) )
+                    Mockito.when( resultSet.getString( 1 ) )
                         .thenReturn( program );
 
-                    Mockito.when( resultSet.getArray( ArgumentMatchers.eq( 2 ) ) )
+                    Mockito.when( resultSet.getArray( 2 ) )
                         .thenReturn( orgUnitArray );
 
                     return resultSetExtractor.extractData( resultSet );
@@ -213,10 +212,10 @@ public class JdbcOrgUnitAssociationsStoreTest
 
                     when( resultSet.next() ).thenReturn( true, false );
 
-                    Mockito.when( resultSet.getString( ArgumentMatchers.eq( 1 ) ) )
+                    Mockito.when( resultSet.getString( 1 ) )
                         .thenReturn( program );
 
-                    Mockito.when( resultSet.getArray( ArgumentMatchers.eq( 2 ) ) )
+                    Mockito.when( resultSet.getArray( 2 ) )
                         .thenReturn( orgUnitArray );
 
                     return resultSetExtractor.extractData( resultSet );
