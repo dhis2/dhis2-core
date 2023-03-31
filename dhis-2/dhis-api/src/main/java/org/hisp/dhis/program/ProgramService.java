@@ -174,9 +174,9 @@ public interface ProgramService
      * program uid. This method returns all the associations irrespective of the
      * sharing settings or org unit scopes.
      *
-     * @param programUids A set of program uids
-     * @return A object of {@link IdentifiableObjectAssociations} containing
-     *         association for each programUid
+     * @param program input program uid
+     * @param orgUnit
+     * @return whether a org Unit is associated to the input program
      */
-    SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids );
+    boolean checkProgramOrganisationUnitsAssociations( String program, String orgUnit );
 }
