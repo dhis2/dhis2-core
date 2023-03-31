@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.hibernate.jpa.QueryHints;
@@ -52,14 +53,16 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class SchemaToDataFetcher {
-  private final EntityManager entityManager;
+public class SchemaToDataFetcher
+{
+    private final EntityManager entityManager;
 
-  public SchemaToDataFetcher(EntityManager entityManager) {
-    checkNotNull(entityManager);
+    public SchemaToDataFetcher( EntityManager entityManager )
+    {
+        checkNotNull( entityManager );
 
-    this.entityManager = entityManager;
-  }
+        this.entityManager = entityManager;
+    }
 
   /**
    * Executes a read-only query for the given Schema class and fetches only the fields marked as

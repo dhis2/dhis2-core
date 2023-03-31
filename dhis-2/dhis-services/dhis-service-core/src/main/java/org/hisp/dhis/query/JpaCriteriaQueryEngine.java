@@ -61,31 +61,28 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
-  private final EntityManager entityManager;
+    private final EntityManager entityManager;
 
   private final QueryCacheManager queryCacheManager;
 
   private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
 
-  public JpaCriteriaQueryEngine(
-      CurrentUserService currentUserService,
-      QueryPlanner queryPlanner,
-      List<InternalHibernateGenericStore<T>> hibernateGenericStores,
-      SessionFactory sessionFactory,
-      QueryCacheManager queryCacheManager,
-      EntityManager entityManager) {
-    checkNotNull(currentUserService);
-    checkNotNull(queryPlanner);
-    checkNotNull(hibernateGenericStores);
-    checkNotNull(sessionFactory);
-    checkNotNull(entityManager);
+    public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
+        List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory,
+        QueryCacheManager queryCacheManager, EntityManager entityManager )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( queryPlanner );
+        checkNotNull( hibernateGenericStores );
+        checkNotNull( sessionFactory );
+        checkNotNull( entityManager );
 
-    this.currentUserService = currentUserService;
-    this.queryPlanner = queryPlanner;
-    this.hibernateGenericStores = hibernateGenericStores;
-    this.queryCacheManager = queryCacheManager;
-    this.entityManager = entityManager;
-  }
+        this.currentUserService = currentUserService;
+        this.queryPlanner = queryPlanner;
+        this.hibernateGenericStores = hibernateGenericStores;
+        this.queryCacheManager = queryCacheManager;
+        this.entityManager = entityManager;
+    }
 
   @Override
   public List<T> query(Query query) {

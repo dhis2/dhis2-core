@@ -44,7 +44,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
+
 import javax.persistence.EntityManager;
+
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -71,14 +73,17 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest {
 
   private SchemaToDataFetcher subject;
 
-  @Mock private EntityManager entityManager;
+    @Mock
+    private EntityManager entityManager;
 
-  @Mock private Query query;
+    @Mock
+    private Query query;
 
-  @BeforeEach
-  public void setUp() {
-    subject = new SchemaToDataFetcher(entityManager);
-  }
+    @BeforeEach
+    public void setUp()
+    {
+        subject = new SchemaToDataFetcher( entityManager );
+    }
 
   @Test
   void verifyInput() {
@@ -194,8 +199,8 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest {
 
     subject.fetch(schema);
 
-    verify(entityManager, times(0)).createQuery(anyString());
-  }
+        verify( entityManager, times( 0 ) ).createQuery( anyString() );
+    }
 
   @Test
   void verifyNoSqlWhenNoUniquePropertyExist() {
@@ -210,13 +215,14 @@ class SchemaToDataFetcherTest extends DhisConvenienceTest {
 
     subject.fetch(schema);
 
-    verify(entityManager, times(0)).createQuery(anyString());
-  }
+        verify( entityManager, times( 0 ) ).createQuery( anyString() );
+    }
 
-  private void mockSession(String hql) {
-    when(entityManager.createQuery(hql)).thenReturn(query);
-    when(query.setHint(any(), any())).thenReturn(query);
-  }
+    private void mockSession( String hql )
+    {
+        when( entityManager.createQuery( hql ) ).thenReturn( query );
+        when( query.setHint( any(), any() ) ).thenReturn( query );
+    }
 
   private Schema createSchema(
       Class<? extends IdentifiableObject> klass, String singularName, List<Property> properties) {

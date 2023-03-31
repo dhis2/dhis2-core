@@ -43,11 +43,14 @@ import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -102,39 +105,54 @@ public class HibernateConfig {
     return cacheManager;
   }
 
-  @Bean
-  public DbmsManager dbmsManager(
-      JdbcTemplate jdbcTemplate,
-      EntityManagerFactory entityManagerFactory,
-      DefaultHibernateCacheManager cacheManager) {
-    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-    hibernateDbmsManager.setCacheManager(cacheManager);
-    hibernateDbmsManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
-    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
-    return hibernateDbmsManager;
-  }
+    @Bean( "sessionFactory" )
+    @Primary
+    public SessionFactory sessionFactory( @Qualifier( "entityManagerFactory" ) EntityManagerFactory entityManager )
+    {
+        return entityManager.unwrap( SessionFactory.class );
+    }
 
-  @Bean("entityManagerFactory")
-  @DependsOn({"flyway"})
-  public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider config, DataSource dataSource) throws IOException {
-    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-    adapter.setDatabasePlatform(config.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(false);
-    adapter.setShowSql(false);
-    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-    factory.setJpaVendorAdapter(adapter);
-    factory.setPersistenceUnitName("dhis");
-    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
-    factory.setDataSource(dataSource);
-    factory.setPackagesToScan("org.hisp.dhis");
-    factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
-    factory.setValidationMode(ValidationMode.NONE);
-    factory.setJpaProperties(getAdditionalProperties(config));
-    factory.setMappingResources(loadResources());
-    factory.afterPropertiesSet();
-    return factory.getObject();
-  }
+    @Bean
+    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate,
+        EntityManagerFactory entityManagerFactory,
+        DefaultHibernateCacheManager cacheManager )
+    {
+        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
+        hibernateDbmsManager.setCacheManager( cacheManager );
+        hibernateDbmsManager.setSessionFactory( entityManagerFactory.unwrap( SessionFactory.class ) );
+        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
+        return hibernateDbmsManager;
+    }
+
+    @Bean
+    public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor()
+    {
+        return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+    }
+
+    @Bean( "entityManagerFactory" )
+    @DependsOn( { "flyway" } )
+    public EntityManagerFactory entityManagerFactoryBean( DhisConfigurationProvider config,
+        DataSource dataSource )
+        throws IOException
+    {
+        HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+        adapter.setDatabasePlatform( config.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
+        adapter.setGenerateDdl( false );
+        adapter.setShowSql( false );
+        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setJpaVendorAdapter( adapter );
+        factory.setPersistenceUnitName( "dhis" );
+        factory.setPersistenceProvider( new org.hibernate.jpa.HibernatePersistenceProvider() );
+        factory.setDataSource( dataSource );
+        factory.setPackagesToScan( "org.hisp.dhis" );
+        factory.setSharedCacheMode( SharedCacheMode.ENABLE_SELECTIVE );
+        factory.setValidationMode( ValidationMode.NONE );
+        factory.setJpaProperties( getAdditionalProperties( config ) );
+        factory.setMappingResources( loadResources() );
+        factory.afterPropertiesSet();
+        return factory.getObject();
+    }
 
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
