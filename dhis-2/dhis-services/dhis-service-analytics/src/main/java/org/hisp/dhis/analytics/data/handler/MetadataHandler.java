@@ -75,7 +75,7 @@ public class MetadataHandler
 {
     private final DataQueryService dataQueryService;
 
-    private final SchemaIdResponseMapper schemaIdResponseMapper;
+    private final SchemeIdResponseMapper schemeIdResponseMapper;
 
     /**
      * Adds meta data values to the given grid based on the given data query
@@ -184,7 +184,7 @@ public class MetadataHandler
         {
             if ( params.hasCustomIdSchemaSet() )
             {
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
+                grid.substituteMetaData( schemeIdResponseMapper.getSchemeIdResponseMap( params ) );
             }
         }
     }
