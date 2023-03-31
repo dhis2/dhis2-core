@@ -107,6 +107,21 @@ public class CommonQueryRequest
     private IdScheme dataIdScheme = UID;
 
     /**
+     * The general id scheme, which drives the values in the response object.
+     */
+    private IdScheme outputIdScheme;
+
+    /**
+     * The id scheme specific for data elements.
+     */
+    private IdScheme outputDataElementIdScheme;
+
+    /**
+     * The id scheme specific for org units.
+     */
+    private IdScheme outputOrgUnitIdScheme;
+
+    /**
      * Overrides the start date of the relative period. e.g: "2016-01-01".
      */
     private Date relativePeriodDate;
