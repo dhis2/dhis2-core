@@ -29,12 +29,11 @@ package org.hisp.dhis.webapi.security.apikey;
 
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
@@ -50,7 +49,6 @@ import org.springframework.security.core.AuthenticationException;
  * authenticated only if the token is not expired and the request constraint
  * rules are matching.
  */
-@Slf4j
 public class ApiTokenAuthManager implements AuthenticationManager
 {
     private final ApiTokenService apiTokenService;

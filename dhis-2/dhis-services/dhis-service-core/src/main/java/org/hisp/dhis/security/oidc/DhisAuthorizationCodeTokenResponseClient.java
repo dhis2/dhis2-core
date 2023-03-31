@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.RequestEntity;
@@ -66,7 +65,6 @@ import com.nimbusds.jose.jwk.JWK;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class DhisAuthorizationCodeTokenResponseClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
 {

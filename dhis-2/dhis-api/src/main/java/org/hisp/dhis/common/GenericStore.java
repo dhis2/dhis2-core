@@ -115,11 +115,9 @@ public interface GenericStore<T>
     @Nonnull
     List<T> getByAttributeValue( @Nonnull AttributeValue attributeValue );
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( @Nonnull P object,
-        @Nonnull AttributeValue attributeValue );
+    boolean isAttributeValueUnique( @Nonnull T object, @Nonnull AttributeValue attributeValue );
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( @Nonnull P object, @Nonnull Attribute attribute,
-        @Nonnull String value );
+    boolean isAttributeValueUnique( @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value );
 
     @Nonnull
     List<T> getAllByAttributeAndValues( @Nonnull Attribute attribute, @Nonnull List<String> values );

@@ -41,7 +41,6 @@ import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -68,7 +67,7 @@ public final class OrgUnitTableJoiner
 
         if ( params.getOrgUnitField().getType().isOwnership() )
         {
-            sql += joinPeriodStructureAndOwnershipTables( params );
+            sql += joinOwnershipTable( params );
         }
 
         if ( params.getOrgUnitField().isJoinOrgUnitTables( analyticsType ) )
@@ -84,75 +83,29 @@ public final class OrgUnitTableJoiner
     // -------------------------------------------------------------------------
 
     /**
-     * Joins ownership table, first joining periodstructure table if needed.
+     * Joins the ownership table.
      * <p>
-     * The dates ranges in the ownership table are based on the ownership at the
+     * The date ranges in the ownership table are based on the ownership at the
      * start of each day. To get the ownership at the end of a day, we must add
      * one to the date, to get the ownership at the start of the next day.
      * <p>
-     * Note that there are no entries in the _periodstructure table for daily
-     * periods. In this case the period start and end dates are the same and
-     * they are the date found in the analytics daily column.
+     * If we get here, the {@link DefaultEventQueryPlanner} will have separated
+     * any period dimensions to one period per query. Therefore, we can use the
+     * earliest start date and latest end date to get the date range for either
+     * that one period or any collection of filter periods.
      */
-    private static String joinPeriodStructureAndOwnershipTables( EventQueryParams params )
+    private static String joinOwnershipTable( EventQueryParams params )
     {
-        boolean isOwnerAtStart = params.getOrgUnitField().getType() == OWNER_AT_START;
+        Date compareDate = (params.getOrgUnitField().getType() == OWNER_AT_START)
+            ? params.getEarliestStartDate()
+            : plusOneDay( params.getLatestEndDate() );
 
-        String sql = "";
-
-        String compareDate;
-
-        if ( params.useStartEndDates() )
-        {
-            Date date = (isOwnerAtStart)
-                ? params.getEarliestStartDate()
-                : plusOneDay( params.getLatestEndDate() );
-
-            compareDate = "'" + getMediumDateString( date ) + "'";
-        }
-        else
-        {
-            if ( params.getPeriodType().equalsIgnoreCase( PeriodTypeEnum.DAILY.getName() ) )
-            {
-                compareDate = (isOwnerAtStart)
-                    ? "cast(ax.\"daily\" as date)"
-                    : "cast(ax.\"daily\" as date) + INTERVAL '1 day'";
-            }
-            else
-            {
-                compareDate = (isOwnerAtStart)
-                    ? "periodstruct.\"startdate\""
-                    : "periodstruct.\"enddate\" + INTERVAL '1 day'";
-
-                sql += joinPeriodStructure( params );
-            }
-        }
-
-        return sql + joinOwnershipTable( params, compareDate );
-    }
-
-    /**
-     * Joins the periodstructure table if needed in order to join the ownership
-     * table.
-     */
-    private static String joinPeriodStructure( EventQueryParams params )
-    {
-        return "left join _periodstructure periodstruct on " +
-            quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) +
-            " = periodstruct.\"iso\" ";
-    }
-
-    /**
-     * Joins the ownership table.
-     */
-    private static String joinOwnershipTable( EventQueryParams params, String compareDate )
-    {
         String ownershipTable = PartitionUtils.getTableName( AnalyticsTableType.OWNERSHIP.getTableName(),
             params.getProgram() );
 
         return "left join " + ownershipTable + " as " + OWNERSHIP_TBL_ALIAS + " on " +
             quote( ANALYTICS_TBL_ALIAS, "tei" ) + " = " + quote( OWNERSHIP_TBL_ALIAS, "teiuid" ) +
-            " and " + compareDate + " between " +
+            " and '" + getMediumDateString( compareDate ) + "' between " +
             quote( OWNERSHIP_TBL_ALIAS, "startdate" ) + " and " +
             quote( OWNERSHIP_TBL_ALIAS, "enddate" ) + " ";
     }

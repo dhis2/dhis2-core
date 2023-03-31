@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
-
 import java.io.IOException;
 
 import javax.servlet.RequestDispatcher;
@@ -36,10 +34,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -53,29 +47,12 @@ public class GetAppMenuServlet
         throws IOException,
         ServletException
     {
-        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
+        resp.setContentType( "application/json" );
+        resp.setStatus( HttpServletResponse.SC_OK );
 
-        if ( springSecurityContext != null )
-        {
-            SecurityContextImpl context = (SecurityContextImpl) session().getAttribute(
-                "SPRING_SECURITY_CONTEXT" );
+        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
+            "/api/apps/menu" );
 
-            Authentication authentication = context.getAuthentication();
-            CurrentUserDetailsImpl principal = (CurrentUserDetailsImpl) authentication.getPrincipal();
-            String username = principal.getUsername();
-
-            resp.setContentType( "application/json" );
-            resp.setStatus( HttpServletResponse.SC_OK );
-
-            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-                "/api/apps/menu" + "?username=" + username );
-
-            dispatcher.include( req, resp );
-        }
-        else
-        {
-            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        }
-
+        dispatcher.include( req, resp );
     }
 }

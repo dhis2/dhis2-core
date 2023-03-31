@@ -529,11 +529,12 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
-            Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
+            Optional<DimensionalObject> dimensionalObject = getDimensionFromEmbeddedObjects( dimension )
+                .or( () -> getTrackedEntityDimension( dimension ) );
 
-            if ( trackedEntityDimension.isPresent() )
+            if ( dimensionalObject.isPresent() )
             {
-                return trackedEntityDimension.get();
+                return dimensionalObject.get();
             }
         }
 
@@ -755,43 +756,27 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
-            // Embedded dimensions
+            Optional<DimensionalObject> dimensionalObject = getDimensionFromEmbeddedObjects( dimension )
+                .or( () -> getTrackedEntityDimension( dimension ) );
 
-            Optional<DimensionalObject> object;
-
-            if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET,
-                dataElementGroupSetDimensions )).isPresent() )
+            if ( dimensionalObject.isPresent() )
             {
-                return Optional.of( object.get() );
-            }
-
-            if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
-                organisationUnitGroupSetDimensions )).isPresent() )
-            {
-                return Optional.of( object.get() );
-            }
-
-            if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ))
-                .isPresent() )
-            {
-                return Optional.of( object.get() );
-            }
-
-            if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
-                categoryOptionGroupSetDimensions )).isPresent() )
-            {
-                return Optional.of( object.get() );
-            }
-
-            Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
-
-            if ( trackedEntityDimension.isPresent() )
-            {
-                return trackedEntityDimension;
+                return dimensionalObject;
             }
         }
 
         return Optional.empty();
+    }
+
+    private Optional<DimensionalObject> getDimensionFromEmbeddedObjects( String dimension )
+    {
+        return getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET,
+            dataElementGroupSetDimensions )
+                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
+                    organisationUnitGroupSetDimensions ) )
+                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ) )
+                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
+                    categoryOptionGroupSetDimensions ) );
     }
 
     private Optional<DimensionalObject> getTrackedEntityDimension( String dimension )

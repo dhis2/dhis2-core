@@ -40,15 +40,16 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
@@ -93,7 +94,7 @@ public class TrackerEnrollmentsExportController
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
+        List<ProgramInstance> enrollmentList;
 
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
@@ -111,7 +112,6 @@ public class TrackerEnrollmentsExportController
             }
 
             enrollmentList = enrollments.getEnrollments();
-
         }
         else
         {

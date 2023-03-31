@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +42,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -48,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,6 @@ import com.google.common.collect.Lists;
 
 class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     @Qualifier( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
     private DataAnalysisService stdDevOutlierAnalysisService;
@@ -70,16 +69,10 @@ class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase
     private CategoryService categoryService;
 
     @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private DataValueService dataValueService;
-
-    @Autowired
-    private PeriodService periodService;
 
     private DataElement dataElementSingleQuoteName;
 
@@ -192,8 +185,6 @@ class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase
         periods.add( periodE );
         List<DeflatedDataValue> values = stdDevOutlierAnalysisService.analyse( Lists.newArrayList( organisationUnitA ),
             dataElementsA, periods, stdDevFactor, from );
-        double lowerBound = -34.51 * stdDevFactor;
-        double upperBound = 34.51 * stdDevFactor;
         DeflatedDataValue valueA = new DeflatedDataValue( dataValueA );
         DeflatedDataValue valueB = new DeflatedDataValue( dataValueB );
         assertEquals( 1, values.size() );

@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.util;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -118,7 +120,7 @@ public class AnalyticsSqlUtils
     {
         Assert.notNull( relation, "Relation must be specified" );
 
-        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
+        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, EMPTY );
     }
 
     /**
@@ -190,7 +192,7 @@ public class AnalyticsSqlUtils
     {
         if ( StringUtils.isEmpty( str ) )
         {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         int open = 0;
@@ -213,11 +215,20 @@ public class AnalyticsSqlUtils
         return StringUtils.repeat( ")", open );
     }
 
-    public static String getCoalesce( List<String> fields )
+    /**
+     * The method creates the coalesce function for coordinates fallback.
+     *
+     * @param fields Collection of coordinate fields.
+     * @param defaultColumnName Default coordinate field
+     * @return Example:
+     *         ST_AsGeoJSON(coalesce(ax."psigeometry",ax."pigeometry",ax."ougeometry").
+     *         or default coordinate field.
+     */
+    public static String getCoalesce( List<String> fields, String defaultColumnName )
     {
         if ( fields == null )
         {
-            return StringUtils.EMPTY;
+            return defaultColumnName;
         }
 
         String args = fields.stream()
@@ -225,7 +236,28 @@ public class AnalyticsSqlUtils
             .map( AnalyticsSqlUtils::quoteAlias )
             .collect( Collectors.joining( "," ) );
 
-        return args.isEmpty() ? "null"
+        return args.isEmpty() ? defaultColumnName
             : "coalesce(" + args + ")";
+    }
+
+    /**
+     * This method will simply prefix the given "collate" with the collate
+     * function. ie: Posix -> collate "Posix"
+     *
+     * The final statement is surrounded by blank spaces to make its usage safet
+     * to the caller.
+     *
+     * @param collate the type of collate to be used.
+     * @return the collate statement, or blank if the given "collate" is
+     *         null/blank.
+     */
+    public static String getCollate( String collate )
+    {
+        if ( isNotBlank( collate ) )
+        {
+            return " collate \"" + collate + "\" ";
+        }
+
+        return EMPTY;
     }
 }

@@ -56,7 +56,7 @@ public class SqlView
     public static final String PREFIX_VIEWNAME = "_view";
 
     public static final Set<String> PROTECTED_TABLES = Set.of(
-        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue",
+        "users", "userinfo", "trackedentityattributevalue",
         "oauth_access_token", "oauth2client" );
 
     public static final Set<String> ILLEGAL_KEYWORDS = Set.of(

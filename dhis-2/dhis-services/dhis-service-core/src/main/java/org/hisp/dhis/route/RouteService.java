@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -52,6 +53,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -98,7 +100,7 @@ public class RouteService
 
         if ( route == null )
         {
-            route = routeStore.getByUidNoAcl( id );
+            route = routeStore.getByCodeNoAcl( id );
         }
 
         if ( route == null || route.isDisabled() )
@@ -121,11 +123,16 @@ public class RouteService
         return route;
     }
 
-    public ResponseEntity<String> exec( Route route, HttpServletRequest request )
+    public ResponseEntity<String> exec( Route route, User user, HttpServletRequest request )
         throws IOException
     {
         HttpHeaders headers = new HttpHeaders();
         route.getHeaders().forEach( headers::add );
+
+        if ( user != null && StringUtils.hasText( user.getUsername() ) )
+        {
+            headers.add( "X-Forwarded-User", user.getUsername() );
+        }
 
         if ( route.getAuth() != null )
         {

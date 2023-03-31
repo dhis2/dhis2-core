@@ -78,4 +78,10 @@ public final class ConflictException extends Exception implements Error
         super( MessageFormat.format( code.getMessage(), args ) );
         this.code = code;
     }
+
+    public ConflictException( ErrorMessage message )
+    {
+        super( message.getMessage() );
+        this.code = message.getErrorCode();
+    }
 }

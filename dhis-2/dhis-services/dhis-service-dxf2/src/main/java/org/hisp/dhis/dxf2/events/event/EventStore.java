@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 
@@ -61,14 +60,13 @@ public interface EventStore
      */
     List<ProgramStageInstance> updateEvents( List<ProgramStageInstance> programStageInstances );
 
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
-        Map<String, Set<String>> psdesWithSkipSyncTrue );
+    List<Event> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
-    List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+    List<Map<String, String>> getEventsGrid( EventSearchParams params );
 
-    List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+    List<EventRow> getEventRows( EventSearchParams params );
 
-    int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+    int getEventCount( EventSearchParams params );
 
     /**
      * Delete list of given events to be removed. This operation also remove

@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -380,9 +381,25 @@ public class DefaultProgramIndicatorService
         return expression
             + "|" + dataType.name()
             + "|" + programIndicator.getUid()
-            + "|" + startDate.getTime()
-            + "|" + endDate.getTime()
+            + dateIfPresent( startDate )
+            + dateIfPresent( endDate )
             + "|" + (tableAlias == null ? "" : tableAlias);
+    }
+
+    /**
+     * Returns the time in milliseconds if the date is present, otherwise an
+     * empty string.
+     *
+     * @param date the date
+     * @return the time in milliseconds if the date is present, otherwise an
+     *         empty string.
+     */
+    private String dateIfPresent( Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( Date::getTime )
+            .map( millis -> "|" + millis )
+            .orElse( StringUtils.EMPTY );
     }
 
     private String _getAnalyticsSql( String expression, DataType dataType, ProgramIndicator programIndicator,

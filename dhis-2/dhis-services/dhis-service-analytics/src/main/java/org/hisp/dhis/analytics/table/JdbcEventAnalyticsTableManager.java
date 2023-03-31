@@ -101,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
-    private static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
+    static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
 
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
@@ -126,8 +126,16 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
-        new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
-        new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+
+        /*
+         * DHIS2-14981: Use the client-side timestamp if available, otherwise
+         * the server-side timestamp. Applies to both created and lastupdated.
+         */
+        new AnalyticsTableColumn( quote( "created" ), TIMESTAMP,
+            firstIfNotNullOrElse( "psi.createdatclient", "psi.created" ) ),
+        new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP,
+            firstIfNotNullOrElse( "psi.lastupdatedatclient", "psi.lastupdated" ) ),
+
         new AnalyticsTableColumn( quote( "storedby" ), VARCHAR_255, "psi.storedby" ),
         new AnalyticsTableColumn( quote( "createdbyusername" ), VARCHAR_255,
             "psi.createdbyuserinfo ->> 'username' as createdbyusername" ),
@@ -167,6 +175,19 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "enrollmentou" ), CHARACTER_11, NOT_NULL,
             "coalesce(enrollmentou.uid,ou.uid)" ) );
 
+    /**
+     * Returns a SQL expression that returns the first argument if it is not
+     * null, otherwise the second argument.
+     *
+     * @param first the first argument
+     * @param second the second argument
+     * @return a SQL expression
+     */
+    private static String firstIfNotNullOrElse( String first, String second )
+    {
+        return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
+    }
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
@@ -195,7 +216,7 @@ public class JdbcEventAnalyticsTableManager
      * @return a statement that returns the date column related to the
      *         event(program stage instance) status
      */
-    private static String getDateLinkedToStatus()
+    static String getDateLinkedToStatus()
     {
         return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
     }

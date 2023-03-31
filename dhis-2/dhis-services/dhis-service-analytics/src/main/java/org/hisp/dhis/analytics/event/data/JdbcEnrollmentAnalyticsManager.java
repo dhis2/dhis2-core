@@ -49,13 +49,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -337,7 +338,9 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + getCoalesce( params.getCoordinateFields() ) + IS_NOT_NULL;
+            sql += "and "
+                + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue() )
+                + IS_NOT_NULL;
         }
 
         if ( params.isCompletedOnly() )
@@ -347,7 +350,9 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += "and " + getCoalesce( params.getCoordinateFields() ) + " && ST_MakeEnvelope(" + params.getBbox()
+            sql += "and "
+                + getCoalesce( params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue() )
+                + " && ST_MakeEnvelope(" + params.getBbox()
                 + ",4326) ";
         }
 

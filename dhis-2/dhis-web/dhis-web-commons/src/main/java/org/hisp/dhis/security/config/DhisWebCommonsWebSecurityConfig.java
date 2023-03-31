@@ -37,12 +37,10 @@ import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
-import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
@@ -69,9 +67,9 @@ import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -96,6 +94,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
     "classpath*:/META-INF/dhis/beans-maintenance-mobile.xml", "classpath*:/META-INF/dhis/beans-approval.xml" } )
 public class DhisWebCommonsWebSecurityConfig
 {
+    public static final Map<String, String> IGNORED_REDIRECTS_AFTER_LOGIN_MAP = Map.of(
+        "/dhis-web-commons-stream/ping.action", "/",
+        "/api/files/style/external", "/" );
+
     /**
      * This configuration class is responsible for setting up the session
      * management.
@@ -107,24 +109,18 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisConfigurationProvider dhisConfig;
 
-        @Bean
-        public static SessionRegistryImpl sessionRegistry()
-        {
-            return new org.springframework.security.core.session.SessionRegistryImpl();
-        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
         {
             http
                 .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
                 .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
                 .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                .expiredUrl( "/dhis-web-commons-security/logout.action" )
-                .sessionRegistry( sessionRegistry() );
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
         }
     }
 
@@ -138,9 +134,6 @@ public class DhisWebCommonsWebSecurityConfig
     {
         @Autowired
         private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
-
-        @Autowired
-        private I18nManager i18nManager;
 
         @Autowired
         private DhisConfigurationProvider dhisConfig;
@@ -165,9 +158,6 @@ public class DhisWebCommonsWebSecurityConfig
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Autowired
-        private DhisOidcProviderRepository dhisOidcProviderRepository;
-
-        @Autowired
         private ConfigurationService configurationService;
 
         @Override
@@ -180,6 +170,12 @@ public class DhisWebCommonsWebSecurityConfig
         }
 
         @Override
+        public void configure( WebSecurity web )
+        {
+            web.ignoring().antMatchers( "/api/ping" );
+        }
+
+        @Override
         protected void configure( HttpSecurity http )
             throws Exception
         {
@@ -187,6 +183,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .authorizeRequests()
                 .accessDecisionManager( accessDecisionManager() )
                 .requestMatchers( analyticsPluginResources() ).permitAll()
+
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
 
                 .antMatchers( "/api/staticContent/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/oidc/**" ).permitAll()
@@ -294,11 +292,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
-            {
-                successHandler.setSessionTimeout(
-                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
-            }
 
             return successHandler;
         }
@@ -307,7 +300,7 @@ public class DhisWebCommonsWebSecurityConfig
         public MappedRedirectStrategy mappedRedirectStrategy()
         {
             MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
-            mappedRedirectStrategy.setRedirectMap( Map.of( "/dhis-web-commons-stream/ping.action", "/" ) );
+            mappedRedirectStrategy.setRedirectMap( IGNORED_REDIRECTS_AFTER_LOGIN_MAP );
             mappedRedirectStrategy.setDeviceResolver( deviceResolver() );
 
             return mappedRedirectStrategy;
