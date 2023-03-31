@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.association.jdbc;
 
+import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
@@ -78,53 +79,44 @@ public class JdbcOrgUnitAssociationsStore
             } );
     }
 
-    public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
+    /**
+     * Look for a program - org Unit association in a Cache. If the association
+     * exists we return true, otherwise we do a database lookup, check if the
+     * input org Unit is associated with the program and add to the cache
+     *
+     * @param program
+     * @param orgUnit
+     * @return
+     */
+    public boolean checkOrganisationUnitsAssociations( String program, String orgUnit )
     {
-        if ( uids.isEmpty() )
+        if ( orgUnitAssociationCache.get( program ).isEmpty()
+            || !orgUnitAssociationCache.get( program ).get().contains( orgUnit ) )
         {
-            return new HashSetValuedHashMap<>();
-        }
-
-        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
-
-        boolean cached = true;
-        for ( String uid : uids )
-        {
-            Optional<Set<String>> orgUnitUids = orgUnitAssociationCache.get( uid );
-            if ( !orgUnitUids.isPresent() )
-            {
-                cached = false;
-                break;
-            }
-            else
-            {
-                setValuedMap.putAll( uid, orgUnitUids.get() );
-            }
-        }
-
-        if ( cached )
-        {
-            return setValuedMap;
-        }
-        else
-        {
-            setValuedMap.clear();
-            jdbcTemplate.query(
-                queryBuilder.buildSqlQueryForRawAssociation( uids ),
+            return jdbcTemplate.query( queryBuilder
+                .buildSqlQueryForRawAssociation( Set.of( program ) ),
                 resultSet -> {
+
+                    SetValuedMap<String, String> programToOrgUnitsMap = new HashSetValuedHashMap<>();
+
                     while ( resultSet.next() )
                     {
-                        setValuedMap.putAll(
-                            resultSet.getString( 1 ),
-                            Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
-                        orgUnitAssociationCache.put( resultSet.getString( 1 ),
-                            new HashSet<>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
+                        String programResultSet = resultSet.getString( 1 );
+                        Array orgUnitsResultSet = resultSet.getArray( 2 );
 
+                        programToOrgUnitsMap.putAll( programResultSet,
+                            Arrays.asList( (String[]) orgUnitsResultSet.getArray() ) );
+
+                        orgUnitAssociationCache.put( programResultSet,
+                            new HashSet<>( programToOrgUnitsMap.get( programResultSet ) ) );
                     }
-                    return setValuedMap;
-                } );
-            return setValuedMap;
+
+                    return Optional.ofNullable( programToOrgUnitsMap.get( program ) ).orElse( new HashSet<>() );
+
+                } ).contains( orgUnit );
         }
+
+        return true;
     }
 
     private Set<String> getUserOrgUnitPaths()
