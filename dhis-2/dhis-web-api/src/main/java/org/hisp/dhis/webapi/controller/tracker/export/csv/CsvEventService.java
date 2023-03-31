@@ -25,17 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.event.csv;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface CsvEventService<T>
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+
+public interface CsvEventService
 {
-    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
+    void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
         throws IOException;
+
+    List<Event> readEvents( InputStream inputStream, boolean skipFirst )
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }
