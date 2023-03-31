@@ -206,9 +206,9 @@ public class DefaultProgramService
     }
 
     @Override
-    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    public boolean checkProgramOrganisationUnitsAssociations( String program, String orgUnit )
     {
-        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
+        return jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnit );
     }
 
 }

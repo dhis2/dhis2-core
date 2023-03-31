@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.jdbc;
 
+import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
@@ -53,7 +54,7 @@ public class JdbcOrgUnitAssociationsStore
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    private final Cache<Set<String>> orgUnitAssocCache;
+    private final Cache<Set<String>> orgUnitAssociationCache;
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
@@ -75,48 +76,44 @@ public class JdbcOrgUnitAssociationsStore
             } );
     }
 
-    public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
+    /**
+     * Look for a program - org Unit association in a Cache. If the association
+     * exists we return true, otherwise we do a database lookup, check if the
+     * input org Unit is associated with the program and add to the cache
+     *
+     * @param program
+     * @param orgUnit
+     * @return
+     */
+    public boolean checkOrganisationUnitsAssociations( String program, String orgUnit )
     {
-        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
-
-        boolean cached = true;
-        for ( String uid : uids )
+        if ( orgUnitAssociationCache.get( program ).isEmpty()
+            || !orgUnitAssociationCache.get( program ).get().contains( orgUnit ) )
         {
-            Optional<Set<String>> orgUnitUids = orgUnitAssocCache.get( uid );
-            if ( !orgUnitUids.isPresent() )
-            {
-                cached = false;
-                break;
-            }
-            else
-            {
-                setValuedMap.putAll( uid, orgUnitUids.get() );
-            }
-        }
-
-        if ( cached )
-        {
-            return setValuedMap;
-        }
-        else
-        {
-            setValuedMap.clear();
-            jdbcTemplate.query(
-                queryBuilder.buildSqlQueryForRawAssociation( uids ),
+            return jdbcTemplate.query( queryBuilder
+                .buildSqlQueryForRawAssociation( Set.of( program ) ),
                 resultSet -> {
+
+                    SetValuedMap<String, String> programToOrgUnitsMap = new HashSetValuedHashMap<>();
+
                     while ( resultSet.next() )
                     {
-                        setValuedMap.putAll(
-                            resultSet.getString( 1 ),
-                            Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
-                        orgUnitAssocCache.put( resultSet.getString( 1 ),
-                            new HashSet<String>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
+                        String programResultSet = resultSet.getString( 1 );
+                        Array orgUnitsResultSet = resultSet.getArray( 2 );
 
+                        programToOrgUnitsMap.putAll( programResultSet,
+                            Arrays.asList( (String[]) orgUnitsResultSet.getArray() ) );
+
+                        orgUnitAssociationCache.put( programResultSet,
+                            new HashSet<>( programToOrgUnitsMap.get( programResultSet ) ) );
                     }
-                    return setValuedMap;
-                } );
-            return setValuedMap;
+
+                    return Optional.ofNullable( programToOrgUnitsMap.get( program ) ).orElse( new HashSet<>() );
+
+                } ).contains( orgUnit );
         }
+
+        return true;
     }
 
     private Set<String> getUserOrgUnitPaths()
@@ -135,5 +132,4 @@ public class JdbcOrgUnitAssociationsStore
         return allUserOrgUnitPaths.stream()
             .anyMatch( path -> !path.equals( orgUnitPath ) && orgUnitPath.startsWith( path ) );
     }
-
 }
