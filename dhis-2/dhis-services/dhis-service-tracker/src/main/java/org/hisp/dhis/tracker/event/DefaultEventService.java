@@ -278,9 +278,9 @@ public class DefaultEventService implements EventService
         }
 
         if ( violation == null && params.hasLastUpdatedDuration()
-            && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+            && DateUtils.getDuration( params.getUpdatedAtDuration() ) == null )
         {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+            violation = "Duration is not valid: " + params.getUpdatedAtDuration();
         }
 
         if ( violation == null && params.getOrgUnit() != null

@@ -42,24 +42,24 @@ import static org.hisp.dhis.tracker.event.EventQuery.COLUMNS.STOREDBY;
 import static org.hisp.dhis.tracker.event.EventQuery.COLUMNS.UID;
 import static org.hisp.dhis.tracker.event.EventQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_COMPLETED_AT_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_CREATED_BY_USER_INFO_ID;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_CREATED_AT_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_CREATED_BY_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_DUE_DATE_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_GEOMETRY;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_LAST_UPDATED_BY_USER_INFO_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_OCCURRED_AT_DATE_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_ORG_UNIT_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_PROGRAM_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_SCHEDULE_AT_DATE_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.tracker.event.EventSearchParams.EVENT_UPDATED_AT_ID;
 import static org.hisp.dhis.tracker.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
@@ -193,19 +193,18 @@ public class JdbcEventStore implements EventStore
         builder.put( EVENT_ORG_UNIT_ID, "ou_uid" );
         builder.put( EVENT_ORG_UNIT_NAME, "ou_name" );
         builder.put( "trackedEntityInstance", "tei_uid" );
-        builder.put( "occurredAt", "psi_executiondate" );
-        builder.put( EVENT_EXECUTION_DATE_ID, "psi_executiondate" );
+        builder.put( EVENT_OCCURRED_AT_DATE_ID, "psi_executiondate" );
         builder.put( "followup", "pi_followup" );
         builder.put( EVENT_STATUS_ID, PSI_STATUS );
-        builder.put( EVENT_DUE_DATE_ID, "psi_duedate" );
+        builder.put( EVENT_SCHEDULE_AT_DATE_ID, "psi_duedate" );
         builder.put( EVENT_STORED_BY_ID, "psi_storedby" );
-        builder.put( EVENT_LAST_UPDATED_BY_USER_INFO_ID, "psi_lastupdatedbyuserinfo" );
-        builder.put( EVENT_CREATED_BY_USER_INFO_ID, "psi_createdbyuserinfo" );
-        builder.put( EVENT_CREATED_ID, "psi_created" );
-        builder.put( EVENT_LAST_UPDATED_ID, "psi_lastupdated" );
+        builder.put( EVENT_LAST_UPDATED_ID, "psi_lastupdatedbyuserinfo" );
+        builder.put( EVENT_CREATED_BY_ID, "psi_createdbyuserinfo" );
+        builder.put( EVENT_CREATED_AT_ID, "psi_created" );
+        builder.put( EVENT_UPDATED_AT_ID, "psi_lastupdated" );
         builder.put( EVENT_COMPLETED_BY_ID, "psi_completedby" );
         builder.put( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc" );
-        builder.put( EVENT_COMPLETED_DATE_ID, "psi_completeddate" );
+        builder.put( EVENT_COMPLETED_AT_ID, "psi_completeddate" );
         builder.put( EVENT_DELETED, "psi_deleted" );
         builder.put( "assignedUser", "user_assigned_username" );
         builder.put( "assignedUserDisplayName", "user_assigned_name" );
@@ -215,15 +214,15 @@ public class JdbcEventStore implements EventStore
 
     private static final Map<String, String> COLUMNS_ALIAS_MAP = ImmutableMap.<String, String> builder()
         .put( UID.getQueryElement().useInSelect(), EVENT_ID )
-        .put( CREATED.getQueryElement().useInSelect(), EVENT_CREATED_ID )
-        .put( UPDATED.getQueryElement().useInSelect(), EVENT_LAST_UPDATED_ID )
+        .put( CREATED.getQueryElement().useInSelect(), EVENT_CREATED_AT_ID )
+        .put( UPDATED.getQueryElement().useInSelect(), EVENT_UPDATED_AT_ID )
         .put( STOREDBY.getQueryElement().useInSelect(), EVENT_STORED_BY_ID )
-        .put( "psi.createdbyuserinfo", EVENT_CREATED_BY_USER_INFO_ID )
-        .put( "psi.lastupdatedbyuserinfo", EVENT_LAST_UPDATED_BY_USER_INFO_ID )
+        .put( "psi.createdbyuserinfo", EVENT_CREATED_BY_ID )
+        .put( "psi.lastupdatedbyuserinfo", EVENT_LAST_UPDATED_ID )
         .put( COMPLETEDBY.getQueryElement().useInSelect(), EVENT_COMPLETED_BY_ID )
-        .put( COMPLETEDDATE.getQueryElement().useInSelect(), EVENT_COMPLETED_DATE_ID )
-        .put( DUE_DATE.getQueryElement().useInSelect(), EVENT_DUE_DATE_ID )
-        .put( EXECUTION_DATE.getQueryElement().useInSelect(), EVENT_EXECUTION_DATE_ID )
+        .put( COMPLETEDDATE.getQueryElement().useInSelect(), EVENT_COMPLETED_AT_ID )
+        .put( DUE_DATE.getQueryElement().useInSelect(), EVENT_SCHEDULE_AT_DATE_ID )
+        .put( EXECUTION_DATE.getQueryElement().useInSelect(), EVENT_OCCURRED_AT_DATE_ID )
         .put( "ou.uid", EVENT_ORG_UNIT_ID )
         .put( "ou.name", EVENT_ORG_UNIT_NAME )
         .put( STATUS.getQueryElement().useInSelect(), EVENT_STATUS_ID )
@@ -236,8 +235,9 @@ public class JdbcEventStore implements EventStore
         .build();
 
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID,
-        EVENT_CREATED_ID, EVENT_CREATED_BY_USER_INFO_ID, EVENT_LAST_UPDATED_ID, EVENT_LAST_UPDATED_BY_USER_INFO_ID,
-        EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID, EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID,
+        EVENT_CREATED_AT_ID, EVENT_CREATED_BY_ID, EVENT_UPDATED_AT_ID, EVENT_LAST_UPDATED_ID,
+        EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_AT_ID, EVENT_OCCURRED_AT_DATE_ID,
+        EVENT_SCHEDULE_AT_DATE_ID,
         EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
         EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED, EVENT_GEOMETRY );
 
@@ -927,18 +927,18 @@ public class JdbcEventStore implements EventStore
                 .append( " (pi.incidentdate >= :enrollmentOccurredAfter ) " );
         }
 
-        if ( params.getDueDateStart() != null )
+        if ( params.getScheduleAtStart() != null )
         {
-            mapSqlParameterSource.addValue( "startDueDate", params.getDueDateStart(), Types.TIMESTAMP );
+            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStart(), Types.TIMESTAMP );
 
             fromBuilder
                 .append( hlp.whereAnd() )
                 .append( " (psi.duedate is not null and psi.duedate >= :startDueDate ) " );
         }
 
-        if ( params.getDueDateEnd() != null )
+        if ( params.getScheduleAtEnd() != null )
         {
-            mapSqlParameterSource.addValue( "endDueDate", params.getDueDateEnd(), Types.TIMESTAMP );
+            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEnd(), Types.TIMESTAMP );
 
             fromBuilder
                 .append( hlp.whereAnd() )
@@ -1338,9 +1338,9 @@ public class JdbcEventStore implements EventStore
                 .append( ":skipChangedBefore " );
         }
 
-        if ( params.getDueDateStart() != null )
+        if ( params.getScheduleAtStart() != null )
         {
-            mapSqlParameterSource.addValue( "startDueDate", params.getDueDateStart(), Types.DATE );
+            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStart(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate >= " )
@@ -1348,9 +1348,9 @@ public class JdbcEventStore implements EventStore
                 .append( " " );
         }
 
-        if ( params.getDueDateEnd() != null )
+        if ( params.getScheduleAtEnd() != null )
         {
-            mapSqlParameterSource.addValue( "endDueDate", params.getDueDateEnd(), Types.DATE );
+            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEnd(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate <= " )
@@ -1458,7 +1458,7 @@ public class JdbcEventStore implements EventStore
         if ( params.hasLastUpdatedDuration() )
         {
             mapSqlParameterSource.addValue( "lastUpdated", DateUtils.offSetDateTimeFrom(
-                DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ), Types.TIMESTAMP_WITH_TIMEZONE );
+                DateUtils.nowMinusDuration( params.getUpdatedAtDuration() ) ), Types.TIMESTAMP_WITH_TIMEZONE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( PSI_LASTUPDATED_GT )
@@ -1469,7 +1469,7 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                mapSqlParameterSource.addValue( "lastUpdatedStart", params.getLastUpdatedStartDate(), Types.TIMESTAMP );
+                mapSqlParameterSource.addValue( "lastUpdatedStart", params.getUpdatedAtStartDate(), Types.TIMESTAMP );
 
                 sqlBuilder.append( hlp.whereAnd() )
                     .append( PSI_LASTUPDATED_GT )
@@ -1481,7 +1481,7 @@ public class JdbcEventStore implements EventStore
             {
                 if ( useDateAfterEndDate )
                 {
-                    mapSqlParameterSource.addValue( "lastUpdatedEnd", addDays( params.getLastUpdatedEndDate(), 1 ),
+                    mapSqlParameterSource.addValue( "lastUpdatedEnd", addDays( params.getUpdatedAtEndDate(), 1 ),
                         Types.TIMESTAMP );
 
                     sqlBuilder.append( hlp.whereAnd() )
@@ -1491,7 +1491,7 @@ public class JdbcEventStore implements EventStore
                 }
                 else
                 {
-                    mapSqlParameterSource.addValue( "lastUpdatedEnd", params.getLastUpdatedEndDate(), Types.TIMESTAMP );
+                    mapSqlParameterSource.addValue( "lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP );
 
                     sqlBuilder.append( hlp.whereAnd() )
                         .append( " psi.lastupdated <= " )

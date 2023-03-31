@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -381,6 +382,17 @@ public class TrackerExportTests
             .statusCode( 200 )
             .rootPath( "instances[0]" )
             .body( "event", equalTo( "ZwwuwNp6gVd" ) );
+    }
+
+    @Test
+    void shouldReturnInvalidPropertyWhenOrderOnLegacyCreatedField()
+    {
+        ApiResponse response = trackerActions.get( "events?order=created:desc" );
+        response
+            .validate()
+            .statusCode( 400 )
+            .body( "status", CoreMatchers.equalTo( "ERROR" ) )
+            .body( "message", CoreMatchers.equalTo( "Invalid order property: created" ) );
     }
 
     @Test

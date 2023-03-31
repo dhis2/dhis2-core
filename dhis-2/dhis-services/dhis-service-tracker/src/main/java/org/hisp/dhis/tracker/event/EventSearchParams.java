@@ -61,23 +61,23 @@ public class EventSearchParams
 
     public static final String EVENT_ENROLLMENT_ID = "enrollment";
 
-    public static final String EVENT_CREATED_ID = "created";
+    public static final String EVENT_CREATED_AT_ID = "createdAt";
 
-    public static final String EVENT_CREATED_BY_USER_INFO_ID = "createdbyuserinfo";
+    public static final String EVENT_CREATED_BY_ID = "createdby";
 
-    public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
+    public static final String EVENT_UPDATED_AT_ID = "updatedAt";
 
-    public static final String EVENT_LAST_UPDATED_BY_USER_INFO_ID = "lastUpdatedbyuserinfo";
+    public static final String EVENT_LAST_UPDATED_ID = "updatedBy";
 
     public static final String EVENT_STORED_BY_ID = "storedBy";
 
     public static final String EVENT_COMPLETED_BY_ID = "completedBy";
 
-    public static final String EVENT_COMPLETED_DATE_ID = "completedDate";
+    public static final String EVENT_COMPLETED_AT_ID = "completedAt";
 
-    public static final String EVENT_DUE_DATE_ID = "dueDate";
+    public static final String EVENT_SCHEDULE_AT_DATE_ID = "scheduleAt";
 
-    public static final String EVENT_EXECUTION_DATE_ID = "eventDate";
+    public static final String EVENT_OCCURRED_AT_DATE_ID = "occurredAt";
 
     public static final String EVENT_ORG_UNIT_ID = "orgUnit";
 
@@ -127,18 +127,18 @@ public class EventSearchParams
 
     private EventStatus eventStatus;
 
-    private Date lastUpdatedStartDate;
+    private Date updatedAtStartDate;
 
-    private Date lastUpdatedEndDate;
+    private Date updatedAtEndDate;
 
     /**
      * The last updated duration filter.
      */
-    private String lastUpdatedDuration;
+    private String updatedAtDuration;
 
-    private Date dueDateStart;
+    private Date scheduleAtStart;
 
-    private Date dueDateEnd;
+    private Date scheduleAtEnd;
 
     private Date enrollmentEnrolledBefore;
 
@@ -265,7 +265,7 @@ public class EventSearchParams
      */
     public boolean hasLastUpdatedStartDate()
     {
-        return lastUpdatedStartDate != null;
+        return updatedAtStartDate != null;
     }
 
     /**
@@ -273,7 +273,7 @@ public class EventSearchParams
      */
     public boolean hasLastUpdatedEndDate()
     {
-        return lastUpdatedEndDate != null;
+        return updatedAtEndDate != null;
     }
 
     /**
@@ -281,7 +281,7 @@ public class EventSearchParams
      */
     public boolean hasLastUpdatedDuration()
     {
-        return lastUpdatedDuration != null;
+        return updatedAtDuration != null;
     }
 
     /**
@@ -467,58 +467,58 @@ public class EventSearchParams
         return this;
     }
 
-    public Date getLastUpdatedStartDate()
+    public Date getUpdatedAtStartDate()
     {
-        return lastUpdatedStartDate;
+        return updatedAtStartDate;
     }
 
-    public EventSearchParams setLastUpdatedStartDate( Date lastUpdatedStartDate )
+    public EventSearchParams setUpdatedAtStartDate( Date updatedAtStartDate )
     {
-        this.lastUpdatedStartDate = lastUpdatedStartDate;
+        this.updatedAtStartDate = updatedAtStartDate;
         return this;
     }
 
-    public Date getLastUpdatedEndDate()
+    public Date getUpdatedAtEndDate()
     {
-        return lastUpdatedEndDate;
+        return updatedAtEndDate;
     }
 
-    public EventSearchParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
+    public EventSearchParams setUpdatedAtEndDate( Date updatedAtEndDate )
     {
-        this.lastUpdatedEndDate = lastUpdatedEndDate;
+        this.updatedAtEndDate = updatedAtEndDate;
         return this;
     }
 
-    public String getLastUpdatedDuration()
+    public String getUpdatedAtDuration()
     {
-        return lastUpdatedDuration;
+        return updatedAtDuration;
     }
 
-    public EventSearchParams setLastUpdatedDuration( String lastUpdatedDuration )
+    public EventSearchParams setUpdatedAtDuration( String updatedAtDuration )
     {
-        this.lastUpdatedDuration = lastUpdatedDuration;
+        this.updatedAtDuration = updatedAtDuration;
         return this;
     }
 
-    public Date getDueDateStart()
+    public Date getScheduleAtStart()
     {
-        return dueDateStart;
+        return scheduleAtStart;
     }
 
-    public EventSearchParams setDueDateStart( Date dueDateStart )
+    public EventSearchParams setScheduleAtStart( Date scheduleAtStart )
     {
-        this.dueDateStart = dueDateStart;
+        this.scheduleAtStart = scheduleAtStart;
         return this;
     }
 
-    public Date getDueDateEnd()
+    public Date getScheduleAtEnd()
     {
-        return dueDateEnd;
+        return scheduleAtEnd;
     }
 
-    public EventSearchParams setDueDateEnd( Date dueDateEnd )
+    public EventSearchParams setScheduleAtEnd( Date scheduleAtEnd )
     {
-        this.dueDateEnd = dueDateEnd;
+        this.scheduleAtEnd = scheduleAtEnd;
         return this;
     }
 
