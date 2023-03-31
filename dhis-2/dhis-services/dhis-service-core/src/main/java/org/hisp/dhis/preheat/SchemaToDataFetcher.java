@@ -35,11 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.beanutils.BeanUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
@@ -47,107 +48,118 @@ import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for fetching all the unique attributes for a {@link
- * IdentifiableObject} subclass.
+ * This component is responsible for fetching all the unique attributes for a
+ * {@link IdentifiableObject} subclass.
  *
  * @author Luciano Fiandesio
  */
 @Slf4j
 @Component
-public class SchemaToDataFetcher {
-  @PersistenceContext private EntityManager entityManager;
+public class SchemaToDataFetcher
+{
+    private final EntityManager entityManager;
 
-  private SessionFactory sessionFactory;
+    public SchemaToDataFetcher( EntityManager entityManager )
+    {
+        checkNotNull( entityManager );
 
-  public SchemaToDataFetcher(SessionFactory sessionFactory) {
-    checkNotNull(sessionFactory);
-
-    this.sessionFactory = sessionFactory;
-  }
-
-  /**
-   * Executes a read-only query for the given Schema class and fetches only the fields marked as
-   * "unique".
-   *
-   * @param schema a {@link Schema}
-   * @return a List of objects corresponding to the "klass" of the given Schema
-   */
-  public List<? extends IdentifiableObject> fetch(Schema schema) {
-    if (schema == null) {
-      return Collections.emptyList();
+        this.entityManager = entityManager;
     }
 
-    return mapUniqueFields(schema);
-  }
+    /**
+     * Executes a read-only query for the given Schema class and fetches only
+     * the fields marked as "unique".
+     *
+     * @param schema a {@link Schema}
+     * @return a List of objects corresponding to the "klass" of the given
+     *         Schema
+     */
+    public List<? extends IdentifiableObject> fetch( Schema schema )
+    {
+        if ( schema == null )
+        {
+            return Collections.emptyList();
+        }
 
-  @SuppressWarnings("unchecked")
-  private List<? extends IdentifiableObject> mapUniqueFields(Schema schema) {
-    List<Property> uniqueProperties = schema.getUniqueProperties();
-
-    List objects = new ArrayList();
-
-    if (!uniqueProperties.isEmpty()) {
-      final String fields = extractUniqueFields(uniqueProperties);
-
-      objects =
-          entityManager
-              .createQuery("SELECT " + fields + " from " + schema.getKlass().getSimpleName())
-              .setHint(QueryHints.HINT_READONLY, true)
-              .getResultList();
+        return mapUniqueFields( schema );
     }
 
-    // Hibernate returns a List containing an array of Objects if multiple
-    // columns are used in the query
-    // or a "simple" List if only one columns is used in the query
-    return uniqueProperties.size() == 1
-        ? handleSingleColumn(objects, uniqueProperties, schema)
-        : handleMultipleColumn(objects, uniqueProperties, schema);
-  }
+    @SuppressWarnings( "unchecked" )
+    private List<? extends IdentifiableObject> mapUniqueFields( Schema schema )
+    {
+        List<Property> uniqueProperties = schema.getUniqueProperties();
 
-  private List<IdentifiableObject> handleMultipleColumn(
-      List<Object[]> objects, List<Property> uniqueProperties, Schema schema) {
-    List<IdentifiableObject> resultsObjects = new ArrayList<>(objects.size());
+        List objects = new ArrayList();
 
-    for (Object[] uniqueValuesArray : objects) {
-      Map<String, Object> valuesMap = new HashMap<>();
+        if ( !uniqueProperties.isEmpty() )
+        {
+            final String fields = extractUniqueFields( uniqueProperties );
 
-      for (int i = 0; i < uniqueValuesArray.length; i++) {
-        valuesMap.put(uniqueProperties.get(i).getFieldName(), uniqueValuesArray[i]);
-      }
+            objects = entityManager
+                .createQuery( "SELECT " + fields + " from " + schema.getKlass().getSimpleName() )
+                .setHint( QueryHints.HINT_READONLY, true )
+                .getResultList();
+        }
 
-      addToResult(schema, valuesMap, resultsObjects);
+        // Hibernate returns a List containing an array of Objects if multiple
+        // columns are used in the query
+        // or a "simple" List if only one columns is used in the query
+        return uniqueProperties.size() == 1 ? handleSingleColumn( objects, uniqueProperties, schema )
+            : handleMultipleColumn( objects, uniqueProperties, schema );
+
     }
 
-    return resultsObjects;
-  }
+    private List<IdentifiableObject> handleMultipleColumn( List<Object[]> objects, List<Property> uniqueProperties,
+        Schema schema )
+    {
+        List<IdentifiableObject> resultsObjects = new ArrayList<>( objects.size() );
 
-  private List<IdentifiableObject> handleSingleColumn(
-      List<Object> objects, List<Property> uniqueProperties, Schema schema) {
-    List<IdentifiableObject> resultsObjects = new ArrayList<>(objects.size());
-    for (Object uniqueValue : objects) {
-      Map<String, Object> valuesMap = new HashMap<>();
-      valuesMap.put(uniqueProperties.get(0).getFieldName(), uniqueValue);
+        for ( Object[] uniqueValuesArray : objects )
+        {
+            Map<String, Object> valuesMap = new HashMap<>();
 
-      addToResult(schema, valuesMap, resultsObjects);
+            for ( int i = 0; i < uniqueValuesArray.length; i++ )
+            {
+                valuesMap.put( uniqueProperties.get( i ).getFieldName(), uniqueValuesArray[i] );
+            }
+
+            addToResult( schema, valuesMap, resultsObjects );
+        }
+
+        return resultsObjects;
     }
 
-    return resultsObjects;
-  }
+    private List<IdentifiableObject> handleSingleColumn( List<Object> objects, List<Property> uniqueProperties,
+        Schema schema )
+    {
+        List<IdentifiableObject> resultsObjects = new ArrayList<>( objects.size() );
+        for ( Object uniqueValue : objects )
+        {
+            Map<String, Object> valuesMap = new HashMap<>();
+            valuesMap.put( uniqueProperties.get( 0 ).getFieldName(), uniqueValue );
 
-  private void addToResult(
-      Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects) {
-    try {
-      IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
-      BeanUtils.populate(identifiableObject, valuesMap);
-      resultsObjects.add(identifiableObject);
-    } catch (Exception e) {
-      log.error(
-          "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(),
-          e);
+            addToResult( schema, valuesMap, resultsObjects );
+        }
+
+        return resultsObjects;
     }
-  }
 
-  private String extractUniqueFields(List<Property> uniqueProperties) {
-    return uniqueProperties.stream().map(Property::getFieldName).collect(Collectors.joining(","));
-  }
+    private void addToResult( Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects )
+    {
+        try
+        {
+            IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
+            BeanUtils.populate( identifiableObject, valuesMap );
+            resultsObjects.add( identifiableObject );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(), e );
+        }
+    }
+
+    private String extractUniqueFields( List<Property> uniqueProperties )
+    {
+        return uniqueProperties.stream().map( Property::getFieldName ).collect( Collectors.joining( "," ) );
+    }
 }

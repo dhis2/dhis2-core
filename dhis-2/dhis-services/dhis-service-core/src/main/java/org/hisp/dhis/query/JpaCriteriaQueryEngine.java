@@ -34,13 +34,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -55,276 +56,293 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements QueryEngine<T> {
-  private final CurrentUserService currentUserService;
+public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
+    implements QueryEngine<T>
+{
+    private final CurrentUserService currentUserService;
 
-  private final QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-  private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
+    private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
-  @PersistenceContext private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-  private final QueryCacheManager queryCacheManager;
+    private final QueryCacheManager queryCacheManager;
 
-  private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
+    private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
 
-  public JpaCriteriaQueryEngine(
-      CurrentUserService currentUserService,
-      QueryPlanner queryPlanner,
-      List<InternalHibernateGenericStore<T>> hibernateGenericStores,
-      SessionFactory sessionFactory,
-      QueryCacheManager queryCacheManager) {
-    checkNotNull(currentUserService);
-    checkNotNull(queryPlanner);
-    checkNotNull(hibernateGenericStores);
-    checkNotNull(sessionFactory);
+    public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
+        List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory,
+        QueryCacheManager queryCacheManager, EntityManager entityManager )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( queryPlanner );
+        checkNotNull( hibernateGenericStores );
+        checkNotNull( sessionFactory );
+        checkNotNull( entityManager );
 
-    this.currentUserService = currentUserService;
-    this.queryPlanner = queryPlanner;
-    this.hibernateGenericStores = hibernateGenericStores;
-    this.queryCacheManager = queryCacheManager;
-  }
-
-  @Override
-  public List<T> query(Query query) {
-    Schema schema = query.getSchema();
-
-    Class<T> klass = (Class<T>) schema.getKlass();
-
-    InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore(klass);
-
-    if (store == null) {
-      return new ArrayList<>();
+        this.currentUserService = currentUserService;
+        this.queryPlanner = queryPlanner;
+        this.hibernateGenericStores = hibernateGenericStores;
+        this.queryCacheManager = queryCacheManager;
+        this.entityManager = entityManager;
     }
 
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
+    @Override
+    public List<T> query( Query query )
+    {
+        Schema schema = query.getSchema();
+
+        Class<T> klass = (Class<T>) schema.getKlass();
+
+        InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore( klass );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<T> criteriaQuery = builder.createQuery( klass );
+        Root<T> root = criteriaQuery.from( klass );
+
+        if ( query.isEmpty() )
+        {
+            Predicate predicate = builder.conjunction();
+
+            predicate.getExpressions().addAll( store
+                .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+                .collect( Collectors.toList() ) );
+
+            criteriaQuery.where( predicate );
+
+            TypedQuery<T> typedQuery = entityManager.createQuery( criteriaQuery );
+
+            typedQuery.setFirstResult( query.getFirstResult() );
+            typedQuery.setMaxResults( query.getMaxResults() );
+
+            return typedQuery.getResultList();
+        }
+
+        Predicate predicate = buildPredicates( builder, root, query );
+
+        predicate.getExpressions().addAll( store
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+            .collect( Collectors.toList() ) );
+
+        criteriaQuery.where( predicate );
+
+        if ( !query.getOrders().isEmpty() )
+        {
+            criteriaQuery.orderBy( query.getOrders().stream()
+                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getFieldName() ) )
+                    : builder.desc( root.get( o.getProperty().getFieldName() ) ) )
+                .collect( Collectors.toList() ) );
+        }
+
+        TypedQuery<T> typedQuery = entityManager.createQuery( criteriaQuery );
+
+        typedQuery.setFirstResult( query.getFirstResult() );
+        typedQuery.setMaxResults( query.getMaxResults() );
+
+        if ( query.isCacheable() )
+        {
+            typedQuery.setHint( "org.hibernate.cacheable", true );
+            typedQuery.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( klass, typedQuery ) );
+        }
+
+        return typedQuery.getResultList();
     }
 
-    if (!query.isPlannedQuery()) {
-      QueryPlan queryPlan = queryPlanner.planQuery(query, true);
-      query = queryPlan.getPersistedQuery();
+    @Override
+    public long count( Query query )
+    {
+        Schema schema = query.getSchema();
+
+        Class<T> klass = (Class<T>) schema.getKlass();
+
+        InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore( klass );
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery( Long.class );
+        Root<T> root = criteriaQuery.from( klass );
+
+        criteriaQuery.select( builder.count( root ) );
+
+        Predicate predicate = buildPredicates( builder, root, query );
+
+        predicate.getExpressions().addAll( store
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+            .collect( Collectors.toList() ) );
+
+        criteriaQuery.where( predicate );
+
+        if ( !query.getOrders().isEmpty() )
+        {
+            criteriaQuery.orderBy( query.getOrders().stream()
+                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getName() ) )
+                    : builder.desc( root.get( o.getProperty().getName() ) ) )
+                .collect( Collectors.toList() ) );
+        }
+
+        TypedQuery<Long> typedQuery = entityManager.createQuery( criteriaQuery );
+
+        return typedQuery.getSingleResult();
     }
 
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    private void initStoreMap()
+    {
+        if ( !stores.isEmpty() )
+        {
+            return;
+        }
 
-    CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
-    Root<T> root = criteriaQuery.from(klass);
-
-    if (query.isEmpty()) {
-      Predicate predicate = builder.conjunction();
-
-      predicate
-          .getExpressions()
-          .addAll(
-              store.getSharingPredicates(builder, query.getUser()).stream()
-                  .map(t -> t.apply(root))
-                  .collect(Collectors.toList()));
-
-      criteriaQuery.where(predicate);
-
-      TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
-
-      typedQuery.setFirstResult(query.getFirstResult());
-      typedQuery.setMaxResults(query.getMaxResults());
-
-      return typedQuery.getResultList();
+        for ( InternalHibernateGenericStore<T> store : hibernateGenericStores )
+        {
+            stores.put( store.getClazz(), store );
+        }
     }
 
-    Predicate predicate = buildPredicates(builder, root, query);
-
-    predicate
-        .getExpressions()
-        .addAll(
-            store.getSharingPredicates(builder, query.getUser()).stream()
-                .map(t -> t.apply(root))
-                .collect(Collectors.toList()));
-
-    criteriaQuery.where(predicate);
-
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(
-          query.getOrders().stream()
-              .map(
-                  o ->
-                      o.isAscending()
-                          ? builder.asc(root.get(o.getProperty().getFieldName()))
-                          : builder.desc(root.get(o.getProperty().getFieldName())))
-              .collect(Collectors.toList()));
+    private InternalHibernateGenericStore<?> getStore( Class<? extends IdentifiableObject> klass )
+    {
+        initStoreMap();
+        return stores.get( klass );
     }
 
-    TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
+    private <Y> Predicate buildPredicates( CriteriaBuilder builder, Root<Y> root, Query query )
+    {
+        Predicate junction = getJpaJunction( builder, query.getRootJunctionType() );
 
-    typedQuery.setFirstResult(query.getFirstResult());
-    typedQuery.setMaxResults(query.getMaxResults());
+        for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
+        {
+            addPredicate( builder, root, junction, criterion );
+        }
 
-    if (query.isCacheable()) {
-      typedQuery.setHint("org.hibernate.cacheable", true);
-      typedQuery.setHint(
-          "org.hibernate.cacheRegion",
-          queryCacheManager.getQueryCacheRegionName(klass, typedQuery));
+        query.getAliases().forEach( alias -> root.get( alias ).alias( alias ) );
+
+        return junction;
     }
 
-    return typedQuery.getResultList();
-  }
+    private Predicate getJpaJunction( CriteriaBuilder builder, Junction.Type type )
+    {
+        switch ( type )
+        {
+        case AND:
+            return builder.conjunction();
+        case OR:
+            return builder.disjunction();
+        }
 
-  @Override
-  public long count(Query query) {
-    Schema schema = query.getSchema();
-
-    Class<T> klass = (Class<T>) schema.getKlass();
-
-    InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore(klass);
-
-    if (store == null) {
-      return 0;
-    }
-
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
-    }
-
-    if (!query.isPlannedQuery()) {
-      QueryPlan queryPlan = queryPlanner.planQuery(query, true);
-      query = queryPlan.getPersistedQuery();
-    }
-
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-
-    CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
-    Root<T> root = criteriaQuery.from(klass);
-
-    criteriaQuery.select(builder.count(root));
-
-    Predicate predicate = buildPredicates(builder, root, query);
-
-    predicate
-        .getExpressions()
-        .addAll(
-            store.getSharingPredicates(builder, query.getUser()).stream()
-                .map(t -> t.apply(root))
-                .collect(Collectors.toList()));
-
-    criteriaQuery.where(predicate);
-
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(
-          query.getOrders().stream()
-              .map(
-                  o ->
-                      o.isAscending()
-                          ? builder.asc(root.get(o.getProperty().getName()))
-                          : builder.desc(root.get(o.getProperty().getName())))
-              .collect(Collectors.toList()));
-    }
-
-    TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
-
-    return typedQuery.getSingleResult();
-  }
-
-  private void initStoreMap() {
-    if (!stores.isEmpty()) {
-      return;
-    }
-
-    for (InternalHibernateGenericStore<T> store : hibernateGenericStores) {
-      stores.put(store.getClazz(), store);
-    }
-  }
-
-  private InternalHibernateGenericStore<?> getStore(Class<? extends IdentifiableObject> klass) {
-    initStoreMap();
-    return stores.get(klass);
-  }
-
-  private <Y> Predicate buildPredicates(CriteriaBuilder builder, Root<Y> root, Query query) {
-    Predicate junction = getJpaJunction(builder, query.getRootJunctionType());
-
-    for (org.hisp.dhis.query.Criterion criterion : query.getCriterions()) {
-      addPredicate(builder, root, junction, criterion);
-    }
-
-    query.getAliases().forEach(alias -> root.get(alias).alias(alias));
-
-    return junction;
-  }
-
-  private Predicate getJpaJunction(CriteriaBuilder builder, Junction.Type type) {
-    switch (type) {
-      case AND:
         return builder.conjunction();
-      case OR:
-        return builder.disjunction();
     }
 
-    return builder.conjunction();
-  }
+    private <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, Restriction restriction )
+    {
+        if ( restriction == null || restriction.getOperator() == null )
+        {
+            return null;
+        }
 
-  private <Y> Predicate getPredicate(
-      CriteriaBuilder builder, Root<Y> root, Restriction restriction) {
-    if (restriction == null || restriction.getOperator() == null) {
-      return null;
+        return restriction.getOperator().getPredicate( builder, root, restriction.getQueryPath() );
     }
 
-    return restriction.getOperator().getPredicate(builder, root, restriction.getQueryPath());
-  }
+    private <Y> void addPredicate( CriteriaBuilder builder, Root<Y> root, Predicate predicateJunction,
+        org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( criterion instanceof Restriction )
+        {
+            Restriction restriction = (Restriction) criterion;
+            Predicate predicate = getPredicate( builder, root, restriction );
 
-  private <Y> void addPredicate(
-      CriteriaBuilder builder,
-      Root<Y> root,
-      Predicate predicateJunction,
-      org.hisp.dhis.query.Criterion criterion) {
-    if (criterion instanceof Restriction) {
-      Restriction restriction = (Restriction) criterion;
-      Predicate predicate = getPredicate(builder, root, restriction);
+            if ( predicate != null )
+            {
+                predicateJunction.getExpressions().add( predicate );
+            }
+        }
+        else if ( criterion instanceof Junction )
+        {
+            Predicate junction = null;
 
-      if (predicate != null) {
-        predicateJunction.getExpressions().add(predicate);
-      }
-    } else if (criterion instanceof Junction) {
-      Predicate junction = null;
+            if ( criterion instanceof Disjunction )
+            {
+                junction = builder.disjunction();
+            }
+            else if ( criterion instanceof Conjunction )
+            {
+                junction = builder.conjunction();
+            }
 
-      if (criterion instanceof Disjunction) {
-        junction = builder.disjunction();
-      } else if (criterion instanceof Conjunction) {
-        junction = builder.conjunction();
-      }
+            predicateJunction.getExpressions().add( junction );
 
-      predicateJunction.getExpressions().add(junction);
-
-      for (org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions()) {
-        addJunction(builder, root, junction, c);
-      }
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( builder, root, junction, c );
+            }
+        }
     }
-  }
 
-  private <Y> void addJunction(
-      CriteriaBuilder builder,
-      Root<Y> root,
-      Predicate junction,
-      org.hisp.dhis.query.Criterion criterion) {
-    if (criterion instanceof Restriction) {
-      Restriction restriction = (Restriction) criterion;
-      Predicate predicate = getPredicate(builder, root, restriction);
+    private <Y> void addJunction( CriteriaBuilder builder, Root<Y> root, Predicate junction,
+        org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( criterion instanceof Restriction )
+        {
+            Restriction restriction = (Restriction) criterion;
+            Predicate predicate = getPredicate( builder, root, restriction );
 
-      if (predicate != null) {
-        junction.getExpressions().add(predicate);
-      }
-    } else if (criterion instanceof Junction) {
-      Predicate j = null;
+            if ( predicate != null )
+            {
+                junction.getExpressions().add( predicate );
+            }
+        }
+        else if ( criterion instanceof Junction )
+        {
+            Predicate j = null;
 
-      if (criterion instanceof Disjunction) {
-        j = builder.disjunction();
-      } else if (criterion instanceof Conjunction) {
-        j = builder.conjunction();
-      }
+            if ( criterion instanceof Disjunction )
+            {
+                j = builder.disjunction();
+            }
+            else if ( criterion instanceof Conjunction )
+            {
+                j = builder.conjunction();
+            }
 
-      junction.getExpressions().add(j);
+            junction.getExpressions().add( j );
 
-      for (org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions()) {
-        addJunction(builder, root, junction, c);
-      }
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( builder, root, junction, c );
+            }
+        }
     }
-  }
 }
