@@ -166,6 +166,8 @@ public class CommonQueryRequestMapper
             .hierarchyMeta( request.isHierarchyMeta() )
             .showHierarchy( request.isShowHierarchy() )
             .userOrgUnit( userOrgUnits )
+            .coordinatesOnly( request.isCoordinatesOnly() )
+            .geometryOnly( request.isGeometryOnly() )
             .build();
     }
 

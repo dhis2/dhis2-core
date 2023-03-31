@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
+import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
@@ -116,6 +118,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "status" ), VARCHAR_50, "psi.status" ),
+        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( GIST ),
         new AnalyticsTableColumn( quote( "psilongitude" ), DOUBLE,
             "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end" ),
         new AnalyticsTableColumn( quote( "psilatitude" ), DOUBLE,

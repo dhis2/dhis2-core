@@ -1762,4 +1762,210 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "",
                 "Negative (Confirmed)" ) );
     }
+
+    @Test
+    public void queryWithCoordinatesOnly()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=qDkgAbB5Jlk" )
+            .add( "coordinatesOnly=true" )
+            .add( "desc=lastUpdated" )
+            .add( "relativePeriodDate=2020-01-01" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "Zy2SEgA61ys", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 15 ) ) )
+            .body( "height", equalTo( 15 ) )
+            .body( "width", equalTo( 21 ) )
+            .body( "headerWidth", equalTo( 21 ) )
+            .body( "headers", hasSize( equalTo( 21 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of(
+                "F8yKM85NbxW",
+                "2019-08-21 13:31:33.41",
+                "",
+                "",
+                "POINT(-11.7896 8.2593)",
+                "-11.7896",
+                "8.2593",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "ABC123456",
+                "PID0001",
+                "Johnson",
+                "Sarah",
+                "1988-07-10",
+                "",
+                "30",
+                "FEMALE",
+                "",
+                "FR",
+                "" ) );
+
+        validateRow( response, 1,
+            List.of( "DsSlC54GNXy",
+                "2019-08-21 13:31:27.995",
+                "",
+                "",
+                "POINT(-11.773 8.3201)",
+                "-11.773",
+                "8.3201",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "LBO315445",
+                "7hdjdj",
+                "Martin",
+                "Steve",
+                "1976-02-03",
+                "",
+                "43",
+                "FEMALE",
+                "",
+                "",
+                "" ) );
+
+        validateRow( response, 2,
+            List.of( "AuAWm61eD0X",
+                "2019-08-21 13:31:09.399",
+                "",
+                "",
+                "POINT(-11.7809 8.3373)",
+                "-11.7809",
+                "8.3373",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "YOH335093",
+                "",
+                "",
+                "",
+                "1998-02-04",
+                "",
+                "21",
+                "",
+                "",
+                "",
+                "[40.41441,-3.71542]" ) );
+    }
+
+    @Test
+    public void queryWithGeometryOnly()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=qDkgAbB5Jlk" )
+            .add( "geometryOnly=true" )
+            .add( "desc=lastUpdated" )
+            .add( "relativePeriodDate=2020-01-01" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "Zy2SEgA61ys", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 15 ) ) )
+            .body( "height", equalTo( 15 ) )
+            .body( "width", equalTo( 21 ) )
+            .body( "headerWidth", equalTo( 21 ) )
+            .body( "headers", hasSize( equalTo( 21 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of(
+                "F8yKM85NbxW",
+                "2019-08-21 13:31:33.41",
+                "",
+                "",
+                "POINT(-11.7896 8.2593)",
+                "-11.7896",
+                "8.2593",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "ABC123456",
+                "PID0001",
+                "Johnson",
+                "Sarah",
+                "1988-07-10",
+                "",
+                "30",
+                "FEMALE",
+                "",
+                "FR",
+                "" ) );
+
+        validateRow( response, 1,
+            List.of( "DsSlC54GNXy",
+                "2019-08-21 13:31:27.995",
+                "",
+                "",
+                "POINT(-11.773 8.3201)",
+                "-11.773",
+                "8.3201",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "LBO315445",
+                "7hdjdj",
+                "Martin",
+                "Steve",
+                "1976-02-03",
+                "",
+                "43",
+                "FEMALE",
+                "",
+                "",
+                "" ) );
+
+        validateRow( response, 2,
+            List.of( "AuAWm61eD0X",
+                "2019-08-21 13:31:09.399",
+                "",
+                "",
+                "POINT(-11.7809 8.3373)",
+                "-11.7809",
+                "8.3373",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "YOH335093",
+                "",
+                "",
+                "",
+                "1998-02-04",
+                "",
+                "21",
+                "",
+                "",
+                "",
+                "[40.41441,-3.71542]" ) );
+    }
 }

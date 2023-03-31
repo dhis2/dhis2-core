@@ -195,6 +195,16 @@ public class CommonParams
     private final boolean showHierarchy;
 
     /**
+     * weather the query should consider only items with lat/long coordinates
+     */
+    private boolean coordinatesOnly;
+
+    /**
+     * weather the query should consider only items with geometry
+     */
+    private boolean geometryOnly;
+
+    /**
      * Indicates whether this query defines a master identifier scheme different
      * from the default (UID).
      */
