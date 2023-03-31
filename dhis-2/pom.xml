@@ -163,7 +163,7 @@
     <google-api-client.version>2.2.0</google-api-client.version>
     <lombok.version>1.18.26</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.4</joda-time.version>
+    <joda-time.version>2.12.5</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
