@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +46,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -67,6 +69,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -87,6 +90,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     private final PeriodStore periodStore;
 
     private final StatementBuilder statementBuilder;
+
+    private static final String DELETED = "deleted";
+
+    private static final String LAST_UPATED = "lastUpdated";
 
     public HibernateDataValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, PeriodStore periodStore, StatementBuilder statementBuilder )
@@ -181,17 +188,72 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root, dataValue ) )
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), true ) ) );
+            .addPredicate( root -> builder.equal( root.get( DELETED ), true ) ) );
+    }
+
+    @Override
+    public List<DataValue> getAllDataValues()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( DELETED ), false ) ) );
+    }
+
+    @Override
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
+    {
+        if ( startDate == null && endDate == null )
+        {
+            throw new IllegalArgumentException( "Start date or end date must be specified" );
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
+
+        if ( !includeDeleted )
+        {
+            predicateList.add( root -> builder.equal( root.get( DELETED ), false ) );
+        }
+
+        if ( startDate != null )
+        {
+            predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( LAST_UPATED ), startDate ) );
+        }
+
+        if ( endDate != null )
+        {
+            predicateList.add( root -> builder.lessThanOrEqualTo( root.get( LAST_UPATED ), endDate ) );
+        }
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( predicateList )
+            .count( builder::countDistinct ) )
+                .intValue();
+    }
+
+    @Override
+    public boolean dataValueExists( CategoryCombo combo )
+    {
+        String cocIdsSql = "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
+        List<?> cocIds = getSession().createNativeQuery( cocIdsSql )
+            .setParameter( "cc", combo.getId() )
+            .list();
+        String anyDataValueSql = "select 1 from datavalue dv "
+            + "where dv.categoryoptioncomboid in :cocIds or dv.attributeoptioncomboid in :cocIds limit 1";
+        return !getSession().createNativeQuery( anyDataValueSql )
+            .setParameter( "cocIds", cocIds )
+            .list().isEmpty();
     }
 
     // -------------------------------------------------------------------------
-    // Collections of DataValues
+    // getDataValues and related supportive methods
     // -------------------------------------------------------------------------
 
     @Override
     public List<DataValue> getDataValues( DataExportParams params )
     {
-        Set<DataElement> dataElements = params.getAllDataElements();
         Set<Period> periods = reloadAndFilterPeriods( params.getPeriods() );
         Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
 
@@ -202,84 +264,111 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return new ArrayList<>();
         }
 
-        // ---------------------------------------------------------------------
-        // HQL parameters
-        // ---------------------------------------------------------------------
+        String hql = getDataValuesHql( params, periods, organisationUnits );
 
-        String hql = "select dv from DataValue dv " +
+        Query<DataValue> query = getQuery( hql );
+
+        getDataValuesQueryParameters( params, query, periods, organisationUnits );
+
+        // TODO last updated duration support
+
+        return query.list();
+    }
+
+    /**
+     * Reloads the periods in the given collection, and filters out periods
+     * which do not exist in the database.
+     */
+    private Set<Period> reloadAndFilterPeriods( Collection<Period> periods )
+    {
+        return periods != null ? periods.stream()
+            .map( periodStore::reloadPeriod )
+            .filter( Objects::nonNull )
+            .collect( toSet() ) : new HashSet<>();
+    }
+
+    /**
+     * Gets HQL for getDataValues.
+     */
+    private String getDataValuesHql( DataExportParams params, Set<Period> periods,
+        Set<OrganisationUnit> organisationUnits )
+    {
+        StringBuilder hql = new StringBuilder( "select dv from DataValue dv " +
             "inner join dv.dataElement de " +
             "inner join dv.period pe " +
             "inner join dv.source ou " +
             "inner join dv.categoryOptionCombo co " +
             "inner join dv.attributeOptionCombo ao " +
-            "where de.id in (:dataElements) ";
+            "where de.id in (:dataElements) " );
 
         if ( !periods.isEmpty() )
         {
-            hql += "and pe.id in (:periods) ";
+            hql.append( "and pe.id in (:periods) " );
         }
         else if ( params.hasStartEndDate() )
         {
-            hql += "and (pe.startDate >= :startDate and pe.endDate <= :endDate) ";
+            hql.append( "and (pe.startDate >= :startDate and pe.endDate <= :endDate) " );
         }
 
         if ( params.isIncludeDescendantsForOrganisationUnits() )
         {
-            hql += "and (";
+            hql.append( "and (" );
 
-            for ( OrganisationUnit unit : params.getOrganisationUnits() )
-            {
-                hql += "ou.path like '" + unit.getPath() + "%' or ";
-            }
+            hql.append( params.getOrganisationUnits().stream()
+                .map( OrganisationUnit::getPath )
+                .map( p -> "ou.path like '" + p + "%'" )
+                .collect( joining( " or " ) ) );
 
-            hql = removeLastOr( hql );
-
-            hql += ") ";
+            hql.append( ") " );
         }
         else if ( !organisationUnits.isEmpty() )
         {
-            hql += "and ou.id in (:orgUnits) ";
+            hql.append( "and ou.id in (:orgUnits) " );
         }
 
         if ( params.hasCategoryOptionCombos() )
         {
-            hql += "and co.id in (:categoryOptionCombos) ";
+            hql.append( "and co.id in (:categoryOptionCombos) " );
         }
 
         if ( params.hasAttributeOptionCombos() )
         {
-            hql += "and ao.id in (:attributeOptionCombos) ";
+            hql.append( "and ao.id in (:attributeOptionCombos) " );
         }
 
         if ( params.hasLastUpdated() || params.hasLastUpdatedDuration() )
         {
-            hql += "and dv.lastUpdated >= :lastUpdated ";
+            hql.append( "and dv.lastUpdated >= :lastUpdated " );
         }
 
         if ( !params.isIncludeDeleted() )
         {
-            hql += "and dv.deleted is false ";
+            hql.append( "and dv.deleted is false " );
         }
 
         if ( params.isOrderByOrgUnitPath() )
         {
-            hql += "order by ou.path ";
+            hql.append( "order by ou.path " );
         }
 
         if ( params.isOrderByPeriod() )
         {
-            hql += params.isOrderByOrgUnitPath()
+            hql.append( params.isOrderByOrgUnitPath()
                 ? ","
-                : "order by";
-            hql += " pe.startDate, pe.endDate ";
+                : "order by" )
+                .append( " pe.startDate, pe.endDate " );
         }
 
-        // ---------------------------------------------------------------------
-        // Query parameters
-        // ---------------------------------------------------------------------
+        return hql.toString();
+    }
 
-        Query<DataValue> query = getQuery( hql )
-            .setParameterList( "dataElements", getIdentifiers( dataElements ) );
+    /**
+     * Sets Query parameters for getDataValues.
+     */
+    private void getDataValuesQueryParameters( DataExportParams params, Query<DataValue> query, Set<Period> periods,
+        Set<OrganisationUnit> organisationUnits )
+    {
+        query.setParameterList( "dataElements", getIdentifiers( params.getAllDataElements() ) );
 
         if ( !periods.isEmpty() )
         {
@@ -307,192 +396,51 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         if ( params.hasLastUpdated() )
         {
-            query.setParameter( "lastUpdated", params.getLastUpdated() );
+            query.setParameter( LAST_UPATED, params.getLastUpdated() );
         }
         else if ( params.hasLastUpdatedDuration() )
         {
-            query.setParameter( "lastUpdated", DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) );
+            query.setParameter( LAST_UPATED, DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) );
         }
 
         if ( params.hasLimit() )
         {
             query.setMaxResults( params.getLimit() );
         }
-
-        // TODO last updated duration support
-
-        return query.list();
     }
 
-    @Override
-    public List<DataValue> getAllDataValues()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
-    }
+    // -------------------------------------------------------------------------
+    // getDeflatedDataValues and related supportive methods
+    // -------------------------------------------------------------------------
 
     @Override
     public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
         SqlHelper sqlHelper = new SqlHelper( true );
 
-        boolean joinOrgUnit = params.isOrderByOrgUnitPath()
-            || params.hasOrgUnitLevel()
-            || params.getOuMode() == DESCENDANTS
-            || params.isIncludeDescendants();
+        StringBuilder sql = new StringBuilder();
+        StringBuilder where = new StringBuilder();
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid" +
-            ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
-            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" +
-            (joinOrgUnit ? ", ou.path" : "") +
-            " from datavalue dv";
+        getDdvSelectFrom( params, sql );
+        getDdvDataElementsAndOperands( params, sql, where, sqlHelper );
+        getDdvPeriods( params, sql, where, sqlHelper );
+        getDdvOrgUnits( params, sql, where, sqlHelper );
+        getDdvAttributeOptionCombos( params, where, sqlHelper );
+        getDdvDimensionConstraints( params, sql, where, sqlHelper );
+        getDdvLastUpdated( params, where, sqlHelper );
+        getDdvIncludeDeleted( params, where, sqlHelper );
 
-        String where = "";
+        sql.append( where );
 
-        List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
-
-        if ( queryDeos != null )
-        {
-            List<Long> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() )
-                .collect( Collectors.toList() );
-            List<Long> cocIdList = queryDeos.stream()
-                .map( de -> de.getCategoryOptionCombo() == null ? null : de.getCategoryOptionCombo().getId() )
-                .collect( Collectors.toList() );
-
-            sql += " join " + statementBuilder.literalLongLongTable( deIdList, cocIdList, "deo", "deid", "cocid" )
-                + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid::bigint = dv.categoryoptioncomboid)";
-        }
-        else if ( params.hasDataElements() )
-        {
-            String dataElementIdList = getCommaDelimitedString( getIdentifiers( params.getDataElements() ) );
-
-            where += sqlHelper.whereAnd() + "dv.dataelementid in (" + dataElementIdList + ")";
-        }
-
-        if ( params.hasPeriods() )
-        {
-            String periodIdList = getCommaDelimitedString( getIdentifiers( params.getPeriods() ) );
-
-            where += sqlHelper.whereAnd() + "dv.periodid in (" + periodIdList + ")";
-        }
-        else if ( params.hasPeriodTypes() || params.hasStartEndDate() || params.hasIncludedDate() )
-        {
-            sql += " join period p on p.periodid = dv.periodid";
-
-            if ( params.hasPeriodTypes() )
-            {
-                sql += " join periodtype pt on pt.periodtypeid = p.periodtypeid";
-
-                String periodTypeIdList = getCommaDelimitedString(
-                    params.getPeriodTypes().stream().map( o -> o.getId() ).collect( Collectors.toList() ) );
-
-                where += sqlHelper.whereAnd() + "pt.periodtypeid in (" + periodTypeIdList + ")";
-            }
-
-            if ( params.hasStartEndDate() )
-            {
-                where += sqlHelper.whereAnd() + "p.startdate >= '"
-                    + DateUtils.getMediumDateString( params.getStartDate() ) + "'"
-                    + " and p.enddate <= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "'";
-            }
-            else if ( params.hasIncludedDate() )
-            {
-                where += sqlHelper.whereAnd() + "p.startdate <= '"
-                    + DateUtils.getMediumDateString( params.getIncludedDate() ) + "'"
-                    + " and p.enddate >= '" + DateUtils.getMediumDateString( params.getIncludedDate() ) + "'";
-            }
-        }
-
-        if ( joinOrgUnit )
-        {
-            sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid";
-        }
-
-        if ( params.hasOrgUnitLevel() )
-        {
-            where += sqlHelper.whereAnd() + "ou.hierarchylevel " +
-                (params.isIncludeDescendants() ? ">" : "") +
-                "= " + params.getOrgUnitLevel();
-        }
-
-        if ( params.hasOrganisationUnits() )
-        {
-            if ( params.getOuMode() == DESCENDANTS )
-            {
-                where += sqlHelper.whereAnd() + "(";
-
-                for ( OrganisationUnit parent : params.getOrganisationUnits() )
-                {
-                    where += sqlHelper.or() + "ou.path like '" + parent.getPath() + "%'";
-                }
-
-                where += " )";
-            }
-            else
-            {
-                String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
-
-                where += sqlHelper.whereAnd() + "dv.sourceid in (" + orgUnitIdList + ")";
-            }
-        }
-
-        if ( params.hasAttributeOptionCombos() )
-        {
-            String aocIdList = getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) );
-
-            where += sqlHelper.whereAnd() + "dv.attributeoptioncomboid in (" + aocIdList + ")";
-        }
-
-        if ( params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints() )
-        {
-            sql += " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid";
-
-            if ( params.hasCoDimensionConstraints() )
-            {
-                String coDimConstraintsList = getCommaDelimitedString(
-                    getIdentifiers( params.getCoDimensionConstraints() ) );
-
-                where += sqlHelper.whereAnd() + "cc.categoryoptionid in (" + coDimConstraintsList + ") ";
-            }
-
-            if ( params.hasCogDimensionConstraints() )
-            {
-                String cogDimConstraintsList = getCommaDelimitedString(
-                    getIdentifiers( params.getCogDimensionConstraints() ) );
-
-                sql += " join categoryoptiongroupmembers cogm on cc.categoryoptionid = cogm.categoryoptionid";
-
-                where += sqlHelper.whereAnd() + "cogm.categoryoptiongroupid in (" + cogDimConstraintsList + ")";
-            }
-        }
-
-        if ( params.hasLastUpdated() )
-        {
-            where += sqlHelper.whereAnd() + "dv.lastupdated >= "
-                + DateUtils.getMediumDateString( params.getLastUpdated() );
-        }
-
-        if ( !params.isIncludeDeleted() )
-        {
-            where += sqlHelper.whereAnd() + "dv.deleted is false";
-        }
-
-        sql += where;
-
-        if ( params.isOrderByOrgUnitPath() )
-        {
-            sql += " order by ou.path";
-        }
+        getDdvOrderBy( params, sql );
 
         List<DeflatedDataValue> result = new ArrayList<>();
 
-        jdbcTemplate.query( sql, resultSet -> {
-            DeflatedDataValue ddv = getDefalatedDataValueFromResultSet( resultSet, joinOrgUnit );
+        jdbcTemplate.query( sql.toString(), resultSet -> {
+            DeflatedDataValue ddv = getDdvFromResultSet( resultSet, params.needsOrgUnitDetails() );
             if ( params.hasBlockingQueue() )
             {
-                addToBlockingQueue( params.getBlockingQueue(), ddv );
+                getDdvAddToBlockingQueue( params.getBlockingQueue(), ddv );
             }
             else
             {
@@ -502,7 +450,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         if ( params.hasBlockingQueue() )
         {
-            addToBlockingQueue( params.getBlockingQueue(), END_OF_DDV_DATA );
+            getDdvAddToBlockingQueue( params.getBlockingQueue(), END_OF_DDV_DATA );
         }
 
         log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
@@ -510,120 +458,270 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         return result;
     }
 
-    @Override
-    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
-    {
-        if ( startDate == null && endDate == null )
-        {
-            throw new IllegalArgumentException( "Start date or end date must be specified" );
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
-
-        if ( !includeDeleted )
-        {
-            predicateList.add( root -> builder.equal( root.get( "deleted" ), false ) );
-        }
-
-        if ( startDate != null )
-        {
-            predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), startDate ) );
-        }
-
-        if ( endDate != null )
-        {
-            predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
-        }
-
-        return getCount( builder, newJpaParameters()
-            .addPredicates( predicateList )
-            .count( root -> builder.countDistinct( root ) ) )
-                .intValue();
-    }
-
-    @Override
-    public boolean dataValueExists( CategoryCombo combo )
-    {
-        String cocIdsSql = "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
-        List<?> cocIds = getSession().createNativeQuery( cocIdsSql )
-            .setParameter( "cc", combo.getId() )
-            .list();
-        String anyDataValueSql = "select 1 from datavalue dv "
-            + "where dv.categoryoptioncomboid in :cocIds or dv.attributeoptioncomboid in :cocIds limit 1";
-        return !getSession().createNativeQuery( anyDataValueSql )
-            .setParameter( "cocIds", cocIds )
-            .list().isEmpty();
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
     /**
-     * Reloads the periods in the given collection, and filters out periods
-     * which do not exist in the database.
-     *
-     * @param periods the collection of {@link Period}.
-     * @return a set of reloaded {@link Period}.
+     * getDeflatedDataValues - Adds SELECT clause and starts FROM clause.
      */
-    private Set<Period> reloadAndFilterPeriods( Collection<Period> periods )
+    private void getDdvSelectFrom( DataExportParams params, StringBuilder sql )
     {
-        return periods != null ? periods.stream()
-            .map( periodStore::reloadPeriod )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() ) : new HashSet<>();
+        sql.append( "select dv.dataelementid, dv.periodid, dv.sourceid" +
+            ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
+            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" )
+            .append( params.needsOrgUnitDetails() ? ", ou.path" : "" )
+            .append( " from datavalue dv" );
     }
 
     /**
-     * Gets a list of DataElementOperands to use for SQL query.
+     * getDeflatedDataValues - Chooses data elements and data element operands.
+     */
+    private void getDdvDataElementsAndOperands( DataExportParams params, StringBuilder sql, StringBuilder where,
+        SqlHelper sqlHelper )
+    {
+        List<Long> deIds = new ArrayList<>();
+        List<Long> cocIds = new ArrayList<>();
+        getDdvDataElementLists( params, deIds, cocIds );
+
+        if ( !cocIds.isEmpty() )
+        {
+            sql.append( " join " )
+                .append( statementBuilder.literalLongLongTable( deIds, cocIds, "deo", "deid", "cocid" ) )
+                .append(
+                    " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid::bigint = dv.categoryoptioncomboid)" );
+        }
+        else if ( !deIds.isEmpty() )
+        {
+            String dataElementIdList = getCommaDelimitedString( deIds );
+
+            where.append( sqlHelper.whereAnd() )
+                .append( "dv.dataelementid in (" ).append( dataElementIdList ).append( ")" );
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Chooses periods.
+     */
+    private void getDdvPeriods( DataExportParams params, StringBuilder sql, StringBuilder where,
+        SqlHelper sqlHelper )
+    {
+        if ( params.hasPeriods() )
+        {
+            String periodIdList = getCommaDelimitedString( getIdentifiers( params.getPeriods() ) );
+
+            where.append( sqlHelper.whereAnd() )
+                .append( "dv.periodid in (" ).append( periodIdList ).append( ")" );
+        }
+        else if ( params.hasPeriodTypes() || params.hasStartEndDate() || params.hasIncludedDate() )
+        {
+            sql.append( " join period p on p.periodid = dv.periodid" );
+
+            if ( params.hasPeriodTypes() )
+            {
+                sql.append( " join periodtype pt on pt.periodtypeid = p.periodtypeid" );
+
+                String periodTypeIdList = getCommaDelimitedString(
+                    params.getPeriodTypes().stream().map( PeriodType::getId ).collect( toList() ) );
+
+                where.append( sqlHelper.whereAnd() )
+                    .append( "pt.periodtypeid in (" ).append( periodTypeIdList ).append( ")" );
+            }
+
+            if ( params.hasStartEndDate() )
+            {
+                where.append( sqlHelper.whereAnd() )
+                    .append( "p.startdate >= '" ).append( DateUtils.getMediumDateString( params.getStartDate() ) )
+                    .append( "'" ).append( " and p.enddate <= '" )
+                    .append( DateUtils.getMediumDateString( params.getStartDate() ) ).append( "'" );
+            }
+            else if ( params.hasIncludedDate() )
+            {
+                where.append( sqlHelper.whereAnd() )
+                    .append( "p.startdate <= '" ).append( DateUtils.getMediumDateString( params.getIncludedDate() ) )
+                    .append( "'" ).append( " and p.enddate >= '" )
+                    .append( DateUtils.getMediumDateString( params.getIncludedDate() ) ).append( "'" );
+            }
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Chooses organisation units.
+     */
+    private void getDdvOrgUnits( DataExportParams params, StringBuilder sql, StringBuilder where,
+        SqlHelper sqlHelper )
+    {
+        if ( params.needsOrgUnitDetails() )
+        {
+            sql.append( " join organisationunit ou on ou.organisationunitid = dv.sourceid" );
+        }
+
+        if ( params.hasOrgUnitLevel() )
+        {
+            where.append( sqlHelper.whereAnd() ).append( "ou.hierarchylevel " )
+                .append( params.isIncludeDescendants() ? ">" : "" ).append( "= " )
+                .append( params.getOrgUnitLevel() );
+        }
+
+        if ( params.hasOrganisationUnits() )
+        {
+            if ( params.getOuMode() == DESCENDANTS )
+            {
+                where.append( sqlHelper.whereAnd() ).append( "(" );
+
+                for ( OrganisationUnit parent : params.getOrganisationUnits() )
+                {
+                    where.append( sqlHelper.or() ).append( "ou.path like '" ).append( parent.getPath() ).append( "%'" );
+                }
+
+                where.append( " )" );
+            }
+            else
+            {
+                String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
+
+                where.append( sqlHelper.whereAnd() )
+                    .append( "dv.sourceid in (" ).append( orgUnitIdList ).append( ")" );
+            }
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Chooses attribute option combinations.
+     */
+    private void getDdvAttributeOptionCombos( DataExportParams params, StringBuilder where, SqlHelper sqlHelper )
+    {
+        if ( params.hasAttributeOptionCombos() )
+        {
+            String aocIdList = getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) );
+
+            where.append( sqlHelper.whereAnd() )
+                .append( "dv.attributeoptioncomboid in (" ).append( aocIdList ).append( ")" );
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Adds user dimension constraints.
+     */
+    private void getDdvDimensionConstraints( DataExportParams params, StringBuilder sql, StringBuilder where,
+        SqlHelper sqlHelper )
+    {
+        if ( params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints() )
+        {
+            sql.append(
+                " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid" );
+
+            if ( params.hasCoDimensionConstraints() )
+            {
+                String coDimConstraintsList = getCommaDelimitedString(
+                    getIdentifiers( params.getCoDimensionConstraints() ) );
+
+                where.append( sqlHelper.whereAnd() )
+                    .append( "cc.categoryoptionid in (" ).append( coDimConstraintsList ).append( ") " );
+            }
+
+            if ( params.hasCogDimensionConstraints() )
+            {
+                String cogDimConstraintsList = getCommaDelimitedString(
+                    getIdentifiers( params.getCogDimensionConstraints() ) );
+
+                sql.append( " join categoryoptiongroupmembers cogm on cc.categoryoptionid = cogm.categoryoptionid" );
+
+                where.append( sqlHelper.whereAnd() )
+                    .append( "cogm.categoryoptiongroupid in (" ).append( cogDimConstraintsList ).append( ")" );
+            }
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Adds LastUpdated constraint.
+     */
+    private void getDdvLastUpdated( DataExportParams params, StringBuilder where, SqlHelper sqlHelper )
+    {
+        if ( params.hasLastUpdated() )
+        {
+            where.append( sqlHelper.whereAnd() )
+                .append( "dv.lastupdated >= " ).append( DateUtils.getMediumDateString( params.getLastUpdated() ) );
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Adds deleted constraint.
+     */
+    private void getDdvIncludeDeleted( DataExportParams params, StringBuilder where, SqlHelper sqlHelper )
+    {
+        if ( !params.isIncludeDeleted() )
+        {
+            where.append( sqlHelper.whereAnd() ).append( "dv.deleted is false" );
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Adds ORDER BY.
+     */
+    private void getDdvOrderBy( DataExportParams params, StringBuilder sql )
+    {
+        if ( params.isOrderByOrgUnitPath() )
+        {
+            sql.append( " order by ou.path" );
+        }
+    }
+
+    /**
+     * getDeflatedDataValues - Gets data element / category option combo lists.
      * <p>
-     * If there are no DataElementOperands ("DEOs") parameters, or if the
-     * DataElement in each DEO is also present as a DataElement parameter, then
-     * return null. In this case the SQL query need only fetch all datavalues
-     * where the DataElement is in the DataElement list.
+     * The parameters may have data elements, or they may have data element
+     * operands with wildcard (null) category option combos. They may have
+     * neither, but they will never have both.
      * <p>
-     * However if there are some DEOs parameters with DataElements that are not
-     * also DataElements parameters, then return a list of DataElementOperands
-     * where the CategoryOptionCombo is specified for a specific DEO parameter,
-     * or is null (implying here a wildcard) for any specified DataElement
-     * parameter. This list will be used to form a selection for all
-     * DataElementOperands and DataElements together.
-     *
-     * @param params the data export parameters
-     * @return data element operand list (if any) for the SQL query
+     * If the parameters have any non-wildcard data element operands, then this
+     * method fills the lists of data element ids and COC ids with equal numbers
+     * of values. For a non-wildcard data element operand, the COC will be not
+     * null. For a data element or a wildcard DEO, the COC will be null.
+     * <p>
+     * If there are no non-wildcard data element operands, then only the list of
+     * data element ids is populated.
      */
-    private List<DataElementOperand> getQueryDataElementOperands( DataExportParams params )
+    private void getDdvDataElementLists( DataExportParams params, List<Long> deIds, List<Long> cocIds )
     {
-        List<DataElementOperand> deos = params.getDataElementOperands().stream()
-            .filter( deo -> !params.getDataElements().contains( deo.getDataElement() ) )
-            .collect( Collectors.toList() );
+        // Get a set of unique DataElement ids.
+        Set<Long> dataElementIds = (params.hasDataElements())
+            ? params.getDataElements().stream()
+                .map( DataElement::getId )
+                .collect( toSet() )
+            : params.getDataElementOperands().stream()
+                .filter( deo -> deo.getCategoryOptionCombo() == null )
+                .map( DataElementOperand::getId )
+                .collect( toSet() );
 
-        if ( deos.isEmpty() )
+        deIds.addAll( dataElementIds );
+
+        // Get a set of unique DataElement/CategoryOptionCombo id pairs.
+        Set<DeflatedDataValue> dataElementOperands = params.getDataElementOperands().stream()
+            .filter( deo -> !dataElementIds.contains( deo.getDataElement().getId() ) )
+            .map( deo -> new DeflatedDataValue( deo.getDataElement().getId(), deo.getCategoryOptionCombo().getId() ) )
+            .collect( toSet() );
+
+        if ( !dataElementOperands.isEmpty() )
         {
-            return null;
-        }
+            cocIds.addAll( Collections.nCopies( deIds.size(), null ) );
 
-        for ( DataElement de : params.getDataElements() )
-        {
-            deos.add( new DataElementOperand( de, null ) );
+            for ( DeflatedDataValue ddv : dataElementOperands )
+            {
+                deIds.add( ddv.getDataElementId() );
+                cocIds.add( ddv.getCategoryOptionComboId() );
+            }
         }
-
-        return deos;
     }
 
     /**
-     * Creates a {@link DeflatedDataValue} from a query row.
+     * getDeflatedDataValues - Creates a {@link DeflatedDataValue} from a query
+     * result row.
      */
-    private DeflatedDataValue getDefalatedDataValueFromResultSet( ResultSet resultSet, boolean joinOrgUnit )
+    private DeflatedDataValue getDdvFromResultSet( ResultSet resultSet, boolean joinOrgUnit )
         throws SQLException
     {
-        Integer dataElementId = resultSet.getInt( 1 );
-        Integer periodId = resultSet.getInt( 2 );
-        Integer organisationUnitId = resultSet.getInt( 3 );
-        Integer categoryOptionComboId = resultSet.getInt( 4 );
-        Integer attributeOptionComboId = resultSet.getInt( 5 );
+        Long dataElementId = resultSet.getLong( 1 );
+        Long periodId = resultSet.getLong( 2 );
+        Long organisationUnitId = resultSet.getLong( 3 );
+        Long categoryOptionComboId = resultSet.getLong( 4 );
+        Long attributeOptionComboId = resultSet.getLong( 5 );
         String value = resultSet.getString( 6 );
         String storedBy = resultSet.getString( 7 );
         Date created = resultSet.getDate( 8 );
@@ -643,12 +741,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     /**
-     * Adds a {@link DeflatedDataValue} to a blocking queue
-     *
-     * @param blockingQueue the queue to add to
-     * @param ddv the deflated data value
+     * getDeflatedDataValues - Adds {@link DeflatedDataValue} to blocking queue.
      */
-    private void addToBlockingQueue( BlockingQueue<DeflatedDataValue> blockingQueue, DeflatedDataValue ddv )
+    private void getDdvAddToBlockingQueue( BlockingQueue<DeflatedDataValue> blockingQueue, DeflatedDataValue ddv )
     {
         try
         {
