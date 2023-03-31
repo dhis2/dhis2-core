@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.util.Collections;
 import java.util.HashSet;
@@ -56,7 +57,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.postgresql.jdbc.PgArray;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
@@ -75,7 +75,7 @@ public class JdbcOrgUnitAssociationsStoreTest
     private AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
     @Mock
-    private PgArray orgUnitArray;
+    private Array orgUnitArray;
 
     @Mock
     private ResultSet resultSet;
