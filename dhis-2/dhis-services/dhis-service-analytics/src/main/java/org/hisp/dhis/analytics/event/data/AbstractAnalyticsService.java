@@ -61,8 +61,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.MetadataSchemeMapper;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
@@ -97,9 +96,7 @@ public abstract class AbstractAnalyticsService
 
     protected final EventQueryValidator queryValidator;
 
-    protected final SchemaIdResponseMapper schemaIdResponseMapper;
-
-    protected final MetadataSchemeMapper metadataSchemeMapper;
+    protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
     /**
      * Returns a grid based on the given query.
@@ -203,10 +200,10 @@ public abstract class AbstractAnalyticsService
 
         if ( params.hasDataIdScheme() )
         {
-            metadataSchemeMapper.substituteData( grid, NAME );
+            schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
         }
 
-        applyIdScheme( params, grid );
+        schemeIdResponseMapper.applyCustomIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
         // Paging
@@ -221,22 +218,6 @@ public abstract class AbstractAnalyticsService
         addHeaders( params, grid );
 
         return grid;
-    }
-
-    /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query. This happens only when a custom
-     * identifier scheme is specified.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void applyIdScheme( EventQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
-        {
-            grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-        }
     }
 
     /**

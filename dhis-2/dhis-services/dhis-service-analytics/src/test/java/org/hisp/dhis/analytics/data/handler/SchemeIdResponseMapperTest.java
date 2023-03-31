@@ -29,12 +29,16 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.valueOf;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
@@ -46,19 +50,34 @@ import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,14 +87,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-class SchemaIdResponseMapperTest
+class SchemeIdResponseMapperTest
 {
-    private SchemaIdResponseMapper schemaIdResponseMapper;
+    private SchemeIdResponseMapper schemeIdResponseMapper;
 
     @BeforeEach
     public void setUp()
     {
-        schemaIdResponseMapper = new SchemaIdResponseMapper();
+        schemeIdResponseMapper = new SchemeIdResponseMapper();
     }
 
     @Test
@@ -87,7 +106,7 @@ class SchemaIdResponseMapperTest
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( NAME );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -112,7 +131,7 @@ class SchemaIdResponseMapperTest
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( CODE );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -137,7 +156,7 @@ class SchemaIdResponseMapperTest
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( UUID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -162,7 +181,7 @@ class SchemaIdResponseMapperTest
         DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
         theDataQueryParams.setOutputIdScheme( UUID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -188,7 +207,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( NAME );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -211,7 +230,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( CODE );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -237,7 +256,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( UUID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -263,7 +282,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( UID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -289,7 +308,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( NAME );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -315,7 +334,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -341,7 +360,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( UUID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -367,7 +386,7 @@ class SchemaIdResponseMapperTest
             DATA_VALUE_SET );
         theDataQueryParams.setOutputOrgUnitIdScheme( UID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -396,7 +415,7 @@ class SchemaIdResponseMapperTest
         // Overriding output id schema and setting CODE for Org Unit
         theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -426,7 +445,7 @@ class SchemaIdResponseMapperTest
         // Element/Operands
         theDataQueryParams.setOutputDataElementIdScheme( CODE );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -459,7 +478,7 @@ class SchemaIdResponseMapperTest
         // Overriding output id schema and setting ID for Org Unit
         theDataQueryParams.setOutputOrgUnitIdScheme( ID );
 
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
 
         String orgUnitUid = orUnitStub.getUid();
         String periodIsoDate = periodStub.getIsoDate();
@@ -473,6 +492,108 @@ class SchemaIdResponseMapperTest
         assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
         assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
         assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
+    }
+
+    @Test
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsNameInCommonParams()
+    {
+        Program program = createProgram( 'A' );
+        program.setName( "Name" );
+        program.setCode( "Code" );
+
+        CommonParams commonParams = stubCommonParams( program, NAME );
+
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( commonParams );
+
+        assertEquals( responseMap.get( program.getUid() ), program.getName() );
+    }
+
+    @Test
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsCodeInCommonParams()
+    {
+        Program program = createProgram( 'A' );
+        program.setName( "Name" );
+        program.setCode( "Code" );
+
+        CommonParams commonParams = stubCommonParams( program, CODE );
+
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( commonParams );
+
+        assertEquals( responseMap.get( program.getUid() ), program.getCode() );
+    }
+
+    @Test
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsUidInCommonParams()
+    {
+        Program program = createProgram( 'A' );
+        program.setName( "Name" );
+        program.setCode( "Code" );
+
+        CommonParams commonParams = stubCommonParams( program, UID );
+
+        Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap( commonParams );
+
+        // Uid is the default, so conversion is not needed. The map will not contain any conversion on this case.
+        assertNull( responseMap.get( program.getUid() ) );
+    }
+
+    private CommonParams stubCommonParams( Program program, IdScheme idScheme )
+    {
+        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
+
+        return CommonParams.builder().programs( List.of( program ) )
+            .dimensionIdentifiers( dimIdentifiers )
+            .outputIdScheme( idScheme )
+            .build();
+    }
+
+    @Nonnull
+    private List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
+    {
+        List<String> ous = List.of( "ou1-uid", "ou2-uid" );
+
+        DimensionIdentifier<DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
+            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaA-uid" );
+
+        DimensionIdentifier<DimensionParam> dimensionIdentifierB = stubDimensionIdentifier(
+            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaB-uid" );
+
+        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = new ArrayList<>();
+        dimIdentifiers.add( dimensionIdentifierA );
+        dimIdentifiers.add( dimensionIdentifierB );
+
+        return dimIdentifiers;
+    }
+
+    private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
+        String programUid, String programStageUid, String dimensionUid )
+    {
+        BaseDimensionalObject tea = new BaseDimensionalObject( dimensionUid, DATA_X,
+            ous.stream()
+                .map( item -> new BaseDimensionalItemObject( item ) )
+                .collect( Collectors.toList() ),
+            TEXT );
+
+        DimensionParam dimensionParam = DimensionParam.ofObject( tea, DIMENSIONS, ous );
+
+        ElementWithOffset program = emptyElementWithOffset();
+        ElementWithOffset programStage = emptyElementWithOffset();
+
+        if ( isNotBlank( programUid ) )
+        {
+            Program p = new Program();
+            p.setUid( programUid );
+            program = ElementWithOffset.of( p, null );
+        }
+
+        if ( isNotBlank( programStageUid ) )
+        {
+            ProgramStage ps = new ProgramStage();
+            ps.setUid( programStageUid );
+            programStage = ElementWithOffset.of( ps, null );
+        }
+
+        return DimensionIdentifier.of( program, programStage, dimensionParam );
     }
 
     private DataQueryParams stubQueryParams( List<DataElementOperand> dataElementOperands,

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
@@ -36,8 +37,8 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
-import org.hisp.dhis.analytics.common.processing.SchemeHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -59,7 +60,7 @@ public class GridAdaptor
 
     private final MetadataParamsHandler metadataParamsHandler;
 
-    private final SchemeHandler schemeHandler;
+    private final SchemeIdResponseMapper schemeIdResponseMapper;
 
     private final CurrentUserService currentUserService;
 
@@ -92,7 +93,8 @@ public class GridAdaptor
         metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),
             rowsCount );
 
-        schemeHandler.handleMetadataScheme( grid, teiQueryParams.getCommonParams() );
+        schemeIdResponseMapper.applyCustomIdScheme( teiQueryParams.getCommonParams(), grid );
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
 
         return grid;
     }
