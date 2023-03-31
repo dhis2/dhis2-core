@@ -299,7 +299,7 @@ class AttributeValidatorTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntity" ) )
-                    .value( "code" ).build() ) )
+                    .value( "CODE" ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
