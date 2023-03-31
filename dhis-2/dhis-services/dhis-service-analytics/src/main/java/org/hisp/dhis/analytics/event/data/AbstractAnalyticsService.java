@@ -42,6 +42,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -60,6 +61,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.MetadataSchemeMapper;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -73,7 +75,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
@@ -97,6 +98,8 @@ public abstract class AbstractAnalyticsService
     protected final EventQueryValidator queryValidator;
 
     protected final SchemaIdResponseMapper schemaIdResponseMapper;
+
+    protected final MetadataSchemeMapper metadataSchemeMapper;
 
     /**
      * Returns a grid based on the given query.
@@ -200,7 +203,7 @@ public abstract class AbstractAnalyticsService
 
         if ( params.hasDataIdScheme() )
         {
-            substituteData( grid );
+            metadataSchemeMapper.substituteData( grid, NAME );
         }
 
         applyIdScheme( params, grid );
@@ -580,29 +583,5 @@ public abstract class AbstractAnalyticsService
         }
 
         return dimensionUids;
-    }
-
-    /**
-     * Substitutes metadata in the given grid.
-     *
-     * @param grid the {@link Grid}.
-     */
-    private void substituteData( Grid grid )
-    {
-        for ( int i = 0; i < grid.getHeaders().size(); i++ )
-        {
-            GridHeader header = grid.getHeaders().get( i );
-
-            if ( header.hasOptionSet() )
-            {
-                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, optionMap );
-            }
-            else if ( header.hasLegendSet() )
-            {
-                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, legendMap );
-            }
-        }
     }
 }

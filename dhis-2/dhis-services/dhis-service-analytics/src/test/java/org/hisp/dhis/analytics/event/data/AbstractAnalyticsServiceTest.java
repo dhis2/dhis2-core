@@ -40,6 +40,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.MetadataSchemeMapper;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -93,11 +94,14 @@ class AbstractAnalyticsServiceTest
     @Mock
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
+    @Mock
+    private MetadataSchemeMapper metadataSchemeMapper;
+
     @BeforeEach
     public void setUp()
     {
         dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator,
-            schemaIdResponseMapper );
+            schemaIdResponseMapper, metadataSchemeMapper );
 
         peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
         ouA = createOrganisationUnit( 'A' );
@@ -156,9 +160,9 @@ class AbstractAnalyticsServiceTest
 class DummyAnalyticsService extends AbstractAnalyticsService
 {
     public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        SchemaIdResponseMapper schemaIdResponseMapper )
+        SchemaIdResponseMapper schemaIdResponseMapper, MetadataSchemeMapper metadataSchemeMapper )
     {
-        super( securityManager, queryValidator, schemaIdResponseMapper );
+        super( securityManager, queryValidator, schemaIdResponseMapper, metadataSchemeMapper );
     }
 
     @Override

@@ -61,7 +61,9 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
+import org.hisp.dhis.analytics.common.processing.SchemeHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.data.handler.MetadataSchemeMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -94,6 +96,8 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private MetadataParamsHandler metadataDetailsHandler;
 
+    private SchemeHandler schemeHandler;
+
     private User user;
 
     @Mock
@@ -104,7 +108,8 @@ class GridAdaptorTest extends DhisConvenienceTest
     {
         headerParamsHandler = new HeaderParamsHandler();
         metadataDetailsHandler = new MetadataParamsHandler();
-        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, currentUserService );
+        schemeHandler = new SchemeHandler( new MetadataSchemeMapper() );
+        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, schemeHandler, currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
 

@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.data.handler.MetadataSchemeMapper;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -105,12 +106,16 @@ class DefaultEventAnalyticsServiceTest
     @Mock
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
+    @Mock
+    private MetadataSchemeMapper metadataSchemeMapper;
+
     @BeforeEach
     public void setUp()
     {
         defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
             trackedEntityAttributeService, eventAnalyticsManager, eventDataQueryService, securityManager, queryPlanner,
-            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper );
+            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper,
+            metadataSchemeMapper );
     }
 
     @Test
