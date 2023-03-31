@@ -118,7 +118,7 @@ class TrackerEventCriteriaMapper
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private final InputUtils inputUtils;
+    private final CategoryOptionComboService categoryOptionComboService;
 
     private final SchemaService schemaService;
 
@@ -155,7 +155,7 @@ class TrackerEventCriteriaMapper
             criteria.getTrackedEntity() );
         validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
 
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+        CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             criteria.getAttributeCc(),
             criteria.getAttributeCos(),
             true );

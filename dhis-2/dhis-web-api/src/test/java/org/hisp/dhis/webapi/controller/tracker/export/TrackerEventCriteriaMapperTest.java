@@ -125,7 +125,7 @@ class TrackerEventCriteriaMapperTest
     private DataElementService dataElementService;
 
     @Mock
-    private InputUtils inputUtils;
+    private CategoryOptionComboService categoryOptionComboService;
 
     @Mock
     private SchemaService schemaService;
@@ -789,8 +789,9 @@ class TrackerEventCriteriaMapperTest
         criteria.setAttributeCos( "Cos" );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( inputUtils.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(), true ) )
-            .thenReturn( combo );
+        when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
+            true ) )
+                .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,
