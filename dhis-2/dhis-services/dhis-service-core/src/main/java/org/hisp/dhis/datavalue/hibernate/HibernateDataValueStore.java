@@ -30,6 +30,7 @@ package org.hisp.dhis.datavalue.hibernate;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -59,7 +60,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
@@ -666,9 +666,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     /**
      * getDeflatedDataValues - Gets data element / category option combo lists.
      * <p>
-     * The parameters may have data elements, or they may have data element
-     * operands with wildcard (null) category option combos. They may have
-     * neither, but they will never have both.
+     * There are two ways that all the category option combos of a data element
+     * may be requested: either as a data element (returns the sum of all COCs)
+     * or as a wildcard data element operand (having COC == null, returns each
+     * individual data element operand.)
      * <p>
      * If the parameters have any non-wildcard data element operands, then this
      * method fills the lists of data element ids and COC ids with equal numbers
@@ -680,21 +681,22 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
      */
     private void getDdvDataElementLists( DataExportParams params, List<Long> deIds, List<Long> cocIds )
     {
-        // Get a set of unique DataElement ids.
-        Set<Long> dataElementIds = (params.hasDataElements())
-            ? params.getDataElements().stream()
+        // Get a collection of unique DataElement ids.
+        Collection<Long> dataElementIds = union(
+            params.getDataElements().stream()
                 .map( DataElement::getId )
-                .collect( toSet() )
-            : params.getDataElementOperands().stream()
+                .collect( toSet() ),
+            params.getDataElementOperands().stream()
                 .filter( deo -> deo.getCategoryOptionCombo() == null )
-                .map( DataElementOperand::getId )
-                .collect( toSet() );
+                .map( deo -> deo.getDataElement().getId() )
+                .collect( toSet() ) );
 
         deIds.addAll( dataElementIds );
 
         // Get a set of unique DataElement/CategoryOptionCombo id pairs.
         Set<DeflatedDataValue> dataElementOperands = params.getDataElementOperands().stream()
             .filter( deo -> !dataElementIds.contains( deo.getDataElement().getId() ) )
+            .filter( deo -> deo.getCategoryOptionCombo() != null )
             .map( deo -> new DeflatedDataValue( deo.getDataElement().getId(), deo.getCategoryOptionCombo().getId() ) )
             .collect( toSet() );
 
