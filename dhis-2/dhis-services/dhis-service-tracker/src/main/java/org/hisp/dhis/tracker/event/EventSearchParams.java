@@ -136,9 +136,9 @@ public class EventSearchParams
      */
     private String updatedAtDuration;
 
-    private Date scheduleAtStart;
+    private Date scheduleAtStartDate;
 
-    private Date scheduleAtEnd;
+    private Date scheduleAtEndDate;
 
     private Date enrollmentEnrolledBefore;
 
@@ -500,25 +500,25 @@ public class EventSearchParams
         return this;
     }
 
-    public Date getScheduleAtStart()
+    public Date getScheduleAtStartDate()
     {
-        return scheduleAtStart;
+        return scheduleAtStartDate;
     }
 
-    public EventSearchParams setScheduleAtStart( Date scheduleAtStart )
+    public EventSearchParams setScheduleAtStartDate( Date scheduleAtStartDate )
     {
-        this.scheduleAtStart = scheduleAtStart;
+        this.scheduleAtStartDate = scheduleAtStartDate;
         return this;
     }
 
-    public Date getScheduleAtEnd()
+    public Date getScheduleAtEndDate()
     {
-        return scheduleAtEnd;
+        return scheduleAtEndDate;
     }
 
-    public EventSearchParams setScheduleAtEnd( Date scheduleAtEnd )
+    public EventSearchParams setScheduleAtEndDate( Date scheduleAtEndDate )
     {
-        this.scheduleAtEnd = scheduleAtEnd;
+        this.scheduleAtEndDate = scheduleAtEndDate;
         return this;
     }
 

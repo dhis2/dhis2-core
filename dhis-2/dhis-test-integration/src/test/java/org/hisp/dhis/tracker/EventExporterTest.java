@@ -1042,7 +1042,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setScheduleAtStart( parseDate( "2021-02-28T13:05:00.000" ) );
+        params.setScheduleAtStartDate( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1054,7 +1054,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setScheduleAtStart( parseDate( "2018-02-28T13:05:00.000" ) );
+        params.setScheduleAtStartDate( parseDate( "2018-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1066,7 +1066,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setScheduleAtEnd( parseDate( "2018-02-28T13:05:00.000" ) );
+        params.setScheduleAtEndDate( parseDate( "2018-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1078,7 +1078,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setScheduleAtEnd( parseDate( "2021-02-28T13:05:00.000" ) );
+        params.setScheduleAtEndDate( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 

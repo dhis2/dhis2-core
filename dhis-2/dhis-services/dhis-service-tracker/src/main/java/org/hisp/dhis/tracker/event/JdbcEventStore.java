@@ -927,18 +927,18 @@ public class JdbcEventStore implements EventStore
                 .append( " (pi.incidentdate >= :enrollmentOccurredAfter ) " );
         }
 
-        if ( params.getScheduleAtStart() != null )
+        if ( params.getScheduleAtStartDate() != null )
         {
-            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStart(), Types.TIMESTAMP );
+            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStartDate(), Types.TIMESTAMP );
 
             fromBuilder
                 .append( hlp.whereAnd() )
                 .append( " (psi.duedate is not null and psi.duedate >= :startDueDate ) " );
         }
 
-        if ( params.getScheduleAtEnd() != null )
+        if ( params.getScheduleAtEndDate() != null )
         {
-            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEnd(), Types.TIMESTAMP );
+            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEndDate(), Types.TIMESTAMP );
 
             fromBuilder
                 .append( hlp.whereAnd() )
@@ -1338,9 +1338,9 @@ public class JdbcEventStore implements EventStore
                 .append( ":skipChangedBefore " );
         }
 
-        if ( params.getScheduleAtStart() != null )
+        if ( params.getScheduleAtStartDate() != null )
         {
-            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStart(), Types.DATE );
+            mapSqlParameterSource.addValue( "startDueDate", params.getScheduleAtStartDate(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate >= " )
@@ -1348,9 +1348,9 @@ public class JdbcEventStore implements EventStore
                 .append( " " );
         }
 
-        if ( params.getScheduleAtEnd() != null )
+        if ( params.getScheduleAtEndDate() != null )
         {
-            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEnd(), Types.DATE );
+            mapSqlParameterSource.addValue( "endDueDate", params.getScheduleAtEndDate(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate <= " )

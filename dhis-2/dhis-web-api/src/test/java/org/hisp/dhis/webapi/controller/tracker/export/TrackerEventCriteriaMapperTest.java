@@ -344,8 +344,8 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( scheduledAfter, params.getScheduleAtStart() );
-        assertEquals( scheduledBefore, params.getScheduleAtEnd() );
+        assertEquals( scheduledAfter, params.getScheduleAtStartDate() );
+        assertEquals( scheduledBefore, params.getScheduleAtEndDate() );
     }
 
     @Test
