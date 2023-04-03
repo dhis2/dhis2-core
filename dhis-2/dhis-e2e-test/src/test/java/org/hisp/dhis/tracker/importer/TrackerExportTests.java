@@ -392,7 +392,7 @@ public class TrackerExportTests
             .validate()
             .statusCode( 400 )
             .body( "status", CoreMatchers.equalTo( "ERROR" ) )
-            .body( "message", CoreMatchers.equalTo( "Invalid order property: created" ) );
+            .body( "message", CoreMatchers.containsString( "Order by property `created` is not supported." ) );
     }
 
     @Test
