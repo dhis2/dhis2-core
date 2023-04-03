@@ -195,7 +195,7 @@ class TrackerEventCriteriaMapper
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntityInstance( trackedEntityInstance )
+            .setTrackedEntity( trackedEntityInstance )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )

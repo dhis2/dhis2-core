@@ -181,7 +181,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setTrackedEntity( trackedEntityInstance );
         params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
 
         List<String> events = eventsFunction.apply( params );

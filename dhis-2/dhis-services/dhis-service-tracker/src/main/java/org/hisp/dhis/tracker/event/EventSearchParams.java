@@ -63,11 +63,11 @@ public class EventSearchParams
 
     public static final String EVENT_CREATED_AT_ID = "createdAt";
 
-    public static final String EVENT_CREATED_BY_ID = "createdby";
+    public static final String EVENT_CREATED_BY_ID = "createdBy";
 
     public static final String EVENT_UPDATED_AT_ID = "updatedAt";
 
-    public static final String EVENT_LAST_UPDATED_ID = "updatedBy";
+    public static final String EVENT_UPDATED_BY = "updatedBy";
 
     public static final String EVENT_STORED_BY_ID = "storedBy";
 
@@ -119,7 +119,7 @@ public class EventSearchParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntityInstance trackedEntity;
 
     private Date startDate;
 
@@ -263,7 +263,7 @@ public class EventSearchParams
     /**
      * Indicates whether this parameters specifies a last updated start date.
      */
-    public boolean hasLastUpdatedStartDate()
+    public boolean hasUpdatedAtStartDate()
     {
         return updatedAtStartDate != null;
     }
@@ -271,15 +271,15 @@ public class EventSearchParams
     /**
      * Indicates whether this parameters specifies a last updated end date.
      */
-    public boolean hasLastUpdatedEndDate()
+    public boolean hasUpdatedAtEndDate()
     {
         return updatedAtEndDate != null;
     }
 
     /**
-     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     * Indicates whether this parameters has a UpdatedAtDuration filter.
      */
-    public boolean hasLastUpdatedDuration()
+    public boolean hasUpdatedAtDuration()
     {
         return updatedAtDuration != null;
     }
@@ -423,14 +423,14 @@ public class EventSearchParams
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public TrackedEntityInstance getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public EventSearchParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public EventSearchParams setTrackedEntity( TrackedEntityInstance trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         return this;
     }
 

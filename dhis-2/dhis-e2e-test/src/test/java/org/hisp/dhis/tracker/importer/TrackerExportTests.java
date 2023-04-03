@@ -384,7 +384,7 @@ public class TrackerExportTests
             .body( "event", equalTo( "ZwwuwNp6gVd" ) );
     }
 
-    @Test
+    @Test // TODO(tracker): remove with old tracker
     void shouldReturnInvalidPropertyWhenOrderOnLegacyCreatedField()
     {
         ApiResponse response = trackerActions.get( "events?order=created:desc" );

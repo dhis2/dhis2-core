@@ -295,7 +295,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+        assertEquals( trackedEntityInstance, params.getTrackedEntity() );
     }
 
     @Test
