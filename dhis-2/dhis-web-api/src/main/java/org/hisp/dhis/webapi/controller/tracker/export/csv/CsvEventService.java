@@ -25,37 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
- */
-public interface EventSyncStore
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+
+public interface CsvEventService
 {
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getEvent( String uid );
+    void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
+        throws IOException;
 
-    /**
-     * Returns the {@link ProgramInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
-     */
-    ProgramInstance getEnrollment( String uid );
-
-    /**
-     * Get events (including deleted)
-     *
-     * @param uids UIDs of events to be fetched
-     * @return list of events
-     */
-    List<ProgramStageInstance> getEvents( List<String> uids );
+    List<Event> readEvents( InputStream inputStream, boolean skipFirst )
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }
