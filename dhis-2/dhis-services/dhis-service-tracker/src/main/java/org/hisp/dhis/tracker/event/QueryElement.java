@@ -25,39 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
-
-import java.util.List;
+package org.hisp.dhis.tracker.event;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Luciano Fiandesio
  */
-public interface EventSyncService
+public interface QueryElement
 {
+    String useInSelect();
 
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getEvent( String uid );
-
-    /**
-     * Returns the {@link ProgramInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
-     */
-    ProgramInstance getEnrollment( String uid );
-
-    /**
-     * Returns events (including deleted)
-     *
-     * @param uids UIDs of events to be fetched
-     * @return list of events
-     */
-    List<ProgramStageInstance> getEvents( List<String> uids );
-
+    String getResultsetValue();
 }

@@ -92,6 +92,19 @@ public class UserAccessStatement
     }
 
     /**
+     * Creates a sharing statement for the given column that checks if given
+     * sharing settings present in the column belongs to the current logged
+     * user.
+     *
+     * @param column the sharing column
+     * @return the sharing SQL statement for the current user
+     */
+    public static String checkOwnerConditions( String column )
+    {
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
+    }
+
+    /**
      * Creates a sharing statement for the given columns, based on the
      * paramsMap. It will also take consideration user groups if this is set in
      * the paramsMap. This statement will check sharing conditions for Metadata

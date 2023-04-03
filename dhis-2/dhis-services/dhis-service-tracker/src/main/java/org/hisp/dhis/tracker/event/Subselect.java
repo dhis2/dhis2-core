@@ -25,45 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.event;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Luciano Fiandesio
  */
-@Transactional( readOnly = true )
-@RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.EventSyncService" )
-public class DefaultEventSyncService implements EventSyncService
+@Getter
+@AllArgsConstructor
+public class Subselect implements QueryElement
 {
-    private final EventSyncStore eventSyncStore;
+    private String query;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    private String alias;
 
     @Override
-    public List<ProgramStageInstance> getEvents( List<String> uids )
+    public String useInSelect()
     {
-        return eventSyncStore.getEvents( uids );
+        return query + " as " + alias;
     }
 
     @Override
-    public ProgramStageInstance getEvent( String uid )
+    public String getResultsetValue()
     {
-        return eventSyncStore.getEvent( uid );
-    }
-
-    @Override
-    public ProgramInstance getEnrollment( String uid )
-    {
-        return eventSyncStore.getEnrollment( uid );
+        return alias;
     }
 }

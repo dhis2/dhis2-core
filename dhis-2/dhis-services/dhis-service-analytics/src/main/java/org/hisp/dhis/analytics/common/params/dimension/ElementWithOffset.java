@@ -50,7 +50,7 @@ public class ElementWithOffset<T extends UidObject>
 
     private final T element;
 
-    private final String offset;
+    private final Integer offset;
 
     public boolean hasOffset()
     {

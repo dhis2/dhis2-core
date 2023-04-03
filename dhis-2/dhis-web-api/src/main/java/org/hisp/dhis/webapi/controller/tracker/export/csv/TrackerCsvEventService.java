@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
@@ -60,7 +59,7 @@ import com.google.common.collect.Lists;
  */
 @Service( "org.hisp.dhis.webapi.controller.tracker.export.csv.CsvEventService" )
 public class TrackerCsvEventService
-    implements CsvEventService<Event>
+    implements CsvEventService
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
