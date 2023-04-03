@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -106,21 +107,21 @@ public class HibernateFileResourceStore
     public List<String> findOrganisationUnitsByImageFileResource( @Nonnull String uid )
     {
         String sql = "select o.uid from organisationunit o left join fileresource fr on fr.fileresourceid = o.image where fr.uid = :uid";
-        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+        return getSession().createNativeQuery( sql ).setParameter( "uid", uid ).list();
     }
 
     @Override
     public List<String> findUsersByAvatarFileResource( @Nonnull String uid )
     {
         String sql = "select u.uid from userinfo u left join fileresource fr on fr.fileresourceid = u.avatar where fr.uid = :uid";
-        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+        return getSession().createNativeQuery( sql ).setParameter( "uid", uid ).list();
     }
 
     @Override
     public List<String> findDocumentsByFileResource( @Nonnull String uid )
     {
         String sql = "select d.uid from document d left join fileresource fr on fr.fileresourceid = d.fileresource where fr.uid = :uid";
-        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+        return getSession().createNativeQuery( sql ).setParameter( "uid", uid ).list();
     }
 
     @Override
@@ -129,19 +130,21 @@ public class HibernateFileResourceStore
         String sql = "select m.uid from message m "
             + "left join messageattachments ma on m.messageid = ma.messageid "
             + "left join fileresource fr on fr.fileresourceid = ma.fileresourceid where fr.uid = :uid";
-        return getSession().createNativeQuery( sql, String.class ).setParameter( "uid", uid ).list();
+        return getSession().createNativeQuery( sql ).setParameter( "uid", uid ).list();
     }
 
     @Override
     public List<DataValueKey> findDataValuesByFileResourceValue( @Nonnull String uid )
     {
-        String sql = "select de.uid, o.uid, dv.periodid, co.uid from dataelement de"
-            + " inner JOIN datavalue dv ON de.dataelementid = dv.dataelementid"
+        String sql = "select de.uid as de, o.uid as ou, dv.periodid as pe, co.uid as co from dataelement de"
+            + " inner join datavalue dv on de.dataelementid = dv.dataelementid"
             + " inner join organisationunit o on dv.sourceid = o.organisationunitid"
             + " inner join categoryoptioncombo co on dv.categoryoptioncomboid = co.categoryoptioncomboid"
             + " where de.valuetype = 'FILE_RESOURCE' and dv.value = :uid";
-        return getSession().createNativeQuery( sql, Object[].class ).setParameter( "uid", uid ).stream()
-            .map( col -> new DataValueKey( (String) col[0], (String) col[1], (long) col[2], (String) col[3] ) )
+        Stream<Object[]> stream = getSession().createNativeQuery( sql ).setParameter( "uid", uid ).stream();
+        return stream
+            .map( col -> new DataValueKey( (String) (col)[0], (String) col[1], ((Number) col[2]).longValue(),
+                (String) col[3] ) )
             .collect( Collectors.toUnmodifiableList() );
     }
 }
