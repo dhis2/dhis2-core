@@ -48,7 +48,6 @@ import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EventSyncService;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -101,7 +100,7 @@ public class JacksonEventService extends AbstractEventService
         IdentifiableObjectManager manager, CategoryService categoryService, FileResourceService fileResourceService,
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
+        UserService userService, ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, CacheProvider cacheProvider,
         EventServiceContextBuilder eventServiceContextBuilder )
     {
@@ -127,7 +126,6 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( trackerAccessManager );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( userService );
-        checkNotNull( eventSyncService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
         checkNotNull( eventServiceContextBuilder );
@@ -155,7 +153,6 @@ public class JacksonEventService extends AbstractEventService
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.relationshipService = relationshipService;
         this.userService = userService;
-        this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
         this.dataElementCache = cacheProvider.createDataElementCache();
