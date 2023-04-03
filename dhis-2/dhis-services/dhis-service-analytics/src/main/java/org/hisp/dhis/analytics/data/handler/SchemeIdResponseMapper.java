@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.program.Program;
@@ -49,8 +50,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for encapsulating the id schema mapping for the
- * response elements based on the given URL ID schemes.
+ * This component is responsible for providing methods that encapsulate the id
+ * schema mapping for response elements based on given URL ID schemes.
  *
  * @author maikel arabori
  */
@@ -171,7 +172,7 @@ public class SchemeIdResponseMapper
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
      */
-    public void applyIdScheme( EventQueryParams params, Grid grid )
+    public void applyCustomIdScheme( EventQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
         {
@@ -187,11 +188,40 @@ public class SchemeIdResponseMapper
      * @param params the {@link CommonParams}.
      * @param grid the {@link Grid}.
      */
-    public void applyIdScheme( CommonParams params, Grid grid )
+    public void applyCustomIdScheme( CommonParams params, Grid grid )
     {
         if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
         {
             grid.substituteMetaData( getSchemeIdResponseMap( params ) );
+        }
+    }
+
+    /**
+     * Substitutes the metadata in the given grid. The replacement will only be
+     * done if the grid header has option set or legend set.
+     *
+     * @param grid the {@link Grid}.
+     * @param idScheme the {@link IdScheme}.
+     */
+    public void applyOptionAndLegendSetMapping( Grid grid, IdScheme idScheme )
+    {
+        if ( idScheme != null )
+        {
+            for ( int i = 0; i < grid.getHeaders().size(); i++ )
+            {
+                GridHeader header = grid.getHeaders().get( i );
+
+                if ( header.hasOptionSet() )
+                {
+                    Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( idScheme );
+                    grid.substituteMetaData( i, i, optionMap );
+                }
+                else if ( header.hasLegendSet() )
+                {
+                    Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( idScheme );
+                    grid.substituteMetaData( i, i, legendMap );
+                }
+            }
         }
     }
 

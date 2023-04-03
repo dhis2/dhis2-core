@@ -59,9 +59,9 @@ public class GridAdaptor
 
     private final MetadataParamsHandler metadataParamsHandler;
 
-    private final CurrentUserService currentUserService;
-
     private final SchemeIdResponseMapper schemeIdResponseMapper;
+
+    private final CurrentUserService currentUserService;
 
     /**
      * Based on the given headers and result map, this method takes care of the
@@ -92,7 +92,9 @@ public class GridAdaptor
         metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),
             rowsCount );
 
-        schemeIdResponseMapper.applyIdScheme( teiQueryParams.getCommonParams(), grid );
+        schemeIdResponseMapper.applyCustomIdScheme( teiQueryParams.getCommonParams(), grid );
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid,
+            teiQueryParams.getCommonParams().getDataIdScheme() );
 
         return grid;
     }
