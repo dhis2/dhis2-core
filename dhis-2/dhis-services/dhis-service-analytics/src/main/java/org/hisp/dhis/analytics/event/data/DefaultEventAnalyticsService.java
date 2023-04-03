@@ -627,7 +627,7 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        schemeIdResponseMapper.applyIdScheme( params, grid );
+        schemeIdResponseMapper.applyCustomIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
         // Meta-ata
