@@ -95,16 +95,16 @@ public class WebClientUtils
         HttpStatus actualStatus = actual.status();
         if ( expected != actualStatus )
         {
-            if ( expected.series() == actualStatus.series() )
+            // OBS! we use the actual state to not fail the check in error
+            JsonError error = actual.error( actualStatus.series() );
+            String msg = error.getMessage();
+            if ( msg != null && expected.series() == actualStatus.series() )
             {
-                String msg = actual.error( actualStatus.series() ).getMessage();
                 assertEquals( expected, actualStatus, msg );
             }
             else
             {
-                // OBS! we use the actual state to not fail the check in error
-                String msg = actual.error( actualStatus.series() ).summary();
-                assertEquals( expected, actualStatus, msg );
+                assertEquals( expected, actualStatus, error.summary() );
             }
         }
         assertValidLocation( actual );
