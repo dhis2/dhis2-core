@@ -50,8 +50,25 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
+    /**
+     * Lookup a {@link FileResource} by storage key property.
+     *
+     * @param storageKey key to look up
+     * @return the {@link FileResource} associated with the given storage key
+     */
     Optional<FileResource> findByStorageKey( @CheckForNull String storageKey );
 
+    /**
+     * Reverse lookup the objects associated with a {@link FileResource} by the
+     * storage key property.
+     *
+     * @param storageKey key to look up
+     * @return list of objects that are associated with the {@link FileResource}
+     *         of the given storage key. This is either none, most often one,
+     *         but in theory can also be more than one. For example when the
+     *         same data value would be associated with the same file resource
+     *         value.
+     */
     List<FileResourceOwner> findOwnersByStorageKey( @CheckForNull String storageKey );
 
     void saveFileResource( FileResource fileResource, File file );

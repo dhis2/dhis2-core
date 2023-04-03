@@ -32,10 +32,8 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
-import lombok.Value;
-import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
@@ -44,6 +42,11 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 
     List<FileResource> getAllUnProcessedImages();
 
+    /**
+     * @param storageKey key to look up
+     * @return the file resource with the given storage key or nothing if no
+     *         such file resource exists
+     */
     Optional<FileResource> findByStorageKey( @Nonnull String storageKey );
 
     /**
@@ -56,24 +59,39 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
      */
     List<String> findOrganisationUnitsByImageFileResource( @Nonnull String uid );
 
+    /**
+     * Lookup of user ID(s) for avatar image file resource id.
+     *
+     * @param uid of a file resource
+     * @return UID(s) of users that have an avatar image with the given file
+     *         resource uid
+     */
     List<String> findUsersByAvatarFileResource( @Nonnull String uid );
 
+    /**
+     * Lookup of document ID(s) for a document file resource id.
+     *
+     * @param uid of a file resource
+     * @return UID(s) of documents that have a file resource with the given uid
+     */
     List<String> findDocumentsByFileResource( @Nonnull String uid );
 
+    /**
+     * Lookup of message ID(s) for a message attachment file resource id.
+     *
+     * @param uid of a file resource
+     * @return UID(s) of messages that have an attachment with the given file
+     *         resource uid
+     */
     List<String> findMessagesByFileResource( @Nonnull String uid );
 
-    @Value
-    @Accessors( fluent = true )
-    class DataValueKey
-    {
-        String de;
-
-        String ou;
-
-        long pe;
-
-        String co;
-    }
-
+    /**
+     * Lookup of data value(s) key combinations with a given file resource
+     * value.
+     *
+     * @param uid of a file resource
+     * @return data value(s) key combinations that have the given file resource
+     *         as value.
+     */
     List<DataValueKey> findDataValuesByFileResourceValue( @Nonnull String uid );
 }
