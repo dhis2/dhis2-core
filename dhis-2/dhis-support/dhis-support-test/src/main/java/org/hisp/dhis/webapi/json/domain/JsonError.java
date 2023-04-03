@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.json.domain;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
@@ -41,11 +42,13 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
  */
 public interface JsonError extends JsonObject
 {
+    @Expected
     default String getHttpStatus()
     {
         return getString( "httpStatus" ).string();
     }
 
+    @Expected
     default int getHttpStatusCode()
     {
         return getNumber( "httpStatusCode" ).intValue();
@@ -87,6 +90,10 @@ public interface JsonError extends JsonObject
      */
     default String summary()
     {
+        if ( !isA( JsonError.class ) )
+        {
+            return node().getDeclaration();
+        }
         StringBuilder str = new StringBuilder();
         Consumer<JsonList<JsonErrorReport>> printer = errors -> {
             if ( errors.exists() )
