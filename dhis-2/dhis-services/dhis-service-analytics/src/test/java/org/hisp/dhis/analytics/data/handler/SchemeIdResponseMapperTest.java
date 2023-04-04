@@ -60,8 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -71,13 +69,20 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -537,6 +542,168 @@ class SchemeIdResponseMapperTest
         assertNull( responseMap.get( program.getUid() ) );
     }
 
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeNAME()
+    {
+        // Given
+        Option option = new Option( "name", "code" );
+        option.setUid( "uid" );
+
+        OptionSet optionSet = new OptionSet();
+        optionSet.addOption( option );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, optionSet, null );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "code", "value" );
+        grid.addRow();
+        grid.addValue( "code" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
+
+        // Then
+        assertEquals( "name", grid.getRow( 0 ).get( 0 ) );
+    }
+
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeCODE()
+    {
+        // Given
+        Option option = new Option( "name", "code" );
+        option.setUid( "uid" );
+
+        OptionSet optionSet = new OptionSet();
+        optionSet.addOption( option );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, optionSet, null );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "code", "value" );
+        grid.addRow();
+        grid.addValue( "code" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, CODE );
+
+        // Then
+        assertEquals( "code", grid.getRow( 0 ).get( 0 ) );
+    }
+
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeUID()
+    {
+        // Given
+        Option option = new Option( "name", "code" );
+        option.setUid( "uid" );
+
+        OptionSet optionSet = new OptionSet();
+        optionSet.addOption( option );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, optionSet, null );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "code", "value" );
+        grid.addRow();
+        grid.addValue( "code" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, UID );
+
+        // Then
+        assertEquals( "uid", grid.getRow( 0 ).get( 0 ) );
+    }
+
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeNAME()
+    {
+        // Given
+        Legend legend = new Legend();
+        legend.setUid( "uid" );
+        legend.setCode( "code" );
+        legend.setName( "name" );
+
+        LegendSet legendSet = new LegendSet();
+        legendSet.getLegends().add( legend );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, null, legendSet );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "uid", "value" );
+        grid.addRow();
+        grid.addValue( "uid" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
+
+        // Then
+        assertEquals( "name", grid.getRow( 0 ).get( 0 ) );
+    }
+
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeCODE()
+    {
+        // Given
+        Legend legend = new Legend();
+        legend.setUid( "uid" );
+        legend.setCode( "code" );
+        legend.setName( "name" );
+
+        LegendSet legendSet = new LegendSet();
+        legendSet.getLegends().add( legend );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, null, legendSet );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "uid", "value" );
+        grid.addRow();
+        grid.addValue( "uid" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, CODE );
+
+        // Then
+        assertEquals( "code", grid.getRow( 0 ).get( 0 ) );
+    }
+
+    @Test
+    void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeUID()
+    {
+        // Given
+        Legend legend = new Legend();
+        legend.setUid( "uid" );
+        legend.setCode( "code" );
+        legend.setName( "name" );
+
+        LegendSet legendSet = new LegendSet();
+        legendSet.getLegends().add( legend );
+
+        GridHeader gridHeader = new GridHeader( "header", "column", TEXT, false, false, null, legendSet );
+
+        Grid grid = new ListGrid();
+        grid.addHeader( gridHeader );
+        grid.addMetaData( "uid", "value" );
+        grid.addRow();
+        grid.addValue( "uid" );
+        grid.addValue( 11 );
+
+        // When
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, UID );
+
+        // Then
+        assertEquals( "uid", grid.getRow( 0 ).get( 0 ) );
+    }
+
     private CommonParams stubCommonParams( Program program, IdScheme idScheme )
     {
         List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
@@ -547,7 +714,6 @@ class SchemeIdResponseMapperTest
             .build();
     }
 
-    @Nonnull
     private List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
     {
         List<String> ous = List.of( "ou1-uid", "ou2-uid" );

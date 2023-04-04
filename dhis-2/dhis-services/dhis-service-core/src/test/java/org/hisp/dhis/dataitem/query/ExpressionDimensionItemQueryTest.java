@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.dataitem.query;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * Unit tests for {@link ExpressionDimensionItemQuery} class.
  *
+ * @author maikel arabori
  */
-public interface EventSyncStore
+class ExpressionDimensionItemQueryTest
 {
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getEvent( String uid );
+    @Test
+    void testGetStatementContainsOwnerCheck()
+    {
+        // Given
+        MapSqlParameterSource anyMap = new MapSqlParameterSource();
+        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-    /**
-     * Returns the {@link ProgramInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
-     */
-    ProgramInstance getEnrollment( String uid );
+        // When
+        String statement = query.getStatement( anyMap );
 
-    /**
-     * Get events (including deleted)
-     *
-     * @param uids UIDs of events to be fetched
-     * @return list of events
-     */
-    List<ProgramStageInstance> getEvents( List<String> uids );
+        // Then
+        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
+    }
 }
