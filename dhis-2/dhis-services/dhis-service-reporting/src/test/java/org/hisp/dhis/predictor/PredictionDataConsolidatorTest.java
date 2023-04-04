@@ -344,7 +344,6 @@ class PredictionDataConsolidatorTest
 
         outputDataElementOperand = dataElementOperandX;
 
-        when( dataValueFetcher.setIncludeDeleted( true ) ).thenReturn( dataValueFetcher );
         when( dataValueFetcher.setIncludeDescendants( INCLUDE_DESCENDANTS ) ).thenReturn( dataValueFetcher );
 
         consolidator = new PredictionDataConsolidator( items, INCLUDE_DESCENDANTS, dataValueFetcher, analyticsFetcher );
@@ -438,8 +437,8 @@ class PredictionDataConsolidatorTest
         // Test the data
         // ---------------------------------------------------------------------
 
-        consolidator.init( currentUserOrgUnits, 1, levelOneOrgUnits,
-            dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
+        consolidator.init( 1, levelOneOrgUnits, dataValueQueryPeriods, analyticsQueryPeriods,
+            existingOutputPeriods, outputDataElementOperand );
 
         // Expected to be returned in this order:
         assertEquals( expectedB, consolidator.getData() );
