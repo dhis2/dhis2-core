@@ -272,15 +272,15 @@ public class DefaultEventService implements EventService
     {
         String violation = null;
 
-        if ( params.hasLastUpdatedDuration() && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate()) )
+        if ( params.hasUpdatedAtDuration() && (params.hasUpdatedAtStartDate() || params.hasUpdatedAtEndDate()) )
         {
             violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
         }
 
-        if ( violation == null && params.hasLastUpdatedDuration()
-            && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        if ( violation == null && params.hasUpdatedAtDuration()
+            && DateUtils.getDuration( params.getUpdatedAtDuration() ) == null )
         {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+            violation = "Duration is not valid: " + params.getUpdatedAtDuration();
         }
 
         if ( violation == null && params.getOrgUnit() != null

@@ -181,7 +181,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setTrackedEntity( trackedEntityInstance );
         params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
 
         List<String> events = eventsFunction.apply( params );
@@ -216,7 +216,7 @@ class EventExporterTest extends TrackerTest
         params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
-        params.setLastUpdatedDuration( "1d" );
+        params.setUpdatedAtDuration( "1d" );
 
         List<String> events = eventFunction.apply( params );
 
@@ -234,10 +234,10 @@ class EventExporterTest extends TrackerTest
 
         Date date = new Date();
 
-        params.setLastUpdatedStartDate( Date.from(
+        params.setUpdatedAtStartDate( Date.from(
             date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
 
-        params.setLastUpdatedEndDate( Date.from(
+        params.setUpdatedAtEndDate( Date.from(
             date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
 
         List<String> events = eventFunction.apply( params );
@@ -1042,7 +1042,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setDueDateStart( parseDate( "2021-02-28T13:05:00.000" ) );
+        params.setScheduleAtStartDate( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1054,7 +1054,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setDueDateStart( parseDate( "2018-02-28T13:05:00.000" ) );
+        params.setScheduleAtStartDate( parseDate( "2018-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1066,7 +1066,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setDueDateEnd( parseDate( "2018-02-28T13:05:00.000" ) );
+        params.setScheduleAtEndDate( parseDate( "2018-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1078,7 +1078,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setDueDateEnd( parseDate( "2021-02-28T13:05:00.000" ) );
+        params.setScheduleAtEndDate( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> events = eventsFunction.apply( params );
 
