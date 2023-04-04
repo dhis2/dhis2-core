@@ -79,6 +79,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.NoArgsConstructor;
@@ -157,7 +158,7 @@ public class FilteringHelper
      */
     public static Class<? extends BaseIdentifiableObject> extractEntityFromEqualFilter( String filter )
     {
-        byte DIMENSION_TYPE = 2;
+        final byte DIMENSION_TYPE = 2;
         Class<? extends BaseIdentifiableObject> entity = null;
 
         if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getCombination() ) )
@@ -227,7 +228,7 @@ public class FilteringHelper
      */
     public static String extractValueFromFilter( Set<String> filters, Filter.Combination filterCombination )
     {
-        byte FILTER_VALUE = 2;
+        final byte FILTER_VALUE = 2;
 
         if ( CollectionUtils.isNotEmpty( filters ) )
         {
@@ -294,46 +295,22 @@ public class FilteringHelper
         }
 
         String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
-
-        if ( StringUtils.isNotEmpty( ilikeName ) )
-        {
-            paramsMap.addValue( NAME, wrap( addIlikeReplacingCharacters( ilikeName ), "%" ) );
-        }
+        addIlikeComparatorIfNotEmpty( paramsMap, NAME, ilikeName );
 
         String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
-
-        if ( StringUtils.isNotEmpty( ilikeDisplayName ) )
-        {
-            paramsMap.addValue( DISPLAY_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayName ), "%" ) );
-        }
+        addIlikeComparatorIfNotEmpty( paramsMap, DISPLAY_NAME, ilikeDisplayName );
 
         String ilikeShortName = extractValueFromFilter( filters, SHORT_NAME_ILIKE );
-
-        if ( StringUtils.isNotEmpty( ilikeShortName ) )
-        {
-            paramsMap.addValue( SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeShortName ), "%" ) );
-        }
+        addIlikeComparatorIfNotEmpty( paramsMap, SHORT_NAME, ilikeShortName );
 
         String ilikeDisplayShortName = extractValueFromFilter( filters, DISPLAY_SHORT_NAME_ILIKE );
-
-        if ( StringUtils.isNotEmpty( ilikeDisplayShortName ) )
-        {
-            paramsMap.addValue( DISPLAY_SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayShortName ), "%" ) );
-        }
+        addIlikeComparatorIfNotEmpty( paramsMap, DISPLAY_SHORT_NAME, ilikeDisplayShortName );
 
         String equalId = extractValueFromFilter( filters, ID_EQUAL, true );
-
-        if ( isNotBlank( equalId ) )
-        {
-            paramsMap.addValue( UID, equalId );
-        }
+        addIfNotBlank( paramsMap, UID, equalId );
 
         String rootJunction = options.getRootJunction().name();
-
-        if ( isNotBlank( rootJunction ) )
-        {
-            paramsMap.addValue( ROOT_JUNCTION, rootJunction );
-        }
+        addIfNotBlank( paramsMap, ROOT_JUNCTION, rootJunction );
 
         String identifiableToken = extractValueFromFilter( filters, IDENTIFIABLE_TOKEN );
 
@@ -359,25 +336,37 @@ public class FilteringHelper
         {
             // Includes all value types.
             paramsMap.addValue( VALUE_TYPES,
-                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
+                getAggregatables().stream().map( Enum::name ).collect( toSet() ) );
         }
-
-        String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
 
         // Add program id filtering id, if present.
-        if ( isNotBlank( programId ) )
-        {
-            paramsMap.addValue( PROGRAM_ID, programId );
-        }
+        String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
+        addIfNotBlank( paramsMap, PROGRAM_ID, programId );
 
         // Add user group filtering, when present.
         if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
         {
             Set<String> userGroupUids = currentUser.getGroups().stream()
-                .filter( group -> group != null )
+                .filter( Objects::nonNull )
                 .map( group -> trimToEmpty( group.getUid() ) )
                 .collect( toSet() );
             paramsMap.addValue( USER_GROUP_UIDS, "{" + join( ",", userGroupUids ) + "}" );
+        }
+    }
+
+    private static void addIlikeComparatorIfNotEmpty( MapSqlParameterSource paramsMap, String key, String value )
+    {
+        if ( StringUtils.isNotEmpty( value ) )
+        {
+            paramsMap.addValue( key, wrap( addIlikeReplacingCharacters( value ), "%" ) );
+        }
+    }
+
+    private static void addIfNotBlank( MapSqlParameterSource paramsMap, String key, String value )
+    {
+        if ( isNotBlank( value ) )
+        {
+            paramsMap.addValue( key, value );
         }
     }
 
@@ -394,7 +383,7 @@ public class FilteringHelper
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {
-            List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() )
+            List<String> aggregatableTypes = getAggregatables().stream().map( Enum::name )
                 .collect( toList() );
 
             for ( String valueType : valueTypeNames )
@@ -458,7 +447,7 @@ public class FilteringHelper
      */
     private static String extractValueTypeFromEqualFilter( String filter )
     {
-        byte VALUE_TYPE = 2;
+        final byte VALUE_TYPE = 2;
         String valueType = null;
 
         if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getCombination() ) )
