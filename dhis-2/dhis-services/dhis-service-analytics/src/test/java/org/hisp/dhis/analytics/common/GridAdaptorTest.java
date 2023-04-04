@@ -97,10 +97,10 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private SchemeIdResponseMapper schemeIdResponseMapper;
 
+    private User user;
+
     @Mock
     private CurrentUserService currentUserService;
-
-    private User user;
 
     @BeforeEach
     void setUp()
@@ -108,9 +108,8 @@ class GridAdaptorTest extends DhisConvenienceTest
         headerParamsHandler = new HeaderParamsHandler();
         metadataDetailsHandler = new MetadataParamsHandler();
         schemeIdResponseMapper = new SchemeIdResponseMapper();
-
-        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, currentUserService,
-            schemeIdResponseMapper );
+        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper,
+            currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
 

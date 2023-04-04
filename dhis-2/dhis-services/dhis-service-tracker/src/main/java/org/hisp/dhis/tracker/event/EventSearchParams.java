@@ -61,23 +61,23 @@ public class EventSearchParams
 
     public static final String EVENT_ENROLLMENT_ID = "enrollment";
 
-    public static final String EVENT_CREATED_ID = "created";
+    public static final String EVENT_CREATED_AT_ID = "createdAt";
 
-    public static final String EVENT_CREATED_BY_USER_INFO_ID = "createdbyuserinfo";
+    public static final String EVENT_CREATED_BY_ID = "createdBy";
 
-    public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
+    public static final String EVENT_UPDATED_AT_ID = "updatedAt";
 
-    public static final String EVENT_LAST_UPDATED_BY_USER_INFO_ID = "lastUpdatedbyuserinfo";
+    public static final String EVENT_UPDATED_BY = "updatedBy";
 
     public static final String EVENT_STORED_BY_ID = "storedBy";
 
     public static final String EVENT_COMPLETED_BY_ID = "completedBy";
 
-    public static final String EVENT_COMPLETED_DATE_ID = "completedDate";
+    public static final String EVENT_COMPLETED_AT_ID = "completedAt";
 
-    public static final String EVENT_DUE_DATE_ID = "dueDate";
+    public static final String EVENT_SCHEDULE_AT_DATE_ID = "scheduleAt";
 
-    public static final String EVENT_EXECUTION_DATE_ID = "eventDate";
+    public static final String EVENT_OCCURRED_AT_DATE_ID = "occurredAt";
 
     public static final String EVENT_ORG_UNIT_ID = "orgUnit";
 
@@ -119,7 +119,7 @@ public class EventSearchParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntityInstance trackedEntity;
 
     private Date startDate;
 
@@ -127,18 +127,18 @@ public class EventSearchParams
 
     private EventStatus eventStatus;
 
-    private Date lastUpdatedStartDate;
+    private Date updatedAtStartDate;
 
-    private Date lastUpdatedEndDate;
+    private Date updatedAtEndDate;
 
     /**
      * The last updated duration filter.
      */
-    private String lastUpdatedDuration;
+    private String updatedAtDuration;
 
-    private Date dueDateStart;
+    private Date scheduleAtStartDate;
 
-    private Date dueDateEnd;
+    private Date scheduleAtEndDate;
 
     private Date enrollmentEnrolledBefore;
 
@@ -263,25 +263,25 @@ public class EventSearchParams
     /**
      * Indicates whether this parameters specifies a last updated start date.
      */
-    public boolean hasLastUpdatedStartDate()
+    public boolean hasUpdatedAtStartDate()
     {
-        return lastUpdatedStartDate != null;
+        return updatedAtStartDate != null;
     }
 
     /**
      * Indicates whether this parameters specifies a last updated end date.
      */
-    public boolean hasLastUpdatedEndDate()
+    public boolean hasUpdatedAtEndDate()
     {
-        return lastUpdatedEndDate != null;
+        return updatedAtEndDate != null;
     }
 
     /**
-     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     * Indicates whether this parameters has a UpdatedAtDuration filter.
      */
-    public boolean hasLastUpdatedDuration()
+    public boolean hasUpdatedAtDuration()
     {
-        return lastUpdatedDuration != null;
+        return updatedAtDuration != null;
     }
 
     /**
@@ -423,14 +423,14 @@ public class EventSearchParams
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public TrackedEntityInstance getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public EventSearchParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public EventSearchParams setTrackedEntity( TrackedEntityInstance trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         return this;
     }
 
@@ -467,58 +467,58 @@ public class EventSearchParams
         return this;
     }
 
-    public Date getLastUpdatedStartDate()
+    public Date getUpdatedAtStartDate()
     {
-        return lastUpdatedStartDate;
+        return updatedAtStartDate;
     }
 
-    public EventSearchParams setLastUpdatedStartDate( Date lastUpdatedStartDate )
+    public EventSearchParams setUpdatedAtStartDate( Date updatedAtStartDate )
     {
-        this.lastUpdatedStartDate = lastUpdatedStartDate;
+        this.updatedAtStartDate = updatedAtStartDate;
         return this;
     }
 
-    public Date getLastUpdatedEndDate()
+    public Date getUpdatedAtEndDate()
     {
-        return lastUpdatedEndDate;
+        return updatedAtEndDate;
     }
 
-    public EventSearchParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
+    public EventSearchParams setUpdatedAtEndDate( Date updatedAtEndDate )
     {
-        this.lastUpdatedEndDate = lastUpdatedEndDate;
+        this.updatedAtEndDate = updatedAtEndDate;
         return this;
     }
 
-    public String getLastUpdatedDuration()
+    public String getUpdatedAtDuration()
     {
-        return lastUpdatedDuration;
+        return updatedAtDuration;
     }
 
-    public EventSearchParams setLastUpdatedDuration( String lastUpdatedDuration )
+    public EventSearchParams setUpdatedAtDuration( String updatedAtDuration )
     {
-        this.lastUpdatedDuration = lastUpdatedDuration;
+        this.updatedAtDuration = updatedAtDuration;
         return this;
     }
 
-    public Date getDueDateStart()
+    public Date getScheduleAtStartDate()
     {
-        return dueDateStart;
+        return scheduleAtStartDate;
     }
 
-    public EventSearchParams setDueDateStart( Date dueDateStart )
+    public EventSearchParams setScheduleAtStartDate( Date scheduleAtStartDate )
     {
-        this.dueDateStart = dueDateStart;
+        this.scheduleAtStartDate = scheduleAtStartDate;
         return this;
     }
 
-    public Date getDueDateEnd()
+    public Date getScheduleAtEndDate()
     {
-        return dueDateEnd;
+        return scheduleAtEndDate;
     }
 
-    public EventSearchParams setDueDateEnd( Date dueDateEnd )
+    public EventSearchParams setScheduleAtEndDate( Date scheduleAtEndDate )
     {
-        this.dueDateEnd = dueDateEnd;
+        this.scheduleAtEndDate = scheduleAtEndDate;
         return this;
     }
 

@@ -47,7 +47,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -62,6 +61,7 @@ import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -97,7 +97,7 @@ public class TrackerImportController
 
     private final TrackerImportService trackerImportService;
 
-    private final CsvEventService<Event> csvEventService;
+    private final TrackerCsvEventService csvEventService;
 
     private final Notifier notifier;
 

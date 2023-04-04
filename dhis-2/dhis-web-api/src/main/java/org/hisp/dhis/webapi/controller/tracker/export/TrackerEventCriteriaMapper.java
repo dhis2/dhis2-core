@@ -55,8 +55,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -74,12 +72,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.event.EventSearchParams;
+import org.hisp.dhis.tracker.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
 /**
@@ -94,10 +94,9 @@ class TrackerEventCriteriaMapper
 
     /**
      * Properties other than the {@link Property#isSimple()} ones on
-     * {@link org.hisp.dhis.dxf2.events.event.Event} which are valid order query
-     * parameter property names. These need to be supported by the underlying
-     * Event store like {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore}
-     * see QUERY_PARAM_COL_MAP.
+     * {@link Event} which are valid order query parameter property names. These
+     * need to be supported by the underlying Event store like
+     * {@link JdbcEventStore} see QUERY_PARAM_COL_MAP.
      */
     private static final Set<String> NON_EVENT_SORTABLE_PROPERTIES = Set.of( "enrolledAt", "occurredAt" );
 
@@ -119,7 +118,7 @@ class TrackerEventCriteriaMapper
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private final InputUtils inputUtils;
+    private final CategoryOptionComboService categoryOptionComboService;
 
     private final SchemaService schemaService;
 
@@ -156,7 +155,7 @@ class TrackerEventCriteriaMapper
             criteria.getTrackedEntity() );
         validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
 
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+        CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             criteria.getAttributeCc(),
             criteria.getAttributeCos(),
             true );
@@ -196,15 +195,16 @@ class TrackerEventCriteriaMapper
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntityInstance( trackedEntityInstance )
+            .setTrackedEntity( trackedEntityInstance )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
             .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
-            .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
-            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
+            .setScheduleAtStartDate( criteria.getScheduledAfter() )
+            .setScheduleAtEndDate( criteria.getScheduledBefore() )
+            .setUpdatedAtStartDate( criteria.getUpdatedAfter() )
+            .setUpdatedAtEndDate( criteria.getUpdatedBefore() )
+            .setUpdatedAtDuration( criteria.getUpdatedWithin() )
             .setEnrollmentEnrolledBefore( criteria.getEnrollmentEnrolledBefore() )
             .setEnrollmentEnrolledAfter( criteria.getEnrollmentEnrolledAfter() )
             .setEnrollmentOccurredBefore( criteria.getEnrollmentOccurredBefore() )
