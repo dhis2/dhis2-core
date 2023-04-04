@@ -149,6 +149,20 @@ class EventExporterTest extends TrackerTest
             Arguments.of( eventsFunction ) );
     }
 
+    @Test
+    void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setTrackedEntity( trackedEntityInstance );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+
+        List<ProgramStageInstance> events = eventService.getEvents( params ).getEvents();
+
+        assertEquals( get( ProgramStageInstance.class, "D9PbzJY8bJM" ).getAssignedUser(),
+            events.get( 0 ).getAssignedUser() );
+    }
+
     @ParameterizedTest
     @MethodSource( "getEventsFunctions" )
     void testExportEvents( Function<EventSearchParams, List<String>> eventFunction )

@@ -387,6 +387,7 @@ public class JdbcEventStore implements EventStore
                     eventUser.setName( resultSet.getString( "user_assigned_name" ) );
                     eventUser.setFirstName( resultSet.getString( "user_assigned_first_name" ) );
                     eventUser.setSurname( resultSet.getString( "user_assigned_surname" ) );
+                    event.setAssignedUser( eventUser );
                 }
 
                 events.add( event );
