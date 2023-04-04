@@ -77,15 +77,6 @@ public class JdbcOrgUnitAssociationsStore
             } );
     }
 
-    /**
-     * Look for a program - org Unit association in a Cache. If the association
-     * exists we return true, otherwise we do a database lookup, check if the
-     * input org Unit is associated with the program and add to the cache
-     *
-     * @param program
-     * @param orgUnit
-     * @return
-     */
     public boolean checkOrganisationUnitsAssociations( String program, String orgUnit )
     {
         if ( !orgUnitAssociationCache.get( program ).isPresent()
