@@ -89,7 +89,8 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest
     void testClearFileResourceDataValue_EmptyValue()
     {
         assertClearsFileResourceDataValue( () ->
-        // making a request to normal /dataValues endpoint with an undefined "value"
+        // making a request to normal /dataValues endpoint with an undefined
+        // "value"
         assertStatus( HttpStatus.CREATED, POST( format( "/dataValues?de=%s&pe=%s&ou=%s&co=%s",
             de, pe, ou, coc ) ) ) );
     }
