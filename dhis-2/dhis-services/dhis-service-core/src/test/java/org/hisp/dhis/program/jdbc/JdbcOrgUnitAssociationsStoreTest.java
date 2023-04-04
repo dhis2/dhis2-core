@@ -43,7 +43,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.CodeGenerator;
