@@ -63,6 +63,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
             .add( "dimension=dx:M3xtLkYBlKI.fyjPqlHE7Dn,pe:202107" )
             .add( "filter=ou:USER_ORGUNIT" )
             .add( "displayProperty=NAME" )
+            .add( "desc=lastupdated" )
             .add( "skipMeta=true" )
             .add( "skipData=false" );
 
@@ -89,6 +90,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
             .add( "dimension=dx:mxc1T932aWM,pe:202210" )
             .add( "filter=ou:USER_ORGUNIT" )
             .add( "displayProperty=NAME" )
+            .add( "desc=lastupdated" )
             .add( "skipMeta=true" )
             .add( "skipData=false" );
 
