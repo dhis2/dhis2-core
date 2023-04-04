@@ -467,7 +467,7 @@ public class DefaultDashboardService
 
         if ( isNotEmpty( visualizations ) )
         {
-            for ( final Visualization visualization : visualizations )
+            for ( Visualization visualization : visualizations )
             {
                 views.add( convertFrom( visualization ) );
             }

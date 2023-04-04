@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.Assert.state;
 
 import java.util.List;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
@@ -43,12 +46,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class PaginationHelper
 {
-    private PaginationHelper()
-    {
-    }
-
     /**
      * This method will "paginate" the given list based on the given options and
      * return only the elements present in the pagination window.
@@ -57,7 +57,7 @@ public class PaginationHelper
      * @param itemViewObjects
      * @return the list of "paginated" items
      */
-    public static List<DataItem> paginate( final WebOptions options,
+    public static List<DataItem> paginate( WebOptions options,
         List<DataItem> itemViewObjects )
     {
         state( options.getPage() > 0, "Current page must be greater than zero." );
@@ -66,18 +66,18 @@ public class PaginationHelper
         if ( options.hasPaging() && isNotEmpty( itemViewObjects ) )
         {
             // Pagination input.
-            final int currentPage = options.getPage();
-            final int totalOfElements = itemViewObjects.size();
-            final int maxElementsPerPage = options.getPageSize();
+            int currentPage = options.getPage();
+            int totalOfElements = itemViewObjects.size();
+            int maxElementsPerPage = options.getPageSize();
 
-            final Pager pager = new Pager( currentPage, totalOfElements, maxElementsPerPage );
+            Pager pager = new Pager( currentPage, totalOfElements, maxElementsPerPage );
 
-            final int currentElementIndex = pager.getOffset();
-            final boolean hasMorePages = (totalOfElements - currentElementIndex) > pager.getPageSize();
+            int currentElementIndex = pager.getOffset();
+            boolean hasMorePages = (totalOfElements - currentElementIndex) > pager.getPageSize();
 
             if ( hasMorePages )
             {
-                final int nextElementsWindow = pager.getPageSize() * pager.getPage();
+                int nextElementsWindow = pager.getPageSize() * pager.getPage();
                 itemViewObjects = itemViewObjects.subList( currentElementIndex, nextElementsWindow );
             }
             else
@@ -97,11 +97,11 @@ public class PaginationHelper
      * @param options the source of pagination params
      * @param paramsMap the map that will receive the max limit param (maxLimit)
      */
-    public static void setMaxResultsWhenPaging( final WebOptions options, final MapSqlParameterSource paramsMap )
+    public static void setMaxResultsWhenPaging( WebOptions options, MapSqlParameterSource paramsMap )
     {
         if ( options.hasPaging() )
         {
-            final int maxLimit = options.getPage() * options.getPageSize();
+            int maxLimit = options.getPage() * options.getPageSize();
             paramsMap.addValue( "maxLimit", maxLimit );
         }
     }

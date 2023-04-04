@@ -72,9 +72,8 @@ public class HibernateEventVisualizationStore extends
         EVENT_LINE_LIST
     }
 
-    public HibernateEventVisualizationStore( final SessionFactory sessionFactory, final JdbcTemplate jdbcTemplate,
-        final ApplicationEventPublisher publisher, final CurrentUserService currentUserService,
-        final AclService aclService )
+    public HibernateEventVisualizationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, EventVisualization.class, currentUserService,
             aclService, true );
