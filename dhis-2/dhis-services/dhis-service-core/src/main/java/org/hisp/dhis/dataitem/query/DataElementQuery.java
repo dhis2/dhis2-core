@@ -81,9 +81,9 @@ public class DataElementQuery implements DataItemQuery
         + " cast (null as text) as expression";
 
     @Override
-    public String getStatement( final MapSqlParameterSource paramsMap )
+    public String getStatement( MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
 
         sql.append( "(" );
 
@@ -119,8 +119,8 @@ public class DataElementQuery implements DataItemQuery
         sql.append( always( "t.item_domaintype = 'AGGREGATE'" ) );
 
         // Optional filters, based on the current root junction.
-        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        final Set<String> aggregatableTypes = getAggregatables().stream().map( type -> type.name() ).collect( toSet() );
+        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        Set<String> aggregatableTypes = getAggregatables().stream().map( type -> type.name() ).collect( toSet() );
 
         // This condition is needed to enable value types filtering only when
         // they are actually specified as filters. Otherwise we should only
@@ -139,7 +139,7 @@ public class DataElementQuery implements DataItemQuery
         optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
             "t.i18n_first_name",
             null, paramsMap );
 
@@ -155,7 +155,7 @@ public class DataElementQuery implements DataItemQuery
         sql.append( ifSet( maxLimit( paramsMap ) ) );
         sql.append( ")" );
 
-        final String fullStatement = sql.toString();
+        String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
@@ -171,7 +171,7 @@ public class DataElementQuery implements DataItemQuery
      * @return true if rules are matched.
      */
     @Override
-    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    public boolean matchQueryRules( MapSqlParameterSource paramsMap )
     {
         return !hasNonBlankStringPresence( paramsMap, PROGRAM_ID );
     }
@@ -184,7 +184,7 @@ public class DataElementQuery implements DataItemQuery
 
     private String selectRowsContainingTranslatedName()
     {
-        final StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
 
         sql.append( SPACED_SELECT + COMMON_COLUMNS )
             .append( translationNamesColumnsFor( "dataelement" ) );

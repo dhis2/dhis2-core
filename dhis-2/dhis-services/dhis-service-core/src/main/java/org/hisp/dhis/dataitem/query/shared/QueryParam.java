@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
+
+import lombok.NoArgsConstructor;
+
 /**
  * This class keeps the list of possible query params.
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class QueryParam
 {
-    private QueryParam()
-    {
-    }
-
     public static final String NAME = "name";
 
     public static final String SHORT_NAME = "shortName";
