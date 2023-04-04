@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
@@ -41,7 +40,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1077,31 +1075,6 @@ public class ListGrid
     }
 
     @Override
-    public Grid addHeaders( SqlRowSetMetaData rowSetMetaData, boolean withTypes )
-    {
-        int columnNo = rowSetMetaData.getColumnCount();
-
-        for ( int i = 1; i <= columnNo; i++ )
-        {
-            GridHeader gridHeader;
-
-            if ( withTypes )
-            {
-                gridHeader = new GridHeader( rowSetMetaData.getColumnLabel( i ),
-                    getValueTypeFromSqlType( rowSetMetaData.getColumnType( i ) ) );
-            }
-            else
-            {
-                gridHeader = new GridHeader( rowSetMetaData.getColumnLabel( i ) );
-            }
-
-            addHeader( gridHeader );
-        }
-
-        return this;
-    }
-
-    @Override
     public Grid addRows( ResultSet rs )
     {
         try
@@ -1146,31 +1119,6 @@ public class ListGrid
                 }
             }
         }
-
-        return this;
-    }
-
-    public Grid addNamedRows( SqlRowSet rs )
-    {
-        String[] cols = headers.stream().map( GridHeader::getName ).toArray( String[]::new );
-        Set<String> headersSet = new LinkedHashSet<>();
-
-        while ( rs.next() )
-        {
-            addRow();
-
-            for ( int i = 0; i < cols.length; i++ )
-            {
-                if ( headerExists( cols[i] ) )
-                {
-                    addValue( rs.getObject( cols[i] ) );
-                    headersSet.add( cols[i] );
-                }
-            }
-        }
-
-        // Needs to ensure the ordering of columns based on grid headers.
-        repositionColumns( repositionHeaders( new ArrayList<>( headersSet ) ) );
 
         return this;
     }

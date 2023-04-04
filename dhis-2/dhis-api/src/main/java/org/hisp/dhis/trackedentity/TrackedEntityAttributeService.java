@@ -76,11 +76,6 @@ public interface TrackedEntityAttributeService
     void updateTrackedEntityAttribute( TrackedEntityAttribute attribute );
 
     /**
-     * returns all programAttributes
-     */
-    List<TrackedEntityAttribute> getProgramTrackedEntityAttributes( List<Program> programs );
-
-    /**
      * Returns a {@link TrackedEntityAttribute}.
      *
      * @param id the id of the TrackedEntityAttribute to return.

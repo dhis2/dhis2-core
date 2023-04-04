@@ -45,11 +45,9 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -81,19 +79,6 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
         this.jdbcTemplate = jdbcTemplate;
         this.executorService = Executors.newScheduledThreadPool( 10 );
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
-
-    @Override
-    public void addExecutionPlan( String key, SqlQuery sqlQuery )
-    {
-        SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( EXPLAIN_QUERY.value() + sqlQuery.getStatement(),
-            new MapSqlParameterSource().addValues( sqlQuery.getParams() ) );
-
-        JsonNode root = getJsonFromRowSet( rowSet );
-
-        ExecutionPlan executionPlan = getExecutionPlan( sqlQuery.getStatement(), root );
-
-        storeExecutionPlan( key, executionPlan );
     }
 
     @Override

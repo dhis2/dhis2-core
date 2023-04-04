@@ -91,10 +91,6 @@ public class AnalyticsTablePartition
         {
             name = PartitionUtils.getTableName( name, masterTable.getProgram() );
         }
-        else if ( masterTable.getTrackedEntityType() != null )
-        {
-            name += PartitionUtils.SEP + masterTable.getTrackedEntityType().getUid().toLowerCase();
-        }
         if ( year != null )
         {
             name += PartitionUtils.SEP + year;

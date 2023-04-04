@@ -74,7 +74,7 @@ public interface ProgramIndicatorSubqueryBuilder
      *
      * @param programIndicator a {@link ProgramIndicator} object
      * @param outerSqlEntity a {@link AnalyticsType} object, representing the
-     *        outer SQL context.
+     *        outer SQL contexNt.
      * @param earliestStartDate the earliest reporting start date.
      * @param latestDate the latest reporting end date.
      *

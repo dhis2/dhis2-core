@@ -188,15 +188,6 @@ public class BaseDimensionalObject
         this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType,
-        List<? extends DimensionalItemObject> items, ValueType valueType )
-    {
-        this.uid = dimension;
-        this.dimensionType = dimensionType;
-        this.items = new ArrayList<>( items );
-        this.valueType = valueType;
-    }
-
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
         String dimensionDisplayName, List<? extends DimensionalItemObject> items,
         DimensionItemKeywords dimensionalKeywords )

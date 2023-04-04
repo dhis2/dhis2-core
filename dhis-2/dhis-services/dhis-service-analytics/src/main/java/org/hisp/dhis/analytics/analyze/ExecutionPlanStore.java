@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.analyze;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.common.ExecutionPlan;
 
 /**
@@ -46,16 +45,6 @@ public interface ExecutionPlanStore
      * @param sql the statement to be executed/explained.
      */
     void addExecutionPlan( String key, String sql );
-
-    /**
-     * Executes and add the result planning of the given "sql". The resulting
-     * internal {@link ExecutionPlan} objects will be stored with the associated
-     * "key".
-     *
-     * @param key the unique key associated with {@link ExecutionPlan} objects.
-     * @param sqlQuery the statement to be executed/explained.
-     */
-    void addExecutionPlan( String key, SqlQuery sqlQuery );
 
     /**
      * Returns all available {@link ExecutionPlan} associated with the given
