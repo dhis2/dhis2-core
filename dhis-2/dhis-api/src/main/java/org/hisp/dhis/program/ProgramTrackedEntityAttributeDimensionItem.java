@@ -55,7 +55,8 @@ import com.google.common.base.Objects;
  */
 @JacksonXmlRootElement( localName = "programAttributeDimension", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttributeDimensionItem
-    extends BaseDimensionalItemObject implements EmbeddedObject
+    extends BaseDimensionalItemObject
+    implements EmbeddedObject
 {
     private Program program;
 

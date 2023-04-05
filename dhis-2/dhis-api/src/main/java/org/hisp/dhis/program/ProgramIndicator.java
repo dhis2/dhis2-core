@@ -56,7 +56,8 @@ import com.google.common.collect.ImmutableSet;
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDataDimensionalItemObject implements MetadataObject
+    extends BaseDataDimensionalItemObject
+    implements MetadataObject
 {
     public static final String DB_SEPARATOR_ID = "_";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataitem.query.shared;
+package org.hisp.dhis.fileresource;
 
-import static lombok.AccessLevel.PRIVATE;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This class keeps the list of possible query params.
+ * Backwards reference from a storage key to the object that is associated with
+ * the {@link FileResource}.
  *
- * @author maikel arabori
+ * A {@link FileResourceDomain#DATA_VALUE} uses the 4 data value keys
+ * {@link #de}, {@link #ou}, {@link #pe} and {@link #co}, all other types use
+ * only the {@link #id}.
+ *
+ * @author Jan Bernitt
  */
-@NoArgsConstructor( access = PRIVATE )
-public class QueryParam
+@Value
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class FileResourceOwner
 {
-    public static final String NAME = "name";
+    @JsonProperty
+    FileResourceDomain domain;
 
-    public static final String SHORT_NAME = "shortName";
+    // for data values
+    @JsonProperty
+    String de;
 
-    public static final String DISPLAY_NAME = "displayName";
+    @JsonProperty
+    String ou;
 
-    public static final String DISPLAY_SHORT_NAME = "displayShortName";
+    @JsonProperty
+    String pe;
 
-    public static final String LOCALE = "locale";
+    @JsonProperty
+    String co;
 
-    public static final String VALUE_TYPES = "valueTypes";
+    // for any other domain
+    @JsonProperty
+    String id;
 
-    public static final String USER_GROUP_UIDS = "userGroupUids";
+    public FileResourceOwner( FileResourceDomain domain, String id )
+    {
+        this( domain, null, null, null, null, id );
+    }
 
-    public static final String USER_UID = "userUid";
-
-    public static final String PROGRAM_ID = "programId";
-
-    public static final String MAX_LIMIT = "maxLimit";
-
-    public static final String NAME_ORDER = "nameOrder";
-
-    public static final String SHORT_NAME_ORDER = "shortNameOrder";
-
-    public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
-
-    public static final String DISPLAY_SHORT_NAME_ORDER = "displayShortNameOrder";
-
-    public static final String UID = "uid";
-
-    public static final String ROOT_JUNCTION = "rootJunction";
-
-    public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
+    public FileResourceOwner( String de, String ou, String pe, String co )
+    {
+        this( FileResourceDomain.DATA_VALUE, de, ou, pe, co, null );
+    }
 }

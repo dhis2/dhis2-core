@@ -55,7 +55,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
 public class Map
-    extends BaseNameableObject implements InterpretableObject, SubscribableObject, MetadataObject
+    extends BaseNameableObject
+    implements InterpretableObject, SubscribableObject, MetadataObject
 {
     private Double longitude;
 

@@ -37,7 +37,7 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -165,7 +165,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
         params.setTrackedEntityInstanceUid(
-            Optional.ofNullable( tei ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
+            Optional.ofNullable( tei ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );
