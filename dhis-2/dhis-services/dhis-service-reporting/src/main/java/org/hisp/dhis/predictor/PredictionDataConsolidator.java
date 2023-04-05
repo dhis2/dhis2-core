@@ -78,10 +78,8 @@ public class PredictionDataConsolidator
     public PredictionDataConsolidator( Set<DimensionalItemObject> items, boolean includeDescendants,
         PredictionDataValueFetcher dataValueFetcher, PredictionAnalyticsDataFetcher analyticsFetcher )
     {
-        this.dataValueFetcher = dataValueFetcher;
+        this.dataValueFetcher = dataValueFetcher.setIncludeDescendants( includeDescendants );
         this.analyticsFetcher = analyticsFetcher;
-
-        dataValueFetcher.setIncludeDeleted( true ).setIncludeDescendants( includeDescendants );
 
         dataElements = new HashSet<>();
         dataElementOperands = new HashSet<>();
@@ -93,22 +91,23 @@ public class PredictionDataConsolidator
     /**
      * Initializes for data retrieval.
      *
-     * @param orgUnits organisation units to fetch
      * @param orgUnitLevel level of organisation units to fetch
+     * @param orgUnits organisation units to fetch
      * @param dataValueQueryPeriods existing periods for data value queries
      * @param analyticsQueryPeriods existing periods for analytics queries
+     * @param existingOutputPeriods existing output periods
      * @param outputDataElementOperand prediction output data element operand
      */
-    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
-        Set<Period> dataValueQueryPeriods, Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
+    public void init( int orgUnitLevel, List<OrganisationUnit> orgUnits, Set<Period> dataValueQueryPeriods,
+        Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
         DataElementOperand outputDataElementOperand )
     {
         orgUnitsRemaining = new ArrayDeque<>( orgUnits );
 
         readyPredictionData = new ArrayDeque<>();
 
-        dataValueFetcher.init( currentUserOrgUnits, orgUnitLevel, orgUnits, dataValueQueryPeriods,
-            existingOutputPeriods, dataElements, dataElementOperands, outputDataElementOperand );
+        dataValueFetcher.init( orgUnitLevel, orgUnits, dataValueQueryPeriods, existingOutputPeriods, dataElements,
+            dataElementOperands, outputDataElementOperand );
 
         analyticsFetcher.init( analyticsQueryPeriods, analyticsItems );
     }
