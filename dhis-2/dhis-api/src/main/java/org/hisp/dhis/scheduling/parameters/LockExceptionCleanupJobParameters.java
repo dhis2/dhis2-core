@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class LockExceptionCleanupJobParameters implements JobParameters
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
-
-    List<LockException> getLockExceptionCombinations();
-
-    void deleteLockExceptions( DataSet dataSet, Period period );
-
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
     /**
-     * Deletes all lock exceptions that are considered expired. This means their
-     * creation date is before the given date.
-     *
-     * @param createdBefore The threshold date, any {@link LockException} with
-     *        an older created date is deleted
-     * @return number of deleted lock exceptions
+     * Number of month (from its created date) when a
+     * {@link org.hisp.dhis.dataset.LockException}s is considered expired and
+     * subject to cleanup.
      */
-    int deleteExpiredLockExceptions( Date createdBefore );
+    private Integer expiresAfterMonths;
 
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getExpiresAfterMonths()
+    {
+        return expiresAfterMonths;
+    }
 
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
-
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        return Optional.empty();
+    }
 }

@@ -1,0 +1,1 @@
+alter table lockexception add column if not exists created timestamp without time zone NOT NULL default now();
