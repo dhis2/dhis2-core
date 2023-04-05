@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dataitem.query;
 
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Dusan Bernat
+ * Unit tests for {@link ExpressionDimensionItemQuery} class.
+ *
+ * @author maikel arabori
  */
-public class ExpressionDimensionItemSchemaDescriptor
-    implements SchemaDescriptor
+class ExpressionDimensionItemQueryTest
 {
-    public static final String SINGULAR = "expressionDimensionItem";
-
-    public static final String PLURAL = "expressionDimensionItems";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @Test
+    void testGetStatementContainsOwnerCheck()
     {
-        Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+        // Given
+        MapSqlParameterSource anyMap = new MapSqlParameterSource();
+        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-        schema.setOrder( 1000 );
-        schema.setDefaultPrivate( true );
+        // When
+        String statement = query.getStatement( anyMap );
 
-        return schema;
+        // Then
+        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
     }
 }
