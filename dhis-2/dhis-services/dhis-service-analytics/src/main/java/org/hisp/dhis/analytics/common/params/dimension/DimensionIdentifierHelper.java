@@ -33,6 +33,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
@@ -44,6 +45,7 @@ import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.feedback.ErrorCode;
 
 @NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierHelper
@@ -130,19 +132,29 @@ public class DimensionIdentifierHelper
     private static ElementWithOffset<StringUid> elementWithOffsetByString( String elementWithOffset )
     {
         String[] split = split( elementWithOffset, "[]" );
+
         boolean hasOffset = split.length == 2;
 
         if ( hasOffset )
         {
             String elementUid = split[0];
-            String offset = split[1];
+            try
+            {
+                int offset = Integer.parseInt( split[1] );
+                if ( offset == 0 )
+                {
+                    throwIllegalQueryEx( ErrorCode.E7138, elementWithOffset );
+                }
+                return ElementWithOffset.of( StringUid.of( elementUid ), offset );
 
-            return ElementWithOffset.of( StringUid.of( elementUid ), offset );
+            }
+            catch ( NumberFormatException ignored )
+            {
+                throwIllegalQueryEx( ErrorCode.E7138, elementWithOffset );
+            }
         }
-        else
-        {
-            return ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
-        }
+
+        return ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
     }
 
     public static String asText( ElementWithOffset<? extends UidObject> program,

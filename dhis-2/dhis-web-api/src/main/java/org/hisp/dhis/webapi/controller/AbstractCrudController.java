@@ -114,6 +114,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -1259,6 +1260,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             throw new BadRequestException( "Unknown payload format." );
         }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+        JsonNode jsonNode = mapper.readTree( request.getInputStream() );
+        for ( JsonNode node : jsonNode )
+        {
+            if ( node.isContainerNode() )
+            {
+                throw new BadRequestException( "Payload can not contain objects or arrays." );
+            }
+        }
+
+        return patchService.diff( new PatchParams( jsonNode ) );
     }
 }

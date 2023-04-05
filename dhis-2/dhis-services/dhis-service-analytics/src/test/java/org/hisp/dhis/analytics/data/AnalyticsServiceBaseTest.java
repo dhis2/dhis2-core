@@ -46,7 +46,7 @@ import org.hisp.dhis.analytics.data.handler.DataAggregator;
 import org.hisp.dhis.analytics.data.handler.DataHandler;
 import org.hisp.dhis.analytics.data.handler.HeaderHandler;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.expression.ExpressionService;
@@ -96,7 +96,7 @@ abstract class AnalyticsServiceBaseTest
     private DataQueryService dataQueryService;
 
     @Mock
-    private SchemaIdResponseMapper schemaIdResponseMapper;
+    private SchemeIdResponseMapper schemeIdResponseMapper;
 
     @Mock
     private DhisConfigurationProvider dhisConfig;
@@ -122,7 +122,7 @@ abstract class AnalyticsServiceBaseTest
     public void baseSetUp()
     {
         HeaderHandler headerHandler = new HeaderHandler();
-        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
+        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemeIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager,
             resolvers, expressionService, queryPlanner, systemSettingManager, analyticsManager,
             organisationUnitService, executionPlanStore );

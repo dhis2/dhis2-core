@@ -58,7 +58,7 @@ public class WebCache
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    public WebCache( final SystemSettingManager systemSettingManager,
+    public WebCache( SystemSettingManager systemSettingManager,
         final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( systemSettingManager );
@@ -81,14 +81,14 @@ public class WebCache
      */
     public CacheControl getCacheControlFor( CacheStrategy cacheStrategy )
     {
-        final CacheControl cacheControl;
+        CacheControl cacheControl;
 
         if ( RESPECT_SYSTEM_SETTING == cacheStrategy )
         {
             cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY, CacheStrategy.class );
         }
 
-        final boolean cacheStrategyHasExpirationTimeSet = cacheStrategy != null && cacheStrategy != NO_CACHE;
+        boolean cacheStrategyHasExpirationTimeSet = cacheStrategy != null && cacheStrategy != NO_CACHE;
 
         if ( cacheStrategyHasExpirationTimeSet )
         {
@@ -113,11 +113,11 @@ public class WebCache
      * @return a CacheControl object configured based on current cacheability
      *         settings and the provided time to live.
      */
-    public CacheControl getCacheControlFor( final Date latestEndDate )
+    public CacheControl getCacheControlFor( Date latestEndDate )
     {
-        final CacheControl cacheControl;
+        CacheControl cacheControl;
 
-        final long timeToLive = analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate );
+        long timeToLive = analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate );
 
         if ( timeToLive > 0 )
         {
@@ -151,9 +151,9 @@ public class WebCache
      *
      * @param cacheControl where cacheability will be set.
      */
-    private void setCacheabilityFor( final CacheControl cacheControl )
+    private void setCacheabilityFor( CacheControl cacheControl )
     {
-        final Cacheability cacheability = systemSettingManager.getSystemSetting( CACHEABILITY,
+        Cacheability cacheability = systemSettingManager.getSystemSetting( CACHEABILITY,
             Cacheability.class );
 
         if ( PUBLIC == cacheability )

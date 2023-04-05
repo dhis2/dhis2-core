@@ -87,7 +87,7 @@ public class DataItemServiceFacade
      */
     List<DataItem> retrieveDataItemEntities(
         Set<Class<? extends BaseIdentifiableObject>> targetEntities, Set<String> filters,
-        WebOptions options, final OrderParams orderParams )
+        WebOptions options, OrderParams orderParams )
     {
         List<DataItem> dataItems = new ArrayList<>();
 
@@ -121,7 +121,7 @@ public class DataItemServiceFacade
      * @param filters
      * @return the data items classes to be queried
      */
-    Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities( final Set<String> filters )
+    Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities( Set<String> filters )
     {
         Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
 

@@ -46,13 +46,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class EventMapperTest
+class Dxf2EventMapperTest
 {
 
     @Mock
     private Geometry geometry;
 
-    private EventMapper mapper = Mappers.getMapper( EventMapper.class );
+    private Dxf2EventMapper mapper = Mappers.getMapper( Dxf2EventMapper.class );
 
     @Test
     void testMappingEvent()

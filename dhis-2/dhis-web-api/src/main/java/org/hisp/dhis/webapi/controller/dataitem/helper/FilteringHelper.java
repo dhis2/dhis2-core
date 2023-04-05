@@ -31,6 +31,7 @@ import static com.google.common.base.Enums.getIfPresent;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.EnumUtils.getEnumMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -78,7 +79,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
+
+import lombok.NoArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -99,12 +103,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class FilteringHelper
 {
-    private FilteringHelper()
-    {
-    }
-
     /**
      * This method will return the respective BaseDimensionalItemObject class
      * from the filter provided.
@@ -118,18 +119,18 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity
      */
-    public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter( final String filter )
+    public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter( String filter )
     {
-        final Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
+        Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
 
         if ( contains( filter, DIMENSION_TYPE_IN.getCombination() ) )
         {
-            final String[] dimensionItemTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+            String[] dimensionItemTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
 
             if ( isNotEmpty( dimensionItemTypesInFilter ) )
             {
-                for ( final String dimensionItem : dimensionItemTypesInFilter )
+                for ( String dimensionItem : dimensionItemTypesInFilter )
                 {
                     dataItemsEntity.add( entityClassFromString( dimensionItem ) );
                 }
@@ -155,15 +156,15 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity
      */
-    public static Class<? extends BaseIdentifiableObject> extractEntityFromEqualFilter( final String filter )
+    public static Class<? extends BaseIdentifiableObject> extractEntityFromEqualFilter( String filter )
     {
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseIdentifiableObject> entity = null;
 
         if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getCombination() ) )
         {
-            final String[] dimensionFilterPair = filter.split( ":" );
-            final boolean hasDimensionType = dimensionFilterPair.length == 3;
+            String[] dimensionFilterPair = filter.split( ":" );
+            boolean hasDimensionType = dimensionFilterPair.length == 3;
 
             if ( hasDimensionType )
             {
@@ -187,17 +188,17 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         value type
      */
-    public static Set<String> extractAllValueTypesFromFilters( final Set<String> filters )
+    public static Set<String> extractAllValueTypesFromFilters( Set<String> filters )
     {
-        final Set<String> valueTypes = new HashSet<>();
+        Set<String> valueTypes = new HashSet<>();
 
-        final Iterator<String> iterator = filters.iterator();
+        Iterator<String> iterator = filters.iterator();
 
         while ( iterator.hasNext() )
         {
-            final String filter = iterator.next();
-            final Set<String> multipleValueTypes = extractValueTypesFromInFilter( filter );
-            final String singleValueType = extractValueTypeFromEqualFilter( filter );
+            String filter = iterator.next();
+            Set<String> multipleValueTypes = extractValueTypesFromInFilter( filter );
+            String singleValueType = extractValueTypeFromEqualFilter( filter );
 
             if ( CollectionUtils.isNotEmpty( multipleValueTypes ) )
             {
@@ -225,18 +226,18 @@ public class FilteringHelper
      * @param filterCombination
      * @return the value extracted from the respective filter combination
      */
-    public static String extractValueFromFilter( final Set<String> filters, final Filter.Combination filterCombination )
+    public static String extractValueFromFilter( Set<String> filters, Filter.Combination filterCombination )
     {
         final byte FILTER_VALUE = 2;
 
         if ( CollectionUtils.isNotEmpty( filters ) )
         {
-            for ( final String filter : filters )
+            for ( String filter : filters )
             {
                 if ( filterHasPrefix( filter, filterCombination.getCombination() ) )
                 {
-                    final String[] array = filter.split( ":" );
-                    final boolean hasValue = array.length == 3;
+                    String[] array = filter.split( ":" );
+                    boolean hasValue = array.length == 3;
 
                     if ( hasValue )
                     {
@@ -267,10 +268,10 @@ public class FilteringHelper
      *        flag is set to true
      * @return the value extracted from the respective filter combination
      */
-    public static String extractValueFromFilter( final Set<String> filters, final Filter.Combination filterCombination,
-        final boolean trimmed )
+    public static String extractValueFromFilter( Set<String> filters, Filter.Combination filterCombination,
+        boolean trimmed )
     {
-        final String value = extractValueFromFilter( filters, filterCombination );
+        String value = extractValueFromFilter( filters, filterCombination );
 
         return trimmed ? trimToEmpty( value ) : value;
     }
@@ -282,10 +283,10 @@ public class FilteringHelper
      * @param paramsMap the map that will receive the filtering params
      * @param currentUser the current user logged
      */
-    public static void setFilteringParams( final Set<String> filters, final WebOptions options,
-        final MapSqlParameterSource paramsMap, final User currentUser )
+    public static void setFilteringParams( Set<String> filters, WebOptions options,
+        MapSqlParameterSource paramsMap, User currentUser )
     {
-        final Locale currentLocale = ObjectUtils.defaultIfNull( CurrentUserUtil.getUserSetting( DB_LOCALE ),
+        Locale currentLocale = ObjectUtils.defaultIfNull( CurrentUserUtil.getUserSetting( DB_LOCALE ),
             CurrentUserUtil.getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
@@ -293,53 +294,29 @@ public class FilteringHelper
             paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
         }
 
-        final String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
+        String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
+        addIlikeComparatorIfNotEmpty( paramsMap, NAME, ilikeName );
 
-        if ( StringUtils.isNotEmpty( ilikeName ) )
-        {
-            paramsMap.addValue( NAME, wrap( addIlikeReplacingCharacters( ilikeName ), "%" ) );
-        }
+        String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
+        addIlikeComparatorIfNotEmpty( paramsMap, DISPLAY_NAME, ilikeDisplayName );
 
-        final String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
+        String ilikeShortName = extractValueFromFilter( filters, SHORT_NAME_ILIKE );
+        addIlikeComparatorIfNotEmpty( paramsMap, SHORT_NAME, ilikeShortName );
 
-        if ( StringUtils.isNotEmpty( ilikeDisplayName ) )
-        {
-            paramsMap.addValue( DISPLAY_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayName ), "%" ) );
-        }
+        String ilikeDisplayShortName = extractValueFromFilter( filters, DISPLAY_SHORT_NAME_ILIKE );
+        addIlikeComparatorIfNotEmpty( paramsMap, DISPLAY_SHORT_NAME, ilikeDisplayShortName );
 
-        final String ilikeShortName = extractValueFromFilter( filters, SHORT_NAME_ILIKE );
+        String equalId = extractValueFromFilter( filters, ID_EQUAL, true );
+        addIfNotBlank( paramsMap, UID, equalId );
 
-        if ( StringUtils.isNotEmpty( ilikeShortName ) )
-        {
-            paramsMap.addValue( SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeShortName ), "%" ) );
-        }
+        String rootJunction = options.getRootJunction().name();
+        addIfNotBlank( paramsMap, ROOT_JUNCTION, rootJunction );
 
-        final String ilikeDisplayShortName = extractValueFromFilter( filters, DISPLAY_SHORT_NAME_ILIKE );
-
-        if ( StringUtils.isNotEmpty( ilikeDisplayShortName ) )
-        {
-            paramsMap.addValue( DISPLAY_SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayShortName ), "%" ) );
-        }
-
-        final String equalId = extractValueFromFilter( filters, ID_EQUAL, true );
-
-        if ( isNotBlank( equalId ) )
-        {
-            paramsMap.addValue( UID, equalId );
-        }
-
-        final String rootJunction = options.getRootJunction().name();
-
-        if ( isNotBlank( rootJunction ) )
-        {
-            paramsMap.addValue( ROOT_JUNCTION, rootJunction );
-        }
-
-        final String identifiableToken = extractValueFromFilter( filters, IDENTIFIABLE_TOKEN );
+        String identifiableToken = extractValueFromFilter( filters, IDENTIFIABLE_TOKEN );
 
         if ( identifiableToken != null )
         {
-            final List<String> wordsAsTokens = getTokens( identifiableToken );
+            List<String> wordsAsTokens = getTokens( identifiableToken );
 
             if ( CollectionUtils.isNotEmpty( wordsAsTokens ) )
             {
@@ -350,7 +327,7 @@ public class FilteringHelper
         if ( containsFilterWithAnyOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),
             VALUE_TYPE_IN.getCombination() ) )
         {
-            final Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );
+            Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );
             assertThatValueTypeFilterHasOnlyAggregatableTypes( valueTypesFilter, filters );
 
             paramsMap.addValue( VALUE_TYPES, extractAllValueTypesFromFilters( filters ) );
@@ -359,25 +336,37 @@ public class FilteringHelper
         {
             // Includes all value types.
             paramsMap.addValue( VALUE_TYPES,
-                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
+                getAggregatables().stream().map( Enum::name ).collect( toSet() ) );
         }
-
-        final String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
 
         // Add program id filtering id, if present.
-        if ( isNotBlank( programId ) )
-        {
-            paramsMap.addValue( PROGRAM_ID, programId );
-        }
+        String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
+        addIfNotBlank( paramsMap, PROGRAM_ID, programId );
 
         // Add user group filtering, when present.
         if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
         {
-            final Set<String> userGroupUids = currentUser.getGroups().stream()
-                .filter( group -> group != null )
+            Set<String> userGroupUids = currentUser.getGroups().stream()
+                .filter( Objects::nonNull )
                 .map( group -> trimToEmpty( group.getUid() ) )
                 .collect( toSet() );
             paramsMap.addValue( USER_GROUP_UIDS, "{" + join( ",", userGroupUids ) + "}" );
+        }
+    }
+
+    private static void addIlikeComparatorIfNotEmpty( MapSqlParameterSource paramsMap, String key, String value )
+    {
+        if ( StringUtils.isNotEmpty( value ) )
+        {
+            paramsMap.addValue( key, wrap( addIlikeReplacingCharacters( value ), "%" ) );
+        }
+    }
+
+    private static void addIfNotBlank( MapSqlParameterSource paramsMap, String key, String value )
+    {
+        if ( isNotBlank( value ) )
+        {
+            paramsMap.addValue( key, value );
         }
     }
 
@@ -389,15 +378,15 @@ public class FilteringHelper
      * @throws IllegalQueryException if the given Set<String> contains
      *         non-aggregatable value types
      */
-    public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
-        final Set<String> filters )
+    public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( Set<String> valueTypeNames,
+        Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {
-            final List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() )
+            List<String> aggregatableTypes = getAggregatables().stream().map( Enum::name )
                 .collect( toList() );
 
-            for ( final String valueType : valueTypeNames )
+            for ( String valueType : valueTypeNames )
             {
                 if ( !aggregatableTypes.contains( valueType ) )
                 {
@@ -420,18 +409,18 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         value type
      */
-    private static Set<String> extractValueTypesFromInFilter( final String filter )
+    private static Set<String> extractValueTypesFromInFilter( String filter )
     {
-        final Set<String> valueTypes = new HashSet<>();
+        Set<String> valueTypes = new HashSet<>();
 
         if ( contains( filter, VALUE_TYPE_IN.getCombination() ) )
         {
-            final String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+            String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
 
             if ( isNotEmpty( valueTypesInFilter ) )
             {
-                for ( final String valueType : valueTypesInFilter )
+                for ( String valueType : valueTypesInFilter )
                 {
                     valueTypes.add( getValueTypeOrThrow( valueType ) );
                 }
@@ -456,15 +445,15 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         value type
      */
-    private static String extractValueTypeFromEqualFilter( final String filter )
+    private static String extractValueTypeFromEqualFilter( String filter )
     {
         final byte VALUE_TYPE = 2;
         String valueType = null;
 
         if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getCombination() ) )
         {
-            final String[] array = filter.split( ":" );
-            final boolean hasValueType = array.length == 3;
+            String[] array = filter.split( ":" );
+            boolean hasValueType = array.length == 3;
 
             if ( hasValueType )
             {
@@ -479,7 +468,7 @@ public class FilteringHelper
         return valueType;
     }
 
-    private static String getValueTypeOrThrow( final String valueType )
+    private static String getValueTypeOrThrow( String valueType )
     {
         try
         {
@@ -492,9 +481,9 @@ public class FilteringHelper
         }
     }
 
-    private static Class<? extends BaseIdentifiableObject> entityClassFromString( final String dimensionItem )
+    private static Class<? extends BaseIdentifiableObject> entityClassFromString( String dimensionItem )
     {
-        final QueryableDataItem item = getIfPresent( QueryableDataItem.class, dimensionItem )
+        QueryableDataItem item = getIfPresent( QueryableDataItem.class, dimensionItem )
             .orNull();
 
         if ( item == null )

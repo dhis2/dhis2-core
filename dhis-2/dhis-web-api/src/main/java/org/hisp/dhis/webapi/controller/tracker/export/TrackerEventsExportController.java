@@ -48,20 +48,21 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.tracker.event.EventParams;
+import org.hisp.dhis.tracker.event.EventSearchParams;
+import org.hisp.dhis.tracker.event.EventService;
+import org.hisp.dhis.tracker.event.Events;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -98,7 +99,7 @@ public class TrackerEventsExportController
     private final ProgramStageInstanceService programStageInstanceService;
 
     @Nonnull
-    private final CsvEventService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+    private final TrackerCsvEventService csvEventService;
 
     @Nonnull
     private final FieldFilterService fieldFilterService;
@@ -181,7 +182,7 @@ public class TrackerEventsExportController
         throws NotFoundException
     {
         EventParams eventParams = eventsMapper.map( fields );
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+        ProgramStageInstance event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
             eventParams );
         if ( event == null )
         {
