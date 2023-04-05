@@ -56,8 +56,8 @@ import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -103,7 +103,7 @@ public class OrganisationUnitCondition extends BaseRenderable
         if ( ouMode == SELECTED )
         {
             List<String> items = organisationUnits.stream()
-                .map( BaseIdentifiableObject::getUid )
+                .map( IdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
             return isEmpty( items ) ? FALSE_CONDITION
@@ -120,7 +120,7 @@ public class OrganisationUnitCondition extends BaseRenderable
             List<String> items = organisationUnits.stream()
                 .map( OrganisationUnit::getChildren )
                 .flatMap( Collection::stream )
-                .map( BaseIdentifiableObject::getUid )
+                .map( IdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
             return isEmpty( items ) ? FALSE_CONDITION

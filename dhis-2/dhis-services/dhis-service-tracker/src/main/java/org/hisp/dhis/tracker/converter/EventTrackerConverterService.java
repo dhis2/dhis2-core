@@ -43,7 +43,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -191,7 +191,7 @@ public class EventTrackerConverterService
             .map( DataValue::getDataElement )
             .map( preheat::getDataElement )
             .filter( java.util.Objects::nonNull )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
         for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
         {

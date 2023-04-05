@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hibernate.Session;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -103,7 +103,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
     private void deleteRemovedSection( ProgramStage persistedProgramStage, ProgramStage importProgramStage )
     {
         List<String> importIds = importProgramStage.getProgramStageSections().stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         List<ProgramStageSection> programStageSectionsToDelete = persistedProgramStage.getProgramStageSections()

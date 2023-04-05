@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
@@ -213,7 +213,7 @@ public class TrackedEntityAttributeController
             .getAllTrigramIndexableTrackedEntityAttributes();
 
         StringBuilder sb = new StringBuilder( "id:in:" );
-        sb.append( indexableTeas.stream().map( BaseIdentifiableObject::getUid )
+        sb.append( indexableTeas.stream().map( IdentifiableObject::getUid )
             .collect( Collectors.joining( ",", "[", "]" ) ) );
 
         filters.add( sb.toString() );

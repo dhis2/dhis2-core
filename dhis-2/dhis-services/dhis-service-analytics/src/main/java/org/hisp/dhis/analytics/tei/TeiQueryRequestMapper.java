@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.processing.Processor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -76,7 +76,7 @@ public class TeiQueryRequestMapper
         // Adding tracked entity type attributes to the list of dimensions.
         queryRequest.getCommonQueryRequest().getDimension().addAll(
             getTrackedEntityAttributes( trackedEntityType )
-                .map( BaseIdentifiableObject::getUid )
+                .map( IdentifiableObject::getUid )
                 .collect( toList() ) );
 
         return teiQueryParamPostProcessor.process(

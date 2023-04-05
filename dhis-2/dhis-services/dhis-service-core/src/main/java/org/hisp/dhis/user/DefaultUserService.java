@@ -64,7 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -713,7 +713,7 @@ public class DefaultUserService
         if ( userRoles != null )
         {
             List<UserRole> roles = userRoleStore.getByUid(
-                userRoles.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+                userRoles.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
             roles.forEach( ur -> {
                 if ( ur == null )

@@ -33,6 +33,7 @@ import java.util.Set;
 import lombok.Getter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
@@ -58,7 +59,7 @@ public class DataElementMapper extends BaseDimensionalItemObjectMapper
 
         return Optional.of( dataElement )
             .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .map( mapped::withOptionSet )
             .orElse( mapped );
     }
