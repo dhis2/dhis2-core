@@ -49,7 +49,6 @@ import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -189,33 +188,10 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Criteria for the implementation Class type.
-     * <p>
-     * Please note that sharing is not considered.
-     *
-     * @return a Criteria instance.
-     */
-    @Deprecated
-    public final Criteria getCriteria()
-    {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
-
-        preProcessDetachedCriteria( criteria );
-
-        return getExecutableCriteria( criteria );
-    }
-
-    /**
      * Override to add additional restrictions to criteria before it is invoked.
      */
     protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
-    }
-
-    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
-    {
-        return detachedCriteria.getExecutableCriteria( getSession() )
-            .setCacheable( cacheable );
     }
 
     public CriteriaBuilder getCriteriaBuilder()

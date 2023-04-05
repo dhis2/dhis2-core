@@ -25,39 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.event;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Luciano Fiandesio
  */
-public interface EventSyncService
+@Getter
+@AllArgsConstructor
+public class Subselect implements QueryElement
 {
+    private String query;
 
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getEvent( String uid );
+    private String alias;
 
-    /**
-     * Returns the {@link ProgramInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
-     */
-    ProgramInstance getEnrollment( String uid );
+    @Override
+    public String useInSelect()
+    {
+        return query + " as " + alias;
+    }
 
-    /**
-     * Returns events (including deleted)
-     *
-     * @param uids UIDs of events to be fetched
-     * @return list of events
-     */
-    List<ProgramStageInstance> getEvents( List<String> uids );
-
+    @Override
+    public String getResultsetValue()
+    {
+        return alias;
+    }
 }

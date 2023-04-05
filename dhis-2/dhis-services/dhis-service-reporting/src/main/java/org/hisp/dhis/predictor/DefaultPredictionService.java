@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.String.format;
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -263,17 +264,14 @@ public class DefaultPredictionService
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP &&
             !baseExParams.getItemMap().values().isEmpty();
 
-        Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
-        {
-            currentUserOrgUnits = currentUser.getOrganisationUnits();
-        }
+        Set<OrganisationUnit> currentUserOrgUnits = (currentUser != null)
+            ? currentUser.getOrganisationUnits()
+            : emptySet();
 
         PredictionDataConsolidator consolidator = new PredictionDataConsolidator( items,
             predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ),
-            new PredictionDataValueFetcher( dataValueService, categoryService ),
+            new PredictionDataValueFetcher( dataValueService, categoryService, currentUserOrgUnits ),
             new PredictionAnalyticsDataFetcher( analyticsService, categoryService ) );
 
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
@@ -287,7 +285,7 @@ public class DefaultPredictionService
             List<OrganisationUnit> orgUnits = organisationUnitService
                 .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
-            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
+            consolidator.init( orgUnitLevel.getLevel(), orgUnits,
                 dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
 
             PredictionData data;
@@ -658,7 +656,7 @@ public class DefaultPredictionService
     {
         for ( DimensionalItemId item : items )
         {
-            if ( valueMap.keySet().contains( itemMap.get( item ) ) )
+            if ( valueMap.containsKey( itemMap.get( item ) ) )
             {
                 return true;
             }

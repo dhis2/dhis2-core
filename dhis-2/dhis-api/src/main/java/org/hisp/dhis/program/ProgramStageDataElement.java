@@ -47,7 +47,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageDataElement
-    extends BaseIdentifiableObject implements EmbeddedObject
+    extends BaseIdentifiableObject
+    implements EmbeddedObject
 {
     private ProgramStage programStage;
 

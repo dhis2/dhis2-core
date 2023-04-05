@@ -239,7 +239,7 @@ public class DefaultDimensionService
             return DimensionType.PROGRAM_INDICATOR;
         }
 
-        final Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
+        Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
 
         dimObjectTypeMap.put( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X );
         dimObjectTypeMap.put( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD );
@@ -256,7 +256,7 @@ public class DefaultDimensionService
         Collection<DataElementGroupSet> degs = idObjectManager.getDataDimensions( DataElementGroupSet.class );
         Collection<OrganisationUnitGroupSet> ougs = idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class );
 
-        final List<DimensionalObject> dimensions = new ArrayList<>();
+        List<DimensionalObject> dimensions = new ArrayList<>();
 
         dimensions.addAll( dcs );
         dimensions.addAll( cogs );
@@ -274,7 +274,7 @@ public class DefaultDimensionService
         Collection<CategoryOptionGroupSet> cogs = idObjectManager.getDataDimensions( CategoryOptionGroupSet.class );
         Collection<Category> cs = categoryService.getAttributeCategories();
 
-        final List<DimensionalObject> dimensions = new ArrayList<>();
+        List<DimensionalObject> dimensions = new ArrayList<>();
 
         dimensions.addAll( cogs );
         dimensions.addAll( cs );
@@ -435,7 +435,7 @@ public class DefaultDimensionService
     // Supportive methods
     // --------------------------------------------------------------------------
 
-    private void populateEventRepetitions( final EventAnalyticalObject object )
+    private void populateEventRepetitions( EventAnalyticalObject object )
     {
         // Populating event repetitions
         object.getEventRepetitions().clear();
@@ -444,19 +444,19 @@ public class DefaultDimensionService
         populateEventRepetitions( object, object.getFilters(), FILTER );
     }
 
-    private void populateEventRepetitions( final EventAnalyticalObject object,
-        final List<DimensionalObject> dimensionalObjects, final Attribute parent )
+    private void populateEventRepetitions( EventAnalyticalObject object, List<DimensionalObject> dimensionalObjects,
+        Attribute parent )
     {
         if ( isNotEmpty( dimensionalObjects ) )
         {
-            for ( final DimensionalObject dimensionalObject : dimensionalObjects )
+            for ( DimensionalObject dimensionalObject : dimensionalObjects )
             {
-                final boolean hasEventRepetition = dimensionalObject.getEventRepetition() != null;
-                final boolean hasSameDimension = hasEventRepetition && dimensionalObject.getDimension() != null;
+                boolean hasEventRepetition = dimensionalObject.getEventRepetition() != null;
+                boolean hasSameDimension = hasEventRepetition && dimensionalObject.getDimension() != null;
 
                 if ( hasEventRepetition && hasSameDimension )
                 {
-                    final EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
+                    EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
                     eventRepetition.setParent( parent );
                     eventRepetition.setDimension( dimensionalObject.getDimension() );
 

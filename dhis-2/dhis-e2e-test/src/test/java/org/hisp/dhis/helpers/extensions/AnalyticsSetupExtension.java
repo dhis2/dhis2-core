@@ -92,7 +92,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
         }
     }
 
-    private static long minutes( final int minutes )
+    private static long minutes( int minutes )
     {
         return MINUTES.toSeconds( minutes );
     }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.Date;
@@ -260,6 +261,14 @@ public class DataExportParams
     public boolean hasLimit()
     {
         return limit != null;
+    }
+
+    public boolean needsOrgUnitDetails()
+    {
+        return isOrderByOrgUnitPath()
+            || hasOrgUnitLevel()
+            || getOuMode() == DESCENDANTS
+            || isIncludeDescendants();
     }
 
     /**

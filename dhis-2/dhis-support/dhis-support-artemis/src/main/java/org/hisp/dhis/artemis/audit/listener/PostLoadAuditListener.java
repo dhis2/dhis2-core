@@ -45,7 +45,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PostLoadAuditListener
-    extends AbstractHibernateListener implements PostLoadEventListener
+    extends AbstractHibernateListener
+    implements PostLoadEventListener
 {
     public PostLoadAuditListener(
         AuditManager auditManager,

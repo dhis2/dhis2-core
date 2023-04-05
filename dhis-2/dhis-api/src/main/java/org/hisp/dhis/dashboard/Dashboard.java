@@ -50,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
 public class Dashboard
-    extends BaseNameableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     public static final int MAX_ITEMS = 40;
 

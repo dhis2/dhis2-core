@@ -65,7 +65,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject implements EmbeddedObject
+    extends BaseIdentifiableObject
+    implements EmbeddedObject
 {
     public static final int MAX_CONTENT = 8;
 

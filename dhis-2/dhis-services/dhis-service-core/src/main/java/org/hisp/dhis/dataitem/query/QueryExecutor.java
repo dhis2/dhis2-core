@@ -83,14 +83,14 @@ public class QueryExecutor
      * @param paramsMap
      * @return the data items found
      */
-    public List<DataItem> find( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
+    public List<DataItem> find( Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+        MapSqlParameterSource paramsMap )
     {
-        final String unionQuery = unionQuery( targetEntities, paramsMap );
+        String unionQuery = unionQuery( targetEntities, paramsMap );
 
         if ( !unionQuery.isEmpty() )
         {
-            final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( unionQuery, paramsMap );
+            SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( unionQuery, paramsMap );
 
             return process( rowSet );
         }
@@ -106,11 +106,10 @@ public class QueryExecutor
      * @param paramsMap
      * @return the items found
      */
-    public int count( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
+    public int count( Set<Class<? extends BaseIdentifiableObject>> targetEntities, MapSqlParameterSource paramsMap )
     {
-        final String unionQuery = unionQuery( targetEntities, paramsMap );
-        final StringBuilder countQuery = new StringBuilder();
+        String unionQuery = unionQuery( targetEntities, paramsMap );
+        StringBuilder countQuery = new StringBuilder();
 
         if ( !unionQuery.isEmpty() )
         {
@@ -124,14 +123,14 @@ public class QueryExecutor
         return 0;
     }
 
-    private String unionQuery( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
+    private String unionQuery( Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+        MapSqlParameterSource paramsMap )
     {
-        final StringBuilder unionQuery = new StringBuilder();
+        StringBuilder unionQuery = new StringBuilder();
 
         // Iterates through all implementations of DataItemQuery and get the
         // respective SQL query of each "entity".
-        for ( final DataItemQuery dataItemQuery : dataItemQueries )
+        for ( DataItemQuery dataItemQuery : dataItemQueries )
         {
             if ( targetEntities.contains( dataItemQuery.getRootEntity() )
                 && dataItemQuery.matchQueryRules( paramsMap ) )
@@ -144,7 +143,7 @@ public class QueryExecutor
 
         if ( unionQuery.length() > 0 )
         {
-            final boolean hasMultipleEntities = targetEntities.size() > 1;
+            boolean hasMultipleEntities = targetEntities.size() > 1;
 
             if ( hasMultipleEntities )
             {
@@ -157,13 +156,13 @@ public class QueryExecutor
             }
 
             // Removes last "UNION" keyword.
-            final int fromIndex = unionQuery.lastIndexOf( SPACED_UNION );
-            final int untilIndex = fromIndex + SPACED_UNION.length();
+            int fromIndex = unionQuery.lastIndexOf( SPACED_UNION );
+            int untilIndex = fromIndex + SPACED_UNION.length();
 
             unionQuery.delete( fromIndex, untilIndex ).toString();
         }
 
-        final String fullStatement = unionQuery.toString();
+        String fullStatement = unionQuery.toString();
 
         log.trace( "Full UNION SQL: " + fullStatement );
 
