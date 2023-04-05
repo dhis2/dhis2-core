@@ -1467,7 +1467,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "width", equalTo( 15 ) )
             .body( "headerWidth", equalTo( 15 ) );
 
-        // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "SBjuNw0Xtkn",
                 "2014-10-01 12:27:37.837",
@@ -1494,6 +1493,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[-1].LAST_YEAR" )
             .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2023-04-03" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1538,6 +1538,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .add( "program=IpHINAT79UW" )
             .add( "enrollmentDate=IpHINAT79UW[1].LAST_MONTH" )
             .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2022-04-03" )
             .add( "headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" );
 
         // When
@@ -1559,19 +1560,19 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "Falaba MCHP",
-                "Julie",
-                "Ortiz" ) );
+            List.of( "Ngelehun CHC",
+                "John",
+                "Kelly" ) );
 
         validateRow( response, 1,
-            List.of( "Mindohun CHP",
-                "Howard",
-                "Chapman" ) );
+            List.of( "Jangalor MCHP",
+                "Antonio",
+                "Ruiz" ) );
 
         validateRow( response, 2,
-            List.of( "Mayakie MCHP",
-                "Jacqueline",
-                "Ellis" ) );
+            List.of( "Bureh MCHP",
+                "Ralph",
+                "Smith" ) );
     }
 
     @Test
@@ -1592,5 +1593,355 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", equalTo( "Invalid offset: `IpHINAT79UW[0]`" ) )
             .body( "errorCode", equalTo( "E7138" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndDimensionFilterUsingIdSchemeCode()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:IN:Negative-Conf" )
+            .add( "desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" )
+            .add( "relativePeriodDate=2016-01-01" )
+            .add( "outputIdScheme=CODE" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( false ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of( "acCGrc3qlji",
+                "2015-08-06 21:12:36.226",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Plantain Island MCHP",
+                "OU_247071",
+                "Sierra Leone / Moyamba / Kargboro / Plantain Island MCHP",
+                "Willie",
+                "Wallace",
+                "Male",
+                "",
+                "Negative-Conf" ) );
+
+        validateRow( response, 1,
+            List.of( "yG1PQX6xCkK",
+                "2015-08-07 15:47:23.061",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Yankasa MCHP",
+                "OU_193257",
+                "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
+                "Willie",
+                "Stewart",
+                "Male",
+                "",
+                "Negative-Conf" ) );
+
+        validateRow( response, 2,
+            List.of( "cr0DjId1xhO",
+                "2015-08-06 21:20:47.468",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Bumpeh Perri CHC",
+                "OU_260423",
+                "Sierra Leone / Pujehun / Galliness Perri / Bumpeh Perri CHC",
+                "Willie",
+                "Stevens",
+                "Male",
+                "",
+                "Negative-Conf" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndDimensionFilterUsingIdSchemeName()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:IN:Negative-Conf" )
+            .add( "desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC" )
+            .add( "relativePeriodDate=2016-01-01" )
+            .add( "outputIdScheme=NAME" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( false ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of( "acCGrc3qlji",
+                "2015-08-06 21:12:36.226",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Plantain Island MCHP",
+                "OU_247071",
+                "Sierra Leone / Moyamba / Kargboro / Plantain Island MCHP",
+                "Willie",
+                "Wallace",
+                "Male",
+                "",
+                "Negative (Confirmed)" ) );
+
+        validateRow( response, 1,
+            List.of( "yG1PQX6xCkK",
+                "2015-08-07 15:47:23.061",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Yankasa MCHP",
+                "OU_193257",
+                "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
+                "Willie",
+                "Stewart",
+                "Male",
+                "",
+                "Negative (Confirmed)" ) );
+
+        validateRow( response, 2,
+            List.of( "cr0DjId1xhO",
+                "2015-08-06 21:20:47.468",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Bumpeh Perri CHC",
+                "OU_260423",
+                "Sierra Leone / Pujehun / Galliness Perri / Bumpeh Perri CHC",
+                "Willie",
+                "Stevens",
+                "Male",
+                "",
+                "Negative (Confirmed)" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndDimensionFilterUsingDataIdSchemeName()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add(
+                "dimension=IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO:gt:12,IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:in:Positive" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2022-01-01" )
+            .add( "eventDate=IpHINAT79UW.ZzYYXq4fJie.LAST_YEAR" )
+            .add( "dataIdScheme=NAME" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 16 ) )
+            .body( "headerWidth", equalTo( 16 ) )
+            .body( "headers", hasSize( equalTo( 16 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( false ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of( "YiKaRIm5IUj",
+                "2015-08-06 21:20:52.78",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Jangalor MCHP",
+                "OU_543020",
+                "Sierra Leone / Bonthe / Imperi / Jangalor MCHP",
+                "Antonio",
+                "Ruiz",
+                "Male",
+                "",
+                "Positive",
+                "3681" ) );
+
+        validateRow( response, 1,
+            List.of( "ApUIfbrXE0G",
+                "2015-08-06 21:20:52.777",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Mattru Jong MCHP",
+                "OU_197389",
+                "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
+                "Julia",
+                "Gardner",
+                "Female",
+                "",
+                "Positive",
+                "3945" ) );
+
+        validateRow( response, 2,
+            List.of( "NiuDa8jIu4J",
+                "2015-08-06 21:20:52.776",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Ngaiya MCHP",
+                "OU_233404",
+                "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
+                "Beverly",
+                "Hart",
+                "Female",
+                "",
+                "Positive",
+                "3104" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndDimensionFilterUsingDataIdSchemeUid()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add(
+                "dimension=IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO:gt:12,IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:in:Positive" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2022-01-01" )
+            .add( "eventDate=IpHINAT79UW.ZzYYXq4fJie.LAST_YEAR" )
+            .add( "dataIdScheme=UID" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 50 ) ) )
+            .body( "height", equalTo( 50 ) )
+            .body( "width", equalTo( 16 ) )
+            .body( "headerWidth", equalTo( 16 ) )
+            .body( "headers", hasSize( equalTo( 16 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( false ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first three rows, as samples.
+
+        validateRow( response, 0,
+            List.of( "YiKaRIm5IUj",
+                "2015-08-06 21:20:52.78",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Jangalor MCHP",
+                "OU_543020",
+                "Sierra Leone / Bonthe / Imperi / Jangalor MCHP",
+                "Antonio",
+                "Ruiz",
+                "rBvjJYbMCVx",
+                "",
+                "fWI0UiNZgMy",
+                "3681" ) );
+
+        validateRow( response, 1,
+            List.of( "ApUIfbrXE0G",
+                "2015-08-06 21:20:52.777",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Mattru Jong MCHP",
+                "OU_197389",
+                "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
+                "Julia",
+                "Gardner",
+                "Mnp3oXrpAbK",
+                "",
+                "fWI0UiNZgMy",
+                "3945" ) );
+
+        validateRow( response, 2,
+            List.of( "NiuDa8jIu4J",
+                "2015-08-06 21:20:52.776",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Ngaiya MCHP",
+                "OU_233404",
+                "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
+                "Beverly",
+                "Hart",
+                "Mnp3oXrpAbK",
+                "",
+                "fWI0UiNZgMy",
+                "3104" ) );
     }
 }

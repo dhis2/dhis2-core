@@ -161,7 +161,7 @@ public class MinMaxDataElementController
     // --------------------------------------------------------------------------
 
     @DeleteMapping( consumes = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     @ResponseBody
     public WebMessage deleteObject( HttpServletRequest request )
         throws Exception

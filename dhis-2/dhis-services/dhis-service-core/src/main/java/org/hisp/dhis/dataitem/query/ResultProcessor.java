@@ -68,9 +68,9 @@ class ResultProcessor
      * @param rowSet the query results
      * @return the populated list of items
      */
-    static List<DataItem> process( final SqlRowSet rowSet )
+    static List<DataItem> process( SqlRowSet rowSet )
     {
-        final List<DataItem> dataItems = new ArrayList<>();
+        List<DataItem> dataItems = new ArrayList<>();
 
         while ( rowSet.next() )
         {
@@ -90,7 +90,7 @@ class ResultProcessor
         return dataItems;
     }
 
-    private static DimensionItemType getItemType( final SqlRowSet rowSet )
+    private static DimensionItemType getItemType( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( "item_type" ) ) )
         {
@@ -100,7 +100,7 @@ class ResultProcessor
         return null;
     }
 
-    private static ValueType getValueType( final SqlRowSet rowSet )
+    private static ValueType getValueType( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( "item_valuetype" ) ) )
         {
@@ -110,9 +110,9 @@ class ResultProcessor
         return null;
     }
 
-    private static String getUid( final SqlRowSet rowSet )
+    private static String getUid( SqlRowSet rowSet )
     {
-        final boolean ignoreProgramUid = PROGRAM_INDICATOR.name().equalsIgnoreCase( rowSet.getString( "item_type" ) );
+        boolean ignoreProgramUid = PROGRAM_INDICATOR.name().equalsIgnoreCase( rowSet.getString( "item_type" ) );
 
         if ( isNotBlank( rowSet.getString( PROGRAM_UID ) ) && !ignoreProgramUid )
         {
@@ -124,7 +124,7 @@ class ResultProcessor
         }
     }
 
-    private static String getDisplayShortName( final SqlRowSet rowSet )
+    private static String getDisplayShortName( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( PROGRAM_NAME ) ) )
         {
@@ -137,7 +137,7 @@ class ResultProcessor
         }
     }
 
-    private static String getShortName( final SqlRowSet rowSet )
+    private static String getShortName( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( "program_shortname" ) ) )
         {
@@ -150,7 +150,7 @@ class ResultProcessor
         }
     }
 
-    private static String getDisplayName( final SqlRowSet rowSet )
+    private static String getDisplayName( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( PROGRAM_NAME ) ) )
         {
@@ -163,7 +163,7 @@ class ResultProcessor
         }
     }
 
-    private static String getName( final SqlRowSet rowSet )
+    private static String getName( SqlRowSet rowSet )
     {
         if ( isNotBlank( rowSet.getString( PROGRAM_NAME ) ) )
         {

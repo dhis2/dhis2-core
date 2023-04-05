@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.dataitem.query;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * Unit tests for {@link ExpressionDimensionItemQuery} class.
  *
+ * @author maikel arabori
  */
-@Transactional( readOnly = true )
-@RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.EventSyncService" )
-public class DefaultEventSyncService implements EventSyncService
+class ExpressionDimensionItemQueryTest
 {
-    private final EventSyncStore eventSyncStore;
-
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
-    @Override
-    public List<ProgramStageInstance> getEvents( List<String> uids )
+    @Test
+    void testGetStatementContainsOwnerCheck()
     {
-        return eventSyncStore.getEvents( uids );
-    }
+        // Given
+        MapSqlParameterSource anyMap = new MapSqlParameterSource();
+        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-    @Override
-    public ProgramStageInstance getEvent( String uid )
-    {
-        return eventSyncStore.getEvent( uid );
-    }
+        // When
+        String statement = query.getStatement( anyMap );
 
-    @Override
-    public ProgramInstance getEnrollment( String uid )
-    {
-        return eventSyncStore.getEnrollment( uid );
+        // Then
+        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
     }
 }

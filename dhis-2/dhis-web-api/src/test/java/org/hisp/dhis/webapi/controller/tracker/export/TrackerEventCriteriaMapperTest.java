@@ -52,9 +52,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,11 +68,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,7 +125,7 @@ class TrackerEventCriteriaMapperTest
     private DataElementService dataElementService;
 
     @Mock
-    private InputUtils inputUtils;
+    private CategoryOptionComboService categoryOptionComboService;
 
     @Mock
     private SchemaService schemaService;
@@ -186,7 +185,7 @@ class TrackerEventCriteriaMapperTest
         prop1.setSimple( true );
         eventSchema.addProperty( prop1 );
         Property prop2 = new Property();
-        prop2.setName( "dueDate" );
+        prop2.setName( "scheduledAt" );
         prop2.setSimple( true );
         eventSchema.addProperty( prop2 );
         Property prop3 = new Property();
@@ -296,7 +295,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+        assertEquals( trackedEntityInstance, params.getTrackedEntity() );
     }
 
     @Test
@@ -345,8 +344,8 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( scheduledAfter, params.getDueDateStart() );
-        assertEquals( scheduledBefore, params.getDueDateEnd() );
+        assertEquals( scheduledAfter, params.getScheduleAtStartDate() );
+        assertEquals( scheduledBefore, params.getScheduleAtEndDate() );
     }
 
     @Test
@@ -365,9 +364,9 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
-        assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
-        assertEquals( updatedWithin, params.getLastUpdatedDuration() );
+        assertEquals( updatedAfter, params.getUpdatedAtStartDate() );
+        assertEquals( updatedBefore, params.getUpdatedAtEndDate() );
+        assertEquals( updatedWithin, params.getUpdatedAtDuration() );
     }
 
     @Test
@@ -535,12 +534,12 @@ class TrackerEventCriteriaMapperTest
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
+        criteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,scheduledAt:asc" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
         assertContainsOnly( List.of( new OrderParam( "programStage", SortDirection.DESC ),
-            new OrderParam( "dueDate", SortDirection.ASC ) ), params.getOrders() );
+            new OrderParam( "scheduledAt", SortDirection.ASC ) ), params.getOrders() );
     }
 
     @Test
@@ -790,8 +789,9 @@ class TrackerEventCriteriaMapperTest
         criteria.setAttributeCos( "Cos" );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( inputUtils.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(), true ) )
-            .thenReturn( combo );
+        when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
+            true ) )
+                .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,

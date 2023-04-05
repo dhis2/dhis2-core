@@ -41,7 +41,7 @@ import org.mapstruct.Mapping;
     Dxf2RelationshipMapper.class,
     AttributeMapper.class,
     NoteMapper.class,
-    EventMapper.class,
+    Dxf2EventMapper.class,
     InstantMapper.class,
     UserMapper.class } )
 interface Dxf2EnrollmentMapper extends ViewMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>

@@ -82,9 +82,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private static final String SPACED_FROM_PROGRAM_INDICATOR = " from programindicator ";
 
     @Override
-    public String getStatement( final MapSqlParameterSource paramsMap )
+    public String getStatement( MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
 
         sql.append( "(" );
 
@@ -118,7 +118,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
-        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
         optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", paramsMap ) ) );
         optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_first_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.item_name", paramsMap ) ) );
@@ -127,7 +127,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
             "t.i18n_first_name", null, paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -142,7 +142,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append( ifSet( maxLimit( paramsMap ) ) );
         sql.append( ")" );
 
-        final String fullStatement = sql.toString();
+        String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
@@ -158,7 +158,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
      * @return true if rules are matched.
      */
     @Override
-    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    public boolean matchQueryRules( MapSqlParameterSource paramsMap )
     {
         return hasValueTypePresence( paramsMap, NUMBER );
     }

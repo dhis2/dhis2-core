@@ -489,7 +489,7 @@ public class BaseDimensionalObject
         return eventRepetition;
     }
 
-    public void setEventRepetition( final EventRepetition eventRepetition )
+    public void setEventRepetition( EventRepetition eventRepetition )
     {
         this.eventRepetition = eventRepetition;
     }

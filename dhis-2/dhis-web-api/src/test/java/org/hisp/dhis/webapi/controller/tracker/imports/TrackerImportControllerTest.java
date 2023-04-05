@@ -48,7 +48,6 @@ import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
@@ -64,7 +63,7 @@ import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,7 +94,7 @@ class TrackerImportControllerTest
     private TrackerAsyncImporter asyncImporter;
 
     @Mock
-    private CsvEventService<Event> csvEventService;
+    private TrackerCsvEventService csvEventService;
 
     @Mock
     private Notifier notifier;

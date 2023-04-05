@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import java.util.Set;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.ValueType;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -42,12 +45,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class ParamPresenceChecker
 {
-    private ParamPresenceChecker()
-    {
-    }
-
     /**
      * This will check if the the given param is inside the given paramsMap and
      * check if the param is a non-blank String.
@@ -57,7 +57,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a String and is not blank, false otherwise
      */
-    public static boolean hasNonBlankStringPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasNonBlankStringPresence( MapSqlParameterSource paramsMap, String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String
             && isNotBlank( (String) paramsMap.getValue( param ) );
@@ -73,7 +73,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a String, false otherwise
      */
-    public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasStringPresence( MapSqlParameterSource paramsMap, String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String;
     }
@@ -88,7 +88,7 @@ public class ParamPresenceChecker
      * @return true if the param is an Integer greater than ZERO, false
      *         otherwise
      */
-    public static boolean hasIntegerPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasIntegerPresence( MapSqlParameterSource paramsMap, String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Integer
             && ((Integer) paramsMap.getValue( param ) > 0);
@@ -103,7 +103,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a Set and is not empty, false otherwise
      */
-    public static boolean hasSetPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasSetPresence( MapSqlParameterSource paramsMap, String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Set
             && isNotEmpty( (Set) paramsMap.getValue( param ) );
@@ -117,11 +117,11 @@ public class ParamPresenceChecker
      * @return true if valueType is present in paramsMap, false otherwise
      */
     @SuppressWarnings( "unchecked" )
-    public static boolean hasValueTypePresence( final MapSqlParameterSource paramsMap, final ValueType valueType )
+    public static boolean hasValueTypePresence( MapSqlParameterSource paramsMap, ValueType valueType )
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
+            Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
             return valueTypeNames != null && valueTypeNames.contains( valueType.name() );
         }

@@ -49,8 +49,7 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_LEFT_PARE
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_RIGHT_PARENTHESIS;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.checkOwnerConditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +125,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( checkOwnerConditions( "t.item_sharing" ) ) );
 
         // Optional filters, based on the current root junction.
         OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
@@ -153,7 +152,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
         sql.append( ifSet( maxLimit( paramsMap ) ) );
         sql.append( SPACED_RIGHT_PARENTHESIS );
 
-        final String fullStatement = sql.toString();
+        String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
