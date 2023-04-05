@@ -157,7 +157,7 @@ public class CollectionUtils
     {
         if ( CollectionUtils.isEmpty( collection ) )
         {
-            return Set.of();
+            return Collections.emptySet();
         }
         Set<T> duplicates = new HashSet<>();
         Set<T> uniques = new HashSet<>();
