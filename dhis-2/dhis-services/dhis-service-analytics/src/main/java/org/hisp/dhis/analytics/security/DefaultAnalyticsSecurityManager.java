@@ -99,15 +99,6 @@ public class DefaultAnalyticsSecurityManager
         decideAccessDataReadObjects( params, user );
     }
 
-    @Override
-    public void decideAccess( List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        decideAccessDataViewOrganisationUnits( queryOrgUnits, user );
-        decideAccessDataReadObjects( readObjects, user );
-    }
-
     /**
      * Checks whether the given user has data view access to organisation units.
      *

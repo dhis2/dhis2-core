@@ -156,10 +156,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
                             "EVENT",
                             "ENROLLMENT",
                             "OWNERSHIP",
-                            "VALIDATION_RESULT",
-                            "TRACKED_ENTITY_INSTANCE_EVENTS",
-                            "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
-                            "TRACKED_ENTITY_INSTANCE" ), param.getArray( "constants" ).stringValues() );
+                            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
                     }
                 }
             }
@@ -178,10 +175,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
             "EVENT",
             "ENROLLMENT",
             "OWNERSHIP",
-            "VALIDATION_RESULT",
-            "TRACKED_ENTITY_INSTANCE_EVENTS",
-            "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
-            "TRACKED_ENTITY_INSTANCE" ),
+            "VALIDATION_RESULT" ),
             param.getArray( "constants" ).stringValues() );
     }
 

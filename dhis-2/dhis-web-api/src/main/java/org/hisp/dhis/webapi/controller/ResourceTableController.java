@@ -33,9 +33,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
@@ -94,7 +91,6 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
-        @RequestParam( required = false ) boolean executeTei,
         @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
@@ -121,13 +117,6 @@ public class ResourceTableController
         if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( OWNERSHIP );
-        }
-
-        if ( !executeTei )
-        {
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE );
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE_EVENTS );
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE_ENROLLMENTS );
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,

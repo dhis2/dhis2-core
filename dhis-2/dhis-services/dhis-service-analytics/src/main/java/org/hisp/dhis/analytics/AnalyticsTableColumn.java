@@ -145,21 +145,6 @@ public class AnalyticsTableColumn
         this.notNull = notNull;
     }
 
-    /**
-     * Constructor
-     *
-     * @param name
-     * @param dataType
-     * @param virtual
-     */
-    public AnalyticsTableColumn( String name, ColumnDataType dataType, boolean virtual )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.virtual = virtual;
-        this.alias = "";
-    }
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -273,10 +258,5 @@ public class AnalyticsTableColumn
     public List<String> getIndexColumns()
     {
         return indexColumns;
-    }
-
-    public boolean isVirtual()
-    {
-        return virtual;
     }
 }

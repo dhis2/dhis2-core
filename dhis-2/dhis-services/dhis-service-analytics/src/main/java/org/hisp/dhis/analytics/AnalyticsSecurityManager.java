@@ -27,13 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 
 /**
@@ -53,17 +48,6 @@ public interface AnalyticsSecurityManager
      */
     void decideAccess( DataQueryParams params )
         throws IllegalQueryException;
-
-    /**
-     * Decides whether the current user has privileges to execute the given
-     * query.
-     *
-     * @param queryOrgUnits the organisation units to check access for.
-     * @param readObjects the objects to check access for.
-     * @throws IllegalQueryException if the current user does not have
-     *         privileges to execute the given query.
-     */
-    void decideAccess( List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects );
 
     /**
      * Decides whether the current user has privileges to execute the given
