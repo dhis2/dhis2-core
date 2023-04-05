@@ -394,6 +394,9 @@ public enum ErrorCode
     E7136( "Program is not specified" ),
     E7137( "Expression is not parsable: `{0}`" ),
     E7138( "Invalid offset: `{0}`" ),
+    E7139( "programStatus and enrollmentStatus cannot be used together." ),
+    E7140( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]" ),
+    E7141( "parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]" ),
 
     /* Event analytics */
     E7200( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),

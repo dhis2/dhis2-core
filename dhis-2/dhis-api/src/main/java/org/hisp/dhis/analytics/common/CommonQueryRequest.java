@@ -201,6 +201,24 @@ public class CommonQueryRequest
     private Set<String> desc = new LinkedHashSet<>();
 
     /**
+     * The program statuses to filter on.
+     *
+     * @deprecated use {@link #enrollmentStatus} instead
+     */
+    @Deprecated
+    private Set<String> programStatus = new LinkedHashSet<>();
+
+    /**
+     * The enrollment statuses to filter on.
+     */
+    private Set<String> enrollmentStatus = new LinkedHashSet<>();
+
+    /**
+     * The event statuses to filter on.
+     */
+    private Set<String> eventStatus = new LinkedHashSet<>();
+
+    /**
      * The dimensional object for which to produce aggregated data.
      */
     private DimensionalItemObject value;
@@ -231,6 +249,42 @@ public class CommonQueryRequest
     public boolean hasPrograms()
     {
         return emptyIfNull( program )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any program status filters
+     *
+     * @return true if at least one program status is found, false otherwise
+     */
+    public boolean hasProgramStatus()
+    {
+        return emptyIfNull( programStatus )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any enrollment status filters
+     *
+     * @return true if at least one enrollment status is found, false otherwise
+     */
+    public boolean hasEnrollmentStatus()
+    {
+        return emptyIfNull( enrollmentStatus )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any event status filters
+     *
+     * @return true if at least one event status is found, false otherwise
+     */
+    public boolean hasEventStatus()
+    {
+        return emptyIfNull( eventStatus )
             .stream()
             .anyMatch( StringUtils::isNotBlank );
     }

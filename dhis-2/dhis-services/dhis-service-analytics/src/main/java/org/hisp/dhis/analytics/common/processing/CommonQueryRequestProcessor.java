@@ -27,11 +27,35 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENT_STATUS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_STATUS;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.feedback.ErrorCode.E7140;
+import static org.hisp.dhis.feedback.ErrorCode.E7141;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +68,11 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 {
     private final SystemSettingManager systemSettingManager;
 
+    private final List<Function<CommonQueryRequest, CommonQueryRequest>> processors = List.of(
+        this::computePagingParams,
+        this::computeProgramStatus,
+        this::computeEventStatus );
+
     /**
      * Based on the given query request object {@link CommonQueryRequest}, this
      * method will process/compute existing values in the request object, and
@@ -52,10 +81,15 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
      * @param commonQueryRequest the {@link CommonQueryRequest} to process.
      * @return the processed {@link CommonQueryRequest}.
      */
+    @Nonnull
     @Override
-    public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )
+    public CommonQueryRequest process( @Nonnull CommonQueryRequest commonQueryRequest )
     {
-        return computePagingParams( commonQueryRequest );
+        /* applies all processors */
+        return processors.stream()
+            .reduce( Function::andThen )
+            .orElse( Function.identity() )
+            .apply( commonQueryRequest );
     }
 
     /**
@@ -94,5 +128,108 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
             return commonQueryRequest.withPageSize( maxLimit );
         }
+    }
+
+    /**
+     * Converts the program status into a static dimension example:
+     * programStatus=IpHINAT79UW.COMPLETED;IpHINAT79UW.ACTIVE becomes
+     * dimension=IpHINAT79UW.PROGRAM_STATUS:COMPLETED;ACTIVE
+     *
+     * @param commonQueryRequest the {@link CommonQueryRequest} to transform
+     * @return the transformed {@link CommonQueryRequest}
+     */
+    private CommonQueryRequest computeProgramStatus( CommonQueryRequest commonQueryRequest )
+    {
+        if ( commonQueryRequest.hasProgramStatus() || commonQueryRequest.hasEnrollmentStatus() )
+        {
+            // merging programStatus and enrollmentStatus into a single set
+            Set<String> enrollmentStatuses = new LinkedHashSet<>();
+            enrollmentStatuses.addAll( commonQueryRequest.getProgramStatus() );
+            enrollmentStatuses.addAll( commonQueryRequest.getEnrollmentStatus() );
+
+            commonQueryRequest.getDimension()
+                .addAll( programStatusAsDimension( enrollmentStatuses ) );
+        }
+        return commonQueryRequest;
+    }
+
+    /**
+     * Converts the event status into a static dimension example:
+     * eventStatus=IpHINAT79UW.A03MvHHogjR.SCHEDULE;IpHINAT79UW.A03MvHHogjR.ACTIVE
+     * becomes dimension=IpHINAT79UW.A03MvHHogjR.EVENT_STATUS:SCHEDULE;ACTIVE
+     *
+     * @param commonQueryRequest the {@link CommonQueryRequest} to transform
+     * @return the transformed {@link CommonQueryRequest}
+     */
+    private CommonQueryRequest computeEventStatus( CommonQueryRequest commonQueryRequest )
+    {
+        if ( commonQueryRequest.hasEventStatus() )
+        {
+            commonQueryRequest.getDimension()
+                .addAll( eventStatusAsDimension( commonQueryRequest.getEventStatus() ) );
+        }
+        return commonQueryRequest;
+    }
+
+    private Collection<String> eventStatusAsDimension( Set<String> eventStatuses )
+    {
+        // builds a map of [program,program stage] with a list of event statuses
+        Map<Pair<String, String>, List<EventStatus>> statusesByProgramAndProgramStage = eventStatuses.stream()
+            .map( eventStatus -> splitAndValidate( eventStatus, 3, E7141 ) )
+            .map( parts -> Pair.of( Pair.of( parts[0], parts[1] ), EventStatus.valueOf( parts[2] ) ) )
+            .collect( groupingBy( Pair::getLeft, mapping( Pair::getRight, Collectors.toList() ) ) );
+
+        return statusesByProgramAndProgramStage.keySet()
+            .stream()
+            .map( programWithStage -> programWithStage.getLeft() + // program
+                DIMENSION_IDENTIFIER_SEP +
+                programWithStage.getRight() + // program stage
+                DIMENSION_IDENTIFIER_SEP +
+                EVENT_STATUS.name() + // "EVENT_STATUS"
+                DIMENSION_NAME_SEP +
+                // ";" concatenated values - for example "COMPLETED;SKIPPED"
+                statusesByProgramAndProgramStage.get( programWithStage ).stream()
+                    .map( EventStatus::name )
+                    .collect( Collectors.joining( ";" ) ) )
+            .collect( Collectors.toList() );
+    }
+
+    private List<String> programStatusAsDimension( Set<String> programStatuses )
+    {
+        // builds a map of [program] with a list of program (enrollment) statuses
+        Map<String, List<ProgramStatus>> statusesByProgram = programStatuses.stream()
+            .map( programStatus -> splitAndValidate( programStatus, 2, E7140 ) )
+            .map( parts -> Pair.of( parts[0], ProgramStatus.valueOf( parts[1] ) ) )
+            .collect( groupingBy( Pair::getLeft, mapping( Pair::getRight, Collectors.toList() ) ) );
+
+        return statusesByProgram.keySet()
+            .stream()
+            .map( program -> program +
+                DIMENSION_IDENTIFIER_SEP +
+                ENROLLMENT_STATUS.name() + DIMENSION_NAME_SEP +
+                statusesByProgram.get( program ).stream()
+                    .map( ProgramStatus::name )
+                    .collect( Collectors.joining( ";" ) ) )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Splits the given parameter by the dot character and validates that the
+     * resulting array has the given length. If the length is not correct, an
+     * {@link IllegalQueryException} is thrown.
+     *
+     * @param parameter the parameter to split
+     * @param allowedLength the allowed length of the resulting array
+     * @param errorCode the error code to use in case of error
+     * @return the resulting array
+     */
+    private String[] splitAndValidate( String parameter, int allowedLength, ErrorCode errorCode )
+    {
+        String[] parts = parameter.split( "\\." );
+        if ( parts.length != allowedLength )
+        {
+            throw new IllegalQueryException( new ErrorMessage( errorCode ) );
+        }
+        return parts;
     }
 }
