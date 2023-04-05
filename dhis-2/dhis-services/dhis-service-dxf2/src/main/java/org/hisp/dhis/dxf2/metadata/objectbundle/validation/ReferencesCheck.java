@@ -191,7 +191,7 @@ public class ReferencesCheck implements ValidationCheck
 
             CollectionUtils.findDuplicates( refObjects )
                 .forEach( refObject -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                    ErrorCode.E5007, object, property, identifier.getIdentifiersWithName( refObject ),
+                    refObject.getClass(), ErrorCode.E5007, identifier.getIdentifiersWithName( refObject ),
                     identifier.getIdentifiersWithName( object ), property.getName() ) ) );
         }
 
