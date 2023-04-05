@@ -183,12 +183,12 @@ public class ReferencesCheck implements ValidationCheck
             {
                 objects.add( refObject );
             }
-
-            CollectionUtils.findDuplicates( refObjects )
-                .forEach( refObject -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                    ErrorCode.E5007, object, property, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), property.getName() ) ) );
         }
+
+        CollectionUtils.findDuplicates( refObjects )
+            .forEach( refObject -> preheatErrorReports.add( new PreheatErrorReport( identifier,
+                refObject.getClass(), ErrorCode.E5007, identifier.getIdentifiersWithName( refObject ),
+                identifier.getIdentifiersWithName( object ), property.getName() ) ) );
 
         ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
     }
