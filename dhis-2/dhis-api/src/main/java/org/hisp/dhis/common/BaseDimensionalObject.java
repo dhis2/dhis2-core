@@ -56,7 +56,8 @@ import com.google.common.base.MoreObjects;
 
 @JacksonXmlRootElement( localName = "dimension", namespace = DxfNamespaces.DXF_2_0 )
 public class BaseDimensionalObject
-    extends BaseNameableObject implements DimensionalObject
+    extends BaseNameableObject
+    implements DimensionalObject
 {
     @Setter
     @Getter

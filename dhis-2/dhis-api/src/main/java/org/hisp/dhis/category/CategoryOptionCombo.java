@@ -57,7 +57,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionCombo
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
+    extends BaseDimensionalItemObject
+    implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 

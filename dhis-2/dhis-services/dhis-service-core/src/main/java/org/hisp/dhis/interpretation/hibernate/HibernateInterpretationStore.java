@@ -48,7 +48,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.interpretation.InterpretationStore" )
 public class HibernateInterpretationStore
-    extends HibernateIdentifiableObjectStore<Interpretation> implements InterpretationStore
+    extends HibernateIdentifiableObjectStore<Interpretation>
+    implements InterpretationStore
 {
     @Autowired
     public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
