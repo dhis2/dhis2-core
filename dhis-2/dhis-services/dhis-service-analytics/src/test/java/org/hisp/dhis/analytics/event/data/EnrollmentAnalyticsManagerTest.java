@@ -93,7 +93,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EnrollmentAnalyticsManagerTest extends
+class EnrollmentAnalyticsManagerTest
+    extends
     EventAnalyticsTest
 {
     private JdbcEnrollmentAnalyticsManager subject;

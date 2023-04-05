@@ -86,7 +86,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( converter = JobConfigurationSanitizer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject implements SecondaryMetadataObject
+    extends BaseIdentifiableObject
+    implements SecondaryMetadataObject
 {
     // -------------------------------------------------------------------------
     // Externally configurable properties

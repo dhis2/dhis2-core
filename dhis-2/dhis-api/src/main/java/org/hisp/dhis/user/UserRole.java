@@ -48,7 +48,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
 public class UserRole
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     public static final String AUTHORITY_ALL = "ALL";
 

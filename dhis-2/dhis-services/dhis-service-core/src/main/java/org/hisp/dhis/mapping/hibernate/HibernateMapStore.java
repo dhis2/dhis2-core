@@ -44,7 +44,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.mapping.MapStore" )
 public class HibernateMapStore
-    extends HibernateIdentifiableObjectStore<Map> implements MapStore
+    extends HibernateIdentifiableObjectStore<Map>
+    implements MapStore
 {
     public HibernateMapStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

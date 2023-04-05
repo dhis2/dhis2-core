@@ -60,7 +60,8 @@ import org.springframework.stereotype.Repository;
  */
 @Deprecated
 @Repository( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-public class HibernateEventVisualizationStore extends
+public class HibernateEventVisualizationStore
+    extends
     HibernateAnalyticalObjectStore<EventVisualization>
     implements
     EventVisualizationStore
