@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataInputPeriod;
@@ -88,7 +88,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet>
      */
     private void deleteCompulsoryDataElementOperands( DataSet importDataSet )
     {
-        Set<String> dataElementIds = importDataSet.getDataElements().stream().map( BaseIdentifiableObject::getUid )
+        Set<String> dataElementIds = importDataSet.getDataElements().stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         importDataSet.setCompulsoryDataElementOperands(
@@ -104,7 +104,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet>
 
         Session session = sessionFactory.getCurrentSession();
 
-        List<String> importIds = importDataSet.getSections().stream().map( BaseIdentifiableObject::getUid )
+        List<String> importIds = importDataSet.getSections().stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         persistedDataSet.getSections().stream().filter( section -> !importIds.contains( section.getUid() ) )
@@ -124,7 +124,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet>
     {
         return section.getDataElements().stream().filter( de -> {
             Set<String> dataElements = importDataSet.getDataElements().stream()
-                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+                .map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
             return dataElements.contains( de.getUid() );
         } ).collect( Collectors.toList() );
     }

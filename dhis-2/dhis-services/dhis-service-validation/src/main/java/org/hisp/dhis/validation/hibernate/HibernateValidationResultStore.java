@@ -44,7 +44,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -389,7 +389,7 @@ public class HibernateValidationResultStore
 
         if ( !u.getGroups().isEmpty() )
         {
-            Set<String> groups = u.getGroups().stream().map( BaseIdentifiableObject::getUid )
+            Set<String> groups = u.getGroups().stream().map( IdentifiableObject::getUid )
                 .collect( Collectors.toSet() );
             groupUids = "{" + String.join( ",", groups ) + "}";
         }
