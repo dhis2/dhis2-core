@@ -1236,7 +1236,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testImportDuplicates()
+    public void testImportDuplicates()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
