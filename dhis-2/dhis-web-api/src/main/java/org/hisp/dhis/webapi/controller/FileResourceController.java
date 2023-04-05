@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
@@ -46,6 +46,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -60,6 +62,7 @@ import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,7 +82,7 @@ import com.google.common.base.MoreObjects;
 @Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
-public class FileResourceController
+public class FileResourceController extends AbstractFullReadOnlyController<FileResource>
 {
     private final FileResourceService fileResourceService;
 
@@ -87,16 +90,31 @@ public class FileResourceController
 
     private final DhisConfigurationProvider dhisConfig;
 
+    /**
+     * Overridden to only use it when {@code fields} parameter is present.
+     */
+    @OpenApi.Ignore
+    @Override
+    @GetMapping( value = "/{uid}", params = "fields" )
+    public ResponseEntity<?> getObject( @PathVariable String uid, Map<String, String> rpParameters,
+        @CurrentUser User currentUser, HttpServletRequest request,
+        HttpServletResponse response )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        return super.getObject( uid, rpParameters, currentUser, request, response );
+    }
+
     @GetMapping( value = "/{uid}" )
     public FileResource getFileResource( @PathVariable String uid,
         @RequestParam( required = false ) ImageFileDimension dimension )
-        throws WebMessageException
+        throws NotFoundException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
         if ( fileResource == null )
         {
-            throw new WebMessageException( notFound( FileResource.class, uid ) );
+            throw new NotFoundException( FileResource.class, uid );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,
@@ -108,13 +126,15 @@ public class FileResourceController
     @GetMapping( value = "/{uid}/data" )
     public void getFileResourceData( @PathVariable String uid, HttpServletResponse response,
         @RequestParam( required = false ) ImageFileDimension dimension, @CurrentUser User currentUser )
-        throws WebMessageException
+        throws NotFoundException,
+        ForbiddenException,
+        WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
         if ( fileResource == null )
         {
-            throw new WebMessageException( notFound( FileResource.class, uid ) );
+            throw new NotFoundException( FileResource.class, uid );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,
@@ -122,9 +142,9 @@ public class FileResourceController
 
         if ( !checkSharing( fileResource, currentUser ) )
         {
-            throw new WebMessageException(
-                unauthorized( "You don't have access to fileResource '" + uid
-                    + "' or this fileResource is not available from this endpoint" ) );
+            throw new ForbiddenException(
+                "You don't have access to fileResource '" + uid
+                    + "' or this fileResource is not available from this endpoint" );
         }
 
         response.setContentType( fileResource.getContentType() );
