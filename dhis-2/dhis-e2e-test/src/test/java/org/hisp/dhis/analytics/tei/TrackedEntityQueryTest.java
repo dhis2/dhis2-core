@@ -2149,4 +2149,154 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
                 "fWI0UiNZgMy",
                 "3104" ) );
     }
+
+    @Test
+    public void queryWithProgramStatus()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "programStatus=IpHINAT79UW.COMPLETED" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2018-01-01" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "height", equalTo( 3 ) )
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first row, as samples.
+
+        validateRow( response, 0,
+            List.of( "vOxUH373fy5",
+                "2017-05-26 11:46:22.372",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Filona",
+                "Ryder",
+                "Female",
+                "",
+                "COMPLETED" ) );
+    }
+
+    @Test
+    public void queryWithEnrollmentStatus()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "enrollmentStatus=IpHINAT79UW.COMPLETED" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2018-01-01" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "height", equalTo( 3 ) )
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first row, as samples.
+
+        validateRow( response, 0,
+            List.of( "vOxUH373fy5",
+                "2017-05-26 11:46:22.372",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Filona",
+                "Ryder",
+                "Female",
+                "",
+                "COMPLETED" ) );
+    }
+
+    @Test
+    public void queryWithEventStatus()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "program=IpHINAT79UW" )
+            .add( "eventStatus=IpHINAT79UW.A03MvHHogjR.COMPLETED" )
+            .add( "desc=lastupdated" )
+            .add( "relativePeriodDate=2018-01-01" );
+
+        // When
+        ApiResponse response = analyticsTeiActions.query().get( "nEenWmSyUEp", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "height", equalTo( 3 ) )
+            .body( "width", equalTo( 15 ) )
+            .body( "headerWidth", equalTo( 15 ) )
+            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "metaData.pager.page", equalTo(
+                1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.isLastPage", is( true ) )
+            .body( "metaData.pager", not( hasKey( "total" ) ) )
+            .body( "metaData.pager", not( hasKey( "pageCount" ) ) )
+            .body( "metaData.dimensions", not( hasKey( "ou" ) ) )
+            .body( "metaData.dimensions", hasKey( "pe" ) );
+
+        // Validate the first row, as samples.
+
+        validateRow( response, 0,
+            List.of( "vOxUH373fy5",
+                "2017-05-26 11:46:22.372",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Ngelehun CHC",
+                "OU_559",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "Filona",
+                "Ryder",
+                "Female",
+                "",
+                "COMPLETED" ) );
+    }
 }

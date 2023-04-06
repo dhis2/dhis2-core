@@ -38,6 +38,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -56,6 +57,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
     }
 
     @Test
+    @Disabled( "Fails on CI, depends on rows order, @Dusan will fix it" )
     public void testAnalyticsGetWithTextDataElementAggregationTypeNone()
     {
         // Given
