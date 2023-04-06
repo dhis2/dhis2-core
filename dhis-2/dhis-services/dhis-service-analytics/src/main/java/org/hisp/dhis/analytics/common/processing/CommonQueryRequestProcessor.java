@@ -52,10 +52,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -70,7 +70,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
     private final List<Function<CommonQueryRequest, CommonQueryRequest>> processors = List.of(
         this::computePagingParams,
-        this::computeProgramStatus,
+        this::computeEnrollmentStatus,
         this::computeEventStatus );
 
     /**
@@ -132,13 +132,13 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
     /**
      * Converts the program status into a static dimension example:
-     * programStatus=IpHINAT79UW.COMPLETED;IpHINAT79UW.ACTIVE becomes
+     * enrollmentStatus=IpHINAT79UW.COMPLETED;IpHINAT79UW.ACTIVE becomes
      * dimension=IpHINAT79UW.PROGRAM_STATUS:COMPLETED;ACTIVE
      *
      * @param commonQueryRequest the {@link CommonQueryRequest} to transform
      * @return the transformed {@link CommonQueryRequest}
      */
-    private CommonQueryRequest computeProgramStatus( CommonQueryRequest commonQueryRequest )
+    private CommonQueryRequest computeEnrollmentStatus( CommonQueryRequest commonQueryRequest )
     {
         if ( commonQueryRequest.hasProgramStatus() || commonQueryRequest.hasEnrollmentStatus() )
         {
@@ -148,7 +148,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
             enrollmentStatuses.addAll( commonQueryRequest.getEnrollmentStatus() );
 
             commonQueryRequest.getDimension()
-                .addAll( programStatusAsDimension( enrollmentStatuses ) );
+                .addAll( enrollmentStatusAsDimension( enrollmentStatuses ) );
         }
         return commonQueryRequest;
     }
@@ -194,12 +194,12 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
             .collect( Collectors.toList() );
     }
 
-    private List<String> programStatusAsDimension( Set<String> programStatuses )
+    private List<String> enrollmentStatusAsDimension( Set<String> enrollmentStatuses )
     {
         // builds a map of [program] with a list of program (enrollment) statuses
-        Map<String, List<ProgramStatus>> statusesByProgram = programStatuses.stream()
-            .map( programStatus -> splitAndValidate( programStatus, 2, E7140 ) )
-            .map( parts -> Pair.of( parts[0], ProgramStatus.valueOf( parts[1] ) ) )
+        Map<String, List<EnrollmentStatus>> statusesByProgram = enrollmentStatuses.stream()
+            .map( enrollmentStatus -> splitAndValidate( enrollmentStatus, 2, E7140 ) )
+            .map( parts -> Pair.of( parts[0], EnrollmentStatus.valueOf( parts[1] ) ) )
             .collect( groupingBy( Pair::getLeft, mapping( Pair::getRight, Collectors.toList() ) ) );
 
         return statusesByProgram.keySet()
@@ -208,7 +208,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                 DIMENSION_IDENTIFIER_SEP +
                 ENROLLMENT_STATUS.name() + DIMENSION_NAME_SEP +
                 statusesByProgram.get( program ).stream()
-                    .map( ProgramStatus::name )
+                    .map( EnrollmentStatus::name )
                     .collect( Collectors.joining( ";" ) ) )
             .collect( Collectors.toList() );
     }

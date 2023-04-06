@@ -164,6 +164,18 @@ class CommonQueryRequestProcessorTest
     }
 
     @Test
+    void testEnrollmentStatusWrongFormat()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "COMPLETED" ) );
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
+            exception.getMessage() );
+    }
+
+    @Test
     void testEventStatusWrongFormat()
     {
         for ( String eventStatus : List.of( "programUid.ACTIVE", "COMPLETED" ) )
@@ -190,6 +202,18 @@ class CommonQueryRequestProcessorTest
     }
 
     @Test
+    void testEnrollmentStatusStatusWrongEnum()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "programUid.WRONG_PROGRAM_STATUS" ) );
+        IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "No enum constant org.hisp.dhis.program.ProgramStatus.WRONG_PROGRAM_STATUS",
+            exception.getMessage() );
+    }
+
+    @Test
     void testEventStatusWrongEnum()
     {
         CommonQueryRequest request = new CommonQueryRequest()
@@ -205,6 +229,18 @@ class CommonQueryRequestProcessorTest
     {
         CommonQueryRequest request = new CommonQueryRequest()
             .withProgramStatus( Set.of( "programUid.COMPLETED" ) );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+
+        String parsedDimension = processed.getDimension().iterator().next();
+
+        assertEquals( "programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension );
+    }
+
+    @Test
+    void testEnrollmentStatusOK()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "programUid.COMPLETED" ) );
         CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
 
         String parsedDimension = processed.getDimension().iterator().next();
