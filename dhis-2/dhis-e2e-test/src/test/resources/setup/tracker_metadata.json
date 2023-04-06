@@ -67,7 +67,6 @@
       "accessLevel": "OPEN",
       "id": "jDnjGYZFkA2",
       "attributeValues": [],
-      "organisationUnits": [],
       "programStages": [
         {
           "id": "fFNTQZPt2Jz"
@@ -169,7 +168,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -207,7 +205,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -280,7 +277,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -318,9 +314,49 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
+        },
+        {
+          "name": "TA Tracker_program TA org unit",
+          "created": "2022-08-05T10:22:12.360",
+          "lastUpdated": "2022-08-05T10:22:12.672",
+          "translations": [],
+          "externalAccess": false,
+          "userGroupAccesses": [],
+          "userAccesses": [],
+          "access": {
+            "manage": true,
+            "externalize": true,
+            "write": true,
+            "read": true,
+            "update": true,
+            "delete": true
+          },
+          "favorites": [],
+          "sharing": {
+            "external": false,
+            "users": {},
+            "userGroups": {}
+          },
+          "program": {
+            "id": "f1AyMswryyQ"
+          },
+          "displayInList": false,
+          "sortOrder": 7,
+          "mandatory": false,
+          "renderOptionsAsRadio": false,
+          "searchable": false,
+          "valueType": "ORGANISATION_UNIT",
+          "displayShortName": "TA Tracker_program TA org unit",
+          "displayName": "TA Tracker_program TA org unit",
+          "favorite": false,
+          "id": "amZ0XXplQCh",
+          "attributeValues": [],
+          "trackedEntityAttribute": {
+            "id": "xuAl9UIMcmI"
+          },
+          "programTrackedEntityAttributeGroups": []
         },
         {
           "lastUpdated": "2022-01-07T12:45:47.387",
@@ -356,7 +392,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         }
@@ -467,7 +502,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -505,7 +539,6 @@
             "users": {}
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         }
@@ -1877,13 +1910,6 @@
       "hideDueDate": false,
       "enableUserAssignment": false,
       "id": "fFNTQZPt2Jz",
-      "createdBy": {
-        "id": "M5zQapPyTZI",
-        "code": "admin",
-        "name": "admin admin",
-        "displayName": "admin admin",
-        "username": "admin"
-      },
       "attributeValues": [],
       "repeatable": false,
       "programStageSections": [],
@@ -2580,8 +2606,7 @@
       },
       "trackedEntityAttribute": {
         "id": "kZeSYCgaHTk"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T14:58:26.465",
@@ -2597,8 +2622,7 @@
       },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2614,8 +2638,7 @@
       },
       "trackedEntityAttribute": {
         "id": "ypGAwVRNtVY"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2631,8 +2654,7 @@
       },
       "trackedEntityAttribute": {
         "id": "aIga5mPOFOJ"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2019-04-25T11:04:29.212",
@@ -2648,8 +2670,7 @@
       },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2019-04-25T11:04:29.212",
@@ -2665,8 +2686,7 @@
       },
       "trackedEntityAttribute": {
         "id": "kZeSYCgaHTk"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:59:22.569",
@@ -2682,8 +2702,7 @@
       },
       "trackedEntityAttribute": {
         "id": "tQb296OHAWQ"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     },
     {
       "created": "2022-01-07T11:57:37.358",
@@ -2699,8 +2718,7 @@
       },
       "trackedEntityAttribute": {
         "id": "x5yfLot5VCM"
-      },
-      "programTrackedEntityAttributeGroups": []
+      }
     }
   ],
   "categoryOptions": [
@@ -2709,6 +2727,7 @@
       "created": "2022-01-06T14:48:10.542",
       "lastUpdated": "2022-01-06T14:48:10.549",
       "name": "default",
+      "shortName": "default",
       "id": "xYerKDKCefk",
       "sharing": {
         "userGroups": {},

@@ -287,24 +287,19 @@ public class DataValue
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
+        if ( this == obj )
         {
             return true;
         }
 
-        if ( o == null )
+        if ( !(obj instanceof DataValue) )
         {
             return false;
         }
 
-        if ( !getClass().isAssignableFrom( o.getClass() ) )
-        {
-            return false;
-        }
-
-        final DataValue other = (DataValue) o;
+        final DataValue other = (DataValue) obj;
 
         return dataElement.equals( other.getDataElement() ) &&
             period.equals( other.getPeriod() ) &&

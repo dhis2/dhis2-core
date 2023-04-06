@@ -80,7 +80,8 @@ class DimensionControllerTest extends DhisControllerConvenienceTest
     void testGetDimensionsForDataSet()
     {
         String dsId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'My data set', 'periodType':'Monthly', 'categoryCombo':{'id':'" + ccId + "'}}" ) );
+            "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'categoryCombo':{'id':'" + ccId
+                + "'}}" ) );
         JsonObject response = GET( "/dimensions/dataSet/{ds}", dsId ).content();
         JsonArray dimensions = response.getArray( "dimensions" );
         assertEquals( 1, dimensions.size() );

@@ -77,8 +77,6 @@ class PredictionDataFilterTest
 
     private final FoundDimensionItemValue valueC = new FoundDimensionItemValue( ouA, periodC, cocA, deA, 3.0 );
 
-    private final List<FoundDimensionItemValue> values = List.of( valueA, valueB, valueC );
-
     private final List<DataValue> oldPredictions = emptyList();
 
     private final PredictionData dataABC = new PredictionData( ouA, List.of( valueA, valueB, valueC ), oldPredictions );

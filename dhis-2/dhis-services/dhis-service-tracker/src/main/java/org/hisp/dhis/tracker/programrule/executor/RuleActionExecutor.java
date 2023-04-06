@@ -66,12 +66,17 @@ public interface RuleActionExecutor<T>
      */
     static boolean isEqual( String value1, String value2, ValueType valueType )
     {
+        if ( Objects.equals( value1, value2 ) )
+        {
+            return true;
+        }
+
         if ( valueType.isNumeric() )
         {
             return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
                 MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
         }
-        return Objects.equals( value1, value2 );
+        return false;
     }
 
     /**

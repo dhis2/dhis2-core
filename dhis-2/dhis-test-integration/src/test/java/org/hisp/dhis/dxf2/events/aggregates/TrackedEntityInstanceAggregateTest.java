@@ -72,7 +72,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,9 +94,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     @Autowired
     private TrackedEntityProgramOwnerService programOwnerService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
@@ -631,7 +627,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Test
     void testTrackedEntityInstanceRelationshipsTei2Enrollment()
     {
-        User currentUser = currentUserService.getCurrentUser();
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();

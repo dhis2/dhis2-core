@@ -49,7 +49,6 @@ import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -61,7 +60,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.context.ApplicationEventPublisher;
@@ -190,33 +188,10 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Criteria for the implementation Class type.
-     * <p>
-     * Please note that sharing is not considered.
-     *
-     * @return a Criteria instance.
-     */
-    @Deprecated
-    public final Criteria getCriteria()
-    {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
-
-        preProcessDetachedCriteria( criteria );
-
-        return getExecutableCriteria( criteria );
-    }
-
-    /**
      * Override to add additional restrictions to criteria before it is invoked.
      */
     protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
-    }
-
-    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
-    {
-        return detachedCriteria.getExecutableCriteria( getSession() )
-            .setCacheable( cacheable );
     }
 
     public CriteriaBuilder getCriteriaBuilder()
@@ -649,14 +624,14 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue )
+    public boolean isAttributeValueUnique( T object, AttributeValue attributeValue )
     {
         List<T> objects = getByAttributeValue( attributeValue );
         return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ));
     }
 
     @Override
-    public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
+    public boolean isAttributeValueUnique( T object, Attribute attribute, String value )
     {
         List<T> objects = getByAttributeAndValue( attribute, value );
         return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ));

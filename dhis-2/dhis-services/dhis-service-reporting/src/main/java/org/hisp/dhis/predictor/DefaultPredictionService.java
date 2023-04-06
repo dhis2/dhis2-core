@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.String.format;
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -70,6 +71,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -82,7 +84,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandlerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
@@ -117,6 +121,10 @@ public class DefaultPredictionService
     private final AnalyticsService analyticsService;
 
     private final CurrentUserService currentUserService;
+
+    private final PredictionPreprocessor preprocessor;
+
+    private final ApplicationContext applicationContext;
 
     // -------------------------------------------------------------------------
     // Prediction business logic
@@ -193,6 +201,44 @@ public class DefaultPredictionService
     @Override
     public void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary )
     {
+        for ( Predictor p : preprocessor.preprocess( predictor ) )
+        {
+            // Trigger a new transaction when calling self (must be inside loop)
+            PredictionService self = applicationContext.getBean( PredictionService.class );
+
+            self.predictSimple( p, startDate, endDate, predictionSummary );
+        }
+    }
+
+    @Override
+    public ExpressionValidationOutcome expressionIsValid( String expression )
+    {
+        try
+        {
+            preprocessor.getDescription( expression );
+
+            return ExpressionValidationOutcome.VALID;
+        }
+        catch ( IllegalStateException e )
+        {
+            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+        }
+    }
+
+    @Override
+    public String getExpressionDescription( String expression )
+    {
+        return preprocessor.getDescription( expression );
+    }
+
+    // Each simple predictor run must be in its own transaction in case the
+    // predictions are made to a new period. If this is not done, one predictor
+    // run might create a new period for a prediction and a subsequent run might
+    // use the BatchHandler because it is thought to be a pre-exising period,
+    // but the BatchHandler outside the Spring transaction won't see the period.
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
+    public void predictSimple( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary )
+    {
         Expression generator = predictor.getGenerator();
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
@@ -218,17 +264,14 @@ public class DefaultPredictionService
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP &&
             !baseExParams.getItemMap().values().isEmpty();
 
-        Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
-        {
-            currentUserOrgUnits = currentUser.getOrganisationUnits();
-        }
+        Set<OrganisationUnit> currentUserOrgUnits = (currentUser != null)
+            ? currentUser.getOrganisationUnits()
+            : emptySet();
 
         PredictionDataConsolidator consolidator = new PredictionDataConsolidator( items,
             predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ),
-            new PredictionDataValueFetcher( dataValueService, categoryService ),
+            new PredictionDataValueFetcher( dataValueService, categoryService, currentUserOrgUnits ),
             new PredictionAnalyticsDataFetcher( analyticsService, categoryService ) );
 
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
@@ -242,7 +285,7 @@ public class DefaultPredictionService
             List<OrganisationUnit> orgUnits = organisationUnitService
                 .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
-            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
+            consolidator.init( orgUnitLevel.getLevel(), orgUnits,
                 dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
 
             PredictionData data;
@@ -613,7 +656,7 @@ public class DefaultPredictionService
     {
         for ( DimensionalItemId item : items )
         {
-            if ( valueMap.keySet().contains( itemMap.get( item ) ) )
+            if ( valueMap.containsKey( itemMap.get( item ) ) )
             {
                 return true;
             }

@@ -50,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementGroup
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject
 {
     private Set<DataElement> members = new HashSet<>();
 
@@ -67,6 +68,7 @@ public class DataElementGroup
     public DataElementGroup( String name )
     {
         this.name = name;
+        this.shortName = name;
     }
 
     // -------------------------------------------------------------------------

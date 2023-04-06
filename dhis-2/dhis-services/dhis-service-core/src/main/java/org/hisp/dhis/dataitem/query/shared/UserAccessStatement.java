@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
@@ -39,6 +40,8 @@ import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_I
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_ID;
 import static org.springframework.util.Assert.hasText;
 
+import lombok.NoArgsConstructor;
+
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -46,13 +49,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class UserAccessStatement
 {
     public static final String READ_ACCESS = "r%";
-
-    private UserAccessStatement()
-    {
-    }
 
     /**
      * Creates a sharing statement for the given column and on the paramsMap. It
@@ -65,10 +65,9 @@ public class UserAccessStatement
      *        only access
      * @return the sharing SQL statement for the current user
      */
-    public static String sharingConditions( final String column, final String access,
-        final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( String column, String access, MapSqlParameterSource paramsMap )
     {
-        final StringBuilder conditions = new StringBuilder();
+        StringBuilder conditions = new StringBuilder();
 
         conditions
             .append( " (" ) // Isolator
@@ -92,6 +91,19 @@ public class UserAccessStatement
     }
 
     /**
+     * Creates a sharing statement for the given column that checks if given
+     * sharing settings present in the column belongs to the current logged
+     * user.
+     *
+     * @param column the sharing column
+     * @return the sharing SQL statement for the current user
+     */
+    public static String checkOwnerConditions( String column )
+    {
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
+    }
+
+    /**
      * Creates a sharing statement for the given columns, based on the
      * paramsMap. It will also take consideration user groups if this is set in
      * the paramsMap. This statement will check sharing conditions for Metadata
@@ -104,10 +116,10 @@ public class UserAccessStatement
      * @param paramsMap the parameters map
      * @return the sharing SQL statement for the current user
      */
-    public static String sharingConditions( final String columnOne, final String columnTwo,
-        final String access, final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( String columnOne, String columnTwo, String access,
+        MapSqlParameterSource paramsMap )
     {
-        final StringBuilder conditions = new StringBuilder();
+        StringBuilder conditions = new StringBuilder();
 
         conditions
             .append( " (" ) // Isolator
@@ -148,7 +160,7 @@ public class UserAccessStatement
         return conditions.toString();
     }
 
-    static String ownerAccessCondition( final String column )
+    static String ownerAccessCondition( String column )
     {
         assertTableAlias( column );
 
@@ -157,7 +169,7 @@ public class UserAccessStatement
             + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
     }
 
-    static String publicAccessCondition( final String column, final String access )
+    static String publicAccessCondition( String column, String access )
     {
         assertTableAlias( column );
 
@@ -166,7 +178,7 @@ public class UserAccessStatement
             + EXTRACT_PATH_TEXT + "(" + column + ", 'public') like '" + access + "')";
     }
 
-    static String userAccessCondition( final String tableName, final String access )
+    static String userAccessCondition( String tableName, String access )
     {
         assertTableAlias( tableName );
 
@@ -174,7 +186,7 @@ public class UserAccessStatement
             + SPACED_AND + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", '" + access + "') = true)";
     }
 
-    static String userGroupAccessCondition( final String column, final String access )
+    static String userGroupAccessCondition( String column, String access )
     {
         assertTableAlias( column );
 

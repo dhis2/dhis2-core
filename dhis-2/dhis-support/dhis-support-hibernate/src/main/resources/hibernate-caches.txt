@@ -149,7 +149,6 @@ org.hisp.dhis.dashboard.Dashboard.items
 org.hisp.dhis.dashboard.Dashboard.translations
 org.hisp.dhis.dashboard.Dashboard.userAccesses
 org.hisp.dhis.dashboard.Dashboard.userGroupAccesses
-org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup.translations
 org.hisp.dhis.dataapproval.DataApprovalWorkflow.userAccesses
 org.hisp.dhis.color.ColorSet.translations
 org.hisp.dhis.user.User.dataViewOrganisationUnits
@@ -187,7 +186,6 @@ org.hisp.dhis.dataapproval.DataApprovalWorkflow.userGroupAccesses
 org.hisp.dhis.program.ProgramIndicator.groups
 org.hisp.dhis.option.OptionGroup.members
 org.hisp.dhis.user.User.groups
-org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup.attributes
 org.hisp.dhis.user.UserGroup.userGroupAccesses
 org.hisp.dhis.dataelement.DataElementGroupSet.userGroupAccesses
 org.hisp.dhis.user.User.cogsDimensionConstraints

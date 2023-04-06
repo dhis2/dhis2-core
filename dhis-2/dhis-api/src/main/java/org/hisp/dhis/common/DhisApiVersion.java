@@ -60,7 +60,9 @@ public enum DhisApiVersion
     V38( 38 ),
     V39( 39 ),
     V40( 40 ),
-    DEFAULT( V40.getVersion() );
+    V41( 41 ),
+    V42( 42 ),
+    DEFAULT( V41.getVersion() );
 
     final int version;
 

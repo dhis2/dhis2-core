@@ -35,6 +35,8 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Lars Helge Overland
  * @author Jan Bernitt (pulled up default methods)
@@ -56,7 +58,13 @@ public interface Notifier
         return notify( id, NotificationLevel.INFO, message, completed );
     }
 
-    Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed );
+    default Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    {
+        return notify( id, level, message, completed, null, null );
+    }
+
+    Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed,
+        NotificationDataType dataType, JsonNode data );
 
     default Notifier update( JobConfiguration id, String message )
     {

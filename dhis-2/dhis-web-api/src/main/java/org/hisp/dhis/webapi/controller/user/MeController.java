@@ -36,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +49,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -87,6 +88,10 @@ import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -180,13 +185,14 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             user, USER_SETTING_KEYS, true );
 
-        List<String> programs = programService.getCurrentUserPrograms().stream().map( BaseIdentifiableObject::getUid )
+        List<String> programs = programService.getCurrentUserPrograms().stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
-        List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )
+        List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
+        determineUserImpersonation( meDto );
 
         // TODO: To remove when we remove old UserCredentials compatibility
         UserCredentialsDto userCredentialsDto = user.getUserCredentials();
@@ -196,6 +202,24 @@ public class MeController
         ObjectNode jsonNodes = fieldFilterService.toObjectNodes( params ).get( 0 );
 
         return ResponseEntity.ok( jsonNodes );
+    }
+
+    private void determineUserImpersonation( MeDto meDto )
+    {
+        Authentication current = SecurityContextHolder.getContext().getAuthentication();
+
+        Authentication original = null;
+        // iterate over granted authorities and find the 'switch user' authority
+        Collection<? extends GrantedAuthority> authorities = current.getAuthorities();
+        for ( GrantedAuthority auth : authorities )
+        {
+            // check for switch user type of authority
+            if ( auth instanceof SwitchUserGrantedAuthority )
+            {
+                original = ((SwitchUserGrantedAuthority) auth).getSource();
+                meDto.setImpersonation( original.getName() );
+            }
+        }
     }
 
     private boolean fieldsContains( String key, List<String> fields )

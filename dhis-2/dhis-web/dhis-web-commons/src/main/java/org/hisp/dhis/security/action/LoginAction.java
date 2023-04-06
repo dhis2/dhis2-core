@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.security.action;
 
-import static org.hisp.dhis.webapi.filter.CspFilter.CSP_REQUEST_NONCE_ATTR_NAME;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
@@ -73,6 +73,11 @@ public class LoginAction
     // Input & Output
     // -------------------------------------------------------------------------
     private String cspNonce = "";
+
+    public void setCspNonce( String cspNonce )
+    {
+        this.cspNonce = cspNonce;
+    }
 
     public String getCspNonce()
     {
@@ -139,9 +144,10 @@ public class LoginAction
     {
         addRegisteredProviders();
 
-        cspNonce = (String) ServletActionContext.getRequest().getSession().getAttribute( CSP_REQUEST_NONCE_ATTR_NAME );
-
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
+        HttpSession session = ServletActionContext.getRequest().getSession();
+        String nonce = (String) session.getAttribute( "nonce" );
+        setCspNonce( nonce );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
 

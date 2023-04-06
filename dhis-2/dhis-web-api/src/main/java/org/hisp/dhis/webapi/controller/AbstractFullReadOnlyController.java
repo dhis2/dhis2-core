@@ -670,7 +670,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     protected final <E extends IdentifiableObject> java.util.Optional<E> getEntity( String uid, Class<E> entityType )
     {
-        return java.util.Optional.ofNullable( manager.getNoAcl( entityType, uid ) );
+        return java.util.Optional.ofNullable( manager.get( entityType, uid ) );
     }
 
     protected final Schema getSchema( Class<?> klass )

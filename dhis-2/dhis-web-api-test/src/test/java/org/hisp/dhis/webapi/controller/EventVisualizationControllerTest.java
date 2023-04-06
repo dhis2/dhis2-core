@@ -38,11 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,15 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventVisualizationControllerTest extends DhisControllerConvenienceTest
 {
-
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private ProgramStageService programStageService;
-
-    @Autowired
-    private DataElementService dataElementService;
 
     private Program mockProgram;
 
@@ -76,6 +67,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostForSingleEventDate()
     {
         // Given
@@ -102,6 +94,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostForMultiEventDates()
     {
         // Given
@@ -155,6 +148,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostRepetitionForFilter()
     {
         // Given
@@ -181,6 +175,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostRepetitionForRow()
     {
         // Given
@@ -207,6 +202,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testPostRepetitionForColumn()
     {
         // Given

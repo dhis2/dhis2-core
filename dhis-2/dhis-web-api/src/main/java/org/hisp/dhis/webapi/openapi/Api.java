@@ -165,10 +165,8 @@ public class Api
         @EqualsAndHashCode.Include
         String name;
 
-        @EqualsAndHashCode.Exclude
         Maybe<String> description = new Maybe<>();
 
-        @EqualsAndHashCode.Exclude
         Maybe<String> externalDocsUrl = new Maybe<>();
 
         Maybe<String> externalDocsDescription = new Maybe<>();

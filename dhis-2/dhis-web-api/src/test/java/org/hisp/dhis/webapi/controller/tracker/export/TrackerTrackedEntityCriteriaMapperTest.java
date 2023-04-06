@@ -75,6 +75,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -208,7 +209,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         criteria.setSkipPaging( false );
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
-        criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", OrderParam.SortDirection.ASC ) ) );
+        criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", SortDirection.ASC ) ) );
 
         final TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -233,7 +234,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertThat( params.isIncludeDeleted(), is( true ) );
         assertThat( params.isIncludeAllAttributes(), is( true ) );
         assertTrue( params.getOrders().stream().anyMatch( orderParam -> orderParam
-            .equals( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) ) );
+            .equals( new OrderParam( "created", SortDirection.ASC ) ) ) );
     }
 
     @Test
@@ -543,15 +544,15 @@ class TrackerTrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        OrderCriteria order1 = OrderCriteria.of( "trackedEntity", OrderParam.SortDirection.ASC );
-        OrderCriteria order2 = OrderCriteria.of( "createdAt", OrderParam.SortDirection.DESC );
+        OrderCriteria order1 = OrderCriteria.of( "trackedEntity", SortDirection.ASC );
+        OrderCriteria order2 = OrderCriteria.of( "createdAt", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
-            new OrderParam( "trackedEntity", OrderParam.SortDirection.ASC ),
-            new OrderParam( "createdAt", OrderParam.SortDirection.DESC ) ), params.getOrders() );
+            new OrderParam( "trackedEntity", SortDirection.ASC ),
+            new OrderParam( "createdAt", SortDirection.DESC ) ), params.getOrders() );
     }
 
     @Test
@@ -567,11 +568,100 @@ class TrackerTrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrderParamsGivenInvalidField()
     {
-        OrderCriteria order1 = OrderCriteria.of( "invalid", OrderParam.SortDirection.DESC );
+        OrderCriteria order1 = OrderCriteria.of( "invalid", SortDirection.DESC );
         criteria.setOrder( List.of( order1 ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Invalid order property: invalid", e.getMessage() );
+    }
+
+    @Test
+    void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setFilter( Set.of( TEA_2_UID + ":like:project:x:eq:2" ) );
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "project:x:eq:2" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":lke:value" ) );
+        BadRequestException exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatWithHours()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000 00:00:01:lt:01-01-2001 00:00:01" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000 00:00:01" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001 00:00:01" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatYearMonthDay()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000:lt:01-01-2001" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:2020-01-01T00:00:00 +05:30:lt:2021-01-01T00:00:00 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "2020-01-01T00:00:00 +05:30" ),
+            new QueryFilter( QueryOperator.LT, "2021-01-01T00:00:00 +05:30" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria
+            .setFilter( Set.of( TEA_1_UID + ":ge:2020-01-01T00:00:00.001 +05:30:le:2021-01-01T00:00:00.001 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30" ),
+            new QueryFilter( QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30" ) ), actualFilters );
     }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
@@ -36,23 +35,23 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -78,14 +77,13 @@ public class TrackerEnrollmentsExportController
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    @Nonnull
     private final TrackerEnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
-    @Nonnull
     private final EnrollmentService enrollmentService;
 
-    @Nonnull
     private final FieldFilterService fieldFilterService;
+
+    private final EnrollmentFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
@@ -96,9 +94,9 @@ public class TrackerEnrollmentsExportController
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
+        List<ProgramInstance> enrollmentList;
 
-        EnrollmentParams enrollmentParams = map( fields )
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
@@ -114,7 +112,6 @@ public class TrackerEnrollmentsExportController
             }
 
             enrollmentList = enrollments.getEnrollments();
-
         }
         else
         {
@@ -137,7 +134,7 @@ public class TrackerEnrollmentsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException
     {
-        EnrollmentParams enrollmentParams = map( fields );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( id, enrollmentParams ) );

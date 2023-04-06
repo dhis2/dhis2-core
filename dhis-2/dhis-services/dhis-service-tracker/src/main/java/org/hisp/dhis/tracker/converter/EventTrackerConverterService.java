@@ -43,7 +43,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -191,7 +191,7 @@ public class EventTrackerConverterService
             .map( DataValue::getDataElement )
             .map( preheat::getDataElement )
             .filter( java.util.Objects::nonNull )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
         for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
         {
@@ -218,11 +218,11 @@ public class EventTrackerConverterService
             programStageInstance.setCreated( now );
             programStageInstance.setStoredBy( event.getStoredBy() );
             programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
+            programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         }
         programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         programStageInstance.setLastUpdated( now );
         programStageInstance.setDeleted( false );
-        programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
         programStageInstance.setProgramInstance(
             getProgramInstance( preheat, event.getEnrollment(), program ) );

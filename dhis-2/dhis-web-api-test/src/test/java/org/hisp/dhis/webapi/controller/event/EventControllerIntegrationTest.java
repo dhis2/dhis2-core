@@ -114,10 +114,10 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest
     @Test
     void testSkipPaging()
     {
-        JsonResponse res = GET( "/events.json?skipPaging=true" ).content( HttpStatus.OK );
+        JsonResponse res = GET( "/events.json?ouMode=ALL&skipPaging=true" ).content( HttpStatus.OK );
         assertFalse( res.get( "pager" ).exists() );
 
-        res = GET( "/events.json?skipPaging=false" ).content( HttpStatus.OK );
+        res = GET( "/events.json?ouMode=ALL&skipPaging=false" ).content( HttpStatus.OK );
         assertTrue( res.get( "pager" ).exists() );
     }
 }

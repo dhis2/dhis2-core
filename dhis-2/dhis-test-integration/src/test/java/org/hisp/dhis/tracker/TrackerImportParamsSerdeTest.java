@@ -60,8 +60,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.CODE )
-            .programIdScheme(
-                TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( "aaaa" ).build() )
+            .programIdScheme( TrackerIdSchemeParam.ofAttribute( "aaaa" ) )
             .build();
         TrackerImportParams trackerImportParams = TrackerImportParams.builder()
             .idSchemes( identifierParams )

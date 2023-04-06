@@ -64,30 +64,10 @@ class AppHubControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testListAppHub_ClientError()
-    {
-        configuration.getProperties().setProperty( ConfigurationKey.APPHUB_API_URL.getKey(),
-            "http://localhost/doesnotwork" );
-        assertWebMessage( "Service Unavailable", 503, "ERROR",
-            "I/O error on GET request for \"http://localhost/doesnotwork/apps\": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)",
-            GET( "/appHub" ).content( HttpStatus.SERVICE_UNAVAILABLE ) );
-    }
-
-    @Test
     void testGetAppHubApiResponse()
     {
         assertWebMessage( "Not Found", 404, "ERROR",
             "404 Not Found: \"{\"statusCode\":404,\"error\":\"Not Found\",\"message\":\"Not Found\"}\"",
             GET( "/appHub/v37/test" ).content( HttpStatus.NOT_FOUND ) );
-    }
-
-    @Test
-    void testGetAppHubApiResponse_ClientError()
-    {
-        configuration.getProperties().setProperty( ConfigurationKey.APPHUB_API_URL.getKey(),
-            "http://localhost/doesnotwork" );
-        assertWebMessage( "Service Unavailable", 503, "ERROR",
-            "I/O error on GET request for \"http://localhost/doesnotwork/v37/test\": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)",
-            GET( "/appHub/v37/test" ).content( HttpStatus.SERVICE_UNAVAILABLE ) );
     }
 }

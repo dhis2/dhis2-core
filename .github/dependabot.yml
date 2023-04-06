@@ -36,6 +36,9 @@ updates:
       - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -93,6 +96,9 @@ updates:
       - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -152,6 +158,9 @@ updates:
       - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -214,6 +223,9 @@ updates:
       - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"

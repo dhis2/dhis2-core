@@ -72,14 +72,16 @@ import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
+import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -87,6 +89,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -130,6 +134,7 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+        binder.registerCustomEditor( TrackerIdSchemeParam.class, new IdSchemeParamEditor() );
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
@@ -187,33 +192,127 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
     {
-        if ( ex.getRequiredType() == null )
+        Class<?> requiredType = ex.getRequiredType();
+        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getName() );
+
+        String customErrorMessage;
+        if ( requiredType == null )
         {
-            return handleBadRequest( ex );
+            customErrorMessage = ex.getMessage();
+        }
+        else if ( requiredType.isEnum() )
+        {
+            customErrorMessage = getEnumErrorMessage( requiredType );
+        }
+        else if ( requiredType.isPrimitive() )
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
+        }
+        else if ( ex.getCause() instanceof IllegalArgumentException )
+        {
+            customErrorMessage = ex.getCause().getMessage();
+        }
+        else
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
         }
 
-        if ( ex.getRequiredType().isEnum() )
-        {
-            String validValues = StringUtils
-                .join( Arrays.stream( ex.getRequiredType().getEnumConstants() ).map( Objects::toString )
-                    .collect( Collectors.toList() ), ", " );
-            String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-                ex.getValue(), ex.getName(), validValues );
-            return badRequest( errorMessage );
-        }
-        return handleBadRequest( ex );
+        return badRequest( getFormattedBadRequestMessage( notValidValueMessage, customErrorMessage ) );
     }
 
-    @ExceptionHandler( InvalidEnumValueException.class )
+    @ExceptionHandler( TypeMismatchException.class )
     @ResponseBody
-    public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
+    public WebMessage handleTypeMismatchException( TypeMismatchException ex )
+    {
+        Class<?> requiredType = ex.getRequiredType();
+        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getPropertyName() );
+
+        String customErrorMessage;
+        if ( requiredType == null )
+        {
+            customErrorMessage = ex.getMessage();
+        }
+        else if ( requiredType.isEnum() )
+        {
+            customErrorMessage = getEnumErrorMessage( requiredType );
+        }
+        else if ( requiredType.isPrimitive() )
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
+        }
+        else if ( ex.getCause() instanceof IllegalArgumentException )
+        {
+            customErrorMessage = ex.getCause().getMessage();
+        }
+        else
+        {
+            customErrorMessage = getGenericFieldErrorMessage( requiredType.getSimpleName() );
+        }
+
+        return badRequest( getFormattedBadRequestMessage( notValidValueMessage, customErrorMessage ) );
+    }
+
+    private String getEnumErrorMessage( Class<?> requiredType )
     {
         String validValues = StringUtils
-            .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
+            .join( Arrays.stream( requiredType.getEnumConstants() ).map( Objects::toString )
                 .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-            ex.getInvalidValue(), ex.getFieldName(), validValues );
-        return badRequest( errorMessage );
+        return MessageFormat.format( "Valid values are: [{0}]", validValues );
+    }
+
+    private String getGenericFieldErrorMessage( String fieldType )
+    {
+        return MessageFormat.format( "It should be of type {0}", fieldType );
+    }
+
+    private String getNotValidValueMessage( Object value, String field )
+    {
+        if ( value == null || (value instanceof String && ((String) value).isEmpty()) )
+        {
+            return MessageFormat.format( "{0} cannot be empty.", field );
+        }
+        return MessageFormat.format( "Value {0} is not valid for parameter {1}.", value, field );
+    }
+
+    private String getFormattedBadRequestMessage( Object value, String field, String customMessage )
+    {
+        return getNotValidValueMessage( value, field ) + " " + customMessage;
+    }
+
+    private String getFormattedBadRequestMessage( String fieldErrorMessage, String customMessage )
+    {
+        return fieldErrorMessage + " " + customMessage;
+    }
+
+    /**
+     * A BindException wraps possible errors happened trying to bind all the
+     * request parameters to a binding object. Errors could be simple conversion
+     * failures (Trying to convert a 'TEXT' to an Integer ) or validation errors
+     * create by hibernate-validator framework. Currently, we are not using such
+     * framework hence only conversion errors can happen.
+     *
+     * Only first error is returned to the client in order to be consistent in
+     * the way BAD_REQUEST responses are displayed.
+     *
+     */
+    @ExceptionHandler( BindException.class )
+    @ResponseBody
+    public WebMessage handleBindException( BindException ex )
+    {
+        FieldError fieldError = ex.getFieldError();
+
+        if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
+        {
+            return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
+        }
+
+        if ( fieldError != null )
+        {
+            return badRequest( getFormattedBadRequestMessage( fieldError.getRejectedValue(),
+                fieldError.getField(), ex.getMessage() ) );
+        }
+
+        return badRequest( ex.getMessage() );
     }
 
     @ExceptionHandler( Dhis2ClientException.class )
@@ -525,9 +624,15 @@ public class CrudControllerAdvice
         public void setAsText( String text )
             throws IllegalArgumentException
         {
-            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
+            Enum<T> enumValue = EnumUtils.getEnumIgnoreCase( enumClass, text );
 
-            setValue( enumValue != null ? enumValue : text );
+            if ( enumValue == null )
+            {
+                throw new IllegalArgumentException(
+                    MessageFormat.format( " Cannot convert {0} to {1}", text, enumClass ) );
+            }
+
+            setValue( enumValue );
         }
     }
 }

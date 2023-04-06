@@ -42,7 +42,6 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +49,6 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-@Disabled
 public class EnrollmentQueryTest extends AnalyticsApiTest
 {
     private AnalyticsEnrollmentsActions enrollmentsActions = new AnalyticsEnrollmentsActions();
@@ -59,24 +57,24 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
     {
         // Given
-        final QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU" )
             .add( "stage=A03MvHHogjR" )
             .add( "displayProperty=NAME" )
             .add( "outputType=ENROLLMENT" )
-            .add( "desc=enrollmentdate" )
+            .add( "asc=A03MvHHogjR.UXz7xuGCEhU" )
             .add( "totalPages=false" )
             .add( "pageSize=100" )
             .add( "page=1" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
-        final ApiResponse response = enrollmentsActions.query().get( "IpHINAT79UW", JSON, JSON, params );
+        ApiResponse response = enrollmentsActions.query().get( "IpHINAT79UW", JSON, JSON, params );
 
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "headers", hasSize( equalTo( 17 ) ) )
             .body( "rows", hasSize( equalTo( 100 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 100 ) )
@@ -92,9 +90,10 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
+            .body( "metaData.dimensions.\"A03MvHHogjR.UXz7xuGCEhU\"", hasSize( equalTo( 0 ) ) )
             .body( "height", equalTo( 100 ) )
-            .body( "width", equalTo( 15 ) )
-            .body( "headerWidth", equalTo( 15 ) );
+            .body( "width", equalTo( 17 ) )
+            .body( "headerWidth", equalTo( 17 ) );
 
         // Validate headers
         validateHeader( response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true );
@@ -112,60 +111,70 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "A03MvHHogjR.UXz7xuGCEhU", "MCH Weight (g)", "NUMBER", "java.lang.Double", false,
+            true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "jVAAsPyd7Tg",
-                "p2F8GoHl2HS",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "EbRsJr8LSSO",
+                "oi3PMIGYJH8",
+                "2022-07-02 02:00:00.0",
+                "2022-07-08 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:52.567",
+                "2017-07-23 12:45:49.807",
                 "",
                 "",
                 "",
-                "Manjeihun MCHP",
-                "OU_246998",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
                 "ACTIVE",
-                "J3wTSn87RP2" ) );
+                "DiszpKrYNg8",
+                "1231.0" ) );
 
         validateRow( response, 1,
-            List.of( "HWzlTCWuKYD",
-                "Ts15VUy8wfw",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "XeuUO4RbQEb",
+                "AivS67mcmKY",
+                "2022-06-01 02:00:00.0",
+                "2022-05-01 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:52.551",
+                "2017-11-15 17:48:49.132",
                 "",
                 "",
                 "",
-                "Semabu MCHP",
-                "OU_197391",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
                 "ACTIVE",
-                "Dluer5aKZmd" ) );
+                "DiszpKrYNg8",
+                "1234.0" ) );
 
         validateRow( response, 2,
-            List.of( "c4Kydu1fncr",
-                "UU6BFLPU4nj",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "KxXkjF6buFN",
+                "uhubxsfLanV",
+                "2022-04-02 02:00:00.0",
+                "2022-04-02 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:52.388",
+                "2017-11-16 12:26:42.851",
                 "",
                 "",
                 "",
-                "Niahun Buima MCHP",
-                "OU_222710",
-                "ACTIVE",
-                "cC03EwJLBiO" ) );
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "COMPLETED",
+                "DiszpKrYNg8",
+                "2313.0" ) );
     }
 }

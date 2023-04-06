@@ -11,6 +11,7 @@
       "created": "2020-04-17T14:25:08.171",
       "lastUpdated": "2020-04-17T14:25:08.206",
       "name": "default",
+      "shortName": "default",
       "id": "xYerKDKCefk",
       "sharing": {
         "public": "rwrw----",
@@ -429,7 +430,6 @@
             "id": "snIPEgBsMnl"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -462,7 +462,6 @@
             "id": "cbUr7QElnov"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         },
@@ -495,7 +494,6 @@
             "id": "PAEO7jHsWQI"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
           "attributeValues": []
         }
@@ -622,7 +620,6 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         }
@@ -738,7 +735,6 @@
             "id": "dajV3r1u6U2"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         },
@@ -771,7 +767,6 @@
             "id": "qbPmBkNankQ"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         },
@@ -804,7 +799,6 @@
             "id": "fmYlkfUNMQg"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         }
@@ -912,7 +906,6 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         }
@@ -1014,7 +1007,6 @@
             "id": "TtoH69lcLMw"
           },
           "favorites": [],
-          "programTrackedEntityAttributeGroups": [],
           "translations": [],
            "attributeValues": []
         }

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,8 +34,10 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
@@ -64,6 +64,7 @@ import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
@@ -88,7 +90,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -113,8 +116,12 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
@@ -142,6 +149,12 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
+    @Bean
+    public SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
+
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
      * endpoint and /authorize endpoint. This config is a modification of the
@@ -158,9 +171,6 @@ public class DhisWebApiWebSecurityConfig
         extends WebSecurityConfigurerAdapter
         implements AuthorizationServerConfigurer
     {
-        @Autowired
-        private DhisConfigurationProvider dhisConfig;
-
         @Autowired
         private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
@@ -204,7 +214,7 @@ public class DhisWebApiWebSecurityConfig
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -291,9 +301,6 @@ public class DhisWebApiWebSecurityConfig
         extends WebSecurityConfigurerAdapter
     {
         @Autowired
-        private DhisConfigurationProvider dhisConfig;
-
-        @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         @Autowired
@@ -337,7 +344,7 @@ public class DhisWebApiWebSecurityConfig
 
                 .csrf().disable();
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
     }
 
@@ -351,9 +358,6 @@ public class DhisWebApiWebSecurityConfig
     {
         @Autowired
         private DhisConfigurationProvider dhisConfig;
-
-        @Autowired
-        private DhisOidcProviderRepository dhisOidcProviderRepository;
 
         @Autowired
         @Qualifier( "defaultTokenService" )
@@ -386,9 +390,6 @@ public class DhisWebApiWebSecurityConfig
         private ApiTokenService apiTokenService;
 
         @Autowired
-        private SessionRegistry sessionRegistry;
-
-        @Autowired
         private UserService userService;
 
         @Autowired
@@ -408,6 +409,9 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
+
+        @Autowired
+        private ConfigurationService configurationService;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -474,17 +478,15 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+
+                .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
+
                 // Temporary solution for Struts less login page, will be removed when apps are fully migrated
                 .antMatchers( "/index.html" ).permitAll()
 
                 .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
-                .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
-                .antMatchers( apiContextPath + "/account/password" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
-                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
-                .antMatchers( apiContextPath + "/account" ).permitAll()
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
@@ -506,13 +508,13 @@ public class DhisWebApiWebSecurityConfig
 
             configureMatchers( http );
             configureOAuthAuthorizationServer( http );
-            configureCspFilter( http, dhisConfig, dhisOidcProviderRepository );
+            configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
             configureApiTokenAuthorizationFilter( http );
             configureOAuthTokenFilters( http );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private void configureMatchers( HttpSecurity http )
@@ -520,24 +522,40 @@ public class DhisWebApiWebSecurityConfig
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
+            http.securityContext( httpSecuritySecurityContextConfigurer -> httpSecuritySecurityContextConfigurer
+                .requireExplicitSave( true ) );
+
+            http.antMatcher( apiContextPath + "/**" )
+                .authorizeRequests( this::configureAccessRestrictions )
+                .httpBasic()
+
+                .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
+                .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() )
+
+                .addObjectPostProcessor( new ObjectPostProcessor<BasicAuthenticationFilter>()
+                {
+                    @Override
+                    public <O extends BasicAuthenticationFilter> O postProcess( O filter )
+                    {
+                        // Explicitly set security context repository on http basic, is NullSecurityContextRepository by default now.
+                        filter.setSecurityContextRepository( new HttpSessionSecurityContextRepository() );
+                        return filter;
+                    }
+                } );
+
+            http
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
+                .sessionFixation().migrateSession()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions(
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
+
             // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
-                http.antMatcher( "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
-
-                http
-                    .sessionManagement()
-                    .sessionFixation().migrateSession()
-                    .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                    .enableSessionUrlRewriting( false )
-                    .maximumSessions(
-                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                    .sessionRegistry( sessionRegistry );
-
                 http
                     .formLogin()
                     .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
@@ -556,16 +574,6 @@ public class DhisWebApiWebSecurityConfig
                     .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                     .deleteCookies( "JSESSIONID" );
             }
-            else
-            {
-                // This config will redirect unauthorized requests to the
-                // default login form webpage
-                http.antMatcher( apiContextPath + "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
-            }
         }
 
         private void configureOAuthAuthorizationServer( HttpSecurity http )
@@ -578,9 +586,9 @@ public class DhisWebApiWebSecurityConfig
         }
 
         private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
-            DhisOidcProviderRepository dhisOidcProviderRepository )
+            ConfigurationService configurationService )
         {
-            http.addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+            http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                 HeaderWriterFilter.class );
         }
 
@@ -699,6 +707,12 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
+            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        @Bean
+        public FormLoginBasicAuthenticationEntryPoint strutsLessFormLoginBasicAuthenticationEntryPoint()
+        {
             return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
@@ -721,10 +735,9 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @param dhisConfig DHIS2 configuration provider
      * @throws Exception
      */
-    public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )
+    public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
         http
@@ -734,13 +747,20 @@ public class DhisWebApiWebSecurityConfig
             .and()
             .xssProtection()
             .and()
-            .httpStrictTransportSecurity()
-            .and()
-            .frameOptions().sameOrigin();
+            .httpStrictTransportSecurity();
+    }
 
-        if ( dhisConfig.isEnabled( CSP_ENABLED ) )
-        {
-            http.headers().contentSecurityPolicy( dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        }
+    @Bean( "switchUserProcessingFilter" )
+    public SwitchUserFilter switchUserFilter( @Qualifier( "userDetailsService" ) UserDetailsService userDetailsService,
+        @Qualifier( "dhisConfigurationProvider" ) DhisConfigurationProvider config )
+    {
+        DhisSwitchUserFilter filter = new DhisSwitchUserFilter( config );
+        filter.setUserDetailsService( userDetailsService );
+        filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
+        filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "POST", true, new UrlPathHelper() ) );
+        filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "POST", true, new UrlPathHelper() ) );
+        filter.setSwitchFailureUrl( "/dhis-web-dashboard" );
+        filter.setTargetUrl( "/dhis-web-dashboard" );
+        return filter;
     }
 }

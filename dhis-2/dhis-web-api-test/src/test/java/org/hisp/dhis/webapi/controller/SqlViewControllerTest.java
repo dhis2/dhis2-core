@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -46,7 +49,7 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
     @Test
     void testExecuteView_NoSuchView()
     {
-        assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
+        assertWebMessage( "Not Found", 404, "ERROR", "SqlView with id xyz could not be found.",
             POST( "/sqlViews/xyz/execute" ).content( HttpStatus.NOT_FOUND ) );
     }
 
@@ -71,12 +74,12 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
     @Test
     void testRefreshMaterializedView_NoSuchView()
     {
-        assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
+        assertWebMessage( "Not Found", 404, "ERROR", "SqlView with id xyz could not be found.",
             POST( "/sqlViews/xyz/refresh" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testCreateWithDefaultValues()
+    void testCreateWithDefaultValues()
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
@@ -84,5 +87,28 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
         JsonResponse sqlView = GET( "/sqlViews/{uid}", uid ).content();
         assertEquals( "VIEW", sqlView.getString( "type" ).string() );
         assertEquals( "RESPECT_SYSTEM_SETTING", sqlView.getString( "cacheStrategy" ).string() );
+    }
+
+    @Test
+    void testUpdate_MaterializedViewWithUpdate()
+    {
+        String uid = assertStatus( HttpStatus.CREATED,
+            POST( "/sqlViews/",
+                "{'name':'users_exist','type':'MATERIALIZED_VIEW','sqlQuery':'select 1 from userinfo'}" ) );
+
+        String jobId = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
+            "{'name':'update-sql','jobType':'MATERIALIZED_SQL_VIEW_UPDATE','cronExpression':'0 0 1 ? * *'}" ) );
+
+        String updatePayload = GET( "/sqlViews/" + uid ).content().node()
+            .addMember( "updateJobId", "\"" + jobId + "\"" ).getDeclaration();
+        assertStatus( HttpStatus.OK, PUT( "/sqlViews/" + uid, updatePayload ) );
+
+        JsonObject params = GET( "/jobConfigurations/{id}", jobId ).content().getObject( "jobParameters" );
+        assertEquals( List.of( uid ), params.getArray( "sqlViews" ).stringValues() );
+
+        assertStatus( HttpStatus.OK, DELETE( "/sqlViews/" + uid ) );
+
+        params = GET( "/jobConfigurations/{id}", jobId ).content().getObject( "jobParameters" );
+        assertEquals( List.of(), params.getArray( "sqlViews" ).stringValues() );
     }
 }

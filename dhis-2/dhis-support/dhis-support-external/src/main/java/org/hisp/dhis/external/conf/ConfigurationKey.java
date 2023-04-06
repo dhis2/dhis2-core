@@ -32,7 +32,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 
-import org.hisp.dhis.security.utils.CspUtils;
+import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
@@ -81,12 +81,6 @@ public enum ConfigurationKey
      * caching will take place. Cannot be a negative value. (default: 0).
      */
     SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
-
-    /**
-     * Percentage cap limit for all cache memory usages. If set to 0, no limit
-     * is set. (default: 0).
-     */
-    SYSTEM_CACHE_CAP_PERCENTAGE( "system.cache.cap.percentage", "0", false ),
 
     /**
      * Node identifier, optional, useful in clusters.
@@ -728,7 +722,7 @@ public enum ConfigurationKey
     /**
      * CSP default header value/string. Enable or disable the feature.
      */
-    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
+    CSP_HEADER_VALUE( "csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false ),
 
     /**
      * Event hooks for system events. Enable or disable the feature.
@@ -740,7 +734,9 @@ public enum ConfigurationKey
      */
     LINKED_ACCOUNTS_ENABLED( "linked_accounts.enabled", Constants.OFF, false ),
 
-    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false );
+    LINKED_ACCOUNTS_RELOGIN_URL( "linked_accounts.relogin_url", "", false ),
+    SWITCH_USER_FEATURE_ENABLED( "switch_user_feature.enabled", Constants.OFF, false ),
+    SWITCH_USER_ALLOW_LISTED_IPS( "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false );
 
     private final String key;
 

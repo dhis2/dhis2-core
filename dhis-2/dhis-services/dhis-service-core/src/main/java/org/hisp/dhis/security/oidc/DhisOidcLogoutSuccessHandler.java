@@ -73,19 +73,21 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         {
             setOidcLogoutUrl();
         }
+        else
+        {
+            this.handler = new SimpleUrlLogoutSuccessHandler();
+            this.handler.setDefaultTargetUrl( "/" );
+        }
     }
 
     private void setOidcLogoutUrl()
     {
-        String logoutUri = config.getProperty( OIDC_LOGOUT_REDIRECT_URL );
+        String logoutUri = config.getPropertyOrDefault( OIDC_LOGOUT_REDIRECT_URL, "/" );
 
         if ( config.isEnabled( LINKED_ACCOUNTS_ENABLED ) )
         {
             this.handler = new SimpleUrlLogoutSuccessHandler();
-            if ( !isNullOrEmpty( logoutUri ) )
-            {
-                this.handler.setDefaultTargetUrl( logoutUri );
-            }
+            this.handler.setDefaultTargetUrl( logoutUri );
         }
         else
         {
@@ -103,18 +105,14 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         throws IOException,
         ServletException
     {
-        if ( config.isEnabled( OIDC_OAUTH2_LOGIN_ENABLED ) )
+        if ( config.isEnabled( OIDC_OAUTH2_LOGIN_ENABLED ) &&
+            config.isEnabled( LINKED_ACCOUNTS_ENABLED ) )
         {
-            boolean linkedAccountEnabled = config.isEnabled( LINKED_ACCOUNTS_ENABLED );
-            if ( linkedAccountEnabled )
-            {
-                handleLinkedAccountsLogout( request, response, authentication );
-            }
-            else
-            {
-                handler.onLogoutSuccess( request, response, authentication );
-            }
+            handleLinkedAccountsLogout( request, response, authentication );
+            return;
         }
+
+        handler.onLogoutSuccess( request, response, authentication );
     }
 
     private void handleLinkedAccountsLogout( HttpServletRequest request, HttpServletResponse response,

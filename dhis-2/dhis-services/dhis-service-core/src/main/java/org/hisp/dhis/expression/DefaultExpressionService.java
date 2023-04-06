@@ -99,7 +99,6 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -456,10 +455,10 @@ public class DefaultExpressionService
         }
 
         Map<String, Constant> constants = new CachingMap<String, Constant>()
-            .load( idObjectManager.getAllNoAcl( Constant.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( Constant.class ), IdentifiableObject::getUid );
 
         Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
-            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), IdentifiableObject::getUid );
 
         for ( Indicator indicator : indicators )
         {
@@ -504,16 +503,7 @@ public class DefaultExpressionService
             return "";
         }
 
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, ExpressionParams.builder()
-            .expression( expression )
-            .parseType( parseType )
-            .dataType( dataType )
-            .missingValueStrategy( NEVER_SKIP )
-            .build() );
-
-        visit( expression, dataType, visitor, false );
-
-        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
+        Map<String, String> itemDescriptions = getExpressionItemDescriptions( expression, parseType, dataType );
 
         String description = expression;
 
@@ -523,6 +513,28 @@ public class DefaultExpressionService
         }
 
         return description;
+    }
+
+    @Override
+    public Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType )
+    {
+        return getExpressionItemDescriptions( expression, parseType, parseType.getDataType() );
+    }
+
+    @Override
+    public Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType,
+        DataType dataType )
+    {
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, ExpressionParams.builder()
+            .expression( expression )
+            .parseType( parseType )
+            .dataType( dataType )
+            .missingValueStrategy( NEVER_SKIP )
+            .build() );
+
+        visit( expression, dataType, visitor, false );
+
+        return visitor.getItemDescriptions();
     }
 
     @Override

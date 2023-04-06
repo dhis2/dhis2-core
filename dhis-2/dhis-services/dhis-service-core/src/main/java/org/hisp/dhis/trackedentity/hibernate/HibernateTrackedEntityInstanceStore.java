@@ -118,8 +118,6 @@ public class HibernateTrackedEntityInstanceStore
 
     private final static String TEI_HQL_BY_IDS = "from TrackedEntityInstance as tei where tei.id in (:ids)";
 
-    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
-
     private static final String OFFSET = "OFFSET";
 
     private static final String LIMIT = "LIMIT";
@@ -139,10 +137,6 @@ public class HibernateTrackedEntityInstanceStore
     private static final String EQUALS = " = ";
 
     private static final String PSI_STATUS = "PSI.status";
-
-    private static final String TEI_LASTUPDATED = " tei.lastUpdated";
-
-    private static final String GT_EQUAL = " >= ";
 
     private static final String UID_VALUE_SEPARATOR = ":";
 
@@ -1304,10 +1298,10 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
-        if ( !isGridQuery || !sortableAttributesAndFilters.isEmpty() )
+        if ( !isGridQuery || !params.getAttributes().isEmpty() )
         {
             List<String> orderFields = new ArrayList<>();
+            Set<QueryItem> sortableAttributesAndFilters = sortableAttributesAndFilters( params );
 
             for ( OrderParam order : params.getOrders() )
             {

@@ -33,7 +33,7 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -80,6 +80,8 @@ public class DefaultEnrollmentAnalyticsService
 
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
 
+    private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
+
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
     private static final String NAME_PROGRAM_STATUS = "Program status";
@@ -90,13 +92,13 @@ public class DefaultEnrollmentAnalyticsService
 
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
         AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
-        SchemaIdResponseMapper schemaIdResponseMapper )
+        SchemeIdResponseMapper schemeIdResponseMapper )
     {
-        super( securityManager, queryValidator, schemaIdResponseMapper );
+        super( securityManager, queryValidator, schemeIdResponseMapper );
 
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( queryPlanner );
-        checkNotNull( schemaIdResponseMapper );
+        checkNotNull( schemeIdResponseMapper );
 
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
         this.queryPlanner = queryPlanner;
@@ -142,6 +144,8 @@ public class DefaultEnrollmentAnalyticsService
                 ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
             .addHeader( new GridHeader(

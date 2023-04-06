@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Calendar.APRIL;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
@@ -44,6 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -90,7 +90,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -137,9 +137,6 @@ class EventAnalyticsServiceTest
 
     @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
-
-    @Autowired
-    private PeriodService periodService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -201,6 +198,8 @@ class EventAnalyticsServiceTest
 
     private List<OrganisationUnit> level3Ous;
 
+    // Note: The periods are not persisted. They don't need to be for event
+    // analytics, so the tests should work without them being persisted.
     private Period peJan = createPeriod( "2017-01" );
 
     private Period peFeb = createPeriod( "2017-02" );
@@ -331,18 +330,11 @@ class EventAnalyticsServiceTest
         // Default Category Option Combo
         CategoryOptionCombo cocDefault = categoryService.getDefaultCategoryOptionCombo();
 
-        // Periods
-        periodService.addPeriod( peJan );
-        periodService.addPeriod( peFeb );
-        periodService.addPeriod( peMar );
-
         Date jan1 = new GregorianCalendar( 2017, JANUARY, 1 ).getTime();
         Date jan15 = new GregorianCalendar( 2017, JANUARY, 15 ).getTime();
-        Date feb14 = new GregorianCalendar( 2017, FEBRUARY, 14 ).getTime();
         Date feb15 = new GregorianCalendar( 2017, FEBRUARY, 15 ).getTime();
-        Date mar14 = new GregorianCalendar( 2017, MARCH, 14 ).getTime();
+        Date feb15Noon = new GregorianCalendar( 2017, FEBRUARY, 15, 12, 0 ).getTime();
         Date mar15 = new GregorianCalendar( 2017, MARCH, 15 ).getTime();
-        Date apr15 = new GregorianCalendar( 2017, APRIL, 15 ).getTime();
 
         // Data Elements
         deA = createDataElement( 'A', INTEGER, SUM );
@@ -417,11 +409,13 @@ class EventAnalyticsServiceTest
         // Change programA / teiA ownership through time:
         // Jan 1 (enrollment) - Jan 15: ouE
         // Jan 15 - Feb 15: ouF
-        // Feb 15 - Mar 15: ouG
+        // Feb 15 - Feb 15 Noon: ouE
+        // Feb 15 Noon - Mar 15: ouG
         // Mar 15 - present: ouH
         addProgramOwnershipHistory( programA, teiA, ouE, piA.getEnrollmentDate(), jan15 );
         addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb15 );
-        addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar15 );
+        addProgramOwnershipHistory( programA, teiA, ouE, feb15, feb15Noon );
+        addProgramOwnershipHistory( programA, teiA, ouG, feb15Noon, mar15 );
         trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
@@ -960,7 +954,7 @@ class EventAnalyticsServiceTest
     @Test
     void testEventProgramIndicatorWithNoOrgUnitField()
     {
-        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", null );
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", null, null, 0 );
 
         EventQueryParams params = getBaseEventQueryParamsBuilder()
             .withAggregateData( true )
@@ -985,7 +979,7 @@ class EventAnalyticsServiceTest
     @Test
     void testEventProgramIndicatorWithOrgUnitFieldAtStart()
     {
-        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START" );
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START", null, 0 );
 
         EventQueryParams params = getBaseEventQueryParamsBuilder()
             .withAggregateData( true )
@@ -1010,7 +1004,7 @@ class EventAnalyticsServiceTest
     @Test
     void testEventProgramIndicatorWithOrgUnitFieldAtEnd()
     {
-        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END" );
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END", null, 0 );
 
         EventQueryParams params = getBaseEventQueryParamsBuilder()
             .withAggregateData( true )
@@ -1035,12 +1029,13 @@ class EventAnalyticsServiceTest
     @Test
     void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart()
     {
-        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START" );
+        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_START",
+            getPeriodTypeByName( "Yearly" ), -10 );
 
         EventQueryParams params = getBaseEventQueryParamsBuilder()
             .withAggregateData( true )
             .addItemProgramIndicator( pi )
-            .withPeriods( List.of( peJan ), "Monthly" )
+            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
             .withOrganisationUnits( level3Ous )
             .build();
 
@@ -1051,19 +1046,22 @@ class EventAnalyticsServiceTest
             List.of( "dy", "pe", "ou", "value" ),
             // Grid
             List.of(
-                List.of( "programIndA", "201701", "ouabcdefghE", "4.0" ) ),
+                List.of( "programIndA", "201701", "ouabcdefghE", "4.0" ),
+                List.of( "programIndA", "201702", "ouabcdefghF", "4.0" ),
+                List.of( "programIndA", "201703", "ouabcdefghG", "4.0" ) ),
             grid );
     }
 
     @Test
     void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd()
     {
-        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END" );
+        ProgramIndicator pi = createProgramIndicatorA( ENROLLMENT, "#{progrStageA.deInteger0A}", "OWNER_AT_END",
+            getPeriodTypeByName( "Yearly" ), -10 );
 
         EventQueryParams params = getBaseEventQueryParamsBuilder()
             .withAggregateData( true )
             .addItemProgramIndicator( pi )
-            .withPeriods( List.of( peJan ), "Monthly" )
+            .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
             .withOrganisationUnits( level3Ous )
             .build();
 
@@ -1074,7 +1072,9 @@ class EventAnalyticsServiceTest
             List.of( "dy", "pe", "ou", "value" ),
             // Grid
             List.of(
-                List.of( "programIndA", "201701", "ouabcdefghF", "4.0" ) ),
+                List.of( "programIndA", "201701", "ouabcdefghF", "4.0" ),
+                List.of( "programIndA", "201702", "ouabcdefghG", "4.0" ),
+                List.of( "programIndA", "201703", "ouabcdefghH", "4.0" ) ),
             grid );
     }
 
@@ -1135,9 +1135,10 @@ class EventAnalyticsServiceTest
      * Creates program indicator A.
      */
     private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
-        String orgUnitField )
+        String orgUnitField, PeriodType afterStartPeriodType, int afterStartPeriods )
     {
-        ProgramIndicator pi = createProgramIndicator( 'A', analyticsType, programA, expression, null );
+        ProgramIndicator pi = createProgramIndicator( 'A', analyticsType, programA, expression, null,
+            afterStartPeriodType, afterStartPeriods );
         pi.setUid( "programIndA" );
         pi.setOrgUnitField( orgUnitField );
         return pi;

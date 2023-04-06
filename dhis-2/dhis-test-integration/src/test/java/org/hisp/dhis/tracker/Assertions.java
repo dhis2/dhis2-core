@@ -243,13 +243,6 @@ public class Assertions
                 report.getErrors() ) );
     }
 
-    public static void assertNoErrors( ImportReport report )
-    {
-        assertNotNull( report );
-        assertEquals( Status.OK, report.getStatus(),
-            errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) );
-    }
-
     public static void assertNoErrorsAndNoWarnings( ImportReport report )
     {
         assertNotNull( report );
@@ -258,6 +251,13 @@ public class Assertions
                 errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) ),
             () -> assertEquals( Collections.emptyList(), report.getValidationReport().getWarnings(),
                 "Expected import without warnings, instead got:\n" + report.getValidationReport().getWarnings() ) );
+    }
+
+    public static void assertNoErrors( ImportReport report )
+    {
+        assertNotNull( report );
+        assertEquals( Status.OK, report.getStatus(),
+            errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) );
     }
 
     public static void assertNoErrors( ValidationReport report )

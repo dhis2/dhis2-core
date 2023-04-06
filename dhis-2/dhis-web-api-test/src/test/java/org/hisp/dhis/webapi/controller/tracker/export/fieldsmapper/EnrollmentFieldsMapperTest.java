@@ -27,24 +27,30 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 
-import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class EnrollmentFieldsMapperTest
+class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    EnrollmentFieldsParamMapper mapper;
+
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
         return Stream.of(
-            arguments( "!*", false, false, false ),
+            // This value does not make sense as it means exclude all.
+            // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
+            arguments( "!*", true, true, true ),
             arguments( "*", true, true, true ),
             arguments( "*,!relationships", true, true, false ),
             arguments( "*,!attributes", false, true, true ),
@@ -71,7 +77,7 @@ class EnrollmentFieldsMapperTest
     void getEnrollmentParamsMultipleCases( String fields, boolean expectAttributes,
         boolean expectEvents, boolean expectRelationships )
     {
-        EnrollmentParams params = map( FieldFilterParser.parse( fields ) );
+        EnrollmentParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectAttributes, params.isIncludeAttributes() );
         assertEquals( expectEvents, params.isIncludeEvents() );

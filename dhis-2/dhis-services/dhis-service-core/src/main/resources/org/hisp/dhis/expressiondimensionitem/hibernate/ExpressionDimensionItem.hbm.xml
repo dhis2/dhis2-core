@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem" table="expressiondimensionitem">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="expressiondimensionitemid">
+            <generator class="native"/>
+        </id>
+
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+        <property name="shortName" not-null="true" unique="true" type="text" length="50" />
+
+        <property name="formName" type="text" />
+
+        <property name="description" type="text" />
+
+        <property name="translations" type="jblTranslations"/>
+
+        <property name="expression" type="text"/>
+
+        <property name="slidingWindow" type="java.lang.Boolean"/>
+
+        <property name="missingValueStrategy" column="missingvaluestrategy" length="100">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.expression.MissingValueStrategy</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="attributeValues" type="jsbAttributeValues"/>
+        <property name="sharing" type="jsbObjectSharing"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
+    </class>
+</hibernate-mapping>

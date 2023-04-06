@@ -33,6 +33,8 @@ import java.util.Set;
 import lombok.Getter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
@@ -44,18 +46,20 @@ public class DataElementMapper extends BaseDimensionalItemObjectMapper
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         DataElement.class );
 
+    /**
+     * maps data elements to DimensionResponse
+     */
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
-        DataElement dataElement = (DataElement) dimension;
+        DataElement dataElement = (DataElement) prefixedDimension.getItem();
 
-        final DimensionResponse mapped = super.map( dataElement, prefix )
-            .withValueType( dataElement.getValueType().name() )
-            .withId( String.join( ".", prefix, dataElement.getUid() ) );
+        final DimensionResponse mapped = super.map( prefixedDimension, prefix )
+            .withValueType( dataElement.getValueType().name() );
 
         return Optional.of( dataElement )
             .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .map( mapped::withOptionSet )
             .orElse( mapped );
     }

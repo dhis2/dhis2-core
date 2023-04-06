@@ -15,6 +15,7 @@ pipeline {
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
         timeout(time: 60)
+        disableConcurrentBuilds()
     }
 
     environment {
@@ -34,6 +35,10 @@ pipeline {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
+                    env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
+                    gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
@@ -171,7 +176,7 @@ pipeline {
                 echo 'Updating Play Instance ...'
                 script {
                     withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE")
+                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE", ['flyway_repair': 'YES'])
                     }
                 }
             }
@@ -193,15 +198,19 @@ pipeline {
                 IMAGE_PULL_POLICY = "Always"
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+                INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
             }
             steps {
                 script {
                     if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                            dir('im-db-manager') {
-                                sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                            dir('im-manager') {
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
-                                dir('scripts') {
+                                dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
                                             script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
@@ -210,12 +219,8 @@ pipeline {
                                     sh '[ -n "$DATABASE_ID" ]'
                                     echo "DATABASE_ID is ${env.DATABASE_ID}"
                                 }
-                            }
 
-                            dir('im-manager') {
-                                sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
-
-                                dir('scripts') {
+                                dir('scripts/instances') {
                                     echo 'Creating DHIS2 instance on IM...'
                                     sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
                                     timeout(5) {
@@ -233,6 +238,10 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+
+            script {
+                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+            }
         }
 
         failure {

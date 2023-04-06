@@ -78,7 +78,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
 public class User
-    extends BaseIdentifiableObject implements MetadataObject, UserDetails
+    extends BaseIdentifiableObject
+    implements MetadataObject, UserDetails
 {
     public static final int USERNAME_MAX_LENGTH = 255;
 

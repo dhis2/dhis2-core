@@ -44,15 +44,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Stats
 {
     @JsonProperty
+    @Builder.Default
     private int created = 0;
 
     @JsonProperty
+    @Builder.Default
     private int updated = 0;
 
     @JsonProperty
+    @Builder.Default
     private int deleted = 0;
 
     @JsonProperty
+    @Builder.Default
     private int ignored = 0;
 
     @JsonProperty

@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -122,9 +123,30 @@ public class AnalyticsIndexHelper
     {
         String columnName = join( index.getColumns(), "_" );
 
-        return quote( maybeSuffixIndexName( index,
-            PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( index.getTable(), tableType )
-                + "_" + CodeGenerator.generateCode( 5 ) ) );
+        String indexName = maybeSuffixIndexName( index,
+            PREFIX_INDEX + removeQuote( maybeShortenColumnName( columnName ) ) + "_"
+                + shortenTableName( index.getTable(), tableType )
+                + "_" + CodeGenerator.generateCode( 5 ) );
+
+        return quote( indexName );
+    }
+
+    /**
+     * If the conditions are met, the index name will be shorted. Only part in
+     * single parentheses will be used.
+     *
+     * Column data type is TEXT AND "indexColumns" has ONLY one element AND the
+     * column name is a valid UID.
+     *
+     * @param columnName the column name to be used in the index name
+     */
+    private static String maybeShortenColumnName( String columnName )
+    {
+        // some analytics indexes for jsonb columns are using to long names
+        // based on casting
+        String shortenName = StringUtils.substringBetween( columnName, "'" );
+
+        return StringUtils.isEmpty( shortenName ) ? columnName : shortenName;
     }
 
     /**

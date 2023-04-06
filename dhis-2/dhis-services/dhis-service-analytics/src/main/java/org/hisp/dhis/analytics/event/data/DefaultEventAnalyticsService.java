@@ -68,7 +68,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -153,6 +153,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
 
+    private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
+
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
     private static final String NAME_COUNT = "Count";
@@ -192,9 +194,9 @@ public class DefaultEventAnalyticsService
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        SchemaIdResponseMapper schemaIdResponseMapper )
+        SchemeIdResponseMapper schemeIdResponseMapper )
     {
-        super( securityManager, queryValidator, schemaIdResponseMapper );
+        super( securityManager, queryValidator, schemeIdResponseMapper );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );
@@ -203,7 +205,7 @@ public class DefaultEventAnalyticsService
         checkNotNull( queryPlanner );
         checkNotNull( databaseInfo );
         checkNotNull( analyticsCache );
-        checkNotNull( schemaIdResponseMapper );
+        checkNotNull( schemeIdResponseMapper );
 
         this.dataElementService = dataElementService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -625,7 +627,7 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        applyIdScheme( params, grid );
+        schemeIdResponseMapper.applyCustomIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
         // Meta-ata
@@ -748,6 +750,8 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader(
+                new GridHeader( ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );

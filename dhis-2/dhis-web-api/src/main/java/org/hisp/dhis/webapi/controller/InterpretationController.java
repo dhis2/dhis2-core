@@ -160,10 +160,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @PostMapping( value = "/eventVisualization/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
-    public WebMessage writeEventVisualizationInterpretation( @PathVariable( "uid" )
-    final String uid, @RequestParam( value = "ou", required = false )
-    final String orgUnitUid, @RequestBody
-    final String text )
+    public WebMessage writeEventVisualizationInterpretation( @PathVariable( "uid" ) final String uid,
+        @RequestParam( value = "ou", required = false ) final String orgUnitUid, @RequestBody final String text )
         throws WebMessageException
     {
         final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class, uid );

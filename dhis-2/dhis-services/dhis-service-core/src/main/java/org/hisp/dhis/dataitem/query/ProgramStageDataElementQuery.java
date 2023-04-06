@@ -83,9 +83,9 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
     @Override
-    public String getStatement( final MapSqlParameterSource paramsMap )
+    public String getStatement( MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
 
         sql.append( "(" );
 
@@ -121,7 +121,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
-        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
         optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", "t.i18n_second_name", paramsMap ) ) );
         optionalFilters
             .append(
@@ -132,7 +132,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
             "t.i18n_second_name", "t.i18n_first_name", paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -148,7 +148,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append( ifSet( maxLimit( paramsMap ) ) );
         sql.append( ")" );
 
-        final String fullStatement = sql.toString();
+        String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
@@ -162,7 +162,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
      * @return true
      */
     @Override
-    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    public boolean matchQueryRules( MapSqlParameterSource paramsMap )
     {
         return true;
     }

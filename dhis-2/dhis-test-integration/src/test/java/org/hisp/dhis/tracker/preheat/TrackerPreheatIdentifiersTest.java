@@ -236,8 +236,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         return data;
     }
 
-    private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdSchemeParam idSchemeParam,
-        String id )
+    private void assertPreheatedObjectExists( TrackerPreheat preheat,
+        Class<? extends IdentifiableObject> klazz, TrackerIdSchemeParam idSchemeParam, String id )
     {
         assertThat( "Expecting a preheated object for idSchemeParam: " +
             idSchemeParam.getIdScheme().name() + " with value: " + id,

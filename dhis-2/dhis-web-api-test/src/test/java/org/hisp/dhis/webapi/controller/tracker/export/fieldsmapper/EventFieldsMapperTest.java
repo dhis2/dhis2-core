@@ -27,24 +27,30 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 
-import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.tracker.event.EventParams;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class EventFieldsMapperTest
+class EventFieldsMapperTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    EventFieldsParamMapper mapper;
+
     static Stream<Arguments> getEventParamsMultipleCases()
     {
         return Stream.of(
-            arguments( "!*", false ),
+            // This value does not make sense as it means exclude all.
+            // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
+            arguments( "!*", true ), // expected value is false on master
             arguments( "*", true ),
             arguments( "relationships", true ),
             arguments( "*,!relationships", false ),
@@ -58,7 +64,7 @@ class EventFieldsMapperTest
     @ParameterizedTest
     void getEventParamsMultipleCases( String fields, boolean expectRelationships )
     {
-        EventParams params = map( FieldFilterParser.parse( fields ) );
+        EventParams params = mapper.map( FieldFilterParser.parse( fields ) );
 
         assertEquals( expectRelationships, params.isIncludeRelationships() );
     }

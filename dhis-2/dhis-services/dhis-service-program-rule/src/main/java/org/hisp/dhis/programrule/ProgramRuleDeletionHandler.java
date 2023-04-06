@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -77,7 +77,7 @@ public class ProgramRuleDeletionHandler extends DeletionHandler
             .getProgramRule( programStage.getProgram() )
             .stream()
             .filter( pr -> isLinkedToProgramStageSection( programStageSection, pr ) )
-            .map( BaseIdentifiableObject::getName )
+            .map( IdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
         return StringUtils.isBlank( programRules )
@@ -91,7 +91,7 @@ public class ProgramRuleDeletionHandler extends DeletionHandler
             .getProgramRule( programStage.getProgram() )
             .stream()
             .filter( pr -> isLinkedToProgramStage( programStage, pr ) )
-            .map( BaseIdentifiableObject::getName )
+            .map( IdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
         return StringUtils.isBlank( programRules )
