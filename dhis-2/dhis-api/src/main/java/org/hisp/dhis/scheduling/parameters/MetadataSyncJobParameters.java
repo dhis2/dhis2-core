@@ -29,65 +29,32 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataSyncJobParameters
-    implements JobParameters
+@Getter
+@Setter
+public class MetadataSyncJobParameters implements JobParameters
 {
     private static final long serialVersionUID = 332495511301532169L;
 
+    @JsonProperty
     private int trackerProgramPageSize = 20;
 
+    @JsonProperty
     private int eventProgramPageSize = 60;
 
+    @JsonProperty
     private int dataValuesPageSize = 10000;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getTrackerProgramPageSize()
-    {
-        return trackerProgramPageSize;
-    }
-
-    public void setTrackerProgramPageSize( final int trackerProgramPageSize )
-    {
-        this.trackerProgramPageSize = trackerProgramPageSize;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getEventProgramPageSize()
-    {
-        return eventProgramPageSize;
-    }
-
-    public void setEventProgramPageSize( final int eventProgramPageSize )
-    {
-        this.eventProgramPageSize = eventProgramPageSize;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getDataValuesPageSize()
-    {
-        return dataValuesPageSize;
-    }
-
-    public void setDataValuesPageSize( final int dataValuesPageSize )
-    {
-        this.dataValuesPageSize = dataValuesPageSize;
-    }
 
     @Override
     public Optional<ErrorReport> validate()

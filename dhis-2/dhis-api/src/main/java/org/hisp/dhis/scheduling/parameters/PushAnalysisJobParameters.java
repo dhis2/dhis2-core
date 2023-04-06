@@ -31,29 +31,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Henning Håkonsen
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class PushAnalysisJobParameters
-    implements JobParameters
+@Getter
+@Setter
+@NoArgsConstructor
+public class PushAnalysisJobParameters implements JobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 
+    @JsonProperty( required = true )
     private List<String> pushAnalysis = new ArrayList<>();
-
-    public PushAnalysisJobParameters()
-    {
-    }
 
     public PushAnalysisJobParameters( String pushAnalysis )
     {
@@ -61,18 +60,6 @@ public class PushAnalysisJobParameters
     }
 
     public PushAnalysisJobParameters( List<String> pushAnalysis )
-    {
-        this.pushAnalysis = pushAnalysis;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getPushAnalysis()
-    {
-        return pushAnalysis;
-    }
-
-    public void setPushAnalysis( List<String> pushAnalysis )
     {
         this.pushAnalysis = pushAnalysis;
     }

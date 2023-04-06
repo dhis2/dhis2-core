@@ -29,59 +29,35 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Bernitt
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@Getter
+@Setter
+@NoArgsConstructor
 public class DisableInactiveUsersJobParameters implements JobParameters
 {
     private static final long serialVersionUID = -5877578172615705990L;
 
+    @JsonProperty( required = true )
     private int inactiveMonths;
 
+    @JsonProperty
     private Integer reminderDaysBefore;
-
-    public DisableInactiveUsersJobParameters()
-    {
-
-    }
 
     public DisableInactiveUsersJobParameters( int inactiveMonths )
     {
         this.inactiveMonths = inactiveMonths;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getInactiveMonths()
-    {
-        return inactiveMonths;
-    }
-
-    public void setInactiveMonths( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getReminderDaysBefore()
-    {
-        return reminderDaysBefore;
-    }
-
-    public void setReminderDaysBefore( Integer reminderDaysBefore )
-    {
-        this.reminderDaysBefore = reminderDaysBefore;
     }
 
     @Override

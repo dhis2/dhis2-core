@@ -31,54 +31,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Ameen
  */
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerTrigramIndexJobParameters
-    implements JobParameters
+public class TrackerTrigramIndexJobParameters implements JobParameters
 {
     private static final long serialVersionUID = 8705929982703731451L;
 
+    @JsonProperty
     private Set<String> attributes = new HashSet<>();
 
+    @JsonProperty
     private boolean skipIndexDeletion = false;
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getAttributes()
-    {
-        return attributes;
-    }
-
-    public void setAttributes( Set<String> attributes )
-    {
-        this.attributes = attributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "skipIndexDeletion", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "skipIndexDeletion", namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipIndexDeletion()
-    {
-        return skipIndexDeletion;
-    }
-
-    public void setSkipIndexDeletion( boolean skipIndexDeletion )
-    {
-        this.skipIndexDeletion = skipIndexDeletion;
-    }
 }

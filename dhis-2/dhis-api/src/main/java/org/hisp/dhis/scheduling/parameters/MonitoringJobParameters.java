@@ -32,41 +32,43 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 
 /**
  * @author Henning Håkonsen
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class MonitoringJobParameters
-    implements JobParameters
+@Getter
+@Setter
+@NoArgsConstructor
+public class MonitoringJobParameters implements JobParameters
 {
     private static final long serialVersionUID = -1683853240301569669L;
 
+    @JsonProperty
     private int relativeStart;
 
+    @JsonProperty
     private int relativeEnd;
 
+    @JsonProperty
     private List<String> validationRuleGroups = new ArrayList<>();
 
+    @JsonProperty
     private boolean sendNotifications;
 
+    @JsonProperty
     private boolean persistResults;
-
-    public MonitoringJobParameters()
-    {
-    }
 
     public MonitoringJobParameters( int relativeStart, int relativeEnd, List<String> validationRuleGroups,
         boolean sendNotifications, boolean persistResults )
@@ -75,67 +77,6 @@ public class MonitoringJobParameters
         this.relativeEnd = relativeEnd;
         this.validationRuleGroups = validationRuleGroups != null ? validationRuleGroups : Lists.newArrayList();
         this.sendNotifications = sendNotifications;
-        this.persistResults = persistResults;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getRelativeStart()
-    {
-        return relativeStart;
-    }
-
-    public void setRelativeStart( int relativeStart )
-    {
-        this.relativeStart = relativeStart;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getRelativeEnd()
-    {
-        return relativeEnd;
-    }
-
-    public void setRelativeEnd( int relativeEnd )
-    {
-        this.relativeEnd = relativeEnd;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "validationRuleGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationRuleGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getValidationRuleGroups()
-    {
-        return validationRuleGroups;
-    }
-
-    public void setValidationRuleGroups( List<String> validationRuleGroups )
-    {
-        this.validationRuleGroups = validationRuleGroups;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSendNotifications()
-    {
-        return sendNotifications;
-    }
-
-    public void setSendNotifications( boolean sendNotifications )
-    {
-        this.sendNotifications = sendNotifications;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isPersistResults()
-    {
-        return persistResults;
-    }
-
-    public void setPersistResults( boolean persistResults )
-    {
         this.persistResults = persistResults;
     }
 
@@ -153,7 +94,7 @@ public class MonitoringJobParameters
             .filter( ( group ) -> !CodeGenerator.isValidUid( group ) )
             .collect( Collectors.toList() );
 
-        if ( invalidUIDs.size() > 0 )
+        if ( !invalidUIDs.isEmpty() )
         {
             return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
                 "validationRuleGroups" ) );
