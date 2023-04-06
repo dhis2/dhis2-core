@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -94,7 +94,7 @@ public class MonitoringJob implements Job
             Collection<ValidationRule> rules = getValidationRules( groupUIDs );
             progress.startingStage( "Preparing analysis parameters" );
             List<Period> periods = progress.runStage( List.of(),
-                ps -> rules.stream().map( BaseIdentifiableObject::getName ).collect( joining( ", " ) ),
+                ps -> rules.stream().map( IdentifiableObject::getName ).collect( joining( ", " ) ),
                 () -> getPeriods( params, rules ) );
 
             ValidationAnalysisParams parameters = validationService

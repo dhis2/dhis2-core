@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -102,7 +103,7 @@ public class PredictorGroup
     {
         List<Predictor> predictors = new ArrayList<>( members );
 
-        predictors.sort( Comparator.comparing( BaseIdentifiableObject::getName ) );
+        predictors.sort( Comparator.comparing( IdentifiableObject::getName ) );
 
         return predictors;
     }

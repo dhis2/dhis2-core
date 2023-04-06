@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -77,7 +77,7 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
         Set<String> allUserReadableTrackedEntityAttributes = trackedEntityAttributeService
             .getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() ).stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+            .map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
 
         return trackedEntityAttributeValueAudits.stream()
             .filter( audit -> allUserReadableTrackedEntityAttributes.contains( audit.getAttribute().getUid() ) )
