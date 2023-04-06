@@ -47,7 +47,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicatorGroup
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private Set<ProgramIndicator> members = new HashSet<>();
 

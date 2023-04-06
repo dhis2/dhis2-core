@@ -47,7 +47,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalLevel
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The data approval level, 1=highest level, max=lowest level.

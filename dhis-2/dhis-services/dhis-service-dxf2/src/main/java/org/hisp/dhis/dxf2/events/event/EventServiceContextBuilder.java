@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -90,7 +90,7 @@ public class EventServiceContextBuilder
                 .collect( Collectors.toSet() ) )
             .stream()
             .collect( Collectors.toMap(
-                BaseIdentifiableObject::getUid,
+                IdentifiableObject::getUid,
                 program -> program ) );
 
         Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs = eventsByProgramUid.keySet().stream()
@@ -111,7 +111,7 @@ public class EventServiceContextBuilder
 
         Map<String, OrganisationUnit> orgUnitsByUid = organisationUnitService
             .getOrganisationUnitsByUid( orgUnitByTeiUidAndProgramUidPairs.values() ).stream()
-            .collect( Collectors.toMap( BaseIdentifiableObject::getUid, ou -> ou ) );
+            .collect( Collectors.toMap( IdentifiableObject::getUid, ou -> ou ) );
 
         return new EventContext( trackedEntityInstanceByUid, programsByUid, orgUnitByTeiUidAndProgramUidPairs,
             orgUnitsByUid );

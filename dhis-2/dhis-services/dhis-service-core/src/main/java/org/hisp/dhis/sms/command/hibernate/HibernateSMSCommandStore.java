@@ -46,7 +46,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.sms.command.hibernate.SMSCommandStore" )
 public class HibernateSMSCommandStore
-    extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
+    extends HibernateIdentifiableObjectStore<SMSCommand>
+    implements SMSCommandStore
 {
     public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

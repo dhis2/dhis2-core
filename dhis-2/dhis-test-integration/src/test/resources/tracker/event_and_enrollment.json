@@ -336,7 +336,25 @@
           "providedElsewhere": false
         }
       ],
-      "notes": []
+      "notes": [],
+      "lastUpdatedByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "createdByUserInfo": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      },
+      "assignedUser": {
+        "uid": "xE7jOejl9FI",
+        "firstName": "John",
+        "surname": "Traore",
+        "username": "admin"
+      }
     },
     {
       "event": "QRYjLTiJTrA",

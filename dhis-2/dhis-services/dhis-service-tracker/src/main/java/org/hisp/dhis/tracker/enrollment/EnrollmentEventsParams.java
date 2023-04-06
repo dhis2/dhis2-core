@@ -25,45 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.enrollment;
 
-import java.util.List;
+import lombok.Value;
+import lombok.With;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.tracker.event.EventParams;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Luca Camnbi
  *
+ *         Class used to define inclusion in {@link EnrollmentParams} of
+ *         {@link EventParams} properties
  */
-@Transactional( readOnly = true )
-@RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.EventSyncService" )
-public class DefaultEventSyncService implements EventSyncService
+@With
+@Value
+public class EnrollmentEventsParams
 {
-    private final EventSyncStore eventSyncStore;
+    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
 
-    @Override
-    public List<ProgramStageInstance> getEvents( List<String> uids )
-    {
-        return eventSyncStore.getEvents( uids );
-    }
+    private boolean includeEvents;
 
-    @Override
-    public ProgramStageInstance getEvent( String uid )
-    {
-        return eventSyncStore.getEvent( uid );
-    }
-
-    @Override
-    public ProgramInstance getEnrollment( String uid )
-    {
-        return eventSyncStore.getEnrollment( uid );
-    }
+    private EventParams eventParams;
 }

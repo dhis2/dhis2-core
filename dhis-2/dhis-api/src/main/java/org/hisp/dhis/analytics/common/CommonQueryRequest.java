@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.Date;
@@ -104,7 +103,7 @@ public class CommonQueryRequest
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
-    private IdScheme dataIdScheme = UID;
+    private IdScheme dataIdScheme;
 
     /**
      * The general id scheme, which drives the values in the response object.

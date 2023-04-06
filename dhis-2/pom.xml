@@ -143,7 +143,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.28.0</artemis.version>
-    <netty-all.version>4.1.90.Final</netty-all.version>
+    <netty-all.version>4.1.91.Final</netty-all.version>
     <classgraph.version>4.8.157</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -156,7 +156,7 @@
     <jetty.version>10.0.14</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.1.3.Final</version.debezium>
+    <version.debezium>2.1.4.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -194,7 +194,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.17.6</testcontainers.version>
+    <testcontainers.version>1.18.0</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
@@ -209,14 +209,14 @@
     <maven-failsafe-plugin.version>3.0.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.2.1</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.1.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.3</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.9</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
@@ -335,7 +335,7 @@
 
   <profiles>
 
-    <!-- Default profile will run all unit tests, not integration tests -->
+    <!-- Default profile, runs all unit tests, not integration tests -->
     <profile>
       <id>default</id>
       <activation>
@@ -391,8 +391,8 @@
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, this runs all the integrations tests 
-      with H2, but not the unit tests -->
+    <!-- IntegrationH2 test profile, runs all integrations tests with H2, 
+      not unit tests -->
     <profile>
       <id>integrationH2</id>
       <build>
@@ -486,7 +486,8 @@
 
   <build>
     <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+      a custom property for overwriting it, see 
+      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
 
     <pluginManagement>
@@ -1035,13 +1036,11 @@
         <artifactId>dhis-web-api</artifactId>
         <version>${project.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>json-tree</artifactId>
         <version>${dhis-json-tree.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
@@ -1205,13 +1204,11 @@
         <artifactId>spring-security-crypto</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
-
       <dependency>
         <groupId>com.google.zxing</groupId>
         <artifactId>core</artifactId>
         <version>${com.google.zxing.core.version}</version>
       </dependency>
-
       <dependency>
         <groupId>com.google.zxing</groupId>
         <artifactId>javase</artifactId>
@@ -2154,8 +2151,6 @@
         <artifactId>semver4j</artifactId>
         <version>${semver4j.version}</version>
       </dependency>
-
-
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-rewrite</artifactId>
@@ -2190,8 +2185,6 @@
         <version>${lombok.version}</version>
         <scope>provided</scope>
       </dependency>
-
-
       <dependency>
         <groupId>io.debezium</groupId>
         <artifactId>debezium-api</artifactId>
@@ -2312,12 +2305,16 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- Junit 4 cannot be excluded yet, because of this issue -->
-          <!-- https://github.com/testcontainers/testcontainers-java/issues/970 -->
-          <!-- <exclusion> -->
-          <!-- <groupId>junit</groupId> -->
-          <!-- <artifactId>junit</artifactId> -->
-          <!-- </exclusion> -->
+          <!-- 
+            Junit 4 cannot be excluded yet, because of this issue
+            https://github.com/testcontainers/testcontainers-java/issues/970 
+          -->
+          <!--
+          <exclusion>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+          </exclusion>
+          -->
         </exclusions>
       </dependency>
       <dependency>
@@ -2347,13 +2344,11 @@
         <artifactId>micrometer-core</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcprov-jdk15on</artifactId>
         <version>${bcprov-jdk15on.version}</version>
       </dependency>
-
       <dependency>
         <groupId>xerces</groupId>
         <artifactId>xercesImpl</artifactId>
@@ -2365,13 +2360,11 @@
           </exclusion>
         </exclusions>
       </dependency>
-
       <dependency>
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 

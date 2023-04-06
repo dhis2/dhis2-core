@@ -25,39 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.List;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * Representation of
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity}.
  */
-public interface EventSyncService
+public interface JsonTrackedEntity extends JsonObject
 {
+    default String getTrackedEntity()
+    {
+        return getString( "trackedEntity" ).string();
+    }
 
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getEvent( String uid );
+    default String getTrackedEntityType()
+    {
+        return getString( "trackedEntityType" ).string();
+    }
 
-    /**
-     * Returns the {@link ProgramInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
-     */
-    ProgramInstance getEnrollment( String uid );
+    default String getOrgUnit()
+    {
+        return getString( "orgUnit" ).string();
+    }
 
-    /**
-     * Returns events (including deleted)
-     *
-     * @param uids UIDs of events to be fetched
-     * @return list of events
-     */
-    List<ProgramStageInstance> getEvents( List<String> uids );
+    default JsonList<JsonRelationship> getRelationships()
+    {
+        return get( "relationships" ).asList( JsonRelationship.class );
+    }
 
+    default JsonList<JsonAttribute> getAttributes()
+    {
+        return get( "attributes" ).asList( JsonAttribute.class );
+    }
+
+    default JsonList<JsonEnrollment> getEnrollments()
+    {
+        return get( "enrollments" ).asList( JsonEnrollment.class );
+    }
+
+    default JsonList<JsonProgramOwner> getProgramOwners()
+    {
+        return get( "programOwners" ).asList( JsonProgramOwner.class );
+    }
 }

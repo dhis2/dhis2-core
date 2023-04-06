@@ -63,7 +63,8 @@ import org.mockito.ArgumentCaptor;
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsServiceProgramDataElementTest extends
+class AnalyticsServiceProgramDataElementTest
+    extends
     AnalyticsServiceBaseTest
 {
     /**

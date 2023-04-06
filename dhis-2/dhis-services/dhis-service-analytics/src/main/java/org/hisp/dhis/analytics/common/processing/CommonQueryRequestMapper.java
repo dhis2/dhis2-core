@@ -73,9 +73,9 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -121,7 +121,7 @@ public class CommonQueryRequestMapper
 
         programs.stream()
             .flatMap( program -> getProgramAttributes( List.of( program ) )
-                .map( BaseIdentifiableObject::getUid )
+                .map( IdentifiableObject::getUid )
                 // We need fully qualified dimension identifiers.
                 .map( attributeUid -> Pair.of( program, attributeUid ) ) )
             .forEach( fullyQualifiedDimension -> dimensionsByUid.put(

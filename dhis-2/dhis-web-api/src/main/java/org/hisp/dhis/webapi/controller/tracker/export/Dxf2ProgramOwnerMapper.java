@@ -25,17 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.event.csv;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
+import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface CsvEventService<T>
+@Mapper
+public interface Dxf2ProgramOwnerMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
-    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
-        throws IOException;
+    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Override
+    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
 }

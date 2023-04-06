@@ -34,7 +34,9 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -48,6 +50,27 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
+    /**
+     * Lookup a {@link FileResource} by storage key property.
+     *
+     * @param storageKey key to look up
+     * @return the {@link FileResource} associated with the given storage key
+     */
+    Optional<FileResource> findByStorageKey( @CheckForNull String storageKey );
+
+    /**
+     * Reverse lookup the objects associated with a {@link FileResource} by the
+     * storage key property.
+     *
+     * @param storageKey key to look up
+     * @return list of objects that are associated with the {@link FileResource}
+     *         of the given storage key. This is either none, most often one,
+     *         but in theory can also be more than one. For example when the
+     *         same data value would be associated with the same file resource
+     *         value.
+     */
+    List<FileResourceOwner> findOwnersByStorageKey( @CheckForNull String storageKey );
+
     void saveFileResource( FileResource fileResource, File file );
 
     String saveFileResource( FileResource fileResource, byte[] bytes );
@@ -60,12 +83,6 @@ public interface FileResourceService
 
     /**
      * Copy fileResource content to outputStream and Return File content length
-     *
-     * @param fileResource
-     * @param outputStream
-     * @return
-     * @throws IOException
-     * @throws NoSuchElementException
      */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException,
@@ -73,11 +90,6 @@ public interface FileResourceService
 
     /**
      * Copy fileResource content to a byte array
-     *
-     * @param fileResource
-     * @return a byte array of the content
-     * @throws IOException
-     * @throws NoSuchElementException
      */
     byte[] copyFileResourceContent( FileResource fileResource )
         throws IOException,

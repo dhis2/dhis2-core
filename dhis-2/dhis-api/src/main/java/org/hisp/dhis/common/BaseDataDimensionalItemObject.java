@@ -34,7 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Lars Helge Overland
  */
 public class BaseDataDimensionalItemObject
-    extends BaseDimensionalItemObject implements DataDimensionalItemObject
+    extends BaseDimensionalItemObject
+    implements DataDimensionalItemObject
 {
     /**
      * The category option combo identifier used for aggregated data exports

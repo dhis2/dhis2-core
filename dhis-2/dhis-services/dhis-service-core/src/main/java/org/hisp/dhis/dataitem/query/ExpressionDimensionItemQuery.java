@@ -152,7 +152,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
         sql.append( ifSet( maxLimit( paramsMap ) ) );
         sql.append( SPACED_RIGHT_PARENTHESIS );
 
-        final String fullStatement = sql.toString();
+        String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 

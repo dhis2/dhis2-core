@@ -49,7 +49,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class PostUpdateAuditListener
-    extends AbstractHibernateListener implements PostCommitUpdateEventListener
+    extends AbstractHibernateListener
+    implements PostCommitUpdateEventListener
 {
     public PostUpdateAuditListener(
         AuditManager auditManager,

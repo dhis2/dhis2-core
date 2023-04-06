@@ -136,8 +136,7 @@ public class CommonParams
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
-    @Builder.Default
-    private final IdScheme dataIdScheme = UID;
+    private final IdScheme dataIdScheme;
 
     /**
      * The general id scheme, which drives the values in the response object.
