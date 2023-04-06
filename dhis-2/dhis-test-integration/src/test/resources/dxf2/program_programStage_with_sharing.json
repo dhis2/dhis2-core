@@ -8,11 +8,16 @@
       "skipOffline": false,
       "onlyEnrollOnce": false,
       "sharing": {
-        "public": "rw------",
         "external": false,
-        "owner": null,
         "users": {},
-        "userGroups": {}
+        "userGroups": {
+          "H9XnHoWRKCg": {
+            "access": "r-rw----",
+            "id": "fvz8d3u6jFd"
+          }
+
+        },
+        "public": "rw------"
       },
       "version": 6,
       "maxTeiCountToReturn": 0,
