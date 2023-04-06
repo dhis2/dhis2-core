@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataset.job;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.String.format;
 
 import java.time.LocalDate;
@@ -35,7 +37,7 @@ import java.util.Date;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dataset.LockExceptionStore;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -54,7 +56,7 @@ public class LockExceptionCleanupJob implements Job
 {
     private static final int DEFAULT_EXPIRY_AFTER_MONTHS = 6;
 
-    private final LockExceptionStore lockExceptionStore;
+    private final DataSetService dataSetService;
 
     @Override
     public JobType getJobType()
@@ -69,7 +71,7 @@ public class LockExceptionCleanupJob implements Job
 
         LockExceptionCleanupJobParameters params = (LockExceptionCleanupJobParameters) config.getJobParameters();
         Integer months = params == null ? null : params.getExpiresAfterMonths();
-        int expiryAfterMonth = months == null ? DEFAULT_EXPIRY_AFTER_MONTHS : months;
+        int expiryAfterMonth = max( 1, min( 12, months == null ? DEFAULT_EXPIRY_AFTER_MONTHS : months ) );
         ZoneId zoneId = ZoneId.systemDefault();
         Date createdBefore = Date.from(
             LocalDate.now( zoneId ).minusMonths( expiryAfterMonth ).atStartOfDay().atZone( zoneId ).toInstant() );
@@ -77,7 +79,7 @@ public class LockExceptionCleanupJob implements Job
         progress.startingStage( format( "Clearing lock exceptions created before %1$tY-%1$tm-%1$td", createdBefore ) );
         progress.runStage( 0,
             deletedCount -> format( "%d lock exceptions deleted", deletedCount ),
-            () -> lockExceptionStore.deleteExpiredLockExceptions( createdBefore ) );
+            () -> dataSetService.deleteExpiredLockExceptions( createdBefore ) );
 
         progress.completedProcess( null );
     }
