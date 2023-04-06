@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Optional;
-
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -190,11 +187,5 @@ public class TestJobParameters implements JobParameters
     public void setRunStagesParallel( boolean runStagesParallel )
     {
         this.runStagesParallel = runStagesParallel;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
     }
 }
