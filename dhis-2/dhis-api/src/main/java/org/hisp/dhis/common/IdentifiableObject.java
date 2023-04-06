@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.hisp.dhis.attribute.AttributeValue;
@@ -103,11 +104,32 @@ public interface IdentifiableObject
      * Return all sharing settings of current object
      */
     Sharing getSharing();
+
+    void setSharing( Sharing sharing );
     // -----------------------------------------------------------------------------
     // Utility methods
     // -----------------------------------------------------------------------------
 
     @JsonIgnore
     String getPropertyValue( IdScheme idScheme );
+
+    default void initSharing()
+    {
+        if ( getSharing() == null )
+        {
+            setSharing( Sharing.builder().build() );
+        }
+
+        if ( getSharing().getUsers() == null )
+        {
+            getSharing().setUsers( new HashMap<>() );
+        }
+
+        if ( getSharing().getUserGroups() == null )
+        {
+            getSharing().setUserGroups( new HashMap<>() );
+        }
+
+    }
 
 }
