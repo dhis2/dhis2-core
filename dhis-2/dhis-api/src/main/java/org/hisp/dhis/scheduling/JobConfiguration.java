@@ -221,7 +221,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         {
             return true;
         }
-        if ( this.jobStatus != other.getJobStatus() )
+        if ( this.getJobStatus() != other.getJobStatus() )
         {
             return true;
         }
