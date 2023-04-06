@@ -31,19 +31,11 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
       "attributeValues": [],
       "id": "em8Bg4LCr5k",
       "indicators": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "FnJeHbPOtVF",
-          "id": "FnJeHbPOtVF"
-        }
-      ],
       "translations": [
         {
           "property": "NAME",
@@ -70,6 +62,18 @@
       "renderHorizontally": false,
       "user": {
         "id": "T12jeH7KPzk"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "T12jeH7KPzk",
+        "users": {},
+        "userGroups": {
+          "FnJeHbPOtVF": {
+            "id": "FnJeHbPOtVF",
+            "access": "rwrw----"
+          }
+        }
       }
     }
   ],
@@ -78,16 +82,20 @@
       "name": "Administrators 1",
       "id": "FnJeHbPOtVF",
       "displayName": "Administrators 1",
-      "publicAccess": "rw------",
-      "externalAccess": false,
       "favorite": false,
       "users": [
         {
           "id": "T12jeH7KPzk"
         }
-      ]
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
-
   "date": "2016-03-08T07:34:13.552+0000"
 }
