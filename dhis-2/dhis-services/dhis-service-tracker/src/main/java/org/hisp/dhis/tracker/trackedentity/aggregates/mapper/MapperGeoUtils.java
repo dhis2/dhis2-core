@@ -25,18 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Optional;
 
-@Mapper( uses = InstantMapper.class )
-public interface Dxf2AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+
+/**
+ * @author Luciano Fiandesio
+ */
+@Slf4j
+class MapperGeoUtils
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Override
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    private MapperGeoUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
+    public static Optional<Geometry> resolveGeometry( byte[] geometry )
+    {
+        if ( ObjectUtils.isEmpty( geometry ) )
+        {
+            return Optional.empty();
+        }
+        try
+        {
+            return Optional.of( new WKBReader().read( geometry ) );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "An error occurred parsing a geometry field", e );
+        }
+        return Optional.empty();
+    }
 }

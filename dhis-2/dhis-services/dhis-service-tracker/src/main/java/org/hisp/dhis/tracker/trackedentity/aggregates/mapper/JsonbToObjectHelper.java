@@ -25,37 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import lombok.Value;
-import lombok.With;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-@With
-@Value
-public class EnrollmentParams
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+class JsonbToObjectHelper
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    private static final ObjectMapper MAPPER;
 
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    static
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        MAPPER = new ObjectMapper();
+        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    static void setUserInfoSnapshot( ResultSet rs, String columnName,
+        Consumer<UserInfoSnapshot> applier )
+        throws SQLException
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        Optional.ofNullable( rs.getObject( columnName ) )
+            .map( Object::toString )
+            .map( JsonbToObjectHelper::safelyConvert )
+            .ifPresent( applier );
+    }
+
+    @SneakyThrows
+    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
+    {
+        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
     }
 }
