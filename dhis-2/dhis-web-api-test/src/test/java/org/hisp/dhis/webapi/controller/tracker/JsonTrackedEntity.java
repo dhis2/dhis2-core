@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
-@Mapper( uses = InstantMapper.class )
-interface AttributeMapper
-    extends ViewMapper<org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue, Attribute>
+/**
+ * Representation of
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity}.
+ */
+public interface JsonTrackedEntity extends JsonObject
 {
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    @Override
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
+    default String getTrackedEntity()
+    {
+        return getString( "trackedEntity" ).string();
+    }
+
+    default String getTrackedEntityType()
+    {
+        return getString( "trackedEntityType" ).string();
+    }
+
+    default String getOrgUnit()
+    {
+        return getString( "orgUnit" ).string();
+    }
+
+    default JsonList<JsonRelationship> getRelationships()
+    {
+        return get( "relationships" ).asList( JsonRelationship.class );
+    }
+
+    default JsonList<JsonAttribute> getAttributes()
+    {
+        return get( "attributes" ).asList( JsonAttribute.class );
+    }
+
+    default JsonList<JsonEnrollment> getEnrollments()
+    {
+        return get( "enrollments" ).asList( JsonEnrollment.class );
+    }
+
+    default JsonList<JsonProgramOwner> getProgramOwners()
+    {
+        return get( "programOwners" ).asList( JsonProgramOwner.class );
+    }
 }
