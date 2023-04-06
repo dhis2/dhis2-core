@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import java.util.Date;
-import java.util.List;
+import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+public class LockExceptionCleanupJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<LockExceptionCleanupJobParameters>
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
+    public LockExceptionCleanupJobParametersDeserializer()
+    {
+        super( LockExceptionCleanupJobParameters.class, CustomJobParameters.class );
+    }
 
-    List<LockException> getLockExceptionCombinations();
-
-    void deleteLockExceptions( DataSet dataSet, Period period );
-
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
-    /**
-     * Deletes all lock exceptions that are considered expired. This means their
-     * creation date is before the given date.
-     *
-     * @param createdBefore The threshold date, any {@link LockException} with
-     *        an older created date is deleted
-     * @return number of deleted lock exceptions
-     */
-    int deleteExpiredLockExceptions( Date createdBefore );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
-
+    @JsonDeserialize
+    public static class CustomJobParameters extends LockExceptionCleanupJobParameters
+    {
+    }
 }
