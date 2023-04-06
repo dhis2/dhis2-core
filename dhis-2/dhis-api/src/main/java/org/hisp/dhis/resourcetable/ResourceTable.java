@@ -43,6 +43,8 @@ public abstract class ResourceTable<T>
 
     public static final int NEWEST_YEAR_PERIOD_SUPPORTED = now().plusYears( 25 ).getYear();
 
+    public static final int BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED = 5;
+
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
 
     protected List<T> objects;

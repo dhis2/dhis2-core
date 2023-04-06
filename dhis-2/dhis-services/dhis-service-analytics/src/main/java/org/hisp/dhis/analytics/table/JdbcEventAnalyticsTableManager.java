@@ -74,6 +74,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -107,11 +108,12 @@ public class JdbcEventAnalyticsTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
+        PeriodDataProvider periodDataProvider )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
+            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
     }
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
@@ -174,7 +176,10 @@ public class JdbcEventAnalyticsTableManager
         log.info( String.format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
             databaseInfo.isSpatialSupport() ) );
 
-        return params.isLatestUpdate() ? getLatestAnalyticsTables( params ) : getRegularAnalyticsTables( params );
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+        return params.isLatestUpdate() ? getLatestAnalyticsTables( params )
+            : getRegularAnalyticsTables( params, availableDataYears );
     }
 
     /**
@@ -184,9 +189,12 @@ public class JdbcEventAnalyticsTableManager
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return a list of {@link AnalyticsTableUpdateParams}.
      */
-    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params )
+    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params,
+        List<Integer> availableDataYears )
     {
         List<AnalyticsTable> tables = new ArrayList<>();
+
+        Calendar calendar = PeriodType.getCalendar();
 
         List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
@@ -194,11 +202,12 @@ public class JdbcEventAnalyticsTableManager
                 .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( Collectors.toList() );
 
-        Calendar calendar = PeriodType.getCalendar();
+        Integer firstDataYear = availableDataYears.get( 0 );
+        Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
 
         for ( Program program : programs )
         {
-            List<Integer> dataYears = getDataYears( params, program );
+            List<Integer> dataYears = getDataYears( params, program, firstDataYear, latestDataYear );
 
             Collections.sort( dataYears );
 
@@ -624,7 +633,8 @@ public class JdbcEventAnalyticsTableManager
         return "";
     }
 
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program, Integer firstDataYear,
+        Integer latestDataYear )
     {
         String sql = "select temp.supportedyear from " +
             "(select distinct extract(year from psi.executiondate) as supportedyear " +
@@ -640,8 +650,8 @@ public class JdbcEventAnalyticsTableManager
             sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
-        sql += ") as temp where temp.supportedyear >= " + OLDEST_YEAR_PERIOD_SUPPORTED +
-            " and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
+        sql += ") as temp where temp.supportedyear >= " + firstDataYear +
+            " and temp.supportedyear <= " + latestDataYear;
 
         return jdbcTemplate.queryForList( sql, Integer.class );
     }

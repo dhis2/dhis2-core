@@ -25,63 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.apikey;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.Collections;
-
-import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.User;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Representation of
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner}.
  */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
+public interface JsonProgramOwner extends JsonObject
 {
-    private String tokenKey;
-
-    private ApiToken tokenRef;
-
-    private User user;
-
-    public ApiTokenAuthenticationToken( String tokenKey )
+    default String getOrgUnit()
     {
-        super( Collections.emptyList() );
-        this.tokenKey = tokenKey;
+        return getString( "orgUnit" ).string();
     }
 
-    public ApiTokenAuthenticationToken( ApiToken token, User user )
+    default String getTrackedEntity()
     {
-        super( user.getAuthorities() );
-        this.tokenRef = token;
-        this.user = user;
+        return getString( "trackedEntity" ).string();
     }
 
-    @Override
-    public User getCredentials()
+    default String getProgram()
     {
-        return this.user;
-    }
-
-    @Override
-    public UserDetails getPrincipal()
-    {
-        return this.user;
-    }
-
-    public String getTokenKey()
-    {
-        return tokenKey;
-    }
-
-    public void setTokenKey( String tokenKey )
-    {
-        this.tokenKey = tokenKey;
-    }
-
-    public ApiToken getToken()
-    {
-        return this.tokenRef;
+        return getString( "program" ).string();
     }
 }

@@ -54,6 +54,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -76,11 +77,12 @@ public class JdbcOrgUnitTargetTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
+        PeriodDataProvider periodDataProvider )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
+            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
     }
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
