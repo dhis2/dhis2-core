@@ -41,9 +41,9 @@ import org.mapstruct.Named;
  * tracker.export is independent of dxf2.
  */
 @Mapper( uses = {
-    AttributeMapper.class,
+    Dxf2AttributeMapper.class,
     DataValueMapper.class,
-    ProgramOwnerMapper.class,
+    Dxf2ProgramOwnerMapper.class,
     NoteMapper.class,
     InstantMapper.class,
     UserMapper.class,

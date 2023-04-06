@@ -85,6 +85,11 @@ public interface JsonEvent extends JsonObject
         return get( "assignedUser" ).as( JsonUser.class );
     }
 
+    default JsonList<JsonRelationship> getRelationships()
+    {
+        return get( "relationships" ).asList( JsonRelationship.class );
+    }
+
     default JsonList<JsonDataValue> getDataValues()
     {
         return get( "dataValues" ).asList( JsonDataValue.class );
