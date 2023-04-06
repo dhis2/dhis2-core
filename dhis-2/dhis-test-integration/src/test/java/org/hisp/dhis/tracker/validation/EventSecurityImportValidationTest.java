@@ -66,6 +66,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -105,6 +106,9 @@ class EventSecurityImportValidationTest extends TrackerTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private UserService _userService;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -133,6 +137,7 @@ class EventSecurityImportValidationTest extends TrackerTest
     protected void initTest()
         throws IOException
     {
+        userService = _userService;
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
         assertNoErrors( trackerImportService.importTracker( fromJson(
@@ -233,10 +238,10 @@ class EventSecurityImportValidationTest extends TrackerTest
         trackerBundleParams.setUser( user );
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
+        trackerBundleParams.setUser( user );
+        TrackerImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1095, TrackerErrorCode.E1096 );
+        assertHasOnlyErrors( importReport, TrackerErrorCode.E1095 );
     }
 
     @Test

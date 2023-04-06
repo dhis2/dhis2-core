@@ -1,0 +1,127 @@
+{
+  "categoryCombos": [
+    {
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+      "categories": [
+        {
+          "id": "XJGLlMAMCcn"
+        },
+        {
+          "id": "XJGLlMAMCcn"
+        }
+      ],
+      "name": "Gender",
+      "skipTotal": false,
+      "dataDimensionType": "DISAGGREGATION",
+      "id": "faV8QvLgIwB"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "lastUpdated": "2016-03-08T07:27:17.772+0000",
+      "name": "Country",
+      "created": "2016-03-08T07:27:17.757+0000",
+      "uuid": "d981e7c4-3c72-4e0d-8995-078f16830473",
+      "shortName": "Country",
+      "description": "",
+      "id": "x3gVvpbVgqy",
+      "attributeValues": [ ],
+      "path": "/x3gVvpbVgqy",
+      "featureType": "NONE",
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "openingDate": "2016-03-08"
+    }
+  ],
+  "categoryOptions": [
+    {
+      "id": "JYiFOMKa25J",
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "shortName": "Female",
+      "name": "Female",
+      "created": "2016-03-08T07:28:50.372+0000",
+      "lastUpdated": "2016-03-08T07:28:50.374+0000",
+      "organisationUnits": [ ],
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
+    },
+    {
+      "shortName": "Male",
+      "userGroupAccesses": [ ],
+      "id": "tdaMRD34m8o",
+      "attributeValues": [ ],
+      "lastUpdated": "2016-03-08T07:28:44.217+0000",
+      "name": "Male",
+      "created": "2016-03-08T07:28:44.214+0000",
+      "organisationUnits": [ ],
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      }
+    }
+  ],
+  "categories": [
+    {
+      "categoryOptions": [
+        {
+          "id": "JYiFOMKa25J"
+        },
+        {
+          "id": "tdaMRD34m8o"
+        },
+        {
+          "id": "tdaMRD34m8o"
+        }
+      ],
+      "name": "Gender",
+      "shortName": "Gender",
+      "dataDimension": true,
+      "dataDimensionType": "DISAGGREGATION",
+      "userGroupAccesses": [],
+      "id": "XJGLlMAMCcn"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "categoryOptions": [
+        {
+          "id": "JYiFOMKa25J"
+        },
+        {
+          "id": "JYiFOMKa25J"
+        }
+      ],
+      "categoryCombo": {
+        "id": "faV8QvLgIwB"
+      },
+      "id": "J5uZylXMmbB",
+      "ignoreApproval": false,
+      "lastUpdated": "2016-03-08T07:29:15.715+0000",
+      "name": "Female",
+      "created": "2016-03-08T07:29:15.714+0000"
+    }
+  ],
+  "organisationUnitLevels": [
+    {
+      "id": "JEMRBUHgpqN",
+      "name": "Level 1",
+      "created": "2016-03-08T07:27:22.448+0000",
+      "level": 1,
+      "lastUpdated": "2016-03-08T07:27:22.449+0000"
+    }
+  ],
+  "date": "2016-03-08T07:34:13.552+0000"
+}

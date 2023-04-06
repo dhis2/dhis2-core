@@ -72,7 +72,7 @@
     <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.7.5</spring-security.version>
+    <spring-security.version>5.8.2</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -82,7 +82,7 @@
     <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.24</spring.version>
+    <spring.version>5.3.25</spring.version>
     <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -93,8 +93,8 @@
     <lettuce.version>6.2.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.3.0</flyway-core.version>
-    <hibernate.version>5.6.14.Final</hibernate.version>
+    <flyway-core.version>9.15.2</flyway-core.version>
+    <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.19.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
@@ -154,7 +154,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.4</jsoup.version>
-    <jetty.version>10.0.11</jetty.version>
+    <jetty.version>10.0.14</jetty.version>
 
     <!-- Div. utils -->
     <version.debezium>2.0.0.Final</version.debezium>
@@ -187,7 +187,7 @@
     <micrometer.version>1.9.3</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.19.0</log4j.version>
+    <log4j.version>2.20.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->

@@ -114,8 +114,8 @@ public class DeflatedDataValue
         this.deleted = dataValue.isDeleted();
     }
 
-    public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
-        Integer categoryOptionComboId, Integer attributeOptionComboId, String value,
+    public DeflatedDataValue( Long dataElementId, Long periodId, Long sourceId,
+        Long categoryOptionComboId, Long attributeOptionComboId, String value,
         String storedBy, Date created, Date lastUpdated,
         String comment, boolean followup, boolean deleted )
     {
@@ -133,15 +133,10 @@ public class DeflatedDataValue
         this.deleted = deleted;
     }
 
-    public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
-        Integer categoryOptionComboId, Integer attributeOptionComboId, String value )
+    public DeflatedDataValue( Long dataElementId, Long categoryOptionComboId )
     {
         this.dataElementId = dataElementId;
-        this.periodId = periodId;
-        this.sourceId = sourceId;
         this.categoryOptionComboId = categoryOptionComboId;
-        this.attributeOptionComboId = attributeOptionComboId;
-        this.value = value;
     }
 
     // -------------------------------------------------------------------------

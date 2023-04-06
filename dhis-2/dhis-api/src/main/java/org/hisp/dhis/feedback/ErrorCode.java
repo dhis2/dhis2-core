@@ -267,6 +267,7 @@ public enum ErrorCode
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found" ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
+    E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one program instance" ),
@@ -437,7 +438,7 @@ public enum ErrorCode
     E7630( "Category option combo is required but is not specified" ),
     E7631( "Attribute option combo is required but is not specified" ),
     E7632( "Period type of period: `{0}` not valid for data element: `{1}`" ),
-    E7633( "Data element: `{0}` is not part of dataset: `{1}`" ),
+    E7633( "Data element: `{0}` is not part of dataset(s): `{1}`" ),
     E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
     E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
     E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),

@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -79,6 +80,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
@@ -106,6 +110,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
 
     private void setup()
     {
+        userService = _userService;
+        injectAdminUser();
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -193,7 +199,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
         manager.updateNoAcl( programA );
@@ -216,8 +222,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
-        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.newInstance()
+            .enable( AccessStringHelper.Permission.DATA_READ ).enable( AccessStringHelper.Permission.READ ).build() );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -262,9 +269,9 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         clearSecurityContext();
 
         setup();
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
         manager.flush();
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
