@@ -273,7 +273,9 @@ public class DimensionParam implements UidObject
         INCIDENTDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         EXECUTIONDATE( DATETIME, DimensionParamObjectType.PERIOD ),
         LASTUPDATED( DATETIME, DimensionParamObjectType.PERIOD ),
-        CREATED( DATETIME, DimensionParamObjectType.PERIOD );
+        CREATED( DATETIME, DimensionParamObjectType.PERIOD ),
+        ENROLLMENT_STATUS( TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus" ),
+        EVENT_STATUS( TEXT, DimensionParamObjectType.STATIC, null, "status" );
 
         private final ValueType valueType;
 
@@ -300,6 +302,15 @@ public class DimensionParam implements UidObject
 
             this.dimensionParamObjectType = dimensionParamObjectType;
 
+            this.teiStaticField = teiStaticField;
+        }
+
+        StaticDimension( ValueType valueType, DimensionParamObjectType dimensionParamObjectType,
+            TeiStaticField teiStaticField, String columnName )
+        {
+            this.valueType = valueType;
+            this.columnName = columnName;
+            this.dimensionParamObjectType = dimensionParamObjectType;
             this.teiStaticField = teiStaticField;
         }
 
