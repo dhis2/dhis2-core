@@ -27,37 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-/**
- * tracker.export is currently made independent of dxf2. We are in a transition
- * period where some mappers are duplicated. This mapper will be removed once
- * tracker.export is independent of dxf2.
- */
-@Mapper( uses = {
-    Dxf2RelationshipMapper.class,
-    Dxf2AttributeMapper.class,
-    NoteMapper.class,
-    Dxf2EventMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface Dxf2EnrollmentMapper extends ViewMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
+@Mapper( uses = InstantMapper.class )
+public interface Dxf2AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
 {
-    @Mapping( target = "enrollment", source = "enrollment" )
     @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
-    @Mapping( target = "occurredAt", source = "incidentDate" )
-    @Mapping( target = "followUp", source = "followup" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Override
-    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
 }

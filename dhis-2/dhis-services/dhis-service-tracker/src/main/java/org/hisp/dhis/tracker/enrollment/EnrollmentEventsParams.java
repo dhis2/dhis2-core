@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.enrollment;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.Value;
+import lombok.With;
 
-@Mapper( uses = InstantMapper.class )
-interface AttributeMapper
-    extends ViewMapper<org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue, Attribute>
+import org.hisp.dhis.tracker.event.EventParams;
+
+/**
+ * @author Luca Camnbi
+ *
+ *         Class used to define inclusion in {@link EnrollmentParams} of
+ *         {@link EventParams} properties
+ */
+@With
+@Value
+public class EnrollmentEventsParams
 {
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    @Override
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
+    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
+
+    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
+
+    private boolean includeEvents;
+
+    private EventParams eventParams;
 }

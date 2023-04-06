@@ -154,6 +154,10 @@ public class DefaultRelationshipService implements RelationshipService
     {
         Relationship result = new Relationship();
         result.setUid( relationship.getUid() );
+        result.setCreated( relationship.getCreated() );
+        result.setCreatedBy( relationship.getCreatedBy() );
+        result.setLastUpdated( relationship.getLastUpdated() );
+        result.setLastUpdatedBy( relationship.getLastUpdatedBy() );
         RelationshipType type = new RelationshipType();
         type.setUid( relationship.getRelationshipType().getUid() );
         result.setRelationshipType( relationship.getRelationshipType() );
@@ -243,13 +247,16 @@ public class DefaultRelationshipService implements RelationshipService
     {
         TrackedEntityAttribute attribute = new TrackedEntityAttribute();
         attribute.setUid( att.getAttribute() );
-        attribute.setCreated( DateUtils.parseDate( att.getCreated() ) );
-        attribute.setLastUpdated( DateUtils.parseDate( att.getLastUpdated() ) );
         attribute.setValueType( att.getValueType() );
+        // note: dxf2 only stores the displayName which is cannot be set on TEA as it's computed from the name
+        // this mapping is going to be removed once we have migrated the aggregate code (very soon!)
+        attribute.setName( att.getDisplayName() );
         attribute.setCode( att.getCode() );
         attribute.setSkipSynchronization( att.isSkipSynchronization() );
         TrackedEntityAttributeValue result = new TrackedEntityAttributeValue();
         result.setAttribute( attribute );
+        result.setCreated( DateUtils.parseDate( att.getCreated() ) );
+        result.setLastUpdated( DateUtils.parseDate( att.getLastUpdated() ) );
         result.setValue( att.getValue() );
         result.setStoredBy( att.getStoredBy() );
         return result;

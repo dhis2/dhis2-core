@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.trackedentity;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.List;
 
-@Mapper( uses = InstantMapper.class )
-interface AttributeMapper
-    extends ViewMapper<org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue, Attribute>
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+
+public interface TrackedEntityService
 {
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    @Override
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
+    /**
+     * Fetches {@see TrackedEntityInstance}s based on the specified parameters.
+     *
+     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
+     *        with the query parameters
+     * @param params a {@see TrackedEntityInstanceParams} instance containing
+     *        the directives for how much data should be fetched (e.g.
+     *        Enrollments, Events, Relationships)
+     * @return {@see TrackedEntityInstance}s
+     */
+    List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+        TrackedEntityInstanceParams params );
+
+    int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+        boolean skipSearchScopeValidation );
+
+    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityInstanceParams params )
+        throws NotFoundException,
+        ForbiddenException;
 }
