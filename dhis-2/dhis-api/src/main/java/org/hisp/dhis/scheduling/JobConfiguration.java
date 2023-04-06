@@ -54,7 +54,6 @@ import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
@@ -63,7 +62,6 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -78,16 +76,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * The class uses a custom deserializer to handle several potential
  * {@link JobParameters}.
  *
- * Note that this class uses {@link JobConfigurationSanitizer} for serialization
- * which needs to be update when new properties are added.
- *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( converter = JobConfigurationSanitizer.class )
-public class JobConfiguration
-    extends BaseIdentifiableObject
-    implements SecondaryMetadataObject
+public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     // -------------------------------------------------------------------------
     // Externally configurable properties
@@ -199,7 +191,6 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
         this.enabled = enabled;
         this.inMemoryJob = inMemoryJob;
-        setJobStatus( enabled ? SCHEDULED : DISABLED );
         init();
     }
 
@@ -373,6 +364,10 @@ public class JobConfiguration
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public JobStatus getJobStatus()
     {
+        if ( jobStatus == null )
+        {
+            jobStatus = enabled ? SCHEDULED : DISABLED;
+        }
         return jobStatus;
     }
 
