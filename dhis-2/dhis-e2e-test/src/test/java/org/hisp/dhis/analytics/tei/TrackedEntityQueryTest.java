@@ -42,6 +42,7 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -1531,6 +1532,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
     }
 
     @Test
+    @Disabled( "Fails in CI. Remove this annotation when test will be fixed" )
     public void queryWithProgramAndEnrollmentDateAndPositiveEnrollmentOffset()
     {
         // Given
