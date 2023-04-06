@@ -25,26 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.job;
+package org.hisp.dhis.tracker.enrollment;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
+import lombok.With;
 
-import org.hisp.dhis.webmessage.WebMessageResponse;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.event.EventParams;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Camnbi
+ *
+ *         Class used to define inclusion in {@link EnrollmentParams} of
+ *         {@link EventParams} properties
  */
-@Data
-@Builder
-public class TrackerJobWebMessageResponse
-    implements WebMessageResponse
+@With
+@Value
+public class EnrollmentEventsParams
 {
-    @JsonProperty
-    private final String id;
+    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
 
-    @JsonProperty
-    private final String location;
+    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
+
+    private boolean includeEvents;
+
+    private EventParams eventParams;
 }

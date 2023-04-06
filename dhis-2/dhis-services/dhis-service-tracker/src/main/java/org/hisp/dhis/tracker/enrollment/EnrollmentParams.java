@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.enrollment;
 import lombok.Value;
 import lombok.With;
 
-import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
-
 @With
 @Value
 public class EnrollmentParams
