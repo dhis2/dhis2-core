@@ -347,6 +347,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
         Collection<Indicator> indicators )
     {
@@ -360,6 +361,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators )
     {
         if ( indicators == null )
@@ -379,6 +381,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
         Map<String, Integer> orgUnitCountMap )
@@ -459,7 +462,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
         try
@@ -510,6 +513,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExpressionInfo getExpressionInfo( ExpressionParams params )
     {
         if ( StringUtils.isEmpty( params.getExpression() ) )
@@ -525,6 +529,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ExpressionParams getBaseExpressionParams( ExpressionInfo info )
     {
         return ExpressionParams.builder()
@@ -536,6 +541,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType )
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
@@ -545,6 +551,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<String> getExpressionDataElementIds( String expression, ParseType parseType )
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
@@ -554,6 +561,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<String> getExpressionOptionComboIds( String expression, ParseType parseType )
     {
         Set<String> categoryOptionComboIds = new HashSet<>();
@@ -577,6 +585,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression, ParseType parseType )
     {
         Set<DimensionalItemId> itemIds = new HashSet<>();
@@ -587,6 +596,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<String> getExpressionOrgUnitGroupIds( String expression, ParseType parseType )
     {
         if ( isEmpty( expression ) )
@@ -607,6 +617,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Object getExpressionValue( ExpressionParams params )
     {
         if ( isEmpty( params.getExpression() ) )
@@ -667,6 +678,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Constant> getConstantMap()
     {
         return constantMapCache.get( "x", key -> constantService.getConstantMap() );

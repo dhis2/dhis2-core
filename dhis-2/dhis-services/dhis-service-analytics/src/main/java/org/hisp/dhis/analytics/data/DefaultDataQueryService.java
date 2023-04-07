@@ -123,6 +123,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
@@ -181,6 +182,7 @@ public class DefaultDataQueryService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public DataQueryParams getFromRequest( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -249,6 +251,7 @@ public class DefaultDataQueryService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
         Assert.notNull( object, "Analytical object cannot be null" );
@@ -292,6 +295,7 @@ public class DefaultDataQueryService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
         Date relativePeriodDate, String userOrgUnit, I18nFormat format, boolean allowAllPeriods,
         IdScheme inputIdScheme )
@@ -322,6 +326,7 @@ public class DefaultDataQueryService
     // instead of fetching all org units one by one.
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems,
         IdScheme inputIdScheme )
@@ -712,6 +717,7 @@ public class DefaultDataQueryService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
         final List<OrganisationUnit> units = new ArrayList<>();

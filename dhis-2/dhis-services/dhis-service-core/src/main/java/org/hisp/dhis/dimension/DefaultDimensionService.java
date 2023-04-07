@@ -121,6 +121,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
@@ -350,12 +351,14 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
         return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
     {
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
@@ -403,6 +406,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
     {
         Collection<DimensionalItemObject> items = getDataDimensionalItemObjectMap( Sets.newHashSet( itemId ) ).values();
@@ -411,6 +415,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
@@ -423,6 +428,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
