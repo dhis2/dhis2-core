@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.icon.IconData" table="customicon">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="customiconid">
+      <generator class="native" />
+    </id>
+
+    <property name="key" column="key" length="100" not-null="true" />
+
+    <property name="description" type="text"/>
+
+    <many-to-one name="fileResource" unique="true" not-null="true" column="fileresourceid" class="org.hisp.dhis.fileresource.FileResource"/>
+
+    <bag name="keywords" table="keywords">
+      <key column="customiconid" foreign-key="fk_keyword_customiconid" />
+      <element column="keyword" type="string"/>
+    </bag>
+
+  </class>
+</hibernate-mapping>

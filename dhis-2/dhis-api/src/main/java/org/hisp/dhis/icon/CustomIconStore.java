@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,62 +27,35 @@
  */
 package org.hisp.dhis.icon;
 
+import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.fileresource.FileResource;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Kristian Wærstad
- */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@NoArgsConstructor
-public class IconData extends BaseIdentifiableObject
+public interface CustomIconStore
+    extends IdentifiableObjectStore<IconData>
 {
-    @JsonProperty
-    private String key;
 
-    @JsonProperty
-    private String description;
+    /**
+     * Returns a custom icon that contains a given key
+     *
+     * @param key of the icon
+     * @return the custom icon matching the key, or null instead
+     */
+    IconData getIconByKey( String key );
 
-    @JsonProperty
-    private List<String> keywords;
+    /**
+     * Returns a list of custom icons that contain all the specified keywords
+     *
+     * @param keywords the icon needs to contain
+     * @return the list of custom icons that contain all the keywords
+     */
+    List<IconData> getIconsByKeywords( Collection<String> keywords );
 
-    @JsonProperty( "href" )
-    private String reference;
-
-    @JsonProperty
-    private FileResource fileResource;
-
-    IconData( @Nonnull String key, String description, List<String> keywords )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-    }
-
-    public IconData( @Nonnull String key, String description, List<String> keywords, FileResource fileResource )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-        this.fileResource = fileResource;
-    }
-
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
-        return this;
-    }
+    /**
+     * Returns a list with all the custom icon keywords
+     *
+     * @return a list will all the custom icon keywords
+     */
+    List<String> getKeywords();
 }

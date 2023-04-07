@@ -29,47 +29,75 @@ package org.hisp.dhis.icon;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Kristian Wærstad
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.icon.IconService" )
 public class DefaultIconService
     implements IconService
 {
     private static final String ICON_PATH = "SVGs";
 
-    private Map<String, IconData> icons = Arrays.stream( Icon.values() )
+    private final CustomIconStore customIconStore;
+
+    private final FileResourceService fileResourceService;
+
+    private final Map<String, IconData> standardIcons = Arrays.stream( Icon.values() )
         .map( Icon::getVariants )
         .flatMap( Collection::stream )
         .collect( Collectors.toMap( IconData::getKey, Function.identity() ) );
 
-    @Override
     public Collection<IconData> getIcons()
     {
-        return icons.values();
+        return Stream.concat( standardIcons.values().stream(), customIconStore.getAll().stream() )
+            .collect( Collectors.toList() );
     }
 
-    @Override
     public Collection<IconData> getIcons( Collection<String> keywords )
     {
-        return icons.values().stream()
-            .filter( icon -> Arrays.asList( icon.getKeywords() ).containsAll( keywords ) )
+        return Stream.concat( standardIcons.values().stream()
+            .filter( icon -> new HashSet<>( icon.getKeywords() ).containsAll( keywords ) )
+            .collect( Collectors.toList() ).stream(), customIconStore.getIconsByKeywords( keywords ).stream() )
             .collect( Collectors.toList() );
     }
 
     @Override
-    public Optional<IconData> getIcon( String key )
+    public IconData getIcon( String key )
     {
-        return Optional.ofNullable( icons.get( key ) );
+        if ( standardIcons.containsKey( key ) )
+        {
+            return standardIcons.get( key );
+        }
+        else
+        {
+            return customIconStore.getIconByKey( key );
+        }
+    }
+
+    private IconData getCustomIcon( String key )
+    {
+        return customIconStore.getIconByKey( key );
     }
 
     @Override
@@ -81,9 +109,105 @@ public class DefaultIconService
     @Override
     public Collection<String> getKeywords()
     {
-        return icons.values().stream()
+        return Stream.concat( standardIcons.values().stream()
             .map( IconData::getKeywords )
-            .flatMap( Arrays::stream )
-            .collect( Collectors.toSet() );
+            .flatMap( List::stream ), customIconStore.getKeywords().stream() ).collect( Collectors.toList() );
+    }
+
+    @Override
+    @Transactional
+    public void addIcon( String key, String description, List<String> keywords, FileResource fileResourceId )
+        throws BadRequestException
+    {
+        validateIconProperties( key, fileResourceId );
+        customIconStore.save( new IconData( key, description, keywords, fileResourceId ) );
+    }
+
+    @Override
+    @Transactional
+    public void updateIconDescription( String key, String description )
+        throws BadRequestException
+    {
+        IconData icon = validateCustomIconExists( key );
+        icon.setDescription( description );
+
+        customIconStore.update( icon );
+    }
+
+    @Override
+    @Transactional
+    public void updateIconKeywords( String key, List<String> keywords )
+        throws BadRequestException
+    {
+        IconData icon = validateCustomIconExists( key );
+        icon.setKeywords( keywords );
+
+        customIconStore.update( icon );
+    }
+
+    @Override
+    @Transactional
+    public void updateIconDescriptionAndKeywords( String key, String description, List<String> keywords )
+        throws BadRequestException
+    {
+        IconData icon = validateCustomIconExists( key );
+        icon.setDescription( description );
+        icon.setKeywords( keywords );
+
+        customIconStore.update( icon );
+    }
+
+    @Override
+    @Transactional
+    public void deleteIcon( String key )
+        throws BadRequestException
+    {
+        IconData icon = validateCustomIconExists( key );
+
+        fileResourceService.getFileResource( icon.getFileResource().getId() ).setAssigned( false );
+        customIconStore.delete( icon );
+    }
+
+    private void validateIconProperties( String key, FileResource fileResource )
+        throws BadRequestException
+    {
+        validateIconKey( key );
+
+        if ( fileResource == null )
+        {
+            throw new BadRequestException( "File resource id not specified." );
+        }
+        if ( getIcon( key ) != null )
+        {
+            throw new BadRequestException( String.format( "Icon with key %s already exists.", key ) );
+        }
+        if ( fileResourceService.getFileResource( fileResource.getId() ) == null )
+        {
+            throw new BadRequestException( String.format( "File resource %s does not exist", fileResource.getId() ) );
+        }
+    }
+
+    private void validateIconKey( String key )
+        throws BadRequestException
+    {
+        if ( Strings.isNullOrEmpty( key ) )
+        {
+            throw new BadRequestException( "Icon key not specified." );
+        }
+    }
+
+    private IconData validateCustomIconExists( String key )
+        throws BadRequestException
+    {
+        validateIconKey( key );
+
+        IconData icon = getCustomIcon( key );
+
+        if ( icon == null )
+        {
+            throw new BadRequestException( String.format( "Custom icon with key %s does not exists.", key ) );
+        }
+
+        return icon;
     }
 }

@@ -28,8 +28,11 @@
 package org.hisp.dhis.icon;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.springframework.core.io.Resource;
 
 /**
@@ -59,7 +62,7 @@ public interface IconService
      * @param key key of the icon
      * @return icon data associated with the key if there is one
      */
-    Optional<IconData> getIcon( String key );
+    IconData getIcon( String key );
 
     /**
      * Gets the icon with the correct key if one exists
@@ -75,4 +78,19 @@ public interface IconService
      * @return collection of uniquee keywords
      */
     Collection<String> getKeywords();
+
+    void addIcon( String key, String description, List<String> keywords, FileResource fileResource )
+        throws BadRequestException;
+
+    void updateIconDescription( String key, String description )
+        throws BadRequestException;
+
+    void updateIconKeywords( String key, List<String> keywords )
+        throws BadRequestException;
+
+    void updateIconDescriptionAndKeywords( String key, String description, List<String> keywords )
+        throws BadRequestException;
+
+    void deleteIcon( String key )
+        throws BadRequestException;
 }
