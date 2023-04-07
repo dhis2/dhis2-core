@@ -107,6 +107,7 @@ public class DefaultCalendarService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Calendar getSystemCalendar()
     {
         String calendarKey = settingManager.getStringSetting( SettingKey.CALENDAR );
