@@ -727,6 +727,7 @@
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>org.springframework:spring-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>

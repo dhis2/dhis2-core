@@ -30,13 +30,15 @@ package org.hisp.dhis.tracker.job;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.springframework.beans.factory.ObjectFactory;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -48,23 +50,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@RequiredArgsConstructor
 public class TrackerMessageManager
 {
     private final ObjectMapper objectMapper;
 
     private final AsyncTaskExecutor taskExecutor;
 
-    private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
-
-    public TrackerMessageManager(
-        ObjectMapper objectMapper,
-        AsyncTaskExecutor taskExecutor,
-        ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
-    {
-        this.objectMapper = objectMapper;
-        this.taskExecutor = taskExecutor;
-        this.trackerImportThreadFactory = trackerImportThreadFactory;
-    }
+    private final TrackerImportService trackerImportService;
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
     public void consume( TextMessage message )
@@ -85,12 +78,9 @@ public class TrackerMessageManager
         jobConfiguration.setUid( trackerMessage.getUid() );
         trackerImportParams.setJobConfiguration( jobConfiguration );
 
-        TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
-        trackerImportThread.setTrackerImportParams( trackerImportParams );
-
         SecurityContextHolder.getContext()
             .setAuthentication( AuthenticationSerializer.deserialize( trackerMessage.getAuthentication() ) );
 
-        taskExecutor.executeTask( trackerImportThread );
+        taskExecutor.executeTask( () -> trackerImportService.importTracker( trackerImportParams ) );
     }
 }

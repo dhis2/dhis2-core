@@ -31,7 +31,8 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
 
@@ -42,17 +43,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationSideEffectHandlerService implements SideEffectHandlerService
 {
-    private final TrackerNotificationMessageManager notificationMessageManager;
-
-    @Override
-    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        notificationMessageManager.addJob( sideEffectDataBundle );
-    }
+    private final MessageManager messageManager;
 
     @Override
     public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
     {
-        sideEffectDataBundles.forEach( this::handleSideEffect );
+        sideEffectDataBundles
+            .forEach( b -> messageManager.sendQueue( Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, b ) );
     }
 }

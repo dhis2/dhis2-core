@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.job;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -43,10 +41,11 @@ import java.io.IOException;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.system.notification.Notifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -55,7 +54,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectFactory;
 
 /**
  * @author Zubair Asghar
@@ -63,13 +61,6 @@ import org.springframework.beans.factory.ObjectFactory;
 @ExtendWith( MockitoExtension.class )
 class TrackerNotificationMessageManagerTest
 {
-
-    @Mock
-    private ObjectFactory<TrackerNotificationThread> objectFactory;
-
-    @Mock
-    private MessageManager messageManager;
-
     @Mock
     private RenderService renderService;
 
@@ -80,34 +71,19 @@ class TrackerNotificationMessageManagerTest
     private AsyncTaskExecutor taskExecutor;
 
     @Mock
-    private TrackerNotificationThread trackerNotificationThread;
+    private Notifier notifier;
+
+    @Mock
+    private IdentifiableObjectManager manager;
+
+    @Mock
+    private ProgramNotificationService programNotificationService;
 
     @InjectMocks
     private TrackerNotificationMessageManager trackerNotificationMessageManager;
 
     @Captor
-    private ArgumentCaptor<String> topicCaptor;
-
-    @Captor
-    private ArgumentCaptor<TrackerSideEffectDataBundle> bundleArgumentCaptor;
-
-    @Captor
     private ArgumentCaptor<Runnable> runnableCaptor;
-
-    @Test
-    void test_add_job()
-    {
-        doNothing().when( messageManager ).sendQueue( anyString(), any( TrackerSideEffectDataBundle.class ) );
-
-        TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
-
-        trackerNotificationMessageManager.addJob( dataBundle );
-
-        Mockito.verify( messageManager ).sendQueue( topicCaptor.capture(), bundleArgumentCaptor.capture() );
-
-        assertEquals( Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, topicCaptor.getValue() );
-        assertEquals( dataBundle, bundleArgumentCaptor.getValue() );
-    }
 
     @Test
     void test_message_consumer()
@@ -117,7 +93,6 @@ class TrackerNotificationMessageManagerTest
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().accessedBy( "test-user" ).build();
 
         when( textMessage.getText() ).thenReturn( "text" );
-        when( objectFactory.getObject() ).thenReturn( trackerNotificationThread );
         doNothing().when( taskExecutor ).executeTask( any( Runnable.class ) );
 
         when( renderService.fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) ) ).thenReturn( null );
@@ -129,7 +104,5 @@ class TrackerNotificationMessageManagerTest
         trackerNotificationMessageManager.consume( textMessage );
 
         Mockito.verify( taskExecutor ).executeTask( runnableCaptor.capture() );
-
-        assertTrue( runnableCaptor.getValue() instanceof TrackerNotificationThread );
     }
 }

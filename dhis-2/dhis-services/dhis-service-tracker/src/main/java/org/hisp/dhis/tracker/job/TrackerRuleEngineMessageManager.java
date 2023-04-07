@@ -28,17 +28,24 @@
 package org.hisp.dhis.tracker.job;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
-import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.beans.factory.ObjectFactory;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -48,24 +55,33 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerRuleEngineMessageManager extends BaseMessageManager
+public class TrackerRuleEngineMessageManager
 {
-    private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
+    private final List<RuleActionImplementer> ruleActionImplementers;
+
+    private final TrackerSideEffectConverterService trackerSideEffectConverterService;
+
+    private final Notifier notifier;
+
+    private final AsyncTaskExecutor taskExecutor;
+
+    private final RenderService renderService;
 
     public TrackerRuleEngineMessageManager(
-        MessageManager messageManager,
         AsyncTaskExecutor taskExecutor,
         RenderService renderService,
-        ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" ) RuleActionImplementer sendMessageRuleActionImplementer,
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" ) RuleActionImplementer scheduleMessageRuleActionImplementer,
+        TrackerSideEffectConverterService trackerSideEffectConverterService,
+        Notifier notifier )
     {
-        super( messageManager, taskExecutor, renderService );
-        this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
-    }
+        this.taskExecutor = taskExecutor;
+        this.renderService = renderService;
+        this.ruleActionImplementers = List.of(
+            scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer );
+        this.trackerSideEffectConverterService = trackerSideEffectConverterService;
+        this.notifier = notifier;
 
-    @Override
-    public String getTopic()
-    {
-        return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
@@ -73,7 +89,8 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
         throws JMSException,
         IOException
     {
-        TrackerSideEffectDataBundle bundle = toBundle( message );
+        TrackerSideEffectDataBundle bundle = renderService.fromJson( message.getText(),
+            TrackerSideEffectDataBundle.class );
 
         if ( bundle == null )
         {
@@ -85,10 +102,41 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
 
         bundle.setJobConfiguration( jobConfiguration );
 
-        TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
+        taskExecutor.executeTask( () -> sendRuleEngineNotifications( bundle ) );
+    }
 
-        notificationThread.setSideEffectDataBundle( bundle );
+    public void sendRuleEngineNotifications( TrackerSideEffectDataBundle bundle )
+    {
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService
+            .toRuleEffects( bundle.getEnrollmentRuleEffects() );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService
+            .toRuleEffects( bundle.getEventRuleEffects() );
 
-        executeJob( notificationThread );
+        for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
+        {
+            for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
+            {
+                ProgramInstance pi = bundle.getProgramInstance();
+                pi.setProgram( bundle.getProgram() );
+
+                entry.getValue()
+                    .stream()
+                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .forEach( effect -> ruleActionImplementer.implement( effect, pi ) );
+            }
+
+            for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
+            {
+                ProgramStageInstance psi = bundle.getProgramStageInstance();
+                psi.getProgramStage().setProgram( bundle.getProgram() );
+
+                entry.getValue()
+                    .stream()
+                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
+            }
+        }
+
+        notifier.notify( bundle.getJobConfiguration(), "Tracker Rule-engine side effects completed" );
     }
 }
