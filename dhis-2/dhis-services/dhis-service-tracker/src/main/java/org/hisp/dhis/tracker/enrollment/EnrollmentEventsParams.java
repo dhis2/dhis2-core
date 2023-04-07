@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.tracker.enrollment;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Value;
+import lombok.With;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.tracker.event.EventParams;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+/**
+ * @author Luca Camnbi
+ *
+ *         Class used to define inclusion in {@link EnrollmentParams} of
+ *         {@link EventParams} properties
+ */
+@With
+@Value
+public class EnrollmentEventsParams
 {
-    private List<String> sqlViews = new ArrayList<>();
+    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
+    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
 
-    public void setSqlViews( List<String> sqlViews )
-    {
-        this.sqlViews = sqlViews;
-    }
+    private boolean includeEvents;
+
+    private EventParams eventParams;
 }

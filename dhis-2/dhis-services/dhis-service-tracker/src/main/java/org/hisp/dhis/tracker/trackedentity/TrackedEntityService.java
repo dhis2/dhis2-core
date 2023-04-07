@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.tracker.trackedentity;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+public interface TrackedEntityService
 {
-    private List<String> sqlViews = new ArrayList<>();
+    /**
+     * Fetches {@see TrackedEntityInstance}s based on the specified parameters.
+     *
+     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
+     *        with the query parameters
+     * @param params a {@see TrackedEntityInstanceParams} instance containing
+     *        the directives for how much data should be fetched (e.g.
+     *        Enrollments, Events, Relationships)
+     * @return {@see TrackedEntityInstance}s
+     */
+    List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+        TrackedEntityInstanceParams params );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
+    int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+        boolean skipSearchScopeValidation );
 
-    public void setSqlViews( List<String> sqlViews )
-    {
-        this.sqlViews = sqlViews;
-    }
+    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityInstanceParams params )
+        throws NotFoundException,
+        ForbiddenException;
 }

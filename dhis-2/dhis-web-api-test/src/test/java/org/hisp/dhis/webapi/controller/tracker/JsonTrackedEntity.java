@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+/**
+ * Representation of
+ * {@link org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity}.
+ */
+public interface JsonTrackedEntity extends JsonObject
 {
-    private List<String> sqlViews = new ArrayList<>();
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
+    default String getTrackedEntity()
     {
-        return sqlViews;
+        return getString( "trackedEntity" ).string();
     }
 
-    public void setSqlViews( List<String> sqlViews )
+    default String getTrackedEntityType()
     {
-        this.sqlViews = sqlViews;
+        return getString( "trackedEntityType" ).string();
+    }
+
+    default String getOrgUnit()
+    {
+        return getString( "orgUnit" ).string();
+    }
+
+    default JsonList<JsonRelationship> getRelationships()
+    {
+        return get( "relationships" ).asList( JsonRelationship.class );
+    }
+
+    default JsonList<JsonAttribute> getAttributes()
+    {
+        return get( "attributes" ).asList( JsonAttribute.class );
+    }
+
+    default JsonList<JsonEnrollment> getEnrollments()
+    {
+        return get( "enrollments" ).asList( JsonEnrollment.class );
+    }
+
+    default JsonList<JsonProgramOwner> getProgramOwners()
+    {
+        return get( "programOwners" ).asList( JsonProgramOwner.class );
     }
 }

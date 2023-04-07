@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -43,6 +42,7 @@ import org.mapstruct.Mapping;
 
 @Mapper( uses = {
     RelationshipMapper.class,
+    AttributeMapper.class,
     InstantMapper.class,
     UserMapper.class } )
 interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment>
@@ -106,17 +106,10 @@ interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment>
     @Mapping( target = "completedAt", source = "completedDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "dataValues", source = "eventDataValues" )
     @Mapping( target = "notes", source = "comments" )
     Event from( org.hisp.dhis.program.ProgramStageInstance event );
-
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
 
     @Mapping( target = "note", source = "uid" )
     @Mapping( target = "storedAt", source = "created" )

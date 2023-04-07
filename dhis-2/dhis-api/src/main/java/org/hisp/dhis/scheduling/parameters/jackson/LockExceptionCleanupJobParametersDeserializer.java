@@ -25,32 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+public class LockExceptionCleanupJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<LockExceptionCleanupJobParameters>
 {
-    private List<String> sqlViews = new ArrayList<>();
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
+    public LockExceptionCleanupJobParametersDeserializer()
     {
-        return sqlViews;
+        super( LockExceptionCleanupJobParameters.class, CustomJobParameters.class );
     }
 
-    public void setSqlViews( List<String> sqlViews )
+    @JsonDeserialize
+    public static class CustomJobParameters extends LockExceptionCleanupJobParameters
     {
-        this.sqlViews = sqlViews;
     }
 }

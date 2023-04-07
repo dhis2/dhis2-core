@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+@Mapper( uses = InstantMapper.class )
+public interface Dxf2AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
 {
-    private List<String> sqlViews = new ArrayList<>();
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
-
-    public void setSqlViews( List<String> sqlViews )
-    {
-        this.sqlViews = sqlViews;
-    }
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Override
+    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
 }

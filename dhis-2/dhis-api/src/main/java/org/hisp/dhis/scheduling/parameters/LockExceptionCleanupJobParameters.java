@@ -27,30 +27,45 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+/**
+ * @author Jan Bernitt
+ */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+public class LockExceptionCleanupJobParameters implements JobParameters
 {
-    private List<String> sqlViews = new ArrayList<>();
+    /**
+     * Number of month (from its created date) when a
+     * {@link org.hisp.dhis.dataset.LockException}s is considered expired and
+     * subject to clean-up.
+     */
+    private Integer expiresAfterMonths;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
+    public Integer getExpiresAfterMonths()
     {
-        return sqlViews;
+        return expiresAfterMonths;
     }
 
-    public void setSqlViews( List<String> sqlViews )
+    @Override
+    public Optional<ErrorReport> validate()
     {
-        this.sqlViews = sqlViews;
+        if ( expiresAfterMonths != null && (expiresAfterMonths < 1 || expiresAfterMonths > 12) )
+        {
+            return Optional.of(
+                new ErrorReport( getClass(), ErrorCode.E4008, "expiresAfterMonths", 1, 12, expiresAfterMonths ) );
+        }
+        return Optional.empty();
     }
 }
