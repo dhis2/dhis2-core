@@ -76,7 +76,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
