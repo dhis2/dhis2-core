@@ -108,7 +108,7 @@ public class MetadataPatchTests
             .validate().statusCode( 200 );
 
         dataElementActions.get( dataElementId )
-            .validate().body( "userAccesses", hasSize( 1 ) )
+            .validate().body( "sharing", hasSize( 1 ) )
             .rootPath( "userAccesses[0]" )
             .body( "access", equalTo( "rw------" ) )
             .body( "id", equalTo( Constants.SUPER_USER_ID ) );

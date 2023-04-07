@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -39,6 +40,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -87,9 +89,7 @@ public class MetadataImportImportStrategyTests
         JsonObject object = JsonObjectBuilder
             .jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
             .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
-            .addArray( "userGroupAccesses",
-                new JsonObjectBuilder().addProperty( "access", "rw------" )
-                    .addProperty( "code", "TA_USER_GROUP" ).build() )
+            .addObject( "sharing", SharingUtils.createSharingObject( null, null, null, Map.of( "OPVIvvXzNTw", "rw------" ) ) )
             .wrapIntoArray( "dataElementGroups" );
 
         ApiResponse response = metadataActions.importMetadata( object, "identifier=CODE" );

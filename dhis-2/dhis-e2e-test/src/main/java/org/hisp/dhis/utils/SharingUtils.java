@@ -30,6 +30,7 @@ package org.hisp.dhis.utils;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
+import org.hisp.dhis.dto.Sharing;
 
 /**
  * Utility methods for creation and update Sharing object.
@@ -96,4 +97,11 @@ public class SharingUtils
 
         return access;
     }
+
+    public static Sharing createSharingObject( JsonObject object )
+    {
+        return new Sharing( object );
+    }
+
+
 }

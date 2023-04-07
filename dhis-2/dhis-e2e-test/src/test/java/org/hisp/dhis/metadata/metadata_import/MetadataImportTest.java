@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -316,20 +318,10 @@ public class MetadataImportTest
     private JsonObject generateMetadataObjectWithInvalidSharing()
     {
         JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
-        dataElementGroup.add( "sharing", SharingUtils.createSharingObject( "rw------" ) );
 
-        JsonArray userGroupAccesses = new JsonArray();
-        JsonObject userGroupAccess = new JsonObject();
-        userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
-        userGroupAccess.addProperty( "id", "non-existing-id" );
-
-        userGroupAccesses.add( userGroupAccess );
-
-        dataElementGroup.add( "userGroupAccesses", userGroupAccesses );
+        dataElementGroup.add( "sharing", SharingUtils.createSharingObject( null, "rw------", Map.of(), Map.of( "non-existing-id", "rwrw----" ) ) );
 
         JsonArray array = new JsonArray();
-
         array.add( dataElementGroup );
 
         JsonObject metadata = new JsonObject();

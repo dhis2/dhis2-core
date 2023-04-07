@@ -45,10 +45,12 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Me;
 import org.hisp.dhis.dto.OrgUnit;
+import org.hisp.dhis.dto.Sharing;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
 import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -156,7 +158,7 @@ public class TrackedEntityInstanceAclReadTests
             .add( "programs=true" )
             .add( "trackedEntityAttributes=true" )
             .add( "programStages=true" )
-            .add( "fields=id,userAccesses,publicAccess,userGroupAccesses" )
+            .add( "fields=id,sharing" )
             .build();
 
         ApiResponse response = metadataActions.get( params );
@@ -174,20 +176,19 @@ public class TrackedEntityInstanceAclReadTests
 
                     boolean hasDataRead = false;
 
-                    if ( object.has( "publicAccess" )
-                        && object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
+                    final Sharing sharing = new Sharing( object );
+
+
+                    if ( sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( _DATAREAD ) )
                     {
                         hasDataRead = true;
                     }
                     else
                     {
-                        JsonArray userAccesses = object.getAsJsonArray( "userAccesses" ).getAsJsonArray();
-                        JsonArray userGroupAccess = object.getAsJsonArray( "userGroupAccesses" ).getAsJsonArray();
-
-                        for ( JsonElement access : userAccesses )
+                        for (  String userId : sharing.getUsers().keySet() )
                         {
-                            if ( access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() ) &&
-                                access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
+                            if ( userId.equals( user.getUid() ) &&
+                                sharing.getUsers().get( user ).matches( _DATAREAD ) )
                             {
                                 hasDataRead = true;
                             }
@@ -195,11 +196,11 @@ public class TrackedEntityInstanceAclReadTests
 
                         if ( !hasDataRead )
                         {
-                            for ( JsonElement access : userGroupAccess )
+                            for ( String userGroupId : sharing.getUserGroups().keySet() )
                             {
                                 if ( user.getGroups()
-                                    .contains( access.getAsJsonObject().get( "userGroupUid" ).getAsString() ) &&
-                                    access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
+                                    .contains( userGroupId ) &&
+                                    sharing.getUserGroups().get( user ).matches( _DATAREAD ) )
                                 {
                                     hasDataRead = true;
                                 }
