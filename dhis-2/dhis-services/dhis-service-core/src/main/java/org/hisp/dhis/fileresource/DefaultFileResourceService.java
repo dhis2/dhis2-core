@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,9 +37,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +53,7 @@ import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.period.PeriodService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -73,6 +78,8 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
 
     private final FileResourceStore fileResourceStore;
+
+    private final PeriodService periodService;
 
     private final SessionFactory sessionFactory;
 
@@ -115,6 +122,51 @@ public class DefaultFileResourceService
         return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() ).stream()
             .filter( IS_ORPHAN_PREDICATE )
             .collect( Collectors.toList() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<FileResource> findByStorageKey( @CheckForNull String storageKey )
+    {
+        return storageKey == null ? Optional.empty() : fileResourceStore.findByStorageKey( storageKey );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<FileResourceOwner> findOwnersByStorageKey( @CheckForNull String storageKey )
+    {
+        Optional<FileResource> maybeFr = findByStorageKey( storageKey );
+        if ( maybeFr.isEmpty() )
+            return List.of();
+        FileResource fr = maybeFr.get();
+        String uid = fr.getUid();
+        switch ( fr.getDomain() )
+        {
+        case PUSH_ANALYSIS:
+            return List.of();
+        case ORG_UNIT:
+            return fileResourceStore.findOrganisationUnitsByImageFileResource( uid ).stream()
+                .map( id -> new FileResourceOwner( FileResourceDomain.ORG_UNIT, id ) )
+                .collect( toUnmodifiableList() );
+        case DOCUMENT:
+            return fileResourceStore.findDocumentsByFileResource( uid ).stream()
+                .map( id -> new FileResourceOwner( FileResourceDomain.DOCUMENT, id ) )
+                .collect( toUnmodifiableList() );
+        case MESSAGE_ATTACHMENT:
+            return fileResourceStore.findMessagesByFileResource( uid ).stream()
+                .map( id -> new FileResourceOwner( FileResourceDomain.MESSAGE_ATTACHMENT, id ) )
+                .collect( toUnmodifiableList() );
+        case USER_AVATAR:
+            return fileResourceStore.findUsersByAvatarFileResource( uid ).stream()
+                .map( id -> new FileResourceOwner( FileResourceDomain.USER_AVATAR, id ) )
+                .collect( toUnmodifiableList() );
+        case DATA_VALUE:
+            return fileResourceStore.findDataValuesByFileResourceValue( uid ).stream()
+                .map( dv -> new FileResourceOwner( dv.de(), dv.ou(), periodService.getPeriod( dv.pe() ).getIsoDate(),
+                    dv.co() ) )
+                .collect( toUnmodifiableList() );
+        }
+        return List.of();
     }
 
     @Override

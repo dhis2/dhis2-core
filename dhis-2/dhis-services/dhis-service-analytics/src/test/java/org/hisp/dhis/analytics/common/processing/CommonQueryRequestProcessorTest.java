@@ -30,11 +30,16 @@ package org.hisp.dhis.analytics.common.processing;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Test;
 
@@ -144,5 +149,114 @@ class CommonQueryRequestProcessorTest
         assertTrue( processed.isPaging() );
         assertFalse( processed.isIgnoreLimit() );
         assertEquals( 50, processed.getPageSize() );
+    }
+
+    @Test
+    void testProgramStatusWrongFormat()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withProgramStatus( Set.of( "COMPLETED" ) );
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
+            exception.getMessage() );
+    }
+
+    @Test
+    void testEnrollmentStatusWrongFormat()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "COMPLETED" ) );
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
+            exception.getMessage() );
+    }
+
+    @Test
+    void testEventStatusWrongFormat()
+    {
+        for ( String eventStatus : List.of( "programUid.ACTIVE", "COMPLETED" ) )
+        {
+            CommonQueryRequest request = new CommonQueryRequest()
+                .withEventStatus( Set.of( eventStatus ) );
+            IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+                () -> commonQueryRequestProcessor.process( request ) );
+            assertEquals( "parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
+                exception.getMessage() );
+        }
+    }
+
+    @Test
+    void testProgramStatusWrongEnum()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withProgramStatus( Set.of( "programUid.WRONG_PROGRAM_STATUS" ) );
+        IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "No enum constant org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+            exception.getMessage() );
+    }
+
+    @Test
+    void testEnrollmentStatusStatusWrongEnum()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "programUid.WRONG_PROGRAM_STATUS" ) );
+        IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "No enum constant org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+            exception.getMessage() );
+    }
+
+    @Test
+    void testEventStatusWrongEnum()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventStatus( Set.of( "programUid.programStageUid.WRONG_EVENT_STATUS" ) );
+        IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
+            () -> commonQueryRequestProcessor.process( request ) );
+
+        assertEquals( "No enum constant org.hisp.dhis.event.EventStatus.WRONG_EVENT_STATUS", exception.getMessage() );
+    }
+
+    @Test
+    void testProgramStatusOK()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withProgramStatus( Set.of( "programUid.COMPLETED" ) );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+
+        String parsedDimension = processed.getDimension().iterator().next();
+
+        assertEquals( "programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension );
+    }
+
+    @Test
+    void testEnrollmentStatusOK()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEnrollmentStatus( Set.of( "programUid.COMPLETED" ) );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+
+        String parsedDimension = processed.getDimension().iterator().next();
+
+        assertEquals( "programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension );
+    }
+
+    @Test
+    void testEventStatusOK()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventStatus( (Set.of( "programUid.programStageUid.COMPLETED" )) );
+        CommonQueryRequest processed = commonQueryRequestProcessor.process( request );
+
+        String parsedDimension = processed.getDimension().iterator().next();
+
+        assertEquals( "programUid.programStageUid.EVENT_STATUS:COMPLETED", parsedDimension );
     }
 }

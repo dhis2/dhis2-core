@@ -9,21 +9,23 @@
       "shortName": "DESA",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "DEDA",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "userGroupAccesses": [
-        {
-          "userGroup": {
-            "id": "ugabcdefghA",
-            "code": "UserGroupCodeA"
-          },
-          "access": "r-------"
-        }
-      ],
       "attributeValues": [],
-      "aggregationLevels": []
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {
+          "ugabcdefghA": {
+            "id": "ugabcdefghA",
+            "access": "r-------"
+          }
+        }
+      }
     },
     {
       "code": "DECB",
@@ -34,13 +36,18 @@
       "shortName": "DESB",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "DEDB",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "aggregationLevels": []
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "code": "DECC",
@@ -51,21 +58,23 @@
       "shortName": "DESC",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "DEDC",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "userGroupAccesses": [
-        {
-          "userGroup": {
-            "id": "ugabcdefghA",
-            "code": "UserGroupCodeA"
-          },
-          "access": "r-------"
-        }
-      ],
       "attributeValues": [],
-      "aggregationLevels": []
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {
+          "ugabcdefghA": {
+            "id": "ugabcdefghA",
+            "access": "r-------"
+          }
+        }
+      }
     },
     {
       "code": "DECD",
@@ -76,13 +85,18 @@
       "shortName": "DESD",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "--------",
       "description": "DEDD",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "aggregationLevels": []
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

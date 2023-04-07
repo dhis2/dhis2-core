@@ -39,7 +39,7 @@ import org.mapstruct.Mapping;
  */
 @Mapper( uses = {
     Dxf2RelationshipMapper.class,
-    AttributeMapper.class,
+    Dxf2AttributeMapper.class,
     NoteMapper.class,
     Dxf2EventMapper.class,
     InstantMapper.class,

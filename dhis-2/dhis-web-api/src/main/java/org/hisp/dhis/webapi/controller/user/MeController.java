@@ -49,8 +49,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -185,10 +185,10 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             user, USER_SETTING_KEYS, true );
 
-        List<String> programs = programService.getCurrentUserPrograms().stream().map( BaseIdentifiableObject::getUid )
+        List<String> programs = programService.getCurrentUserPrograms().stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
-        List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )
+        List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );

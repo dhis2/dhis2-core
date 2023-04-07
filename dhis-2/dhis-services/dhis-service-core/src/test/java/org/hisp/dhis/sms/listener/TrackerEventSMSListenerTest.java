@@ -81,7 +81,8 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class TrackerEventSMSListenerTest extends
+class TrackerEventSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 

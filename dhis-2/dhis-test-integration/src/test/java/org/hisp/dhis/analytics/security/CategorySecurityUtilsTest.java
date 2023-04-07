@@ -44,10 +44,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 
@@ -130,7 +130,7 @@ class CategorySecurityUtilsTest
                 params.getFilters().stream() )
                 .collect( Collectors.toList() ) )
                     .stream()
-                    .map( BaseIdentifiableObject::getUid )
+                    .map( IdentifiableObject::getUid )
                     .collect( Collectors.toList() );
 
         assertThat( expected, containsInAnyOrder( actual.toArray() ) );

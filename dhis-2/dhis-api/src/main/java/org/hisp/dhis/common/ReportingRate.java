@@ -46,7 +46,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportingRate
-    extends BaseDimensionalItemObject implements EmbeddedObject
+    extends BaseDimensionalItemObject
+    implements EmbeddedObject
 {
     private static final String SPACED_DASH = " - ";
 

@@ -29,9 +29,8 @@ package org.hisp.dhis.tracker.job;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -40,9 +39,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-@EqualsAndHashCode( callSuper = true )
 public class TrackerJobWebMessageResponse
-    extends AbstractWebMessageResponse
+    implements WebMessageResponse
 {
     @JsonProperty
     private final String id;

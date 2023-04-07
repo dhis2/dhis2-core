@@ -15,16 +15,19 @@
       "lastUpdated": "2016-03-03T07:25:06.754+0000",
       "name": "DataElementA",
       "attributeValues": [],
-      "userGroupAccesses": [
-        {
-          "id": "hlXvBLHZwCt",
-          "displayName": "UGA",
-          "access": "r-------",
-          "userGroupUid": "hlXvBLHZwCt"
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "jdRoHEujnZp",
+        "users": {},
+        "userGroups": {
+          "hlXvBLHZwCt": {
+            "id": "hlXvBLHZwCt",
+            "access": "r-------"
+          }
         }
-      ],
-      "publicAccess": "rw------",
-      "aggregationLevels": []
+      }
     },
     {
       "shortName": "DataElementShortB",
@@ -41,16 +44,19 @@
       "lastUpdated": "2016-03-03T07:28:15.640+0000",
       "name": "DataElementB",
       "valueType": "TEXT",
-      "userGroupAccesses": [
-        {
-          "displayName": "UGB",
-          "access": "r-------",
-          "userGroupUid": "jCDKJBruqjc",
-          "id": "jCDKJBruqjc"
+      "aggregationLevels": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "jdRoHEujnZp",
+        "users": {},
+        "userGroups": {
+          "jCDKJBruqjc": {
+            "id": "jCDKJBruqjc",
+            "access": "r-------"
+          }
         }
-      ],
-      "publicAccess": "rw------",
-      "aggregationLevels": []
+      }
     }
   ],
   "organisationUnits": [
@@ -73,7 +79,6 @@
   ],
   "userGroups": [
     {
-      "userGroupAccesses": [],
       "attributeValues": [],
       "lastUpdated": "2016-03-03T07:15:44.420+0000",
       "name": "UGA",
@@ -84,14 +89,19 @@
       ],
       "id": "hlXvBLHZwCt",
       "created": "2016-03-03T07:15:44.419+0000",
-      "publicAccess": "rw------",
       "user": {
         "id": "jdRoHEujnZp"
       },
-      "managedGroups": []
+      "managedGroups": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "jdRoHEujnZp",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
-      "userGroupAccesses": [],
       "name": "UGB",
       "lastUpdated": "2016-03-03T07:15:52.940+0000",
       "attributeValues": [],
@@ -101,17 +111,22 @@
         }
       ],
       "managedGroups": [],
-      "publicAccess": "rw------",
       "user": {
         "id": "jdRoHEujnZp"
       },
       "created": "2016-03-03T07:15:52.940+0000",
-      "id": "jCDKJBruqjc"
+      "id": "jCDKJBruqjc",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "jdRoHEujnZp",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "userRoles": [
     {
-      "publicAccess": "--------",
       "id": "wROqj1MuHYl",
       "created": "2016-03-03T07:15:10.078+0000",
       "authorities": [
@@ -151,12 +166,47 @@
       ],
       "name": "Superuser",
       "lastUpdated": "2016-03-03T07:15:10.078+0000",
-      "userGroupAccesses": [],
       "dataSets": [],
-      "programs": []
+      "programs": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
-  "date": "2016-03-03T07:31:17.836+0000",
+  "date": [
+    "2",
+    "0",
+    "1",
+    "6",
+    "-",
+    "0",
+    "3",
+    "-",
+    "0",
+    "3",
+    "T",
+    "0",
+    "7",
+    ":",
+    "3",
+    "1",
+    ":",
+    "1",
+    "7",
+    ".",
+    "8",
+    "3",
+    "6",
+    "+",
+    "0",
+    "0",
+    "0",
+    "0"
+  ],
   "organisationUnitLevels": [
     {
       "level": 1,
@@ -181,20 +231,20 @@
       "firstName": "admin",
       "created": "2016-03-03T07:15:10.066+0000",
       "surname": "admin",
-        "catDimensionConstraints": [],
-        "externalAuth": false,
-        "passwordLastUpdated": "2016-03-03T07:15:10.102+0000",
-        "cogsDimensionConstraints": [],
-        "selfRegistered": false,
-        "lastLogin": "2016-03-03T07:15:10.102+0000",
-        "disabled": false,
-        "username": "admin",
-        "userRoles": [
-          {
-            "id": "wROqj1MuHYl"
-          }
-        ],
-        "invitation": false,
+      "catDimensionConstraints": [],
+      "externalAuth": false,
+      "passwordLastUpdated": "2016-03-03T07:15:10.102+0000",
+      "cogsDimensionConstraints": [],
+      "selfRegistered": false,
+      "lastLogin": "2016-03-03T07:15:10.102+0000",
+      "disabled": false,
+      "username": "admin",
+      "userRoles": [
+        {
+          "id": "wROqj1MuHYl"
+        }
+      ],
+      "invitation": false,
       "id": "jdRoHEujnZp",
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [

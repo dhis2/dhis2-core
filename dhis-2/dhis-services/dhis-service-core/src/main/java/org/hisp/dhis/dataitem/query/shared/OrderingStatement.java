@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -37,6 +38,8 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME_
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME_ORDER;
 
+import lombok.NoArgsConstructor;
+
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -44,17 +47,14 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class OrderingStatement
 {
     private static final String ORDER_BY = " order by ";
 
-    private OrderingStatement()
-    {
-    }
-
-    public static String ordering( final String displayNameOrderingColumns, final String nameOrderingColumns,
-        final String displayShortNameOrderingColumns, final String shortNameOrderingColumns,
-        final MapSqlParameterSource paramsMap )
+    public static String ordering( String displayNameOrderingColumns, String nameOrderingColumns,
+        String displayShortNameOrderingColumns, String shortNameOrderingColumns,
+        MapSqlParameterSource paramsMap )
     {
         if ( hasNonBlankStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayNameOrderingColumns ) )
         {
@@ -79,15 +79,15 @@ public class OrderingStatement
         return EMPTY;
     }
 
-    private static String buildOrderByStatement( final String displayOrderingColumns, final String ascOrDesc )
+    private static String buildOrderByStatement( String displayOrderingColumns, String ascOrDesc )
     {
-        final StringBuilder orderBy = new StringBuilder();
-        final String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );
+        StringBuilder orderBy = new StringBuilder();
+        String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );
         boolean hasElement = false;
 
         if ( columns != null && columns.length > 0 )
         {
-            for ( final String column : columns )
+            for ( String column : columns )
             {
                 if ( isNotBlank( column ) )
                 {

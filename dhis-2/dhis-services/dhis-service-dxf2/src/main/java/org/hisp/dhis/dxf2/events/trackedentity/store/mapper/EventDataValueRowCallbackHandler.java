@@ -44,7 +44,8 @@ import com.google.gson.Gson;
 /**
  * @author Luciano Fiandesio
  */
-public class EventDataValueRowCallbackHandler implements
+public class EventDataValueRowCallbackHandler
+    implements
     RowCallbackHandler
 
 {

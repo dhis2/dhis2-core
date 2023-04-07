@@ -46,7 +46,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramTrackedEntityAttribute
-    extends BaseIdentifiableObject implements EmbeddedObject
+    extends BaseIdentifiableObject
+    implements EmbeddedObject
 {
     private Program program;
 

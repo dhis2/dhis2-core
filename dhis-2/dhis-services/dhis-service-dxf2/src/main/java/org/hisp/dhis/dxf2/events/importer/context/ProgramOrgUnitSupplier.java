@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,7 +68,7 @@ public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long
         // Collect all the org unit IDs to pass as SQL query
         // argument
         //
-        final Set<Long> orgUnitIds = orgUniMap.values().stream().map( BaseIdentifiableObject::getId )
+        final Set<Long> orgUnitIds = orgUniMap.values().stream().map( IdentifiableObject::getId )
             .collect( Collectors.toSet() );
 
         if ( isEmpty( orgUnitIds ) )

@@ -125,6 +125,8 @@ class QueryValidatorTest
 
     private DataElement deE;
 
+    private List<DataElement> textDeList;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
@@ -180,8 +182,17 @@ class QueryValidatorTest
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
-        deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
-        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.FIRST_FIRST_ORG_UNIT );
+        deD = createDataElement( 'D', ValueType.COORDINATE, AggregationType.NONE );
+        deE = createDataElement( 'E', ValueType.DATE, AggregationType.NONE );
+
+        textDeList = List.of( createDataElement( 'M', ValueType.TEXT, AggregationType.NONE ),
+            createDataElement( 'N', ValueType.LONG_TEXT, AggregationType.NONE ),
+            createDataElement( 'O', ValueType.EMAIL, AggregationType.NONE ),
+            createDataElement( 'P', ValueType.URL, AggregationType.NONE ),
+            createDataElement( 'Q', ValueType.USERNAME, AggregationType.NONE ),
+            createDataElement( 'R', ValueType.PHONE_NUMBER, AggregationType.NONE ),
+            createDataElement( 'S', ValueType.LETTER, AggregationType.NONE ) );
+        textDeList.forEach( tdl -> tdl.setCategoryCombo( ccA ) );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );
@@ -241,7 +252,7 @@ class QueryValidatorTest
     void validateSuccessAggregationType()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( List.of( deA, deE ) )
+            .withDataElements( textDeList )
             .withOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA, peB ) )
             .build();

@@ -182,4 +182,18 @@ class TeiQueryRequestValidatorTest
         // Then
         assertEquals( "Invalid UID `" + invalidProgramUid + "` for property `program`", exception.getMessage() );
     }
+
+    @Test
+    void testProgramStatusAndEnrollmentStatusThrowsException()
+    {
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withProgram( Set.of( "IpHINAT79UW" ) )
+            .withProgramStatus( Set.of( "IpHINAT79UW.COMPLETED" ) )
+            .withEnrollmentStatus( Set.of( "IpHINAT79UW.COMPLETED" ) );
+
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> new CommonQueryRequestValidator().validate( request ) );
+
+        assertEquals( "programStatus and enrollmentStatus cannot be used together.", exception.getMessage() );
+    }
 }

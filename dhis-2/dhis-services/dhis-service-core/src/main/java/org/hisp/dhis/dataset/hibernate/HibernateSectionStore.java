@@ -47,7 +47,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class HibernateSectionStore
-    extends HibernateIdentifiableObjectStore<Section> implements SectionStore
+    extends HibernateIdentifiableObjectStore<Section>
+    implements SectionStore
 {
     public HibernateSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
