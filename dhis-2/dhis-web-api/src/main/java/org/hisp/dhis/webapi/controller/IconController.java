@@ -108,18 +108,18 @@ public class IconController
     public @ResponseBody IconData getIcon( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException
     {
-        Optional<IconData> icon = iconService.getIcon( iconKey );
+        IconData icon = iconService.getIcon( iconKey );
 
-        if ( !icon.isPresent() )
+        if ( icon == null )
         {
             throw new WebMessageException(
                 notFound( String.format( "Icon not found: '%s", iconKey ) ) );
         }
 
-        icon.get().setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
-            IconSchemaDescriptor.API_ENDPOINT, icon.get().getKey(), Icon.SUFFIX ) );
+        icon.setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
+            IconSchemaDescriptor.API_ENDPOINT, icon.getKey(), Icon.SUFFIX ) );
 
-        return icon.get();
+        return icon;
     }
 
     @GetMapping( "/{iconKey}/icon.svg" )
