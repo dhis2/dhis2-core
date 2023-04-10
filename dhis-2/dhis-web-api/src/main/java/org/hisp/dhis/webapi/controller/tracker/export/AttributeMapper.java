@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+interface AttributeMapper
+    extends ViewMapper<org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue, Attribute>
 {
-
+    @Mapping( target = "attribute", source = "attribute.uid" )
+    @Mapping( target = "code", source = "attribute.code" )
+    @Mapping( target = "displayName", source = "attribute.displayName" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    @Mapping( target = "valueType", source = "attribute.valueType" )
+    @Override
+    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
 }
