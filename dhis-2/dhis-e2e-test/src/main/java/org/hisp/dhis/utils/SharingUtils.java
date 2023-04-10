@@ -92,6 +92,21 @@ public class SharingUtils
         return sharingObject;
     }
 
+    public static JsonObject addUserAccess( JsonObject sharingObject, String uid, String accessString )
+    {
+        JsonObject userAccess = sharingObject.getAsJsonObject( "users" );
+
+        if ( userAccess == null )
+        {
+            sharingObject.add( "users", new JsonObject() );
+            userAccess = sharingObject.getAsJsonObject("users" );
+        }
+
+        userAccess.add( uid, createAccessObject( uid, accessString ) );
+        return sharingObject;
+    }
+
+
     public static JsonObject createAccessObject( String uid, String accessString )
     {
         JsonObject access = new JsonObject();
