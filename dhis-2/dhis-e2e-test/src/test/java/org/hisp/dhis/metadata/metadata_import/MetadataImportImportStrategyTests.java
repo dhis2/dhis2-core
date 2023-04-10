@@ -89,7 +89,8 @@ public class MetadataImportImportStrategyTests
         JsonObject object = JsonObjectBuilder
             .jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
             .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
-            .addObject( "sharing", SharingUtils.createSharingObject( null, null, null, Map.of( "OPVIvvXzNTw", "rw------" ) ) )
+            .addObject( "sharing",
+                SharingUtils.createSharingObject( null, null, null, Map.of( "OPVIvvXzNTw", "rw------" ) ) )
             .wrapIntoArray( "dataElementGroups" );
 
         ApiResponse response = metadataActions.importMetadata( object, "identifier=CODE" );

@@ -30,10 +30,9 @@ package org.hisp.dhis.utils;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonObject;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dto.Sharing;
+
+import com.google.gson.JsonObject;
 
 /**
  * Utility methods for creation and update Sharing object.
@@ -67,12 +66,14 @@ public class SharingUtils
             JsonObject userGroupObject = new JsonObject();
             userGroups.keySet()
                 .forEach( uid -> userGroupObject.add( uid, createAccessObject( uid, userGroups.get( uid ) ) ) );
+            sharing.add( "userGroups", userGroupObject );
         }
 
         if ( !MapUtils.isEmpty( users ) )
         {
             JsonObject userObject = new JsonObject();
             users.keySet().forEach( uid -> userObject.add( uid, createAccessObject( uid, users.get( uid ) ) ) );
+            sharing.add( "users", userObject );
         }
 
         return sharing;
@@ -99,13 +100,12 @@ public class SharingUtils
         if ( userAccess == null )
         {
             sharingObject.add( "users", new JsonObject() );
-            userAccess = sharingObject.getAsJsonObject("users" );
+            userAccess = sharingObject.getAsJsonObject( "users" );
         }
 
         userAccess.add( uid, createAccessObject( uid, accessString ) );
         return sharingObject;
     }
-
 
     public static JsonObject createAccessObject( String uid, String accessString )
     {
@@ -145,7 +145,8 @@ public class SharingUtils
         JsonObject accessObject = sharingObject.getAsJsonObject( key );
 
         return accessObject.entrySet().stream()
-            .collect( Collectors.toMap( Map.Entry::getKey, e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
+            .collect( Collectors.toMap( Map.Entry::getKey,
+                e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
 
     }
 }

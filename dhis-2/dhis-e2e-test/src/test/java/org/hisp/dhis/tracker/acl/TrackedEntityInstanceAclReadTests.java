@@ -50,7 +50,6 @@ import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,7 +57,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -176,8 +174,7 @@ public class TrackedEntityInstanceAclReadTests
 
                     boolean hasDataRead = false;
 
-                    final Sharing sharing = new Sharing( object );
-
+                    final Sharing sharing = new Sharing( object.getAsJsonObject( "sharing" ) );
 
                     if ( sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( _DATAREAD ) )
                     {
@@ -185,9 +182,9 @@ public class TrackedEntityInstanceAclReadTests
                     }
                     else
                     {
-                        for (  String userId : sharing.getUsers().keySet() )
+                        for ( String userId : sharing.getUsers().keySet() )
                         {
-                            if ( userId.equals( user.getUid() ) &&  sharing.getUsers().get( user ) != null &&
+                            if ( userId.equals( user.getUid() ) && sharing.getUsers().get( user ) != null &&
                                 sharing.getUsers().get( user ).matches( _DATAREAD ) )
                             {
                                 hasDataRead = true;
