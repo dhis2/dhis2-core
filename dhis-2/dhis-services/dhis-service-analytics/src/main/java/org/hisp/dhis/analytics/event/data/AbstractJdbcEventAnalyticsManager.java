@@ -324,8 +324,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * hard-coded into the select statement with "(isoPeriod) as (periodType)".
      * <p>
      * If the first/last subquery is used then one query will be done for each
-     * period, and the period will not be present in the query, so add it to
-     * the select columns and skip it in the group by columns.
+     * period, and the period will not be present in the query, so add it to the
+     * select columns and skip it in the group by columns.
      *
      * @param params the {@link EventQueryParams}.
      * @param isGroupByClause used to avoid grouping by period when using
@@ -704,7 +704,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
 
-        String function = ( aggregationType == NONE || aggregationType == CUSTOM )
+        String function = (aggregationType == NONE || aggregationType == CUSTOM)
             ? ""
             : aggregationType.getValue();
 
