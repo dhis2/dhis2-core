@@ -378,9 +378,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         } );
 
-        params.getItems().forEach( queryItem -> {
-            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
-        } );
+        params.getItems().forEach(
+            queryItem -> columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() ) );
 
         return columns;
     }
