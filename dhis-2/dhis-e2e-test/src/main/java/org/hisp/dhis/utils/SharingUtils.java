@@ -62,14 +62,14 @@ public class SharingUtils
 
         sharing.addProperty( "external", false );
 
-        if (! MapUtils.isEmpty( userGroups ) )
+        if ( !MapUtils.isEmpty( userGroups ) )
         {
             JsonObject userGroupObject = new JsonObject();
             userGroups.keySet()
                 .forEach( uid -> userGroupObject.add( uid, createAccessObject( uid, userGroups.get( uid ) ) ) );
         }
 
-        if ( MapUtils.isEmpty( users ) )
+        if ( !MapUtils.isEmpty( users ) )
         {
             JsonObject userObject = new JsonObject();
             users.keySet().forEach( uid -> userObject.add( uid, createAccessObject( uid, users.get( uid ) ) ) );
