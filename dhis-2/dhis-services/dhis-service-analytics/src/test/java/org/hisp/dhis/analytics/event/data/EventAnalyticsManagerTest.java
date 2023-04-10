@@ -486,8 +486,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String subquery = "from (select \"psi\",\"yearly\",\"deabcdefghX\",\"ou\"," +
-            "cast('202201' as text) as \"monthly\",\"jkYhtGth12t\"," +
+        String subquery = "from (select \"psi\",\"deabcdefghX\",\"ou\"," +
+            "\"monthly\",\"jkYhtGth12t\"," +
             "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" " +
             "order by ax.\"executiondate\" desc) as pe_rank from analytics_event_prabcdefghA as ax " +
             "where ax.\"executiondate\" >= '2012-01-31' and ax.\"executiondate\" <= '2022-01-31' " +
@@ -552,8 +552,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = "from (select \"psi\",\"yearly\",\"" + deU.getUid()
-            + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
+        String expectedLastSubquery = "from (select \"psi\",\"" + deU.getUid()
+            + "\",\"monthly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " as ax where ax.\"executiondate\" >= '1990-03-31' "
