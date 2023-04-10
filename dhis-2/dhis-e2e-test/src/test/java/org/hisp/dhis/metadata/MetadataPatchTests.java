@@ -104,7 +104,8 @@ public class MetadataPatchTests
             .addObject( Constants.SUPER_USER_ID, JsonObjectBuilder.jsonObject()
                 .addProperty( "access", "rw------" )
                 .addProperty( "id", Constants.SUPER_USER_ID )
-                .build() ).build();
+                .build() )
+            .build();
 
         dataElementActions
             .patch( dataElementId, Arrays.asList( buildOperation( "replace", "/sharing/users", userAccesses ) ) )
