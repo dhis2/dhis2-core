@@ -187,7 +187,7 @@ public class TrackedEntityInstanceAclReadTests
                     {
                         for (  String userId : sharing.getUsers().keySet() )
                         {
-                            if ( userId.equals( user.getUid() ) &&
+                            if ( userId.equals( user.getUid() ) &&  sharing.getUsers().get( user ) != null &&
                                 sharing.getUsers().get( user ).matches( _DATAREAD ) )
                             {
                                 hasDataRead = true;
@@ -199,8 +199,8 @@ public class TrackedEntityInstanceAclReadTests
                             for ( String userGroupId : sharing.getUserGroups().keySet() )
                             {
                                 if ( user.getGroups()
-                                    .contains( userGroupId ) &&
-                                    sharing.getUserGroups().get( user ).matches( _DATAREAD ) )
+                                    .contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
+                                    sharing.getUserGroups().get( userGroupId ).matches( _DATAREAD ) )
                                 {
                                     hasDataRead = true;
                                 }

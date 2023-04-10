@@ -1,8 +1,13 @@
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.utils.SharingUtils;
 
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.utils.SharingUtils.getSafe;
 
 public class Sharing
 {
@@ -17,23 +22,31 @@ public class Sharing
 
     public Sharing( JsonObject object )
     {
-        publicAccess = object.get( "publicAccess" ).getAsString();
-        owner = object.get( "owner" ).getAsString();
-        external = object.get( "external" ).getAsBoolean();
-        userGroups = readAccess( object.get( "userGroups" ).getAsJsonObject() );
-        users = readAccess( object.get( "users" ).getAsJsonObject() );
+        publicAccess = getSafe( object, "public" );
+        owner = getSafe( object, "owner" );
+        external = false;
+        userGroups = readAccess( object, "userGroups" );
+        users = readAccess( object, "users" );
     }
 
-    private Map<String, String> readAccess( JsonObject object )
+    private Map<String, String> readAccess( JsonObject object, String accessProperty )
     {
-        Map<String, String> access = Map.of();
+        if ( !object.has( "sharing" ) )
+        {
+            return null;
+        }
 
-        object.keySet().forEach( key -> {
-            JsonObject accessObject = object.get( key ).getAsJsonObject();
-            access.put( accessObject.get( "id" ).getAsString(), accessObject.get( "access" ).getAsString() );
-        } );
+        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
 
-        return access;
+        if ( !sharingObject.has( accessProperty ) )
+        {
+            return null;
+        }
+
+        JsonObject accessObject = sharingObject.getAsJsonObject( accessProperty );
+
+        return accessObject.entrySet().stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
     }
 
     public String getPublicAccess()

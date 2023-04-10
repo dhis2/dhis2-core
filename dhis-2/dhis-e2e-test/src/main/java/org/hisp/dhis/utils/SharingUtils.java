@@ -28,8 +28,11 @@
 package org.hisp.dhis.utils;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dto.Sharing;
 
 /**
@@ -59,14 +62,14 @@ public class SharingUtils
 
         sharing.addProperty( "external", false );
 
-        if ( userGroups.size() > 0 )
+        if (! MapUtils.isEmpty( userGroups ) )
         {
             JsonObject userGroupObject = new JsonObject();
             userGroups.keySet()
                 .forEach( uid -> userGroupObject.add( uid, createAccessObject( uid, userGroups.get( uid ) ) ) );
         }
 
-        if ( users.size() > 0 )
+        if ( MapUtils.isEmpty( users ) )
         {
             JsonObject userObject = new JsonObject();
             users.keySet().forEach( uid -> userObject.add( uid, createAccessObject( uid, users.get( uid ) ) ) );
@@ -98,10 +101,36 @@ public class SharingUtils
         return access;
     }
 
-    public static Sharing createSharingObject( JsonObject object )
+    public static String getSafe( JsonObject object, String key )
     {
-        return new Sharing( object );
+        if ( !object.has( "sharing" ) )
+        {
+            return null;
+        }
+
+        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
+
+        return sharingObject.has( key ) ? sharingObject.get( key ).getAsString() : null;
     }
 
+    public static Map<String, String> getAccessObjects( JsonObject object, String key )
+    {
+        if ( !object.has( "sharing" ) )
+        {
+            return null;
+        }
 
+        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
+
+        if ( !sharingObject.has( key ) )
+        {
+            return null;
+        }
+
+        JsonObject accessObject = sharingObject.getAsJsonObject( key );
+
+        return accessObject.entrySet().stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
+
+    }
 }
