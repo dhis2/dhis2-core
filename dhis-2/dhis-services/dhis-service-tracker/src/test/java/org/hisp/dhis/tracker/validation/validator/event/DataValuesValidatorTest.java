@@ -783,6 +783,73 @@ class DataValuesValidatorTest
     }
 
     @Test
+    void successValidationDataElementMultiTextOptionValueIsValid()
+    {
+
+        DataValue validDataValue = dataValue( "CODE,CODE1" );
+        DataValue nullDataValue = dataValue( null );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+
+        DataElement dataElement = dataElement( ValueType.MULTI_TEXT );
+        dataElement.setOptionSet( optionSet );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
+
+        ProgramStage programStage = programStage( dataElement );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
+
+        Event event = Event.builder()
+            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
+            .status( EventStatus.SKIPPED )
+            .dataValues( Set.of( validDataValue, nullDataValue ) )
+            .build();
+
+        validator.validate( reporter, bundle, event );
+
+        assertIsEmpty( reporter.getErrors() );
+    }
+
+    @Test
+    void failValidationDataElementMultiTextOptionValueIsInValid()
+    {
+
+        DataValue validDataValue = dataValue( "CODE1,CODE2" );
+        validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+
+        DataElement dataElement = dataElement( ValueType.MULTI_TEXT );
+        dataElement.setOptionSet( optionSet );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
+
+        ProgramStage programStage = programStage( dataElement );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
+
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
+            .status( EventStatus.SKIPPED )
+            .dataValues( Set.of( validDataValue ) )
+            .build();
+
+        validator.validate( reporter, bundle, event );
+
+        assertHasError( reporter, event, ValidationCode.E1125 );
+    }
+
+    @Test
     void failValidationWhenOrgUnitValueIsInvalid()
     {
 

@@ -63,6 +63,8 @@ public class TeiValidationTests
 
     private String attributeWithOptionSet;
 
+    private String attributeWithMultiText;
+
     @BeforeAll
     public void beforeAll()
     {
@@ -212,6 +214,32 @@ public class TeiValidationTests
     }
 
     @Test
+    public void shouldReturnErrorWhenAttributeMultiTextInvalid()
+    {
+        JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
+            .addAttribute( attributeWithMultiText, "TA_NO,TA_Invalid" )
+            .array();
+
+        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
+            .validateErrorReport()
+            .body( "errorCode", hasItem( "E1125" ) )
+            .body( "trackerType", hasItem( "TRACKED_ENTITY" ) );
+    }
+
+    @Test
+    public void shouldReturnSuccessWhenAttributeMultiTextInvalid()
+    {
+        JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
+            .addAttribute( attributeWithMultiText, "TA_NO,TA_YES" )
+            .array();
+
+        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "status", equalTo( "OK" ) );
+    }
+
+    @Test
     public void shouldReturnErrorWhenUpdatingSoftDeletedTEI()
     {
         JsonObject trackedEntities = new TeiDataBuilder()
@@ -293,10 +321,12 @@ public class TeiValidationTests
         mandatoryTetAttribute = trackedEntityAttributeActions.create( "TEXT" );
         mandatoryProgramAttribute = trackedEntityAttributeActions.create( "TEXT" );
         attributeWithOptionSet = trackedEntityAttributeActions.createOptionSetAttribute( "ZGkmoWb77MW" );
+        attributeWithMultiText = trackedEntityAttributeActions.createMultiTextAttribute( "ZGkmoWb77MW" );
 
         trackedEntityTypeActions.addAttribute( trackedEntityType, mandatoryTetAttribute, true );
         trackedEntityTypeActions.addAttribute( trackedEntityType, attributeWithOptionSet, false );
         trackedEntityTypeActions.addAttribute( trackedEntityType, uniqueTetAttribute, false );
+        trackedEntityTypeActions.addAttribute( trackedEntityType, attributeWithMultiText, false );
 
         // create a program
         program = programActions.createTrackerProgram( trackedEntityType, Constants.ORG_UNIT_IDS ).extractUid();

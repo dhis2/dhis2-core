@@ -117,7 +117,7 @@ public enum ValidationCode
     E1122( "Missing required enrollment property: `{0}`." ),
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),
-    E1125( "Value {0} is not a valid option for {1} {2} in option set {3}" ),
+    E1125( "Value `{0}` is not a valid option code in option set `{1}`" ),
     E1126( "Not allowed to update Tracked Entity property: {0}." ),
     E1127( "Not allowed to update Enrollment property: {0}." ),
     E1128( "Not allowed to update Event property: {0}." ),

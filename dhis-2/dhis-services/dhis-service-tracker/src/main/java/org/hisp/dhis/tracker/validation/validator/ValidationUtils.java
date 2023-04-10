@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1125;
 import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import java.util.ArrayList;
@@ -217,7 +216,7 @@ public class ValidationUtils
 
         if ( !isValid )
         {
-            reporter.addError( dto, E1125, value, optionalObject.getOptionSet().getUid() );
+            reporter.addError( dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid() );
         }
     }
 

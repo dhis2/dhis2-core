@@ -31,31 +31,7 @@
   "skipSideEffects": false,
   "skipRuleEngine": false,
   "trackedEntities": [],
-  "enrollments": [
-    {
-      "enrollment": "zNWZ6hnuhSw",
-      "updatedAt": "2019-08-19T13:58:26.874",
-      "trackedEntity": "Kj6vYde4LHh",
-      "program": {
-        "idScheme": "UID",
-        "identifier": "E8o1E9tAppy"
-      },
-      "status": "COMPLETED",
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "wrong"
-      },
-      "enrolledAt": "2019-08-19T00:00:00.000",
-      "occurredAt": "2019-08-19T00:00:00.000",
-      "followUp": false,
-      "deleted": false,
-      "storedBy": "admin",
-      "events": [],
-      "relationships": [],
-      "attributes": [],
-      "notes": []
-    }
-  ],
+  "enrollments": [],
   "events": [
     {
       "event": "ZwwuwNp6gVd",
@@ -68,7 +44,7 @@
         "idScheme": "UID",
         "identifier": "Qmqxq907VNz"
       },
-      "enrollment": "zNWZ6hnuhSw",
+      "enrollment": "MNWZ6hnuhSw",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -95,9 +71,9 @@
           "providedElsewhere": false,
           "dataElement": {
             "idScheme": "UID",
-            "identifier": "LjQPcfuEI6S"
+            "identifier": "XXydqoh6gkE"
           },
-          "value": "Male"
+          "value": "Male,Invalid_Option"
         }
       ],
       "notes": []

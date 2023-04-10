@@ -119,6 +119,26 @@ class EventImportValidationTest extends TrackerTest
     }
 
     @Test
+    void successWhenEventHasValidMultiTextValue()
+        throws IOException
+    {
+        ImportReport importReport = trackerImportService
+            .importTracker( fromJson( "tracker/validations/events-with_valid_multi_text_value.json" ) );
+
+        assertNoErrors( importReport );
+    }
+
+    @Test
+    void failValidationWhenEvemtHasWrongMultiTextValue()
+        throws IOException
+    {
+        ImportReport importReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events-with_invalid_multi_text_value.json" ) );
+
+        assertHasOnlyErrors( importReport, ValidationCode.E1125 );
+    }
+
+    @Test
     void successWhenTrackedEntityAttributeHasValidOptionValue()
         throws IOException
     {
