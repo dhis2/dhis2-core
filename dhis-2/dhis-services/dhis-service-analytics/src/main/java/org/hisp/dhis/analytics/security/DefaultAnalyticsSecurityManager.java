@@ -60,6 +60,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -103,6 +104,7 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public void decideAccess( DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
@@ -156,7 +158,8 @@ public class DefaultAnalyticsSecurityManager
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    void decideAccessDataReadObjects( DataQueryParams params, User user )
+    @Transactional( readOnly = true )
+    public void decideAccessDataReadObjects( DataQueryParams params, User user )
         throws IllegalQueryException
     {
         Set<IdentifiableObject> objects = new HashSet<>();
@@ -185,6 +188,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void decideAccessEventQuery( EventQueryParams params )
     {
         decideAccess( params );
@@ -212,6 +216,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public User getCurrentUser( DataQueryParams params )
     {
         return params != null && params.hasCurrentUser() ? params.getCurrentUser()
@@ -219,6 +224,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DataQueryParams withDataApprovalConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder( params );
@@ -267,6 +273,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DataQueryParams withUserConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
@@ -278,6 +285,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public EventQueryParams withUserConstraints( EventQueryParams params )
     {
         EventQueryParams.Builder builder = new EventQueryParams.Builder( params );
