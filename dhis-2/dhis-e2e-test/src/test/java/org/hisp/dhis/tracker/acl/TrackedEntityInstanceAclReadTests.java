@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonElement;
 import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.LoginActions;
@@ -169,24 +170,24 @@ public class TrackedEntityInstanceAclReadTests
             {
                 dataRead.put( entry.getKey(), new ArrayList<>() );
 
-                entry.getValue().getAsJsonArray().forEach( obj -> {
-                    JsonObject object = obj.getAsJsonObject();
+                for ( JsonElement element : entry.getValue().getAsJsonArray() )
+                {
+                    JsonObject object = element.getAsJsonObject();
 
-                    final Sharing sharing = new Sharing( object.getAsJsonObject( "sharing" ) );
+                    final Sharing sharing = new Sharing( object );
 
                     if ( sharing == null )
                     {
-                        return;
+                        continue;
                     }
 
                     if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD )
                         || hasUserGroupAccess( user, sharing,
                             _DATAREAD ) )
                     {
-                        dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
+                        dataRead.get( entry.getKey() ).add( object.get( "id" ).getAsString() );
                     }
-
-                } );
+                }
             }
         } );
 
@@ -392,8 +393,8 @@ public class TrackedEntityInstanceAclReadTests
 
         for ( String userId : sharing.getUsers().keySet() )
         {
-            if ( userId.equals( user.getUid() ) && sharing.getUsers().get( user ) != null &&
-                sharing.getUsers().get( user ).matches( access ) )
+            if ( userId.equals( user.getUid() ) &&
+                sharing.getUsers().get( userId ).matches( access ) )
             {
                 return true;
             }
