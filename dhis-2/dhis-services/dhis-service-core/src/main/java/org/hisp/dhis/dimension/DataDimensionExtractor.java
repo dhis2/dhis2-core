@@ -60,6 +60,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This component is only encapsulating specific methods responsible for
@@ -156,6 +157,7 @@ public class DataDimensionExtractor
      * @return a map from each class of atomic objects to a map that associates
      *         each id of that class with an atomic object.
      */
+    @Transactional( readOnly = true )
     MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
         SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
@@ -171,6 +173,7 @@ public class DataDimensionExtractor
         return atomicObjects;
     }
 
+    @Transactional( readOnly = true )
     MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
         SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
@@ -223,6 +226,7 @@ public class DataDimensionExtractor
      * @param dataSetId the data set identifier.
      * @param metric the reporting rate metric.
      */
+    @Transactional( readOnly = true )
     ReportingRate getReportingRate( IdScheme idScheme, String dataSetId, String metric )
     {
         DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
@@ -243,6 +247,7 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param attributeId the attribute identifier.
      */
+    @Transactional( readOnly = true )
     ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme,
         String programId, String attributeId )
     {
@@ -265,6 +270,7 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param dataElementId the data element identifier.
      */
+    @Transactional( readOnly = true )
     ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId,
         String dataElementId )
     {
