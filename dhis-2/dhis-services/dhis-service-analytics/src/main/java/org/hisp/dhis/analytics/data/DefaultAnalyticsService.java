@@ -58,6 +58,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -82,6 +83,7 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -100,6 +102,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
         return isTableLayout( columns, rows ) ? getAggregatedDataValuesTableLayout( params, columns, rows )
@@ -107,6 +110,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
@@ -115,6 +119,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getRawDataValues( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -125,6 +130,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -135,6 +141,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -145,6 +152,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
     {
         Grid grid = getAggregatedDataValues( newBuilder( params )
@@ -154,6 +162,7 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
     {
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
