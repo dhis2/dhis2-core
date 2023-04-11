@@ -112,7 +112,7 @@ public class MetadataPatchTests
             .validate().statusCode( 200 );
 
         dataElementActions.get( dataElementId )
-            .validate().body( "sharing", hasSize( 1 ) )
+            .validate().body( "sharing.users", aMapWithSize( 1 ) )
             .rootPath( "sharing.users." + Constants.SUPER_USER_ID )
             .body( "access", equalTo( "rw------" ) )
             .body( "id", equalTo( Constants.SUPER_USER_ID ) );
