@@ -60,7 +60,7 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-    
+
     <!-- Other -->
 
     <dependency>
