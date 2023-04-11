@@ -1593,6 +1593,22 @@ public class User
                 newUser.setUserRoles( userRoles );
             }
 
+            Set<Category> oldCatDimCon = oldUser.getCatDimensionConstraints();
+            Set<CategoryOptionGroupSet> oldCogDimCon = oldUser.getCogsDimensionConstraints();
+
+            Set<Category> newCatDimCon = newUserCredentialsRaw.getCatDimensionConstraints();
+            Set<CategoryOptionGroupSet> newCogDimCon = newUserCredentialsRaw.getCogsDimensionConstraints();
+
+            if ( oldCatDimCon != null && newCatDimCon != null && !oldCatDimCon.equals( newCatDimCon ) )
+            {
+                newUser.setCatDimensionConstraints( newCatDimCon );
+            }
+
+            if ( oldCogDimCon != null && newCogDimCon != null && !oldCogDimCon.equals( newCogDimCon ) )
+            {
+                newUser.setCogsDimensionConstraints( newCogDimCon );
+            }
+
             newUser.removeLegacyUserCredentials();
         }
     }
