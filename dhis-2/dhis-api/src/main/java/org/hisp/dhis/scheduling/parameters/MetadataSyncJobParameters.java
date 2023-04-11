@@ -45,8 +45,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 public class MetadataSyncJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 332495511301532169L;
-
     @JsonProperty
     private int trackerProgramPageSize = 20;
 

@@ -53,8 +53,6 @@ import com.google.common.collect.Lists;
 @NoArgsConstructor
 public class MonitoringJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = -1683853240301569669L;
-
     @JsonProperty
     private int relativeStart;
 

@@ -48,8 +48,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 public class TrackerTrigramIndexJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 8705929982703731451L;
-
     @JsonProperty
     private Set<String> attributes = new HashSet<>();
 

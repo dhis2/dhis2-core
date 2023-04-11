@@ -46,8 +46,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 public class PredictorJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 5526554074518768146L;
-
     @JsonProperty
     private int relativeStart;
 

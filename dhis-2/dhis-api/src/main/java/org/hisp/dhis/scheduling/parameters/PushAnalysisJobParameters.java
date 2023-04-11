@@ -49,8 +49,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 public class PushAnalysisJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = -1848833906375595488L;
-
     @JsonProperty( required = true )
     private List<String> pushAnalysis = new ArrayList<>();
 

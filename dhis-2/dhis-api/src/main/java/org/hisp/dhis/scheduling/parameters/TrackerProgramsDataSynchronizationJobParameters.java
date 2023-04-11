@@ -45,8 +45,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 368325562301563469L;
-
     static final int PAGE_SIZE_MIN = 5;
 
     static final int PAGE_SIZE_MAX = 100;

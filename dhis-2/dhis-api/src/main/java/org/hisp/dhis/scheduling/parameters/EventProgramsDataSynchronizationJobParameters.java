@@ -45,8 +45,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 public class EventProgramsDataSynchronizationJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 168332662397563659L;
-
     static final int PAGE_SIZE_MIN = 5;
 
     static final int PAGE_SIZE_MAX = 200;

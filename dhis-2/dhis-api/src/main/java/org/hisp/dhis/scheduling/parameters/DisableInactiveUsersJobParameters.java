@@ -47,8 +47,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 public class DisableInactiveUsersJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = -5877578172615705990L;
-
     @JsonProperty( required = true )
     private int inactiveMonths;
 

@@ -47,8 +47,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 public class ContinuousAnalyticsJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 4613054056442276592L;
-
     /**
      * The hour of day at which the full analytics table update will be invoked.
      */

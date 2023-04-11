@@ -52,8 +52,6 @@ public class DataIntegrityJobParameters implements JobParameters
         DETAILS
     }
 
-    private static final long serialVersionUID = 1073997854310838296L;
-
     @JsonProperty( required = false )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Set<String> checks;

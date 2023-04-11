@@ -45,8 +45,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class MockJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 3600315605964091689L;
-
     @JsonProperty
     private String message;
 }
