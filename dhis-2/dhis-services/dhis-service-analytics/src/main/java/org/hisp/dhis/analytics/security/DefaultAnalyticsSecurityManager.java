@@ -168,7 +168,7 @@ public class DefaultAnalyticsSecurityManager
      * @throws IllegalQueryException if user does not have access.
      */
     @Transactional( readOnly = true )
-    void decideAccessDataReadObjects( DataQueryParams params, User user )
+    public void decideAccessDataReadObjects( DataQueryParams params, User user )
         throws IllegalQueryException
     {
         Set<IdentifiableObject> objects = new HashSet<>();
@@ -197,7 +197,7 @@ public class DefaultAnalyticsSecurityManager
      * @throws IllegalQueryException if user does not have access.
      */
     @Transactional( readOnly = true )
-    void decideAccessDataReadObjects( Set<IdentifiableObject> objects, User user )
+    public void decideAccessDataReadObjects( Set<IdentifiableObject> objects, User user )
         throws IllegalQueryException
     {
         for ( IdentifiableObject object : objects )
