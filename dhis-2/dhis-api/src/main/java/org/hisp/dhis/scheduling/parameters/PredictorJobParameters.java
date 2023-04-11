@@ -34,6 +34,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,9 +57,11 @@ public class PredictorJobParameters implements JobParameters
     private int relativeEnd;
 
     @JsonProperty
+    @OpenApi.Property( { UID[].class, Predictor.class } )
     private List<String> predictors = new ArrayList<>();
 
     @JsonProperty
+    @OpenApi.Property( { UID[].class, PredictorGroup.class } )
     private List<String> predictorGroups = new ArrayList<>();
 
     public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors,

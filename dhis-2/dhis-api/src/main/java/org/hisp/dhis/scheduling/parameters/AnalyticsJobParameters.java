@@ -35,6 +35,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -54,6 +57,7 @@ public class AnalyticsJobParameters implements JobParameters
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
     @JsonProperty
+    @OpenApi.Property( { UID[].class, Program.class } )
     private Set<String> skipPrograms = new HashSet<>();
 
     @JsonProperty

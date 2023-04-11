@@ -33,6 +33,9 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -47,6 +50,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class AggregateDataExchangeJobParameters implements JobParameters
 {
     @JsonProperty
+    @OpenApi.Property( { UID[].class, AggregateDataExchange.class } )
     private List<String> dataExchangeIds;
 
     @Override
