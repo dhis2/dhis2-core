@@ -33,9 +33,6 @@ import java.util.Optional;
 import lombok.Setter;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -55,7 +52,6 @@ public class AggregateDataExchangeJobParameters implements JobParameters
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @OpenApi.Property( { UID[].class, AggregateDataExchange.class } )
     public List<String> getDataExchangeIds()
     {
         return dataExchangeIds;

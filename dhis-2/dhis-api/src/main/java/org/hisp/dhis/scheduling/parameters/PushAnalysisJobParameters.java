@@ -32,11 +32,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,7 +67,6 @@ public class PushAnalysisJobParameters
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @OpenApi.Property( { UID[].class, PushAnalysis.class } )
     public List<String> getPushAnalysis()
     {
         return pushAnalysis;
