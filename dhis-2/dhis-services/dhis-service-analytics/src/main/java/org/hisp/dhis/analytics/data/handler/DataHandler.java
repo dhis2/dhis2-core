@@ -514,7 +514,7 @@ public class DataHandler
      * @param grid the grid.
      */
     @Transactional( readOnly = true )
-    void addRawData( DataQueryParams params, Grid grid )
+    public void addRawData( DataQueryParams params, Grid grid )
     {
         if ( !params.isSkipData() )
         {
@@ -533,7 +533,7 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      */
     @Transactional( readOnly = true )
-    DataQueryParams prepareForRawDataQuery( DataQueryParams params )
+    public DataQueryParams prepareForRawDataQuery( DataQueryParams params )
     {
         DataQueryParams.Builder builder = newBuilder( params )
             .withEarliestStartDateLatestEndDate()
