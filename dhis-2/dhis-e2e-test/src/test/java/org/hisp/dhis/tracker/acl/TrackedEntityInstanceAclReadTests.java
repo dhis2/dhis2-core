@@ -172,40 +172,15 @@ public class TrackedEntityInstanceAclReadTests
                 entry.getValue().getAsJsonArray().forEach( obj -> {
                     JsonObject object = obj.getAsJsonObject();
 
-                    boolean hasDataRead = false;
-
                     final Sharing sharing = new Sharing( object.getAsJsonObject( "sharing" ) );
 
-                    if ( sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( _DATAREAD ) )
+                    if ( sharing == null )
                     {
-                        hasDataRead = true;
-                    }
-                    else
-                    {
-                        for ( String userId : sharing.getUsers().keySet() )
-                        {
-                            if ( userId.equals( user.getUid() ) && sharing.getUsers().get( user ) != null &&
-                                sharing.getUsers().get( user ).matches( _DATAREAD ) )
-                            {
-                                hasDataRead = true;
-                            }
-                        }
-
-                        if ( !hasDataRead )
-                        {
-                            for ( String userGroupId : sharing.getUserGroups().keySet() )
-                            {
-                                if ( user.getGroups()
-                                    .contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
-                                    sharing.getUserGroups().get( userGroupId ).matches( _DATAREAD ) )
-                                {
-                                    hasDataRead = true;
-                                }
-                            }
-                        }
+                        return;
                     }
 
-                    if ( hasDataRead )
+                    if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD ) || hasUserGroupAccess( user, sharing,
+                        _DATAREAD ) )
                     {
                         dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
                     }
@@ -407,4 +382,46 @@ public class TrackedEntityInstanceAclReadTests
             String.format( "User should not have access to data based on metadata with uid '%s'", str ) );
     }
 
+    private boolean hasUserAccess( User user, Sharing sharing, String access )
+    {
+        if ( !sharing.hasUsers() )
+        {
+            return false;
+        }
+
+        for ( String userId : sharing.getUsers().keySet() )
+        {
+            if ( userId.equals( user.getUid() ) && sharing.getUsers().get( user ) != null &&
+                sharing.getUsers().get( user ).matches( access ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasUserGroupAccess( User user, Sharing sharing, String access )
+    {
+        if ( !sharing.hasUserGroups() )
+        {
+            return false;
+        }
+
+        for ( String userGroupId : sharing.getUserGroups().keySet() )
+        {
+            if ( user.getGroups().contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
+                sharing.getUserGroups().get( userGroupId ).matches( access ) )
+            {
+               return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasPublicAccess( Sharing sharing, String access )
+    {
+        return sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( access );
+    }
 }

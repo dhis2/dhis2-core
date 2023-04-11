@@ -104,4 +104,14 @@ public class Sharing
     {
         return users;
     }
+
+    public boolean hasUsers()
+    {
+        return users != null && !users.isEmpty();
+    }
+
+    public boolean hasUserGroups()
+    {
+        return userGroups != null && !userGroups.isEmpty();
+    }
 }
