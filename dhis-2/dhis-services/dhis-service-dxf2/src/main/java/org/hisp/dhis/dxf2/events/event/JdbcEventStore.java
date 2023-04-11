@@ -96,9 +96,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -1999,7 +1999,7 @@ public class JdbcEventStore implements EventStore
          * Extract the primary keys from the created objects
          */
         List<Long> eventIds = batch.stream()
-            .map( BaseIdentifiableObject::getId )
+            .map( IdentifiableObject::getId )
             .collect( Collectors.toList() );
 
         /*

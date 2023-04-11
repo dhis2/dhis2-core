@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
@@ -151,7 +151,7 @@ class RuleActionEventMapper
 
         return programStage.getDataElements()
             .stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
     }
 }

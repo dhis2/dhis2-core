@@ -157,7 +157,7 @@ public class TrackerExportTests
     }
 
     @Test
-    public void shouldGetSingleTeiWithNoEventsWhenEventsAreSofDeleted()
+    public void shouldGetSingleTeiWithNoEventsWhenEventsAreSoftDeleted()
     {
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
             teiWithEnrollmentAndEventsTemplate,

@@ -30,7 +30,7 @@ package org.hisp.dhis.organisationunit;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -101,7 +101,7 @@ public class OrganisationUnitDeletionHandler extends IdObjectDeletionHandler<Org
         return unit.getChildren().isEmpty()
             ? ACCEPT
             : new DeletionVeto( OrganisationUnit.class, unit.getChildren().stream()
-                .map( BaseIdentifiableObject::getName )
+                .map( IdentifiableObject::getName )
                 .collect( joining( "," ) ) );
     }
 }

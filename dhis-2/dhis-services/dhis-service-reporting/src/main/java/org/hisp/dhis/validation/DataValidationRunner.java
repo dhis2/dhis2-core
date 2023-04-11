@@ -58,11 +58,11 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -700,7 +700,7 @@ public class DataValidationRunner
             int vlInx = grid.getWidth() - 1;
 
             Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
-                .collect( Collectors.toMap( BaseIdentifiableObject::getUid, o -> o ) );
+                .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) );
             Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
                 .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
             dxLookup.putAll( periodTypeX.getIndicators().stream()
