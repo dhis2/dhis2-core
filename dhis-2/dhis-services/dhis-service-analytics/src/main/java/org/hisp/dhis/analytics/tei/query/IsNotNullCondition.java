@@ -25,32 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import javax.annotation.Nonnull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.RequiredArgsConstructor;
 
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Renderable;
+
+/**
+ * a Renderer that renders a condition that checks if a value is not null
+ */
+@RequiredArgsConstructor( staticName = "of" )
+public class IsNotNullCondition extends BaseRenderable
 {
-    private List<String> sqlViews = new ArrayList<>();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
+    public static final String IS_NOT_NULL = "is not null";
 
-    public void setSqlViews( List<String> sqlViews )
+    private final Renderable item;
+
+    @Nonnull
+    @Override
+    public String render()
     {
-        this.sqlViews = sqlViews;
+        return item.render() + SPACE + IS_NOT_NULL;
     }
 }

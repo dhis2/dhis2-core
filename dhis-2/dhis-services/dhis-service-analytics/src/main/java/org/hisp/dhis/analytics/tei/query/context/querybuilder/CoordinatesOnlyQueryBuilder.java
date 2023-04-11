@@ -25,32 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.analytics.common.query.GroupableCondition.ofUngroupedCondition;
+
 import java.util.List;
+import java.util.stream.Stream;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.GroupableCondition;
+import org.hisp.dhis.analytics.tei.query.CoordinatesOnlyCondition;
+import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+/**
+ * This class is responsible for adding the where clause for the coordinates
+ * only query. This happens we want to return only TEI with coordinates.
+ */
+@Service
+public class CoordinatesOnlyQueryBuilder extends SqlQueryBuilderAdaptor
 {
-    private List<String> sqlViews = new ArrayList<>();
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
+    @Override
+    protected Stream<GroupableCondition> getWhereClauses( QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> unused )
     {
-        return sqlViews;
+        if ( queryContext.getTeiQueryParams().getCommonParams().isCoordinatesOnly() )
+        {
+            return Stream.of( ofUngroupedCondition( CoordinatesOnlyCondition.INSTANCE ) );
+        }
+        return Stream.empty();
     }
 
-    public void setSqlViews( List<String> sqlViews )
+    @Override
+    public boolean alwaysRun()
     {
-        this.sqlViews = sqlViews;
+        return true;
     }
+
 }

@@ -242,6 +242,16 @@ public class CommonQueryRequest
     private String lastUpdated;
 
     /**
+     * weather the query should consider only items with lat/long coordinates
+     */
+    private boolean coordinatesOnly;
+
+    /**
+     * weather the query should consider only items with geometry
+     */
+    private boolean geometryOnly;
+
+    /**
      * Checks if there is a program uid in the internal list of programs.
      *
      * @return true if at least one program is found, false otherwise

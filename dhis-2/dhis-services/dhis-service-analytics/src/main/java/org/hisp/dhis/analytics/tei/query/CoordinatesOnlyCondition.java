@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Field;
 
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+/**
+ * A condition that checks if the given entity has coordinates. Renders to
+ * tei."latitude" is not null and tei."longitude" is not null"
+ */
+public class CoordinatesOnlyCondition extends BaseRenderable
 {
-    private List<String> sqlViews = new ArrayList<>();
+    public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
+    private static final String LATITUDE = "latitude";
 
-    public void setSqlViews( List<String> sqlViews )
+    private static final String LONGITUDE = "longitude";
+
+    @Override
+    public String render()
     {
-        this.sqlViews = sqlViews;
+        return AndCondition.of(
+            Stream.of( LATITUDE, LONGITUDE )
+                .map( field -> Field.of( TEI_ALIAS, () -> field, StringUtils.EMPTY ) )
+                .map( IsNotNullCondition::of )
+                .collect( Collectors.toList() ) )
+            .render();
     }
 }

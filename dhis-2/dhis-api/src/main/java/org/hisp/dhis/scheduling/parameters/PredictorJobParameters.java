@@ -29,14 +29,8 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -101,7 +95,6 @@ public class PredictorJobParameters
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
-    @OpenApi.Property( { UID[].class, Predictor.class } )
     public List<String> getPredictors()
     {
         return predictors;
@@ -115,7 +108,6 @@ public class PredictorJobParameters
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "predictorGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
-    @OpenApi.Property( { UID[].class, PredictorGroup.class } )
     public List<String> getPredictorGroups()
     {
         return predictorGroups;
@@ -124,11 +116,5 @@ public class PredictorJobParameters
     public void setPredictorGroups( List<String> predictorGroups )
     {
         this.predictorGroups = predictorGroups;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
     }
 }

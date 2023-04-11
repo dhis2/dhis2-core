@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Field;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SqlViewUpdateParameters implements JobParameters
+/**
+ * A condition that checks if the geometry is not null
+ */
+public class GeometryOnlyCondition extends BaseRenderable
 {
-    private List<String> sqlViews = new ArrayList<>();
+    public static final GeometryOnlyCondition INSTANCE = new GeometryOnlyCondition();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
+    @Override
+    public String render()
     {
-        return sqlViews;
-    }
-
-    public void setSqlViews( List<String> sqlViews )
-    {
-        this.sqlViews = sqlViews;
+        return IsNotNullCondition.of( Field.of( TEI_ALIAS, () -> "geometry", StringUtils.EMPTY ) ).render();
     }
 }
