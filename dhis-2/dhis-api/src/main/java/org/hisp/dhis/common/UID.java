@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.predictor.PredictorGroup;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Henning Håkonsen
+ * A "virtual" UID type that is "context-sensitive" and points to a UID of the
+ * current {@code Api.Endpoint}'s
+ * {@link org.hisp.dhis.common.OpenApi.EntityType}.
+ * <p>
+ * In other words by using this type in {@link OpenApi.Param#value()} the
+ * annotated parameter becomes a UID string of the controllers' entity type.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@Setter
 @NoArgsConstructor
-public class PredictorJobParameters implements JobParameters
+public final class UID
 {
-    @JsonProperty
-    private int relativeStart;
-
-    @JsonProperty
-    private int relativeEnd;
-
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, Predictor.class } )
-    private List<String> predictors = new ArrayList<>();
-
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, PredictorGroup.class } )
-    private List<String> predictorGroups = new ArrayList<>();
-
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors,
-        List<String> predictorGroups )
-    {
-        this.relativeStart = relativeStart;
-        this.relativeEnd = relativeEnd;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-    }
 }

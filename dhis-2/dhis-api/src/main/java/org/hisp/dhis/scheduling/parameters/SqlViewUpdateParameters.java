@@ -33,7 +33,10 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.sqlview.SqlView;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -51,5 +54,6 @@ public class SqlViewUpdateParameters implements JobParameters
      * should be updated by the job
      */
     @JsonProperty
+    @OpenApi.Property( { UID[].class, SqlView.class } )
     private List<String> sqlViews = new ArrayList<>();
 }
