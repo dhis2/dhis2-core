@@ -158,7 +158,7 @@ public class DataDimensionExtractor
      *         each id of that class with an atomic object.
      */
     @Transactional( readOnly = true )
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
         SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
@@ -174,7 +174,7 @@ public class DataDimensionExtractor
     }
 
     @Transactional( readOnly = true )
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
         SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
@@ -227,7 +227,7 @@ public class DataDimensionExtractor
      * @param metric the reporting rate metric.
      */
     @Transactional( readOnly = true )
-    ReportingRate getReportingRate( IdScheme idScheme, String dataSetId, String metric )
+    public ReportingRate getReportingRate( IdScheme idScheme, String dataSetId, String metric )
     {
         DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
         boolean metricValid = isValidEnum( ReportingRateMetric.class, metric );
@@ -248,7 +248,7 @@ public class DataDimensionExtractor
      * @param attributeId the attribute identifier.
      */
     @Transactional( readOnly = true )
-    ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme,
+    public ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme,
         String programId, String attributeId )
     {
         Program program = idObjectManager.getObject( Program.class, idScheme, programId );
@@ -271,7 +271,7 @@ public class DataDimensionExtractor
      * @param dataElementId the data element identifier.
      */
     @Transactional( readOnly = true )
-    ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId,
+    public ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId,
         String dataElementId )
     {
         Program program = idObjectManager.getObject( Program.class, idScheme, programId );
