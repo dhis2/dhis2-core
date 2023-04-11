@@ -179,8 +179,9 @@ public class TrackedEntityInstanceAclReadTests
                         return;
                     }
 
-                    if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD ) || hasUserGroupAccess( user, sharing,
-                        _DATAREAD ) )
+                    if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD )
+                        || hasUserGroupAccess( user, sharing,
+                            _DATAREAD ) )
                     {
                         dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
                     }
@@ -413,7 +414,7 @@ public class TrackedEntityInstanceAclReadTests
             if ( user.getGroups().contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
                 sharing.getUserGroups().get( userGroupId ).matches( access ) )
             {
-               return true;
+                return true;
             }
         }
 
