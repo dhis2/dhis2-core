@@ -30,32 +30,24 @@ package org.hisp.dhis.scheduling.parameters;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.Getter;
 import lombok.Setter;
 
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Bernitt
  */
+@Getter
 @Setter
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 public class AggregateDataExchangeJobParameters implements JobParameters
 {
-    private List<String> dataExchangeIds;
-
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getDataExchangeIds()
-    {
-        return dataExchangeIds;
-    }
+    private List<String> dataExchangeIds;
 
     @Override
     public Optional<ErrorReport> validate()
