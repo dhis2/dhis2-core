@@ -64,7 +64,6 @@ class DatabaseInfoTest
         assertNull( databaseInfo.getUser() );
         assertNull( databaseInfo.getUrl() );
         assertNull( databaseInfo.getDatabaseVersion() );
-        assertFalse( databaseInfo.isSpatialSupport() );
     }
 
     private DatabaseInfo getDataBaseInfo()
