@@ -92,7 +92,7 @@ public class MetadataHandler
      * @param grid the grid.
      */
     @Transactional( readOnly = true )
-    void addMetaData( DataQueryParams params, Grid grid )
+    public void addMetaData( DataQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() )
         {
