@@ -30,35 +30,34 @@ package org.hisp.dhis.scheduling.parameters;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Henning Håkonsen
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class AnalyticsJobParameters
-    implements JobParameters
+@Getter
+@Setter
+@NoArgsConstructor
+public class AnalyticsJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 4613054056442242637L;
-
+    @JsonProperty
     private Integer lastYears;
 
+    @JsonProperty
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
+    @JsonProperty
     private Set<String> skipPrograms = new HashSet<>();
 
+    @JsonProperty
     private boolean skipResourceTables = false;
-
-    public AnalyticsJobParameters()
-    {
-    }
 
     public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes,
         Set<String> skipPrograms, boolean skipResourceTables )
@@ -66,56 +65,6 @@ public class AnalyticsJobParameters
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;
         this.skipPrograms = skipPrograms;
-        this.skipResourceTables = skipResourceTables;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getLastYears()
-    {
-        return lastYears;
-    }
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "skipTableTypes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "skipTableType", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<AnalyticsTableType> getSkipTableTypes()
-    {
-        return skipTableTypes;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "skipPrograms", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "skipProgram", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getSkipPrograms()
-    {
-        return skipPrograms;
-    }
-
-    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
-    {
-        this.skipTableTypes = skipTableTypes;
-    }
-
-    public void setSkipPrograms( Set<String> skipPrograms )
-    {
-        this.skipPrograms = skipPrograms;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipResourceTables()
-    {
-        return skipResourceTables;
-    }
-
-    public void setSkipResourceTables( boolean skipResourceTables )
-    {
         this.skipResourceTables = skipResourceTables;
     }
 }
