@@ -159,6 +159,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This component is responsible for handling and retrieving data based on the
@@ -221,7 +222,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the {@link Grid}.
      */
-    void addIndicatorValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addIndicatorValues( DataQueryParams params, Grid grid )
     {
         if ( !params.getIndicators().isEmpty() && !params.isSkipData() )
         {
@@ -242,7 +244,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the {@link Grid}.
      */
-    void addExpressionDimensionItemValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addExpressionDimensionItemValues( DataQueryParams params, Grid grid )
     {
         if ( !params.getExpressionDimensionItems().isEmpty() && !params.isSkipData() )
         {
@@ -380,7 +383,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addDataElementValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addDataElementValues( DataQueryParams params, Grid grid )
     {
         if ( !params.getAllDataElements().isEmpty() && (!params.isSkipData() || params.analyzeOnly()) )
         {
@@ -413,7 +417,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
     {
         if ( (!params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty())
             && !params.isSkipData() )
@@ -459,7 +464,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addReportingRates( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addReportingRates( DataQueryParams params, Grid grid )
     {
         if ( !params.getReportingRates().isEmpty() && !params.isSkipData() )
         {
@@ -483,7 +489,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addDataElementOperandValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addDataElementOperandValues( DataQueryParams params, Grid grid )
     {
         if ( !params.getDataElementOperands().isEmpty() && !params.isSkipData() )
         {
@@ -505,7 +512,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addDynamicDimensionValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addDynamicDimensionValues( DataQueryParams params, Grid grid )
     {
         if ( params.getDataDimensionAndFilterOptions().isEmpty() && !params.isSkipData() )
         {
@@ -523,7 +531,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addValidationResultValues( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addValidationResultValues( DataQueryParams params, Grid grid )
     {
         if ( !params.getAllValidationResults().isEmpty() && !params.isSkipData() )
         {
@@ -544,7 +553,8 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addRawData( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addRawData( DataQueryParams params, Grid grid )
     {
         if ( !params.isSkipData() )
         {
@@ -562,7 +572,8 @@ public class DataHandler
      *
      * @param params the {@link DataQueryParams}.
      */
-    DataQueryParams prepareForRawDataQuery( DataQueryParams params )
+    @Transactional( readOnly = true )
+    public DataQueryParams prepareForRawDataQuery( DataQueryParams params )
     {
         DataQueryParams.Builder builder = newBuilder( params )
             .withEarliestStartDateLatestEndDate()
