@@ -358,6 +358,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
         return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
