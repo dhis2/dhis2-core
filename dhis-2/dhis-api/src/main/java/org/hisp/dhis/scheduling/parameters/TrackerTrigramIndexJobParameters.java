@@ -28,14 +28,12 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -82,11 +80,5 @@ public class TrackerTrigramIndexJobParameters
     public void setSkipIndexDeletion( boolean skipIndexDeletion )
     {
         this.skipIndexDeletion = skipIndexDeletion;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
     }
 }

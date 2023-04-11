@@ -36,7 +36,7 @@ import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.tei.query.EnrolledInProgramCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,7 +53,7 @@ public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor
     {
         return queryContext.getTeiQueryParams().getCommonParams()
             .getPrograms().stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .map( ProgramEnrolledQueryBuilder::asUngroupedEnrolledInProgramCondition );
     }
 

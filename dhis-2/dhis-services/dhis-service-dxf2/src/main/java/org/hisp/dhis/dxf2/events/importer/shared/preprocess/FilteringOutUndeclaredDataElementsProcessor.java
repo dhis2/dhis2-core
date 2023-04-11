@@ -33,8 +33,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
@@ -90,7 +90,7 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
             .map( ProgramStage::getDataElements )
             .orElse( Collections.emptySet() )
             .stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
     }
 

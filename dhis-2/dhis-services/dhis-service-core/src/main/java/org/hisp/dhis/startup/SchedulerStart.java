@@ -96,6 +96,8 @@ public class SchedulerStart extends AbstractStartupRoutine
             "Dataset notification" ),
         REMOVE_EXPIRED_OR_USED_RESERVED_VALUES( CRON_DAILY_2AM, "uwWCT2BMmlq", REMOVE_USED_OR_EXPIRED_RESERVED_VALUES,
             "Remove expired or used reserved values" ),
+        REMOVE_EXPIRED_LOCK_EXCEPTIONS( CRON_DAILY_2AM, "OQ9KeLgqy20", JobType.LOCK_EXCEPTION_CLEANUP,
+            "Remove lock exceptions older than 6 months" ),
         LEADER_ELECTION( LEADER_JOB_CRON_FORMAT, "MoUd5BTQ3lY", JobType.LEADER_ELECTION,
             "Leader election in cluster" );
 
@@ -204,6 +206,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         addDefaultJob( SystemJob.DATA_SET_NOTIFICATION, jobConfigurations );
         addDefaultJob( SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations );
         addDefaultJob( SystemJob.SYSTEM_VERSION_UPDATE_CHECK, jobConfigurations );
+        addDefaultJob( SystemJob.REMOVE_EXPIRED_LOCK_EXCEPTIONS, jobConfigurations );
 
         if ( redisEnabled && verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations ) )
         {

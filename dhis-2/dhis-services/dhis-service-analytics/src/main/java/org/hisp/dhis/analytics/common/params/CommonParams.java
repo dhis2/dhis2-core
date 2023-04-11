@@ -136,8 +136,7 @@ public class CommonParams
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
-    @Builder.Default
-    private final IdScheme dataIdScheme = UID;
+    private final IdScheme dataIdScheme;
 
     /**
      * The general id scheme, which drives the values in the response object.
@@ -193,6 +192,16 @@ public class CommonParams
      * Indicates if additional ou hierarchy data should be provided.
      */
     private final boolean showHierarchy;
+
+    /**
+     * weather the query should consider only items with lat/long coordinates
+     */
+    private boolean coordinatesOnly;
+
+    /**
+     * weather the query should consider only items with geometry
+     */
+    private boolean geometryOnly;
 
     /**
      * Indicates whether this query defines a master identifier scheme different

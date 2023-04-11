@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_ATTRIBUTE_NAME;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_VALUE;
 
 import java.util.Set;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -42,12 +45,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class OrderingHelper
 {
-    private OrderingHelper()
-    {
-    }
-
     /**
      * Sets the ordering defined by orderParams into the paramsMap. It will set
      * the given "orderParams" into the provided "paramsMap". It's important to
@@ -59,15 +59,15 @@ public class OrderingHelper
      * @param orderParams the source of ordering params
      * @param paramsMap the map that will receive the order params
      */
-    public static void setOrderingParams( final OrderParams orderParams, final MapSqlParameterSource paramsMap )
+    public static void setOrderingParams( OrderParams orderParams, MapSqlParameterSource paramsMap )
     {
         if ( orderParams != null && isNotEmpty( orderParams.getOrders() ) )
         {
-            final Set<String> orders = orderParams.getOrders();
+            Set<String> orders = orderParams.getOrders();
 
-            for ( final String order : orders )
+            for ( String order : orders )
             {
-                final String[] orderAttributeValuePair = order.split( ":" );
+                String[] orderAttributeValuePair = order.split( ":" );
 
                 // Concatenation of param name (ie.:"name") + "Order". It will
                 // result in "nameOrder".

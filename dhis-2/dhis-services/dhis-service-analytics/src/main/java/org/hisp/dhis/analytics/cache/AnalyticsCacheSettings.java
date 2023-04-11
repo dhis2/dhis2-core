@@ -52,7 +52,7 @@ public class AnalyticsCacheSettings
 {
     private final SystemSettingManager systemSettingManager;
 
-    public AnalyticsCacheSettings( final SystemSettingManager systemSettingManager )
+    public AnalyticsCacheSettings( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
         this.systemSettingManager = systemSettingManager;
@@ -125,8 +125,7 @@ public class AnalyticsCacheSettings
      */
     public long fixedExpirationTimeOrDefault()
     {
-        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
-            CacheStrategy.class );
+        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY, CacheStrategy.class );
 
         return (NO_CACHE.equals( cacheStrategy ))
             ? NO_CACHE.toSeconds()

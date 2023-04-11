@@ -41,7 +41,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
 public class Document
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * Can be either a valid URL, or the path (filename) of a file. If the

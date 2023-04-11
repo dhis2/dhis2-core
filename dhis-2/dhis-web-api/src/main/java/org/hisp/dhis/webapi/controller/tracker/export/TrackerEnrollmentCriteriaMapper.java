@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -113,7 +113,7 @@ public class TrackerEnrollmentCriteriaMapper
         params.setProgramEndDate( criteria.getEnrolledBefore() );
         params.setTrackedEntityType( trackedEntityType );
         params.setTrackedEntityInstanceUid(
-            Optional.ofNullable( trackedEntity ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
+            Optional.ofNullable( trackedEntity ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.addOrganisationUnits( orgUnits );
         params.setOrganisationUnitMode( criteria.getOuMode() );
         params.setPage( criteria.getPage() );

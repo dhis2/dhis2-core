@@ -42,7 +42,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.setting.SystemSettingStore" )
 public class HibernateSystemSettingStore
-    extends HibernateGenericStore<SystemSetting> implements SystemSettingStore
+    extends HibernateGenericStore<SystemSetting>
+    implements SystemSettingStore
 {
     public HibernateSystemSettingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher )

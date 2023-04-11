@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.Schema;
@@ -70,7 +69,7 @@ public class ProgramRuleVariableSchemaDescriptor implements SchemaDescriptor
 
     private Function<IdentifiableObject, String> nameExtractor()
     {
-        return o -> castAndExtract( o, BaseIdentifiableObject::getName );
+        return o -> castAndExtract( o, IdentifiableObject::getName );
     }
 
     private Function<IdentifiableObject, String> programUidExtractor()

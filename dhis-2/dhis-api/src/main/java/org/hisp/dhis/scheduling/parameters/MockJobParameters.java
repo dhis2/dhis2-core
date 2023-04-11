@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Optional;
-
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -65,11 +62,5 @@ public class MockJobParameters
     public void setMessage( String message )
     {
         this.message = message;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
     }
 }

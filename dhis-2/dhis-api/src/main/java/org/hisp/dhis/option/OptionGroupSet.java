@@ -52,7 +52,8 @@ import com.google.common.collect.Lists;
  */
 @JacksonXmlRootElement( localName = "optionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class OptionGroupSet
-    extends BaseDimensionalObject implements MetadataObject
+    extends BaseDimensionalObject
+    implements MetadataObject
 {
     private List<OptionGroup> members = new ArrayList<>();
 
