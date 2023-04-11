@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonElement;
 import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.LoginActions;
@@ -58,6 +57,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
