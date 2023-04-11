@@ -29,15 +29,22 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     DebugMapper.class,
-    AttributeValueMapper.class
+    OrganisationUnitMapper.class,
+    AttributeValueMapper.class,
+    SharingMapper.class
 } )
 public interface CategoryOptionMapper extends PreheatMapper<CategoryOption>
 {
     CategoryOptionMapper INSTANCE = Mappers.getMapper( CategoryOptionMapper.class );
 
+    @Mapping( target = "publicAccess", ignore = true )
+    @Mapping( target = "userAccesses", ignore = true )
+    @Mapping( target = "userGroupAccesses", ignore = true )
+    @Mapping( target = "externalAccess", ignore = true )
     CategoryOption map( CategoryOption categoryOption );
 }

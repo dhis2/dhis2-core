@@ -27,13 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.Map;
-
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.mapstruct.BeanMapping;
-import org.mapstruct.MapMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -50,11 +45,4 @@ public interface SharingMapper extends PreheatMapper<Sharing>
     @Mapping( target = "users" )
     @Mapping( target = "userGroups" )
     Sharing map( Sharing sharing );
-
-    @MapMapping( keyTargetType = String.class, valueTargetType = UserAccess.class )
-    Map<String, UserAccess> users( Map<String, UserAccess> users );
-
-    @MapMapping( keyTargetType = String.class, valueTargetType = UserGroupAccess.class )
-    Map<String, UserGroupAccess> userGroups( Map<String, UserGroupAccess> userGroups );
-
 }
