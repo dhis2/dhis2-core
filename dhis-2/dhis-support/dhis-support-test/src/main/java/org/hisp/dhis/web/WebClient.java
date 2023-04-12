@@ -173,7 +173,7 @@ public interface WebClient
 
     default HttpResponse PATCH_OLD( String url, String body )
     {
-        return webRequest( HttpMethod.PATCH, url, ContentType( APPLICATION_JSON_UTF8 ), Body( body ) );
+        return webRequest( HttpMethod.PATCH, url, ContentType( "application/json" ), Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )
