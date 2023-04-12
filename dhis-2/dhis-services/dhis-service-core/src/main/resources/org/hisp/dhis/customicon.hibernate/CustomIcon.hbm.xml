@@ -25,5 +25,9 @@
       <element column="keyword" type="string"/>
     </bag>
 
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                 column="createdby"
+                 foreign-key="fk_createdby_userid" not-null="true"/>
+
   </class>
 </hibernate-mapping>

@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconData;
 import org.hisp.dhis.icon.IconService;
@@ -106,7 +107,8 @@ public class IconController
 
     @GetMapping( "/{iconKey}" )
     public @ResponseBody IconData getIcon( HttpServletResponse response, @PathVariable String iconKey )
-        throws WebMessageException
+        throws WebMessageException,
+        NotFoundException
     {
         IconData icon = iconService.getIcon( iconKey );
 

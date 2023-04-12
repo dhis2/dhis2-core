@@ -94,12 +94,6 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
 
     @Override
-    public FileResource getFileResource( long id )
-    {
-        return checkStorageStatus( fileResourceStore.get( id ) );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public FileResource getFileResource( String uid )
     {

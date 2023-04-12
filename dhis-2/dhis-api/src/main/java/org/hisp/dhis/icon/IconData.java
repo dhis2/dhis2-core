@@ -31,13 +31,12 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -46,10 +45,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
 @NoArgsConstructor
-public class IconData extends BaseIdentifiableObject
+public class IconData
 {
+    private long id;
+
     @JsonProperty
     private String key;
 
@@ -65,6 +65,9 @@ public class IconData extends BaseIdentifiableObject
     @JsonProperty
     private FileResource fileResource;
 
+    @JsonProperty
+    private User createdBy;
+
     IconData( @Nonnull String key, String description, List<String> keywords )
     {
         this.key = key;
@@ -72,12 +75,14 @@ public class IconData extends BaseIdentifiableObject
         this.keywords = keywords;
     }
 
-    public IconData( @Nonnull String key, String description, List<String> keywords, FileResource fileResource )
+    public IconData( @Nonnull String key, String description, List<String> keywords, @Nonnull FileResource fileResource,
+        User user )
     {
         this.key = key;
         this.description = description;
         this.keywords = keywords;
         this.fileResource = fileResource;
+        this.createdBy = user;
     }
 
     public IconData setReference( String ref )

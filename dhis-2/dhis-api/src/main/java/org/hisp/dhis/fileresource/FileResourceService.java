@@ -44,8 +44,6 @@ import javax.annotation.Nonnull;
  */
 public interface FileResourceService
 {
-    FileResource getFileResource( long id );
-
     FileResource getFileResource( String uid );
 
     List<FileResource> getFileResources( @Nonnull List<String> uids );

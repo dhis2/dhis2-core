@@ -40,8 +40,10 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -63,6 +65,8 @@ public class DefaultIconService
 
     private final FileResourceService fileResourceService;
 
+    private final CurrentUserService currentUserService;
+
     private final Map<String, IconData> standardIcons = Arrays.stream( Icon.values() )
         .map( Icon::getVariants )
         .flatMap( Collection::stream )
@@ -70,7 +74,7 @@ public class DefaultIconService
 
     public Collection<IconData> getIcons()
     {
-        return Stream.concat( standardIcons.values().stream(), customIconStore.getAll().stream() )
+        return Stream.concat( standardIcons.values().stream(), customIconStore.getAllIcons().stream() )
             .collect( Collectors.toList() );
     }
 
@@ -84,6 +88,7 @@ public class DefaultIconService
 
     @Override
     public IconData getIcon( String key )
+        throws NotFoundException
     {
         if ( standardIcons.containsKey( key ) )
         {
@@ -91,6 +96,12 @@ public class DefaultIconService
         }
         else
         {
+            IconData iconData = customIconStore.getIconByKey( key );
+            if ( iconData == null )
+            {
+                throw new NotFoundException( String.format( "Icon not found: %s", key ) );
+            }
+
             return customIconStore.getIconByKey( key );
         }
     }
@@ -115,18 +126,27 @@ public class DefaultIconService
     }
 
     @Override
-    @Transactional
-    public void addIcon( String key, String description, List<String> keywords, FileResource fileResourceId )
-        throws BadRequestException
+    public boolean iconExists( String key )
     {
-        validateIconProperties( key, fileResourceId );
-        customIconStore.save( new IconData( key, description, keywords, fileResourceId ) );
+        return customIconStore.getIconByKey( key ) != null;
     }
 
     @Override
     @Transactional
-    public void updateIconDescription( String key, String description )
-        throws BadRequestException
+    public void addCustomIcon( IconData iconData )
+        throws BadRequestException,
+        NotFoundException
+    {
+        validateIconExists( iconData.getKey() );
+        validateFileResourceExists( iconData.getFileResource() );
+        customIconStore.save( iconData );
+    }
+
+    @Override
+    @Transactional
+    public void updateCustomIconDescription( String key, String description )
+        throws BadRequestException,
+        NotFoundException
     {
         IconData icon = validateCustomIconExists( key );
         icon.setDescription( description );
@@ -136,8 +156,9 @@ public class DefaultIconService
 
     @Override
     @Transactional
-    public void updateIconKeywords( String key, List<String> keywords )
-        throws BadRequestException
+    public void updateCustomIconKeywords( String key, List<String> keywords )
+        throws BadRequestException,
+        NotFoundException
     {
         IconData icon = validateCustomIconExists( key );
         icon.setKeywords( keywords );
@@ -147,8 +168,9 @@ public class DefaultIconService
 
     @Override
     @Transactional
-    public void updateIconDescriptionAndKeywords( String key, String description, List<String> keywords )
-        throws BadRequestException
+    public void updateCustomIconDescriptionAndKeywords( String key, String description, List<String> keywords )
+        throws BadRequestException,
+        NotFoundException
     {
         IconData icon = validateCustomIconExists( key );
         icon.setDescription( description );
@@ -159,35 +181,27 @@ public class DefaultIconService
 
     @Override
     @Transactional
-    public void deleteIcon( String key )
-        throws BadRequestException
+    public void deleteCustomIcon( String key )
+        throws BadRequestException,
+        NotFoundException
     {
         IconData icon = validateCustomIconExists( key );
-
-        fileResourceService.getFileResource( icon.getFileResource().getId() ).setAssigned( false );
+        fileResourceService.getFileResource( icon.getFileResource().getUid() ).setAssigned( false );
         customIconStore.delete( icon );
     }
 
-    private void validateIconProperties( String key, FileResource fileResource )
+    private void validateIconExists( String key )
         throws BadRequestException
     {
-        validateIconKey( key );
+        validateIconKeyNotNullOrEmpty( key );
 
-        if ( fileResource == null )
-        {
-            throw new BadRequestException( "File resource id not specified." );
-        }
-        if ( getIcon( key ) != null )
+        if ( iconExists( key ) )
         {
             throw new BadRequestException( String.format( "Icon with key %s already exists.", key ) );
         }
-        if ( fileResourceService.getFileResource( fileResource.getId() ) == null )
-        {
-            throw new BadRequestException( String.format( "File resource %s does not exist", fileResource.getId() ) );
-        }
     }
 
-    private void validateIconKey( String key )
+    private void validateIconKeyNotNullOrEmpty( String key )
         throws BadRequestException
     {
         if ( Strings.isNullOrEmpty( key ) )
@@ -196,16 +210,33 @@ public class DefaultIconService
         }
     }
 
-    private IconData validateCustomIconExists( String key )
-        throws BadRequestException
+    private void validateFileResourceExists( FileResource fileResource )
+        throws BadRequestException,
+        NotFoundException
     {
-        validateIconKey( key );
+        if ( fileResource == null || Strings.isNullOrEmpty( fileResource.getUid() ) )
+        {
+            throw new BadRequestException( "File resource id not specified." );
+        }
+
+        if ( fileResourceService.getFileResource( fileResource.getUid() ) == null )
+        {
+            throw new NotFoundException( String.format( "File resource %s does not exist", fileResource.getUid() ) );
+        }
+
+    }
+
+    private IconData validateCustomIconExists( String key )
+        throws NotFoundException,
+        BadRequestException
+    {
+        validateIconKeyNotNullOrEmpty( key );
 
         IconData icon = getCustomIcon( key );
 
         if ( icon == null )
         {
-            throw new BadRequestException( String.format( "Custom icon with key %s does not exists.", key ) );
+            throw new NotFoundException( String.format( "Custom icon with key %s does not exists.", key ) );
         }
 
         return icon;

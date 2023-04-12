@@ -30,42 +30,63 @@ package org.hisp.dhis.icon.hibernate;
 import java.util.Collection;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.icon.IconData;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository( "org.hisp.dhis.icon.CustomIconStore" )
+@RequiredArgsConstructor
 public class HibernateCustomIconStore
-    extends HibernateIdentifiableObjectStore<IconData>
     implements CustomIconStore
 {
 
-    public HibernateCustomIconStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, IconData.class, currentUserService, aclService, false );
+    private final SessionFactory sessionFactory;
 
+    @Override
+    public void save( IconData iconData )
+    {
+        sessionFactory.getCurrentSession().save( iconData );
     }
 
+    @Override
+    public void delete( IconData iconData )
+    {
+        sessionFactory.getCurrentSession().delete( iconData );
+    }
+
+    @Override
+    public void update( IconData iconData )
+    {
+        sessionFactory.getCurrentSession().update( iconData );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<IconData> getAllIcons()
+    {
+        String hql = "from IconData";
+        return sessionFactory.getCurrentSession().createQuery( hql, IconData.class ).getResultList();
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public IconData getIconByKey( String key )
     {
         String hql = "from IconData where key = :key";
-        return getQuery( hql ).setParameter( "key", key ).getResultList().stream().findFirst().orElse( null );
+        return sessionFactory.getCurrentSession().createQuery( hql, IconData.class ).setParameter( "key", key )
+            .getResultList().stream().findFirst().orElse( null );
     }
 
     @Override
     public List<IconData> getIconsByKeywords( Collection<String> keywords )
     {
         String hql = "select i from IconData i join i.keywords k where k in (:keywordList) group by i.id having count(distinct k) = :numKeywords";
-        return getQuery( hql ).setParameter( "keywordList", keywords )
+        return sessionFactory.getCurrentSession().createQuery( hql, IconData.class )
+            .setParameter( "keywordList", keywords )
             .setParameter( "numKeywords", (long) keywords.size() ).getResultList();
     }
 
@@ -73,6 +94,6 @@ public class HibernateCustomIconStore
     public List<String> getKeywords()
     {
         String hql = "select distinct k from IconData i join i.keywords k";
-        return getQuery( hql, String.class ).getResultList();
+        return sessionFactory.getCurrentSession().createQuery( hql, String.class ).getResultList();
     }
 }

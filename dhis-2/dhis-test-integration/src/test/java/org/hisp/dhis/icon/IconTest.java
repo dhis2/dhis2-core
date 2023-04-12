@@ -30,7 +30,7 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,10 +45,12 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +65,9 @@ class IconTest extends TrackerTest
     private FileResourceService fileResourceService;
 
     @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private IconService iconService;
 
     private final String iconKey = "iconKey";
@@ -75,7 +80,8 @@ class IconTest extends TrackerTest
         throws IOException
     {
         FileResource fileResource = createAndPersistFileResource( 'A' );
-        iconService.addIcon( iconKey, "description", keywords, fileResource );
+        iconService.addCustomIcon(
+            new IconData( iconKey, "description", keywords, fileResource, currentUserService.getCurrentUser() ) );
     }
 
     @Test
@@ -90,6 +96,7 @@ class IconTest extends TrackerTest
 
     @Test
     void shouldGetStandardIconWhenKeyBelongsToStandardIcon()
+        throws NotFoundException
     {
         String standardIconKey = "2g_positive";
 
@@ -112,37 +119,42 @@ class IconTest extends TrackerTest
 
     @Test
     void shouldGetIconsFilteredByKeywordWhenRequested()
-        throws BadRequestException
+        throws BadRequestException,
+        NotFoundException
     {
         FileResource fileResourceB = createAndPersistFileResource( 'B' );
-        iconService.addIcon( "iconKeyB", "description", List.of( "k4", "k5", "k6" ), fileResourceB );
+        iconService.addCustomIcon( new IconData( "iconKeyB", "description", List.of( "k4", "k5", "k6" ), fileResourceB,
+            currentUserService.getCurrentUser() ) );
         FileResource fileResourceC = createAndPersistFileResource( 'C' );
-        iconService.addIcon( "iconKeyC", "description", List.of( "k6", "k7", "k8" ), fileResourceC );
+        iconService.addCustomIcon( new IconData( "iconKeyC", "description", List.of( "k6", "k7", "k8" ), fileResourceC,
+            currentUserService.getCurrentUser() ) );
         FileResource fileResourceD = createAndPersistFileResource( 'D' );
-        iconService.addIcon( "iconKeyD", "description", List.of( "world care" ), fileResourceD );
+        iconService.addCustomIcon( new IconData( "iconKeyD", "description", List.of( "world care" ), fileResourceD,
+            currentUserService.getCurrentUser() ) );
 
         assertEquals( 1, iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size(),
-            "Expected only one icon containing the keys k4, k5 and k6, but found "
+            "Expected one icon containing the keys k4, k5 and k6, but found "
                 + iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size() );
         assertEquals( 1, iconService.getIcons( List.of( "k6", "k7" ) ).size(),
-            "Expected only one icon containing the keys k6 and k7, but found "
+            "Expected one icon containing the keys k6 and k7, but found "
                 + iconService.getIcons( List.of( "k6", "k7" ) ).size() );
         assertEquals( 2, iconService.getIcons( List.of( "k6" ) ).size(),
-            "Expected only two icons containing the key k6, but found "
+            "Expected two icons containing the key k6, but found "
                 + iconService.getIcons( List.of( "k6" ) ).size() );
         assertGreaterOrEqual( 2, iconService.getIcons( List.of( "world care" ) ).size() );
     }
 
     @Test
     void shouldSaveIconWhenKeyProvidedAndIconDoesNotExist()
-        throws BadRequestException
+        throws BadRequestException,
+        NotFoundException
     {
         FileResource fileResource = createAndPersistFileResource( 'A' );
 
-        iconService.addIcon( "newIconKey", "description", keywords, fileResource );
+        iconService.addCustomIcon(
+            new IconData( "newIconKey", "description", keywords, fileResource, currentUserService.getCurrentUser() ) );
 
         IconData icon = iconService.getIcon( "newIconKey" );
-        assertEquals( "newIconKey", icon.getKey() );
         assertEquals( "description", icon.getDescription() );
         assertContainsOnly( List.of( "k1", "k2", "k3" ), icon.getKeywords() );
         assertEquals( fileResource.getId(), icon.getFileResource().getId() );
@@ -151,45 +163,47 @@ class IconTest extends TrackerTest
 
     @Test
     void shouldUpdateIconDescriptionWhenKeyProvidedAndIconExists()
-        throws BadRequestException
+        throws BadRequestException,
+        NotFoundException
     {
-        iconService.updateIconDescription( iconKey, "updatedDescription" );
+        iconService.updateCustomIconDescription( iconKey, "updatedDescription" );
 
         IconData updatedIcon = iconService.getIcon( iconKey );
-        assertEquals( iconKey, updatedIcon.getKey() );
         assertEquals( "updatedDescription", updatedIcon.getDescription() );
     }
 
     @Test
     void shouldUpdateIconKeywordsWhenKeyProvidedAndIconExists()
-        throws BadRequestException
+        throws BadRequestException,
+        NotFoundException
     {
-        iconService.updateIconKeywords( iconKey, List.of( "new k1", "new k2" ) );
+        iconService.updateCustomIconKeywords( iconKey, List.of( "new k1", "new k2" ) );
 
         IconData updatedIcon = iconService.getIcon( iconKey );
-        assertEquals( iconKey, updatedIcon.getKey() );
         assertContainsOnly( List.of( "new k1", "new k2" ), updatedIcon.getKeywords() );
     }
 
     @Test
     void shouldUpdateIconDescriptionAndKeywordsWhenKeyProvidedAndIconExists()
-        throws BadRequestException
+        throws NotFoundException,
+        BadRequestException
     {
-        iconService.updateIconDescriptionAndKeywords( iconKey, "updatedDescription", List.of( "new k1", "new k2" ) );
+        iconService.updateCustomIconDescriptionAndKeywords( iconKey, "updatedDescription",
+            List.of( "new k1", "new k2" ) );
 
         IconData updatedIcon = iconService.getIcon( iconKey );
-        assertEquals( iconKey, updatedIcon.getKey() );
         assertEquals( "updatedDescription", updatedIcon.getDescription() );
         assertContainsOnly( List.of( "new k1", "new k2" ), updatedIcon.getKeywords() );
     }
 
     @Test
     void shouldDeleteIconDescriptionWhenKeyProvidedAndIconExists()
-        throws BadRequestException
+        throws NotFoundException,
+        BadRequestException
     {
-        iconService.deleteIcon( iconKey );
+        iconService.deleteCustomIcon( iconKey );
 
-        assertNull( iconService.getIcon( iconKey ) );
+        assertFalse( iconService.iconExists( iconKey ) );
     }
 
     public FileResource createAndPersistFileResource( char uniqueChar )

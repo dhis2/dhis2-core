@@ -30,11 +30,29 @@ package org.hisp.dhis.icon;
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
 public interface CustomIconStore
-    extends IdentifiableObjectStore<IconData>
 {
+
+    /**
+     * Persists an icon to the database
+     *
+     * @param iconData Icon to be saved
+     */
+    void save( IconData iconData );
+
+    /**
+     * Deletes a custom icon from the database
+     *
+     * @param iconData Icon to be deleted
+     */
+    void delete( IconData iconData );
+
+    /**
+     * Updates a custom icon from the database
+     *
+     * @param iconData Icon to be updated
+     */
+    void update( IconData iconData );
 
     /**
      * Returns a custom icon that contains a given key
@@ -43,6 +61,13 @@ public interface CustomIconStore
      * @return the custom icon matching the key, or null instead
      */
     IconData getIconByKey( String key );
+
+    /**
+     * Gets all custom icons present in the database
+     *
+     * @return a list of IconData containing all icons
+     */
+    List<IconData> getAllIcons();
 
     /**
      * Returns a list of custom icons that contain all the specified keywords
