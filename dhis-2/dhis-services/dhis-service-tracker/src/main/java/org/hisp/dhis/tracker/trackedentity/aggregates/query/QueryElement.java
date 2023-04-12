@@ -25,37 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.query;
 
-import lombok.Value;
-import lombok.With;
-
-@With
-@Value
-public class EnrollmentParams
+/**
+ * @author Luciano Fiandesio
+ */
+interface QueryElement
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    String useInSelect();
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
-    {
-        return enrollmentEventsParams.isIncludeEvents();
-    }
-
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
-    }
+    String getResultsetValue();
 }

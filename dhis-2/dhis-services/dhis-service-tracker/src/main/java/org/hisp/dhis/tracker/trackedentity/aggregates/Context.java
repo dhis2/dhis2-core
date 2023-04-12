@@ -25,37 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates;
 
+import java.util.List;
+
+import lombok.Builder;
 import lombok.Value;
-import lombok.With;
 
-@With
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
+
+/**
+ * @author Luciano Fiandesio
+ */
 @Value
-public class EnrollmentParams
+@Builder( toBuilder = true )
+class Context
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    /**
+     * returns true if user is Super User
+     */
+    boolean superUser;
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    /**
+     * The current user id
+     */
+    Long userId;
 
-    EnrollmentEventsParams enrollmentEventsParams;
+    /**
+     * The current user uid
+     */
+    String userUid;
 
-    boolean includeRelationships;
+    /**
+     * A list of group ID to which the user belongs
+     */
+    List<String> userGroups;
 
-    boolean includeAttributes;
+    /**
+     * A List of Tracked Entity Types ID to which the user has READ ONLY access
+     */
+    List<Long> trackedEntityTypes;
 
-    boolean includeDeleted;
+    /**
+     * A List of Programs ID to which the user has READ ONLY access
+     */
+    List<Long> programs;
 
-    public boolean isIncludeEvents()
-    {
-        return enrollmentEventsParams.isIncludeEvents();
-    }
+    /**
+     * A List of Program Stages ID to which the user has READ ONLY access
+     */
+    List<Long> programStages;
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
-    }
+    /**
+     * A List of Relationship ID to which the user has READ ONLY access
+     */
+    List<Long> relationshipTypes;
+
+    /**
+     * The tei params to specify depth of tei graph
+     */
+    TrackedEntityParams params;
+
+    /**
+     * The query parameters to filter teis
+     */
+    TrackedEntityInstanceQueryParams queryParams;
 }

@@ -25,37 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates;
 
-import lombok.Value;
-import lombok.With;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-@With
-@Value
-public class EnrollmentParams
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+/**
+ * Exposes a static method to fetch an Executor for the Aggregates operations
+ *
+ * @author Luciano Fiandesio
+ */
+public class ThreadPoolManager
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
-
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    // Thread factory that sets a user-defined thread name (useful for debugging
+    // purposes)
+    private ThreadPoolManager()
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        throw new IllegalStateException( "only used for its static fields" );
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    private static final ThreadFactory threadFactory = new ThreadFactoryBuilder()
+        .setNameFormat( "TRACKER-TEI-FETCH-%d" )
+        .setDaemon( true )
+        .build();
+
+    /**
+     * Cached thread pool: not bound to a size, but can reuse existing threads.
+     */
+    private static final Executor AGGREGATE_THREAD_POOL = Executors.newCachedThreadPool( threadFactory );
+
+    static Executor getPool()
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return AGGREGATE_THREAD_POOL;
     }
+
 }

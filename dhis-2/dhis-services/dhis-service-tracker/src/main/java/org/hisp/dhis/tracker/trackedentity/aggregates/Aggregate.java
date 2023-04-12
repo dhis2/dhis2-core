@@ -25,37 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates;
 
-import lombok.Value;
-import lombok.With;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-@With
-@Value
-public class EnrollmentParams
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
+/**
+ * @author Luciano Fiandesio
+ */
+interface Aggregate
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
-
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    /**
+     * Executes the Supplier asynchronously using the thread pool from the
+     * provided {@see Executor}
+     *
+     * @param condition A condition that, if true, executes the Supplier, if
+     *        false, returns an empty Multimap
+     * @param supplier The Supplier to execute
+     * @param executor an Executor instance
+     *
+     * @return A CompletableFuture with the result of the Supplier
+     */
+    default <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
+        Supplier<Multimap<String, T>> supplier, Executor executor )
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        return (condition ? supplyAsync( supplier, executor ) : supplyAsync( ArrayListMultimap::create, executor ));
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    /**
+     * Executes the Supplier asynchronously using the thread pool from the
+     * provided {@see Executor}
+     *
+     * @param supplier The Supplier to execute
+     *
+     * @return A CompletableFuture with the result of the Supplier
+     */
+    default <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier,
+        Executor executor )
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return supplyAsync( supplier, executor );
     }
+
 }

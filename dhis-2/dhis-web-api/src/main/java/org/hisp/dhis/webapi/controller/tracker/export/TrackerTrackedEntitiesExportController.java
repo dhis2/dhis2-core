@@ -49,7 +49,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -58,6 +57,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
@@ -120,7 +120,7 @@ public class TrackerTrackedEntitiesExportController
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -158,7 +158,7 @@ public class TrackerTrackedEntitiesExportController
         ForbiddenException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -199,7 +199,7 @@ public class TrackerTrackedEntitiesExportController
         throws ForbiddenException,
         NotFoundException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
@@ -215,7 +215,7 @@ public class TrackerTrackedEntitiesExportController
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );

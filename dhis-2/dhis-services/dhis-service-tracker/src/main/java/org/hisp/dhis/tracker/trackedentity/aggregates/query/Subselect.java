@@ -25,37 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.query;
 
-import lombok.Value;
-import lombok.With;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@With
-@Value
-public class EnrollmentParams
+/**
+ * @author Luciano Fiandesio
+ */
+@Getter
+@AllArgsConstructor
+class Subselect implements QueryElement
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    private String query;
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    private String alias;
 
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    @Override
+    public String useInSelect()
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        return query + " as " + alias;
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    @Override
+    public String getResultsetValue()
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return alias;
     }
 }
