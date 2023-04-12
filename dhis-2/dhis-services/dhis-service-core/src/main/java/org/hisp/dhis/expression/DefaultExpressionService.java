@@ -324,6 +324,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
         Collection<Indicator> indicators )
     {
@@ -337,6 +338,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators )
     {
         Set<OrganisationUnitGroup> groups = new HashSet<>();
@@ -370,6 +372,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
         Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
@@ -441,7 +444,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
         try
@@ -553,6 +556,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType )
     {
         return getExpressionOrgUnitGroupIds( expression, parseType ).stream()
