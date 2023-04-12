@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -288,6 +290,24 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonObject userCredentials = response.getObject( "userCredentials" );
         JsonValue id = userCredentials.get( "id" );
         assertTrue( id.exists() );
+    }
+
+    @Test
+    void testNewTwoFAStatusExistsInUserCredentials()
+    {
+        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject userCredentials = response.getObject( "userCredentials" );
+        Boolean twoFA = userCredentials.get( "twoFA" ).as( JsonBoolean.class ).bool();
+        assertFalse( twoFA );
+
+        User user = userService.getUserByUsername( peter.getUsername() );
+        user.setSecret( "secret" );
+        userService.updateUser( user );
+
+        response = GET( "/users/{id}", peter.getUid() ).content();
+        userCredentials = response.getObject( "userCredentials" );
+        twoFA = userCredentials.get( "twoFA" ).as( JsonBoolean.class ).bool();
+        assertTrue( twoFA );
     }
 
     @Test
