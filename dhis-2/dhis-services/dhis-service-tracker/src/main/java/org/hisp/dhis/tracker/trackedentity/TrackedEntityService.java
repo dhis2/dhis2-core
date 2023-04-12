@@ -47,10 +47,20 @@ public interface TrackedEntityService
      * @return {@see TrackedEntityInstance}s
      */
     List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityParams params );
+        TrackedEntityParams params )
+        throws ForbiddenException,
+        NotFoundException;
 
     int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
+
+    TrackedEntityInstance getTrackedEntity( String uid, TrackedEntityParams params )
+        throws NotFoundException,
+        ForbiddenException;
+
+    TrackedEntityInstance getTrackedEntity( TrackedEntityInstance trackedEntity, TrackedEntityParams params )
+        throws NotFoundException,
+        ForbiddenException;
 
     TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
         throws NotFoundException,

@@ -34,12 +34,10 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +89,6 @@ public class DefaultEventService implements EventService
         }
 
         Events events = new Events();
-        List<ProgramStageInstance> eventList = new ArrayList<>();
 
         if ( params.isSkipPaging() )
         {
@@ -100,7 +97,7 @@ public class DefaultEventService implements EventService
         }
 
         Pager pager;
-        eventList.addAll( eventStore.getEvents( params, emptyMap() ) );
+        List<ProgramStageInstance> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
 
         if ( params.isTotalPages() )
         {
@@ -157,14 +154,6 @@ public class DefaultEventService implements EventService
     @Override
     public ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
     {
-        return getEvent( programStageInstance, false, false, eventParams );
-    }
-
-    @Transactional( readOnly = true )
-    @Override
-    public ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, EventParams eventParams )
-    {
         if ( programStageInstance == null )
         {
             return null;
@@ -195,7 +184,7 @@ public class DefaultEventService implements EventService
         event.setProgramInstance( programStageInstance.getProgramInstance() );
         event.setProgramStage( programStageInstance.getProgramStage() );
 
-        List<String> errors = trackerAccessManager.canRead( user, programStageInstance, skipOwnershipCheck );
+        List<String> errors = trackerAccessManager.canRead( user, programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -207,22 +196,7 @@ public class DefaultEventService implements EventService
 
         event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo() );
 
-        Collection<EventDataValue> dataValues;
-        if ( !isSynchronizationQuery )
-        {
-            dataValues = programStageInstance.getEventDataValues();
-        }
-        else
-        {
-            Set<String> dataElementsToSync = programStageInstance.getProgramStage().getProgramStageDataElements()
-                .stream().filter( psde -> !psde.getSkipSynchronization() ).map( psde -> psde.getDataElement().getUid() )
-                .collect( Collectors.toSet() );
-
-            dataValues = programStageInstance.getEventDataValues().stream()
-                .filter( dv -> dataElementsToSync.contains( dv.getDataElement() ) ).collect( Collectors.toSet() );
-        }
-
-        for ( EventDataValue dataValue : dataValues )
+        for ( EventDataValue dataValue : programStageInstance.getEventDataValues() )
         {
             if ( dataElementService.getDataElement( dataValue.getDataElement() ) != null ) // check permissions
             {
@@ -306,7 +280,7 @@ public class DefaultEventService implements EventService
     {
         OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
 
-        String violation = null;
+        String violation;
 
         switch ( selectedOuMode )
         {
@@ -353,7 +327,7 @@ public class DefaultEventService implements EventService
 
     private String getAccessibleScopeValidation( User user, EventSearchParams params )
     {
-        String violation = null;
+        String violation;
 
         if ( user == null )
         {

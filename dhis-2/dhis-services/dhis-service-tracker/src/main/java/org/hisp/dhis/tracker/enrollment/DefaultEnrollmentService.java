@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,6 +51,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -79,15 +81,15 @@ public class DefaultEnrollmentService implements EnrollmentService
         return programInstance != null ? getEnrollment( programInstance, params ) : null;
     }
 
-    private ProgramInstance getEnrollment( ProgramInstance programInstance, EnrollmentParams params )
+    @Override
+    public ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
+        return getEnrollment( currentUserService.getCurrentUser(), enrollment, params );
     }
 
-    private ProgramInstance getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
-        boolean skipOwnershipCheck )
+    private ProgramInstance getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params )
     {
-        List<String> errors = trackerAccessManager.canRead( user, programInstance, skipOwnershipCheck );
+        List<String> errors = trackerAccessManager.canRead( user, programInstance, false );
         if ( !errors.isEmpty() )
         {
             throw new IllegalQueryException( errors.toString() );
@@ -95,7 +97,13 @@ public class DefaultEnrollmentService implements EnrollmentService
 
         ProgramInstance result = new ProgramInstance();
         result.setUid( programInstance.getUid() );
-        result.setEntityInstance( programInstance.getEntityInstance() );
+
+        if ( programInstance.getEntityInstance() != null )
+        {
+            TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+            trackedEntity.setUid( programInstance.getEntityInstance().getUid() );
+            result.setEntityInstance( trackedEntity );
+        }
         result.setOrganisationUnit( programInstance.getOrganisationUnit() );
         result.setGeometry( programInstance.getGeometry() );
         result.setCreated( programInstance.getCreated() );
@@ -152,7 +160,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         {
             Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
                 .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
-            Set<TrackedEntityAttributeValue> attributeValues = new HashSet<>();
+            Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
             for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
                 .getTrackedEntityAttributeValues() )
@@ -171,15 +179,14 @@ public class DefaultEnrollmentService implements EnrollmentService
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
-        List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
 
-        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
-
+        List<ProgramInstance> programInstances = new ArrayList<>(
+            programInstanceService.getProgramInstances( params ) );
         if ( !params.isSkipPaging() )
         {
             Pager pager;
@@ -248,7 +255,7 @@ public class DefaultEnrollmentService implements EnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE ) );
             }
         }
 

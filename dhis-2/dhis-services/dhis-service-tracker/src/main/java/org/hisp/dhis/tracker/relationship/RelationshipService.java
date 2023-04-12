@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.relationship;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -39,13 +41,21 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public interface RelationshipService
 {
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter criteria );
+        PagingAndSortingCriteriaAdapter criteria )
+        throws ForbiddenException,
+        NotFoundException;
 
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter criteria );
+        PagingAndSortingCriteriaAdapter criteria )
+        throws ForbiddenException,
+        NotFoundException;
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+        throws ForbiddenException,
+        NotFoundException;
 
-    Optional<Relationship> findRelationshipByUid( String id );
+    Optional<Relationship> findRelationshipByUid( String id )
+        throws ForbiddenException,
+        NotFoundException;
 }

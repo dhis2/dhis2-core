@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.trackedentity.aggregates.ThreadPoolManager.g
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -123,7 +124,8 @@ public class EnrollmentAggregate
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes() )
                 {
                     enrollment.getEntityInstance()
-                        .setTrackedEntityAttributeValues( new HashSet<>( attributes.get( enrollment.getUid() ) ) );
+                        .setTrackedEntityAttributeValues(
+                            new LinkedHashSet<>( attributes.get( enrollment.getUid() ) ) );
                 }
 
                 enrollment.setComments( new ArrayList<>( notes.get( enrollment.getUid() ) ) );
