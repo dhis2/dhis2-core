@@ -95,6 +95,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1112,7 +1113,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     protected Patch diff( HttpServletRequest request )
         throws IOException,
-        WebMessageException
+        WebMessageException,
+        BadRequestException
     {
         ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
         if ( mapper == null )
