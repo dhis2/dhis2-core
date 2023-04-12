@@ -37,14 +37,12 @@ import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @Setter
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 public class DataIntegrityJobParameters implements JobParameters
 {
     public enum DataIntegrityReportType
@@ -53,8 +51,6 @@ public class DataIntegrityJobParameters implements JobParameters
         SUMMARY,
         DETAILS
     }
-
-    private static final long serialVersionUID = 1073997854310838296L;
 
     @JsonProperty( required = false )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

@@ -30,27 +30,30 @@ package org.hisp.dhis.scheduling.parameters;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.sqlview.SqlView;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+/**
+ * Parameters for the job that updates materialized SQL views.
+ *
+ * @author Jan Bernitt
+ */
+@Getter
+@Setter
 public class SqlViewUpdateParameters implements JobParameters
 {
-    private List<String> sqlViews = new ArrayList<>();
-
+    /**
+     * The UIDs of materialized {@link org.hisp.dhis.sqlview.SqlView}s that
+     * should be updated by the job
+     */
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getSqlViews()
-    {
-        return sqlViews;
-    }
-
-    public void setSqlViews( List<String> sqlViews )
-    {
-        this.sqlViews = sqlViews;
-    }
+    @OpenApi.Property( { UID[].class, SqlView.class } )
+    private List<String> sqlViews = new ArrayList<>();
 }
