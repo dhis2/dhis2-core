@@ -94,13 +94,4 @@ public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
             messageService.sendSystemErrorNotification( "Tracker programs data sync failed", e );
         }
     }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            TrackerProgramsDataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
-    }
 }

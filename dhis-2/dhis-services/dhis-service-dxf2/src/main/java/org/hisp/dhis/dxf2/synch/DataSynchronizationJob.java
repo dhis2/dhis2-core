@@ -95,13 +95,4 @@ public class DataSynchronizationJob extends SynchronizationJob
 
         notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
     }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            DataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
-    }
 }

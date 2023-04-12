@@ -94,13 +94,4 @@ public class EventProgramsDataSynchronizationJob extends SynchronizationJob
             messageService.sendSystemErrorNotification( "Event programs data sync failed", e );
         }
     }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            EventProgramsDataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
-    }
 }

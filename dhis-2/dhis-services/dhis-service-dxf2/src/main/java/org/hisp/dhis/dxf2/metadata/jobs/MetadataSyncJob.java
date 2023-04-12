@@ -161,15 +161,6 @@ public class MetadataSyncJob extends SynchronizationJob
         }
     }
 
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            MetadataSyncJob.class );
-
-        return errorReport.orElse( super.validate() );
-    }
-
     synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
         throws MetadataSyncServiceException,
         DhisVersionMismatchException
