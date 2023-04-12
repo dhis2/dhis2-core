@@ -29,12 +29,9 @@ package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
