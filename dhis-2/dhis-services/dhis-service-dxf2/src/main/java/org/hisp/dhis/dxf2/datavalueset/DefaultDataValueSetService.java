@@ -772,6 +772,7 @@ public class DefaultDataValueSetService
         if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
         {
             importCount.incrementIgnored();
+            context.addRejected( valueContext.getIndex() );
             return;
         }
 
@@ -821,6 +822,7 @@ public class DefaultDataValueSetService
             else
             {
                 importCount.incrementIgnored();
+                context.addRejected( valueContext.getIndex() );
             }
         }
         else
@@ -832,6 +834,7 @@ public class DefaultDataValueSetService
             else
             {
                 importCount.incrementIgnored();
+                context.addRejected( valueContext.getIndex() );
             }
         }
     }
