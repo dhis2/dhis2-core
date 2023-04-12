@@ -130,6 +130,23 @@ class MandatoryFieldsValidatorTest
     }
 
     @Test
+    void shouldFailWhenFromEntitiesSetToNull()
+    {
+        Relationship relationship = Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder().build() )
+            .to( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertMissingProperty( reporter, relationship, "from" );
+    }
+
+    @Test
     void verifyRelationshipValidationFailsOnMissingTo()
     {
         Relationship relationship = Relationship.builder()
@@ -137,6 +154,24 @@ class MandatoryFieldsValidatorTest
             .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
+                .build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertMissingProperty( reporter, relationship, "to" );
+    }
+
+    @Test
+    void shouldFailWhenToEntitiesSetToNull()
+    {
+        Relationship relationship = Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .to( RelationshipItem.builder()
                 .build() )
             .build();
 
