@@ -561,7 +561,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         if ( !prv.getUseCodeForOptionSet() && prv.getDataElement().hasOptionSet() )
         {
             return prv.getDataElement().getOptionSet().getOptions().stream()
-                .map( op -> new Option( op.getName(), op.getCode() ) ).collect( Collectors.toList() );
+                .map( op -> Option.builder().name( op.getName() ).code( op.getCode() ).build() )
+                .collect( Collectors.toList() );
         }
         else
         {
