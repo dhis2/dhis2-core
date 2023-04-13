@@ -46,7 +46,6 @@ public class LinkValidator implements Validator<Relationship>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        validateRelationshipItemsContainOnlyOneEntity( reporter, relationship );
         validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
     }
 
