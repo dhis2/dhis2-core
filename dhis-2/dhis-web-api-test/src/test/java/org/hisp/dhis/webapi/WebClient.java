@@ -180,6 +180,11 @@ public interface WebClient
         return webRequest( patch( url ), ContentType( APPLICATION_JSON_PATCH_UTF8 ), Body( body ) );
     }
 
+    default HttpResponse PATCH_OLD( String url, String body )
+    {
+        return webRequest( patch( url ), ContentType( MediaType.APPLICATION_JSON ), Body( body ) );
+    }
+
     default HttpResponse PUT( String url, Object... args )
     {
         return webRequest( put( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );

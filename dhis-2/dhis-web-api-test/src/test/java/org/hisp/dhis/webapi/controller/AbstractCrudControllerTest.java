@@ -120,6 +120,13 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testPartialUpdateObjectNestedObjects()
+    {
+        assertStatus( HttpStatus.BAD_REQUEST, PATCH_OLD( "/users/" + "M5zQapPyTZI",
+            "{'user': {'surname' : 'Peter'}}" ) );
+    }
+
+    @Test
     public void replaceTranslationsForNotTranslatableObject()
     {
         String id = getCurrentUser().getUid();
