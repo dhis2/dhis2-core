@@ -181,6 +181,11 @@ public interface WebClient
         return webRequest( HttpMethod.PATCH, url, ContentType( APPLICATION_JSON_PATCH_UTF8 ), Body( body ) );
     }
 
+    default HttpResponse PATCH_OLD( String url, String body )
+    {
+        return webRequest( HttpMethod.PATCH, url, ContentType( APPLICATION_JSON_UTF8 ), Body( body ) );
+    }
+
     default HttpResponse PUT( String url, Object... args )
     {
         return webRequest( HttpMethod.PUT, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
