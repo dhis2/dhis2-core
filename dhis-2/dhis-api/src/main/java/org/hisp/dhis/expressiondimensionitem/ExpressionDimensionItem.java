@@ -174,7 +174,7 @@ public class ExpressionDimensionItem
     }
 
     /**
-     * Converts the current object to {@Indicator}.
+     * Converts the current object to {@link Indicator}.
      *
      * @return the {@link Indicator} object.
      */
