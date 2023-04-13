@@ -25,37 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.query;
 
-import lombok.Value;
-import lombok.With;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@With
-@Value
-public class EnrollmentParams
+/**
+ * @author Luciano Fiandesio
+ */
+@Getter
+@AllArgsConstructor
+class TableColumn implements QueryElement
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    private String prefix;
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    private String column;
 
-    EnrollmentEventsParams enrollmentEventsParams;
+    private String alias;
 
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    public TableColumn( String prefix, String column )
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        this.prefix = prefix;
+        this.column = column;
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    @Override
+    public String useInSelect()
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return prefix + "." + column + (alias == null ? "" : " as " + alias);
+    }
+
+    @Override
+    public String getResultsetValue()
+    {
+        return alias == null ? column : alias;
     }
 }
