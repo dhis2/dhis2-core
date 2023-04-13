@@ -32,21 +32,20 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.EnrollmentStatus;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    UserMapper.class,
+    AttributeMapper.class,
+    DataValueMapper.class,
     InstantMapper.class,
+    NoteMapper.class,
+    ProgramOwnerMapper.class,
+    UserMapper.class,
 } )
 interface RelationshipItemMapper
     extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
@@ -120,26 +119,6 @@ interface RelationshipItemMapper
     @Mapping( target = "displayName", source = "name" )
     User from( org.hisp.dhis.user.User user );
 
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
-
-    @Mapping( target = "note", source = "uid" )
-    @Mapping( target = "storedAt", source = "created" )
-    @Mapping( target = "value", source = "commentText" )
-    @Mapping( target = "createdBy", source = "lastUpdatedBy" )
-    @Mapping( target = "storedBy", source = "creator" )
-    Note from( org.hisp.dhis.trackedentitycomment.TrackedEntityComment comment );
-
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
-    @Mapping( target = "program", source = "program.uid" )
-    ProgramOwner from( TrackedEntityProgramOwner trackedEntityProgramOwner );
-
     // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
     // we could not simply export the UIDs.
     default String from( Set<CategoryOption> categoryOptions )
@@ -153,10 +132,4 @@ interface RelationshipItemMapper
             .map( CategoryOption::getUid )
             .collect( Collectors.joining( ";" ) );
     }
-
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
 }

@@ -25,37 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import lombok.Value;
-import lombok.With;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-@With
-@Value
-public class EnrollmentParams
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class NoteRowCallbackHandler
+    extends
+    AbstractMapper<TrackedEntityComment>
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
-
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    @Override
+    TrackedEntityComment getItem( ResultSet rs )
+        throws SQLException
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        return getNote( rs );
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    @Override
+    String getKeyColumn()
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return "key";
+    }
+
+    private TrackedEntityComment getNote( ResultSet rs )
+        throws SQLException
+    {
+        TrackedEntityComment note = new TrackedEntityComment();
+        note.setUid( rs.getString( "uid" ) );
+        note.setCommentText( rs.getString( "commenttext" ) );
+        note.setCreator( rs.getString( "creator" ) );
+        note.setCreated( rs.getDate( "created" ) );
+        return note;
     }
 }

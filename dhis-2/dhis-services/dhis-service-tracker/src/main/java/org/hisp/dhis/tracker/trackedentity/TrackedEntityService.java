@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.trackedentity;
 
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -42,18 +41,18 @@ public interface TrackedEntityService
      *
      * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
      *        with the query parameters
-     * @param params a {@see TrackedEntityInstanceParams} instance containing
-     *        the directives for how much data should be fetched (e.g.
-     *        Enrollments, Events, Relationships)
+     * @param params a {@see TrackedEntityParams} instance containing the
+     *        directives for how much data should be fetched (e.g. Enrollments,
+     *        Events, Relationships)
      * @return {@see TrackedEntityInstance}s
      */
     List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params );
+        TrackedEntityParams params );
 
     int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
-    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityInstanceParams params )
+    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 }
