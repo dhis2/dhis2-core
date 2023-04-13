@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.aggregates;
+package org.hisp.dhis.tracker.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
+import static org.hisp.dhis.tracker.trackedentity.aggregates.ThreadPoolManager.getPool;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,22 +49,21 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.store.AclStore;
-import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -75,19 +74,21 @@ import com.google.common.collect.Multimap;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityInstanceAggregate
-    extends
-    AbstractAggregate
+public class TrackedEntityAggregate
+    implements
+    Aggregate
 {
     @Nonnull
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityStore trackedEntityStore;
 
+    @Qualifier( "org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate" )
     @Nonnull
     private final EnrollmentAggregate enrollmentAggregate;
 
     @Nonnull
     private final CurrentUserService currentUserService;
 
+    @Qualifier( "org.hisp.dhis.tracker.trackedentity.aggregates.AclStore" )
     @Nonnull
     private final AclStore aclStore;
 
@@ -103,7 +104,7 @@ public class TrackedEntityInstanceAggregate
 
     private Cache<List<String>> userGroupUIDCache;
 
-    private Cache<AggregateContext> securityCache;
+    private Cache<Context> securityCache;
 
     @PostConstruct
     protected void init()
@@ -111,7 +112,7 @@ public class TrackedEntityInstanceAggregate
         teiAttributesCache = cacheProvider.createTeiAttributesCache();
         programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
         userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
-        securityCache = cacheProvider.createOldTrackerSecurityCache();
+        securityCache = cacheProvider.createSecurityCache();
     }
 
     /**
@@ -119,11 +120,11 @@ public class TrackedEntityInstanceAggregate
      * primary keys and search parameters
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
-     * @param params an instance of {@see TrackedEntityInstanceParams}
+     * @param params an instance of {@see TrackedEntityParams}
      *
      * @return a List of {@see TrackedEntityInstance} objects
      */
-    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
+    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityParams params,
         TrackedEntityInstanceQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
@@ -133,7 +134,7 @@ public class TrackedEntityInstanceAggregate
                 && !CollectionUtils.isEmpty( user.get().getGroups() ) )
             {
                 userGroupUIDCache.put( user.get().getUid(),
-                    user.get().getGroups().stream().map( IdentifiableObject::getUid )
+                    user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
                         .collect( Collectors.toList() ) );
             }
         } );
@@ -142,7 +143,7 @@ public class TrackedEntityInstanceAggregate
          * Create a context with information which will be used to fetch the
          * entities. Use a superUser context if the user is null.
          */
-        AggregateContext ctx = user.map( u -> securityCache.get( u.getUid(),
+        Context ctx = user.map( u -> securityCache.get( u.getUid(),
             userUID -> getSecurityContext( userUID, userGroupUIDCache.get( userUID )
                 .orElse( Lists.newArrayList() ) ) )
             .toBuilder()
@@ -151,7 +152,7 @@ public class TrackedEntityInstanceAggregate
             .userGroups( userGroupUIDCache.get( u.getUid() )
                 .orElse( Collections.emptyList() ) )
             .superUser( u.isSuper() ) )
-            .orElse( new AggregateContext.AggregateContextBuilder()
+            .orElse( new Context.ContextBuilder()
                 .superUser( true )
                 .trackedEntityTypes( Collections.emptyList() )
                 .programs( Collections.emptyList() )
@@ -165,37 +166,37 @@ public class TrackedEntityInstanceAggregate
          * Async fetch Relationships for the given TrackedEntityInstance id
          * (only if isIncludeRelationships = true)
          */
-        final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids, ctx ),
+        final CompletableFuture<Multimap<String, RelationshipItem>> relationshipsAsync = conditionalAsyncFetch(
+            ctx.getParams().isIncludeRelationships(), () -> trackedEntityStore.getRelationships( ids, ctx ),
             getPool() );
 
         /*
          * Async fetch Enrollments for the given TrackedEntityInstance id (only
          * if isIncludeEnrollments = true)
          */
-        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
+        final CompletableFuture<Multimap<String, ProgramInstance>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntityInstance id
          */
-        final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ),
+        final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
+            ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityStore.getProgramOwners( ids ),
             getPool() );
 
         /*
          * Async Fetch TrackedEntityInstances by id
          */
         final CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, ctx ), getPool() );
+            () -> trackedEntityStore.getTrackedEntityInstances( ids, ctx ), getPool() );
 
         /*
          * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
          * id
          */
-        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getAttributes( ids ), getPool() );
+        final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync = supplyAsync(
+            () -> trackedEntityStore.getAttributes( ids ), getPool() );
 
         /*
          * Async fetch Owned Tei mapped to the provided program attributes by
@@ -203,7 +204,7 @@ public class TrackedEntityInstanceAggregate
          */
         final CompletableFuture<Multimap<String, String>> ownedTeiAsync = conditionalAsyncFetch(
             user.isPresent(),
-            () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ), getPool() );
+            () -> trackedEntityStore.getOwnedTeis( ids, ctx ), getPool() );
 
         /*
          * Execute all queries and merge the results
@@ -213,10 +214,10 @@ public class TrackedEntityInstanceAggregate
 
                 Map<String, TrackedEntityInstance> teis = teisAsync.join();
 
-                Multimap<String, Attribute> attributes = attributesAsync.join();
-                Multimap<String, Relationship> relationships = relationshipsAsync.join();
-                Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-                Multimap<String, ProgramOwner> programOwners = programOwnersAsync.join();
+                Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+                Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
+                Multimap<String, ProgramInstance> enrollments = enrollmentsAsync.join();
+                Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
                 Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
                 Stream<String> teiUidStream = teis.keySet().parallelStream();
@@ -229,7 +230,7 @@ public class TrackedEntityInstanceAggregate
                 return teiUidStream.map( uid -> {
 
                     TrackedEntityInstance tei = teis.get( uid );
-                    tei.setAttributes( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
+                    tei.setTrackedEntityAttributeValues( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
                         teiAttributesCache
                             .get( "ALL_ATTRIBUTES",
                                 s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() ),
@@ -237,9 +238,9 @@ public class TrackedEntityInstanceAggregate
                             .get( "ATTRIBUTES_BY_PROGRAM",
                                 s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() ),
                         ctx ) );
-                    tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
-                    tei.setEnrollments( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
-                    tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
+                    tei.setRelationshipItems( new HashSet<>( relationships.get( uid ) ) );
+                    tei.setProgramInstances( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
+                    tei.setProgramOwners( new HashSet<>( programOwners.get( uid ) ) );
                     return tei;
 
                 } ).collect( Collectors.toList() );
@@ -251,10 +252,11 @@ public class TrackedEntityInstanceAggregate
      * Filter enrollments based on ownership and super user status.
      *
      */
-    private List<Enrollment> filterEnrollments( Collection<Enrollment> enrollments, Collection<String> programs,
-        AggregateContext ctx )
+    private Set<ProgramInstance> filterEnrollments( Collection<ProgramInstance> enrollments,
+        Collection<String> programs,
+        Context ctx )
     {
-        List<Enrollment> enrollmentList = new ArrayList<>();
+        Set<ProgramInstance> enrollmentList = new HashSet<>();
 
         if ( enrollments.isEmpty() )
         {
@@ -262,20 +264,22 @@ public class TrackedEntityInstanceAggregate
         }
 
         enrollmentList.addAll( enrollments.stream()
-            .filter( e -> (programs.contains( e.getProgram() ) || ctx.isSuperUser()) ).collect( Collectors.toList() ) );
+            .filter( e -> (programs.contains( e.getProgram().getUid() ) || ctx.isSuperUser()) )
+            .collect( Collectors.toList() ) );
 
         return enrollmentList;
     }
 
     /**
-     * Filter attributes based on queryParams, ownership and super user status
+     * Filter attributes based on queryParams, ownership and superuser status
      *
      */
-    private List<Attribute> filterAttributes( Collection<Attribute> attributes, Collection<String> programs,
+    private Set<TrackedEntityAttributeValue> filterAttributes( Collection<TrackedEntityAttributeValue> attributes,
+        Collection<String> programs,
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
-        AggregateContext ctx )
+        Context ctx )
     {
-        List<Attribute> attributeList = new ArrayList<>();
+        Set<TrackedEntityAttributeValue> attributeList = new HashSet<>();
 
         // Nothing to filter from, return empty
         if ( attributes.isEmpty() )
@@ -283,27 +287,24 @@ public class TrackedEntityInstanceAggregate
             return attributeList;
         }
 
-        // Add all tet attributes. Conditionally filter out the ones marked for
-        // skipSynchronization in case this is a dataSynchronization query
+        // Add all tet attributes
         Set<String> allowedAttributeUids = trackedEntityTypeAttributes.stream()
-            .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-            .map( IdentifiableObject::getUid )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        for ( Program program : teaByProgram.keySet() )
+        for ( Map.Entry<Program, Set<TrackedEntityAttribute>> entry : teaByProgram.entrySet() )
         {
-            if ( programs.contains( program.getUid() ) || ctx.isSuperUser() )
+            if ( programs.contains( entry.getKey().getUid() ) || ctx.isSuperUser() )
             {
-                allowedAttributeUids.addAll( teaByProgram.get( program ).stream()
-                    .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-                    .map( IdentifiableObject::getUid )
+                allowedAttributeUids.addAll( entry.getValue().stream()
+                    .map( BaseIdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) );
             }
         }
 
-        for ( Attribute attributeValue : attributes )
+        for ( TrackedEntityAttributeValue attributeValue : attributes )
         {
-            if ( allowedAttributeUids.contains( attributeValue.getAttribute() ) )
+            if ( allowedAttributeUids.contains( attributeValue.getAttribute().getUid() ) )
             {
                 attributeList.add( attributeValue );
             }
@@ -313,8 +314,7 @@ public class TrackedEntityInstanceAggregate
     }
 
     /**
-     * Fetch security related information and add them to the
-     * {@see AggregateContext}
+     * Fetch security related information and add them to the {@see Context}
      *
      * - all Tracked Entity Instance Types this user has READ access to
      *
@@ -326,10 +326,9 @@ public class TrackedEntityInstanceAggregate
      *
      * @param userUID the user uid of a {@see User}
      *
-     * @return an instance of {@see AggregateContext} populated with ACL-related
-     *         info
+     * @return an instance of {@see Context} populated with ACL-related info
      */
-    private AggregateContext getSecurityContext( String userUID, List<String> userGroupUIDs )
+    private Context getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
             () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userUID, userGroupUIDs ), getPool() );
@@ -345,7 +344,7 @@ public class TrackedEntityInstanceAggregate
             () -> aclStore.getAccessibleRelationshipTypes( userUID, userGroupUIDs ), getPool() );
 
         return allOf( getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes ).thenApplyAsync(
-            fn -> AggregateContext.builder()
+            fn -> Context.builder()
                 .trackedEntityTypes( getTeiTypes.join() )
                 .programs( getPrograms.join() )
                 .programStages( getProgramStages.join() )

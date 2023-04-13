@@ -25,18 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.hisp.dhis.tracker.trackedentity.aggregates.query.ProgramAttributeQuery.COLUMNS.PI_UID;
+import static org.hisp.dhis.tracker.trackedentity.aggregates.query.ProgramAttributeQuery.getColumnName;
 
-@Mapper
-public interface Dxf2ProgramOwnerMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+
+public class ProgramAttributeRowCallbackHandler
+    extends
+    AbstractMapper<TrackedEntityAttributeValue>
+    implements AttributeMapper
 {
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Override
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+    TrackedEntityAttributeValue getItem( ResultSet rs )
+        throws SQLException
+    {
+        return getAttribute( rs );
+    }
+
+    @Override
+    String getKeyColumn()
+    {
+        return getColumnName( PI_UID );
+    }
 }

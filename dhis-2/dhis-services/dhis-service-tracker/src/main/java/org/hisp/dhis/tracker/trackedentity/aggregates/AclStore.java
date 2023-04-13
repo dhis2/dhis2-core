@@ -25,37 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates;
 
-import lombok.Value;
-import lombok.With;
+import java.util.List;
 
-@With
-@Value
-public class EnrollmentParams
+/**
+ * @author Luciano Fiandesio
+ */
+public interface AclStore
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs );
 
-    EnrollmentEventsParams enrollmentEventsParams;
+    List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs );
 
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
-    {
-        return enrollmentEventsParams.isIncludeEvents();
-    }
-
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
-    }
+    List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs );
 }

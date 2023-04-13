@@ -25,37 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import lombok.Value;
-import lombok.With;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-@With
-@Value
-public class EnrollmentParams
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class ProgramOwnerRowCallbackHandler
+    extends
+    AbstractMapper<TrackedEntityProgramOwner>
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    @Override
+    TrackedEntityProgramOwner getItem( ResultSet rs )
+        throws SQLException
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        return getProgramOwner( rs );
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    @Override
+    String getKeyColumn()
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        return "key";
+    }
+
+    private TrackedEntityProgramOwner getProgramOwner( ResultSet rs )
+        throws SQLException
+    {
+        TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
+
+        OrganisationUnit orgUnit = new OrganisationUnit();
+        orgUnit.setUid( rs.getString( "ouuid" ) );
+        programOwner.setOrganisationUnit( orgUnit );
+
+        Program program = new Program();
+        program.setUid( rs.getString( "prguid" ) );
+        programOwner.setProgram( program );
+
+        TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+        trackedEntity.setUid( rs.getString( "key" ) );
+        programOwner.setEntityInstance( trackedEntity );
+
+        return programOwner;
     }
 }

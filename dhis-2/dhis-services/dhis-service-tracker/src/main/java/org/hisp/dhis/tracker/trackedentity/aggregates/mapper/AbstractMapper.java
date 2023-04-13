@@ -25,37 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.enrollment;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import lombok.Value;
-import lombok.With;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-@With
-@Value
-public class EnrollmentParams
+import org.springframework.jdbc.core.RowCallbackHandler;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public abstract class AbstractMapper<T>
+    implements
+    RowCallbackHandler
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    Multimap<String, T> items;
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
-
-    EnrollmentEventsParams enrollmentEventsParams;
-
-    boolean includeRelationships;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    public boolean isIncludeEvents()
+    protected AbstractMapper()
     {
-        return enrollmentEventsParams.isIncludeEvents();
+        this.items = ArrayListMultimap.create();
     }
 
-    public EnrollmentParams withIncludeEvents( boolean includeEvents )
+    @Override
+    public void processRow( ResultSet rs )
+        throws SQLException
     {
-        return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
-            : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+        this.items.put( rs.getString( getKeyColumn() ), getItem( rs ) );
     }
+
+    abstract T getItem( ResultSet rs )
+        throws SQLException;
+
+    public Multimap<String, T> getItems()
+    {
+        return this.items;
+    }
+
+    abstract String getKeyColumn();
 }
