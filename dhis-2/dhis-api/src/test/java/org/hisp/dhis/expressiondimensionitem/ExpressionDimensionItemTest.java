@@ -59,10 +59,11 @@ class ExpressionDimensionItemTest
         assertEquals( "anyCode", indicator.getCode() );
         assertEquals( "anyName", indicator.getName() );
         assertEquals( "#{R4KStuS8qt7.LbkJRbDblhe} / #{o0fOD1HLuv8.LbkJRbDblhe}", indicator.getNumerator() );
-        assertNull( indicator.getDescription() );
         assertEquals( "1", indicator.getDenominator() );
+        assertEquals( 1, indicator.getIndicatorType().getFactor() );
+        assertNull( indicator.getDescription() );
+        assertNull( indicator.getDecimals() );
         assertFalse( indicator.isAnnualized() );
         assertTrue( indicator.getIndicatorType().isNumber() );
-        assertEquals( 1, indicator.getIndicatorType().getFactor() );
     }
 }
